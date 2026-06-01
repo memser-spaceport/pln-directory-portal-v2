@@ -3,17 +3,12 @@ export type FounderStatus = 'new' | 'in-review' | 'approved' | 'rejected' | 'hol
 export type ReviewFeedback = 'good' | 'bad' | 'wrong-fund' | 'needs-context';
 
 export type FounderReviewState = {
+  profile_id?: string;
   status: FounderStatus;
   feedback?: ReviewFeedback;
   note?: string;
   reviewedAt?: string;
   reviewedBy?: string;
-};
-
-export type FounderSource = {
-  name: string;
-  url?: string;
-  confidence?: number;
 };
 
 // The API may return fund_tags as plain strings or enriched objects
@@ -28,22 +23,55 @@ export function getFundTag(tag: FundTag | FundTagObject): FundTag {
   return typeof tag === 'string' ? tag : tag.fund;
 }
 
+export type ProvenanceItem = {
+  url: string;
+  source: string;
+  fetched_at?: string;
+  matched_anchors?: string[];
+  match_confidence?: number;
+};
+
+export type WarmIntroPath = {
+  via: string;
+  via_display: string;
+  kind: string;
+  source: string;
+  distance: number;
+  evidence: string;
+};
+
+export type PlvsFeatures = {
+  recency?: number;
+  stageFit?: number;
+  trajectory?: number;
+  domainMatch?: number;
+  corroboration?: number;
+  technicalDepth?: number;
+};
+
+export type RawQuality = {
+  accuracy?: number;
+  validity?: number;
+  freshness?: number;
+  uniqueness?: number;
+  consistency?: number;
+  completeness?: number;
+};
+
 export type FounderRawPayload = {
   fund_tags?: (FundTag | FundTagObject)[];
-  provenance?: FounderSource[];
-  quality?: {
-    signal_strength?: number;
-    evidence_count?: number;
-    thin_evidence?: boolean;
-  };
-  network?: {
-    warm_intros?: string[];
-    intent_signals?: string[];
-  };
-  reputation?: {
-    flags?: string[];
-  };
-  ic_framework?: Record<string, string | number | boolean>;
+  provenance?: ProvenanceItem[];
+  quality?: RawQuality;
+  warm_intro_paths?: WarmIntroPath[];
+  plvs_features?: PlvsFeatures;
+  external_ids?: Record<string, string>;
+  verification_status?: string;
+  verification_rationale?: string[];
+  plvs_recommendation?: string;
+  plvs_weights_version?: string;
+  is_known?: boolean;
+  // pass-through fields also on the top-level item
+  [key: string]: unknown;
 };
 
 export type LabOsProfileRef = {
@@ -57,17 +85,41 @@ export type LabOsProfileRef = {
 export type FounderItem = {
   founderId: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   whyNow?: string;
   alignmentMax?: number;
   plvsScore?: number;
+  plvsRecommendation?: string;
+  plnProximity?: number;
   sources: string[];
   reviewState: FounderReviewState;
   directoryMemberId?: string;
+  directoryTeamId?: string;
   labOsProfile?: LabOsProfileRef;
   rawPayload: FounderRawPayload;
 };
 
-export type FounderDetail = FounderItem;
+export type FounderDetail = FounderItem & {
+  dedupeKey?: string;
+  source?: string;
+  primaryEmail?: string | null;
+  github?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  telegram?: string | null;
+  farcaster?: string | null;
+  website?: string | null;
+  org?: string | null;
+  team?: string | null;
+  bio?: string | null;
+  topics?: string[];
+  thinEvidence?: boolean | null;
+  lastSignalAt?: string | null;
+  plAlignment?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export type FounderListResponse = {
   page: number;

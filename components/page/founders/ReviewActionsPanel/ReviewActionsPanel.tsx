@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import clsx from 'clsx';
+import RadioButton from '@/components/form/radio-button';
+import SingleSelect from '@/components/form/single-select';
+import TextArea from '@/components/form/text-area';
 import { useReviewFounder } from '@/services/founders/hooks/useReviewFounder';
 import {
   FOUNDER_STATUS_LABEL,
@@ -13,6 +15,11 @@ import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './ReviewActionsPanel.module.scss';
 
 const REVIEW_STATUS_OPTIONS: FounderStatus[] = ['approved', 'rejected', 'hold', 'wrong-fund'];
+
+const FEEDBACK_OPTIONS = [
+  { value: '', label: 'No feedback' },
+  ...REVIEW_FEEDBACK_VALUES.map((v) => ({ value: v, label: REVIEW_FEEDBACK_LABEL[v] })),
+];
 
 interface Props {
   founderId: string;
@@ -27,6 +34,8 @@ export function ReviewActionsPanel({ founderId, currentStatus }: Props) {
   const { mutate, isPending } = useReviewFounder();
   const analytics = useFoundersAnalytics();
 
+  const selectedFeedbackOption = FEEDBACK_OPTIONS.find((o) => o.value === feedback) ?? FEEDBACK_OPTIONS[0];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     mutate(
@@ -39,12 +48,8 @@ export function ReviewActionsPanel({ founderId, currentStatus }: Props) {
         },
       },
       {
-        onSuccess: () => {
-          analytics.onReviewSubmitted(founderId, status, !!feedback, !!note.trim());
-        },
-        onError: () => {
-          analytics.onReviewFailed(founderId);
-        },
+        onSuccess: () => analytics.onReviewSubmitted(founderId, status, !!feedback, !!note.trim()),
+        onError: () => analytics.onReviewFailed(founderId),
       },
     );
   };
@@ -53,49 +58,38 @@ export function ReviewActionsPanel({ founderId, currentStatus }: Props) {
     <form className={s.form} onSubmit={handleSubmit}>
       <div className={s.field}>
         <label className={s.label}>Decision *</label>
-        <div className={s.radioGroup}>
-          {REVIEW_STATUS_OPTIONS.map((opt) => (
-            <label key={opt} className={clsx(s.radioOption, status === opt && s.radioOptionSelected)}>
-              <input
-                type="radio"
-                name="review-status"
-                value={opt}
-                checked={status === opt}
-                onChange={() => setStatus(opt)}
-              />
-              <span>{FOUNDER_STATUS_LABEL[opt]}</span>
-            </label>
-          ))}
-        </div>
+        <RadioButton
+          name="review-status"
+          options={REVIEW_STATUS_OPTIONS.map((v) => ({ value: v, label: FOUNDER_STATUS_LABEL[v] }))}
+          selectedValue={status}
+          onChange={(v) => setStatus(v as FounderStatus)}
+        />
       </div>
 
       <div className={s.field}>
         <label className={s.label}>Feedback (optional)</label>
-        <select
-          className={s.select}
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value as ReviewFeedback | '')}
-        >
-          <option value="">No feedback</option>
-          {REVIEW_FEEDBACK_VALUES.map((v) => (
-            <option key={v} value={v}>
-              {REVIEW_FEEDBACK_LABEL[v]}
-            </option>
-          ))}
-        </select>
+        <SingleSelect
+          id="review-feedback"
+          uniqueKey="value"
+          displayKey="label"
+          arrowImgUrl="/icons/arrow-down.svg"
+          options={FEEDBACK_OPTIONS}
+          selectedOption={selectedFeedbackOption}
+          onItemSelect={(item) => setFeedback((item?.value as ReviewFeedback) || '')}
+          placeholder="No feedback"
+        />
       </div>
 
       <div className={s.field}>
         <label className={s.label}>Note (optional)</label>
-        <textarea
-          className={s.textarea}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+        <TextArea
+          id="review-note"
+          name="review-note"
           placeholder="Add a note for the team…"
           maxLength={500}
-          rows={3}
+          onChange={(e) => setNote(e.target.value)}
+          defaultValue=""
         />
-        <span className={s.charCount}>{note.length}/500</span>
       </div>
 
       <button type="submit" className={s.submitBtn} disabled={isPending}>

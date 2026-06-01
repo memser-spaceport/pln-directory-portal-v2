@@ -16,8 +16,20 @@ export type FounderSource = {
   confidence?: number;
 };
 
+// The API may return fund_tags as plain strings or enriched objects
+export type FundTagObject = {
+  fund: FundTag;
+  confidence?: number;
+  matched_terms?: string[];
+  primary_signal?: string;
+};
+
+export function getFundTag(tag: FundTag | FundTagObject): FundTag {
+  return typeof tag === 'string' ? tag : tag.fund;
+}
+
 export type FounderRawPayload = {
-  fund_tags?: FundTag[];
+  fund_tags?: (FundTag | FundTagObject)[];
   provenance?: FounderSource[];
   quality?: {
     signal_strength?: number;

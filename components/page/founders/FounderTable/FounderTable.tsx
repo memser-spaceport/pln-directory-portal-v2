@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type { FounderItem } from '@/services/founders/types';
+import { getFundTag } from '@/services/founders/types';
 import { LabOsBadge } from '@/components/page/investors/LabOsBadge/LabOsBadge';
 import { FounderReviewStateBadge } from '../FounderReviewStateBadge/FounderReviewStateBadge';
 import { FUND_LABEL } from '@/services/founders/constants';
@@ -61,11 +62,14 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
           if (!tags.length) return <span className={s.muted}>—</span>;
           return (
             <div className={s.tagRow}>
-              {tags.map((t) => (
-                <span key={t} className={s.fundTag}>
-                  {FUND_LABEL[t] ?? t}
-                </span>
-              ))}
+              {tags.map((t, i) => {
+                const key = getFundTag(t);
+                return (
+                  <span key={`${key}-${i}`} className={s.fundTag}>
+                    {FUND_LABEL[key] ?? key}
+                  </span>
+                );
+              })}
             </div>
           );
         },

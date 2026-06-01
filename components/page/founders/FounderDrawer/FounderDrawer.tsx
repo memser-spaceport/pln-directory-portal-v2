@@ -7,6 +7,7 @@ import { LabOsBadge } from '@/components/page/investors/LabOsBadge/LabOsBadge';
 import { FounderReviewStateBadge } from '../FounderReviewStateBadge/FounderReviewStateBadge';
 import { ReviewActionsPanel } from '../ReviewActionsPanel/ReviewActionsPanel';
 import { FUND_LABEL } from '@/services/founders/constants';
+import { getFundTag } from '@/services/founders/types';
 import s from './FounderDrawer.module.scss';
 
 interface Props {
@@ -51,9 +52,10 @@ export default function FounderDrawer({ founderId, onClose, canEdit }: Props) {
             </div>
             <div className={s.pillRow}>
               <FounderReviewStateBadge status={founder.reviewState.status} />
-              {(founder.rawPayload?.fund_tags ?? []).map((t) => (
-                <span key={t} className={s.fundPill}>{FUND_LABEL[t] ?? t}</span>
-              ))}
+              {(founder.rawPayload?.fund_tags ?? []).map((t, i) => {
+                const key = getFundTag(t);
+                return <span key={`${key}-${i}`} className={s.fundPill}>{FUND_LABEL[key] ?? key}</span>;
+              })}
               {founder.labOsProfile && (
                 <LabOsBadge profile={founder.labOsProfile as never} variant="chip" />
               )}

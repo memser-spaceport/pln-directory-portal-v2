@@ -1,41 +1,51 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 0;
   flex: 1;
+  gap: 24px;
 }
 
-.toolbar {
+.actionBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 48px;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
-.toolbarLeft {
+.actionBarLeft {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  height: 100%;
 }
 
-.toolbarRight {
+.actionBarRight {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 0;
+  flex-shrink: 0;
 }
 
-.count {
+.countLabel {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
-  color: #6b7280;
   font-weight: 500;
+  color: #94a3b8;
+  padding: 10px 8px;
+}
+
+.error {
+  padding: 32px 48px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #b91c1c;
 }
 
 .empty {
-  padding: 48px 16px;
+  padding: 48px;
   text-align: center;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -66,14 +76,15 @@
 .paginationWrapper {
   display: flex;
   justify-content: center;
-  padding: 16px;
-  border-top: 1px solid #e5e7eb;
 }
 
-.error {
-  padding: 32px;
-  text-align: center;
-  color: #9ca3af;
+.footer {
+  padding: 10px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.footerCount {
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
+  color: #94a3b8;
 }

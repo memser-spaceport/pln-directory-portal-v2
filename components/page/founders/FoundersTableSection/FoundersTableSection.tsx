@@ -43,6 +43,7 @@ function hasActiveFilters(filters: Filters): boolean {
 
 export default function FoundersTableSection({ filters, setFilters, canView }: Props) {
   const analytics = useFoundersAnalytics();
+
   const params: FounderListParams = useMemo(
     () => ({
       q: filters.q || undefined,
@@ -92,13 +93,13 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
 
   return (
     <div className={s.root}>
-      <div className={s.toolbar}>
-        <div className={s.toolbarLeft}>
-          <span className={s.count}>
+      <div className={s.actionBar}>
+        <div className={s.actionBarLeft}>
+          <span className={s.countLabel}>
             {total > 0 ? `${total.toLocaleString()} founders` : isLoading ? '' : '0 founders'}
           </span>
         </div>
-        <div className={s.toolbarRight}>
+        <div className={s.actionBarRight}>
           <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
         </div>
       </div>
@@ -119,11 +120,17 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
         </div>
       )}
 
-      {!isLoading && founders.length === 0 && !filtersActive && total === 0 && data && (
+      {!isLoading && founders.length === 0 && !filtersActive && data && (
         <div className={s.empty}>
           <p>No founders found.</p>
         </div>
       )}
+
+      <div className={s.footer}>
+        <span className={s.footerCount}>
+          {total > 0 ? `${total.toLocaleString()} founders total` : ''}
+        </span>
+      </div>
 
       {totalPages > 1 && (
         <div className={s.paginationWrapper}>

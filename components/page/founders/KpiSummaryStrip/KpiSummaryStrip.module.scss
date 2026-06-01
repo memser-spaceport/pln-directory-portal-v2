@@ -1,0 +1,71 @@
+.strip {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  background: #fafafa;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 100px;
+}
+
+.cardSkeleton {
+  height: 62px;
+  min-width: 100px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.cardLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #9ca3af;
+  font-family: 'Inter', sans-serif;
+}
+
+.cardValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+}
+
+.cardSub {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+}
+
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+  padding-top: 4px;
+}
+
+.sparkBar {
+  width: 12px;
+  background: #1b4dff;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.7;
+  min-height: 4px;
+}

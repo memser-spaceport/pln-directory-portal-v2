@@ -18,18 +18,6 @@ interface Props {
   isLoading?: boolean;
 }
 
-function AlignmentBar({ value }: { value?: number }) {
-  if (value === undefined || value === null) return <span className={s.muted}>—</span>;
-  const pct = Math.round(value * 100);
-  return (
-    <div className={s.alignmentCell}>
-      <div className={s.alignmentBar}>
-        <div className={s.alignmentFill} style={{ width: `${pct}%` }} />
-      </div>
-      <span className={s.alignmentLabel}>{(value).toFixed(2)}</span>
-    </div>
-  );
-}
 
 export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading }: Props) {
   const analytics = useFoundersAnalytics();
@@ -77,7 +65,10 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
       {
         id: 'alignmentMax',
         header: 'Alignment',
-        cell: ({ row }) => <AlignmentBar value={row.original.alignmentMax} />,
+        cell: ({ row }) => {
+          const v = row.original.alignmentMax;
+          return v !== undefined && v !== null ? <span>{v.toFixed(2)}</span> : <span className={s.muted}>—</span>;
+        },
       },
       {
         id: 'plvsScore',

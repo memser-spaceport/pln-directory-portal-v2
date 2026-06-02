@@ -21,10 +21,8 @@ function DemoDayPrepPage(props: { params: Promise<{ demoDayId: string }> }) {
   const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
   const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
-  // User can view the prep page if they have admin access, read-only admin access, OR are a founder
-  const hasAccess =
-    (data?.status === 'COMPLETED' ? isDirectoryAdmin : isDirectoryAdmin || data?.access === 'FOUNDER') ||
-    data?.isDemoDayAdmin;
+  // User can view the prep page if they have admin/read-only admin access, OR are a founder (non-completed)
+  const hasAccess = hasAdminAccess || (data?.status !== 'COMPLETED' && data?.access === 'FOUNDER');
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
@@ -44,11 +42,7 @@ function DemoDayPrepPage(props: { params: Promise<{ demoDayId: string }> }) {
       <DashboardPagesLayout
         filters={<AdminFilters />}
         content={
-          <AdminContent
-            elevatedStaff={hasAdminAccess}
-            showMembersDirectoryLink={isDirectoryAdmin}
-            canEdit={canEdit}
-          />
+          <AdminContent elevatedStaff={hasAdminAccess} showMembersDirectoryLink={isDirectoryAdmin} canEdit={canEdit} />
         }
       />
     </FiltersHydrator>

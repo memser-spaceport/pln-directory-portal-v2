@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
     const snapshotPeriod = searchParams.get('snapshotPeriod');
 
     const authHeader = request.headers.get('authorization');
-    console.log('authHeader', authHeader);
     if (!authHeader) {
       return NextResponse.json({ error: 'Authorization header is required' }, { status: 401 });
     }
@@ -20,7 +19,6 @@ export async function GET(request: NextRequest) {
       ? `${baseUrl}/api/v1/points/me?snapshotPeriod=${snapshotPeriod}`
       : `${baseUrl}/api/v1/points/me`;
 
-      console.log('url', url);
 
     const res = await fetch(url, {
       method: 'GET',
@@ -29,8 +27,6 @@ export async function GET(request: NextRequest) {
         Authorization: authHeader,
       },
     });
-
-    console.log('snapshot period response', res);
 
     if (res.status === 403 || res.status === 404) {
       return NextResponse.json(null, { status: res.status });

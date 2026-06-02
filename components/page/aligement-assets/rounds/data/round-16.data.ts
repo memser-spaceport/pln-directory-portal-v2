@@ -51,11 +51,9 @@ export const pastRound16Data: IPastRoundData = {
       'Construct an Alignment Asset Case Study',
       'Respond to an IRL Gathering',
       'Contribute a High-Quality Response to the Forum',
-      'Share a Reusable AI Resource or Tool',
-      'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '4,500',
-    totalTokensDistributed: '10,000',
+    totalPointsCollected: '7,375',
+    totalTokensDistributed: 'TBD',
     numberOfBuybacks: 0
   },
 

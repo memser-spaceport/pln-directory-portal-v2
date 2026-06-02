@@ -163,7 +163,9 @@ export const currentRoundData: CurrentRoundData = {
       'Help Organize an Event',
       'Construct an Alignment Asset Case Study',
       'Respond to an IRL Gathering',
-      'Contribute a High-Quality Response to the Forum'
+      'Contribute a High-Quality Response to the Forum',
+      'Share a Reusable AI Resource or Tool',
+      'Rank Among the Network\'s Most Supportive Members'
     ],
     totalPointsCollected: '0',
     totalTokensAvailable: '10,000',

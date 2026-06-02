@@ -168,7 +168,7 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Projects', points: 2150, tokens: 0 },
     { category: 'Brand', points: 725, tokens: 0 },
     { category: 'Programs', points: 900, tokens: 0 },
-    { category: 'Network Tooling', points: 700, tokens: 0 },
+    { category: 'Network Tooling', points: 850, tokens: 0 },
     { category: 'People/Talent', points: 200, tokens: 0 },
     { category: 'Knowledge', points: 2550, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },

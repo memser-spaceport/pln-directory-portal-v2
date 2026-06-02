@@ -1,7 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
+import { useEffect, useMemo, useRef } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type { FounderItem } from '@/services/founders/types';
@@ -26,6 +25,25 @@ interface Props {
 export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading, visibleColumns, onLoadMore, hasMore, isFetchingMore }: Props) {
   const analytics = useFoundersAnalytics();
   const visibleSet = new Set(visibleColumns);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // IntersectionObserver-based load-more — works regardless of scroll container
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMore && !isFetchingMore) {
+          onLoadMore();
+        }
+      },
+      { rootMargin: '300px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isFetchingMore, onLoadMore]);
 
   const columns = useMemo<ColumnDef<FounderItem>[]>(
     () => [
@@ -127,54 +145,50 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
 
   return (
     <div className={s.wrap}>
-    <InfiniteScroll
-      dataLength={founders.length}
-      hasMore={hasMore ?? false}
-      next={onLoadMore ?? (() => {})}
-      loader={<div className={s.sentinelLoader}>Loading more…</div>}
-      style={{ overflow: 'unset' }}
-    >
-    <div className={s.tableWrap}>
-      <table className={s.table}>
-        <thead>
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((h) => (
-                <th key={h.id} className={clsx(s.th, h.column.id === 'name' && s.frozenName)}>
-                  {flexRender(h.column.columnDef.header, h.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className={clsx(s.row, row.original.founderId === selectedFounderId && s.rowSelected)}
-              onClick={() => {
-                onRowClick(row.original.founderId);
-                analytics.onDrawerOpened(row.original.founderId);
-              }}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={clsx(s.td, cell.column.id === 'name' && s.frozenName)}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead>
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
+                {hg.headers.map((h) => (
+                  <th key={h.id} className={clsx(s.th, h.column.id === 'name' && s.frozenName)}>
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className={clsx(s.row, row.original.founderId === selectedFounderId && s.rowSelected)}
+                onClick={() => {
+                  onRowClick(row.original.founderId);
+                  analytics.onDrawerOpened(row.original.founderId);
+                }}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className={clsx(s.td, cell.column.id === 'name' && s.frozenName)}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {founders.length === 0 && !isLoading && (
+              <tr>
+                <td colSpan={filteredColumns.length} className={s.empty}>
+                  No founders found.
                 </td>
-              ))}
-            </tr>
-          ))}
-          {founders.length === 0 && !isLoading && (
-            <tr>
-              <td colSpan={filteredColumns.length} className={s.empty}>
-                No founders found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-    </InfiniteScroll>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Scroll sentinel — observed by IntersectionObserver to trigger next page load */}
+      <div ref={sentinelRef} className={s.sentinel} />
+      {isFetchingMore && <div className={s.sentinelLoader}>Loading more…</div>}
     </div>
   );
 }

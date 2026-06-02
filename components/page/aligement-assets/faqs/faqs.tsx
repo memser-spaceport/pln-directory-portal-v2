@@ -170,43 +170,43 @@ const faqCategories: FAQCategoryData[] = [
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Network Tooling</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.2480</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>17.27%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,727</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.2000</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>19.35%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>1,935</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Knowledge</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.2800</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>17.71%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,771</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.4000</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>22.58%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>2,258</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>People/Talent</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.1600</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>16.05%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,605</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>0.9000</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>14.52%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>1,452</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Programs</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.2300</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>17.02%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,702</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.1500</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>18.55%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>1,855</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Brand</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.1880</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>16.44%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,644</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>0.2500</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>4.03%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>403</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Projects</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.1200</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>15.50%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,550</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.3000</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>20.97%</td>
+                    <td style={{ padding: '10px', textAlign: 'right' }}>2,097</td>
                   </tr>
                   <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Sum</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>7.2260</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>6.2000</td>
                     <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.0000%</td>
                     <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>10,000</td>
                   </tr>

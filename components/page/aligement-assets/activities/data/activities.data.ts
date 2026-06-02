@@ -622,10 +622,10 @@ Respond "I'm Going" on the relevant event page via IRL Gatherings before attendi
         title: 'Rank Among the Network\'s Most Supportive Members',
         submitButtonText: 'Confirm Your Points >',
         ctaLink: 'https://directory.plnetwork.io/alignment-asset/',
-        description: 'The Alignment Asset now recognizes the highest contributors across the network during each snapshot period. This is an automatic activity. At the close of every snapshot, the Top 3 users with the highest verified point totals for that snapshot will be awarded additional points.\n\nUsers will collect these points for the snapshot once all activity has been reviewed, finalized, and closed.',
+        description: 'The Alignment Asset now recognizes the highest contributors across the network during each snapshot period. This is an automatic activity. At the close of every snapshot, the Top 5 users with the highest verified point totals for that snapshot will be awarded additional points.\n\nUsers will collect these points for the snapshot once all activity has been reviewed, finalized, and closed.',
         pointsAwarded: {
           title: 'Points Awarded:',
-          description: 'Awarded automatically to the Top 3 users with the highest verified point totals for the snapshot.',
+          description: 'Awarded automatically to the Top 5 users with the highest verified point totals for the snapshot.',
           items: [
             { label: '1st Place', value: '300 points' },
             { label: '2nd Place', value: '200 points' },

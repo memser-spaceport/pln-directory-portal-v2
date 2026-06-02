@@ -34,7 +34,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' }
 ];
 
-function PlaaMenu({ activeItem, currentRound = 16, totalRounds = 16, viewingRound, onMenuItemClick }: PlaaMenuProps) {
+function PlaaMenu({ activeItem, currentRound = 17, totalRounds = 17, viewingRound, onMenuItemClick }: PlaaMenuProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 

@@ -11,6 +11,7 @@ import type { useQueryStates } from 'nuqs';
 import { FounderTable } from '../FounderTable/FounderTable';
 import { FounderColumnChooser } from '../FounderColumnChooser/FounderColumnChooser';
 import { useFounderColumnStore } from '@/services/founders/store';
+import { exportFoundersCsv } from '../utils/exportCsv';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './FoundersTableSection.module.scss';
 
@@ -105,6 +106,14 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
         <div className={s.actionBarRight}>
           <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
           <FounderColumnChooser />
+          <button
+            className={s.exportBtn}
+            onClick={() => exportFoundersCsv(founders, visibleColumns, `founders-${new Date().toISOString().slice(0, 10)}.csv`)}
+            disabled={founders.length === 0}
+          >
+            <ExportIcon />
+            Export CSV
+          </button>
         </div>
       </div>
 
@@ -145,3 +154,21 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
     </div>
   );
 }
+
+const ExportIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 15V3" />
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="m7 10 5 5 5-5" />
+  </svg>
+);

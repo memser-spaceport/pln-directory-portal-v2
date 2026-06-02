@@ -24,11 +24,13 @@ import {
   DEMO_DAY_ANALYTICS_LINK,
   JOBS_LINK,
   INVESTOR_DB_LINK,
+  FOUNDER_DB_LINK,
   GANTRY_LINK,
 } from './constants/navLinks';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
+import { useFoundersAccess } from '@/services/rbac/hooks/useFoundersAccess';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { ISubItem } from './type';
 
@@ -100,6 +102,7 @@ function Navbar(props: Readonly<INavbar>) {
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
   const { canView: hasInvestorDbAccess } = useInvestorsAccess();
+  const { canView: hasFounderDbAccess } = useFoundersAccess();
   const { canView: hasGantryAccess } = useGantryAccess();
 
   const moreLinks: ISubItem[] = [
@@ -108,6 +111,7 @@ function Navbar(props: Readonly<INavbar>) {
     ...(hasGantryAccess ? [GANTRY_LINK] : []),
     JOBS_LINK,
     ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
+    ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
   ];
 
   return (

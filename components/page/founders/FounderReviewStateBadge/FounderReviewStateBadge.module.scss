@@ -1,0 +1,40 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.new {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.in-review {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.approved {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.hold {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.wrong-fund {
+  background: #f5f3ff;
+  color: #6d28d9;
+}

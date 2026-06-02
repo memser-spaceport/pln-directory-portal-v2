@@ -1,0 +1,112 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 24px;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 48px;
+  gap: 12px;
+}
+
+.actionBarLeft {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.actionBarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  flex-shrink: 0;
+}
+
+.countLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  padding: 10px 8px;
+}
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  background: #1b4dff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.error {
+  padding: 32px 48px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #b91c1c;
+}
+
+.empty {
+  padding: 48px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6b7280;
+
+  p {
+    margin: 0 0 12px;
+  }
+}
+
+.clearBtn {
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+}
+
+.footer {
+  padding: 10px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.footerCount {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #94a3b8;
+}

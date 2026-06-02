@@ -1,0 +1,58 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+}
+
+.pageHeader {
+  padding: 24px 20px 16px;
+}
+
+.pageTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.pageTitle {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: -0.75px;
+}
+
+.internalBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  background: rgba(27, 77, 255, 0.02);
+  border: 1px solid #aebfff;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
+.pageSubtitle {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}

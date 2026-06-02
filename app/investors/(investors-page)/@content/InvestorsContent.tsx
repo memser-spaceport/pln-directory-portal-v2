@@ -77,11 +77,9 @@ export default function InvestorsContent() {
       <div className={s.pageHeader}>
         <div className={s.pageTitleRow}>
           <h1 className={s.pageTitle}>Investors Database</h1>
-          <span className={s.internalBadge}>Internal · PL investment team</span>
+          <span className={s.internalBadge}>Access Restricted to - PL investment team</span>
         </div>
-        <p className={s.pageSubtitle}>
-          Internal Investors database — Network, co-investors, and outreach pipeline.
-        </p>
+        <p className={s.pageSubtitle}>Internal Investors database — Network, co-investors, and outreach pipeline.</p>
       </div>
 
       <div className={s.body}>

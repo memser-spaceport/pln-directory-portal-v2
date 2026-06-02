@@ -8,17 +8,17 @@ import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 /**
- * Current Round 16 (May 2026) Master Data
+ * Current Round 17 (June 2026) Master Data
  */
 export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   // Meta Information
   // ============================================================================
   meta: {
-    roundId: 'round-16-may-2026',
-    roundNumber: 16,
+    roundId: 'round-17-jun-2026',
+    roundNumber: 17,
     isCurrentRound: true,
-    lastUpdated: '2026-05-04T00:00:00'
+    lastUpdated: '2026-06-01T00:00:00'
   },
 
   // ============================================================================
@@ -48,8 +48,8 @@ export const currentRoundData: CurrentRoundData = {
   // Round Description Section Data
   // ============================================================================
   roundDescription: {
-    roundNumber: 16,
-    monthYear: 'May 2026',
+    roundNumber: 17,
+    monthYear: 'June 2026',
     badgeText: 'Current Round',
     paragraphs: [
       {
@@ -92,8 +92,8 @@ export const currentRoundData: CurrentRoundData = {
   // Snapshot Progress Section Data
   // ============================================================================
   snapshotProgress: {
-    startDate: '2026-05-01T00:00:00',
-    endDate: '2026-05-31T23:59:59',
+    startDate: '2026-06-01T00:00:00',
+    endDate: '2026-06-30T23:59:59',
     tipContent: {
       tipText: 'Lower activity in a category generally means more tokens available to collect per contributor, while higher activity means tokens are distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
@@ -118,7 +118,7 @@ export const currentRoundData: CurrentRoundData = {
       ],
       bottomLink: {
         text: 'See what happened in the last round',
-        url: '/alignment-asset/rounds/15'
+        url: '/alignment-asset/rounds/16'
       }
     }
   },
@@ -132,11 +132,11 @@ export const currentRoundData: CurrentRoundData = {
     maxValue: 1000,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 2550 },
-      { name: 'Network Tooling', value: 550 },
+      { name: 'Knowledge', value: 0 },
+      { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 900 },
-      { name: 'Projects', value: 500 }
+      { name: 'Programs', value: 0 },
+      { name: 'Projects', value: 0 }
     ]
   },
 
@@ -144,7 +144,7 @@ export const currentRoundData: CurrentRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 59,
+    onboardedParticipants: 0,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',
@@ -167,7 +167,7 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '4,500',
+    totalPointsCollected: '0',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },
@@ -181,7 +181,7 @@ export const currentRoundData: CurrentRoundData = {
   },
 
   // ============================================================================
-  // Buyback Auction Section Data (Round 16 - May 2026)
+  // Buyback Auction Section Data (Round 17 - June 2026)
   // ============================================================================
   buybackAuction: {
     headerStats: {
@@ -189,7 +189,7 @@ export const currentRoundData: CurrentRoundData = {
       fillRate: '0%'
     },
     summary: {
-      title: 'Buyback Auction - May 2026 - Key Results',
+      title: 'Buyback Auction - June 2026 - Key Results',
       items: [
         {
           icon: '/icons/rounds/buy_action_results/wallet-01.svg',

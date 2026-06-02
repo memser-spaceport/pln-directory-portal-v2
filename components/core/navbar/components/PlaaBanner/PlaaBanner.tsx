@@ -33,7 +33,7 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'buyback-auction',
+    id: 'banner-1',
     type: 'bonus',
     title: 'New Activity: Contribute a High-Quality Response to the Forum',
     subtitle: 'Contribute thoughtful forum responses and collect 100 points per qualifying post.',
@@ -43,7 +43,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     ],
   },
   {
-    id: 'buyback-auction',
+    id: 'banner-2',
     type: 'bonus',
     title: 'New Activity: Share a Reusable AI Resource or Tool',
     subtitle: 'Share reusable AI tools or resources with the network and collect 150 points.',
@@ -53,7 +53,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     ],
   },
   {
-    id: 'buyback-auction',
+    id: 'banner-3',
     type: 'bonus',
     title: 'New Activity: Rank Among the Network\'s Most Supportive Members',
     subtitle: 'Top contributors in each snapshot period can now collect bonus points.',
@@ -63,7 +63,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     ],
   },
   {
-    id: 'buyback-auction',
+    id: 'banner-4',
     type: 'bonus',
     title: 'New Feature: Activity Assistant Bot',
     subtitle: 'Use the new Activity Assistant Bot for your next submission + provide feedback = collect 50 bonus points.',

@@ -1,10 +1,15 @@
 import CurrentRoundComponent from '@/components/page/aligement-assets/rounds/current-round-component';
 import styles from './plaa.module.css';
+import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
+import { getLeaderboard } from '@/services/plaa/leaderboard.service';
 
-export default function PlaaPage() {
+export default async function PlaaPage() {
+  const roundNumber = currentRoundData.meta.roundNumber;
+  const { data: leaderboardResponse } = await getLeaderboard(roundNumber);
+
   return (
     <div className={styles.rounds}>
-      <CurrentRoundComponent />
+      <CurrentRoundComponent leaderboardResponse={leaderboardResponse} />
     </div>
   );
 }

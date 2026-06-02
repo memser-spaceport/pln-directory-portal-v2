@@ -1,5 +1,8 @@
 import type { FundTag, FounderStatus, ReviewFeedback } from './types';
 
+/** Temporary kill-switch — set to `true` to restore Founder DB nav and `/founders`. */
+export const FOUNDER_DB_ENABLED = false;
+
 export enum FoundersQueryKeys {
   FOUNDERS_LIST = 'founders-list',
   FOUNDER_DETAIL = 'founders-detail',

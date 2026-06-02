@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyAccess } from '@/services/access-control/access-control.service';
+import { FOUNDER_DB_ENABLED } from '@/services/founders/constants';
 import { getUserInfoFromLocal } from '@/utils/common.utils';
 
 export type FoundersAccess = {
@@ -31,9 +32,13 @@ export function useFoundersAccess(): FoundersAccess {
       };
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!userInfo,
+    enabled: FOUNDER_DB_ENABLED && !!userInfo,
     retry: 2,
   });
+
+  if (!FOUNDER_DB_ENABLED) {
+    return { canView: false, canEdit: false, isLoading: false, isError: false };
+  }
 
   return {
     canView: data?.canView ?? false,

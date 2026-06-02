@@ -9,6 +9,8 @@ import type { FounderListParams } from '@/services/founders/types';
 import type { foundersFilterParsers } from '@/app/founders/(founders-page)/searchParams';
 import type { useQueryStates } from 'nuqs';
 import { FounderTable } from '../FounderTable/FounderTable';
+import { FounderColumnChooser } from '../FounderColumnChooser/FounderColumnChooser';
+import { useFounderColumnStore } from '@/services/founders/store';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './FoundersTableSection.module.scss';
 
@@ -43,6 +45,7 @@ function hasActiveFilters(filters: Filters): boolean {
 
 export default function FoundersTableSection({ filters, setFilters, canView }: Props) {
   const analytics = useFoundersAnalytics();
+  const visibleColumns = useFounderColumnStore((s) => s.visibleColumns);
 
   const params: FounderListParams = useMemo(
     () => ({
@@ -101,6 +104,7 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
         </div>
         <div className={s.actionBarRight}>
           <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
+          <FounderColumnChooser />
         </div>
       </div>
 
@@ -109,6 +113,7 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
         selectedFounderId={filters.founderId || null}
         onRowClick={(id) => setFilters({ founderId: id } as never, { history: 'push' } as never)}
         isLoading={isLoading}
+        visibleColumns={visibleColumns}
       />
 
       {!isLoading && founders.length === 0 && filtersActive && (

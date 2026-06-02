@@ -16,11 +16,12 @@ interface Props {
   selectedFounderId: string | null;
   onRowClick: (id: string) => void;
   isLoading?: boolean;
+  visibleColumns: string[];
 }
 
-
-export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading }: Props) {
+export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading, visibleColumns }: Props) {
   const analytics = useFoundersAnalytics();
+  const visibleSet = new Set(visibleColumns);
 
   const columns = useMemo<ColumnDef<FounderItem>[]>(
     () => [
@@ -104,9 +105,15 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
     [],
   );
 
+  const filteredColumns = useMemo(
+    () => columns.filter((col) => col.id === 'name' || visibleSet.has(col.id as string)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [columns, visibleColumns],
+  );
+
   const table = useReactTable({
     data: founders,
-    columns,
+    columns: filteredColumns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -148,7 +155,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
           ))}
           {founders.length === 0 && !isLoading && (
             <tr>
-              <td colSpan={columns.length} className={s.empty}>
+              <td colSpan={filteredColumns.length} className={s.empty}>
                 No founders found.
               </td>
             </tr>

@@ -1,7 +1,6 @@
 import type { FundTag, FounderStatus, ReviewFeedback } from './types';
 
-/** Temporary kill-switch — set to `true` to restore Founder DB nav and `/founders`. */
-export const FOUNDER_DB_ENABLED = false;
+export const FOUNDER_DB_ENABLED = true;
 
 export enum FoundersQueryKeys {
   FOUNDERS_LIST = 'founders-list',
@@ -10,7 +9,14 @@ export enum FoundersQueryKeys {
 }
 
 export const FUND_VALUES: FundTag[] = ['PLVS', 'NEURO', 'CRYPTO'];
-export const FOUNDER_STATUS_VALUES: FounderStatus[] = ['new', 'in-review', 'approved', 'rejected', 'hold', 'wrong-fund'];
+export const FOUNDER_STATUS_VALUES: FounderStatus[] = [
+  'new',
+  'in-review',
+  'approved',
+  'rejected',
+  'hold',
+  'wrong-fund',
+];
 export const REVIEW_FEEDBACK_VALUES: ReviewFeedback[] = ['good', 'bad', 'wrong-fund', 'needs-context'];
 
 export const FUND_LABEL: Record<FundTag, string> = {

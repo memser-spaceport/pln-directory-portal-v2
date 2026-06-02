@@ -24,6 +24,7 @@ import type {
   WarmIntroCandidate,
   WarmIntrosParams,
 } from '@/services/investors/types';
+import { effectiveTeamRaisingStage } from '@/services/investors/raising-stage';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
@@ -46,9 +47,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const teamId = filters.wi_team_id;
   const team = teamId && teams ? teams.find((t) => t.team_id === teamId) : undefined;
+  const teamRaisingStage = effectiveTeamRaisingStage(team);
 
   // Auto-fill criteria from selected team unless user has overridden them
-  const effectiveStage = (filters.wi_stage || team?.raising_now || team?.pl_invested_stage) as StageFocus | '';
+  const effectiveStage = (filters.wi_stage || teamRaisingStage || team?.pl_invested_stage) as StageFocus | '';
   const effectiveSectors: SectorTag[] = useMemo(
     () => (filters.wi_sectors.length ? (filters.wi_sectors as SectorTag[]) : (team?.sectors ?? [])),
     [filters.wi_sectors, team?.sectors],
@@ -156,14 +158,15 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               onChange={(e) => setFilters({ wi_team_id: e.target.value || null })}
             >
               <option value="">— or set criteria manually —</option>
-              {teams?.map((t) => (
-                <option key={t.team_id} value={t.team_id}>
-                  {t.team_name} · PL invested {STAGE_FOCUS_LABEL[t.pl_invested_stage]}
-                  {t.raising_now && t.raising_now !== t.pl_invested_stage
-                    ? ` · raising ${STAGE_FOCUS_LABEL[t.raising_now]}`
-                    : ''}
-                </option>
-              ))}
+              {teams?.map((t) => {
+                const raisingStage = effectiveTeamRaisingStage(t);
+                return (
+                  <option key={t.team_id} value={t.team_id}>
+                    {t.team_name} · PL invested {STAGE_FOCUS_LABEL[t.pl_invested_stage]}
+                    {raisingStage ? ` · raising ${STAGE_FOCUS_LABEL[raisingStage]}` : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -225,7 +228,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           <div className={s.summary}>
             <strong>Auto-pulled from {team.team_name}:</strong>
             <span>
-              <span className={s.auto}>stage</span> {STAGE_FOCUS_LABEL[team.raising_now ?? team.pl_invested_stage]} ·{' '}
+              <span className={s.auto}>stage</span>{' '}
+              {STAGE_FOCUS_LABEL[(teamRaisingStage ?? team.pl_invested_stage) as StageFocus]} ·{' '}
               <span className={s.auto}>sectors</span> {team.sectors.join(', ')} · <span className={s.auto}>geo</span>{' '}
               {team.geo}
             </span>

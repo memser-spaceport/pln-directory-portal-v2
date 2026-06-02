@@ -17,6 +17,7 @@ import {
   STAGE_FOCUS_LABEL,
 } from '@/services/investors/constants';
 import type { CheckSizeRange, SectorTag, StageFocus } from '@/services/investors/types';
+import { effectiveTeamRaisingStage } from '@/services/investors/raising-stage';
 import { SearchIcon } from '@/components/icons';
 import s from './WarmIntrosFilterRail.module.scss';
 
@@ -31,8 +32,9 @@ export function WarmIntrosFilterRail() {
 
   const teamId = filters.wi_team_id;
   const team = teamId && teams ? teams.find((t) => t.team_id === teamId) : undefined;
+  const teamRaisingStage = effectiveTeamRaisingStage(team);
 
-  const effectiveStage = (filters.wi_stage || team?.raising_now || team?.pl_invested_stage || '') as StageFocus | '';
+  const effectiveStage = (filters.wi_stage || teamRaisingStage || team?.pl_invested_stage || '') as StageFocus | '';
   const effectiveCheckSize = (filters.wi_check_size || '') as CheckSizeRange | '';
 
   const filteredTeams = useMemo(() => {
@@ -92,7 +94,12 @@ export function WarmIntrosFilterRail() {
               .slice(0, 20)
               .map((t) => (
                 <label key={t.team_id} className={s.option}>
-                  <input type="radio" name="wi-team" checked={false} onChange={() => setFilters({ wi_team_id: t.team_id })} />
+                  <input
+                    type="radio"
+                    name="wi-team"
+                    checked={false}
+                    onChange={() => setFilters({ wi_team_id: t.team_id })}
+                  />
                   <span className={s.optionLabel}>{t.team_name}</span>
                 </label>
               ))}
@@ -102,7 +109,8 @@ export function WarmIntrosFilterRail() {
         </div>
         {team && (
           <div className={s.autoNote}>
-            Auto-filled: {STAGE_FOCUS_LABEL[team.raising_now ?? team.pl_invested_stage]} · {team.sectors.join(', ')}
+            Auto-filled: {STAGE_FOCUS_LABEL[(teamRaisingStage ?? team.pl_invested_stage) as StageFocus]} ·{' '}
+            {team.sectors.join(', ')}
           </div>
         )}
       </FilterSection>
@@ -110,7 +118,12 @@ export function WarmIntrosFilterRail() {
       <FilterSection title="Stage focus">
         <div className={s.options}>
           <label className={clsx(s.option, !filters.wi_stage && s.optionOn)}>
-            <input type="radio" name="wi-stage" checked={!filters.wi_stage} onChange={() => setFilters({ wi_stage: null })} />
+            <input
+              type="radio"
+              name="wi-stage"
+              checked={!filters.wi_stage}
+              onChange={() => setFilters({ wi_stage: null })}
+            />
             <span className={s.optionLabel}>Any</span>
           </label>
           {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (

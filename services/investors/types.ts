@@ -29,6 +29,7 @@ export type EmailStatus = 'verified' | 'catch_all' | 'unverified' | 'invalid' | 
 export type InvestorType = 'fund' | 'angel' | 'hybrid' | 'family_office' | 'syndicate' | 'unknown';
 
 export type StageFocus = 'pre-seed' | 'seed' | 'series-a' | 'series-b+' | 'all' | 'unknown';
+export type RaisingNow = 'yes' | 'unknown';
 
 export type AumRange = '<50M' | '50-100M' | '100-500M' | '500M-1B' | '1B+' | 'unknown';
 
@@ -138,7 +139,12 @@ export type PlPortfolioTeam = {
   logo_url: string;
   pl_invested_at: string;
   pl_invested_stage: StageFocus;
-  raising_now?: StageFocus;
+  raising_now?: RaisingNow;
+  raising_stage?: StageFocus;
+  last_round_stage?: StageFocus;
+  last_round_date?: string;
+  raising_as_of?: string;
+  raising_source?: string;
   sectors: SectorTag[];
   geo: string;
   co_investors: Array<{

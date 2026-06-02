@@ -12,6 +12,7 @@ import type {
   LabOsProfileRef,
   OutreachInvestor,
   PlPortfolioTeam,
+  RaisingNow,
   SectorTag,
   StageFocus,
   WarmIntroTier,
@@ -32,9 +33,7 @@ const SORT_FIELD_MAP: Record<string, string> = {
 };
 
 function toApiParams(p: InvestorListParams): Record<string, unknown> {
-  const sort = p.sort
-    ? p.sort.replace(/^[^:]+/, (f) => SORT_FIELD_MAP[f] ?? f)
-    : undefined;
+  const sort = p.sort ? p.sort.replace(/^[^:]+/, (f) => SORT_FIELD_MAP[f] ?? f) : undefined;
   return {
     q: p.q,
     source: p.source,
@@ -82,7 +81,6 @@ function buildQuery(params: Record<string, unknown>): string {
 
 // ─── Response mappers ─────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDto = Record<string, any>;
 
 function mapLabOsProfile(dto: AnyDto): LabOsProfileRef {
@@ -147,7 +145,12 @@ function mapPortfolioTeamDto(dto: AnyDto): PlPortfolioTeam {
     logo_url: dto.logoUrl ?? '',
     pl_invested_at: dto.plInvestedAt ?? '',
     pl_invested_stage: dto.plInvestedStage as StageFocus,
-    raising_now: dto.raisingNow as StageFocus | undefined,
+    raising_now: dto.raisingNow as RaisingNow | undefined,
+    raising_stage: dto.raisingStage as StageFocus | undefined,
+    last_round_stage: dto.lastRoundStage as StageFocus | undefined,
+    last_round_date: dto.lastRoundDate as string | undefined,
+    raising_as_of: dto.raisingAsOf as string | undefined,
+    raising_source: dto.raisingSource as string | undefined,
     sectors: (dto.sectors ?? []) as SectorTag[],
     geo: dto.geo ?? '',
     co_investors,

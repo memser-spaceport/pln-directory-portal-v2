@@ -120,9 +120,7 @@ export const FilterList: React.FC<FilterListProps> = ({
       const upfrontSet = new Set(upfrontOptionNames);
       const selectedIds = new Set(selectedOptions);
       return filteredOptions.filter(
-        (opt) =>
-          upfrontSet.has(opt.name) ||
-          opt.id.split(',').some((uid) => selectedIds.has(uid)),
+        (opt) => upfrontSet.has(opt.name) || opt.id.split(',').some((uid) => selectedIds.has(uid)),
       );
     }
 
@@ -144,16 +142,16 @@ export const FilterList: React.FC<FilterListProps> = ({
     setSearchTerm(e.target.value);
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setShowAll(false); // Reset to collapsed state when clearing search
+  };
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       handleClearSearch();
     }
   }, []);
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
-    setShowAll(false); // Reset to collapsed state when clearing search
-  };
 
   const handleToggleShowAll = () => {
     setShowAll(!showAll);

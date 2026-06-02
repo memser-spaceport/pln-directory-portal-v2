@@ -42,7 +42,7 @@ export default function FoundersContent() {
     <div className={s.root}>
       <div className={s.pageHeader}>
         <div className={s.pageTitleRow}>
-          <h1 className={s.pageTitle}>Founder DB</h1>
+          <h1 className={s.pageTitle}>Founder DB (WIP)</h1>
           <span className={s.internalBadge}>Access Restricted to - PL investment team</span>
         </div>
         <p className={s.pageSubtitle}>Database to determine qualified founders.</p>

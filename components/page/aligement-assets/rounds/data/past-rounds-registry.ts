@@ -19,6 +19,7 @@ import { pastRound12Data } from './round-12.data';
 import { pastRound13Data } from './round-13.data';
 import { pastRound14Data } from './round-14.data';
 import { pastRound15Data } from './round-15.data';
+import { pastRound16Data } from './round-16.data';
 
 export const pastRoundsRegistry: Record<number, IPastRoundData> = {
   1: pastRound1Data,
@@ -36,4 +37,5 @@ export const pastRoundsRegistry: Record<number, IPastRoundData> = {
   13: pastRound13Data,
   14: pastRound14Data,
   15: pastRound15Data,
+  16: pastRound16Data,
 };

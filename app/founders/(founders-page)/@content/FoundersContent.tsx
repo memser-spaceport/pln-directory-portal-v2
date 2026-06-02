@@ -43,15 +43,20 @@ export default function FoundersContent() {
       <div className={s.pageHeader}>
         <div className={s.pageTitleRow}>
           <h1 className={s.pageTitle}>Founder DB</h1>
-          <span className={s.internalBadge}>Internal · Investment team</span>
+          <span className={s.internalBadge}>Access Restricted to - PL investment team</span>
         </div>
-        <p className={s.pageSubtitle}>Signal-sourcing leads for the PL investment team.</p>
+        <p className={s.pageSubtitle}>Database to determine qualified founders.</p>
       </div>
 
       <KpiSummaryStrip data={kpiSummary} isLoading={kpiLoading} />
 
       <div className={s.body}>
-        <FoundersTableSection filters={filters} setFilters={setFilters} canEdit={access.canEdit} canView={access.canView} />
+        <FoundersTableSection
+          filters={filters}
+          setFilters={setFilters}
+          canEdit={access.canEdit}
+          canView={access.canView}
+        />
       </div>
 
       <FounderDrawer

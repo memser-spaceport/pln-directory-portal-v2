@@ -177,8 +177,8 @@
 
 .richContent {
   max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 
   h3 {
     font-size: 20px;

@@ -1,0 +1,99 @@
+.strip {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px;
+  //border-top: 1px solid #e5e7eb;
+  //border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  //background: #fafafa;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 90px;
+}
+
+.cardSkeleton {
+  height: 68px;
+  min-width: 90px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.cardLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+  font-family: 'Inter', sans-serif;
+}
+
+.cardValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.1;
+}
+
+.cardSub {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Alignment stacked bar */
+.alignmentBar {
+  display: flex;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f3f4f6;
+  margin: 2px 0;
+  width: 100%;
+}
+
+.alignHigh {
+  background: #16a34a;
+  height: 100%;
+}
+
+.alignMed {
+  background: #f59e0b;
+  height: 100%;
+}
+
+.alignLow {
+  background: #e5e7eb;
+  height: 100%;
+}
+
+/* Sparkline */
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  margin-top: 2px;
+}
+
+.sparkBar {
+  width: 10px;
+  background: #1b4dff;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.75;
+  min-height: 4px;
+}

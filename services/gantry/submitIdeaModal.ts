@@ -6,14 +6,21 @@ export type SubmitIdeaModalVariant = 'idea' | 'roadmap';
 
 export const SUBMIT_IDEA_MODAL_COPY: Record<
   SubmitIdeaModalVariant,
-  { title: string; subtitle: string; submitLabel: string; submittingLabel: string }
+  {
+    title: string;
+    subtitle: string;
+    submitLabel: string;
+    submittingLabel: string;
+    footerNote?: string;
+  }
 > = {
   idea: {
     title: 'Share a need',
     subtitle:
-      'Tell us about a problem you’re facing or something getting in your way. The product team reviews every need before it moves onto the roadmap.',
-    submitLabel: 'Create Need',
-    submittingLabel: 'Creating...',
+      'Tell us about a problem you are facing or a gap you have noticed. The product team reviews every submission and uses these signals to inform what we build next.',
+    submitLabel: 'Submit',
+    submittingLabel: 'Submitting...',
+    footerNote: 'Your name will be attached to this submission.',
   },
   roadmap: {
     title: 'Create item',

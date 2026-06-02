@@ -8,10 +8,14 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+export const TITLE_MAX_LENGTH = 150;
 export const DESCRIPTION_MAX_LENGTH = 1000;
 
 export const submitIdeaSchema = yup.object().shape({
-  title: yup.string().required('Title is required').max(100, 'Max 100 characters'),
+  title: yup
+    .string()
+    .required('Title is required')
+    .max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
   description: yup
     .string()
     .optional()
@@ -30,7 +34,10 @@ export const submitIdeaSchema = yup.object().shape({
 });
 
 export const editIdeaSchema = yup.object().shape({
-  title: yup.string().required('Title is required').max(100, 'Max 100 characters'),
+  title: yup
+    .string()
+    .required('Title is required')
+    .max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
   description: yup.string().optional(),
 });
 

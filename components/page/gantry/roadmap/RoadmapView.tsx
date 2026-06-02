@@ -23,6 +23,8 @@ import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
 import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_ROADMAP_COLUMN_STAGES,
+  GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
+  isPreRoadmapStage,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
@@ -59,28 +61,23 @@ export function RoadmapView() {
   const { actions: submitIdeaModalActions } = useSubmitIdeaModalStore();
   const canSetStageOnCreate = canCurate || canTransition;
   const canCreate = canSetStageOnCreate || canCreateIdea;
-  const createLabel = canSetStageOnCreate ? 'Create Item' : 'Create Need';
+  const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
-  const [mine, setMine] = useLocalStorageParam<boolean>('gantry.dashboard.mine', false);
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
-    'gantry.dashboard.visibleColumns',
+    GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
     [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
   );
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
 
-  const orderedVisibleColumns = useMemo(
-    () => sortRoadmapColumnStages(visibleColumns),
-    [visibleColumns],
-  );
+  const orderedVisibleColumns = useMemo(() => sortRoadmapColumnStages(visibleColumns), [visibleColumns]);
 
   const params = useMemo(
     () => ({
-      mine,
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
     }),
-    [mine, orderedVisibleColumns],
+    [orderedVisibleColumns],
   );
 
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
@@ -117,7 +114,7 @@ export function RoadmapView() {
       return;
     }
 
-    if ((item.stage === 'IDEA' || item.stage === 'UNDER_REVIEW') && nextStage === 'PLANNED') {
+    if (isPreRoadmapStage(item.stage) && nextStage === 'PLANNED') {
       await transition.mutateAsync({ uid: itemUid, payload: { type: 'promote' } });
       return;
     }
@@ -175,96 +172,92 @@ export function RoadmapView() {
   return (
     <div className={s.pageLayout}>
       <DashboardPagesLayout
-        filters={
-          <RoadmapFilters
-            mine={mine}
-            visibleColumns={visibleColumns}
-            onMineChange={setMine}
-            onVisibleColumnsChange={setVisibleColumns}
-          />
-        }
+        filters={<RoadmapFilters visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />}
         content={
           <div className={gantryPageStyles.contentShell}>
             <div className={s.content}>
-            <div className={s.pageHeader}>
-              <div className={s.titleRow}>
-                <div className={s.titleSection}>
-                  <div className={s.titleInline}>
-                    <h1 className={s.title}>Dashboard</h1>
-                    {canCreate && (
-                      <div className={s.actionsMobile}>
-                        <IdeasSubmitButton
-                          label={createLabel}
-                          onClick={() => submitIdeaModalActions.openModal(createVariant)}
-                        />
-                      </div>
-                    )}
+              <div className={s.pageHeader}>
+                <div className={s.titleRow}>
+                  <div className={s.titleSection}>
+                    <div className={s.titleInline}>
+                      <h1 className={s.title}>Gantry</h1>
+                      {canCreate && (
+                        <div className={s.actionsMobile}>
+                          <IdeasSubmitButton
+                            label={createLabel}
+                            onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className={s.subtitle}>
+                      Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
+                    </p>
                   </div>
+                  {canCreate && (
+                    <div className={s.actions}>
+                      <IdeasSubmitButton
+                        label={createLabel}
+                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                      />
+                    </div>
+                  )}
                 </div>
-                {canCreate && (
-                  <div className={s.actions}>
-                    <IdeasSubmitButton
-                      label={createLabel}
-                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
-                    />
-                  </div>
-                )}
               </div>
-            </div>
 
-            {orderedVisibleColumns.length === 0 ? (
-              <p className={s.empty}>Select at least one column to view the roadmap.</p>
-            ) : isLoading ? (
-              <div className={s.boardScroll}>
-                <div
-                  className={s.loadingBlock}
-                  style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
-                >
-                  {orderedVisibleColumns.map((stage) => (
-                    <div key={stage} className={s.skeletonColumn} />
-                  ))}
-                </div>
-              </div>
-            ) : isError ? (
-              <p className={s.empty}>Failed to load roadmap.</p>
-            ) : (
-              <div className={s.boardScroll}>
-                <DndContext
-                  sensors={sensors}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragCancel={handleDragCancel}
-                >
+              {orderedVisibleColumns.length === 0 ? (
+                <p className={s.empty}>Select at least one column to view the roadmap.</p>
+              ) : isLoading ? (
+                <div className={s.boardScroll}>
                   <div
-                    className={s.columns}
+                    className={s.loadingBlock}
                     style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
                   >
                     {orderedVisibleColumns.map((stage) => (
-                      <RoadmapDropColumn key={stage} stage={stage}>
-                        {itemsByStage[stage].map((item) => (
-                          <RoadmapCard
-                            key={item.uid}
-                            item={item}
-                            canUpvote={canUpvote}
-                            onUpvoteToggle={handleUpvoteToggle}
-                          />
-                        ))}
-                      </RoadmapDropColumn>
+                      <div key={stage} className={s.skeletonColumn} />
                     ))}
                   </div>
-                  <DragOverlay dropAnimation={null}>
-                    {activeDragItem ? (
-                      <RoadmapCardDragOverlay
-                        item={activeDragItem}
-                        width={activeDragWidth ?? undefined}
-                        canUpvote={canUpvote}
-                        onUpvoteToggle={handleUpvoteToggle}
-                      />
-                    ) : null}
-                  </DragOverlay>
-                </DndContext>
-              </div>
-            )}
+                </div>
+              ) : isError ? (
+                <p className={s.empty}>Failed to load roadmap.</p>
+              ) : (
+                <div className={s.boardScroll}>
+                  <DndContext
+                    sensors={sensors}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={handleDragCancel}
+                  >
+                    <div
+                      className={s.columns}
+                      style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
+                    >
+                      {orderedVisibleColumns.map((stage) => (
+                        <RoadmapDropColumn key={stage} stage={stage}>
+                          {itemsByStage[stage].map((item) => (
+                            <RoadmapCard
+                              key={item.uid}
+                              item={item}
+                              canUpvote={canUpvote}
+                              onUpvoteToggle={handleUpvoteToggle}
+                            />
+                          ))}
+                        </RoadmapDropColumn>
+                      ))}
+                    </div>
+                    <DragOverlay dropAnimation={null}>
+                      {activeDragItem ? (
+                        <RoadmapCardDragOverlay
+                          item={activeDragItem}
+                          width={activeDragWidth ?? undefined}
+                          canUpvote={canUpvote}
+                          onUpvoteToggle={handleUpvoteToggle}
+                        />
+                      ) : null}
+                    </DragOverlay>
+                  </DndContext>
+                </div>
+              )}
             </div>
           </div>
         }

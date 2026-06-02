@@ -11,7 +11,7 @@ interface Props {
 export function GantryAccessGuard({ children }: Props) {
   const { canView, isLoading, isError } = useGantryAccess();
 
-  if (isLoading || isError) {
+  if (isLoading) {
     return null;
   }
 

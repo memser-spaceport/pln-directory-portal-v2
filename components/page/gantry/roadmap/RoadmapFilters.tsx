@@ -15,13 +15,11 @@ import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.s
 export type RoadmapColumnStage = (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number];
 
 interface Props {
-  readonly mine: boolean;
   readonly visibleColumns: RoadmapColumnStage[];
-  readonly onMineChange: (value: boolean) => void;
   readonly onVisibleColumnsChange: (columns: RoadmapColumnStage[]) => void;
 }
 
-export function RoadmapFilters({ mine, visibleColumns, onMineChange, onVisibleColumnsChange }: Props) {
+export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
       onVisibleColumnsChange(visibleColumns.filter((s) => s !== stage));
@@ -30,26 +28,17 @@ export function RoadmapFilters({ mine, visibleColumns, onMineChange, onVisibleCo
     onVisibleColumnsChange(sortRoadmapColumnStages([...visibleColumns, stage]));
   };
 
-  const appliedFiltersCount = (mine ? 1 : 0) + visibleColumns.length;
-
   const clearParams = () => {
-    onMineChange(false);
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   };
 
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={appliedFiltersCount}
+      appliedFiltersCount={visibleColumns.length}
       className={filterStyles.filterRail}
       hideFooter
     >
-      <FilterSection title="Needs">
-        <div>
-          <CheckboxListItemRepresentation label="My needs" checked={mine} onClick={() => onMineChange(!mine)} />
-        </div>
-      </FilterSection>
-
       <FilterSection title="Stages">
         <div>
           {GANTRY_ROADMAP_COLUMN_STAGES.map((stage) => (

@@ -19,6 +19,13 @@ export const INVESTOR_DB_LINK: ISubItem = {
   description: 'Internal investor database — network, co-investors, and outreach pipeline.',
 };
 
+export const FOUNDER_DB_LINK: ISubItem = {
+  icon: <AnalyticsIcon />,
+  href: '/founders',
+  title: 'Founder DB',
+  description: 'Internal founder signal-sourcing database.',
+};
+
 export const DIRECTORY_LINKS: ISubItem[] = [
   {
     icon: <MembersIcon />,
@@ -86,7 +93,7 @@ export const GANTRY_LINK: ISubItem = {
   icon: <GantryIcon />,
   href: '/gantry/dashboard',
   title: 'Gantry',
-  description: 'Internal ideas and roadmap board.',
+  description: 'Needs and roadmap',
 };
 
 export const DEMO_DAY_LINK: ISubItem = {

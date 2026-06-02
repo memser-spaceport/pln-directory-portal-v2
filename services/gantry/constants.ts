@@ -1,14 +1,18 @@
+import type { GantryItem } from './types';
+
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
   ITEM = 'gantry-item',
   FOCUS_AREAS = 'gantry-focus-areas',
 }
 
-export const GANTRY_STAGE_VALUES = ['IDEA', 'UNDER_REVIEW', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
+export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
+
+export const GANTRY_PRE_ROADMAP_STAGES = ['IDEA', 'BACKLOG'] as const;
 
 export const GANTRY_STAGE_LABELS: Record<(typeof GANTRY_STAGE_VALUES)[number], string> = {
-  IDEA: 'Need',
-  UNDER_REVIEW: 'Under Review',
+  IDEA: 'Submitted',
+  BACKLOG: 'Backlog',
   PLANNED: 'Planned',
   IN_PROGRESS: 'In Progress',
   SHIPPED: 'Shipped',
@@ -20,21 +24,38 @@ export const GANTRY_KANBAN_STAGES = ['PLANNED', 'IN_PROGRESS', 'SHIPPED'] as con
 /** All stages available as roadmap board columns (lifecycle order). */
 export const GANTRY_ROADMAP_COLUMN_STAGES = [
   'IDEA',
-  'UNDER_REVIEW',
+  'BACKLOG',
   'PLANNED',
   'IN_PROGRESS',
   'SHIPPED',
   'DECLINED',
 ] as const;
 
-/** Dashboard defaults to every stage column except DECLINED. */
-export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => stage !== 'DECLINED');
+/** Gantry board defaults to every stage column except DECLINED. */
+export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filter(
+  (stage) => stage !== 'DECLINED' && stage !== 'BACKLOG',
+);
+
+export const GANTRY_VISIBLE_COLUMNS_STORAGE_KEY = 'gantry.board.visibleColumns';
 
 export function sortRoadmapColumnStages(
   columns: readonly (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][],
 ): (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][] {
   const selected = new Set(columns);
   return GANTRY_ROADMAP_COLUMN_STAGES.filter((stage) => selected.has(stage));
+}
+
+export function isPreRoadmapStage(stage: (typeof GANTRY_STAGE_VALUES)[number]): boolean {
+  return (GANTRY_PRE_ROADMAP_STAGES as readonly string[]).includes(stage);
+}
+
+/** Most upvotes first; ties broken by most recently updated. */
+export function sortGantryItems(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => {
+    const countDiff = b.upvoteCount - a.upvoteCount;
+    if (countDiff !== 0) return countDiff;
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
 }
 
 /**

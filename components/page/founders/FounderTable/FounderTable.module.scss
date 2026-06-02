@@ -36,6 +36,25 @@
   background: var(--background-neutral-soft-surface, #F9FAFB);
 }
 
+// ── Frozen first column ───────────────────────────────────────────────────────
+
+.frozenName {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 2px 0 8px -2px rgba(0, 0, 0, 0.06);
+}
+
+thead .frozenName {
+  z-index: 3;
+  background: var(--background-neutral-soft-surface, #F9FAFB);
+}
+
+.row:hover .frozenName { background: #f8fafc; }
+.rowSelected .frozenName { background: #eef2ff; }
+.rowSelected:hover .frozenName { background: #e0e7ff; }
+
 // ── Rows ─────────────────────────────────────────────────────────────────────
 
 .row {

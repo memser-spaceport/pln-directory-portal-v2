@@ -129,7 +129,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
-                <th key={h.id} className={s.th}>
+                <th key={h.id} className={clsx(s.th, h.column.id === 'name' && s.frozenName)}>
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
               ))}
@@ -147,7 +147,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
               }}
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={s.td}>
+                <td key={cell.id} className={clsx(s.td, cell.column.id === 'name' && s.frozenName)}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

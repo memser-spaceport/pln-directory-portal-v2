@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
-import { Pagination } from '@/components/common/Pagination/Pagination';
 import { useGetFounders } from '@/services/founders/hooks/useGetFounders';
 import { DEFAULT_PAGE_SIZE } from '@/services/founders/constants';
 import type { FounderListParams } from '@/services/founders/types';
@@ -57,27 +56,25 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
       minAlignment: filters.minAlignment > 0 ? filters.minAlignment : undefined,
       minPlnProximity: filters.minPlnProximity > 0 ? filters.minPlnProximity : undefined,
       sort: filters.sort || undefined,
-      page: filters.page,
       limit: DEFAULT_PAGE_SIZE,
     }),
     [filters],
   );
 
-  const { data, isLoading, isError } = useGetFounders(params, canView);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetFounders(params, canView);
 
-  const founders = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / DEFAULT_PAGE_SIZE);
+  const founders = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const total = data?.pages.at(-1)?.total ?? 0;
   const filtersActive = hasActiveFilters(filters);
 
   const handleSortChange = (value: string) => {
-    setFilters({ sort: value || null, page: 1 } as never);
+    setFilters({ sort: value || null } as never);
     analytics.onFilterApplied('sort', value);
   };
 
-  const handlePageChange = (page: number) => {
-    setFilters({ page } as never);
-  };
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleClearFilters = () => {
     setFilters({
@@ -87,7 +84,6 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
       source: null,
       minAlignment: null,
       minPlnProximity: null,
-      page: null,
     } as never);
   };
 
@@ -123,6 +119,9 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
         onRowClick={(id) => setFilters({ founderId: id } as never, { history: 'push' } as never)}
         isLoading={isLoading}
         visibleColumns={visibleColumns}
+        onLoadMore={handleLoadMore}
+        hasMore={hasNextPage ?? false}
+        isFetchingMore={isFetchingNextPage}
       />
 
       {!isLoading && founders.length === 0 && filtersActive && (
@@ -145,12 +144,6 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
           {total > 0 ? `${total.toLocaleString()} founders total` : ''}
         </span>
       </div>
-
-      {totalPages > 1 && (
-        <div className={s.paginationWrapper}>
-          <Pagination count={totalPages} page={filters.page} onChange={handlePageChange} />
-        </div>
-      )}
     </div>
   );
 }

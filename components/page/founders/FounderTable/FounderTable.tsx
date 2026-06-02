@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type { FounderItem } from '@/services/founders/types';
@@ -17,9 +18,12 @@ interface Props {
   onRowClick: (id: string) => void;
   isLoading?: boolean;
   visibleColumns: string[];
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
 }
 
-export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading, visibleColumns }: Props) {
+export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading, visibleColumns, onLoadMore, hasMore, isFetchingMore }: Props) {
   const analytics = useFoundersAnalytics();
   const visibleSet = new Set(visibleColumns);
 
@@ -123,6 +127,13 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
 
   return (
     <div className={s.wrap}>
+    <InfiniteScroll
+      dataLength={founders.length}
+      hasMore={hasMore ?? false}
+      next={onLoadMore ?? (() => {})}
+      loader={<div className={s.sentinelLoader}>Loading more…</div>}
+      style={{ overflow: 'unset' }}
+    >
     <div className={s.tableWrap}>
       <table className={s.table}>
         <thead>
@@ -163,6 +174,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
         </tbody>
       </table>
     </div>
+    </InfiniteScroll>
     </div>
   );
 }

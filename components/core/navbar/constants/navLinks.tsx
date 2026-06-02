@@ -16,14 +16,14 @@ export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
   href: '/investors',
   title: 'Investor DB',
-  description: 'Internal investor database — network, co-investors, and outreach pipeline.',
+  description: 'PL internal — investor database for sourcing, outreach and intros',
 };
 
 export const FOUNDER_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
   href: '/founders',
   title: 'Founder DB',
-  description: 'Internal founder signal-sourcing database.',
+  description: 'PL internal — founder sourcing database',
 };
 
 export const DIRECTORY_LINKS: ISubItem[] = [
@@ -79,14 +79,14 @@ export const DEALS_LINK: ISubItem = {
   icon: <DealsIcon />,
   href: '/deals',
   title: 'Deals',
-  description: 'Exclusive tools and perks for founders.',
+  description: 'Exclusive tools and perks for founders',
 };
 
 export const FOUNDER_GUIDES_LINK: ISubItem = {
   icon: <FounderGuidesIcon />,
   href: '/founder-guides',
   title: 'Founder Guides',
-  description: 'Structured, expert-driven guides for startup founders.',
+  description: 'Structured, expert-driven guides for startup founders',
 };
 
 export const GANTRY_LINK: ISubItem = {
@@ -100,12 +100,12 @@ export const DEMO_DAY_LINK: ISubItem = {
   icon: <DemoDayIcon />,
   href: '/demoday',
   title: 'Demo Days',
-  description: 'Exclusive events where founders pitch to selected investors.',
+  description: 'Exclusive events where founders pitch to selected investors',
 };
 
 export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
   href: '/demo-day-analytics',
   title: 'Demo Day Analytics',
-  description: 'Track Demo Day activity across teams, events, and interactions.',
+  description: 'Track Demo Day activity across teams, events, and interactions',
 };

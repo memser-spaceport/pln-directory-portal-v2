@@ -6,6 +6,7 @@ import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { useReviewFounder } from '@/services/founders/hooks/useReviewFounder';
 import {
   FOUNDER_STATUS_LABEL,
+  FOUNDER_STATUS_VALUES,
   REVIEW_FEEDBACK_LABEL,
   REVIEW_FEEDBACK_VALUES,
 } from '@/services/founders/constants';
@@ -14,9 +15,9 @@ import type { FounderStatus, ReviewFeedback } from '@/services/founders/types';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './ReviewActionsPanel.module.scss';
 
-const REVIEW_STATUS_OPTIONS: FounderStatus[] = ['approved', 'rejected', 'hold', 'wrong-fund'];
+// All statuses are valid review decisions
+const STATUS_OPTIONS = FOUNDER_STATUS_VALUES.map((v) => ({ value: v, label: FOUNDER_STATUS_LABEL[v] }));
 
-const STATUS_OPTIONS = REVIEW_STATUS_OPTIONS.map((v) => ({ value: v, label: FOUNDER_STATUS_LABEL[v] }));
 const FEEDBACK_OPTIONS = [
   { value: '', label: 'No feedback' },
   ...REVIEW_FEEDBACK_VALUES.map((v) => ({ value: v, label: REVIEW_FEEDBACK_LABEL[v] })),
@@ -31,14 +32,16 @@ type FormValues = {
 interface Props {
   founderId: string;
   currentStatus: FounderStatus;
+  currentFeedback?: ReviewFeedback;
+  currentNote?: string;
 }
 
-export function ReviewActionsPanel({ founderId, currentStatus }: Props) {
+export function ReviewActionsPanel({ founderId, currentStatus, currentFeedback, currentNote }: Props) {
   const methods = useForm<FormValues>({
     defaultValues: {
       status: STATUS_OPTIONS.find((o) => o.value === currentStatus) ?? null,
-      feedback: FEEDBACK_OPTIONS[0],
-      note: '',
+      feedback: FEEDBACK_OPTIONS.find((o) => o.value === (currentFeedback ?? '')) ?? FEEDBACK_OPTIONS[0],
+      note: currentNote ?? '',
     },
   });
 
@@ -47,7 +50,10 @@ export function ReviewActionsPanel({ founderId, currentStatus }: Props) {
 
   const onSubmit = (values: FormValues) => {
     const status = values.status?.value as FounderStatus | undefined;
-    if (!status) return;
+    if (!status) {
+      methods.setError('status', { message: 'Please select a decision.' });
+      return;
+    }
     const feedback = values.feedback?.value || undefined;
     const note = values.note?.trim() || undefined;
 

@@ -1,3 +1,7 @@
+import type { LabOsProfileRef as _LabOsProfileRef } from '@/services/investors/types';
+// Re-export the shared profile ref so founders components don't need to import from investors
+export type { LabOsProfileRef } from '@/services/investors/types';
+
 export type FundTag = 'PLVS' | 'NEURO' | 'CRYPTO';
 export type FounderStatus = 'new' | 'in-review' | 'approved' | 'rejected' | 'hold' | 'wrong-fund';
 export type ReviewFeedback = 'good' | 'bad' | 'wrong-fund' | 'needs-context';
@@ -19,7 +23,8 @@ export type FundTagObject = {
   primary_signal?: string;
 };
 
-export function getFundTag(tag: FundTag | FundTagObject): FundTag {
+export function getFundTag(tag: FundTag | FundTagObject | null | undefined): FundTag | null {
+  if (!tag) return null;
   return typeof tag === 'string' ? tag : tag.fund;
 }
 
@@ -70,16 +75,6 @@ export type FounderRawPayload = {
   plvs_recommendation?: string;
   plvs_weights_version?: string;
   is_known?: boolean;
-  // pass-through fields also on the top-level item
-  [key: string]: unknown;
-};
-
-export type LabOsProfileRef = {
-  type: 'member' | 'team';
-  uid: string;
-  slug?: string;
-  name: string;
-  last_active_at?: string;
 };
 
 export type FounderItem = {
@@ -96,7 +91,7 @@ export type FounderItem = {
   reviewState: FounderReviewState;
   directoryMemberId?: string;
   directoryTeamId?: string;
-  labOsProfile?: LabOsProfileRef;
+  labOsProfile?: _LabOsProfileRef;
   rawPayload: FounderRawPayload;
 };
 

@@ -37,7 +37,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
                   {f.whyNow.length > 80 ? f.whyNow.slice(0, 80) + '…' : f.whyNow}
                 </span>
               )}
-              {f.labOsProfile && <LabOsBadge profile={f.labOsProfile as never} variant="chip" />}
+              {f.labOsProfile && <LabOsBadge profile={f.labOsProfile} variant="chip" />}
             </div>
           );
         },
@@ -52,6 +52,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
             <div className={s.tagRow}>
               {tags.map((t, i) => {
                 const key = getFundTag(t);
+                if (!key) return null;
                 return (
                   <span key={`${key}-${i}`} className={s.fundTag}>
                     {FUND_LABEL[key] ?? key}

@@ -86,9 +86,10 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
           <FounderReviewStateBadge status={founder.reviewState.status} />
           {fundTags.map((t, i) => {
             const key = getFundTag(t);
+            if (!key) return null;
             return <span key={`${key}-${i}`} className={s.fundPill}>{FUND_LABEL[key] ?? key}</span>;
           })}
-          {founder.labOsProfile && <LabOsBadge profile={founder.labOsProfile as never} variant="chip" />}
+          {founder.labOsProfile && <LabOsBadge profile={founder.labOsProfile} variant="chip" />}
         </div>
       </div>
 
@@ -201,7 +202,7 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
       {(raw?.verification_status || verificationRationale.length > 0) && (
         <Section title="Verification">
           {raw?.verification_status && (
-            <span className={s.verificationBadge}>{raw.verification_status as string}</span>
+            <span className={s.verificationBadge}>{raw.verification_status}</span>
           )}
           {verificationRationale.length > 0 && (
             <ul className={s.rationaleList}>
@@ -228,7 +229,12 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
       {/* Review Actions */}
       {canEdit && (
         <Section title="Review">
-          <ReviewActionsPanel founderId={founder.founderId} currentStatus={founder.reviewState.status} />
+          <ReviewActionsPanel
+            founderId={founder.founderId}
+            currentStatus={founder.reviewState.status}
+            currentFeedback={founder.reviewState.feedback}
+            currentNote={founder.reviewState.note}
+          />
         </Section>
       )}
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
@@ -135,19 +135,28 @@ function NumericInput({
   step?: number;
   placeholder?: string;
 }) {
+  const [localValue, setLocalValue] = useState<string>(value > 0 ? String(value) : '');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync when parent resets the value (e.g. Clear filters)
+  useEffect(() => {
+    setLocalValue(value > 0 ? String(value) : '');
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
     const v = parseFloat(e.target.value);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       onChange(isNaN(v) ? 0 : v);
     }, 300);
   };
+
   return (
     <input
       type="number"
       className={s.input}
-      defaultValue={value || ''}
+      value={localValue}
       min={min}
       max={max}
       step={step}

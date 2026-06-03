@@ -256,7 +256,7 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
         <dl className={s.kv}>
           <dt>Alignment</dt>
           <dd>{founder.alignmentMax !== undefined && founder.alignmentMax !== null
-            ? founder.alignmentMax.toFixed(2)
+            ? `${Math.round(founder.alignmentMax * 100)}%`
             : <span className={s.muted}>—</span>}
           </dd>
           <dt>PLVS Score</dt>

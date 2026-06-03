@@ -14,6 +14,7 @@ import { triggerLoader } from '@/utils/common.utils';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
+import { useTeamFilterStore } from '@/services/teams';
 
 interface TeamsContentProps {
   userInfo: IUserInfo | undefined;
@@ -23,6 +24,7 @@ export default function TeamsContent(props: TeamsContentProps) {
   const { userInfo } = props;
 
   const searchParams = useGetTeamsFilterAsObjectFromStore();
+  const clearParams = useTeamFilterStore((s) => s.clearParams);
 
   // Use the shared hook for filters
   const { filterValues, isLoading: isLoadingFilters, isError: isFiltersError } = useTeamsFilters(searchParams);
@@ -77,7 +79,7 @@ export default function TeamsContent(props: TeamsContentProps) {
             filterValues={filterValues}
           />
         ) : (
-          <EmptyResult />
+          <EmptyResult onClearAll={clearParams} />
         )}
       </div>
     </div>

@@ -91,7 +91,7 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
         header: 'Alignment',
         cell: ({ row }) => {
           const v = row.original.alignmentMax;
-          return v !== undefined && v !== null ? <span>{v.toFixed(2)}</span> : <span className={s.muted}>—</span>;
+          return v !== undefined && v !== null ? <span>{Math.round(v * 100)}%</span> : <span className={s.muted}>—</span>;
         },
       },
       {

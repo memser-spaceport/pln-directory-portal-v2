@@ -68,7 +68,6 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
       id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => i.eventType === id).length;
     analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
     setActiveCategory(id);
-    setExpanded(false);
   };
 
   const handleToggleAll = () => {

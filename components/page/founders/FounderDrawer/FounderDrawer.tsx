@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { useGetFounderById } from '@/services/founders/hooks/useGetFounderById';
 import { LabOsBadge } from '@/components/page/investors/LabOsBadge/LabOsBadge';
@@ -62,7 +62,112 @@ function PlvsFeatureGrid({ features }: { features: PlvsFeatures }) {
   );
 }
 
+function FounderScoringModal({ open, onClose, triggerRef }: {
+  open: boolean;
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+}) {
+  if (!open) return null;
+
+  const handleClose = () => {
+    onClose();
+    triggerRef.current?.focus();
+  };
+
+  return (
+    <Drawer isOpen={open} onClose={handleClose} width={520} noBlur>
+      <div
+        className={s.scoringBody}
+        id="founder-scoring-panel"
+        aria-labelledby="founder-scoring-title"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            handleClose();
+          }
+        }}
+      >
+        <header className={s.scoringHeader}>
+          <h2 id="founder-scoring-title" className={s.scoringTitle}>Score methodology</h2>
+          <button type="button" className={s.scoringClose} onClick={handleClose} aria-label="Close">✕</button>
+        </header>
+
+        <section className={s.scoringSection}>
+          <h3 className={s.scoringH3}>Alignment Score</h3>
+          <p className={s.scoringLead}>
+            A 0–100% confidence score showing how strongly this founder matches the thesis of their
+            best-matched fund (PLVS, Neuro Tech, or Crypto). The classifier reads the founder&apos;s bio,
+            extracted topics, and signal keywords against each fund&apos;s thesis vocabulary. Alignment
+            shows the highest confidence across all fund tags assigned to this person.
+          </p>
+          <div className={s.scoringNote}>
+            Alignment is not PLN proximity. PLN proximity (shown as a badge) measures graph-distance
+            to the Protocol Labs network — these are separate signals.
+          </div>
+        </section>
+
+        <section className={s.scoringSection}>
+          <h3 className={s.scoringH3}>PLVS Score</h3>
+          <p className={s.scoringLead}>
+            A deterministic, weight-pinned 0–100 investment score computed only for founders tagged
+            to the PLVS fund. Same inputs always produce the same score — no model drift, fully
+            auditable. Each component contributes up to its cap; caps sum to 100.
+          </p>
+          <table className={s.scoringTable}>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th className={s.scoringRight}>Max pts</th>
+                <th>What it measures</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Domain Match</td>
+                <td className={s.scoringRight}>30</td>
+                <td>Overlap with PLVS thesis vocabulary (agent, llm-infra, ai-native, etc.). The single biggest driver.</td>
+              </tr>
+              <tr>
+                <td>Technical Depth</td>
+                <td className={s.scoringRight}>20</td>
+                <td>Engineering-rigor proxies: GitHub followers, stargazers, h-index, repo count</td>
+              </tr>
+              <tr>
+                <td>Stage Fit</td>
+                <td className={s.scoringRight}>15</td>
+                <td>Intent ladder — just-shipped / stealth-launching scores highest; default (no signal) scores lowest</td>
+              </tr>
+              <tr>
+                <td>Corroboration</td>
+                <td className={s.scoringRight}>15</td>
+                <td>Distinct sources that independently surfaced this founder — more sources, more trust</td>
+              </tr>
+              <tr>
+                <td>Recency</td>
+                <td className={s.scoringRight}>10</td>
+                <td>Exponential decay, 24-month half-life. Academic-to-founder paths remain scorable longer.</td>
+              </tr>
+              <tr>
+                <td>Trajectory</td>
+                <td className={s.scoringRight}>10</td>
+                <td>Growth velocity in followers, commits, and citations</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className={s.scoringNote}>
+            Network signals — PLN proximity and PL alignment — are not part of this score. They
+            appear as separate badges on the founder card and act as tie-breakers only.
+          </div>
+        </section>
+      </div>
+    </Drawer>
+  );
+}
+
 function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; canEdit: boolean; onClose: () => void }) {
+  const [scoringOpen, setScoringOpen] = useState(false);
+  const scoringTriggerRef = useRef<HTMLButtonElement>(null);
+
   const raw = founder.rawPayload;
   const fundTags = raw?.fund_tags ?? [];
   const provenance = raw?.provenance ?? [];
@@ -134,7 +239,20 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
       )}
 
       {/* Scores */}
-      <Section title="Scores">
+      <div className={s.section}>
+        <div className={s.sectionHeaderRow}>
+          <h3 className={s.sectionTitle}>Scores</h3>
+          <button
+            ref={scoringTriggerRef}
+            type="button"
+            className={s.howScoredLink}
+            onClick={() => setScoringOpen(true)}
+            aria-expanded={scoringOpen}
+            aria-controls="founder-scoring-panel"
+          >
+            How are scores calculated?
+          </button>
+        </div>
         <dl className={s.kv}>
           <dt>Alignment</dt>
           <dd>{founder.alignmentMax !== undefined && founder.alignmentMax !== null
@@ -153,7 +271,7 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
           </dd>
         </dl>
         {plvsFeatures && <PlvsFeatureGrid features={plvsFeatures} />}
-      </Section>
+      </div>
 
       {/* Warm intros */}
       {warmIntros.length > 0 && (
@@ -237,6 +355,12 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
           />
         </Section>
       )}
+
+      <FounderScoringModal
+        open={scoringOpen}
+        onClose={() => setScoringOpen(false)}
+        triggerRef={scoringTriggerRef}
+      />
     </div>
   );
 }
@@ -248,7 +372,7 @@ export default function FounderDrawer({ founderId, onClose, canEdit }: Props) {
     <Drawer isOpen={!!founderId} onClose={onClose} width={720}>
       {isLoading && <div className={s.loading}>Loading…</div>}
       {!isLoading && !founder && founderId && <div className={s.loading}>Founder not found.</div>}
-      {founder && <DrawerBody founder={founder as FounderDetail} canEdit={canEdit} onClose={onClose} />}
+      {founder && <DrawerBody key={founderId} founder={founder as FounderDetail} canEdit={canEdit} onClose={onClose} />}
     </Drawer>
   );
 }

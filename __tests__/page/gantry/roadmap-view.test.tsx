@@ -53,6 +53,10 @@ jest.mock('@/analytics/gantry.analytics', () => ({
   }),
 }));
 
+jest.mock('@/hooks/useIsNarrow', () => ({
+  useIsNarrow: () => false,
+}));
+
 describe('RoadmapView', () => {
   afterEach(() => {
     jest.clearAllMocks();

@@ -301,6 +301,9 @@ export function RoadmapView() {
                   tabs={orderedVisibleColumns.map((stage) => ({ value: stage, label: <StageBadge stage={stage} /> }))}
                   value={effectiveActiveColumn ?? orderedVisibleColumns[0]}
                   onValueChange={(v) => handleTabChange(v as RoadmapColumnStage)}
+                  classes={{
+                    tab: s.mobileTab,
+                  }}
                 />
               </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useFoundersAccess } from '@/services/rbac/hooks/useFoundersAccess';
@@ -9,7 +9,7 @@ import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-la
 import { foundersFilterParsers } from '../searchParams';
 import FoundersTableSection from '@/components/page/founders/FoundersTableSection/FoundersTableSection';
 import KpiSummaryStrip from '@/components/page/founders/KpiSummaryStrip/KpiSummaryStrip';
-import FounderDrawer from '@/components/page/founders/FounderDrawer/FounderDrawer';
+import FounderDrawer, { FounderScoringModal } from '@/components/page/founders/FounderDrawer/FounderDrawer';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './page.module.scss';
 
@@ -19,6 +19,8 @@ export default function FoundersContent() {
   const [filters, setFilters] = useQueryStates(foundersFilterParsers, { history: 'replace', shallow: true });
   const { data: kpiSummary, isLoading: kpiLoading } = useGetKpiSummary(4, access.canView);
   const analytics = useFoundersAnalytics();
+  const [scoringOpen, setScoringOpen] = useState(false);
+  const scoringTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!access.isLoading && !access.canView) {
@@ -50,6 +52,19 @@ export default function FoundersContent() {
 
       <KpiSummaryStrip data={kpiSummary} isLoading={kpiLoading} />
 
+      <div className={s.scoringLinkRow}>
+        <button
+          ref={scoringTriggerRef}
+          type="button"
+          className={s.howScoredLink}
+          onClick={() => setScoringOpen(true)}
+          aria-expanded={scoringOpen}
+          aria-controls="founder-scoring-panel"
+        >
+          How are scores calculated?
+        </button>
+      </div>
+
       <div className={s.body}>
         <FoundersTableSection
           filters={filters}
@@ -63,6 +78,12 @@ export default function FoundersContent() {
         founderId={filters.founderId || null}
         onClose={() => setFilters({ founderId: '' }, { history: 'push' } as never)}
         canEdit={access.canEdit}
+      />
+
+      <FounderScoringModal
+        open={scoringOpen}
+        onClose={() => setScoringOpen(false)}
+        triggerRef={scoringTriggerRef}
       />
     </div>
   );

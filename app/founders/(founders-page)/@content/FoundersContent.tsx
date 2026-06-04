@@ -52,25 +52,13 @@ export default function FoundersContent() {
 
       <KpiSummaryStrip data={kpiSummary} isLoading={kpiLoading} />
 
-      <div className={s.scoringLinkRow}>
-        <button
-          ref={scoringTriggerRef}
-          type="button"
-          className={s.howScoredLink}
-          onClick={() => setScoringOpen(true)}
-          aria-expanded={scoringOpen}
-          aria-controls="founder-scoring-panel"
-        >
-          How are scores calculated?
-        </button>
-      </div>
-
       <div className={s.body}>
         <FoundersTableSection
           filters={filters}
           setFilters={setFilters}
           canEdit={access.canEdit}
           canView={access.canView}
+          onHowScored={() => setScoringOpen(true)}
         />
       </div>
 

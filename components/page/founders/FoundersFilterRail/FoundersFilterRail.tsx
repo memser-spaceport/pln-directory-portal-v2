@@ -127,6 +127,7 @@ function NumericInput({
   max,
   step,
   placeholder,
+  suffix,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -134,6 +135,7 @@ function NumericInput({
   max?: number;
   step?: number;
   placeholder?: string;
+  suffix?: string;
 }) {
   const [localValue, setLocalValue] = useState<string>(value > 0 ? String(value) : '');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -148,11 +150,14 @@ function NumericInput({
     const v = parseFloat(e.target.value);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      onChange(isNaN(v) ? 0 : v);
+      if (isNaN(v)) { onChange(0); return; }
+      const clamped = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
+      setLocalValue(String(clamped));
+      onChange(clamped);
     }, 300);
   };
 
-  return (
+  const input = (
     <input
       type="number"
       className={s.input}
@@ -163,6 +168,15 @@ function NumericInput({
       placeholder={placeholder}
       onChange={handleChange}
     />
+  );
+
+  if (!suffix) return input;
+
+  return (
+    <div className={s.inputWrap}>
+      {input}
+      <span className={s.inputSuffix}>{suffix}</span>
+    </div>
   );
 }
 
@@ -257,15 +271,17 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
 
       <FilterSection title="Min alignment">
         <NumericInput
-          value={filters.minAlignment}
-          onChange={(v) => {
+          value={filters.minAlignment > 0 ? Math.round(filters.minAlignment * 100) : 0}
+          onChange={(pct) => {
+            const v = pct > 0 ? pct / 100 : 0;
             setFilter({ minAlignment: v > 0 ? v : null } as never);
             analytics.onFilterApplied('minAlignment', v);
           }}
           min={0}
-          max={1}
-          step={0.01}
-          placeholder="0.00 – 1.00"
+          max={100}
+          step={1}
+          placeholder="0 – 100"
+          suffix="%"
         />
       </FilterSection>
 

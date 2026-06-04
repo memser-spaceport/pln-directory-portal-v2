@@ -19,6 +19,17 @@
   display: flex;
 }
 
+.inputSuffix {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+}
+
 .inputIconBtn {
   position: absolute;
   right: 6px;

@@ -16,12 +16,23 @@
   //background: #fff;
   min-height: 48px;
   gap: 12px;
+
+  @media (max-width: 1023px) {
+    flex-wrap: wrap;
+    gap: 0;
+  }
 }
 
 .actionBarLeft {
   display: flex;
   align-items: flex-end;
   height: 100%;
+
+  @media (max-width: 1023px) {
+    width: 100%;
+    overflow-x: auto;
+    border-bottom: 1px solid #e2e8f0;
+  }
 }
 
 .actionBarRight {
@@ -30,6 +41,35 @@
   gap: 8px;
   padding: 6px 0;
   flex-shrink: 0;
+
+  @media (max-width: 1023px) {
+    width: 100%;
+    justify-content: flex-end;
+    padding: 8px 0;
+  }
+}
+
+.exportBtnLabel {
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
+.sortWrap {
+  display: contents;
+
+  @media (max-width: 1023px) {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.sortTrigger {
+  @media (max-width: 1023px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 // ── Tab overrides ────────────────────────────────────────────────────────────

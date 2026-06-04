@@ -114,8 +114,11 @@ export function RoadmapView() {
   useEffect(() => {
     if (effectiveActiveColumn !== prevEffectiveColumnRef.current && !isProgrammaticScrollRef.current) {
       if (effectiveActiveColumn && prevEffectiveColumnRef.current !== null) {
+        const container = scrollContainerRef.current;
         const colEl = columnRefs.current.get(effectiveActiveColumn);
-        colEl?.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'nearest', inline: 'start' });
+        if (container && colEl) {
+          container.scrollTo({ left: colEl.offsetLeft, behavior: 'instant' as ScrollBehavior });
+        }
       }
     }
     prevEffectiveColumnRef.current = effectiveActiveColumn;
@@ -140,17 +143,25 @@ export function RoadmapView() {
     return () => observer.disconnect();
   }, [isNarrow, orderedVisibleColumns]);
 
-  // Active tab scroll-into-view when effectiveActiveColumn changes (driven by swipe or filter reset)
+  // Active tab scroll-into-view when effectiveActiveColumn changes (driven by swipe or filter reset).
+  // Uses direct scrollTo on the Tabs root element to avoid scrolling the page vertically.
   useEffect(() => {
     if (!isNarrow || !effectiveActiveColumn || !tabsWrapperRef.current) return;
     const tabEl = tabsWrapperRef.current.querySelector<HTMLElement>(`[role="tab"][data-value="${effectiveActiveColumn}"]`);
-    tabEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const tabsRoot = tabsWrapperRef.current.firstElementChild as HTMLElement | null;
+    if (!tabEl || !tabsRoot) return;
+    const targetLeft = tabEl.offsetLeft - tabsRoot.offsetWidth / 2 + tabEl.offsetWidth / 2;
+    tabsRoot.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
   }, [effectiveActiveColumn, isNarrow]);
 
   const handleTabChange = (stage: RoadmapColumnStage) => {
     setActiveColumn(stage);
     isProgrammaticScrollRef.current = true;
-    columnRefs.current.get(stage)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    const container = scrollContainerRef.current;
+    const colEl = columnRefs.current.get(stage);
+    if (container && colEl) {
+      container.scrollTo({ left: colEl.offsetLeft, behavior: 'smooth' });
+    }
     setTimeout(() => {
       isProgrammaticScrollRef.current = false;
     }, 500);

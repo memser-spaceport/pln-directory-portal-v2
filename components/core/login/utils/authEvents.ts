@@ -108,6 +108,9 @@ export const authEvents = new AuthEventEmitter();
  */
 export function isDemoDayScopePage(pathname: string | null | undefined, includeRoot: boolean = false): boolean {
   if (!pathname) return false;
+  if (/^\/pitch\/.+/.test(pathname)) {
+    return true;
+  }
   if (includeRoot) {
     return /^\/demoday\/.+/.test(pathname) || pathname === '/demoday';
   }

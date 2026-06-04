@@ -7,6 +7,8 @@ import { CompanyFundraiseParagraph } from '@/components/page/demo-day/FounderPen
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import s from './TeamDetailsDrawer.module.scss';
 import { EditProfileDrawer } from '@/components/page/demo-day/FounderPendingView/components/EditProfileDrawer';
+import { TeamPitchEditProvider } from '@/components/page/pitch/TeamPitchEditContext';
+import { mapTeamProfileToFundraisingProfile } from '@/services/team-pitch/mapTeamProfileToFundraisingProfile';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
@@ -50,6 +52,7 @@ interface TeamDetailsDrawerProps {
   };
   isAdmin?: boolean;
   canEdit?: boolean;
+  pitchSlug?: string;
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
@@ -60,10 +63,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   investorData,
   isAdmin = false,
   canEdit: canEditTeams = true,
+  pitchSlug,
 }) => {
   const pathname = usePathname();
   const { data: demoDayData } = useGetDemoDayState();
-  const { data } = useGetFundraisingProfile(demoDayData?.access === 'FOUNDER');
+  const { data: fundraisingProfile } = useGetFundraisingProfile(!pitchSlug && demoDayData?.access === 'FOUNDER');
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
@@ -452,12 +456,25 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
   };
 
-  const isOwnTeam = team?.team?.uid === data?.teamUid;
-  const canEdit = isAdmin ? canEditTeams : isOwnTeam;
+  const isOwnTeam = team?.team?.uid === fundraisingProfile?.teamUid;
+  const canEdit = pitchSlug ? canEditTeams : isAdmin ? canEditTeams : isOwnTeam;
 
   if (canEdit) {
-    const editData = isAdmin && !isOwnTeam ? (team as any) : data;
-    return <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} team={team} />;
+    const editData = pitchSlug
+      ? mapTeamProfileToFundraisingProfile(team)
+      : isAdmin && !isOwnTeam
+        ? (team as any)
+        : fundraisingProfile;
+
+    const drawer = (
+      <EditProfileDrawer isOpen={isOpen} onClose={onClose} scrollPosition={0} data={editData} team={team} />
+    );
+
+    if (pitchSlug) {
+      return <TeamPitchEditProvider pitchSlug={pitchSlug}>{drawer}</TeamPitchEditProvider>;
+    }
+
+    return drawer;
   }
 
   return (

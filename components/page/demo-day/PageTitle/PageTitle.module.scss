@@ -84,6 +84,10 @@
   }
 }
 
+.subtitle {
+  width: 100%;
+}
+
 .hideOnMobile {
   @include media.mobile-only {
     display: none;

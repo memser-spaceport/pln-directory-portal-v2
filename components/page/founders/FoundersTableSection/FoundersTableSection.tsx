@@ -22,6 +22,7 @@ interface Props {
   setFilters: SetFilters;
   canEdit: boolean;
   canView: boolean;
+  onHowScored?: () => void;
 }
 
 const SORT_OPTIONS = [
@@ -43,7 +44,7 @@ function hasActiveFilters(filters: Filters): boolean {
   );
 }
 
-export default function FoundersTableSection({ filters, setFilters, canView }: Props) {
+export default function FoundersTableSection({ filters, setFilters, canView, onHowScored }: Props) {
   const analytics = useFoundersAnalytics();
   const visibleColumns = useFounderColumnStore((s) => s.visibleColumns);
 
@@ -98,6 +99,11 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
           <span className={s.countLabel}>
             {total > 0 ? `${total.toLocaleString()} founders` : isLoading ? '' : '0 founders'}
           </span>
+          {onHowScored && (
+            <button type="button" className={s.howScoredLink} onClick={onHowScored}>
+              How are scores calculated?
+            </button>
+          )}
         </div>
         <div className={s.actionBarRight}>
           <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
@@ -108,7 +114,7 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
             disabled={founders.length === 0}
           >
             <ExportIcon />
-            Export CSV
+            <span className={s.exportBtnLabel}>Export CSV</span>
           </button>
         </div>
       </div>

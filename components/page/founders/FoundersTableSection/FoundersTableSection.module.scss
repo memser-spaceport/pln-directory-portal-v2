@@ -16,8 +16,27 @@
 
 .actionBarLeft {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 12px;
   height: 100%;
+}
+
+.howScoredLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+
+  &:hover {
+    color: #1a3fd9;
+  }
 }
 
 .actionBarRight {
@@ -60,6 +79,16 @@
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+}
+
+@media (max-width: 1023px) {
+  .actionBar {
+    flex-wrap: wrap;
+  }
+
+  .exportBtnLabel {
+    display: none;
   }
 }
 

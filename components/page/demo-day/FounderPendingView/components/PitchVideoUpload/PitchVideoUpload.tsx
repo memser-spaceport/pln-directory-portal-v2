@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { useUploadVideo } from '@/services/demo-day/hooks/useUploadVideo';
 import { MediaPreview } from '../MediaPreview';
 import { formatFileSize } from '@/utils/file.utils';
+import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import s from './PitchVideoUpload.module.scss';
 import { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useQueryClient } from '@tanstack/react-query';
@@ -351,7 +352,7 @@ export const PitchVideoUpload = ({ existingFile, analyticsHandlers, teamUid }: P
   };
 
   if (existingFile) {
-    const fileUrl = existingFile?.streamUrl ?? existingFile?.url ?? '';
+    const fileUrl = getVideoPlaybackUrl(existingFile);
     const fileName = existingFile?.filename ?? '';
     const fileSize = existingFile?.size ?? 0;
 

@@ -11,6 +11,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
@@ -534,7 +535,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
 
       <ProfileContent
         pitchDeckUrl={team?.onePagerUpload?.url}
-        videoUrl={team?.videoUpload?.streamUrl ?? team?.videoUpload?.url}
+        videoUrl={getVideoPlaybackUrl(team?.videoUpload)}
         onPitchDeckView={handlePitchDeckView}
         onPitchVideoView={handlePitchVideoView}
         pitchDeckPreviewUrl={team?.onePagerUpload?.previewImageUrl}

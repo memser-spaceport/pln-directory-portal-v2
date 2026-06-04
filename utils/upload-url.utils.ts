@@ -1,5 +1,26 @@
 import type { UploadInfo } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 
+const HLS_READY_AFTER_MS = 5 * 60 * 1000;
+
+/** Prefer MP4 until HLS transcoding has had time to finish, then use streamUrl when available. */
+export function getVideoPlaybackUrl(upload: UploadInfo | null | undefined): string {
+  if (!upload) return '';
+
+  const mp4Url = upload.url ?? '';
+  const streamUrl = upload.streamUrl ?? '';
+
+  if (!mp4Url && !streamUrl) return '';
+
+  const createdAt = upload.createdAt ? new Date(upload.createdAt).getTime() : 0;
+  const isHlsReady = Date.now() - createdAt >= HLS_READY_AFTER_MS;
+
+  if (isHlsReady && streamUrl) {
+    return streamUrl;
+  }
+
+  return mp4Url;
+}
+
 /** CDN workaround — use S3 direct URLs until pfps.plnetwork.io is fixed */
 function toS3(url: string | undefined, bucket: string, key?: string): string | undefined {
   if (!url || url.includes('amazonaws.com')) return url;

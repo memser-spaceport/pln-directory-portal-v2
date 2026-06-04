@@ -62,7 +62,7 @@ function PlvsFeatureGrid({ features }: { features: PlvsFeatures }) {
   );
 }
 
-function FounderScoringModal({ open, onClose, triggerRef }: {
+export function FounderScoringModal({ open, onClose, triggerRef }: {
   open: boolean;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;

@@ -50,6 +50,27 @@
   letter-spacing: -0.2px;
 }
 
+.scoringLinkRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 20px 0;
+}
+
+.howScoredLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: #1a3fd9; }
+}
+
 .body {
   flex: 1 1 auto;
   display: flex;

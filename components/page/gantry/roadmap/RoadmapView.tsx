@@ -144,15 +144,20 @@ export function RoadmapView() {
   }, [isNarrow, orderedVisibleColumns]);
 
   // Active tab scroll-into-view when effectiveActiveColumn changes (driven by swipe or filter reset).
-  // Uses direct scrollTo on the Tabs root element to avoid scrolling the page vertically.
+  // Uses getBoundingClientRect + direct scrollTo on the Tabs root to avoid scrolling the page.
   useEffect(() => {
     if (!isNarrow || !effectiveActiveColumn || !tabsWrapperRef.current) return;
-    const tabEl = tabsWrapperRef.current.querySelector<HTMLElement>(`[role="tab"][data-value="${effectiveActiveColumn}"]`);
+    const tabIndex = orderedVisibleColumns.indexOf(effectiveActiveColumn);
     const tabsRoot = tabsWrapperRef.current.firstElementChild as HTMLElement | null;
-    if (!tabEl || !tabsRoot) return;
-    const targetLeft = tabEl.offsetLeft - tabsRoot.offsetWidth / 2 + tabEl.offsetWidth / 2;
-    tabsRoot.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
-  }, [effectiveActiveColumn, isNarrow]);
+    if (!tabsRoot || tabIndex < 0) return;
+    const tabEl = tabsRoot.querySelectorAll<HTMLElement>('[role="tab"]')[tabIndex];
+    if (!tabEl) return;
+    const tabRect = tabEl.getBoundingClientRect();
+    const containerRect = tabsRoot.getBoundingClientRect();
+    const tabCenterInScroll = tabRect.left - containerRect.left + tabsRoot.scrollLeft + tabEl.offsetWidth / 2;
+    const targetScrollLeft = tabCenterInScroll - containerRect.width / 2;
+    tabsRoot.scrollTo({ left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
+  }, [effectiveActiveColumn, isNarrow, orderedVisibleColumns]);
 
   const handleTabChange = (stage: RoadmapColumnStage) => {
     setActiveColumn(stage);

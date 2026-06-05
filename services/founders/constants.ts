@@ -15,7 +15,6 @@ export const FOUNDER_STATUS_VALUES: FounderStatus[] = [
   'approved',
   'rejected',
   'hold',
-  'wrong-fund',
 ];
 export const REVIEW_FEEDBACK_VALUES: ReviewFeedback[] = ['good', 'bad', 'wrong-fund', 'needs-context'];
 
@@ -31,7 +30,6 @@ export const FOUNDER_STATUS_LABEL: Record<FounderStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
   hold: 'Hold',
-  'wrong-fund': 'Wrong Fund',
 };
 
 export const REVIEW_FEEDBACK_LABEL: Record<ReviewFeedback, string> = {

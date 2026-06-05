@@ -1,6 +1,6 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { DEFAULT_PAGE_SIZE } from './constants';
-import type { FounderDetail, FounderListParams, FounderListResponse, KpiSummary, ReviewFounderPayload } from './types';
+import type { FounderDetail, FounderFiltersResponse, FounderListParams, FounderListResponse, KpiSummary, ReviewFounderPayload } from './types';
 
 const BASE = `${process.env.DIRECTORY_API_URL}/v1/founder-sourcing`;
 
@@ -32,6 +32,12 @@ export async function fetchFounderById(id: string): Promise<FounderDetail | null
 
 export async function fetchFoundersKpiSummary(weeks = 4): Promise<KpiSummary | null> {
   const res = await customFetch(`${BASE}/kpis/summary?weeks=${weeks}`, { method: 'GET' }, true);
+  if (!res?.ok) return null;
+  return res.json();
+}
+
+export async function fetchFounderFilters(): Promise<FounderFiltersResponse | null> {
+  const res = await customFetch(`${BASE}/filters`, { method: 'GET' }, true);
   if (!res?.ok) return null;
   return res.json();
 }

@@ -6,6 +6,7 @@ export enum FoundersQueryKeys {
   FOUNDERS_LIST = 'founders-list',
   FOUNDER_DETAIL = 'founders-detail',
   FOUNDERS_KPI_SUMMARY = 'founders-kpi-summary',
+  FOUNDERS_FILTERS = 'founders-filters',
 }
 
 export const FUND_VALUES: FundTag[] = ['PLVS', 'NEURO', 'CRYPTO'];
@@ -15,7 +16,6 @@ export const FOUNDER_STATUS_VALUES: FounderStatus[] = [
   'approved',
   'rejected',
   'hold',
-  'wrong-fund',
 ];
 export const REVIEW_FEEDBACK_VALUES: ReviewFeedback[] = ['good', 'bad', 'wrong-fund', 'needs-context'];
 
@@ -31,7 +31,6 @@ export const FOUNDER_STATUS_LABEL: Record<FounderStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
   hold: 'Hold',
-  'wrong-fund': 'Wrong Fund',
 };
 
 export const REVIEW_FEEDBACK_LABEL: Record<ReviewFeedback, string> = {

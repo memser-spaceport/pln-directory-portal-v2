@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { Dialog } from '@base-ui-components/react/dialog';
+import { useSwipeable } from 'react-swipeable';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { useGetFounders } from '@/services/founders/hooks/useGetFounders';
 import { DEFAULT_PAGE_SIZE } from '@/services/founders/constants';
@@ -9,9 +11,12 @@ import type { foundersFilterParsers } from '@/app/founders/(founders-page)/searc
 import type { useQueryStates } from 'nuqs';
 import { FounderTable } from '../FounderTable/FounderTable';
 import { FounderColumnChooser } from '../FounderColumnChooser/FounderColumnChooser';
+import { FoundersFilterRail } from '../FoundersFilterRail/FoundersFilterRail';
 import { useFounderColumnStore } from '@/services/founders/store';
 import { exportFoundersCsv } from '../utils/exportCsv';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
+import { CloseIcon, PlusIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button';
 import s from './FoundersTableSection.module.scss';
 
 type Filters = ReturnType<typeof useQueryStates<typeof foundersFilterParsers>>[0];
@@ -22,6 +27,7 @@ interface Props {
   setFilters: SetFilters;
   canEdit: boolean;
   canView: boolean;
+  onHowScored?: () => void;
 }
 
 const SORT_OPTIONS = [
@@ -43,9 +49,25 @@ function hasActiveFilters(filters: Filters): boolean {
   );
 }
 
-export default function FoundersTableSection({ filters, setFilters, canView }: Props) {
+function countActiveFilters(filters: Filters): number {
+  let n = 0;
+  if (filters.q) n++;
+  n += filters.fund.length;
+  n += filters.status.length;
+  n += filters.source.length;
+  if (filters.minAlignment > 0) n++;
+  if (filters.minPlnProximity > 0) n++;
+  return n;
+}
+
+export default function FoundersTableSection({ filters, setFilters, canView, onHowScored }: Props) {
   const analytics = useFoundersAnalytics();
   const visibleColumns = useFounderColumnStore((s) => s.visibleColumns);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedDown: () => setFiltersOpen(false),
+  });
 
   const params: FounderListParams = useMemo(
     () => ({
@@ -66,6 +88,7 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
   const founders = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
   const total = data?.pages.at(-1)?.total ?? 0;
   const filtersActive = hasActiveFilters(filters);
+  const filterCount = countActiveFilters(filters);
 
   const handleSortChange = (value: string) => {
     setFilters({ sort: value || null } as never);
@@ -98,8 +121,18 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
           <span className={s.countLabel}>
             {total > 0 ? `${total.toLocaleString()} founders` : isLoading ? '' : '0 founders'}
           </span>
+          {onHowScored && (
+            <button type="button" className={s.howScoredLink} onClick={onHowScored}>
+              How are scores calculated?
+            </button>
+          )}
         </div>
         <div className={s.actionBarRight}>
+          <button type="button" className={s.mobileFilterBtn} onClick={() => setFiltersOpen(true)}>
+            <PlusIcon color="#455468" />
+            Filters
+            {filterCount > 0 && <span className={s.mobileFilterBadge}>{filterCount}</span>}
+          </button>
           <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
           <FounderColumnChooser />
           <button
@@ -108,7 +141,7 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
             disabled={founders.length === 0}
           >
             <ExportIcon />
-            Export CSV
+            <span className={s.exportBtnLabel}>Export CSV</span>
           </button>
         </div>
       </div>
@@ -144,6 +177,28 @@ export default function FoundersTableSection({ filters, setFilters, canView }: P
           {total > 0 ? `${total.toLocaleString()} founders total` : ''}
         </span>
       </div>
+
+      <Dialog.Root open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <Dialog.Portal>
+          <Dialog.Backdrop className={s.drawerBackdrop} />
+          <Dialog.Popup className={s.drawerPopup}>
+            <div className={s.drawerHandle} {...swipeHandlers} />
+            <div className={s.drawerHeader} {...swipeHandlers}>
+              <Dialog.Title className={s.drawerTitle}>Filters</Dialog.Title>
+              <button className={s.drawerClose} onClick={() => setFiltersOpen(false)}>
+                <CloseIcon />
+              </button>
+            </div>
+            <div className={s.drawerContent}>
+              <FoundersFilterRail filters={filters} setFilters={setFilters} />
+            </div>
+            <div className={s.drawerFooter}>
+              <Button style="border" onClick={handleClearFilters}>Clear filters</Button>
+              <Button onClick={() => setFiltersOpen(false)}>Apply filters</Button>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

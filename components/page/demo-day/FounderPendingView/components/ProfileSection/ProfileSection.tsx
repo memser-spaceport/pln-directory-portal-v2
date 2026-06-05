@@ -14,6 +14,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 
 interface ProfileSectionProps {
@@ -146,7 +147,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ investorData }) 
           {/* Content */}
           <ProfileContent
             pitchDeckUrl={data?.onePagerUpload?.url}
-            videoUrl={data?.videoUpload?.streamUrl ?? data?.videoUpload?.url}
+            videoUrl={getVideoPlaybackUrl(data?.videoUpload)}
             pitchDeckPreviewUrl={data?.onePagerUpload?.previewImageUrl}
             pitchDeckPreviewSmallUrl={data?.onePagerUpload?.previewImageSmallUrl}
           />

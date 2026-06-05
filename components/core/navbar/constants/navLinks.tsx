@@ -22,7 +22,7 @@ export const INVESTOR_DB_LINK: ISubItem = {
 export const FOUNDER_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
   href: '/founders',
-  title: 'Founder DB (WIP)',
+  title: 'Founder DB',
   description: 'PL internal — founder sourcing database',
 };
 

@@ -159,12 +159,16 @@ export function InvestorsTableSection({
         </div>
         <div className={s.actionBarRight}>
           {saveViewSlot}
-          <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} />
+          <div className={s.sortWrap}>
+            <SortDropdown options={SORT_OPTIONS} currentSort={filters.sort} onSortChange={handleSortChange} className={s.sortTrigger} />
+          </div>
           <ColumnChooser />
           {access.canEdit && (
             <button className={s.exportBtn} onClick={handleExport} disabled={investors.length === 0}>
               <ExportIcon />
-              Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              <span className={s.exportBtnLabel}>
+                Export CSV{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              </span>
             </button>
           )}
         </div>

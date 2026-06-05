@@ -357,3 +357,152 @@
   font-family: 'Inter', sans-serif;
   font-size: 14px;
 }
+
+// ── Scores section header row ─────────────────────────────────────────────────
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  // override the sectionTitle margin when inside this row
+  .sectionTitle { margin-bottom: 0; }
+}
+
+.howScoredLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: #1a3fd9; }
+}
+
+// ── Scoring methodology modal ─────────────────────────────────────────────────
+
+.scoringBody {
+  padding: 24px 28px 32px;
+  overflow-y: auto;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.scoringHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.scoringTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.scoringClose {
+  background: none;
+  border: none;
+  padding: 4px;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6b7280;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: #111827; }
+}
+
+.scoringSection {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.scoringH3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin: 0 0 8px;
+}
+
+.scoringLead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #455468;
+  margin: 0 0 12px;
+}
+
+.scoringTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+
+  th,
+  td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: #f3f4f6;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+  }
+
+  tbody tr:nth-child(even) td { background: #f9fafb; }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td:first-child {
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+  }
+}
+
+.scoringRight {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scoringNote {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6b7280;
+  margin-top: 12px;
+}

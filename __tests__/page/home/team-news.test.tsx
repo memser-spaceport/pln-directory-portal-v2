@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
-import type { ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type { ITeamNewsDiscussion, ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 const mockOnTabClicked = jest.fn();
 const mockOnCategoryClicked = jest.fn();
@@ -25,7 +25,12 @@ jest.mock('@/utils/formatTimeAgo', () => ({
 const FA_AI = { uid: 'fa-ai', title: 'AI & Robotics' };
 const FA_DHR = { uid: 'fa-dhr', title: 'Digital Human Rights' };
 
-const makeItem = (uid: string, eventType: TeamNewsEventType, focusAreaTitles: string[]): ITeamNewsItem => ({
+const makeItem = (
+  uid: string,
+  eventType: TeamNewsEventType,
+  focusAreaTitles: string[],
+  discussion: ITeamNewsDiscussion = { count: 0, latestTopicUrl: null },
+): ITeamNewsItem => ({
   uid,
   teamUid: `team-${uid}`,
   teamName: `Team ${uid}`,
@@ -40,7 +45,7 @@ const makeItem = (uid: string, eventType: TeamNewsEventType, focusAreaTitles: st
   focusAreas: focusAreaTitles,
   subFocusAreas: [],
   createdAt: '2026-05-01T12:00:00.000Z',
-  discussion: { count: 0, latestTopicUrl: null },
+  discussion,
 });
 
 const aiItems: ITeamNewsItem[] = [
@@ -174,5 +179,56 @@ describe('TeamNews', () => {
     const [item, position] = mockOnCardClicked.mock.calls[0];
     expect(item.uid).toBe('ai-1');
     expect(typeof position).toBe('number');
+  });
+
+  describe('Active Discussions', () => {
+    const aiDiscussed = makeItem('ai-discuss', 'FUNDING', ['AI & Robotics'], {
+      count: 1,
+      latestTopicUrl: '/forum/t/123',
+    });
+    const aiPlain = makeItem('ai-plain', 'LAUNCH', ['AI & Robotics']);
+    const groupsWithDiscussion: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: 2, items: [aiDiscussed, aiPlain] },
+      { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+    ];
+
+    it('does not render Active Discussions when no items have a forum thread', () => {
+      render(<TeamNews groups={groups} />);
+      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+    });
+
+    it('shows Active Discussions after All categories when at least one item has a thread', () => {
+      render(<TeamNews groups={groupsWithDiscussion} />);
+      const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
+      const allCat = screen.getByRole('button', { name: /All categories/ });
+      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
+      expect(chips.indexOf(activeDisc)).toBeGreaterThan(chips.indexOf(allCat));
+      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
+    });
+
+    it('filters to discussion items and reports analytics', () => {
+      render(<TeamNews groups={groupsWithDiscussion} />);
+      fireEvent.click(screen.getByRole('button', { name: /Active Discussions/ }));
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('active-discussions', 1, 'All');
+      expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
+      expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+    });
+
+    it('hides Active Discussions on a focus tab with no threads', () => {
+      render(<TeamNews groups={groupsWithDiscussion} />);
+      expect(screen.getByRole('button', { name: /Active Discussions/ })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+    });
+
+    it('scopes Active Discussions count to the selected focus tab', () => {
+      render(<TeamNews groups={groupsWithDiscussion} />);
+      fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
+      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
+      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
+      fireEvent.click(activeDisc);
+      expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
+      expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+    });
   });
 });

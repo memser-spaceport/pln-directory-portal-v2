@@ -5,11 +5,20 @@ import isEmpty from 'lodash/isEmpty';
 import { useMemo, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
-import type { ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
 
-import { ALL_TAB, ALL_CAT, CATEGORIES } from './constants';
+import {
+  ACTIVE_DISCUSSIONS_CAT,
+  ACTIVE_DISCUSSIONS_CATEGORY,
+  ALL_TAB,
+  ALL_CAT,
+  CATEGORIES,
+  type TeamNewsCategoryId,
+} from './constants';
+
+import { hasExistingDiscussion } from './components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
 
@@ -28,7 +37,7 @@ interface TeamNewsProps {
 
 export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activeCategory, setActiveCategory] = useState<TeamNewsEventType | typeof ALL_CAT>(ALL_CAT);
+  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
 
@@ -41,14 +50,29 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   }, [activeTab, allItems, groups]);
 
   const categoriesWithCounts = useMemo(() => {
-    return CATEGORIES.map((c) => ({
+    const activeDiscussionsCount = itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length;
+    const base = CATEGORIES.map((c) => ({
       ...c,
       count: c.id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => i.eventType === c.id).length,
     }));
+
+    if (activeDiscussionsCount === 0) return base;
+
+    const withActive: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
+    for (const c of base) {
+      withActive.push(c);
+      if (c.id === ALL_CAT) {
+        withActive.push({ ...ACTIVE_DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
+      }
+    }
+    return withActive;
   }, [itemsForActiveTab]);
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
+    if (activeCategory === ACTIVE_DISCUSSIONS_CAT) {
+      return itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion));
+    }
     return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
   }, [activeCategory, itemsForActiveTab]);
 
@@ -63,9 +87,13 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
     setExpanded(false);
   };
 
-  const handleCategory = (id: TeamNewsEventType | typeof ALL_CAT) => {
+  const handleCategory = (id: TeamNewsCategoryId) => {
     const nextCount =
-      id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => i.eventType === id).length;
+      id === ALL_CAT
+        ? itemsForActiveTab.length
+        : id === ACTIVE_DISCUSSIONS_CAT
+          ? itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length
+          : itemsForActiveTab.filter((i) => i.eventType === id).length;
     analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
     setActiveCategory(id);
     setExpanded(false);

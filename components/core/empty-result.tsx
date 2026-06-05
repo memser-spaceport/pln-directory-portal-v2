@@ -12,7 +12,11 @@ const EmptyResult = (props: any) => {
   const authAnalytics = useAuthAnalytics();
 
   const onClearAllClickHandler = () => {
-    router.push(pathname);
+    if (props?.onClearAll) {
+      props.onClearAll();
+    } else {
+      router.push(pathname);
+    }
   };
 
   const onLoginClickHandler = () => {

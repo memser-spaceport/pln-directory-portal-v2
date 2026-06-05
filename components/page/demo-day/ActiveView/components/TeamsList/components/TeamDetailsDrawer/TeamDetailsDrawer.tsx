@@ -16,6 +16,7 @@ import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -584,7 +585,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                       <div className={s.sectionMaterials}>
                         <ProfileContent
                           pitchDeckUrl={displayTeam?.onePagerUpload?.url}
-                          videoUrl={displayTeam?.videoUpload?.streamUrl ?? displayTeam?.videoUpload?.url}
+                          videoUrl={getVideoPlaybackUrl(displayTeam?.videoUpload)}
                           onPitchDeckView={handlePitchDeckView}
                           onPitchVideoView={handlePitchVideoView}
                           pitchDeckPreviewUrl={displayTeam?.onePagerUpload?.previewImageUrl}

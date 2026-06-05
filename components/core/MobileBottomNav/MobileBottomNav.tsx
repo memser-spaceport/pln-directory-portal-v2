@@ -12,12 +12,16 @@ import {
   DEMO_DAY_ANALYTICS_LINK,
   JOBS_LINK,
   GANTRY_LINK,
+  INVESTOR_DB_LINK,
+  FOUNDER_DB_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
+import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
+import { useFoundersAccess } from '@/services/rbac/hooks/useFoundersAccess';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -34,6 +38,8 @@ export function MobileBottomNav() {
   const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
   const { canView: hasGantryAccess } = useGantryAccess();
+  const { canView: hasInvestorDbAccess } = useInvestorsAccess();
+  const { canView: hasFounderDbAccess } = useFoundersAccess();
 
   const moreItems: ISubItem[] = [
     { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
@@ -42,6 +48,8 @@ export function MobileBottomNav() {
       ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
       : []),
     ...(hasGantryAccess ? [GANTRY_LINK] : []),
+    ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
+    ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
     JOBS_LINK,
   ];
 

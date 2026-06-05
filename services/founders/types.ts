@@ -3,7 +3,7 @@ import type { LabOsProfileRef as _LabOsProfileRef } from '@/services/investors/t
 export type { LabOsProfileRef } from '@/services/investors/types';
 
 export type FundTag = 'PLVS' | 'NEURO' | 'CRYPTO';
-export type FounderStatus = 'new' | 'in-review' | 'approved' | 'rejected' | 'hold' | 'wrong-fund';
+export type FounderStatus = 'new' | 'in-review' | 'approved' | 'rejected' | 'hold';
 export type ReviewFeedback = 'good' | 'bad' | 'wrong-fund' | 'needs-context';
 
 export type FounderReviewState = {
@@ -134,6 +134,10 @@ export type KpiSummary = {
   alignmentDistribution: { low: number; medium: number; high: number };
   sourceCoverage: Record<string, number>;
   weeklyNewRecords: { weekStart: string; count: number }[];
+};
+
+export type FounderFiltersResponse = {
+  sources: string[];
 };
 
 export type FounderListParams = {

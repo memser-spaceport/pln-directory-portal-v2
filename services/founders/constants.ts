@@ -6,6 +6,7 @@ export enum FoundersQueryKeys {
   FOUNDERS_LIST = 'founders-list',
   FOUNDER_DETAIL = 'founders-detail',
   FOUNDERS_KPI_SUMMARY = 'founders-kpi-summary',
+  FOUNDERS_FILTERS = 'founders-filters',
 }
 
 export const FUND_VALUES: FundTag[] = ['PLVS', 'NEURO', 'CRYPTO'];

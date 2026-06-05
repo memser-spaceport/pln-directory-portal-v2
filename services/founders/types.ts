@@ -136,6 +136,10 @@ export type KpiSummary = {
   weeklyNewRecords: { weekStart: string; count: number }[];
 };
 
+export type FounderFiltersResponse = {
+  sources: string[];
+};
+
 export type FounderListParams = {
   q?: string;
   fund?: FundTag[];

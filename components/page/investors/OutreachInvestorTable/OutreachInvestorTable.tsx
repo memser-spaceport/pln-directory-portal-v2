@@ -64,7 +64,7 @@ const COLUMN_LABELS: Record<string, string> = {
   canonical_id: 'Canonical ID',
   investor_id: 'Investor ID',
   lab_os_profile: 'In LabOS',
-  co_invested_team_ids: 'Co-investor',
+  co_invested_team_ids: 'Co-invested Teams',
 };
 
 const SORTABLE_COLUMNS: Record<string, string> = {
@@ -202,7 +202,7 @@ export function OutreachInvestorTable(props: Props) {
       },
       {
         id: 'co_invested_team_ids',
-        header: 'Co-investor',
+        header: 'Co-invested Teams',
         accessorFn: (r) => r.co_invested_team_ids.length,
         cell: ({ row }) => {
           const ids = row.original.co_invested_team_ids;
@@ -480,7 +480,17 @@ export function OutreachInvestorTable(props: Props) {
 }
 
 const ArrowUpRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M7 7h10v10" />
     <path d="M7 17 17 7" />
   </svg>

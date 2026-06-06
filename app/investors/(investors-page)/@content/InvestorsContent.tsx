@@ -13,9 +13,10 @@ import { WarmIntrosWorkspace } from '@/components/page/investors/WarmIntrosWorks
 import { InvestorDrawer } from '@/components/page/investors/InvestorDrawer/InvestorDrawer';
 import s from './page.module.scss';
 
+// Lists IA: Co-investors tab retired (now the relationship filter on All
+// Investors). IA = All Investors (universe) + Warm Intros (proximity workspace).
 const VISUAL_TABS = [
   { value: 'all', label: 'All Investors' },
-  { value: 'co-investors', label: 'Co-investors' },
   { value: 'warm-intros', label: 'Warm Intros' },
 ];
 
@@ -49,8 +50,8 @@ export default function InvestorsContent() {
     return null;
   }
 
-  const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
-  const activeVisualTab = isWarmIntros ? 'warm-intros' : filters.tab;
+  const isWarmIntros = filters.mode === 'warm-intros';
+  const activeVisualTab = isWarmIntros ? 'warm-intros' : 'all';
 
   const visualTabs = VISUAL_TABS.map((t) =>
     tabCounts[t.value] !== undefined ? { ...t, badge: tabCounts[t.value].toLocaleString() } : t,
@@ -58,10 +59,10 @@ export default function InvestorsContent() {
 
   const handleVisualTabChange = (next: string) => {
     if (next === 'warm-intros') {
-      setFilters({ tab: 'co-investors', mode: 'warm-intros', investorId: null });
+      setFilters({ tab: 'all', mode: 'warm-intros', investorId: null });
     } else {
       setFilters({
-        tab: next as 'all' | 'co-investors',
+        tab: 'all',
         page: 1,
         mode: null,
         in_lab_os: null,
@@ -96,23 +97,13 @@ export default function InvestorsContent() {
             </div>
             <WarmIntrosWorkspace onCountChange={(n) => updateTabCount('warm-intros', n)} />
           </div>
-        ) : filters.tab === 'all' ? (
+        ) : (
           <InvestorsTableSection
             tab="all"
             tabs={visualTabs}
             activeTab={activeVisualTab}
             onTabChange={handleVisualTabChange}
             onCountChange={(n) => updateTabCount('all', n)}
-          />
-        ) : (
-          <InvestorsTableSection
-            tab="co-investors"
-            tabs={visualTabs}
-            activeTab={activeVisualTab}
-            onTabChange={handleVisualTabChange}
-            tabDefaults={{ is_co_investor: true }}
-            enableSaveView={false}
-            onCountChange={(n) => updateTabCount('co-investors', n)}
           />
         )}
       </div>

@@ -16,6 +16,7 @@ export type TeamPitchAccess = {
   primaryColor: string;
   headerImageUrl: string | null;
   access: 'restricted' | 'view' | 'edit';
+  participantAccess: 'VIEW' | 'VIEW_ADMIN' | 'EDIT' | 'RESTRICTED' | null;
   participantType: 'INVESTOR' | 'FOUNDER' | 'SUPPORT' | null;
   isPitchAdmin: boolean;
   confidentialityAccepted: boolean;
@@ -35,11 +36,11 @@ export async function getTeamPitchAccess(slug: string, authenticated: boolean) {
 export function useGetTeamPitchAccess(slug?: string) {
   const params = useParams();
   const pitchSlug = slug ?? (params.slug as string);
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, isHydrated } = useCurrentUserStore();
 
   return useQuery({
     queryKey: [TeamPitchQueryKeys.ACCESS, pitchSlug, currentUser?.uid],
     queryFn: () => getTeamPitchAccess(pitchSlug, !!currentUser?.uid),
-    enabled: !!pitchSlug,
+    enabled: !!pitchSlug && isHydrated,
   });
 }

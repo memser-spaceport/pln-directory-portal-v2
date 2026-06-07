@@ -55,9 +55,10 @@ function buildQuery(params: Record<string, unknown>): string {
 
 function mapInvestorList(dto: AnyDto): InvestorList {
   return {
-    // BE id is numeric; coerce to string so it round-trips through the
-    // parseAsString `wi_list_id` URL param (a number is dropped by nuqs).
-    id: String(dto.id),
+    // The numeric BE id is concealed by ConcealEntityIDInterceptor, so the SLUG is
+    // the public list identifier — use it as `id` for selection + member fetch
+    // (the BE resolves slug -> internal id). Fall back to numeric id if present.
+    id: dto.id != null ? String(dto.id) : (dto.slug ?? ''),
     slug: dto.slug ?? '',
     name: dto.name ?? '',
     description: dto.description ?? '',

@@ -1,19 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCurrentUserStore } from '@/services/auth/store';
-import { checkInvestorProfileComplete } from '@/utils/member.utils';
-import { useMember } from '@/services/members/hooks/useMember';
-import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import s from './PitchComingSoonCard.module.scss';
 
 type Props = {
   teamName: string;
   teamUid: string;
-  pitchSlug: string;
-  prefillEmail?: string;
 };
 
 const ClosedIcon = () => (
@@ -27,76 +20,20 @@ const ClosedIcon = () => (
   </svg>
 );
 
-export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail }: Props) => {
-  const router = useRouter();
-  const { currentUser: userInfo } = useCurrentUserStore();
-  const isLoggedIn = !!userInfo?.uid;
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const { data: memberData } = useMember(isLoggedIn ? userInfo?.uid : undefined);
-
-  const isProfileComplete = useMemo(
-    () => checkInvestorProfileComplete(memberData?.memberInfo, userInfo),
-    [memberData?.memberInfo, userInfo],
-  );
-
-  const profileCtaLabel = isProfileComplete ? 'Update Investor Profile' : 'Set Up Investor Profile';
-
-  const handleLogin = () => {
-    const email = prefillEmail || '';
-    router.replace(`/pitch/${pitchSlug}?prefillEmail=${encodeURIComponent(email)}#login`);
-  };
-
-  return (
-    <>
-      <div className={s.card}>
-        <div className={s.icon} aria-hidden>
-          <ClosedIcon />
-        </div>
-        <h2 className={s.title}>Pitch not available</h2>
-        <p className={s.description}>
-          {isLoggedIn ? (
-            <>
-              This pitch is closed and materials are no longer available. Update your investor profile so founders have
-              your latest information, or explore <strong>{teamName}</strong> on the Protocol Labs Network.
-            </>
-          ) : (
-            <>
-              This pitch is closed and materials are no longer available. You can still learn about{' '}
-              <strong>{teamName}</strong> on the Protocol Labs Network.
-            </>
-          )}
-        </p>
-        <div className={s.actions}>
-          {isLoggedIn ? (
-            isProfileComplete ? (
-              <button type="button" className={s.primaryButton} onClick={() => setDrawerOpen(true)}>
-                {profileCtaLabel}
-              </button>
-            ) : (
-              <Link href={`/members/${userInfo!.uid}`} className={s.primaryButton}>
-                {profileCtaLabel}
-              </Link>
-            )
-          ) : (
-            <button type="button" className={s.primaryButton} onClick={handleLogin}>
-              Log in
-            </button>
-          )}
-          <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.secondaryButton}>
-            View team profile
-          </Link>
-        </div>
-      </div>
-
-      {isLoggedIn && userInfo?.uid && isProfileComplete && (
-        <EditInvestorProfileDrawer
-          isOpen={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          uid={userInfo.uid}
-          isLoggedIn
-          isInvestor
-        />
-      )}
-    </>
-  );
-};
+export const PitchClosedCard = ({ teamName, teamUid }: Props) => (
+  <div className={s.card}>
+    <div className={s.icon} aria-hidden>
+      <ClosedIcon />
+    </div>
+    <h2 className={s.title}>Pitch not available</h2>
+    <p className={s.description}>
+      This pitch is closed and materials are no longer available. You can still learn about <strong>{teamName}</strong>{' '}
+      on the Protocol Labs Network.
+    </p>
+    <div className={s.actions}>
+      <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.secondaryButton}>
+        View team profile
+      </Link>
+    </div>
+  </div>
+);

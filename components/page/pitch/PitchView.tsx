@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetTeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
@@ -10,15 +11,14 @@ import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer/TeamDetailsDrawer';
 import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
-import { PitchInvestorSteps } from '@/components/page/pitch/PitchInvestorSteps';
-import { PitchTeamTitle } from '@/components/page/pitch/PitchTeamTitle';
+import { PitchInvestorHeader } from '@/components/page/pitch/PitchInvestorHeader';
 import { PitchConfidentialityModal } from '@/components/page/pitch/PitchConfidentialityModal';
 import { PitchComingSoonCard } from '@/components/page/pitch/PitchComingSoonCard';
 import { PitchClosedCard } from '@/components/page/pitch/PitchClosedCard';
 import { PitchViewSkeleton } from '@/components/page/pitch/PitchViewSkeleton';
 import { ProfileSkeleton } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileSkeleton';
-import { useContactSupportStore } from '@/services/contact-support/store';
 import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.module.scss';
+import pitchHeaderS from '@/components/page/pitch/PitchInvestorHeader.module.scss';
 
 function getPitchStatusLabel(
   status: 'DRAFT' | 'OPEN' | 'CLOSED',
@@ -42,9 +42,8 @@ export const PitchView = () => {
   const prefillEmail = searchParams.get('prefillEmail') ?? undefined;
   const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
-  const { openModal } = useContactSupportStore((s) => s.actions);
 
-  const { data: access, isLoading: accessLoading } = useGetTeamPitchAccess(slug);
+  const { data: access, isLoading: accessLoading, isError: accessError } = useGetTeamPitchAccess(slug);
   const canLoadPitch =
     isLoggedIn &&
     access &&
@@ -53,12 +52,32 @@ export const PitchView = () => {
   const { data: pitch, isLoading: pitchLoading } = useGetTeamPitch(slug, canLoadPitch);
 
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
+  const loginRedirectAttemptedRef = useRef(false);
 
   useEffect(() => {
-    if (prefillEmail && !isLoggedIn && access?.status !== 'CLOSED' && typeof window !== 'undefined') {
-      router.replace(`/pitch/${slug}?prefillEmail=${encodeURIComponent(prefillEmail)}#login`);
+    if (typeof window === 'undefined' || !isHydrated || accessLoading || !access) {
+      return;
     }
-  }, [prefillEmail, isLoggedIn, access?.status, router, slug]);
+    if (loginRedirectAttemptedRef.current) {
+      return;
+    }
+    if (!prefillEmail || isLoggedIn || access.status === 'CLOSED') {
+      return;
+    }
+
+    const canViewFullDraftPitch =
+      access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
+    if (canViewFullDraftPitch) {
+      return;
+    }
+
+    if (window.location.hash === '#login') {
+      return;
+    }
+
+    loginRedirectAttemptedRef.current = true;
+    router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
+  }, [prefillEmail, isLoggedIn, isHydrated, access, accessLoading, router]);
 
   const isInvestor = access?.participantType === 'INVESTOR';
 
@@ -66,33 +85,34 @@ export const PitchView = () => {
     return <PitchViewSkeleton />;
   }
 
-  if (!access) {
+  if (accessError || !access) {
     return <div className={s.root}>Pitch not found</div>;
   }
-
-  const pitchTeamTitle =
-    access.teamUid && access.teamName ? <PitchTeamTitle teamName={access.teamName} teamUid={access.teamUid} /> : null;
 
   const canViewFullDraftPitch =
     access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
 
   const isLimitedDraftView = access.status === 'DRAFT' && !canViewFullDraftPitch;
   const investorHasAccess = access.access === 'view' || access.access === 'edit';
-  const investorStepsProps = {
+  const showInvestorHeader = !access.isPitchAdmin && (isInvestor || !isLoggedIn);
+
+  const investorHeaderProps = {
     pitchSlug: slug,
     prefillEmail,
     pitchStatus: access.status,
     investorHasAccess,
+    title: access.title,
+    description: access.description,
+    teamName: access.teamName,
+    teamUid: access.teamUid,
+    headerImageUrl: access.headerImageUrl,
   };
 
   if (isLimitedDraftView) {
     return (
       <div className={s.root}>
         <div className={s.stepsCard}>
-          {pitchTeamTitle}
-          <div className={s.stepsInHeader}>
-            <PitchInvestorSteps {...investorStepsProps} />
-          </div>
+          <PitchInvestorHeader variant="draft" {...investorHeaderProps} />
         </div>
         <PitchComingSoonCard teamName={access.teamName} />
       </div>
@@ -103,19 +123,7 @@ export const PitchView = () => {
     return (
       <div className={s.root}>
         <div className={s.stepsCard}>
-          {pitchTeamTitle}
-          <div className={s.stepsInHeader}>
-            <PitchInvestorSteps
-              {...investorStepsProps}
-              onContactSupport={() =>
-                openModal(
-                  { reason: 'team_pitch_access_denied', pitchSlug: slug },
-                  'team_pitch',
-                  'I need access to a team pitch page',
-                )
-              }
-            />
-          </div>
+          <PitchInvestorHeader variant="restricted" {...investorHeaderProps} />
         </div>
       </div>
     );
@@ -126,12 +134,10 @@ export const PitchView = () => {
   if (isClosedInvestorView) {
     return (
       <div className={s.root}>
-        <PitchClosedCard
-          teamName={access.teamName}
-          teamUid={access.teamUid}
-          pitchSlug={slug}
-          prefillEmail={prefillEmail}
-        />
+        <div className={s.stepsCard}>
+          <PitchInvestorHeader variant="closed" {...investorHeaderProps} />
+        </div>
+        <PitchClosedCard teamName={access.teamName} teamUid={access.teamUid} />
       </div>
     );
   }
@@ -139,9 +145,6 @@ export const PitchView = () => {
   const teamProfile = pitch?.teamProfile as TeamProfile | undefined;
   const showConfidentialityModal = isLoggedIn && !access.confidentialityAccepted && !access.isPitchAdmin;
   const canEdit = access.access === 'edit';
-  const showInvestorSteps = !isLoggedIn || (isLoggedIn && access.access !== 'restricted' && isInvestor);
-  const embedInvestorStepsInHeader = isLoggedIn && isInvestor && access.status === 'OPEN' && !access.isPitchAdmin;
-  const showPitchPageTitle = isLoggedIn;
   const pitchStatusLabel = getPitchStatusLabel(access.status, access.isPitchAdmin, isInvestor);
 
   return (
@@ -152,46 +155,60 @@ export const PitchView = () => {
         <div className={s.eventHeader}>
           <div className={s.content}>
             <div className={s.headline}>
-              {access.headerImageUrl && (
-                <div className={s.headerImage}>
-                  <img src={access.headerImageUrl} alt="" />
-                </div>
+              {showInvestorHeader ? (
+                <>
+                  {access.headerImageUrl && (
+                    <div className={s.headerImage}>
+                      <img src={access.headerImageUrl} alt="" />
+                    </div>
+                  )}
+                  <PageTitle size="small" title={access.title} description={access.description} />
+                  <div className={clsx(s.stepsInHeader, pitchHeaderS.embeddedInEventHeader)}>
+                    <PitchInvestorHeader variant="open" {...investorHeaderProps} showWelcomeMessage embedded />
+                  </div>
+                  <Alert>
+                    <p>
+                      Confidentiality notice: Materials presented here are confidential and are provided exclusively for
+                      your review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure
+                      will result in removal from the network.
+                    </p>
+                  </Alert>
+                </>
+              ) : (
+                <>
+                  {access.headerImageUrl && (
+                    <div className={s.headerImage}>
+                      <img src={access.headerImageUrl} alt="" />
+                    </div>
+                  )}
+
+                  {pitchStatusLabel && <p className={s.pitchLabel}>{pitchStatusLabel}</p>}
+
+                  <PageTitle size="small" title={access.title} description={access.description} />
+
+                  {access.status === 'CLOSED' && !isInvestor && (
+                    <Alert>
+                      <p>This pitch is closed. Investors no longer have access.</p>
+                    </Alert>
+                  )}
+
+                  <Alert>
+                    <p>
+                      Confidentiality notice: Materials presented here are confidential and are provided exclusively for
+                      your review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure
+                      will result in removal from the network.
+                    </p>
+                  </Alert>
+                </>
               )}
-
-              {pitchStatusLabel && <p className={s.pitchLabel}>{pitchStatusLabel}</p>}
-
-              <PageTitle size="small" title={access.title} description={access.description} />
-
-              {access.status === 'CLOSED' && !isInvestor && (
-                <Alert>
-                  <p>This pitch is closed. Investors no longer have access.</p>
-                </Alert>
-              )}
-
-              {embedInvestorStepsInHeader && (
-                <div className={s.stepsInHeader}>
-                  <PitchInvestorSteps {...investorStepsProps} />
-                </div>
-              )}
-
-              <Alert>
-                <p>
-                  Confidentiality notice: Materials presented here are confidential and are provided exclusively for
-                  your review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will
-                  result in removal from the network.
-                </p>
-              </Alert>
             </div>
           </div>
         </div>
       )}
 
-      {showInvestorSteps && !embedInvestorStepsInHeader && (
+      {!isLoggedIn && showInvestorHeader && (
         <div className={s.stepsCard}>
-          {!showPitchPageTitle && pitchTeamTitle}
-          <div className={s.stepsInHeader}>
-            <PitchInvestorSteps {...investorStepsProps} />
-          </div>
+          <PitchInvestorHeader variant="open" {...investorHeaderProps} />
         </div>
       )}
 

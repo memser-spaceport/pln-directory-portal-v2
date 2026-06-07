@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Metadata } from '@/components/ContactSupport/types';
 
-type DialogParam = 'contactSupport' | 'askQuestion' | 'giveFeedback' | 'shareIdea' | 'reportBug' | 'team_pitch';
+type DialogParam = 'contactSupport' | 'askQuestion' | 'giveFeedback' | 'shareIdea' | 'reportBug';
 
 const DIALOG_PARAM_VALUES = {
   contactSupport: 'contactSupport',

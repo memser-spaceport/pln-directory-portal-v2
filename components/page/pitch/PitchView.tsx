@@ -7,7 +7,6 @@ import { useGetTeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPit
 import { useGetTeamPitch } from '@/services/team-pitch/hooks/useGetTeamPitch';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
-import { SupportSection } from '@/components/page/demo-day/components/SupportSection';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer/TeamDetailsDrawer';
 import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
@@ -41,7 +40,7 @@ export const PitchView = () => {
   const router = useRouter();
   const slug = params.slug as string;
   const prefillEmail = searchParams.get('prefillEmail') ?? undefined;
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
   const { openModal } = useContactSupportStore((s) => s.actions);
 
@@ -63,7 +62,7 @@ export const PitchView = () => {
 
   const isInvestor = access?.participantType === 'INVESTOR';
 
-  if (accessLoading) {
+  if (!isHydrated || accessLoading) {
     return <PitchViewSkeleton />;
   }
 
@@ -74,7 +73,10 @@ export const PitchView = () => {
   const pitchTeamTitle =
     access.teamUid && access.teamName ? <PitchTeamTitle teamName={access.teamName} teamUid={access.teamUid} /> : null;
 
-  const isInvestorDraftView = access.status === 'DRAFT' && isInvestor && !access.isPitchAdmin;
+  const canViewFullDraftPitch =
+    access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
+
+  const isLimitedDraftView = access.status === 'DRAFT' && !canViewFullDraftPitch;
   const investorHasAccess = access.access === 'view' || access.access === 'edit';
   const investorStepsProps = {
     pitchSlug: slug,
@@ -83,16 +85,7 @@ export const PitchView = () => {
     investorHasAccess,
   };
 
-  const supportSection = (
-    <div className={s.supportSectionWrap}>
-      <SupportSection
-        supportEmail={access.supportEmail}
-        onContactClick={() => openModal({ supportEmail: access.supportEmail, pitchSlug: slug }, 'team_pitch', '')}
-      />
-    </div>
-  );
-
-  if (isInvestorDraftView) {
+  if (isLimitedDraftView) {
     return (
       <div className={s.root}>
         <div className={s.stepsCard}>
@@ -102,7 +95,6 @@ export const PitchView = () => {
           </div>
         </div>
         <PitchComingSoonCard teamName={access.teamName} />
-        {supportSection}
       </div>
     );
   }
@@ -125,7 +117,6 @@ export const PitchView = () => {
             />
           </div>
         </div>
-        {supportSection}
       </div>
     );
   }
@@ -204,7 +195,7 @@ export const PitchView = () => {
         </div>
       )}
 
-      {pitchLoading && !teamProfile && <ProfileSkeleton />}
+      {canLoadPitch && pitchLoading && !teamProfile && <ProfileSkeleton />}
 
       {teamProfile && (
         <>
@@ -231,8 +222,6 @@ export const PitchView = () => {
           )}
         </>
       )}
-
-      {supportSection}
     </div>
   );
 };

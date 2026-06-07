@@ -99,9 +99,14 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   // of the box; v1 = Neuro + Gold).
   useEffect(() => {
     if (!filters.wi_list_id && lists && lists.length > 0) {
-      // Default to the first GRAPHED list (proximity is meaningful) so the table
-      // is populated out of the box; fall back to the first list.
-      const def = lists.find((l) => l.is_graphed) ?? lists[0];
+      // Default to the primary LP pipeline (neuro-lp) when present, else the first
+      // GRAPHED list (proximity is meaningful), else the first list. Now that Gold
+      // is also graphed, a bare find(is_graphed) would pick Gold (sorts first by
+      // name), so prefer the flagship neuro list explicitly.
+      const def =
+        lists.find((l) => l.slug === 'neuro-lp' && l.is_graphed) ??
+        lists.find((l) => l.is_graphed) ??
+        lists[0];
       setFilters({ wi_list_id: def.id });
     }
   }, [filters.wi_list_id, lists, setFilters]);
@@ -154,7 +159,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
     co_invested: true,
     engaged: true,
-    cold_match: false, // pure cold matches hidden by default
+    // Show cold by default: an LP pipeline is mostly prospects with NO co-invest
+    // or engagement relationship yet (their value is the warm PATH, not an existing
+    // relationship). Hiding cold emptied the whole table for the real neuro list.
+    cold_match: true,
   });
 
   const enabled = access.canView && !!filters.wi_list_id;

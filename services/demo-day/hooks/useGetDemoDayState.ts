@@ -57,13 +57,15 @@ export async function getDemoDayState(demoDaySlug: string, memberUid?: string) {
   return data;
 }
 
-export function useGetDemoDayState(initialData?: any) {
+export function useGetDemoDayState(initialData?: any, options?: { enabled?: boolean }) {
   const { currentUser: userInfo } = useCurrentUserStore();
   const params = useParams();
+  const demoDaySlug = params.demoDayId as string | undefined;
 
   return useQuery({
-    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, userInfo?.uid],
-    queryFn: () => getDemoDayState(params.demoDayId as string, userInfo?.uid),
+    queryKey: [DemoDayQueryKeys.GET_DEMO_DAY_STATE, demoDaySlug, userInfo?.uid],
+    queryFn: () => getDemoDayState(demoDaySlug as string, userInfo?.uid),
     initialData,
+    enabled: (options?.enabled ?? true) && !!demoDaySlug,
   });
 }

@@ -6,7 +6,6 @@
 
 import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
-import { round17CurrentSnapshotLeaderboard } from './round-17-leaderboard.data';
 
 /**
  * Current Round 17 (June 2026) Master Data
@@ -177,7 +176,7 @@ export const currentRoundData: CurrentRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: {
-    currentSnapshotData: round17CurrentSnapshotLeaderboard,
+    currentSnapshotData: [],
     cumulativeData: []
   },
 

@@ -37,7 +37,9 @@ export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, 
 
   return (
     <>
-      <SearchInput value={searchText} onChange={onSearchTextChange} placeholder="Search items..." />
+      <div>
+        <SearchInput value={searchText} onChange={onSearchTextChange} placeholder="Search items..." />
+      </div>
 
       <FilterSection title="Stages">
         <div>

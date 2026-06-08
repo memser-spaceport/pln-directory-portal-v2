@@ -11,6 +11,16 @@ function stripHtml(html: string): string {
 export const TITLE_MAX_LENGTH = 150;
 export const DESCRIPTION_MAX_LENGTH = 1000;
 
+const tagsSchema = yup
+  .array()
+  .of(yup.object({ label: yup.string().required(), value: yup.string().required() }))
+  .optional();
+
+const typeSchema = yup
+  .object({ label: yup.string().required(), value: yup.string().required() })
+  .nullable()
+  .optional();
+
 export const submitIdeaSchema = yup.object().shape({
   title: yup
     .string()
@@ -31,6 +41,8 @@ export const submitIdeaSchema = yup.object().shape({
     })
     .nullable()
     .optional(),
+  tags: tagsSchema,
+  type: typeSchema,
 });
 
 export const editIdeaSchema = yup.object().shape({
@@ -39,12 +51,16 @@ export const editIdeaSchema = yup.object().shape({
     .required('Title is required')
     .max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
   description: yup.string().optional(),
+  tags: tagsSchema,
+  type: typeSchema,
 });
 
 export interface SubmitIdeaFormData {
   title: string;
   description: string;
   stage?: Option | null;
+  tags?: Option[];
+  type?: Option | null;
 }
 
 /** True when the rich-text value has visible content (ignores empty Quill markup). */

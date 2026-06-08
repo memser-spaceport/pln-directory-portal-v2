@@ -71,6 +71,16 @@ export function RoadmapView() {
     GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
     [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const handleSelectedTagsChange = (tags: string[]) => {
+    setSelectedTags(tags);
+    if (tags.length > 0) analytics.onTagsFiltered(tags);
+  };
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const handleSelectedTypesChange = (types: string[]) => {
+    setSelectedTypes(types);
+    if (types.length > 0) analytics.onTypeFiltered(types);
+  };
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
@@ -89,8 +99,10 @@ export function RoadmapView() {
   const params = useMemo(
     () => ({
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
+      type: selectedTypes.length > 0 ? selectedTypes : undefined,
     }),
-    [orderedVisibleColumns],
+    [orderedVisibleColumns, selectedTags, selectedTypes],
   );
 
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
@@ -273,8 +285,8 @@ export function RoadmapView() {
                         />
                       </svg>
                       Filters
-                      {visibleColumns.length > 0 && (
-                        <span className={s.filtersButtonBadge}>{visibleColumns.length}</span>
+                      {visibleColumns.length + selectedTags.length + selectedTypes.length > 0 && (
+                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length + selectedTypes.length}</span>
                       )}
                     </button>
                     {canCreate && (
@@ -351,8 +363,15 @@ export function RoadmapView() {
           )}
         </div>
 
-        <MobileDrawer isOpen={filtersOpen} onClose={() => setFiltersOpen(false)} title="Stages">
-          <RoadmapFiltersContent visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />
+        <MobileDrawer isOpen={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+          <RoadmapFiltersContent
+            visibleColumns={visibleColumns}
+            onVisibleColumnsChange={setVisibleColumns}
+            selectedTags={selectedTags}
+            onSelectedTagsChange={handleSelectedTagsChange}
+            selectedTypes={selectedTypes}
+            onSelectedTypesChange={handleSelectedTypesChange}
+          />
         </MobileDrawer>
 
         <SubmitIdeaModal />
@@ -369,7 +388,16 @@ export function RoadmapView() {
   return (
     <div className={s.pageLayout}>
       <DashboardPagesLayout
-        filters={<RoadmapFilters visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />}
+        filters={
+          <RoadmapFilters
+            visibleColumns={visibleColumns}
+            onVisibleColumnsChange={setVisibleColumns}
+            selectedTags={selectedTags}
+            onSelectedTagsChange={handleSelectedTagsChange}
+            selectedTypes={selectedTypes}
+            onSelectedTypesChange={handleSelectedTypesChange}
+          />
+        }
         content={
           <div className={gantryPageStyles.contentShell}>
             <div className={s.content}>

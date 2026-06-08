@@ -12,7 +12,7 @@ import { IdeaFormFields } from '@/components/page/gantry/shared/IdeaFormFields';
 import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { useCreateGantryItem } from '@/services/gantry/hooks/useCreateGantryItem';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
-import type { GantryStage } from '@/services/gantry/types';
+import type { GantryItemType, GantryStage } from '@/services/gantry/types';
 import {
   getSubmitIdeaFormDefaults,
   SUBMIT_IDEA_MODAL_COPY,
@@ -57,16 +57,21 @@ export function SubmitIdeaModal() {
   const onSubmit = (data: SubmitIdeaFormData) => {
     const stageValue = data.stage?.value as GantryStage | undefined;
 
+    const tags = data.tags?.map((o) => o.value) ?? [];
+    const itemType = data.type?.value as GantryItemType | undefined;
+
     mutate(
       {
         title: data.title.trim(),
         description: hasRichTextContent(data.description) ? data.description : '',
         externalTrackerUrl: null,
+        tags,
+        ...(itemType ? { type: itemType } : {}),
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
       },
       {
         onSuccess: (created) => {
-          analytics.onIdeaCreated(created.uid);
+          analytics.onIdeaCreated(created.uid, tags, itemType);
           reset(getSubmitIdeaFormDefaults('idea'));
           actions.closeModal();
           router.push(`/gantry/${created.uid}`);

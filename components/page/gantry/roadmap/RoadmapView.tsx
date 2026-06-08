@@ -28,6 +28,7 @@ import {
   isPreRoadmapStage,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
+import { stripHtml } from '@/utils/forum';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
 import { SubmitIdeaModal } from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal';
@@ -80,6 +81,11 @@ export function RoadmapView() {
   const handleSelectedTypesChange = (types: string[]) => {
     setSelectedTypes(types);
     if (types.length > 0) analytics.onTypeFiltered(types);
+  };
+  const [searchText, setSearchText] = useState<string>('');
+  const handleSearchTextChange = (text: string) => {
+    setSearchText(text);
+    if (text) analytics.onSearched(text);
   };
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -195,14 +201,21 @@ export function RoadmapView() {
       GantryItem[]
     >;
 
+    const lowerSearch = searchText.trim().toLowerCase();
+
     (data?.items ?? []).forEach((item) => {
-      if (isRoadmapColumnStage(item.stage) && item.stage in map) {
-        map[item.stage].push(item);
+      if (!isRoadmapColumnStage(item.stage) || !(item.stage in map)) return;
+      if (lowerSearch) {
+        const plainDesc = stripHtml(item.description ?? '');
+        const matches =
+          item.title.toLowerCase().includes(lowerSearch) || plainDesc.toLowerCase().includes(lowerSearch);
+        if (!matches) return;
       }
+      map[item.stage].push(item);
     });
 
     return map;
-  }, [data?.items, orderedVisibleColumns]);
+  }, [data?.items, orderedVisibleColumns, searchText]);
 
   const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
     if (nextStage === 'DECLINED') {
@@ -285,8 +298,8 @@ export function RoadmapView() {
                         />
                       </svg>
                       Filters
-                      {visibleColumns.length + selectedTags.length + selectedTypes.length > 0 && (
-                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length + selectedTypes.length}</span>
+                      {visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0) > 0 && (
+                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}</span>
                       )}
                     </button>
                     {canCreate && (
@@ -344,7 +357,9 @@ export function RoadmapView() {
                       className={s.mobileColumn}
                     >
                       {itemsByStage[stage].length === 0 ? (
-                        <p className={s.mobileColumnEmpty}>No items in this stage.</p>
+                        <p className={s.mobileColumnEmpty}>
+                          {searchText ? 'No items match your search.' : 'No items in this stage.'}
+                        </p>
                       ) : (
                         itemsByStage[stage].map((item) => (
                           <RoadmapCard
@@ -371,6 +386,8 @@ export function RoadmapView() {
             onSelectedTagsChange={handleSelectedTagsChange}
             selectedTypes={selectedTypes}
             onSelectedTypesChange={handleSelectedTypesChange}
+            searchText={searchText}
+            onSearchTextChange={handleSearchTextChange}
           />
         </MobileDrawer>
 
@@ -396,6 +413,8 @@ export function RoadmapView() {
             onSelectedTagsChange={handleSelectedTagsChange}
             selectedTypes={selectedTypes}
             onSelectedTypesChange={handleSelectedTypesChange}
+            searchText={searchText}
+            onSearchTextChange={handleSearchTextChange}
           />
         }
         content={

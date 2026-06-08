@@ -14,19 +14,22 @@ interface Props {
   readonly onSelectedTagsChange: (tags: string[]) => void;
   readonly selectedTypes: string[];
   readonly onSelectedTypesChange: (types: string[]) => void;
+  readonly searchText: string;
+  readonly onSearchTextChange: (text: string) => void;
 }
 
-export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange }: Props) {
+export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange, searchText, onSearchTextChange }: Props) {
   const clearParams = () => {
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
     onSelectedTagsChange([]);
     onSelectedTypesChange([]);
+    onSearchTextChange('');
   };
 
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={visibleColumns.length + selectedTags.length + selectedTypes.length}
+      appliedFiltersCount={visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}
       className={filterStyles.filterRail}
       hideFooter
     >
@@ -37,6 +40,8 @@ export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selecte
         onSelectedTagsChange={onSelectedTagsChange}
         selectedTypes={selectedTypes}
         onSelectedTypesChange={onSelectedTypesChange}
+        searchText={searchText}
+        onSearchTextChange={onSearchTextChange}
       />
     </FiltersSidePanel>
   );

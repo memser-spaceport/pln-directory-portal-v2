@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Children, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -57,21 +57,27 @@ function RoadmapDropColumn({
   children,
   isAdminOrdering,
   itemIds,
-  isDropTarget,
+  dropPreviewIndex,
 }: {
   stage: RoadmapColumnStage;
   children: ReactNode;
   isAdminOrdering: boolean;
   itemIds: string[];
-  isDropTarget: boolean;
+  dropPreviewIndex?: number;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: stage });
-  const list = (
-    <div className={s.list}>
-      {children}
-      {isDropTarget && <div className={s.cardPlaceholder} aria-hidden />}
-    </div>
-  );
+  const childrenArray = Children.toArray(children);
+  const listItems: ReactNode[] = [];
+  for (let i = 0; i < childrenArray.length; i++) {
+    if (dropPreviewIndex === i) {
+      listItems.push(<div key="__placeholder" className={s.cardPlaceholder} aria-hidden />);
+    }
+    listItems.push(childrenArray[i]);
+  }
+  if (dropPreviewIndex !== undefined && dropPreviewIndex >= childrenArray.length) {
+    listItems.push(<div key="__placeholder" className={s.cardPlaceholder} aria-hidden />);
+  }
+  const list = <div className={s.list}>{listItems}</div>;
   return (
     <div ref={setNodeRef} className={s.column} data-over={isOver || undefined}>
       <div className={s.columnHeader}>
@@ -132,7 +138,7 @@ export function RoadmapView() {
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
-  const [overColumnId, setOverColumnId] = useState<RoadmapColumnStage | null>(null);
+  const [dropPreview, setDropPreview] = useState<{ columnId: RoadmapColumnStage; insertIndex: number } | null>(null);
 
   // Mobile layout state (< 1024px)
   const isNarrow = useIsNarrow();
@@ -325,7 +331,7 @@ export function RoadmapView() {
   const clearActiveDrag = () => {
     setActiveDragId(null);
     setActiveDragWidth(null);
-    setOverColumnId(null);
+    setDropPreview(null);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -334,15 +340,50 @@ export function RoadmapView() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    const activeId = String(event.active.id);
     const overId = event.over?.id ? String(event.over.id) : null;
-    if (!overId) { setOverColumnId(null); return; }
-    if (isRoadmapColumnStage(overId)) { setOverColumnId(overId); return; }
-    // overId is a card uid — resolve to its stage
-    const overItem = data?.items.find((i) => i.uid === overId);
-    setOverColumnId(overItem && isRoadmapColumnStage(overItem.stage) ? overItem.stage : null);
+    if (!overId) { setDropPreview(null); return; }
+
+    const draggedItem = data?.items.find((i) => i.uid === activeId);
+    let targetStage: RoadmapColumnStage | null = null;
+    let insertIndex: number;
+
+    if (isRoadmapColumnStage(overId)) {
+      targetStage = overId;
+      insertIndex = itemsByStage[overId]?.length ?? 0;
+    } else {
+      const overItem = data?.items.find((i) => i.uid === overId);
+      if (!overItem || !isRoadmapColumnStage(overItem.stage)) { setDropPreview(null); return; }
+      targetStage = overItem.stage;
+      const columnItems = itemsByStage[targetStage] ?? [];
+      const overIdx = columnItems.findIndex((i) => i.uid === overId);
+      if (overIdx === -1) { setDropPreview(null); return; }
+      const activeTranslated = event.active.rect.current.translated;
+      const overRect = event.over?.rect;
+      let insertBefore = true;
+      if (activeTranslated && overRect) {
+        const activeCenterY = activeTranslated.top + activeTranslated.height / 2;
+        const overCenterY = overRect.top + overRect.height / 2;
+        insertBefore = activeCenterY < overCenterY;
+      }
+      insertIndex = insertBefore ? overIdx : overIdx + 1;
+    }
+
+    if (!targetStage || !draggedItem || draggedItem.stage === targetStage) { setDropPreview(null); return; }
+    setDropPreview({ columnId: targetStage, insertIndex });
+  };
+
+  // Pre-seeds adminOrderMap for the destination column so the card lands at the drop
+  // position after the React Query refetch, not wherever the sort function would put it.
+  const lockDropPosition = (activeId: string, destStage: RoadmapColumnStage, preview: typeof dropPreview) => {
+    const columnUids = itemsByStage[destStage].map((i) => i.uid);
+    const insertIndex = preview?.columnId === destStage ? preview.insertIndex : columnUids.length;
+    const newOrder = [...columnUids.slice(0, insertIndex), activeId, ...columnUids.slice(insertIndex)];
+    setAdminOrderMap((prev) => ({ ...prev, [destStage]: newOrder }));
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    const savedDropPreview = dropPreview; // capture before clearActiveDrag clears it
     clearActiveDrag();
     const activeId = String(event.active.id);
     const overId = event.over?.id ? String(event.over.id) : null;
@@ -357,6 +398,7 @@ export function RoadmapView() {
       // Different stages → treat as cross-column move
       if (activeItem.stage !== overItem.stage) {
         if (!canTransition || !isRoadmapColumnStage(overItem.stage) || !orderedVisibleColumns.includes(overItem.stage)) return;
+        lockDropPosition(activeId, overItem.stage, savedDropPreview);
         await applyStageChange(activeId, activeItem, overItem.stage);
         return;
       }
@@ -371,6 +413,7 @@ export function RoadmapView() {
     if (!canTransition || !orderedVisibleColumns.includes(overId)) return;
     const item = data?.items.find((i) => i.uid === activeId);
     if (!item || item.stage === overId) return;
+    lockDropPosition(activeId, overId, savedDropPreview);
     await applyStageChange(activeId, item, overId);
   };
 
@@ -608,7 +651,7 @@ export function RoadmapView() {
                           stage={stage}
                           isAdminOrdering={isAdminOrdering}
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
-                          isDropTarget={overColumnId === stage && !!activeDragItem && activeDragItem.stage !== stage}
+                          dropPreviewIndex={dropPreview?.columnId === stage ? dropPreview.insertIndex : undefined}
                         >
                           {itemsByStage[stage].map((item) => (
                             <RoadmapCard

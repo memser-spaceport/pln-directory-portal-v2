@@ -19,6 +19,9 @@ function buildQuery(params: GantryListParams): string {
   if (params.stage?.length) {
     search.set('stage', params.stage.join(','));
   }
+  if (params.tags?.length) {
+    search.set('tags', params.tags.join(','));
+  }
   return search.toString();
 }
 

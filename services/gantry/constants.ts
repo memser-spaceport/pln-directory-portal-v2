@@ -1,3 +1,4 @@
+import type { Option } from '@/components/form/FormSelect/types';
 import type { GantryItem } from './types';
 
 export enum GantryQueryKeys {
@@ -71,3 +72,35 @@ export const GANTRY_CREATE_STAGE_OPTIONS = GANTRY_STAGE_VALUES.map((value) => ({
   label: GANTRY_STAGE_LABELS[value],
   value,
 }));
+
+const GANTRY_TAG_LABELS = [
+  'Members',
+  'Teams',
+  'Projects',
+  'Job Board',
+  'Deals',
+  'Founder Guides',
+  'Demo Day',
+  'Team Pitch',
+  'Gantry',
+  'Investor DB',
+  'Founder DB',
+  'Home',
+  'Forum',
+  'Husky',
+  'Office Hours',
+  'Events',
+  'IRL Gatherings',
+  'Team News',
+  'Notifications',
+  'Settings / Profile',
+  'Contact Support',
+  'Search',
+  'Back Office / Admin',
+] as const;
+
+export const GANTRY_TAG_OPTIONS: Option[] = GANTRY_TAG_LABELS.map((label) => ({ label, value: label }));
+
+export function tagsToOptions(tags: string[] | null | undefined): Option[] {
+  return GANTRY_TAG_OPTIONS.filter((o) => tags?.includes(o.value) ?? false);
+}

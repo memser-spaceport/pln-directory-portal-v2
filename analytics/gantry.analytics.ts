@@ -15,6 +15,9 @@ export const GANTRY_EVENTS = {
   BUILD_BUTTON_CLICKED: 'gantry_build_button_clicked',
   TAGS_FILTERED: 'gantry_tags_filtered',
   TYPE_FILTERED: 'gantry_type_filtered',
+  SEARCHED: 'gantry_searched',
+  SORT_CHANGED: 'gantry_sort_changed',
+  ITEM_REORDERED: 'gantry_item_reordered',
 } as const;
 
 export function useGantryAnalytics() {
@@ -36,5 +39,8 @@ export function useGantryAnalytics() {
     onBuildButtonClicked: (itemUid: string) => capture(GANTRY_EVENTS.BUILD_BUTTON_CLICKED, { itemUid }),
     onTagsFiltered: (tags: string[]) => capture(GANTRY_EVENTS.TAGS_FILTERED, { tags, tag_count: tags.length }),
     onTypeFiltered: (types: string[]) => capture(GANTRY_EVENTS.TYPE_FILTERED, { types, type_count: types.length }),
+    onSearched: (query: string) => capture(GANTRY_EVENTS.SEARCHED, { query, query_length: query.length }),
+    onSortChanged: (sortOption: string) => capture(GANTRY_EVENTS.SORT_CHANGED, { sort_option: sortOption }),
+    onItemReordered: (itemUid: string, stage: string) => capture(GANTRY_EVENTS.ITEM_REORDERED, { itemUid, stage }),
   };
 }

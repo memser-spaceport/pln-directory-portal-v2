@@ -22,6 +22,9 @@ function buildQuery(params: GantryListParams): string {
   if (params.tags?.length) {
     search.set('tags', params.tags.join(','));
   }
+  if (params.type?.length) {
+    search.set('type', params.type.join(','));
+  }
   return search.toString();
 }
 

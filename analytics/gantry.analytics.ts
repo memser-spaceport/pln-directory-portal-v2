@@ -13,6 +13,7 @@ export const GANTRY_EVENTS = {
   IDEAS_VIEWED: 'gantry_ideas_viewed',
   ROADMAP_VIEWED: 'gantry_roadmap_viewed',
   BUILD_BUTTON_CLICKED: 'gantry_build_button_clicked',
+  TAGS_FILTERED: 'gantry_tags_filtered',
 } as const;
 
 export function useGantryAnalytics() {
@@ -28,8 +29,10 @@ export function useGantryAnalytics() {
   return {
     onIdeasViewed: () => capture(GANTRY_EVENTS.IDEAS_VIEWED),
     onRoadmapViewed: () => capture(GANTRY_EVENTS.ROADMAP_VIEWED),
-    onIdeaCreated: (itemUid: string) => capture(GANTRY_EVENTS.IDEA_CREATED, { itemUid }),
+    onIdeaCreated: (itemUid: string, tags: string[] = []) =>
+      capture(GANTRY_EVENTS.IDEA_CREATED, { itemUid, tags, tag_count: tags.length }),
     onItemUpvoted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UPVOTED, { itemUid }),
     onBuildButtonClicked: (itemUid: string) => capture(GANTRY_EVENTS.BUILD_BUTTON_CLICKED, { itemUid }),
+    onTagsFiltered: (tags: string[]) => capture(GANTRY_EVENTS.TAGS_FILTERED, { tags, tag_count: tags.length }),
   };
 }

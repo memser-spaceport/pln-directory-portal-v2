@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -56,14 +57,21 @@ function RoadmapDropColumn({
   children,
   isAdminOrdering,
   itemIds,
+  isDropTarget,
 }: {
   stage: RoadmapColumnStage;
   children: ReactNode;
   isAdminOrdering: boolean;
   itemIds: string[];
+  isDropTarget: boolean;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: stage });
-  const list = <div className={s.list}>{children}</div>;
+  const list = (
+    <div className={s.list}>
+      {children}
+      {isDropTarget && <div className={s.cardPlaceholder} aria-hidden />}
+    </div>
+  );
   return (
     <div ref={setNodeRef} className={s.column} data-over={isOver || undefined}>
       <div className={s.columnHeader}>
@@ -124,6 +132,7 @@ export function RoadmapView() {
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
+  const [overColumnId, setOverColumnId] = useState<RoadmapColumnStage | null>(null);
 
   // Mobile layout state (< 1024px)
   const isNarrow = useIsNarrow();
@@ -316,11 +325,21 @@ export function RoadmapView() {
   const clearActiveDrag = () => {
     setActiveDragId(null);
     setActiveDragWidth(null);
+    setOverColumnId(null);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(String(event.active.id));
     setActiveDragWidth(event.active.rect.current.initial?.width ?? null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId) { setOverColumnId(null); return; }
+    if (isRoadmapColumnStage(overId)) { setOverColumnId(overId); return; }
+    // overId is a card uid — resolve to its stage
+    const overItem = data?.items.find((i) => i.uid === overId);
+    setOverColumnId(overItem && isRoadmapColumnStage(overItem.stage) ? overItem.stage : null);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -575,6 +594,7 @@ export function RoadmapView() {
                   <DndContext
                     sensors={sensors}
                     onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
                     onDragEnd={handleDragEnd}
                     onDragCancel={handleDragCancel}
                   >
@@ -588,6 +608,7 @@ export function RoadmapView() {
                           stage={stage}
                           isAdminOrdering={isAdminOrdering}
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
+                          isDropTarget={overColumnId === stage && !!activeDragItem && activeDragItem.stage !== stage}
                         >
                           {itemsByStage[stage].map((item) => (
                             <RoadmapCard

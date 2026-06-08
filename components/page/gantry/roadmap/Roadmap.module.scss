@@ -188,6 +188,14 @@
   }
 }
 
+.cardPlaceholder {
+  border: 1.5px dashed #d1d5db;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  min-height: 64px;
+  flex-shrink: 0;
+}
+
 .cardDragOverlay {
   box-sizing: border-box;
   border: 1px solid #d1d5db;

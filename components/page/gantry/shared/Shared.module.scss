@@ -50,17 +50,17 @@
 .upvote {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   padding: 0;
   border: none;
   background: transparent;
   color: #8897ae;
   font-size: 12px;
   font-weight: 400;
-  line-height: 18px;
   letter-spacing: -0.2px;
   cursor: pointer;
   transition: color 0.15s ease;
+  min-width: 24px;
 
   &:hover:not(:disabled) {
     color: #6b7b93;

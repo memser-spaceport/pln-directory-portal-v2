@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Children, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -12,6 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { useIsNarrow } from '@/hooks/useIsNarrow';
@@ -25,9 +27,16 @@ import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_ROADMAP_COLUMN_STAGES,
   GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
+  ROADMAP_SORT_OPTIONS,
   isPreRoadmapStage,
+  sortGantryItems,
+  sortGantryItemsByDate,
+  sortGantryItemsByDefault,
   sortRoadmapColumnStages,
+  type RoadmapSortOption,
 } from '@/services/gantry/constants';
+import { useReorderGantryItem } from '@/services/gantry/hooks/useReorderGantryItem';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { stripHtml } from '@/utils/forum';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
@@ -43,14 +52,44 @@ import { RoadmapFiltersContent } from './RoadmapFiltersContent';
 import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
-function RoadmapDropColumn({ stage, children }: { stage: RoadmapColumnStage; children: ReactNode }) {
+function RoadmapDropColumn({
+  stage,
+  children,
+  isAdminOrdering,
+  itemIds,
+  dropPreviewIndex,
+}: {
+  stage: RoadmapColumnStage;
+  children: ReactNode;
+  isAdminOrdering: boolean;
+  itemIds: string[];
+  dropPreviewIndex?: number;
+}) {
   const { isOver, setNodeRef } = useDroppable({ id: stage });
+  const childrenArray = Children.toArray(children);
+  const listItems: ReactNode[] = [];
+  for (let i = 0; i < childrenArray.length; i++) {
+    if (dropPreviewIndex === i) {
+      listItems.push(<div key="__placeholder" className={s.cardPlaceholder} aria-hidden />);
+    }
+    listItems.push(childrenArray[i]);
+  }
+  if (dropPreviewIndex !== undefined && dropPreviewIndex >= childrenArray.length) {
+    listItems.push(<div key="__placeholder" className={s.cardPlaceholder} aria-hidden />);
+  }
+  const list = <div className={s.list}>{listItems}</div>;
   return (
     <div ref={setNodeRef} className={s.column} data-over={isOver || undefined}>
       <div className={s.columnHeader}>
         <StageBadge stage={stage} className={s.columnHeaderBadge} />
       </div>
-      <div className={s.list}>{children}</div>
+      {isAdminOrdering ? (
+        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+          {list}
+        </SortableContext>
+      ) : (
+        list
+      )}
     </div>
   );
 }
@@ -87,9 +126,19 @@ export function RoadmapView() {
     setSearchText(text);
     if (text) analytics.onSearched(text);
   };
+  const [sortOption, setSortOption] = useState<RoadmapSortOption>('default');
+  const handleSortChange = (value: string) => {
+    setSortOption(value as RoadmapSortOption);
+    analytics.onSortChanged(value);
+  };
+  const isAdminOrdering = canCurate && sortOption === 'default';
+  // Local uid-order overrides per stage, set immediately on admin drag so the display
+  // doesn't depend on whether the backend has persisted the `order` field yet.
+  const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
+  const [dropPreview, setDropPreview] = useState<{ columnId: RoadmapColumnStage; insertIndex: number } | null>(null);
 
   // Mobile layout state (< 1024px)
   const isNarrow = useIsNarrow();
@@ -114,6 +163,7 @@ export function RoadmapView() {
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
   const transition = useGantryTransition();
   const upvote = useGantryUpvote();
+  const reorder = useReorderGantryItem();
 
   useEffect(() => {
     analytics.onRoadmapViewed();
@@ -214,8 +264,24 @@ export function RoadmapView() {
       map[item.stage].push(item);
     });
 
+    const sortFn =
+      sortOption === 'upvotes' ? sortGantryItems : sortOption === 'date' ? sortGantryItemsByDate : sortGantryItemsByDefault;
+    orderedVisibleColumns.forEach((stage) => {
+      map[stage] = sortFn(map[stage]);
+
+      // Apply local admin ordering override: preserves the user's drag position even
+      // when the server hasn't persisted the `order` field yet.
+      const adminOrder = adminOrderMap[stage];
+      if (adminOrder) {
+        const itemMap = new Map(map[stage].map((item) => [item.uid, item]));
+        const known = adminOrder.filter((uid) => itemMap.has(uid)).map((uid) => itemMap.get(uid)!);
+        const extra = map[stage].filter((item) => !new Set(adminOrder).has(item.uid));
+        map[stage] = [...known, ...extra];
+      }
+    });
+
     return map;
-  }, [data?.items, orderedVisibleColumns, searchText]);
+  }, [data?.items, orderedVisibleColumns, searchText, sortOption, adminOrderMap]);
 
   const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
     if (nextStage === 'DECLINED') {
@@ -231,6 +297,32 @@ export function RoadmapView() {
     await transition.mutateAsync({ uid: itemUid, payload: { type: 'transition', stage: nextStage } });
   };
 
+  const applyReorder = async (activeId: string, overId: string) => {
+    const activeItem = data?.items.find((i) => i.uid === activeId);
+    if (!activeItem || !isRoadmapColumnStage(activeItem.stage)) return;
+    const columnItems = itemsByStage[activeItem.stage];
+    const activeIdx = columnItems.findIndex((i) => i.uid === activeId);
+    const overIdx = columnItems.findIndex((i) => i.uid === overId);
+    if (activeIdx === -1 || overIdx === -1 || activeIdx === overIdx) return;
+
+    const reordered = arrayMove(columnItems, activeIdx, overIdx);
+
+    // Update local display order immediately — the visual position is driven by this,
+    // not by the server `order` field, so it works even when all items have order=null.
+    setAdminOrderMap((prev) => ({ ...prev, [activeItem.stage]: reordered.map((i) => i.uid) }));
+
+    // Compute fractional order for the backend PATCH.
+    const BASE = 1000;
+    const prev = reordered[overIdx - 1];
+    const next = reordered[overIdx + 1];
+    const prevOrder = prev?.order ?? (overIdx - 1) * BASE;
+    const nextOrder = next?.order ?? (overIdx + 1) * BASE;
+    const newOrder = (prevOrder + nextOrder) / 2;
+
+    analytics.onItemReordered(activeId, activeItem.stage);
+    await reorder.mutateAsync({ uid: activeId, order: newOrder });
+  };
+
   const activeDragItem = useMemo(
     () => (activeDragId ? data?.items.find((i) => i.uid === activeDragId) : undefined),
     [activeDragId, data?.items],
@@ -239,6 +331,7 @@ export function RoadmapView() {
   const clearActiveDrag = () => {
     setActiveDragId(null);
     setActiveDragWidth(null);
+    setDropPreview(null);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -246,17 +339,82 @@ export function RoadmapView() {
     setActiveDragWidth(event.active.rect.current.initial?.width ?? null);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const activeId = String(event.active.id);
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId) { setDropPreview(null); return; }
+
+    const draggedItem = data?.items.find((i) => i.uid === activeId);
+    let targetStage: RoadmapColumnStage | null = null;
+    let insertIndex: number;
+
+    if (isRoadmapColumnStage(overId)) {
+      targetStage = overId;
+      insertIndex = itemsByStage[overId]?.length ?? 0;
+    } else {
+      const overItem = data?.items.find((i) => i.uid === overId);
+      if (!overItem || !isRoadmapColumnStage(overItem.stage)) { setDropPreview(null); return; }
+      targetStage = overItem.stage;
+      const columnItems = itemsByStage[targetStage] ?? [];
+      const overIdx = columnItems.findIndex((i) => i.uid === overId);
+      if (overIdx === -1) { setDropPreview(null); return; }
+      const activeTranslated = event.active.rect.current.translated;
+      const overRect = event.over?.rect;
+      let insertBefore = true;
+      if (activeTranslated && overRect) {
+        const activeCenterY = activeTranslated.top + activeTranslated.height / 2;
+        const overCenterY = overRect.top + overRect.height / 2;
+        insertBefore = activeCenterY < overCenterY;
+      }
+      insertIndex = insertBefore ? overIdx : overIdx + 1;
+    }
+
+    if (!targetStage || !draggedItem || draggedItem.stage === targetStage) { setDropPreview(null); return; }
+    setDropPreview({ columnId: targetStage, insertIndex });
+  };
+
+  // Pre-seeds adminOrderMap for the destination column so the card lands at the drop
+  // position after the React Query refetch, not wherever the sort function would put it.
+  const lockDropPosition = (activeId: string, destStage: RoadmapColumnStage, preview: typeof dropPreview) => {
+    const columnUids = itemsByStage[destStage].map((i) => i.uid);
+    const insertIndex = preview?.columnId === destStage ? preview.insertIndex : columnUids.length;
+    const newOrder = [...columnUids.slice(0, insertIndex), activeId, ...columnUids.slice(insertIndex)];
+    setAdminOrderMap((prev) => ({ ...prev, [destStage]: newOrder }));
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
+    const savedDropPreview = dropPreview; // capture before clearActiveDrag clears it
     clearActiveDrag();
-    if (!canTransition) return;
-    const itemUid = String(event.active.id);
-    const nextStage = event.over?.id ? String(event.over.id) : null;
-    if (!nextStage || !isRoadmapColumnStage(nextStage) || !orderedVisibleColumns.includes(nextStage)) return;
+    const activeId = String(event.active.id);
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId) return;
 
-    const item = data?.items.find((i) => i.uid === itemUid);
-    if (!item || item.stage === nextStage) return;
+    // over a card uid (same or different column)
+    if (!isRoadmapColumnStage(overId)) {
+      const activeItem = data?.items.find((i) => i.uid === activeId);
+      const overItem = data?.items.find((i) => i.uid === overId);
+      if (!activeItem || !overItem) return;
 
-    await applyStageChange(itemUid, item, nextStage);
+      // Different stages → treat as cross-column move
+      if (activeItem.stage !== overItem.stage) {
+        if (!canTransition || !isRoadmapColumnStage(overItem.stage) || !orderedVisibleColumns.includes(overItem.stage)) return;
+        lockDropPosition(activeId, overItem.stage, savedDropPreview);
+        await applyStageChange(activeId, activeItem, overItem.stage);
+        return;
+      }
+
+      // Same stage → within-column reorder (admin only, default sort only)
+      if (!isAdminOrdering) return;
+      await applyReorder(activeId, overId);
+      return;
+    }
+
+    // over a stage droppable → cross-column move
+    if (!canTransition || !orderedVisibleColumns.includes(overId)) return;
+    const item = data?.items.find((i) => i.uid === activeId);
+    if (!item || item.stage === overId) return;
+    lockDropPosition(activeId, overId, savedDropPreview);
+    await applyStageChange(activeId, item, overId);
   };
 
   const handleDragCancel = () => {
@@ -288,6 +446,11 @@ export function RoadmapView() {
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
                   <div className={s.mobileActionsRow}>
+                    <SortDropdown
+                      options={ROADMAP_SORT_OPTIONS}
+                      currentSort={sortOption}
+                      onSortChange={handleSortChange}
+                    />
                     <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
                       <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
                         <path
@@ -438,14 +601,19 @@ export function RoadmapView() {
                       Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
                     </p>
                   </div>
-                  {canCreate && (
-                    <div className={s.actions}>
+                  <div className={s.actions}>
+                    <SortDropdown
+                      options={ROADMAP_SORT_OPTIONS}
+                      currentSort={sortOption}
+                      onSortChange={handleSortChange}
+                    />
+                    {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
                         onClick={() => submitIdeaModalActions.openModal(createVariant)}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -469,6 +637,7 @@ export function RoadmapView() {
                   <DndContext
                     sensors={sensors}
                     onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
                     onDragEnd={handleDragEnd}
                     onDragCancel={handleDragCancel}
                   >
@@ -477,7 +646,13 @@ export function RoadmapView() {
                       style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
                     >
                       {orderedVisibleColumns.map((stage) => (
-                        <RoadmapDropColumn key={stage} stage={stage}>
+                        <RoadmapDropColumn
+                          key={stage}
+                          stage={stage}
+                          isAdminOrdering={isAdminOrdering}
+                          itemIds={itemsByStage[stage].map((i) => i.uid)}
+                          dropPreviewIndex={dropPreview?.columnId === stage ? dropPreview.insertIndex : undefined}
+                        >
                           {itemsByStage[stage].map((item) => (
                             <RoadmapCard
                               key={item.uid}

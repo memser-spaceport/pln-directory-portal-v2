@@ -1,6 +1,6 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
@@ -69,13 +69,14 @@ interface Props extends CardContentProps {}
 
 export function RoadmapCard({ item, canUpvote, onUpvoteToggle }: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.uid,
     data: { stage: item.stage },
   });
 
   const style = {
-    transform: isDragging ? undefined : CSS.Translate.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
+    transition,
     opacity: isDragging ? 0.35 : 1,
   };
 

@@ -12,6 +12,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { useIsNarrow } from '@/hooks/useIsNarrow';
@@ -25,9 +26,16 @@ import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_ROADMAP_COLUMN_STAGES,
   GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
+  ROADMAP_SORT_OPTIONS,
   isPreRoadmapStage,
+  sortGantryItems,
+  sortGantryItemsByDate,
+  sortGantryItemsByDefault,
   sortRoadmapColumnStages,
+  type RoadmapSortOption,
 } from '@/services/gantry/constants';
+import { useReorderGantryItem } from '@/services/gantry/hooks/useReorderGantryItem';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { stripHtml } from '@/utils/forum';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
@@ -43,14 +51,31 @@ import { RoadmapFiltersContent } from './RoadmapFiltersContent';
 import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
-function RoadmapDropColumn({ stage, children }: { stage: RoadmapColumnStage; children: ReactNode }) {
+function RoadmapDropColumn({
+  stage,
+  children,
+  isAdminOrdering,
+  itemIds,
+}: {
+  stage: RoadmapColumnStage;
+  children: ReactNode;
+  isAdminOrdering: boolean;
+  itemIds: string[];
+}) {
   const { isOver, setNodeRef } = useDroppable({ id: stage });
+  const list = <div className={s.list}>{children}</div>;
   return (
     <div ref={setNodeRef} className={s.column} data-over={isOver || undefined}>
       <div className={s.columnHeader}>
         <StageBadge stage={stage} className={s.columnHeaderBadge} />
       </div>
-      <div className={s.list}>{children}</div>
+      {isAdminOrdering ? (
+        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+          {list}
+        </SortableContext>
+      ) : (
+        list
+      )}
     </div>
   );
 }
@@ -87,6 +112,12 @@ export function RoadmapView() {
     setSearchText(text);
     if (text) analytics.onSearched(text);
   };
+  const [sortOption, setSortOption] = useState<RoadmapSortOption>('default');
+  const handleSortChange = (value: string) => {
+    setSortOption(value as RoadmapSortOption);
+    analytics.onSortChanged(value);
+  };
+  const isAdminOrdering = canCurate && sortOption === 'default';
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
@@ -114,6 +145,7 @@ export function RoadmapView() {
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
   const transition = useGantryTransition();
   const upvote = useGantryUpvote();
+  const reorder = useReorderGantryItem();
 
   useEffect(() => {
     analytics.onRoadmapViewed();
@@ -214,8 +246,14 @@ export function RoadmapView() {
       map[item.stage].push(item);
     });
 
+    const sortFn =
+      sortOption === 'upvotes' ? sortGantryItems : sortOption === 'date' ? sortGantryItemsByDate : sortGantryItemsByDefault;
+    orderedVisibleColumns.forEach((stage) => {
+      map[stage] = sortFn(map[stage]);
+    });
+
     return map;
-  }, [data?.items, orderedVisibleColumns, searchText]);
+  }, [data?.items, orderedVisibleColumns, searchText, sortOption]);
 
   const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
     if (nextStage === 'DECLINED') {
@@ -229,6 +267,27 @@ export function RoadmapView() {
     }
 
     await transition.mutateAsync({ uid: itemUid, payload: { type: 'transition', stage: nextStage } });
+  };
+
+  const applyReorder = async (activeId: string, overId: string) => {
+    const activeItem = data?.items.find((i) => i.uid === activeId);
+    if (!activeItem || !isRoadmapColumnStage(activeItem.stage)) return;
+    const columnItems = itemsByStage[activeItem.stage];
+    const activeIdx = columnItems.findIndex((i) => i.uid === activeId);
+    const overIdx = columnItems.findIndex((i) => i.uid === overId);
+    if (activeIdx === -1 || overIdx === -1 || activeIdx === overIdx) return;
+
+    const reordered = arrayMove(columnItems, activeIdx, overIdx);
+    const newIdx = reordered.findIndex((i) => i.uid === activeId);
+    const BASE = 1000;
+    const prev = reordered[newIdx - 1];
+    const next = reordered[newIdx + 1];
+    const prevOrder = prev?.order ?? (newIdx - 1) * BASE;
+    const nextOrder = next?.order ?? (newIdx + 1) * BASE;
+    const newOrder = (prevOrder + nextOrder) / 2;
+
+    analytics.onItemReordered(activeId, activeItem.stage);
+    await reorder.mutateAsync({ uid: activeId, order: newOrder });
   };
 
   const activeDragItem = useMemo(
@@ -248,15 +307,34 @@ export function RoadmapView() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     clearActiveDrag();
-    if (!canTransition) return;
-    const itemUid = String(event.active.id);
-    const nextStage = event.over?.id ? String(event.over.id) : null;
-    if (!nextStage || !isRoadmapColumnStage(nextStage) || !orderedVisibleColumns.includes(nextStage)) return;
+    const activeId = String(event.active.id);
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId) return;
 
-    const item = data?.items.find((i) => i.uid === itemUid);
-    if (!item || item.stage === nextStage) return;
+    // over a card uid (same or different column)
+    if (!isRoadmapColumnStage(overId)) {
+      const activeItem = data?.items.find((i) => i.uid === activeId);
+      const overItem = data?.items.find((i) => i.uid === overId);
+      if (!activeItem || !overItem) return;
 
-    await applyStageChange(itemUid, item, nextStage);
+      // Different stages → treat as cross-column move
+      if (activeItem.stage !== overItem.stage) {
+        if (!canTransition || !isRoadmapColumnStage(overItem.stage) || !orderedVisibleColumns.includes(overItem.stage)) return;
+        await applyStageChange(activeId, activeItem, overItem.stage);
+        return;
+      }
+
+      // Same stage → within-column reorder (admin only, default sort only)
+      if (!isAdminOrdering) return;
+      await applyReorder(activeId, overId);
+      return;
+    }
+
+    // over a stage droppable → cross-column move
+    if (!canTransition || !orderedVisibleColumns.includes(overId)) return;
+    const item = data?.items.find((i) => i.uid === activeId);
+    if (!item || item.stage === overId) return;
+    await applyStageChange(activeId, item, overId);
   };
 
   const handleDragCancel = () => {
@@ -288,6 +366,11 @@ export function RoadmapView() {
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
                   <div className={s.mobileActionsRow}>
+                    <SortDropdown
+                      options={ROADMAP_SORT_OPTIONS}
+                      currentSort={sortOption}
+                      onSortChange={handleSortChange}
+                    />
                     <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
                       <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
                         <path
@@ -438,14 +521,19 @@ export function RoadmapView() {
                       Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
                     </p>
                   </div>
-                  {canCreate && (
-                    <div className={s.actions}>
+                  <div className={s.actions}>
+                    <SortDropdown
+                      options={ROADMAP_SORT_OPTIONS}
+                      currentSort={sortOption}
+                      onSortChange={handleSortChange}
+                    />
+                    {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
                         onClick={() => submitIdeaModalActions.openModal(createVariant)}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -477,7 +565,12 @@ export function RoadmapView() {
                       style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
                     >
                       {orderedVisibleColumns.map((stage) => (
-                        <RoadmapDropColumn key={stage} stage={stage}>
+                        <RoadmapDropColumn
+                          key={stage}
+                          stage={stage}
+                          isAdminOrdering={isAdminOrdering}
+                          itemIds={itemsByStage[stage].map((i) => i.uid)}
+                        >
                           {itemsByStage[stage].map((item) => (
                             <RoadmapCard
                               key={item.uid}

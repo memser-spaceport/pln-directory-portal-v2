@@ -238,11 +238,11 @@
 }
 
 .teamName {
+  @include mixins.clampLines(2);
+
   @include media.tablet-landscape {
     padding-right: 110px;
   }
-
-  @include mixins.clampLines(2);
 }
 
 .linksWrapper {

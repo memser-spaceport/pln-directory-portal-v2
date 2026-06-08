@@ -3,10 +3,6 @@
 :root {
   --app-header-height: 56px;
 
-  @include media.tablet-landscape {
-    --app-header-height: 80px;
-  }
-
   /* PLAA Design Tokens (from Figma) */
   /* Colors */
   --plaa-primary-blue: #156ff7;
@@ -25,6 +21,10 @@
   /* Spacing */
   --plaa-banner-height: 56px;
   --plaa-sidebar-width: 215px;
+
+  @include media.tablet-landscape {
+    --app-header-height: 80px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

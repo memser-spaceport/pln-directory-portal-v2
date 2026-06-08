@@ -10,21 +10,29 @@ export type RoadmapColumnStage = (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number];
 interface Props {
   readonly visibleColumns: RoadmapColumnStage[];
   readonly onVisibleColumnsChange: (columns: RoadmapColumnStage[]) => void;
+  readonly selectedTags: string[];
+  readonly onSelectedTagsChange: (tags: string[]) => void;
 }
 
-export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange }: Props) {
+export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange }: Props) {
   const clearParams = () => {
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
+    onSelectedTagsChange([]);
   };
 
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={visibleColumns.length}
+      appliedFiltersCount={visibleColumns.length + selectedTags.length}
       className={filterStyles.filterRail}
       hideFooter
     >
-      <RoadmapFiltersContent visibleColumns={visibleColumns} onVisibleColumnsChange={onVisibleColumnsChange} />
+      <RoadmapFiltersContent
+        visibleColumns={visibleColumns}
+        onVisibleColumnsChange={onVisibleColumnsChange}
+        selectedTags={selectedTags}
+        onSelectedTagsChange={onSelectedTagsChange}
+      />
     </FiltersSidePanel>
   );
 }

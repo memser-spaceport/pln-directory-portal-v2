@@ -40,7 +40,8 @@
   margin: 0;
 }
 
-.link {
+.link,
+.linkButton {
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
   font-style: normal;
@@ -58,4 +59,12 @@
   &:hover {
     color: #455468;
   }
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }

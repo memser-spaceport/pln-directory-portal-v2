@@ -218,3 +218,59 @@
   width: 100%;
   max-width: 420px;
 }
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.pitchLabel {
+  margin: 0 auto 4px;
+  font-size: 24px;
+  color: #798391;
+  font-weight: 600;
+  text-align: center;
+}
+
+.headerImage {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 8px;
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+  }
+}
+
+.supportSectionWrap {
+  width: 100%;
+}
+
+.stepsCard {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  padding: 32px 20px 40px;
+
+  @include media.mobile-only {
+    padding: 24px 16px 28px;
+  }
+}
+
+.stepsInHeader {
+  width: 100%;
+  margin: 12px 0;
+
+  @include media.mobile-only {
+    margin: 20px 0;
+  }
+}

@@ -29,7 +29,7 @@ export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selecte
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}
+      appliedFiltersCount={selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}
       className={filterStyles.filterRail}
       hideFooter
     >

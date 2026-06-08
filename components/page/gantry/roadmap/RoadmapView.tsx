@@ -298,8 +298,8 @@ export function RoadmapView() {
                         />
                       </svg>
                       Filters
-                      {visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0) > 0 && (
-                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}</span>
+                      {selectedTags.length + selectedTypes.length + (searchText ? 1 : 0) > 0 && (
+                        <span className={s.filtersButtonBadge}>{selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}</span>
                       )}
                     </button>
                     {canCreate && (

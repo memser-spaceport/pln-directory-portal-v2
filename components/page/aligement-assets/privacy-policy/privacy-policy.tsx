@@ -36,7 +36,7 @@ export default function PrivacyPolicyPage() {
         <div className="privacy-policy__header">
           <h1 className="privacy-policy__header__title">Privacy Policy</h1>
           <p className="privacy-policy__header__date">
-            <em>Last Updated: May 8, 2025</em>
+            <em>Last Updated: June 3, 2026</em>
           </p>
         </div>
 
@@ -45,7 +45,9 @@ export default function PrivacyPolicyPage() {
           <p className="privacy-policy__overview__paragraph">
             Your privacy is important to us. This Privacy Policy (“policy”) describes how Polaris Labs, Inc. (“we,”
             “us”) collects, uses, shares, and stores your personal information (“Personal Data”) when you participate in
-            the Network Contribution Points (“Points”) initiative. This policy may be updated from time to time.
+            the Network Contribution Points (“Points”) initiative. This policy may be updated from time to time. By
+            accessing or using this website, you acknowledge that you have read, understood, and agree to be bound by
+            the terms of this Policy. A link to this Policy is available at the bottom of every page.
           </p>
         </div>
 
@@ -79,7 +81,11 @@ export default function PrivacyPolicyPage() {
                     <li>Your name</li>
                     <li>Your email address</li>
                     <li>Social media username(s)</li>
-                    <li>Account access information</li>
+                    <li>
+                      Account identifiers and authentication information (such as usernames and account verification
+                      data, but not passwords).
+                    </li>
+                    <li>Internet Protocol address (IP address)</li>
                     <li>Data related to your current employment, including job title, level, and compensation.</li>
                   </ul>
                 </p>
@@ -120,9 +126,16 @@ export default function PrivacyPolicyPage() {
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Compensation Benchmarking:</b> To create a compensation benchmarking service using anonymized
-                      Personal Data you have given us with consent (by anonymized, we mean that in any compensation
-                      benchmarking, personally identifying information like your name and email address will not be
-                      attached to the employment and compensation data)
+                      Personal Data you have given us with consent (by “anonymized,” we mean data processed in accordance
+                      with recognized standards such that re-identification is not reasonably possible)
+                    </li>
+                    <li className="privacy-policy__content__paragraph__list__item">
+                      <b>Usage Information:</b> We may automatically collect certain information about your interaction
+                      with our website, including your IP address, browser type, device information, operating system,
+                      pages viewed, referring website, time spent on pages, links clicked, and the dates and times of
+                      your visits. We use this information to understand how visitors use our website, improve
+                      functionality, maintain security, troubleshoot technical issues, and analyze overall website
+                      performance.
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">To comply with applicable laws.</li>
                   </ul>
@@ -157,8 +170,8 @@ export default function PrivacyPolicyPage() {
                 <p className="privacy-policy__content__paragraph">
                   If we transfer data from the European Economic Area, the United Kingdom and/or Switzerland to other
                   countries that have not been determined by the EU Commission to have an adequate level of data
-                  protection, we will use legal mechanisms including contracts to help ensure your rights and
-                  protections.
+                  protection, we will use appropriate safeguards as required by applicable law, such as Standard
+                  Contractual Clauses (SCCs) approved by the European Commission.
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   We take reasonable and appropriate steps to protect your Personal Data from unauthorized access, use,
@@ -194,7 +207,9 @@ export default function PrivacyPolicyPage() {
                   retention obligations. In these cases, processing will be restricted, and this data will not be
                   processed for any other purpose. A statutory exemption may exist, for example under tax or corporate
                   law. In certain cases, a longer retention period may be necessary, for example for the purposes of
-                  preserving evidence.
+                  preserving evidence. Personal Data collected in connection with the Points initiative will generally
+                  be retained for the duration of your participation, unless a shorter or longer period is required by
+                  law.
                 </p>
               </div>
             )}
@@ -218,7 +233,19 @@ export default function PrivacyPolicyPage() {
             {expandedSections.cookiesOrTrackers && (
               <div className="privacy-policy__container__section__content">
                 <p className="privacy-policy__content__paragraph">
-                  Currently we do not use cookies or web analytics on our websites.
+                  Yes, we use cookies for essential functionality only.
+                </p>
+                <p className="privacy-policy__content__paragraph">
+                  We use the authToken cookie, which is strictly necessary for user authentication and session
+                  management. This cookie is used exclusively to determine whether to display the guest modal or
+                  participant-specific features, such as leaderboards. We do not set or utilize preference, dismissal,
+                  or non-essential tracking cookies. All cookie handling follows our global authentication flow
+                  (middleware.ts) and is not implemented via route-specific server-side logic for the Points initiative.
+                </p>
+                <p className="privacy-policy__content__paragraph">
+                  We use a third-party service, PostHog, for analytics purposes. PostHog pulls user identity data from
+                  our internal application store (the Zustand useCurrentUserStore) and does not directly rely on cookies
+                  for identifying users or firing analytics events on these pages.
                 </p>
               </div>
             )}
@@ -242,15 +269,17 @@ export default function PrivacyPolicyPage() {
             {expandedSections.discloseInformation && (
               <div className="privacy-policy__container__section__content">
                 <p className="privacy-policy__content__paragraph">
-                  We may disclose your personal data with your consent or as we determine necessary to provide services
-                  that you have requested. Additionally, we may disclose your data as follows:
+                  We may disclose your personal data with your consent or where necessary to fulfill a contract with
+                  you, to comply with a legal obligation, or where we have a legitimate interest in doing so.
+                  Additionally, we may disclose your data as follows:
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   <ul className="privacy-policy__content__paragraph__list">
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Collaborators on the Points initiative:</b> We may share your Personal Data with trusted
                       third-party partners, such as other collaborators on the Network Contribution Points project (such
-                      as Protocol Labs, Inc. and Surus Trust Company, LLC).
+                      as Protocol Labs, Inc. and Surus Trust Company, LLC). Such sharing is governed by appropriate data
+                      processing or data sharing agreements with each collaborator.
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Compensation Benchmarking:</b> We may share your Personal Data with third-party companies
@@ -263,10 +292,13 @@ export default function PrivacyPolicyPage() {
                       services.
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
-                      <b>Interactive features:</b> We may share your Personal Data with other participants in the Points
-                      project to allow you to engage with interactive features of the project, such as displaying Points
-                      leaderboards, nominating users for Points, verifying other users’ contributions, participating in
-                      message boards, and the like.
+                      <b>Interactive Features and Community Visibility:</b> We may share your Personal Data to allow you
+                      to engage with interactive features of the project, such as displaying Points leaderboards,
+                      nominating users for Points, verifying other users&apos; contributions, participating in message
+                      boards, among other things. Certain Personal Data, such as profile information, contribution data,
+                      Points data, rankings, achievements, participation history, or related activity may be visible to
+                      other participants, prospective participants, ecosystem members, collaborators, and users of
+                      community or directory features associated with the Points initiative
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Affiliates and Corporate Transactions:</b> We enable access to data across our subsidiaries,
@@ -277,8 +309,10 @@ export default function PrivacyPolicyPage() {
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Legal and Law Enforcement:</b> We will access, disclose, and preserve data when we believe
-                      doing so is necessary to comply with applicable law or respond to value legal process, including
-                      from law enforcement, national security or other government agencies.
+                      doing so is necessary to comply with applicable law or respond to valid legal process, including
+                      from law enforcement, national security or other government agencies. Where permitted by law, we
+                      will endeavor to notify affected users prior to disclosing their Personal Data in response to legal
+                      process.
                     </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       <b>Security, Safety, Protecting Rights:</b> We will disclose data if we believe it is necessary to
@@ -313,8 +347,8 @@ export default function PrivacyPolicyPage() {
             {expandedSections.userRights && (
               <div className="privacy-policy__container__section__content">
                 <p className="privacy-policy__content__paragraph">
-                  You have choices you may elect regarding how we use your data. Local data protection laws may give
-                  make these controls and choices enforceable as rights under the law if you are located in or are a
+                  You have choices you may elect regarding how we use your data. Local data protection laws may make
+                  these controls and choices enforceable as rights under the law if you are located in or are a
                   resident of that country, state, or territory.
                 </p>
                 <p className="privacy-policy__content__paragraph">
@@ -360,7 +394,9 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   <ul className="privacy-policy__content__paragraph__list">
-                    <li className="privacy-policy__content__paragraph__list__item">You can request access to and rectification or erasure of your personal data;</li>
+                    <li className="privacy-policy__content__paragraph__list__item">
+                      You can request access to and rectification or erasure of your personal data;
+                    </li>
                     <li className="privacy-policy__content__paragraph__list__item">
                       If any automated processing of your personal data is based on your consent or a contract with you,
                       you have a right to transfer or receive a copy of the personal data in a usable and portable
@@ -378,13 +414,15 @@ export default function PrivacyPolicyPage() {
                       For residents of France, you can send us specific instructions regarding the use of your data
                       after your death.
                     </li>
-                    <li className="privacy-policy__content__paragraph__list__item">
-                      To make such requests, please contact us following the instructions provided below. Please note,
-                      in order to best serve you, we may require additional information about you to verify your
-                      identity to accommodate your request. You also have the right to lodge a complaint with a
-                      supervisory authority, but we encourage you to first contact us with your questions or concerns.
-                    </li>
                   </ul>
+                </p>
+                <p className="privacy-policy__content__paragraph">
+                  To make such requests, please contact us following the instructions provided below. Please note, in
+                  order to best serve you, we may require additional information about you to verify your identity to
+                  accommodate your request. You also have the right to lodge a complaint with a supervisory authority,
+                  but we encourage you to first contact us with your questions or concerns. We will respond to your
+                  request within the timeframe required by applicable law (generally within one month under GDPR,
+                  subject to extension in complex cases).
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   We rely on different lawful bases for collecting and processing personal data about you, for example,
@@ -416,7 +454,9 @@ export default function PrivacyPolicyPage() {
                 <p className="privacy-policy__content__paragraph">
                   If you are a California resident and the processing of your personal information is subject to the
                   California Consumer Privacy Act (CCPA), you have certain exercisable (or delegable) rights with
-                  respect to that data:
+                  respect to that data. As amended by the California Privacy Rights Act (CPRA), this includes rights
+                  related to Sensitive Personal Information (SPI), which may include your employment and compensation
+                  data:
                 </p>
                 <p className="privacy-policy__content__paragraph">
                   <ul className="privacy-policy__content__paragraph__list">
@@ -513,12 +553,14 @@ export default function PrivacyPolicyPage() {
                 <p className="privacy-policy__content__paragraph">
                   Any modifications to this Privacy Policy will be effective upon our posting of the new terms and/or
                   upon implementation of the changes to the website (or as otherwise indicated at the time of posting).
-                  In all cases, your continued use of the website or continued participation in the Points program after
-                  the posting of any modified Privacy Policy indicates your acknowledgment of the terms of the modified
-                  Privacy Policy.
+                  For material changes that affect how we process your Personal Data, we will provide at least 30
+                  days&apos; prior written notice by email and, where required by applicable law, seek your affirmative
+                  consent before the changes take effect. Your continued use of the website or participation in the
+                  Points program following notice of non-material changes will constitute your acknowledgment of such
+                  changes.
                 </p>
                 <p className="privacy-policy__content__paragraph">
-                  This document is CC-BY-SA. It was last updated May 8, 2025.
+                  This document is CC-BY-SA. It was last updated June 3, 2026.
                 </p>
               </div>
             )}

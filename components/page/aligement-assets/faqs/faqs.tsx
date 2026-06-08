@@ -107,16 +107,16 @@ const faqCategories: FAQCategoryData[] = [
     ],
   },
   {
-    id: 'point-to-token-conversion',
-    title: 'Point-to-Token Conversion',
+    id: 'point-to-rights-conversion',
+    title: 'Point-to-Rights Conversion',
     icon: '/icons/loop-icon.png',
     items: [
       {
-        question: 'How do points convert to tokens?',
+        question: 'How do points convert to rights?',
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-            Points can convert to tokens at the end of each monthly snapshot period using a predefined points-to-token formula tied to the KPI emissions schedule (shown below) and the 10,000-token monthly cap. The actual number of tokens the Trust issues each month may be less than 10,000 if no participants collect points in certain KPI categories.
+            Points can convert to rights at the end of each monthly snapshot period using a predefined points-to-right formula tied to the KPI emissions schedule (shown below) and the 10,000-right monthly cap. The actual number of rights the Trust issues each month may be less than 10,000 if no participants collect points in certain KPI categories.
             </p>
 
             <p style={{ marginBottom: '16px' }}>
@@ -125,35 +125,35 @@ const faqCategories: FAQCategoryData[] = [
             
             <ol style={{ paddingLeft: '24px', marginBottom: '16px' }}>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Category allocation:</strong> Each KPI category (Programs, Network Tooling, etc.) is allocated a portion of the 10,000 monthly tokens based on its network weight (see table below). However, if no participants collect points in a specific category during the snapshot period, no tokens will be distributed for that category that month.
+                <strong>Category allocation:</strong> Each KPI category (Programs, Network Tooling, etc.) is allocated a portion of the 10,000 monthly rights based on its network weight (see table below). However, if no participants collect points in a specific category during the snapshot period, no rights will be distributed for that category that month.
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Token Percentage Calculation:</strong> [Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]
+                <strong>Right Percentage Calculation:</strong> [Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Token distribution:</strong> [Your Percentage] × [Tokens Allocated to that Category] = [Your Tokens]Y
+                <strong>Right distribution:</strong> [Your Percentage] × [Rights Allocated to that Category] = [Your Rights]
               </li>
             </ol>
 
             <p style={{ marginBottom: '16px' }}>
-            Because only whole tokens can be distributed, calculated amounts are rounded down to the nearest whole token. This rounding rule is applied consistently to all participants to ensure fairness and to prevent exceeding the monthly token cap.
+            Because Rights are settled through whole Tokens, any calculated settlement amounts are rounded down to the nearest whole Token. This rounding rule is applied consistently to all participants to ensure fairness and to prevent the number of Tokens issued in connection with the settlement of Rights from exceeding the applicable monthly cap.
             </p>
 
             <p style={{ marginBottom: '16px' }}>
-            While the Alignment Asset trust ultimately controls token distributions, and the conversion of points to tokens is not guaranteed, your participation now puts you at the forefront of this exciting initiative.
+            While the Alignment Asset Trust ultimately controls the issuance of Rights and the settlement of such Rights through Tokens, the conversion of Points into Rights, and the settlement of such Rights, is not guaranteed. Nevertheless, participation today allows you to engage with and help shape this evolving initiative.
             </p>
 
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.64% of 10,000 tokens = 1,463 tokens available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.54% of 10,000 rights = 1,453 rights available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your tokens: 10% × 1,463 = ~146 tokens</li>
+                <li>Your tokens: 10% × 1,453 = ~146 tokens</li>
               </ul>
             </div>
 
-            <p style={{ marginBottom: '16px' }}>You can collect tokens from multiple categories in the same period.</p>
+            <p style={{ marginBottom: '16px' }}>You can collect rights from multiple categories in the same period. Such rights may ultimately be settled through Tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.</p>
 
             {/* KPI Pillars Table */}
             <div style={{ overflowX: 'auto' }}>
@@ -207,7 +207,7 @@ const faqCategories: FAQCategoryData[] = [
                   <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Sum</td>
                     <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>6.2000</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.0000%</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>100.00%</td>
                     <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>10,000</td>
                   </tr>
                 </tbody>
@@ -224,12 +224,12 @@ const faqCategories: FAQCategoryData[] = [
               KPI categories group similar activities together—for example: Capital, Programs, Knowledge, Network Tooling, People/Talent, etc.
             </p>
             <p style={{ marginBottom: '16px' }}>
-              Each category receives a portion of monthly tokens based on its network weight. Example:
+              Each category receives a portion of monthly rights based on its network weight. Example:
             </p>
             <ul style={{ paddingLeft: '24px', marginBottom: '16px', listStyleType: 'disc' }}>
-              <li style={{ marginBottom: '4px' }}>Knowledge: 17.71% of tokens</li>
-              <li style={{ marginBottom: '4px' }}>Programs: 17.02% of tokens</li>
-              <li>Network Tooling: 17.27% of tokens</li>
+              <li style={{ marginBottom: '4px' }}>Knowledge: 22.58% of rights</li>
+              <li style={{ marginBottom: '4px' }}>Programs: 18.55% of rights</li>
+              <li>Network Tooling: 19.35% of rights</li>
             </ul>
             <p>
               The weights reflect what types of contribution we think create the most impact and value for the network at that time, and so they will change as network needs evolve.
@@ -268,10 +268,10 @@ const faqCategories: FAQCategoryData[] = [
               <p style={{ marginBottom: '8px' }}>If you collect:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
                 <li style={{ marginBottom: '4px' }}>100 Network Tooling points (updating your Directory Profile)</li>
-                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,727 tokens available</li>
-                <li style={{ marginBottom: '4px' }}>Total Network Tooling points collected for the snapshot period: 172,720 points (realistic if many people complete profiles and host office hours in the same snapshot period)</li>
-                <li style={{ marginBottom: '4px' }}>Your portion: 100 ÷ 172,711 = 0.00058%</li>
-                <li style={{ marginBottom: '4px' }}>Your tokens: 0.00058% × 1,727 = 0.9998 tokens</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,935 tokens available</li>
+                <li style={{ marginBottom: '4px' }}>Total Network Tooling points collected for the snapshot period: 193,620 points (realistic if many people complete profiles and host office hours in the same snapshot period)</li>
+                <li style={{ marginBottom: '4px' }}>Your portion: 100 ÷ 193,620 = 0.00052%</li>
+                <li style={{ marginBottom: '4px' }}>Your tokens: 0.00052% × 1,935 = 0.9998 tokens</li>
                 <li>You receive: 0 tokens</li>
               </ul>
             </div>
@@ -279,7 +279,7 @@ const faqCategories: FAQCategoryData[] = [
         ),
       },
       {
-        question: 'How is my portion of tokens calculated?',
+        question: 'How is my portion of rights calculated?',
         answer: (
           <div>
             <ol style={{ paddingLeft: '24px', marginBottom: '16px' }}>
@@ -287,7 +287,7 @@ const faqCategories: FAQCategoryData[] = [
                 Determine your individual contribution as a percentage of each KPI Category: <strong>[Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]</strong>
               </li>
               <li>
-                Multiply your individual contributions as a percentage by the KPI Emissions (total rewards allocated to that KPI Category): <strong>[Your Percentage] × [Tokens Allocated to that Category] = [Your Tokens]</strong>
+                Multiply your individual contributions as a percentage by the KPI Emissions (total rewards allocated to that KPI Category): <strong>[Your Percentage] × [Rights Allocated to that Category] = [Your Tokens]</strong>
               </li>
             </ol>
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
@@ -295,20 +295,20 @@ const faqCategories: FAQCategoryData[] = [
               <p style={{ marginBottom: '8px' }}>If you collect:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '8px' }}>
                 <li style={{ marginBottom: '4px' }}>100 Network Tooling Points and 200 People/Talent Points for the March 2025 snapshot period.</li>
-                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,727 rewards available and People/Talent has 1,605 rewards available.</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,935 rewards available and People/Talent has 1,452 rewards available.</li>
                 <li style={{ marginBottom: '4px' }}>The amount of Points collected across all participants for the Network Tooling KPI Category is 1,000 points.</li>
                 <li style={{ marginBottom: '4px' }}>The amount of points collected across all participants for the People/Talent KPI Category is 4,000 points.</li>
-                <li style={{ marginBottom: '4px' }}>You will claim 100 / 1000 or 10% of the Network Tooling KPI Emissions for the March 2025 snapshot period (PLAA1 Tokens claimed for Network Tooling KPI = 10% * 1,727 (Network Tooling emissions see table above)).</li>
-                <li style={{ marginBottom: '4px' }}>You will claim 200 / 4000 or 5% of the People/Talent KPI Emissions for the March 2025 snapshot period (PLAA1 Tokens claimed for People/Talent KPI = 5% * 1,605 (People/Talent Emissions see table above)).</li>
+                <li style={{ marginBottom: '4px' }}>You will claim 100 / 1000 or 10% of the Network Tooling KPI Emissions for the March 2025 snapshot period (PLAA1 rights claimed for Network Tooling KPI = 10% * 1,935 (Network Tooling emissions see table above)).</li>
+                <li style={{ marginBottom: '4px' }}>You will claim 200 / 4000 or 5% of the People/Talent KPI Emissions for the March 2025 snapshot period (PLAA1 rights claimed for People/Talent KPI = 5% * 1,452 (People/Talent Emissions see table above)).</li>
                 <li style={{ marginBottom: '4px' }}>For March 2025, you claim:
                   <ul style={{ paddingLeft: '20px', listStyleType: 'circle', marginTop: '4px' }}>
-                    <li style={{ marginBottom: '4px' }}>10% * 1,727 ~ 172 PLAA1 tokens in the Network Tooling KPI Category</li>
-                    <li style={{ marginBottom: '4px' }}>5% * 1,605 ~ 80 PLAA1 tokens in the People/Talent KPI Category</li>
-                    <li><strong>Total for March: 172 + 80 = 252 tokens</strong></li>
+                    <li style={{ marginBottom: '4px' }}>10% * 1,935 ~ 194 PLAA1 rights in the Network Tooling KPI Category</li>
+                    <li style={{ marginBottom: '4px' }}>5% * 1,452 ~ 73 PLAA1 rights in the People/Talent KPI Category</li>
+                    <li><strong>Total for March: 194 + 73 = 267 rights</strong></li>
                   </ul>
                 </li>
               </ul>
-              <p>Please note, only whole tokens may be claimed. In the event you do not collect enough Points to claim a whole PLAA1 token, you will receive 0 tokens during the snapshot period.</p>
+              <p>Please note, only whole tokens may be claimed. In the event you do not collect enough Points to claim a whole PLAA1 right, you will receive 0 tokens during the snapshot period.</p>
             </div>
           </div>
         ),
@@ -322,43 +322,43 @@ const faqCategories: FAQCategoryData[] = [
     items: [
       {
         question: 'What are the tax implications of collecting points?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into tokens and may never have value for that reason. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign your token agreement, you will not receive the converted tokens.',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into rights and may never result in any settlement, cash, Tokens or other consideration. Points are simply a way of measuring activity within the network. In addition, unless you execute the applicable Rights documentation and satisfy any other eligibility requirements, you may not receive any Rights. Any Rights that are issued may be settled through the issuance of Tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.',
       },
       {
         question: 'What are the tax implications of receiving tokens?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tokens may be considered income upon receipt commensurate with the tokens\' value. The trust is exploring conversations with third party valuation firms for the initial issuance. Additionally, buybacks of tokens may trigger a capital gain in addition to any income realized upon receipt of tokens or a capital loss event, which may not be available to offset income realized from the receipt of tokens. You are not required to participate in any token buyback event.',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tax treatment of rights, the settlement of rights through tokens and any subsequent redemption of such tokens for cash or other consideration is uncertain and may vary based on your particular circumstances. Rights settled through tokens may be treated as taxable income upon settlement based on the value of the tokens at that time. In addition, the redemption or buyback of tokens may result in capital gain or loss. Any such capital loss may not be available to offset income recognized upon settlement of Rights. Participation in any Token buyback event is voluntary.',
       },
     ],
   },
   {
-    id: 'token-issuance',
-    title: 'Token Issuance',
+    id: 'right-issuance-and-token-settlements',
+    title: 'Right Issuance and Token Settlements',
     icon: '/icons/coin-icon.png',
     items: [
       {
         question: 'Why are my token calculations "rounded down"? What is the rundown function and why does it exist?',
-        answer: 'The Points-to-Token algorithm converts participant points into AA tokens based on a predefined formula tied to the KPI emissions schedule and the monthly token cap (see more here Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the month\'s token allocation relative to total points earned across the network for each of the applicable KPIs. Because only whole AA tokens can be distributed(fractional tokens are not currently issued), the calculated token amount may be, for instance, rounded down to the nearest whole token. This rounding down (also known as a round down function) ensures compliance with the 10,000-token monthly cap and avoids impermissible over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness for all AA participants.',
+        answer: 'The Points-to-Rights algorithm converts participant Points into rights based on a predefined formula tied to the KPI emissions schedule and the monthly Rights allocation cap (see Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the monthly Rights allocation relative to the total Points earned across the network for the applicable KPIs. Because Rights are settled through whole Tokens and fractional Tokens are not currently issued, the settlement of Rights may result in fractional Token amounts. In those cases, the amount is rounded down to the nearest whole Token. This round down function ensures compliance with the applicable monthly settlement cap and avoids over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness across the program.',
       },
       {
-        question: 'I\'m not based in the US. When will I be eligible to collect points and receive tokens?',
-        answer: 'The current token issuance is limited to individual accredited investors in the United States. We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information.',
+        question: 'I\'m not based in the US. When will I be eligible to collect points and receive rights and settled tokens?',
+        answer: 'The current rights issuance is limited to individual accredited investors in the United States. We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information.',
       },
       {
-        question: 'Why are additional tokens being issued?',
+        question: 'Why are additional rights being issued?',
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              Additional PLAA1 tokens will be distributed to PL Infra team service providers as reward  for their contributions to maintaining and supporting the network (also referred to as PL Infra Rewards). As a result, you may see additional tokens being issued beyond those associated with incentivized activity participation.
+              Additional PLAA1 rights will be distributed to PL Infra team service providers as reward for their contributions to maintaining and supporting the network (also referred to as PL Infra Rewards). As a result, you may see additional rights being issued beyond those associated with incentivized activity participation.
             </p>
             <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Importantly:</p>
             <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
               <li style={{ marginBottom: '4px' }}>The structure of the PLAA program otherwise remains unchanged.</li>
-              <li style={{ marginBottom: '4px' }}>PLAA1 tokens distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
-              <li style={{ marginBottom: '4px' }}>The distribution of PLAA1 tokens for PL Infra Rewards will not impact baseline PLAA activities.</li>
-              <li>The monthly PLAA1 token pool of 10,000 tokens reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional token distributions for PL Infra team services providers.</li>
+              <li style={{ marginBottom: '4px' }}>PLAA1 rights distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
+              <li style={{ marginBottom: '4px' }}>The distribution of PLAA1 rights for PL Infra Rewards will not impact baseline PLAA activities.</li>
+              <li>The monthly PLAA1 right pool of 10,000 rights reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional token distributions for PL Infra team services providers.</li>
             </ul>
             <p style={{ marginTop: '8px' }}>
-              This reflects an expansion in how the PLAA1 token is being utilized, not a change to how participant rewards operate.
+              This reflects an expansion in how the PLAA1 right is being utilized, not a change to how participant rewards operate.
             </p>
           </div>
         ),
@@ -372,7 +372,7 @@ const faqCategories: FAQCategoryData[] = [
     items: [
       {
         question: 'What is a reverse auction?',
-        answer: 'A reverse auction is a process where participants submit the price at which they are willing to sell their tokens. The Trust accepts bids starting from the lowest asking prices and moves upward until the buyback pool is used or the allocation cap is reached.',
+        answer: 'A reverse auction is a process in which holders of Rights submit the price at which they are willing to sell their Rights. The Trust accepts bids beginning with the lowest asking prices and continues upward until the available buyback pool is exhausted or the applicable allocation cap is reached. Rights that are accepted in the auction are settled through the issuance of Tokens, which are then immediately purchased by the Trust for cash or other consideration in accordance with the applicable settlement process.',
       },
       {
         question: 'What is a batch auction?',
@@ -393,10 +393,10 @@ const faqCategories: FAQCategoryData[] = [
           <div>
             <p style={{ marginBottom: '12px' }}>Bids are selected when they fall at or below the clearing price.</p>
             <ol style={{ paddingLeft: '24px', marginBottom: '12px', listStyleType: 'lower-alpha' }}>
-              <li style={{ marginBottom: '4px' }}>Bids below the clearing price → filled up to their full bid value.</li>
-              <li>Bids at the clearing price → may be partially filled if the buyback pool runs out. In that case, each bid is filled only up to its total bid value (tokens × bid price).</li>
+               <li style={{ marginBottom: '4px' }}>Bids below the clearing price → filled up to their full bid value.</li>
+               <li>Bids at the clearing price → may be partially filled if the buyback pool runs out. In that case, each bid is filled only up to its total bid value (tokens × bid price).</li>
             </ol>
-            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 tokens at $18 (total bid value $90) and the clearing price was $20, you would only be able to sell 4 tokens for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole tokens are accepted.</p>
+            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 rights at $18 (total bid value $90) and the clearing price was $20, you would only be able to sell 4 rights for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole rights are accepted.</p>
             <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
           </div>
         ),
@@ -420,20 +420,20 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'What happens after the buyback if my bid is above the clearing price?',
-        answer: 'Your bid will not be accepted, and you retain all of your tokens — nothing is sold or removed from your account, and you may use them to participate in future buyback auctions.',
+        answer: 'Your bid will not be accepted, and you retain all of your rights — nothing is sold or removed from your account, and you may use them to participate in future buyback auctions.',
       },
       {
         question: 'Can I change or cancel my bid?',
         answer: 'You may submit, edit, or cancel your bids anytime before the auction closes. After close, no changes or new bids are accepted.',
       },
       {
-        question: 'What determines how many of my tokens are purchased?',
+        question: 'What determines how many of my rights are purchased?',
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>In general, three factors determine your fill:</p>
             <ol style={{ paddingLeft: '24px', marginBottom: '12px' }}>
               <li style={{ marginBottom: '4px' }}><strong>Your bid price vs. the clearing price:</strong> Your bid must be at or below the clearing price to be accepted.</li>
-              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (tokens × your bid price). So if you bid 100 tokens at $5 and the clearing price is $20, you&apos;ll sell 25 tokens for $500, not all 100.</li>
+              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (rights × your bid price). So if you bid 100 rights at $5 and the clearing price is $20, you&apos;ll sell 25 rights for $500, not all 100.</li>
               <li><strong>The 50% per-bidder cap:</strong> No single participant can receive more than half the total buyback pool.</li>
             </ol>
             <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
@@ -442,19 +442,19 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'Why do clearing prices vary between auctions?',
-        answer: 'Clearing prices differ based on participation, bid distribution, total tokens offered, and the size of the buyback pool. In general, if participants offer higher prices, or fewer tokens are offered relative to the size of the buyback, the clearing price will be higher.',
+        answer: 'Clearing prices differ based on participation, bid distribution, total rights offered, and the size of the buyback pool. In general, if participants offer higher prices, or fewer rights are offered relative to the size of the buyback, the clearing price will be higher.',
       },
       {
         question: 'What happens to purchased tokens?',
-        answer: 'Purchased tokens are burned (removed from circulation) by the PLAA1 Trust.',
+        answer: 'Tokens issued as part of the settlement process are purchased by the PLAA1 Trust and then cancelled (or "burned"), after which they are no longer available on the applicable blockchain.',
       },
       {
-        question: 'How do I receive payment for the tokens sold?',
-        answer: 'After results have been calculated, if your bids are accepted, you will receive an email from Surus to coordinate payment. Payments will be made in cash or other form of consideration, including stablecoins, at Surus\' discretion. The time estimate from auction close to the date you\'d receive notification of your bids being accepted is approximately 1 week.',
+        question: 'How do I receive payment for the rights sold in an auction?',
+        answer: 'After the auction results have been calculated, if your bids are accepted, you will receive an email from Surus with instructions regarding settlement and payment. Accepted Rights will be settled through the issuance of Tokens, which will then be purchased by the Trust for cash or other consideration, including stablecoins, at Surus\' discretion.',
       },
       {
-        question: 'When do I receive payment for the tokens sold?',
-        answer: 'Payments will be processed as soon as possible after winners have confirmed you want to sell your tokens back to the Trust and Surus receives the payment information requested.',
+        question: 'When do I receive payment for the rights sold?',
+        answer: 'Payments will be processed as soon as possible after winners have confirmed they want to sell their rights back to the Trust and Surus receives the payment information requested.',
       },
     ],
   },
@@ -474,8 +474,15 @@ export default function FAQsPage() {
   const handleHashNavigation = useCallback((hash: string) => {
     if (!hash) return;
 
-    const element = categoryRefs.current[hash];
-    const category = faqCategories.find(cat => cat.id === hash);
+    let targetHash = hash;
+    if (hash === 'token-issuance') {
+      targetHash = 'right-issuance-and-token-settlements';
+    } else if (hash === 'point-to-token-conversion') {
+      targetHash = 'point-to-rights-conversion';
+    }
+
+    const element = categoryRefs.current[targetHash];
+    const category = faqCategories.find(cat => cat.id === targetHash);
     
     if (!element || !category) return;
 
@@ -484,8 +491,16 @@ export default function FAQsPage() {
 
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.slice(1);
+      let hash = window.location.hash.slice(1);
       if (!hash) return;
+
+      if (hash === 'token-issuance') {
+        hash = 'right-issuance-and-token-settlements';
+        window.history.replaceState(null, '', `${pathname}#${hash}`);
+      } else if (hash === 'point-to-token-conversion') {
+        hash = 'point-to-rights-conversion';
+        window.history.replaceState(null, '', `${pathname}#${hash}`);
+      }
 
       const category = faqCategories.find(cat => cat.id === hash);
       if (!category) {
@@ -624,7 +639,7 @@ export default function FAQsPage() {
         <div className="faqs__header">
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
           <p className="faqs__header__header__date">
-            <em>Last Updated: February 20, 2025</em>
+            <em>Last Updated: June 8, 2026</em>
           </p>
         </div>
 
@@ -708,15 +723,15 @@ export default function FAQsPage() {
                   </div>
                 </div>
 
-                {category.id === 'point-to-token-conversion' && (
+                {category.id === 'point-to-rights-conversion' && (
                   <div className="faqs__container__category__disclaimer">
-                    <strong>Disclaimer:</strong> The points you collect are not guaranteed to convert into tokens and may never have value for that reason. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign your token agreement, you will not receive the converted tokens.
+                    <strong>Disclaimer:</strong> The points you collect are not guaranteed to convert into rights and may never result in any value. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign the applicable rights documentation, you may not receive any rights. Any Rights that are issued may be settled through the issuance of tokens as part of the applicable settlement process
                   </div>
                 )}
 
                 {category.id === 'buyback-auctions' && (
                   <div className="faqs__container__category__disclaimer">
-                    <strong>Disclaimer:</strong> Nothing in these materials constitutes investment, financial, or legal advice. The clearing price established in any auction reflects the supply and demand among participating Tokenholders and should not be construed as an appraisal, or fair market value determination of Alignment Asset tokens. Tokenholders should consult with their own financial, tax, and legal advisors before deciding whether to participate.
+                    <strong>Disclaimer:</strong> Nothing in these materials constitutes investment, financial, or legal advice. The clearing price established in any auction reflects the supply and demand among participating rightsholders and should not be construed as an appraisal, or fair market value determination of Alignment Asset tokens. Rightsholders should consult with their own financial, tax, and legal advisors before deciding whether to participate.
                   </div>
                 )}
 

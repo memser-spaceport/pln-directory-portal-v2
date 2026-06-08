@@ -17,6 +17,7 @@ export interface GantryItem {
   focusArea: string | null;
   tags: string[] | null;
   type: GantryItemType | null;
+  order: number | null;
   createdByUid: string;
   createdBy: GantryMemberSummary;
   promotedAt: string | null;
@@ -64,4 +65,5 @@ export interface UpdateGantryItemPayload {
   externalTrackerUrl?: string | null;
   tags?: string[];
   type?: GantryItemType | null;
+  order?: number | null;
 }

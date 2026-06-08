@@ -59,6 +59,29 @@ export function sortGantryItems(items: GantryItem[]): GantryItem[] {
   });
 }
 
+/** Admin-curated order ASC; items with null order sort to the end. */
+export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => {
+    if (a.order == null && b.order == null) return 0;
+    if (a.order == null) return 1;
+    if (b.order == null) return -1;
+    return a.order - b.order;
+  });
+}
+
+/** Newest created first. */
+export function sortGantryItemsByDate(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export const ROADMAP_SORT_OPTIONS = [
+  { value: 'default', label: 'Default' },
+  { value: 'upvotes', label: 'By upvotes' },
+  { value: 'date', label: 'By date' },
+] as const;
+
+export type RoadmapSortOption = (typeof ROADMAP_SORT_OPTIONS)[number]['value'];
+
 /**
  * Stage transitions are unrestricted for members with the transition permission —
  * an item can move from any stage to any other stage. The selector simply offers

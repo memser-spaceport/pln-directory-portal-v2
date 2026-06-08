@@ -46,6 +46,10 @@ jest.mock('@/services/gantry/hooks/useGantryUpvote', () => ({
   useGantryUpvote: () => ({ mutateAsync: jest.fn() }),
 }));
 
+jest.mock('@/services/gantry/hooks/useReorderGantryItem', () => ({
+  useReorderGantryItem: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock('@/analytics/gantry.analytics', () => ({
   useGantryAnalytics: () => ({
     onRoadmapViewed: jest.fn(),
@@ -81,6 +85,9 @@ describe('RoadmapView', () => {
             promotedByUid: null,
             declinedReason: null,
             externalTrackerUrl: null,
+            tags: null,
+            type: null,
+            order: null,
             upvoteCount: 1,
             viewerHasUpvoted: false,
             deletedAt: null,

@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
 import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
+import { SearchInput } from '@/components/common/filters/SearchInput';
 import {
   GANTRY_ITEM_TYPE_OPTIONS,
   GANTRY_ROADMAP_COLUMN_STAGES,
@@ -21,9 +22,11 @@ interface Props {
   readonly onSelectedTagsChange: (tags: string[]) => void;
   readonly selectedTypes: string[];
   readonly onSelectedTypesChange: (types: string[]) => void;
+  readonly searchText: string;
+  readonly onSearchTextChange: (text: string) => void;
 }
 
-export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange }: Props) {
+export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange, searchText, onSearchTextChange }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
       onVisibleColumnsChange(visibleColumns.filter((s) => s !== stage));
@@ -34,6 +37,10 @@ export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, 
 
   return (
     <>
+      <div>
+        <SearchInput value={searchText} onChange={onSearchTextChange} placeholder="Search items..." />
+      </div>
+
       <FilterSection title="Stages">
         <div>
           {GANTRY_ROADMAP_COLUMN_STAGES.map((stage) => (

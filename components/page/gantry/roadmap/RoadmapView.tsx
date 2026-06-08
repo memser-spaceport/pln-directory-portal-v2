@@ -118,6 +118,9 @@ export function RoadmapView() {
     analytics.onSortChanged(value);
   };
   const isAdminOrdering = canCurate && sortOption === 'default';
+  // Local uid-order overrides per stage, set immediately on admin drag so the display
+  // doesn't depend on whether the backend has persisted the `order` field yet.
+  const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
@@ -250,10 +253,20 @@ export function RoadmapView() {
       sortOption === 'upvotes' ? sortGantryItems : sortOption === 'date' ? sortGantryItemsByDate : sortGantryItemsByDefault;
     orderedVisibleColumns.forEach((stage) => {
       map[stage] = sortFn(map[stage]);
+
+      // Apply local admin ordering override: preserves the user's drag position even
+      // when the server hasn't persisted the `order` field yet.
+      const adminOrder = adminOrderMap[stage];
+      if (adminOrder) {
+        const itemMap = new Map(map[stage].map((item) => [item.uid, item]));
+        const known = adminOrder.filter((uid) => itemMap.has(uid)).map((uid) => itemMap.get(uid)!);
+        const extra = map[stage].filter((item) => !new Set(adminOrder).has(item.uid));
+        map[stage] = [...known, ...extra];
+      }
     });
 
     return map;
-  }, [data?.items, orderedVisibleColumns, searchText, sortOption]);
+  }, [data?.items, orderedVisibleColumns, searchText, sortOption, adminOrderMap]);
 
   const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
     if (nextStage === 'DECLINED') {
@@ -278,12 +291,17 @@ export function RoadmapView() {
     if (activeIdx === -1 || overIdx === -1 || activeIdx === overIdx) return;
 
     const reordered = arrayMove(columnItems, activeIdx, overIdx);
-    const newIdx = reordered.findIndex((i) => i.uid === activeId);
+
+    // Update local display order immediately — the visual position is driven by this,
+    // not by the server `order` field, so it works even when all items have order=null.
+    setAdminOrderMap((prev) => ({ ...prev, [activeItem.stage]: reordered.map((i) => i.uid) }));
+
+    // Compute fractional order for the backend PATCH.
     const BASE = 1000;
-    const prev = reordered[newIdx - 1];
-    const next = reordered[newIdx + 1];
-    const prevOrder = prev?.order ?? (newIdx - 1) * BASE;
-    const nextOrder = next?.order ?? (newIdx + 1) * BASE;
+    const prev = reordered[overIdx - 1];
+    const next = reordered[overIdx + 1];
+    const prevOrder = prev?.order ?? (overIdx - 1) * BASE;
+    const nextOrder = next?.order ?? (overIdx + 1) * BASE;
     const newOrder = (prevOrder + nextOrder) / 2;
 
     analytics.onItemReordered(activeId, activeItem.stage);

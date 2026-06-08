@@ -41,5 +41,6 @@ export function getSubmitIdeaFormDefaults(variant: SubmitIdeaModalVariant): Subm
     description: '',
     stage,
     tags: [],
+    type: null,
   };
 }

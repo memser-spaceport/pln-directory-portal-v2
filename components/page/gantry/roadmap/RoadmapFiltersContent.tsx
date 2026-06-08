@@ -5,6 +5,7 @@ import { FilterSection } from '@/components/common/filters/FilterSection';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
 import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
 import {
+  GANTRY_ITEM_TYPE_OPTIONS,
   GANTRY_ROADMAP_COLUMN_STAGES,
   GANTRY_STAGE_LABELS,
   GANTRY_TAG_OPTIONS,
@@ -18,9 +19,11 @@ interface Props {
   readonly onVisibleColumnsChange: (columns: RoadmapColumnStage[]) => void;
   readonly selectedTags: string[];
   readonly onSelectedTagsChange: (tags: string[]) => void;
+  readonly selectedTypes: string[];
+  readonly onSelectedTypesChange: (types: string[]) => void;
 }
 
-export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange }: Props) {
+export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
       onVisibleColumnsChange(visibleColumns.filter((s) => s !== stage));
@@ -60,6 +63,16 @@ export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, 
           placeholder="Filter by tag..."
           isSearchable
           aria-label="Filter by tags"
+        />
+      </FilterSection>
+
+      <FilterSection title="Type">
+        <FilterMultiSelect
+          options={GANTRY_ITEM_TYPE_OPTIONS}
+          value={GANTRY_ITEM_TYPE_OPTIONS.filter((o) => selectedTypes.includes(o.value))}
+          onChange={(opts) => onSelectedTypesChange(opts.map((o) => o.value))}
+          placeholder="Filter by type..."
+          aria-label="Filter by type"
         />
       </FilterSection>
     </>

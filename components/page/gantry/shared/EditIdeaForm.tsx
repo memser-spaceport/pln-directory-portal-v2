@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
 import { useUpdateGantryItem } from '@/services/gantry/hooks/useUpdateGantryItem';
 import { isPreRoadmapStage, tagsToOptions } from '@/services/gantry/constants';
-import type { GantryItem } from '@/services/gantry/types';
+import type { GantryItem, GantryItemType } from '@/services/gantry/types';
 import {
   editIdeaSchema,
   hasRichTextContent,
@@ -29,6 +29,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
       title: item.title,
       description: item.description,
       tags: tagsToOptions(item.tags),
+      type: item.type ? { label: item.type, value: item.type } : null,
     },
     mode: 'onChange',
   });
@@ -40,6 +41,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
       title: data.title.trim(),
       description: hasRichTextContent(data.description) ? data.description : '',
       tags: data.tags?.map((o) => o.value) ?? [],
+      type: (data.type?.value as GantryItemType) ?? null,
     });
     onSaved();
   };

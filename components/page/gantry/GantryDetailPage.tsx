@@ -192,6 +192,15 @@ export function GantryDetailPage({ uid }: Props) {
               </div>
             )}
 
+            {item.type && !isEditMode && (
+              <div className={s.tagsRow}>
+                <span className={s.tagsLabel}>Type</span>
+                <div className={s.tagsList}>
+                  <span className={s.tagChip}>{item.type}</span>
+                </div>
+              </div>
+            )}
+
             <div className={s.mobileDivider} />
 
             {isEditMode ? (

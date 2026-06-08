@@ -104,3 +104,9 @@ export const GANTRY_TAG_OPTIONS: Option[] = GANTRY_TAG_LABELS.map((label) => ({ 
 export function tagsToOptions(tags: string[] | null | undefined): Option[] {
   return GANTRY_TAG_OPTIONS.filter((o) => tags?.includes(o.value) ?? false);
 }
+
+export const GANTRY_ITEM_TYPE_OPTIONS: Option[] = [
+  { label: 'Bug', value: 'Bug' },
+  { label: 'Improvement', value: 'Improvement' },
+  { label: 'Feature Request', value: 'Feature Request' },
+];

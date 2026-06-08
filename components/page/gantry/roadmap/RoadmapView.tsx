@@ -76,6 +76,11 @@ export function RoadmapView() {
     setSelectedTags(tags);
     if (tags.length > 0) analytics.onTagsFiltered(tags);
   };
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const handleSelectedTypesChange = (types: string[]) => {
+    setSelectedTypes(types);
+    if (types.length > 0) analytics.onTypeFiltered(types);
+  };
   const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
@@ -95,8 +100,9 @@ export function RoadmapView() {
     () => ({
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
+      type: selectedTypes.length > 0 ? selectedTypes : undefined,
     }),
-    [orderedVisibleColumns, selectedTags],
+    [orderedVisibleColumns, selectedTags, selectedTypes],
   );
 
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
@@ -279,8 +285,8 @@ export function RoadmapView() {
                         />
                       </svg>
                       Filters
-                      {visibleColumns.length + selectedTags.length > 0 && (
-                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length}</span>
+                      {visibleColumns.length + selectedTags.length + selectedTypes.length > 0 && (
+                        <span className={s.filtersButtonBadge}>{visibleColumns.length + selectedTags.length + selectedTypes.length}</span>
                       )}
                     </button>
                     {canCreate && (
@@ -363,6 +369,8 @@ export function RoadmapView() {
             onVisibleColumnsChange={setVisibleColumns}
             selectedTags={selectedTags}
             onSelectedTagsChange={handleSelectedTagsChange}
+            selectedTypes={selectedTypes}
+            onSelectedTypesChange={handleSelectedTypesChange}
           />
         </MobileDrawer>
 
@@ -386,6 +394,8 @@ export function RoadmapView() {
             onVisibleColumnsChange={setVisibleColumns}
             selectedTags={selectedTags}
             onSelectedTagsChange={handleSelectedTagsChange}
+            selectedTypes={selectedTypes}
+            onSelectedTypesChange={handleSelectedTypesChange}
           />
         }
         content={

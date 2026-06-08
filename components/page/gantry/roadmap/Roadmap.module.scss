@@ -242,6 +242,20 @@
   white-space: nowrap;
 }
 
+.cardTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  color: #374151;
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+
 .meta {
   display: flex;
   align-items: center;

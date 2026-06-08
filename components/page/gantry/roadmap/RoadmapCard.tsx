@@ -53,6 +53,11 @@ function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProp
           ))}
         </div>
       )}
+      {item.type && (
+        <div className={s.cardTypeBadge} aria-label={`Type: ${item.type}`}>
+          {item.type}
+        </div>
+      )}
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
       </div>

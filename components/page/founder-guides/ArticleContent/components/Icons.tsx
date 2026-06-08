@@ -1,0 +1,102 @@
+export function ThumbsUpIcon({ filled = false }: { filled?: boolean }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M5 14V7.5L7.5 2.5C8.052 2.5 8.5 2.948 8.5 3.5V5.5H12C12.552 5.5 13 5.948 13 6.5L11.5 11V13C11.5 13.552 11.052 14 10.5 14H5M5 14H3C2.448 14 2 13.552 2 13V8C2 7.448 2.448 7 3 7H5"
+        stroke={filled ? '#1b4dff' : '#8897ae'}
+        fill={filled ? 'rgba(27, 77, 255, 0.12)' : 'none'}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ThumbsUpBoldIcon({ filled = false }: { filled?: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path
+        d="M5.625 15.75V8.438L8.438 2.813C9.057 2.813 9.563 3.318 9.563 3.938V6.188H13.5C14.121 6.188 14.625 6.692 14.625 7.313L12.938 12.375V14.625C12.938 15.246 12.434 15.75 11.813 15.75H5.625M5.625 15.75H3.375C2.754 15.75 2.25 15.246 2.25 14.625V9C2.25 8.379 2.754 7.875 3.375 7.875H5.625"
+        stroke={filled ? '#1b4dff' : '#455468'}
+        fill={filled ? 'rgba(27, 77, 255, 0.12)' : 'none'}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function EyeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M1.5 8C1.5 8 3.5 3.5 8 3.5C12.5 3.5 14.5 8 14.5 8C14.5 8 12.5 12.5 8 12.5C3.5 12.5 1.5 8 1.5 8Z"
+        stroke="#8897ae"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="8" r="1.75" stroke="#8897ae" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+export function TimerIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="9" r="5" stroke="#8897ae" strokeWidth="1.3" />
+      <path d="M8 6.5V9L9.5 10" stroke="#8897ae" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 2H10" stroke="#8897ae" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CalendarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="#8897ae" strokeWidth="1.3" />
+      <path d="M2 7H14" stroke="#8897ae" strokeWidth="1.3" />
+      <path d="M5 1.5V4M11 1.5V4" stroke="#8897ae" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function DotSep() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="1.5" fill="#8897ae" />
+    </svg>
+  );
+}
+
+export function CalendarBlankIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <rect x="2.5" y="3.5" width="13" height="12" rx="1.5" stroke="white" strokeWidth="1.5" />
+      <path d="M2.5 7.5H15.5" stroke="white" strokeWidth="1.5" />
+      <path d="M6 1.5V4.5M12 1.5V4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function NotePencilIcon() {
+  return (
+    <svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g>
+        <path
+          d="M16.3782 3.90295L14.1282 1.65295C14.0498 1.57429 13.9567 1.51188 13.8541 1.46929C13.7516 1.42671 13.6416 1.40479 13.5305 1.40479C13.4195 1.40479 13.3095 1.42671 13.207 1.46929C13.1044 1.51188 13.0113 1.57429 12.9329 1.65295L6.18289 8.40295C6.02521 8.56155 5.93695 8.77626 5.9375 8.9999V11.2499C5.9375 11.4737 6.02639 11.6883 6.18463 11.8465C6.34286 12.0048 6.55747 12.0937 6.78125 12.0937H9.03125C9.14209 12.0937 9.25185 12.072 9.35428 12.0296C9.45671 11.9873 9.54979 11.9252 9.6282 11.8469L16.3782 5.09686C16.4567 5.01849 16.5189 4.92544 16.5613 4.82301C16.6038 4.72058 16.6257 4.61079 16.6257 4.4999C16.6257 4.38902 16.6038 4.27923 16.5613 4.1768C16.5189 4.07437 16.4567 3.98131 16.3782 3.90295ZM13.5312 3.44522L14.5859 4.4999L13.8125 5.27334L12.7578 4.21865L13.5312 3.44522ZM8.67969 10.4062H7.625V9.35147L11.5625 5.41397L12.6172 6.46865L8.67969 10.4062ZM16.0625 9.32123V14.6249C16.0625 14.9979 15.9143 15.3555 15.6506 15.6193C15.3869 15.883 15.0292 16.0312 14.6562 16.0312H3.40625C3.03329 16.0312 2.6756 15.883 2.41188 15.6193C2.14816 15.3555 2 14.9979 2 14.6249V3.3749C2 3.00194 2.14816 2.64426 2.41188 2.38053C2.6756 2.11681 3.03329 1.96865 3.40625 1.96865H8.70992C8.9337 1.96865 9.14831 2.05755 9.30654 2.21578C9.46478 2.37402 9.55367 2.58863 9.55367 2.8124C9.55367 3.03618 9.46478 3.25079 9.30654 3.40903C9.14831 3.56726 8.9337 3.65615 8.70992 3.65615H3.6875V14.3437H14.375V9.32123C14.375 9.09746 14.4639 8.88284 14.6221 8.72461C14.7804 8.56638 14.995 8.47748 15.2188 8.47748C15.4425 8.47748 15.6571 8.56638 15.8154 8.72461C15.9736 8.88284 16.0625 9.09746 16.0625 9.32123Z"
+          fill="#1B4DFF"
+        />
+      </g>
+    </svg>
+  );
+}
+
+export function DotSepLarge() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="2.5" fill="#455468" />
+    </svg>
+  );
+}

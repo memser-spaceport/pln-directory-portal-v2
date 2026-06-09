@@ -51,82 +51,109 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(14, 15, 17, 0.12);
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   background: #fff;
-  color: #374151;
+  color: #64748b;
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: all 0.12s;
 
   &:hover:not(:disabled) {
-    background: #f9fafb;
-    border-color: rgba(14, 15, 17, 0.2);
+    border-color: #156ff7;
+    color: #156ff7;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
 .upvoteIcon {
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .upvoteActive {
-  background: #1b4dff;
-  border-color: #1b4dff;
-  color: #fff;
+  color: #156ff7;
+  border-color: #dbeafe;
+  background: #eff5ff;
 
   &:hover:not(:disabled) {
-    background: #1640d6;
-    border-color: #1640d6;
+    border-color: #156ff7;
+    background: #dbeafe;
   }
 }
 
 .pin {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(14, 15, 17, 0.12);
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid #156ff7;
   background: #fff;
-  color: #374151;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.2px;
+  color: #1b4dff;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: all 0.12s;
 
   &:hover:not(:disabled) {
-    background: #f9fafb;
-    border-color: rgba(14, 15, 17, 0.2);
+    background: #eff5ff;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
 .pinIcon {
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .pinActive {
-  background: #1b4dff;
-  border-color: #1b4dff;
   color: #fff;
+  border-color: transparent;
+  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  box-shadow: 0 2px 8px rgba(21, 111, 247, 0.35);
 
   &:hover:not(:disabled) {
-    background: #1640d6;
-    border-color: #1640d6;
+    background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+    filter: brightness(1.03);
   }
+}
+
+/* Read-only stat — shown for frozen/terminal stages (no button chrome) */
+.readStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #64748b;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}
+
+.readStatPin {
+  color: #1b4dff;
 }
 
 .buildButton {

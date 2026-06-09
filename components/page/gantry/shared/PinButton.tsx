@@ -8,10 +8,20 @@ interface Props {
   readonly count: number;
   readonly hasPinned: boolean;
   readonly disabled?: boolean;
+  readonly readonly?: boolean;
   readonly onToggle: (nextHasPinned: boolean) => void;
 }
 
-export function PinButton({ count, hasPinned, disabled, onToggle }: Props) {
+export function PinButton({ count, hasPinned, disabled, readonly, onToggle }: Props) {
+  if (readonly) {
+    return (
+      <span className={clsx(s.readStat, s.readStatPin)} title="Pins — intensity (frozen)">
+        <PushPinIcon width={14} height={14} className={s.pinIcon} />
+        <span>{count}</span>
+      </span>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -24,7 +34,7 @@ export function PinButton({ count, hasPinned, disabled, onToggle }: Props) {
         onToggle(!hasPinned);
       }}
     >
-      <PushPinIcon width={14} height={14} className={s.pinIcon} />
+      <PushPinIcon width={15} height={15} className={s.pinIcon} />
       <span>{count}</span>
     </button>
   );

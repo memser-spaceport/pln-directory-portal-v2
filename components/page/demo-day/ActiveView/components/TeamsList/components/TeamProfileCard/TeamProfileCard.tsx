@@ -88,7 +88,11 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   const expressInterest = pitchSlug ? pitchExpressInterest : demoDayExpressInterest;
   const saveTeam = useSaveTeam();
   const { currentUser: userInfo } = useCurrentUserStore();
-  const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const canEdit = pitchSlug
+    ? !!canEditTeams
+    : isAdmin
+      ? (canEditTeams ?? true)
+      : team.founders.some((founder) => founder.uid === userInfo?.uid);
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();

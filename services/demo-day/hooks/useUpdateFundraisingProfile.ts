@@ -1,10 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import { useTeamPitchEditContext } from '@/components/page/pitch/TeamPitchEditContext';
 import { customFetch } from '@/utils/fetch-wrapper';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
-import { updateTeamPitchTeam } from '@/services/team-pitch/team-pitch-profile.service';
-import { invalidateTeamPitchQueries } from '@/services/team-pitch/invalidateTeamPitchQueries';
 
 interface UpdateFundraisingProfileData {
   logo?: string;
@@ -48,23 +45,13 @@ export function useUpdateFundraisingProfile() {
   const queryClient = useQueryClient();
   const params = useParams();
   const demoDayId = params.demoDayId as string;
-  const { pitchSlug } = useTeamPitchEditContext();
 
   return useMutation({
-    mutationFn: (data: UpdateFundraisingProfileData) => {
-      if (pitchSlug) {
-        const { teamUid: _teamUid, program: _program, ...body } = data;
-        return updateTeamPitchTeam(pitchSlug, body);
-      }
-      return updateFundraisingProfile(demoDayId, data);
-    },
+    mutationFn: (data: UpdateFundraisingProfileData) => updateFundraisingProfile(demoDayId, data),
     onSuccess: (result) => {
-      if (pitchSlug) {
-        invalidateTeamPitchQueries(queryClient, pitchSlug);
-        return;
-      }
-
+      // Invalidate the user's own fundraising profile
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
+      // If editing another team (admin case), invalidate both team lists
       if (result.teamUid) {
         queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
         queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });

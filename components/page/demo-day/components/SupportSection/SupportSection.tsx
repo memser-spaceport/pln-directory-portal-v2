@@ -1,27 +1,17 @@
 import React from 'react';
 import s from './SupportSection.module.scss';
 
-type SupportSectionProps = {
-  supportEmail?: string;
-  onContactClick?: () => void;
-};
-
-export const SupportSection = ({ supportEmail = 'pldemoday@protocol.ai', onContactClick }: SupportSectionProps) => {
+export const SupportSection = () => {
   return (
     <div className={s.container}>
       <div className={s.content}>
         <p className={s.title}>Questions or feedback?</p>
         <p className={s.description}>
           Reach out:{' '}
-          {onContactClick ? (
-            <button type="button" onClick={onContactClick} className={s.linkButton}>
-              {supportEmail}
-            </button>
-          ) : (
-            <a href={`mailto:${supportEmail}`} className={s.link}>
-              {supportEmail}
-            </a>
-          )}{' '}
+          <a href="mailto:pldemoday@protocol.ai" className={s.link}>
+            pldemoday@protocol.ai
+          </a>
+          <br />
           (Typical response time: 1hr during EST business hrs)
         </p>
       </div>

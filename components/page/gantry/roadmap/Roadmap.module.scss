@@ -223,25 +223,6 @@
   word-break: break-word;
 }
 
-.cardTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.cardTagChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: rgba(27, 56, 96, 0.08);
-  font-size: 11px;
-  line-height: 16px;
-  color: #455468;
-  white-space: nowrap;
-}
-
 .meta {
   display: flex;
   align-items: center;

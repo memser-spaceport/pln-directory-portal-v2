@@ -46,13 +46,6 @@ function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProp
         />
       </div>
       {descriptionPreview && <p className={s.cardDescription}>{descriptionPreview}</p>}
-      {item.tags && item.tags.length > 0 && (
-        <div className={s.cardTags} aria-label={`Tags: ${item.tags.join(', ')}`}>
-          {item.tags.map((tag) => (
-            <span key={tag} className={s.cardTagChip}>{tag}</span>
-          ))}
-        </div>
-      )}
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
       </div>

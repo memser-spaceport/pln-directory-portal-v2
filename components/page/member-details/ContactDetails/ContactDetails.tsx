@@ -29,7 +29,7 @@ export const ContactDetails = ({ isLoggedIn, userInfo, member, variant = 'defaul
   const isDrawer = variant === 'drawer';
 
   return (
-    <DetailsSection editView={editView} classes={{ root: s.root }}>
+    <DetailsSection editView={editView} classes={{ root: s.root, editView: s.editView }}>
       {!isLoggedIn && !isDrawer && <MemberProfileLoginStrip member={member} variant="secondary" />}
       {editView ? (
         <EditContactForm

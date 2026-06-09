@@ -32,27 +32,21 @@
   gap: 6px;
   align-items: center;
   justify-content: flex-start;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 6px;
-  background: rgba(27, 77, 255, 0.04);
+  background: none;
   border: none;
   cursor: pointer;
-  color: #1b4dff;
+  color: #455468;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
   letter-spacing: -0.2px;
-  transition: all 0.2s ease;
-  box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
-  position: relative;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(27, 77, 255, 0.08);
-  }
-
-  &:active {
-    background: rgba(27, 77, 255, 0.12);
+    background: rgba(69, 84, 104, 0.1);
   }
 }
 

@@ -83,6 +83,30 @@ export async function getTeamPitchOnePagerUploadUrl(
   return response.json();
 }
 
+export async function uploadTeamPitchOnePagerPreview(
+  pitchSlug: string,
+  params: { previewImage: File; previewImageSmall: File },
+): Promise<ConfirmOnePagerUploadResponse> {
+  const formData = new FormData();
+  formData.append('previewImage', params.previewImage);
+  formData.append('previewImageSmall', params.previewImageSmall);
+
+  const response = await customFetch(
+    `${pitchProfileBase(pitchSlug)}/one-pager/preview`,
+    {
+      method: 'POST',
+      body: formData,
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to upload one-pager preview image');
+  }
+
+  return response.json();
+}
+
 export async function confirmTeamPitchOnePagerUpload(
   pitchSlug: string,
   uploadUid: string,

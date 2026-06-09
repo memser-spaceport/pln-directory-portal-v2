@@ -6,6 +6,7 @@ import { getOnePagerUploadUrl, confirmOnePagerUpload, uploadOnePagerPreview } fr
 import {
   confirmTeamPitchOnePagerUpload,
   getTeamPitchOnePagerUploadUrl,
+  uploadTeamPitchOnePagerPreview,
 } from '@/services/team-pitch/team-pitch-profile.service';
 import { invalidateTeamPitchQueries } from '@/services/team-pitch/invalidateTeamPitchQueries';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
@@ -35,7 +36,25 @@ async function uploadPitchOnePager(pitchSlug: string, params: UploadOnePagerPara
     onProgress?.(progress, 'Uploading');
   });
 
-  return confirmTeamPitchOnePagerUpload(pitchSlug, uploadUid);
+  const result = await confirmTeamPitchOnePagerUpload(pitchSlug, uploadUid);
+
+  try {
+    if (file.type === 'application/pdf') {
+      onProgress?.(100, 'Processing');
+
+      const previewImage = await generatePdfPreview(file, 4.0, 'jpeg', 0.95);
+      const previewImageSmall = await generatePdfPreview(file, 1, 'jpeg', 0.7);
+
+      await uploadTeamPitchOnePagerPreview(pitchSlug, {
+        previewImage,
+        previewImageSmall,
+      });
+    }
+  } catch (previewError) {
+    console.warn('Failed to generate/upload team pitch preview image:', previewError);
+  }
+
+  return result;
 }
 
 async function uploadOnePager(demoDayId: string, params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {

@@ -3,6 +3,7 @@
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
@@ -66,7 +67,7 @@ function RoadmapCardContent({
             </button>
           )}
           {position !== undefined && item.stage !== 'IDEA' && item.stage !== 'SHIPPED' && item.stage !== 'DECLINED' && (
-            <span>#{position}</span>
+            <span className={clsx(s[`cardPosition_${item.stage}`])}>#{position}</span>
           )}
         </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
@@ -150,7 +151,7 @@ export function RoadmapCard({
   return (
     <article
       ref={setNodeRef}
-      className={s.card}
+      className={clsx(s.card, isAdminOrdering && s.cardOrdering)}
       style={style}
       {...attributes}
       {...cardNavigate}

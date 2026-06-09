@@ -211,6 +211,10 @@
   }
 }
 
+.cardOrdering {
+  cursor: default;
+}
+
 .cardPlaceholder {
   border: 1.5px dashed #d1d5db;
   border-radius: 10px;
@@ -298,6 +302,18 @@
   color: #8897ae;
   line-height: 22px;
   flex-shrink: 0;
+}
+
+.cardPosition_BACKLOG {
+  color: #b45309;
+}
+
+.cardPosition_PLANNED {
+  color: #1b4dff;
+}
+
+.cardPosition_IN_PROGRESS {
+  color: #6d28d9;
 }
 
 .dragHandle {

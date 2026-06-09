@@ -16,7 +16,7 @@ export function UpvoteButton({ count, hasUpvoted, disabled, readonly, onToggle }
   if (readonly) {
     return (
       <span className={s.readStat} title="Thumbs — breadth">
-        <LikeThumbsIcon filled={hasUpvoted} className={s.upvoteIcon} />
+        <LikeThumbsIcon className={s.upvoteIcon} />
         <span>{count}</span>
       </span>
     );

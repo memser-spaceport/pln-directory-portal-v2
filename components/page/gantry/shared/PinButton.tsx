@@ -17,7 +17,7 @@ export function PinButton({ count, hasPinned, disabled, readonly, onToggle }: Pr
     return (
       <span className={clsx(s.readStat, s.readStatPin)} title="Pins — intensity (frozen)">
         <PushPinIcon width={14} height={14} className={s.pinIcon} />
-        <span>{count}</span>
+        <span>{count ?? 0}</span>
       </span>
     );
   }
@@ -35,7 +35,7 @@ export function PinButton({ count, hasPinned, disabled, readonly, onToggle }: Pr
       }}
     >
       <PushPinIcon width={15} height={15} className={s.pinIcon} />
-      <span>{count}</span>
+      <span>{count ?? 0}</span>
     </button>
   );
 }

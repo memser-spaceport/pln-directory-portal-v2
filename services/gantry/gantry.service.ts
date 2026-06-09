@@ -194,6 +194,15 @@ export async function fetchGantryPinStatus(): Promise<GantryPinStatus> {
   return parseJsonOrThrow<GantryPinStatus>(res, 'Failed to fetch pin status');
 }
 
+export async function savePinNote(uid: string, note: string): Promise<void> {
+  const res = await customFetch(
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin-note`,
+    { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) },
+    true,
+  );
+  await parseJsonOrThrow(res, 'Failed to save pin note');
+}
+
 export async function trackBuildButtonClick(uid: string): Promise<void> {
   const res = await customFetch(
     `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/build-button-click`,

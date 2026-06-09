@@ -35,7 +35,7 @@ interface CardContentProps {
   readonly canUpvote: boolean;
   readonly onUpvoteToggle: (uid: string, next: boolean) => void;
   readonly canPin: boolean;
-  readonly onPinToggle: (uid: string, next: boolean) => void;
+  readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
   readonly isPinDisabled: boolean;
 }
 
@@ -110,7 +110,7 @@ function RoadmapCardContent({
             hasPinned={item.viewerHasPinned}
             readonly={interactionLocked}
             disabled={isPinDisabled}
-            onToggle={(next) => onPinToggle(item.uid, next)}
+            onToggle={(next, el) => onPinToggle(item.uid, next, el)}
           />
         </div>
       </div>

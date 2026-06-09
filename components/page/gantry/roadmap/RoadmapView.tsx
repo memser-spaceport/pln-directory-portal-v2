@@ -43,8 +43,12 @@ import { SubmitIdeaModal } from '@/components/page/gantry/ideas/SubmitIdeaModal/
 import { DeclineIdeaModal } from '@/components/page/gantry/shared/DeclineIdeaModal';
 import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
+import { PushPinIcon } from '@/components/icons/PushPinIcon';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
+import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
+import { flyPin } from '@/components/page/gantry/shared/flyPin';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
 import { RoadmapFiltersContent } from './RoadmapFiltersContent';
@@ -170,7 +174,11 @@ export function RoadmapView() {
   const transition = useGantryTransition();
   const upvote = useGantryUpvote();
   const pin = useGantryPin();
+  const pinNote = useGantryPinNote();
   const reorder = useReorderGantryItem();
+
+  const pinStatusRef = useRef<HTMLDivElement>(null);
+  const [pinNotePopover, setPinNotePopover] = useState<{ uid: string; top: number; left: number } | null>(null);
 
   useEffect(() => {
     analytics.onRoadmapViewed();
@@ -441,23 +449,38 @@ export function RoadmapView() {
     if (nextHasUpvoted) analytics.onItemUpvoted(uid);
   };
 
-  const handlePinToggle = async (uid: string, nextIsPinned: boolean) => {
-    await pin.mutateAsync({ uid, nextIsPinned });
-    if (nextIsPinned) analytics.onItemPinned(uid);
-    else analytics.onItemUnpinned(uid);
+  const handlePinToggle = (uid: string, nextIsPinned: boolean, el: HTMLButtonElement) => {
+    pin.mutate({ uid, nextIsPinned });
+    if (nextIsPinned) {
+      analytics.onItemPinned(uid);
+      flyPin(el, pinStatusRef.current);
+      const rect = el.getBoundingClientRect();
+      const top = Math.min(rect.bottom + 8, window.innerHeight - 320);
+      const left = Math.min(Math.max(12, rect.left - 120), window.innerWidth - 332);
+      setTimeout(() => setPinNotePopover({ uid, top, left }), 200);
+    } else {
+      analytics.onItemUnpinned(uid);
+    }
+  };
+
+  const handlePinNoteSave = (uid: string, note: string) => {
+    setPinNotePopover(null);
+    if (note.trim()) pinNote.mutate({ uid, note: note.trim() });
   };
 
   const activeFiltersCount =
     selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText ? 1 : 0);
 
   const pinStatusIndicator = pinStatus ? (
-    <div className={s.pinStatus} aria-label={`${pinsRemaining} pins remaining`}>
-      {pinStatus.limit <= 5 ? (
-        Array.from({ length: pinStatus.limit }, (_, i) => (
-          <span key={i} className={clsx(s.pinDot, i < pinStatus.used && s.pinDotUsed)} aria-hidden />
-        ))
-      ) : (
-        <span className={s.pinStatusText}>{pinsRemaining} of {pinStatus.limit} left</span>
+    <div ref={pinStatusRef} className={s.pinStatus} aria-label={`${pinsRemaining} of ${pinStatus.limit} pins remaining`}>
+      <PushPinIcon width={12} height={12} className={s.pinStatusIcon} aria-hidden />
+      <span className={s.pinStatusText}>{pinsRemaining} of {pinStatus.limit} left</span>
+      {pinStatus.limit <= 6 && (
+        <span className={s.pinDots} aria-hidden>
+          {Array.from({ length: pinStatus.limit }, (_, i) => (
+            <span key={i} className={clsx(s.pinDot, i < pinStatus.used && s.pinDotUsed)} />
+          ))}
+        </span>
       )}
     </div>
   ) : null;
@@ -591,6 +614,13 @@ export function RoadmapView() {
           onClose={() => setDeclineTargetUid(null)}
           onConfirm={handleDeclineConfirm}
         />
+        {pinNotePopover && (
+          <PinNotePopover
+            uid={pinNotePopover.uid}
+            pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
+            onSave={handlePinNoteSave}
+          />
+        )}
       </div>
     );
   }
@@ -727,6 +757,14 @@ export function RoadmapView() {
         onClose={() => setDeclineTargetUid(null)}
         onConfirm={handleDeclineConfirm}
       />
+
+      {pinNotePopover && (
+        <PinNotePopover
+          uid={pinNotePopover.uid}
+          pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
+          onSave={handlePinNoteSave}
+        />
+      )}
     </div>
   );
 }

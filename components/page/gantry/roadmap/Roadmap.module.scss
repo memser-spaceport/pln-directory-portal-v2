@@ -87,24 +87,43 @@
 .pinStatus {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eff5ff;
+  border: 1px solid #dbeafe;
+}
+
+.pinStatusIcon {
+  color: #1b4dff;
+  flex-shrink: 0;
+}
+
+.pinStatusText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1b4dff;
+  white-space: nowrap;
+}
+
+.pinDots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .pinDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #e5e7eb;
+  border: 1.5px solid #93c5fd;
+  background: transparent;
   flex-shrink: 0;
 }
 
 .pinDotUsed {
   background: #1b4dff;
-}
-
-.pinStatusText {
-  font-size: 12px;
-  color: #6b7280;
+  border-color: #1b4dff;
 }
 
 .title {

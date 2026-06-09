@@ -9,7 +9,7 @@ interface Props {
   readonly hasPinned: boolean;
   readonly disabled?: boolean;
   readonly readonly?: boolean;
-  readonly onToggle: (nextHasPinned: boolean) => void;
+  readonly onToggle: (nextHasPinned: boolean, el: HTMLButtonElement) => void;
 }
 
 export function PinButton({ count, hasPinned, disabled, readonly, onToggle }: Props) {
@@ -31,7 +31,7 @@ export function PinButton({ count, hasPinned, disabled, readonly, onToggle }: Pr
       aria-label={hasPinned ? `Remove pin (${count})` : `Pin as priority (${count})`}
       onClick={(e) => {
         e.stopPropagation();
-        onToggle(!hasPinned);
+        onToggle(!hasPinned, e.currentTarget);
       }}
     >
       <PushPinIcon width={15} height={15} className={s.pinIcon} />

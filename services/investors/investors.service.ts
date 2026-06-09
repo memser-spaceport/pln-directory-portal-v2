@@ -127,6 +127,7 @@ function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     enrichment_date: dto.enrichmentDate ?? '',
     last_enrichment_attempt: dto.lastEnrichmentAttempt ?? '',
     enrichment_notes: dto.enrichmentNotes ?? '',
+    proximity_code: dto.proximityCode ?? null,
     lab_os_profile: dto.labOsProfile ? mapLabOsProfile(dto.labOsProfile) : null,
     tags: (dto.tags ?? []) as string[],
     co_invested_team_ids: (dto.coInvestedTeamIds ?? []) as string[],

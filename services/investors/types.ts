@@ -112,6 +112,9 @@ export type OutreachInvestor = {
   last_enrichment_attempt: string;
   enrichment_notes: string;
 
+  /** PL Path Finder proximity code from ingest (e.g. "VC+1A"). null when not set. */
+  proximity_code: string | null;
+
   // ---- Additive fields (frontend-injected for V1 mock; backend ask for Vova) ----
 
   /** Resolved LabOS profile if this investor's email matches a network user.

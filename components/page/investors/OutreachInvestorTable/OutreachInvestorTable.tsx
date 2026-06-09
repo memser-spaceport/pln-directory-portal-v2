@@ -43,6 +43,7 @@ const COLUMN_LABELS: Record<string, string> = {
   email_status: 'Email',
   last_sent_date: 'Last sent',
   outreach_touches: 'Touches',
+  proximity_code: 'Proximity code',
   enrichment_status: 'Enrichment',
   enrichment_date: 'Enriched on',
   last_enrichment_attempt: 'Last attempt',
@@ -277,6 +278,12 @@ export function OutreachInvestorTable(props: Props) {
       { id: 'clicked', header: 'Clicked', accessorKey: 'clicked' },
       { id: 'registered', header: 'Registered', accessorKey: 'registered' },
       { id: 'first_sent_date', header: 'First sent', accessorKey: 'first_sent_date' },
+      {
+        id: 'proximity_code',
+        header: 'Proximity code',
+        accessorKey: 'proximity_code',
+        cell: ({ getValue }) => getValue<string | null>() || <span className={s.muted}>—</span>,
+      },
       { id: 'enrichment_status', header: 'Enrichment', accessorKey: 'enrichment_status' },
       { id: 'enrichment_date', header: 'Enriched on', accessorKey: 'enrichment_date' },
       { id: 'last_enrichment_attempt', header: 'Last attempt', accessorKey: 'last_enrichment_attempt' },
@@ -480,7 +487,17 @@ export function OutreachInvestorTable(props: Props) {
 }
 
 const ArrowUpRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M7 7h10v10" />
     <path d="M7 17 17 7" />
   </svg>

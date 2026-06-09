@@ -580,6 +580,7 @@ export function RoadmapView() {
                             canPin={!!currentUser}
                             onPinToggle={handlePinToggle}
                             isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
+                            canCurate={canCurate}
                           />
                         ))
                       )}
@@ -723,6 +724,7 @@ export function RoadmapView() {
                               canPin={!!currentUser}
                               onPinToggle={handlePinToggle}
                               isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
+                              canCurate={canCurate}
                             />
                           ))}
                         </RoadmapDropColumn>
@@ -738,6 +740,7 @@ export function RoadmapView() {
                           canPin={!!currentUser}
                           onPinToggle={handlePinToggle}
                           isPinDisabled={false}
+                          canCurate={canCurate}
                         />
                       ) : null}
                     </DragOverlay>

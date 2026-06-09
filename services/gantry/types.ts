@@ -19,6 +19,13 @@ export interface GantryPinStatus {
   used: number;
 }
 
+export interface GantryPinner {
+  uid: string;
+  name: string;
+  imageUrl?: string | null;
+  note?: string | null;
+}
+
 export interface GantryItem {
   uid: string;
   title: string;
@@ -40,6 +47,7 @@ export interface GantryItem {
   viewerHasUpvoted: boolean;
   pinCount: number;
   viewerHasPinned: boolean;
+  pinners?: GantryPinner[];
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;

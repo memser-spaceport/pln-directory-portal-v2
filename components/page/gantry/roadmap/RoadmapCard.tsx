@@ -4,13 +4,89 @@ import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { clsx } from 'clsx';
-import type { GantryItem } from '@/services/gantry/types';
+import type { GantryItem, GantryPinner } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
 import { PinButton } from '../shared/PinButton';
 import { UpvoteButton } from '../shared/UpvoteButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
+
+// TODO: set to false when /v1/roadmap/items/:uid/pinners is live
+const USE_MOCK_PINNERS = true;
+
+const MOCK_NAMES = [
+  'Brad Eccles', 'Lacey Kane', 'La Christa Eccles', 'Aboud Jardaneh',
+  'Sarah Chen', 'Mike Torres', 'Julia Park', 'Alex Williams', 'Emma Davis', 'James Lee',
+];
+const MOCK_NOTES = [
+  'Saves the ops team ~4 hrs/week of manual sync.',
+  'Critical for our Q3 launch.',
+  'Blocking multiple team workflows.',
+  'Needed before next release cut.',
+  null, null, null,
+];
+function getMockPinners(item: GantryItem): GantryPinner[] {
+  if (item.pinCount <= 0) return [];
+  const seed = item.uid.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return Array.from({ length: Math.min(item.pinCount, 10) }, (_, i) => ({
+    uid: `mock-${item.uid}-${i}`,
+    name: MOCK_NAMES[(seed + i) % MOCK_NAMES.length],
+    note: MOCK_NOTES[(seed + i * 3) % MOCK_NOTES.length],
+  }));
+}
+
+const AVATAR_COLORS = [
+  { bg: '#dbeafe', text: '#1d4ed8' },
+  { bg: '#dcfce7', text: '#15803d' },
+  { bg: '#ede9fe', text: '#6d28d9' },
+  { bg: '#fce7f3', text: '#9d174d' },
+  { bg: '#fef3c7', text: '#92400e' },
+  { bg: '#e0f2fe', text: '#0369a1' },
+];
+function avatarColor(name: string) {
+  const h = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
+const MAX_PINNERS_VISIBLE = 3;
+
+function CardPinnersSection({ item }: { item: GantryItem }) {
+  const pinners = USE_MOCK_PINNERS ? getMockPinners(item) : (item.pinners ?? []);
+  if (pinners.length === 0) return null;
+  const visible = pinners.slice(0, MAX_PINNERS_VISIBLE);
+  const hasMore = item.pinCount > MAX_PINNERS_VISIBLE;
+  return (
+    <div className={s.pinnersSection}>
+      <div className={s.pinnersHeader}>
+        <LockIcon />
+        <span>{item.pinCount} PINNED · TEAM-ONLY</span>
+      </div>
+      {visible.map((p) => {
+        const c = avatarColor(p.name);
+        return (
+          <div key={p.uid} className={s.pinnerRow}>
+            <span className={s.pinnerAvatar} style={{ background: c.bg, color: c.text }}>{initials(p.name)}</span>
+            <div className={s.pinnerInfo}>
+              <span className={s.pinnerName}>{p.name}</span>
+              {p.note
+                ? <span className={s.pinnerNote}>{p.note}</span>
+                : <span className={s.pinnerNoNote}>No note</span>}
+            </div>
+          </div>
+        );
+      })}
+      {hasMore && (
+        <button type="button" className={s.showAllPinners} onClick={(e) => e.stopPropagation()}>
+          Show all {item.pinCount} pinners &amp; notes
+        </button>
+      )}
+    </div>
+  );
+}
 
 const CARD_DESCRIPTION_MAX_LENGTH = 160;
 
@@ -37,6 +113,7 @@ interface CardContentProps {
   readonly canPin: boolean;
   readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
   readonly isPinDisabled: boolean;
+  readonly canCurate: boolean;
 }
 
 function RoadmapCardContent({
@@ -48,6 +125,7 @@ function RoadmapCardContent({
   canPin,
   onPinToggle,
   isPinDisabled,
+  canCurate,
 }: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
   const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
@@ -115,9 +193,20 @@ function RoadmapCardContent({
         </div>
       </div>
 
-      {item.stage === 'SHIPPED' && item.pinCount > 0 && (
-        <p className={s.cardFrozenNote}>Counts frozen — entered with {item.pinCount} pins</p>
+      {item.stage === 'IN_PROGRESS' && (
+        <p className={s.cardFrozenNote}>
+          <span className={s.cardFrozenBullet}>*</span>
+          {' '}Counts frozen — entered with {item.pinCount ?? 0} pins
+        </p>
       )}
+      {(item.stage === 'SHIPPED' || item.stage === 'DECLINED') && (
+        <p className={s.cardFinalNote}>
+          <ClockIcon />
+          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.upvoteCount} thumbs · {item.pinCount ?? 0} pins
+        </p>
+      )}
+
+      {canCurate && item.pinCount > 0 && <CardPinnersSection item={item} />}
     </>
   );
 }
@@ -125,6 +214,7 @@ function RoadmapCardContent({
 interface Props extends CardContentProps {
   readonly isAdminOrdering: boolean;
 }
+
 
 export function RoadmapCard({
   item,
@@ -135,6 +225,7 @@ export function RoadmapCard({
   canPin,
   onPinToggle,
   isPinDisabled,
+  canCurate,
 }: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -169,6 +260,7 @@ export function RoadmapCard({
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
+        canCurate={canCurate}
       />
     </article>
   );
@@ -178,7 +270,7 @@ interface DragOverlayProps extends CardContentProps {
   readonly width?: number;
 }
 
-export function RoadmapCardDragOverlay({ item, width, position, canUpvote, onUpvoteToggle, canPin, onPinToggle, isPinDisabled }: DragOverlayProps) {
+export function RoadmapCardDragOverlay({ item, width, position, canUpvote, onUpvoteToggle, canPin, onPinToggle, isPinDisabled, canCurate }: DragOverlayProps) {
   return (
     <article className={s.cardDragOverlay} style={width ? { width } : undefined}>
       <RoadmapCardContent
@@ -189,6 +281,7 @@ export function RoadmapCardDragOverlay({ item, width, position, canUpvote, onUpv
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
+        canCurate={canCurate}
       />
     </article>
   );
@@ -203,6 +296,25 @@ function DragGripIcon() {
       <circle cx="8" cy="7" r="1.5" fill="currentColor" />
       <circle cx="2" cy="12" r="1.5" fill="currentColor" />
       <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden>
+      <rect x="1.5" y="5.5" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M3.5 5.5V3.5a2 2 0 0 1 4 0v2" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <circle cx="5.5" cy="9" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M6 3.5V6l1.75 1.75" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

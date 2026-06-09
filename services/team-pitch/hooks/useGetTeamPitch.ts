@@ -4,6 +4,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { TeamPitchQueryKeys } from '@/services/team-pitch/constants';
 import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
+import { withOnePagerS3Urls } from '@/utils/upload-url.utils';
 
 export type TeamPitchFull = {
   uid: string;
@@ -31,7 +32,13 @@ export async function getTeamPitch(slug: string) {
   if (!response?.ok) {
     throw new Error('Failed to fetch team pitch');
   }
-  return (await response.json()) as TeamPitchFull;
+  const data = (await response.json()) as TeamPitchFull;
+
+  if (data.teamProfile) {
+    data.teamProfile = withOnePagerS3Urls(data.teamProfile);
+  }
+
+  return data;
 }
 
 export function useGetTeamPitch(slug?: string, enabled = true) {

@@ -27,7 +27,6 @@ import { GiveFeedbackModal } from '@/components/page/demo-day/GiveFeedbackModal'
 import { FoundersListModal } from '../FoundersListModal';
 import { DemoDayActionButtons } from '@/components/page/demo-day/DemoDayActionButtons';
 import { usePathname } from 'next/navigation';
-import { useTeamPitchEditContext } from '@/components/page/pitch/TeamPitchEditContext';
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,7 +85,6 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   team,
 }) => {
   const pathname = usePathname();
-  const { pitchSlug } = useTeamPitchEditContext();
   const { currentUser: userInfo } = useCurrentUserStore();
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
@@ -202,12 +200,8 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   // Reset edit mode and hide alert when drawer closes
   useEffect(() => {
     if (!isOpen) {
-      setTimeout(() => {
-        setEditView(false);
-      }, 0);
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 0);
+      setEditView(false);
+      setShowSuccessAlert(false);
       if (successAlertTimeoutRef.current) {
         clearTimeout(successAlertTimeoutRef.current);
       }
@@ -663,7 +657,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
           </div>
         </div>
 
-        {!pitchSlug && (!data?.onePagerUpload || !data?.videoUpload) && (
+        {(!data?.onePagerUpload || !data?.videoUpload) && (
           <div className={s.warningSection}>
             <div className={s.warningContent}>
               <WarningIcon />

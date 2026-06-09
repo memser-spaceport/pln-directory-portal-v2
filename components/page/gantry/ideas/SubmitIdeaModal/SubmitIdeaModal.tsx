@@ -57,19 +57,16 @@ export function SubmitIdeaModal() {
   const onSubmit = (data: SubmitIdeaFormData) => {
     const stageValue = data.stage?.value as GantryStage | undefined;
 
-    const tags = data.tags?.map((o) => o.value) ?? [];
-
     mutate(
       {
         title: data.title.trim(),
         description: hasRichTextContent(data.description) ? data.description : '',
         externalTrackerUrl: null,
-        tags,
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
       },
       {
         onSuccess: (created) => {
-          analytics.onIdeaCreated(created.uid, tags);
+          analytics.onIdeaCreated(created.uid);
           reset(getSubmitIdeaFormDefaults('idea'));
           actions.closeModal();
           router.push(`/gantry/${created.uid}`);

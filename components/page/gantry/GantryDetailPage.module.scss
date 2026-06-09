@@ -133,45 +133,6 @@
   background: #cbd5e1;
 }
 
-.tagsRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px 20px 0;
-  flex-wrap: wrap;
-
-  @include mobile-only {
-    padding: 0;
-  }
-}
-
-.tagsLabel {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-  white-space: nowrap;
-  padding-top: 2px;
-  min-width: 36px;
-}
-
-.tagsList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.tagChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: rgba(27, 56, 96, 0.08);
-  font-size: 12px;
-  line-height: 18px;
-  color: #455468;
-  white-space: nowrap;
-}
-
 .mobileDivider {
   display: none;
 

@@ -2,19 +2,18 @@
 
 import { clsx } from 'clsx';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import parse from 'html-react-parser';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@base-ui-components/react/avatar';
+import React, { useState } from 'react';
 
 import { useFounderGuidesAnalytics } from '@/analytics/founder-guides.analytics';
+import { CommentIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useDeleteGuideComment } from '@/services/guide-comments/hooks/useDeleteGuideComment';
 import type { IUserInfo } from '@/types/shared.types';
 import type { IGuideComment } from '@/services/guide-comments/guide-comments.types';
-
-import { CommentIcon } from '@/components/icons';
-import { QuillContent } from '@/components/ui/QuillContent';
 
 import { GuideCommentInput } from '../GuideCommentInput/GuideCommentInput';
 import { GuideCommentLikeButton } from '../GuideCommentLikeButton/GuideCommentLikeButton';
@@ -102,7 +101,7 @@ export const GuideCommentItem = ({ comment, articleUid, userInfo, depth = 0 }: P
             onCancel={() => setIsEditing(false)}
           />
         ) : (
-          <QuillContent html={comment.content} className={s.body} />
+          <div className={s.body}>{parse(comment.content)}</div>
         )}
 
         {/* Actions */}

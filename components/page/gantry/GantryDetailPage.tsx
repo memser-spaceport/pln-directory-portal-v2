@@ -73,7 +73,6 @@ export function GantryDetailPage({ uid }: Props) {
               <div className={s.header}>
                 <div className={s.skeletonBlock} style={{ width: '70%', height: 42 }} />
                 <div className={s.skeletonBlock} style={{ width: '40%', height: 24, marginTop: 12 }} />
-                <div className={s.skeletonBlock} style={{ width: '60%', height: 20, marginTop: 12 }} />
               </div>
               <div className={s.content}>
                 <div className={s.skeletonBlock} style={{ width: '100%', height: 120 }} />
@@ -180,17 +179,6 @@ export function GantryDetailPage({ uid }: Props) {
                 />
               </div>
             </div>
-
-            {item.tags && item.tags.length > 0 && !isEditMode && (
-              <div className={s.tagsRow}>
-                <span className={s.tagsLabel}>Tags</span>
-                <div className={s.tagsList} aria-label={`Tags: ${item.tags.join(', ')}`}>
-                  {item.tags.map((tag) => (
-                    <span key={tag} className={s.tagChip}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className={s.mobileDivider} />
 

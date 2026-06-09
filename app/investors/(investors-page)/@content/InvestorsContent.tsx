@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMount, useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { Tabs } from '@/components/common/Tabs/Tabs';
@@ -21,6 +22,10 @@ const VISUAL_TABS = [
 ];
 
 export default function InvestorsContent() {
+  const [mounted, toggleMounted] = useToggle(false);
+
+  useMount(() => toggleMounted());
+
   const access = useInvestorsAccess();
   const router = useRouter();
 
@@ -40,9 +45,10 @@ export default function InvestorsContent() {
     shallow: true,
   });
 
-  if (access.isLoading) {
-    return <ContentPanelSkeletonLoader />;
+  if (!mounted || access.isLoading) {
+    return mounted ? <ContentPanelSkeletonLoader /> : null;
   }
+
   if (access.isError) {
     return <Error />;
   }

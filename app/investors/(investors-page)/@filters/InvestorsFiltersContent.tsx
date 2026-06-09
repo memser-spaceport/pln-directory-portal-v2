@@ -1,20 +1,25 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
+import { useMount, useToggle } from 'react-use';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { InvestorsFilterRail } from '@/components/page/investors/InvestorsFilterRail/InvestorsFilterRail';
 import { investorsFilterParsers } from '../searchParams';
 
 export default function InvestorsFiltersContent() {
+  const [mounted, toggleMounted] = useToggle(false);
+
+  useMount(() => toggleMounted());
+
   const access = useInvestorsAccess();
   const [filters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
 
-  if (access.isLoading) {
-    return <FiltersPanelSkeletonLoader />;
+  if (!mounted || access.isLoading) {
+    return mounted ? <FiltersPanelSkeletonLoader /> : null;
   }
 
   // Warm Intros carries its own filter UI in the workspace, so the side rail is

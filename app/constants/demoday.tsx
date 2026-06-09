@@ -28,7 +28,7 @@ export const NETWORK_PARTNER_DEMO_DAY_SLUGS = {
 };
 
 export const NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER =
-  'All content is provided by the founders. Network Partner Demo Day organizers do not endorse or recommend any investment.';
+  'All content is provided by the founders. Founder School & Crecimiento Demo Day organizers do not endorse or recommend any investment.';
 
 /** Case-insensitive match for demo day `slugURL` / route segment. */
 export function isNetworkPartnerDemoDaySlug(slug: string | null | undefined): boolean {
@@ -137,16 +137,16 @@ export const faqCompletedItems = [
 
 const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
   {
-    question: 'What is Network Partner Demo Day?',
+    question: 'What is Founder School & Crecimiento Demo Day?',
     answer: (
       <FaqBulletList
         items={[
           <span key={1}>
-            Network Partner Demo Day is a concentrated virtual event featuring teams from two of our network&apos;s
-            founder programs, Crecimiento and Founders School. Early-stage startups will deliver pitches in a fully
-            asynchronous environment. Attendees will have access to single-slide company summaries and 3-minute video
-            pitches through our online platform. Attendees can directly connect with companies they&apos;re interested
-            in by clicking buttons that will automatically send intro emails on their behalf.
+            Founder School & Crecimiento Demo Day is a concentrated virtual event featuring teams from two of our
+            network&apos;s founder programs, Crecimiento and Founders School. Early-stage startups will deliver pitches
+            in a fully asynchronous environment. Attendees will have access to single-slide company summaries and
+            3-minute video pitches through our online platform. Attendees can directly connect with companies
+            they&apos;re interested in by clicking buttons that will automatically send intro emails on their behalf.
           </span>,
         ]}
       />
@@ -157,7 +157,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          'Network Partner Demo Day is an invite-only event for accredited investors and qualifying angels. Invitations are being sent to a vetted list of angel investors and VCs.',
+          'Founder School & Crecimiento Demo Day is an invite-only event for accredited investors. Invitations are being sent to a vetted list of angel investors and VCs.',
         ]}
       />
     ),
@@ -187,7 +187,7 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
     answer: (
       <FaqBulletList
         items={[
-          "Once registered, you'll get access to the team roster on the Network Partner Demo Day platform, including company summaries, pitch videos, founder bios, and direct contact options. The latest program updates from Crecimiento and Founders School can be found on their respective social channels.",
+          "Once registered, you'll get access to the team roster on the Founder School & Crecimiento Demo Day platform, including company summaries, pitch videos, founder bios, and direct contact options. The latest program updates from Crecimiento and Founders School can be found on their respective social channels.",
         ]}
       />
     ),
@@ -219,3 +219,72 @@ const crecimientoFoundersSchool1FaqItems: FAQItem[] = [
 export const demoDayFaqMap: Record<string, FAQItem[]> = {
   [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1FaqItems,
 };
+
+const crecimientoFoundersSchool1PartnerLogos = [
+  '/icons/demoday/landing/partner-logos/founder_school.jpg',
+  '/icons/demoday/landing/partner-logos/crecisolnegro.png',
+] as const;
+
+// Demo day specific partner landing logos mapped by slug (use `slugURL` from demo day state)
+export const demoDayPartnerLogosMap: Record<string, readonly string[]> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: crecimientoFoundersSchool1PartnerLogos,
+};
+
+export interface DemoDayCalendarLinks {
+  googleCalendarUrl: string;
+  icsFileUrl: string;
+}
+
+const DEFAULT_GOOGLE_CALENDAR_URL =
+  'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NThocXJ2bDIwc2FxM2hlNTJzaGtoODRjOWMgY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com';
+
+const DEFAULT_ICS_FILE_URL =
+  'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_w26_demo_day_investor_event.ics';
+
+export const defaultCalendarLinks: DemoDayCalendarLinks = {
+  googleCalendarUrl: DEFAULT_GOOGLE_CALENDAR_URL,
+  icsFileUrl: DEFAULT_ICS_FILE_URL,
+};
+
+// Demo day specific calendar links mapped by slug (use `slugURL` from demo day state)
+// Falls back to default links if no specific config is found
+export const demoDayCalendarLinksMap: Record<string, DemoDayCalendarLinks> = {
+  [NETWORK_PARTNER_DEMO_DAY_SLUGS.crecimientoFoundersSchool1]: {
+    googleCalendarUrl:
+      'https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NjViajcxaWRiZWVxY2Z1ZHZkN2RvZmNjNm8gY181MzAyZDMzYTg4ODA5MTA5M2Y1YzAyMzY2ZGM1ZWZjYWZlM2RkNTc2MDgxZjE2MWMxNzljZmFiYWNjZjFmOThlQGc&tmsrc=c_5302d33a888091093f5c02366dc5efcafe3dd576081f161c179cfabaccf1f98e%40group.calendar.google.com',
+    icsFileUrl:
+      'https://pl-directory-uploads-prod.s3.us-west-1.amazonaws.com/pl_partner26-1_demo_day_investor_event.ics',
+  },
+};
+
+/**
+ * Get calendar links for a demo day by slug.
+ * Returns default links if no specific config is found.
+ */
+export function getCalendarLinksByDemoDaySlug(slug: string | null | undefined): DemoDayCalendarLinks {
+  if (!slug) return defaultCalendarLinks;
+
+  const exact = demoDayCalendarLinksMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayCalendarLinksMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayCalendarLinksMap[matchKey];
+
+  return defaultCalendarLinks;
+}
+
+/**
+ * Get partner landing logos for a demo day by slug.
+ * Returns an empty array if no specific config is found.
+ */
+export function getPartnerLogosByDemoDaySlug(slug: string | null | undefined): readonly string[] {
+  if (!slug) return [];
+
+  const exact = demoDayPartnerLogosMap[slug];
+  if (exact) return exact;
+
+  const matchKey = Object.keys(demoDayPartnerLogosMap).find((k) => k.toLowerCase() === slug.toLowerCase());
+  if (matchKey) return demoDayPartnerLogosMap[matchKey];
+
+  return [];
+}

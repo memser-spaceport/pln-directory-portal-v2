@@ -34,12 +34,11 @@ export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_
 };
 
 export const revalidateTeamDetail = async () => {
-  revalidateTag('team-detail');
+  revalidateTag('team-detail', 'max');
 };
 
 export const deleteTeam = async (teamUid: string, authToken: string) => {
   try {
-    console.log('DELETING TEAM');
     const result = await fetch(`${teamsAPI}/${teamUid}`, {
       method: 'DELETE',
       headers: {
@@ -49,7 +48,6 @@ export const deleteTeam = async (teamUid: string, authToken: string) => {
     });
 
     if (!result.ok) {
-      console.log('DELETING TEAM failed');
       return {
         isError: true,
         status: result.status,
@@ -58,9 +56,9 @@ export const deleteTeam = async (teamUid: string, authToken: string) => {
     }
 
     // Revalidate cache to refresh team data
-    revalidateTag('team-list');
-    revalidateTag('team-detail');
-    revalidateTag('team-filters');
+    revalidateTag('team-list', 'max');
+    revalidateTag('team-detail', 'max');
+    revalidateTag('team-filters', 'max');
     revalidatePath('/teams');
 
     return {

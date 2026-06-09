@@ -16,6 +16,8 @@ const config: StorybookConfig = {
       alias: {
         ...config.resolve?.alias,
         styles: path.resolve(__dirname, '../styles'),
+        // next/config was removed in Next.js 16; stub it for @storybook/nextjs-vite
+        'next/config': path.resolve(__dirname, './next-config-mock.js'),
       },
     };
 

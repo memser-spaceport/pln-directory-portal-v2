@@ -15,7 +15,7 @@ export function Footer({ disclaimer = DEFAULT_DISCLAIMER }: FooterProps) {
     <div className={s.root}>
       <div className={s.note}>{disclaimer}</div>
       <div className={s.bottom}>
-        <div className={s.legal}>© 2026 Protocol Labs</div>
+        <div className={s.legal}>© 2026 Protocol Labs Venture Studios</div>
         <div className={s.links}>
           <a className={s.link} href={PRIVACY_POLICY_URL} target="_blank">
             Privacy Policy

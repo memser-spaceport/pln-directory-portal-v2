@@ -6,6 +6,7 @@ import { AddToCalendarModal } from '../AddToCalendarModal';
 import Link from 'next/link';
 import { DemoDayState } from '@/app/actions/demo-day.actions';
 import { formatDemoDayDateTimeFirst } from '@/utils/demo-day.utils';
+import { DemoDayCalendarLinks } from '@/app/constants/demoday';
 
 interface StepperProps {
   currentStep: number;
@@ -13,6 +14,7 @@ interface StepperProps {
   onFillProfile?: () => void;
   onAddToCalendar?: () => void;
   onGoToDemoDay?: () => void;
+  calendarLinks?: DemoDayCalendarLinks;
 }
 
 interface StepData {
@@ -30,6 +32,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
   onFillProfile,
   onAddToCalendar,
   onGoToDemoDay,
+  calendarLinks,
 }) => {
   const { data: loadedDemoDayState } = useGetDemoDayState();
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -162,6 +165,7 @@ export const InvestorStepper: React.FC<StepperProps> = ({
         onClose={() => setIsCalendarModalOpen(false)}
         eventDate={data?.date}
         eventTitle="Protocol Labs Demo Day"
+        calendarLinks={calendarLinks}
       />
     </>
   );

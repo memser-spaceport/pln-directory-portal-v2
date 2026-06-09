@@ -1,5 +1,13 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  sassOptions: {
+    loadPaths: [__dirname, path.join(__dirname, 'styles')],
+  },
   async redirects() {
     return [
       // {
@@ -42,16 +50,16 @@ const nextConfig = {
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
     HUSKY_API_URL: process.env.HUSKY_API_URL,
     TEXT_EDITOR_API_KEY: process.env.TEXT_EDITOR_API_KEY,
-    REVALIDATE_TOKEN: process.env.REVALIDATE_TOKEN,
     GOOGLE_SITE_KEY: process.env.GOOGLE_SITE_KEY,
-    GOOGLE_SECRET_KEY: process.env.GOOGLE_SECRET_KEY,
     PRIORITY_FEATURED_SECTION: process.env.PRIORITY_FEATURED_SECTION,
     SCHEDULE_ENABLED_LOCATIONS: process.env.SCHEDULE_ENABLED_LOCATIONS,
     IRL_SUBMIT_FORM_URL: process.env.IRL_SUBMIT_FORM_URL,
     PL_EVENTS_BASE_URL: process.env.PL_EVENTS_BASE_URL,
     PL_EVENTS_SUBMISSION_URL: process.env.PL_EVENTS_SUBMISSION_URL,
+    SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
     CUSTOM_FORUM_AUTH_TOKEN: process.env.CUSTOM_FORUM_AUTH_TOKEN,
     SCHEDULE_BASE_URL: process.env.SCHEDULE_BASE_URL,
+    PLAA_API_URL: process.env.PLAA_API_URL,
   },
   images: {
     remotePatterns: [
@@ -60,9 +68,6 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-  },
-  experimental: {
-    serverSourceMaps: false,
   },
   productionBrowserSourceMaps: true,
 };

@@ -1,0 +1,508 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+
+.header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.headerWho { flex: 1; }
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px;
+  font-family: 'Inter', sans-serif;
+}
+
+.whyNow {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: #111827; background: #f3f4f6; }
+}
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.fundPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+// ── Sections ─────────────────────────────────────────────────────────────────
+
+.section {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #9ca3af;
+  margin: 0 0 10px;
+  font-family: 'Inter', sans-serif;
+}
+
+.collapsibleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapsibleBody { margin-top: 12px; }
+
+.chevron { font-size: 10px; color: #9ca3af; }
+
+// ── KV grid ───────────────────────────────────────────────────────────────────
+
+.kv {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 6px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+
+  dt { color: #9ca3af; font-weight: 500; }
+  dd { color: #111827; margin: 0; display: flex; align-items: center; gap: 8px; }
+}
+
+.recommendation {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+// ── PLVS feature grid ────────────────────────────────────────────────────────
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.featureRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  padding: 2px 0;
+}
+
+.featureLabel { color: #6b7280; }
+.featureVal { color: #15803d; font-weight: 600; }
+
+// ── Links ─────────────────────────────────────────────────────────────────────
+
+.linkRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.link {
+  font-size: 13px;
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  word-break: break-all;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ── Bio ───────────────────────────────────────────────────────────────────────
+
+.bio {
+  font-size: 13px;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ── Chips ─────────────────────────────────────────────────────────────────────
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  padding: 2px 8px;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+// ── Warm intros ───────────────────────────────────────────────────────────────
+
+.introList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.introItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border-left: 3px solid #16a34a;
+}
+
+.introVia {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.introKind {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.introEvidence {
+  font-size: 12px;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+}
+
+// ── Provenance ────────────────────────────────────────────────────────────────
+
+.sourceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sourceItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.sourceTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sourceTag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.confidence {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+}
+
+.sourceUrl {
+  font-size: 12px;
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  word-break: break-all;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.anchorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.anchor {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 3px;
+  font-family: 'Inter', sans-serif;
+}
+
+// ── Verification ─────────────────────────────────────────────────────────────
+
+.verificationBadge {
+  display: inline-flex;
+  padding: 3px 10px;
+  background: #f0fdf4;
+  color: #15803d;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 8px;
+}
+
+.rationaleList {
+  margin: 0;
+  padding: 0 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+}
+
+// ── Misc ──────────────────────────────────────────────────────────────────────
+
+.muted { color: #9ca3af; font-style: italic; font-size: 13px; }
+
+.mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: #374151;
+}
+
+.loading {
+  padding: 48px 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+// ── Scores section header row ─────────────────────────────────────────────────
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  // override the sectionTitle margin when inside this row
+  .sectionTitle { margin-bottom: 0; }
+}
+
+.howScoredLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: #1a3fd9; }
+}
+
+// ── Scoring methodology modal ─────────────────────────────────────────────────
+
+.scoringBody {
+  padding: 24px 28px 32px;
+  overflow-y: auto;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.scoringHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.scoringTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.scoringClose {
+  background: none;
+  border: none;
+  padding: 4px;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6b7280;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: #111827; }
+}
+
+.scoringSection {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.scoringH3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin: 0 0 8px;
+}
+
+.scoringLead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #455468;
+  margin: 0 0 12px;
+}
+
+.scoringTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+
+  th,
+  td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: #f3f4f6;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+  }
+
+  tbody tr:nth-child(even) td { background: #f9fafb; }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td:first-child {
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+  }
+}
+
+.scoringRight {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scoringNote {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6b7280;
+  margin-top: 12px;
+}

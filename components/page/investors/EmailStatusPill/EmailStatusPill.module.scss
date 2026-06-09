@@ -1,0 +1,36 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.verified {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.catch_all {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.unverified {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.invalid {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.unknown {
+  background: #f3f4f6;
+  color: #6b7280;
+}

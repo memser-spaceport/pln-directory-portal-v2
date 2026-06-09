@@ -33,25 +33,51 @@ const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7f
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'buyback-auction',
-    type: 'event',
-    title: 'Upcoming Event',
-    subtitle: 'Buyback Auction April 2026',
-    date: 'date is subject to change',
+    id: 'banner-1',
+    type: 'bonus',
+    title: 'New Activity: Contribute a High-Quality Response to the Forum',
+    subtitle: 'Contribute thoughtful forum responses and collect 100 points per qualifying post.',
+    date: '',
     buttons: [
-      // { label: 'Learn More', link: 'https://protocol.ai', variant: 'secondary' },
+       { label: 'Join the conversation', link: 'https://directory.plnetwork.io/alignment-asset/activities#contribute-forum-response', variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'banner-2',
+    type: 'bonus',
+    title: 'New Activity: Share a Reusable AI Resource or Tool',
+    subtitle: 'Share reusable AI tools or resources with the network and collect 150 points.',
+    date: '',
+    buttons: [
+       { label: 'View details', link: 'https://directory.plnetwork.io/alignment-asset/activities#share-ai-resource', variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'banner-3',
+    type: 'bonus',
+    title: 'New Activity: Rank Among the Network\'s Most Supportive Members',
+    subtitle: 'Top contributors in each snapshot period can now collect bonus points.',
+    date: '',
+    buttons: [
+       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset/activities#rank-supportive-members', variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'banner-4',
+    type: 'bonus',
+    title: 'New Feature: Activity Assistant Bot',
+    subtitle: 'Use the new Activity Assistant Bot for your next submission + provide feedback = collect 50 bonus points.',
+    date: '',
+    buttons: [
+       { label: 'Submit and give feedback', link: ' https://directory.plnetwork.io/alignment-asset/', variant: 'secondary' },
     ],
   },
 ];
 
-interface PlaaBannerProps {
-  variant?: 'desktop' | 'mobile';
-}
-
-export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
+export function PlaaBanner() {
   const pathname = usePathname();
   const [isCompact, setIsCompact] = useState(false);
-  const bannerRef = useRef<HTMLDivElement>(null);
+  const mobileBannerWrapperRef = useRef<HTMLDivElement>(null);
   
   const { onBannerCarouselPrevClicked, onBannerCarouselNextClicked, onBannerButtonClicked } = useAlignmentAssetsAnalytics();
   
@@ -71,10 +97,7 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
   // Intersection Observer to detect when banner becomes "stuck"
   // We observe a sentinel placed BEFORE the mobile banner wrapper
   useEffect(() => {
-    if (variant !== 'mobile') return;
-
-    // Find the mobile banner wrapper in the layout
-    const bannerWrapper = document.querySelector('[class*="plaa__mobile-banner"]');
+    const bannerWrapper = mobileBannerWrapperRef.current;
     if (!bannerWrapper) return;
 
     // Create sentinel and place it BEFORE the banner wrapper
@@ -85,7 +108,6 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When sentinel exits viewport (scrolled past), show compact
         setIsCompact(!entry.isIntersecting);
       },
       {
@@ -101,7 +123,7 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
       observer.disconnect();
       sentinel.remove();
     };
-  }, [variant]);
+  }, [pathname]);
 
   if (!pathname?.includes('alignment-asset')) {
     return null;
@@ -119,9 +141,8 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
     desktopCarousel.scrollNext();
   };
 
-  // Desktop variant
-  if (variant === 'desktop') {
-    return (
+  return (
+    <>
       <HighlightsBar variant="plaa">
         <div className={styles.banner}>
           {/* Left Arrow - far left */}
@@ -210,15 +231,9 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
           )}
         </div>
       </HighlightsBar>
-    );
-  }
 
-  // Mobile variant
-  return (
-    <div 
-      ref={bannerRef}
-      className={`${styles.mobileBanner} ${isCompact ? styles.mobileBannerCompact : ''}`}
-    >
+      <div ref={mobileBannerWrapperRef} className={styles.mobileBannerWrapper}>
+        <div className={`${styles.mobileBanner} ${isCompact ? styles.mobileBannerCompact : ''}`}>
       {/* Dots - always visible, positioned at top in compact mode */}
       <div className={styles.dotsWrapper}>
         <div className={styles.dots}>
@@ -287,6 +302,8 @@ export function PlaaBanner({ variant = 'desktop' }: PlaaBannerProps) {
           ))}
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

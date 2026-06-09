@@ -123,7 +123,6 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
 
   const handleFeedbackSuccess = () => {
     // You can add a success toast notification here if needed
-    console.log('Feedback submitted successfully!');
     toast.success('Feedback submitted successfully!');
   };
 
@@ -326,7 +325,7 @@ export const DemodayCompletedView: React.FC<DemodayCompletedViewProps> = ({
         {/* Footer */}
         <footer className={s.footer}>
           <div className={s.note}>
-            © 2026 Protocol Labs.{' '}
+            © 2026 Protocol Labs Venture Studios.{' '}
             {isNetworkPartnerDemoDay
               ? NETWORK_PARTNER_DEMO_DAY_FOOTER_DISCLAIMER
               : 'All content is provided by the founders. Protocol Labs Demo Day organizers do not endorse or recommend any investment.'}

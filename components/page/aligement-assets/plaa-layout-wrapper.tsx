@@ -99,7 +99,7 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
         <div className={styles.plaa__main}>
           {/* Fixed Sidebar */}
           <aside className={styles.plaa__sidebar}>
-            <PlaaMenu activeItem={activeItem} totalRounds={16} currentRound={16} viewingRound={viewingRound} />
+            <PlaaMenu activeItem={activeItem} totalRounds={17} currentRound={17} viewingRound={viewingRound} />
           </aside>
 
           {/* Scrollable Content */}
@@ -137,8 +137,8 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
 
               <PlaaMenu 
                 activeItem={activeItem} 
-                totalRounds={15} 
-                currentRound={15} 
+                totalRounds={17} 
+                currentRound={17} 
                 viewingRound={viewingRound}
                 onMenuItemClick={handleCloseMenu}
               />

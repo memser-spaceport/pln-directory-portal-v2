@@ -108,7 +108,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 12px 16px 16px;
   border-top: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+}
+
+.footerNote {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
 }

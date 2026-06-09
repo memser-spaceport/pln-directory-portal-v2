@@ -1,0 +1,94 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 9999px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.92;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
+.triggerPending {
+  pointer-events: none;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-right: 4px;
+  opacity: 0.8;
+}
+
+.trigger_IDEA .chevron {
+  color: #455468;
+}
+
+.trigger_BACKLOG .chevron {
+  color: #b45309;
+}
+
+.trigger_PLANNED .chevron {
+  color: #1b4dff;
+}
+
+.trigger_IN_PROGRESS .chevron {
+  color: #6d28d9;
+}
+
+.trigger_SHIPPED .chevron {
+  color: #0a9952;
+}
+
+.trigger_DECLINED .chevron {
+  color: #dc2626;
+}
+
+.positioner {
+  z-index: 20;
+}
+
+.menu {
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(14, 15, 17, 0.08);
+  overflow: hidden;
+  min-width: 180px;
+  padding: 4px;
+}
+
+.menuHint {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8897ae;
+}
+
+.option {
+  display: flex;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}

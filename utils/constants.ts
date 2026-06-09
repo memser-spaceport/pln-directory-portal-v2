@@ -575,6 +575,8 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
+  TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
+  TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
 };
 
 export const EVENTS_ANALYTICS = {
@@ -717,6 +719,19 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.16 - Quick Actions, Team News & Investor DB',
+    tag: 'Improvements',
+    date: '29, May 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Quick Actions</span> - Personalized shortcut cards at the top of the logged-in home page based on your role, surfacing Teams, Office Hours, Network Deals, Founder Guides, Job Board, or the member directory.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team News discussions</span> - Start or join a forum conversation directly from any news card; once a thread exists, everyone links to the same discussion.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.5.15 - LabOS Job Board v1',
     tag: 'New Feature',
@@ -1692,6 +1707,12 @@ export const DEMO_DAY_METADATA: Record<string, { title: string; description: str
     description:
       'Explore 12 teams across AI, Web3, and deep tech. Virtual and fully async — optimized for ease of review. For accredited investors and qualifying angels only.',
     imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_W26_v2.png',
+  },
+  ['partner26-1']: {
+    title: 'Founder School & Crecimiento Demo Day',
+    description:
+      'An invite-only virtual event for accredited investors, featuring early-stage founders from Crecimiento and Founder School pitching AI, blockchain, and DeFi startups.',
+    imageUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/images/Social_thumbnail_PL_DD_Network_Partner_1.2.png',
   },
 };
 

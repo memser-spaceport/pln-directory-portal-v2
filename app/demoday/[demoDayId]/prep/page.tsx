@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 import { redirect } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
@@ -11,7 +11,8 @@ import { AdminContent } from '@/components/page/demo-day/AdminView/components/Ad
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
-function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
+function DemoDayPrepPage(props: { params: Promise<{ demoDayId: string }> }) {
+  const params = use(props.params);
   const { currentUser: userInfo } = useCurrentUserStore();
   const isDirectoryAdmin = isAdminUser(userInfo);
   const { data } = useGetDemoDayState();
@@ -20,10 +21,8 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
   const hasAdminAccess = isDirectoryAdmin || data?.isDemoDayAdmin || data?.isDemoDayReadOnlyAdmin;
   const canEdit = isDirectoryAdmin || !!data?.isDemoDayAdmin;
 
-  // User can view the prep page if they have admin access, read-only admin access, OR are a founder
-  const hasAccess =
-    (data?.status === 'COMPLETED' ? isDirectoryAdmin : isDirectoryAdmin || data?.access === 'FOUNDER') ||
-    data?.isDemoDayAdmin;
+  // User can view the prep page if they have admin/read-only admin access, OR are a founder (non-completed)
+  const hasAccess = hasAdminAccess || (data?.status !== 'COMPLETED' && data?.access === 'FOUNDER');
 
   useEffect(() => {
     // Redirect non-admins to regular demo day page
@@ -43,11 +42,7 @@ function DemoDayPrepPage({ params }: { params: { demoDayId: string } }) {
       <DashboardPagesLayout
         filters={<AdminFilters />}
         content={
-          <AdminContent
-            elevatedStaff={hasAdminAccess}
-            showMembersDirectoryLink={isDirectoryAdmin}
-            canEdit={canEdit}
-          />
+          <AdminContent elevatedStaff={hasAdminAccess} showMembersDirectoryLink={isDirectoryAdmin} canEdit={canEdit} />
         }
       />
     </FiltersHydrator>

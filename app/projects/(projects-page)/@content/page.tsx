@@ -8,7 +8,8 @@ import ProjectlistWrapper from '@/components/page/projects/projectlist-wrapper';
 import { INITIAL_ITEMS_PER_PAGE } from '@/utils/constants';
 import { getAllProjects } from '@/app/actions/projects.actions';
 
-export default async function Page({ searchParams }: any) {
+export default async function Page(props: any) {
+  const searchParams = await props.searchParams;
   const { projects, isError, totalProjects, userInfo, isLoggedIn } = await getPageData(searchParams);
 
   if (isError) {
@@ -38,7 +39,7 @@ const getPageData = async (searchParams: any) => {
   let isError = false;
 
   try {
-    const { userInfo, isLoggedIn } = getCookiesFromHeaders();
+    const { userInfo, isLoggedIn } = await getCookiesFromHeaders();
     const filterFromQuery = getProjectsFiltersFromQuery(searchParams);
     const selectOptions = getProjectSelectOptions(filterFromQuery);
     const projectsResponse = await getAllProjects(

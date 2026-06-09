@@ -1,0 +1,55 @@
+export const mockDeals = [
+  {
+    id: 'd-1',
+    logo: 'https://placehold.co/48x48',
+    name: 'Vercel',
+    description: 'Free Vercel Pro plan for early-stage startups building on modern web frameworks.',
+    categories: ['Design & Collaboration', 'Hosting & Infrastructure'],
+    using: 51,
+    issues: 0,
+  },
+  {
+    id: 'd-2',
+    logo: 'https://placehold.co/48x48',
+    name: 'GitHub',
+    description: '50% off GitHub Enterprise for the first year for PL network teams.',
+    categories: ['Design & Collaboration', 'Developer Tools'],
+    using: 78,
+    issues: 1,
+  },
+  {
+    id: 'd-3',
+    logo: 'https://placehold.co/48x48',
+    name: 'Linear',
+    description: 'Free Linear Business plan for 1 year for fast-moving engineering teams.',
+    categories: ['Design & Collaboration', 'Developer Tools'],
+    using: 40,
+    issues: 0,
+  },
+  {
+    id: 'd-4',
+    logo: 'https://placehold.co/48x48',
+    name: 'Figma',
+    description: 'Free Figma Organization plan for qualifying PL-funded startups.',
+    categories: ['Design & Collaboration', 'All Founders'],
+    using: 90,
+    issues: 0,
+  },
+  {
+    id: 'd-5',
+    logo: 'https://placehold.co/48x48',
+    name: 'Notion',
+    description: "6 months free on Notion's Team plan for up to 20 members.",
+    categories: ['Design & Collaboration', 'All Founders'],
+    using: 65,
+    issues: 0,
+  },
+];
+
+export const mockCategories = [
+  { id: 'cat-1', label: 'Hosting & Infrastructure', count: 1 },
+  { id: 'cat-2', label: 'Developer Tools', count: 10 },
+  { id: 'cat-3', label: 'Design & Collaboration', count: 3 },
+  { id: 'cat-4', label: 'Analytics & Monitoring', count: 6 },
+  { id: 'cat-5', label: 'Security & Compliance', count: 7 },
+];

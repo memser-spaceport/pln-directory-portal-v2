@@ -7,9 +7,9 @@ import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import styles from './page.module.css';
 
-async function JobAlertsSettingsPage({ searchParams }: { searchParams: any }) {
-  const { isLoggedIn, userInfo } = getCookiesFromHeaders();
-  const params = new URLSearchParams(searchParams as Record<string, string>).toString();
+async function JobAlertsSettingsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const [{ isLoggedIn, userInfo }, resolvedSearchParams] = await Promise.all([getCookiesFromHeaders(), searchParams]);
+  const params = new URLSearchParams(resolvedSearchParams).toString();
 
   if (!isLoggedIn) {
     redirect(`/${params ? `?${params}` : '?'}&returnTo=settings-job-alerts#login`);

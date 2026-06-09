@@ -9,7 +9,7 @@ import { useGetPathToCompareNotificationLink } from './useGetPathToCompareNotifi
 interface UseAutoMarkOnNavigationOptions {
   authToken?: string;
   unreadLinksMapRef: MutableRefObject<UnreadLinksMap>;
-  wsMarkAsReadRef: MutableRefObject<(id: string) => void>;
+  wsMarkAsReadRef: MutableRefObject<((id: string) => void) | null>;
   onMarkedAsRead: (uids: string[]) => void;
 }
 
@@ -43,7 +43,7 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
         await Promise.allSettled(
           uidsToMark.map(async (uid) => {
             await markNotificationAsRead(authToken, uid);
-            wsMarkAsReadRef.current(uid);
+            wsMarkAsReadRef.current?.(uid);
           }),
         );
         onMarkedAsRead(uidsToMark);
@@ -53,5 +53,9 @@ export function useAutoMarkOnNavigation(input: UseAutoMarkOnNavigationOptions) {
     };
 
     markAll();
-  }, [authToken, wsMarkAsReadRef, unreadMap.size, unreadLinksMapRef, onMarkedAsRead, pathToCompareNotyLink]);
+  // unreadMap is included alongside unreadMap.size:
+  // - unreadMap.size detects in-place mutations (addUnreadLinkEntry)
+  // - unreadMap detects reference replacement (fetchUnreadLinks creates a new Map)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, wsMarkAsReadRef, unreadMap, unreadMap.size, onMarkedAsRead, pathToCompareNotyLink]);
 }

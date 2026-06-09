@@ -1,0 +1,43 @@
+// Align the title input's placeholder tone with the rich-text description
+// placeholder (#8897ae) so the description no longer reads as "bolder" than the
+// title on an empty form. Scoped to the gantry need/item form only.
+.titleField {
+  width: 100%;
+
+  // Match the description editor's near-black text color (the default input
+  // color is a lighter slate, which made the title read as washed-out next to
+  // the description).
+  :global(input) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  :global(input)::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+@mixin gantry-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: #475569;
+}
+
+.gantryFieldLabel {
+  @include gantry-field-label;
+}
+
+.titleFieldNeed {
+  label {
+    @include gantry-field-label;
+  }
+}
+
+// Quill renders the placeholder on .ql-editor via ::before (see RichTextEditor.module.scss).
+.descriptionField {
+  :global(.ql-editor[data-placeholder]::before) {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}

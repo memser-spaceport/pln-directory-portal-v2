@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
-import type { IJobAlertFilterState } from '@/types/job-alerts.types';
+import type { IJobAlert, IJobAlertFilterState } from '@/types/job-alerts.types';
 import type { JobsSortKey } from '@/types/jobs.types';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
@@ -15,6 +15,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
+import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
@@ -27,10 +28,21 @@ import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
 import s from './JobsContent.module.scss';
 
-const SORT_OPTIONS = [
-  { value: 'company_az', label: 'A-Z (Ascending)' },
-  { value: 'newest', label: 'Newest' },
-] as const;
+// Flip to true to simulate a logged-in user with a saved alert during local dev
+const DEV_MOCK_ALERT = false;
+const MOCK_USER_ALERT: IJobAlert = {
+  uid: 'mock-alert-dev-123',
+  name: 'Mock Dev Alert',
+  filterState: {
+    roleCategory: ['Engineering'],
+    seniority: ['Senior'],
+    focus: [],
+    location: [],
+    workMode: [],
+  },
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
 
 interface JobsContentProps {
   userInfo: IUserInfo | undefined;
@@ -50,7 +62,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
 
   const alertFilterState = useMemo(() => jobAlertFilterStateFromURL(searchParams), [searchParams]);
   const hasFilters = hasActiveFilters(alertFilterState);
-  const { userAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
+  const { userAlert: fetchedAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
+  const userAlert = DEV_MOCK_ALERT ? MOCK_USER_ALERT : fetchedAlert;
   const [indicatorDismissed, setIndicatorDismissed] = useState(false);
 
   // Auto-apply the user's saved job alert filters on /jobs landing.
@@ -160,15 +173,12 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
             </span>
           </h1>
         </div>
-        <SortDropdown
-          options={SORT_OPTIONS as unknown as Array<{ value: string; label: React.ReactNode }>}
-          currentSort={sort}
-          onSortChange={onSort}
-          sortByLabel="Sort by:"
-        />
+        <SortDropdown options={JOBS_SORT_OPTIONS} currentSort={sort} onSortChange={onSort} sortByLabel="Sort by:" />
       </div>
 
-      {showIndicator && userAlert && <JobAlertIndicator alert={userAlert} onDismiss={() => setIndicatorDismissed(true)} />}
+      {showIndicator && userAlert && (
+        <JobAlertIndicator alert={userAlert} onDismiss={() => setIndicatorDismissed(true)} />
+      )}
 
       {hasFilters && groups.length > 0 && (
         <JobAlertBanner filterState={alertFilterState} resultCount={totalRoles} isLoggedIn={isLoggedIn} />

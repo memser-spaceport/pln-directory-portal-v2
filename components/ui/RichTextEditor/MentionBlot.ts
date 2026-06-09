@@ -1,4 +1,4 @@
-import { Quill } from 'react-quill';
+import { Quill } from 'react-quill-new';
 
 const Embed = Quill.import('blots/embed') as any;
 

@@ -1,0 +1,26 @@
+.root {
+  width: 100%;
+  max-width: 1146px;
+  margin: 0 auto;
+}
+
+.logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px;
+}
+
+.logo {
+  max-width: 220px;
+  max-height: 60px;
+  object-fit: contain;
+}

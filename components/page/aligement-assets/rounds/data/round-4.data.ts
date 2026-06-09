@@ -73,18 +73,6 @@ export const pastRound4Data: IPastRoundData = {
   // Leaderboard Section Data
   // ============================================================================
   leaderboard: [
-      { rank: 1, name: 'Anuj Pandey', activities: '', points: 1375 },
-      { rank: 2, name: 'Molly Mackinlay', activities: '', points: 1350 },
-      { rank: 3, name: 'Victoria DeVesty', activities: '', points: 1300 },
-      { rank: 4, name: 'Derrick Lam', activities: '', points: 1100 },
-      { rank: 5, name: 'Jonathan Victor', activities: '', points: 1000 },
-      { rank: 6, name: 'Chris Brocoum', activities: '', points: 750 },
-      { rank: 7, name: 'Diana Stern', activities: '', points: 750 },
-      { rank: 8, name: 'William Scott', activities: '', points: 600 },
-      { rank: 9, name: 'Rich Chang', activities: '', points: 500 },
-      { rank: 10, name: 'Carl Cervone', activities: '', points: 300 },
-      { rank: 11, name: 'Cyril Delattre', activities: '', points: 300 },
-      { rank: 12, name: 'Juan Benet', activities: '', points: 300 },
   ],
 };
 

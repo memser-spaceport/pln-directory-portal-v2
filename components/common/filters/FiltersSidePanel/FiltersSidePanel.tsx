@@ -14,10 +14,11 @@ interface Props {
   bodyClassName?: string;
   hideFooter?: boolean;
   applyLabel?: string;
+  actionsSlot?: React.ReactNode;
 }
 
 export function FiltersSidePanel(props: PropsWithChildren<Props>) {
-  const { onClose, clearParams, children, appliedFiltersCount, className, bodyClassName, hideFooter, applyLabel } =
+  const { onClose, clearParams, children, appliedFiltersCount, className, bodyClassName, hideFooter, applyLabel, actionsSlot } =
     props;
 
   return (
@@ -27,8 +28,9 @@ export function FiltersSidePanel(props: PropsWithChildren<Props>) {
           Filters
           {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
         </h2>
+        {actionsSlot}
         <button className={s.clearAllBtn} onClick={clearParams}>
-          Clear all
+          Clear All
         </button>
       </div>
 

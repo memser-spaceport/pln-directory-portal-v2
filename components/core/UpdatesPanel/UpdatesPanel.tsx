@@ -98,7 +98,7 @@ export function UpdatesPanel({
 
             {isLoggedIn && (
               <div className={s.footer}>
-                <Link href="/home#recent-updates" className={s.viewAllLink} onClick={handleViewAllClick}>
+                <Link href="/recent-updates" className={s.viewAllLink} onClick={handleViewAllClick}>
                   View all recent updates
                   <ArrowRightIcon />
                 </Link>

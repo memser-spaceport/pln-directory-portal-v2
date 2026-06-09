@@ -1,28 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import HeroSection from "./sections/hero-section";
 import PastLeaderboardSection from "./sections/past-leaderboard-section";
 import StatsSection from "./sections/stats-section";
-import { IPastRoundData } from "./types/current-round.types";
+import { IPastRoundData, LeaderboardEntry } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
+import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
+import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import {
+  getPastRoundLeaderboardEntries,
+  LeaderboardApiResponse,
+} from '@/services/plaa/leaderboard.utils';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
+  /** Raw leaderboard API response; PAST_ROUND entries are used for this round's table */
+  leaderboardResponse?: LeaderboardApiResponse;
 }
 
-export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData, leaderboardResponse }: PastRoundComponentProps) {
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
+
+  const resolvedLeaderboard: LeaderboardEntry[] = useMemo(() => {
+    if (leaderboardResponse?.entries?.length) {
+      return getPastRoundLeaderboardEntries(leaderboardResponse.entries);
+    }
+    return data.leaderboard;
+  }, [leaderboardResponse, data.leaderboard]);
+
   useScrollDepthTracking(`past-round-${data.meta.roundNumber}`);
+
   return (
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
+        {isLoggedIn && <PointsDashboard
+          currentRound={currentRoundData.meta.roundNumber}
+          pageRound={data.meta.roundNumber}
+        />}
         <PastRoundDescription 
           roundNumber={data.meta.roundNumber} 
           month={data.meta.month} 
@@ -30,7 +51,12 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
           tokensAllocated={data.stats.totalTokensAvailable}
         />
         <StatsSection data={data.stats} />
-        {isLoggedIn && data.leaderboard.length > 0 && <PastLeaderboardSection roundNumber={data.meta.roundNumber} leaderboardData={data.leaderboard} />}
+        {isLoggedIn && resolvedLeaderboard.length > 0 && (
+          <PastLeaderboardSection
+            roundNumber={data.meta.roundNumber}
+            leaderboardData={resolvedLeaderboard}
+          />
+        )}
         {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>

@@ -1,0 +1,103 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+}
+
+.pageHeader {
+  padding: 24px 20px;
+}
+
+.pageTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.pageTitle {
+  color: var(--foreground-neutral-primary, #0A0C11);
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 42px; /* 131.25% */
+  letter-spacing: -0.75px;
+}
+
+.internalBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  background: rgba(27, 77, 255, 0.02);
+  border: 1px solid #aebfff;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
+.pageSubtitle {
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.body {
+  flex: 1 1 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.warmIntrosView {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.warmIntrosTabBar {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 48px;
+}
+
+.tab {
+  font-size: 13px;
+  padding: 10px 8px;
+}
+
+.tabBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  padding: 12px 48px;
+  color: #1b4dff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: block;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

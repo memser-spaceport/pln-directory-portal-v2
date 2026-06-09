@@ -1,0 +1,37 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.body {
+  color: #6b7280;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 11px;
+}
+
+.empty {
+  font-style: italic;
+  color: #9ca3af;
+  font-size: 12px;
+}

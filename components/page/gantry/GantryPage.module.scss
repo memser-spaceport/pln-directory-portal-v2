@@ -1,0 +1,23 @@
+.contentShell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+}
+
+.tabsRow {
+  flex-shrink: 0;
+  width: 100%;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.contentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding-top: 12px;
+}

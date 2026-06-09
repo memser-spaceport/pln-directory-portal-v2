@@ -33,6 +33,7 @@ interface Props {
   backLabel?: string;
   onChange?: (value: Option | null) => void;
   renderOption?: (input: RenderOptionInput) => ReactNode;
+  formatOptionLabel?: (option: Option) => ReactNode;
   icon?: ReactNode;
   hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
   isClearable?: boolean; // Show cross icon to clear selected value
@@ -56,6 +57,7 @@ export const FormSelect = (props: Props) => {
     hideOptionsWhenEmpty,
     isClearable,
     selectRef: externalSelectRef,
+    formatOptionLabel,
   } = props;
 
   const {
@@ -136,12 +138,14 @@ export const FormSelect = (props: Props) => {
           </Field.Label>
         )}
         <Select
-          ref={((instance: SelectInstance | null) => {
-            internalSelectRef.current = instance;
-            if (externalSelectRef) {
-              (externalSelectRef as React.MutableRefObject<SelectInstance | null>).current = instance;
-            }
-          }) as any}
+          ref={
+            ((instance: SelectInstance | null) => {
+              internalSelectRef.current = instance;
+              if (externalSelectRef) {
+                (externalSelectRef as React.MutableRefObject<SelectInstance | null>).current = instance;
+              }
+            }) as any
+          }
           menuPlacement="auto"
           placeholder={placeholder}
           options={enhancedOptions}
@@ -158,6 +162,7 @@ export const FormSelect = (props: Props) => {
           isDisabled={disabled || open}
           inputId={name}
           isClearable={isClearable}
+          formatOptionLabel={formatOptionLabel}
           filterOption={(option, inputValue) => {
             if (hideOptionsWhenEmpty && !inputValue.trim()) {
               return false;
@@ -285,7 +290,7 @@ export const FormSelect = (props: Props) => {
                 <CloseIcon />
               </div>
             ),
-            NoOptionsMessage: (props, rest) => {
+            NoOptionsMessage: (props) => {
               return (
                 <div className={s.notFound}>
                   <span>No options found</span>

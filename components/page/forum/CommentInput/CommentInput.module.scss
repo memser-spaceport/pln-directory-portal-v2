@@ -18,6 +18,7 @@
 
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   background: #fff;
+  transition: transform 0.3s ease;
 
   @include media.tablet-landscape {
     display: none;
@@ -26,8 +27,6 @@
   :global(.ql-editor) {
     max-height: 40dvh;
   }
-
-  transition: transform 0.3s ease;
 
   &.hidden {
     transform: translateY(100%);

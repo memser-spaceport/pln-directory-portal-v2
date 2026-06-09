@@ -24,7 +24,8 @@ const DEMO_DAY_MATERIALS: Record<string, DemoDayMaterials> = {
     pitchDeckUrl: 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_preview.png',
     pitchVideoUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/pl-f25-demoday-video.mp4',
     pitchVideoPoster: 'https://plabs-assets.s3.us-west-1.amazonaws.com/Video_Preview_PL_DD_25.png',
-    materialDocPrep: 'https://docs.google.com/document/d/1Rtrbs6684K5XMAlAUiqdt2XESrkAiSTzEYhl5j8coOI/edit?tab=t.0#heading=h.th9rcgmw87qq',
+    materialDocPrep:
+      'https://docs.google.com/document/d/1Rtrbs6684K5XMAlAUiqdt2XESrkAiSTzEYhl5j8coOI/edit?tab=t.0#heading=h.th9rcgmw87qq',
   },
   plw26: {
     pitchDeckUrl: 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_preview.png',
@@ -32,12 +33,19 @@ const DEMO_DAY_MATERIALS: Record<string, DemoDayMaterials> = {
     pitchVideoPoster: 'https://plabs-assets.s3.us-west-1.amazonaws.com/pl-w26-video-poster.jpg',
     materialDocPrep: 'https://docs.google.com/document/d/1sed2j7HMPfY5X7RVmwQkEKMQOJvzArYyyFffC_Kn4WA/edit',
   },
+  ['partner26-1']: {
+    pitchDeckUrl: 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_preview.png',
+    pitchVideoUrl: 'https://plabs-assets.s3.us-west-1.amazonaws.com/partner26-1-demoday-video.mp4',
+    pitchVideoPoster: 'https://plabs-assets.s3.us-west-1.amazonaws.com/partner26-1-demoday-video-poster.jpg',
+    materialDocPrep: '',
+  },
   default: {
     pitchDeckUrl: 'https://pl-directory-images-dev.s3.us-west-1.amazonaws.com/demo_day_preview.png',
     pitchVideoUrl: '',
     pitchVideoPoster: '',
-    materialDocPrep: 'https://docs.google.com/document/d/1Rtrbs6684K5XMAlAUiqdt2XESrkAiSTzEYhl5j8coOI/edit?tab=t.0#heading=h.th9rcgmw87qq',
+    materialDocPrep: '',
   },
 };
 
-export const getDemoDayMaterials = (slug: string): DemoDayMaterials | undefined => DEMO_DAY_MATERIALS[slug] || DEMO_DAY_MATERIALS.default;
+export const getDemoDayMaterials = (slug: string): DemoDayMaterials | undefined =>
+  DEMO_DAY_MATERIALS[slug] || DEMO_DAY_MATERIALS.default;

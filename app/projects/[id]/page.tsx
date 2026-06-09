@@ -21,7 +21,8 @@ import ProjectStats from '@/components/page/project-details/stats';
 import { BackButton } from '@/components/ui/BackButton';
 import React from 'react';
 
-export default async function ProjectDetails({ params }: any) {
+export default async function ProjectDetails(props: any) {
+  const params = await props.params;
   const projectId = params?.id;
   const { isError, userInfo, hasEditAccess, hasDeleteAccess, project, focusAreas, authToken, osoInfo } =
     await getPageData(projectId);
@@ -119,7 +120,7 @@ export default async function ProjectDetails({ params }: any) {
 
 const getPageData = async (projectId: string) => {
   let isError = false;
-  const { authToken, isLoggedIn, userInfo } = getCookiesFromHeaders();
+  const { authToken, isLoggedIn, userInfo } = await getCookiesFromHeaders();
   let project = null;
   let osoInfo = null;
   let hasEditAccess = false;
@@ -199,13 +200,11 @@ const getPageData = async (projectId: string) => {
 };
 
 type IGenerateMetadata = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
-export async function generateMetadata(
-  { params, searchParams }: IGenerateMetadata,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata(props: IGenerateMetadata, parent: ResolvingMetadata): Promise<Metadata> {
+  const params = await props.params;
   const projectId = params.id;
   const projectResponse = await getProject(projectId, {});
   if (projectResponse?.error) {

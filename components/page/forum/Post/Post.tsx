@@ -47,9 +47,12 @@ export const processPostContent = (content: string) => {
   }
 
   // Convert markdown images to HTML img tags
-  const processedContent = content.replace(markdownImageRegex, (match, altText, imageUrl) => {
+  let processedContent = content.replace(markdownImageRegex, (match, altText, imageUrl) => {
     return `<img src="${imageUrl}" alt="${altText}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;" />`;
   });
+
+  // Quill 2 serializes spaces as &nbsp; /   which prevents line wrapping — replace with regular spaces
+  processedContent = processedContent.replace(/&nbsp;| /g, ' ');
 
   return {
     processedContent,

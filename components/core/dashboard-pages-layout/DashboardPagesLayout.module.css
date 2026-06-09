@@ -22,6 +22,10 @@
   background: #f1f5f9;
 }
 
+.contentFlush {
+  background: #fff;
+}
+
 @media (min-width: 1024px) {
   .content {
     display: flex;
@@ -29,9 +33,15 @@
     padding: 30px 24px 40px;
   }
 
+  .contentFlush {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .filters {
     display: block;
-    width: 300px;
+    width: var(--filter-width, 300px);
     border-right: 1px solid #e2e8f0;
     background: #fff;
     height: calc(100vh - var(--app-header-height));

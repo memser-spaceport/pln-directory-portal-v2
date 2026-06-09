@@ -161,7 +161,7 @@ const Badge = ({
         [s.disabled]: disabled,
       })}
     >
-      <span>{label}</span>{' '}
+      <span title={label}>{label}</span>{' '}
       <button type="button" onClick={onDelete} disabled={disabled}>
         <CloseIcon />
       </button>

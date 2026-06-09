@@ -73,6 +73,8 @@
   border-radius: 8px;
   gap: 12px;
   min-height: 44px;
+  min-width: 0;
+  overflow: hidden;
   //background: rgba(14, 15, 17, 0.02);
 
   &:hover {
@@ -93,6 +95,7 @@
   flex-wrap: wrap;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 }
 
 .textInput {
@@ -162,8 +165,8 @@
 }
 
 .badge {
-  @include mixins.ellipse-text;
-  display: flex;
+  display: inline-flex;
+  max-width: 100%;
   padding: 4px 6px;
   justify-content: center;
   align-items: center;
@@ -176,13 +179,14 @@
   font-weight: 300;
   line-height: 1;
   margin: 0;
-  width: fit-content;
   min-height: 33px;
   color: #455468;
   font-style: normal;
   letter-spacing: -0.2px;
 
   span {
+    @include mixins.ellipse-text;
+    min-width: 0;
     padding: 3px 3px 3px 6px;
   }
 
@@ -192,6 +196,7 @@
 
   > button {
     @include mixins.centralize;
+    flex-shrink: 0;
     padding: 2px 4px;
     height: 17px;
   }

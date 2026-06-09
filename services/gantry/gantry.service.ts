@@ -4,6 +4,8 @@ import type {
   GantryItem,
   GantryItemListResponse,
   GantryListParams,
+  GantryObjective,
+  GantryPinStatus,
   GantryStage,
   UpdateGantryItemPayload,
 } from './types';
@@ -24,6 +26,9 @@ function buildQuery(params: GantryListParams): string {
   }
   if (params.type?.length) {
     search.set('type', params.type.join(','));
+  }
+  if (params.objective?.length) {
+    search.set('objective', params.objective.join(','));
   }
   return search.toString();
 }
@@ -155,6 +160,38 @@ export async function declineGantryItem(uid: string, reason: string): Promise<Ga
     true,
   );
   return parseJsonOrThrow<GantryItem>(res, 'Failed to decline gantry item');
+}
+
+export async function fetchGantryObjectives(): Promise<GantryObjective[]> {
+  const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/roadmap/objectives`, { method: 'GET' }, true);
+  return parseJsonOrThrow<GantryObjective[]>(res, 'Failed to fetch gantry objectives');
+}
+
+export async function addGantryPin(uid: string): Promise<GantryItem> {
+  const res = await customFetch(
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
+    true,
+  );
+  return parseJsonOrThrow<GantryItem>(res, 'Failed to pin gantry item');
+}
+
+export async function removeGantryPin(uid: string): Promise<GantryItem> {
+  const res = await customFetch(
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
+    { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
+    true,
+  );
+  return parseJsonOrThrow<GantryItem>(res, 'Failed to unpin gantry item');
+}
+
+export async function fetchGantryPinStatus(): Promise<GantryPinStatus> {
+  const res = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/roadmap/me/pin-status`,
+    { method: 'GET' },
+    true,
+  );
+  return parseJsonOrThrow<GantryPinStatus>(res, 'Failed to fetch pin status');
 }
 
 export async function trackBuildButtonClick(uid: string): Promise<void> {

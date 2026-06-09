@@ -2,6 +2,7 @@
 
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { DEFAULT_ROADMAP_VISIBLE_COLUMNS, GANTRY_ROADMAP_COLUMN_STAGES } from '@/services/gantry/constants';
+import type { GantryObjective } from '@/services/gantry/types';
 import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.scss';
 import { RoadmapFiltersContent } from './RoadmapFiltersContent';
 
@@ -16,20 +17,36 @@ interface Props {
   readonly onSelectedTypesChange: (types: string[]) => void;
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
+  readonly objectives: GantryObjective[];
+  readonly selectedObjectives: string[];
+  readonly onSelectedObjectivesChange: (uids: string[]) => void;
 }
 
-export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange, searchText, onSearchTextChange }: Props) {
+export function RoadmapFilters({
+  visibleColumns,
+  onVisibleColumnsChange,
+  selectedTags,
+  onSelectedTagsChange,
+  selectedTypes,
+  onSelectedTypesChange,
+  searchText,
+  onSearchTextChange,
+  objectives,
+  selectedObjectives,
+  onSelectedObjectivesChange,
+}: Props) {
   const clearParams = () => {
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
     onSelectedTagsChange([]);
     onSelectedTypesChange([]);
+    onSelectedObjectivesChange([]);
     onSearchTextChange('');
   };
 
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}
+      appliedFiltersCount={selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText ? 1 : 0)}
       className={filterStyles.filterRail}
       hideFooter
     >
@@ -42,6 +59,9 @@ export function RoadmapFilters({ visibleColumns, onVisibleColumnsChange, selecte
         onSelectedTypesChange={onSelectedTypesChange}
         searchText={searchText}
         onSearchTextChange={onSearchTextChange}
+        objectives={objectives}
+        selectedObjectives={selectedObjectives}
+        onSelectedObjectivesChange={onSelectedObjectivesChange}
       />
     </FiltersSidePanel>
   );

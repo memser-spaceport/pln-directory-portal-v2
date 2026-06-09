@@ -50,20 +50,21 @@
 .upvote {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #8897ae;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #fff;
+  color: #374151;
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.2px;
   cursor: pointer;
-  transition: color 0.15s ease;
-  min-width: 24px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    color: #6b7b93;
+    background: #f9fafb;
+    border-color: rgba(14, 15, 17, 0.2);
   }
 
   &:disabled {
@@ -77,10 +78,54 @@
 }
 
 .upvoteActive {
-  color: #1b4dff;
+  background: #1b4dff;
+  border-color: #1b4dff;
+  color: #fff;
 
   &:hover:not(:disabled) {
-    color: #1640d6;
+    background: #1640d6;
+    border-color: #1640d6;
+  }
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: rgba(14, 15, 17, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pinIcon {
+  flex-shrink: 0;
+}
+
+.pinActive {
+  background: #1b4dff;
+  border-color: #1b4dff;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #1640d6;
+    border-color: #1640d6;
   }
 }
 

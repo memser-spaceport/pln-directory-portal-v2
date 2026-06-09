@@ -5,6 +5,8 @@ export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
   ITEM = 'gantry-item',
   FOCUS_AREAS = 'gantry-focus-areas',
+  OBJECTIVES = 'gantry-objectives',
+  PIN_STATUS = 'gantry-pin-status',
 }
 
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
@@ -50,15 +52,6 @@ export function isPreRoadmapStage(stage: (typeof GANTRY_STAGE_VALUES)[number]): 
   return (GANTRY_PRE_ROADMAP_STAGES as readonly string[]).includes(stage);
 }
 
-/** Most upvotes first; ties broken by most recently updated. */
-export function sortGantryItems(items: GantryItem[]): GantryItem[] {
-  return [...items].sort((a, b) => {
-    const countDiff = b.upvoteCount - a.upvoteCount;
-    if (countDiff !== 0) return countDiff;
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
-}
-
 /** Admin-curated order ASC; items with null order sort to the end. */
 export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
   return [...items].sort((a, b) => {
@@ -68,19 +61,6 @@ export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
     return a.order - b.order;
   });
 }
-
-/** Newest created first. */
-export function sortGantryItemsByDate(items: GantryItem[]): GantryItem[] {
-  return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-export const ROADMAP_SORT_OPTIONS = [
-  { value: 'default', label: 'Default' },
-  { value: 'upvotes', label: 'By upvotes' },
-  { value: 'date', label: 'By date' },
-] as const;
-
-export type RoadmapSortOption = (typeof ROADMAP_SORT_OPTIONS)[number]['value'];
 
 /**
  * Stage transitions are unrestricted for members with the transition permission —

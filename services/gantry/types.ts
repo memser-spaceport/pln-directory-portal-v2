@@ -8,6 +8,17 @@ export interface GantryMemberSummary {
   imageUrl: string | null;
 }
 
+export interface GantryObjective {
+  uid: string;
+  code: string;
+  label: string;
+}
+
+export interface GantryPinStatus {
+  limit: number;
+  used: number;
+}
+
 export interface GantryItem {
   uid: string;
   title: string;
@@ -15,6 +26,7 @@ export interface GantryItem {
   acceptanceCriteria: string | null;
   stage: GantryStage;
   focusArea: string | null;
+  objective: GantryObjective | null;
   tags: string[] | null;
   type: GantryItemType | null;
   order: number | null;
@@ -26,6 +38,8 @@ export interface GantryItem {
   externalTrackerUrl: string | null;
   upvoteCount: number;
   viewerHasUpvoted: boolean;
+  pinCount: number;
+  viewerHasPinned: boolean;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -39,6 +53,7 @@ export interface GantryItemListResponse {
 export interface GantryListParams {
   stage?: GantryStage[];
   focusArea?: string;
+  objective?: string[];
   tags?: string[];
   type?: string[];
   mine?: boolean;
@@ -62,6 +77,7 @@ export interface UpdateGantryItemPayload {
   description?: string;
   acceptanceCriteria?: string | null;
   focusArea?: string | null;
+  objectiveUid?: string | null;
   externalTrackerUrl?: string | null;
   tags?: string[];
   type?: GantryItemType | null;

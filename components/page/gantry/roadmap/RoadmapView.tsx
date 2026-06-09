@@ -1,6 +1,7 @@
 'use client';
 
 import { Children, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { clsx } from 'clsx';
 import {
   DndContext,
   DragEndEvent,
@@ -23,20 +24,18 @@ import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItems } from '@/services/gantry/hooks/useGantryItems';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
 import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
+import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
+import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
+import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives';
 import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_ROADMAP_COLUMN_STAGES,
   GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
-  ROADMAP_SORT_OPTIONS,
   isPreRoadmapStage,
-  sortGantryItems,
-  sortGantryItemsByDate,
   sortGantryItemsByDefault,
   sortRoadmapColumnStages,
-  type RoadmapSortOption,
 } from '@/services/gantry/constants';
 import { useReorderGantryItem } from '@/services/gantry/hooks/useReorderGantryItem';
-import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { stripHtml } from '@/utils/forum';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
@@ -107,6 +106,8 @@ export function RoadmapView() {
   const canCreate = canSetStageOnCreate || canCreateIdea;
   const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
+  const isAdminOrdering = canCurate;
+
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
     GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
     [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
@@ -121,17 +122,17 @@ export function RoadmapView() {
     setSelectedTypes(types);
     if (types.length > 0) analytics.onTypeFiltered(types);
   };
+  const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
+  const handleSelectedObjectivesChange = (uids: string[]) => {
+    setSelectedObjectives(uids);
+    if (uids.length > 0) analytics.onObjectivesFiltered(uids);
+  };
   const [searchText, setSearchText] = useState<string>('');
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
     if (text) analytics.onSearched(text);
   };
-  const [sortOption, setSortOption] = useState<RoadmapSortOption>('default');
-  const handleSortChange = (value: string) => {
-    setSortOption(value as RoadmapSortOption);
-    analytics.onSortChanged(value);
-  };
-  const isAdminOrdering = canCurate && sortOption === 'default';
+
   // Local uid-order overrides per stage, set immediately on admin drag so the display
   // doesn't depend on whether the backend has persisted the `order` field yet.
   const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
@@ -156,13 +157,19 @@ export function RoadmapView() {
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       type: selectedTypes.length > 0 ? selectedTypes : undefined,
+      objective: selectedObjectives.length > 0 ? selectedObjectives : undefined,
     }),
-    [orderedVisibleColumns, selectedTags, selectedTypes],
+    [orderedVisibleColumns, selectedTags, selectedTypes, selectedObjectives],
   );
 
   const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
+  const { data: objectives = [] } = useGantryObjectives();
+  const { data: pinStatus } = useGantryPinStatus(!!currentUser);
+  const pinsRemaining = pinStatus ? pinStatus.limit - pinStatus.used : null;
+
   const transition = useGantryTransition();
   const upvote = useGantryUpvote();
+  const pin = useGantryPin();
   const reorder = useReorderGantryItem();
 
   useEffect(() => {
@@ -264,10 +271,8 @@ export function RoadmapView() {
       map[item.stage].push(item);
     });
 
-    const sortFn =
-      sortOption === 'upvotes' ? sortGantryItems : sortOption === 'date' ? sortGantryItemsByDate : sortGantryItemsByDefault;
     orderedVisibleColumns.forEach((stage) => {
-      map[stage] = sortFn(map[stage]);
+      map[stage] = sortGantryItemsByDefault(map[stage]);
 
       // Apply local admin ordering override: preserves the user's drag position even
       // when the server hasn't persisted the `order` field yet.
@@ -281,7 +286,7 @@ export function RoadmapView() {
     });
 
     return map;
-  }, [data?.items, orderedVisibleColumns, searchText, sortOption, adminOrderMap]);
+  }, [data?.items, orderedVisibleColumns, searchText, adminOrderMap]);
 
   const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
     if (nextStage === 'DECLINED') {
@@ -403,7 +408,7 @@ export function RoadmapView() {
         return;
       }
 
-      // Same stage → within-column reorder (admin only, default sort only)
+      // Same stage → within-column reorder (admin only)
       if (!isAdminOrdering) return;
       await applyReorder(activeId, overId);
       return;
@@ -436,6 +441,27 @@ export function RoadmapView() {
     if (nextHasUpvoted) analytics.onItemUpvoted(uid);
   };
 
+  const handlePinToggle = async (uid: string, nextIsPinned: boolean) => {
+    await pin.mutateAsync({ uid, nextIsPinned });
+    if (nextIsPinned) analytics.onItemPinned(uid);
+    else analytics.onItemUnpinned(uid);
+  };
+
+  const activeFiltersCount =
+    selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText ? 1 : 0);
+
+  const pinStatusIndicator = pinStatus ? (
+    <div className={s.pinStatus} aria-label={`${pinsRemaining} pins remaining`}>
+      {pinStatus.limit <= 5 ? (
+        Array.from({ length: pinStatus.limit }, (_, i) => (
+          <span key={i} className={clsx(s.pinDot, i < pinStatus.used && s.pinDotUsed)} aria-hidden />
+        ))
+      ) : (
+        <span className={s.pinStatusText}>{pinsRemaining} of {pinStatus.limit} left</span>
+      )}
+    </div>
+  ) : null;
+
   if (isNarrow) {
     return (
       <div className={s.pageLayout}>
@@ -446,11 +472,7 @@ export function RoadmapView() {
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
                   <div className={s.mobileActionsRow}>
-                    <SortDropdown
-                      options={ROADMAP_SORT_OPTIONS}
-                      currentSort={sortOption}
-                      onSortChange={handleSortChange}
-                    />
+                    {pinStatusIndicator}
                     <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
                       <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
                         <path
@@ -461,8 +483,8 @@ export function RoadmapView() {
                         />
                       </svg>
                       Filters
-                      {selectedTags.length + selectedTypes.length + (searchText ? 1 : 0) > 0 && (
-                        <span className={s.filtersButtonBadge}>{selectedTags.length + selectedTypes.length + (searchText ? 1 : 0)}</span>
+                      {activeFiltersCount > 0 && (
+                        <span className={s.filtersButtonBadge}>{activeFiltersCount}</span>
                       )}
                     </button>
                     {canCreate && (
@@ -524,12 +546,17 @@ export function RoadmapView() {
                           {searchText ? 'No items match your search.' : 'No items in this stage.'}
                         </p>
                       ) : (
-                        itemsByStage[stage].map((item) => (
+                        itemsByStage[stage].map((item, index) => (
                           <RoadmapCard
                             key={item.uid}
                             item={item}
+                            position={index + 1}
+                            isAdminOrdering={isAdminOrdering}
                             canUpvote={canUpvote}
                             onUpvoteToggle={handleUpvoteToggle}
+                            canPin={!!currentUser}
+                            onPinToggle={handlePinToggle}
+                            isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
                           />
                         ))
                       )}
@@ -551,6 +578,9 @@ export function RoadmapView() {
             onSelectedTypesChange={handleSelectedTypesChange}
             searchText={searchText}
             onSearchTextChange={handleSearchTextChange}
+            objectives={objectives}
+            selectedObjectives={selectedObjectives}
+            onSelectedObjectivesChange={handleSelectedObjectivesChange}
           />
         </MobileDrawer>
 
@@ -578,6 +608,9 @@ export function RoadmapView() {
             onSelectedTypesChange={handleSelectedTypesChange}
             searchText={searchText}
             onSearchTextChange={handleSearchTextChange}
+            objectives={objectives}
+            selectedObjectives={selectedObjectives}
+            onSelectedObjectivesChange={handleSelectedObjectivesChange}
           />
         }
         content={
@@ -602,11 +635,7 @@ export function RoadmapView() {
                     </p>
                   </div>
                   <div className={s.actions}>
-                    <SortDropdown
-                      options={ROADMAP_SORT_OPTIONS}
-                      currentSort={sortOption}
-                      onSortChange={handleSortChange}
-                    />
+                    {pinStatusIndicator}
                     {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
@@ -653,12 +682,17 @@ export function RoadmapView() {
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
                           dropPreviewIndex={dropPreview?.columnId === stage ? dropPreview.insertIndex : undefined}
                         >
-                          {itemsByStage[stage].map((item) => (
+                          {itemsByStage[stage].map((item, index) => (
                             <RoadmapCard
                               key={item.uid}
                               item={item}
+                              position={index + 1}
+                              isAdminOrdering={isAdminOrdering}
                               canUpvote={canUpvote}
                               onUpvoteToggle={handleUpvoteToggle}
+                              canPin={!!currentUser}
+                              onPinToggle={handlePinToggle}
+                              isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
                             />
                           ))}
                         </RoadmapDropColumn>
@@ -671,6 +705,9 @@ export function RoadmapView() {
                           width={activeDragWidth ?? undefined}
                           canUpvote={canUpvote}
                           onUpvoteToggle={handleUpvoteToggle}
+                          canPin={!!currentUser}
+                          onPinToggle={handlePinToggle}
+                          isPinDisabled={false}
                         />
                       ) : null}
                     </DragOverlay>

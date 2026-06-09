@@ -146,10 +146,10 @@ const faqCategories: FAQCategoryData[] = [
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.54% of 10,000 rights = 1,453 rights available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.64% of 10,000 rights = 1,463 rights available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your tokens: 10% × 1,453 = ~146 tokens</li>
+                <li>Your tokens: 10% × 1,463 = ~146 tokens</li>
               </ul>
             </div>
 
@@ -454,7 +454,7 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'When do I receive payment for the rights sold?',
-        answer: 'Payments will be processed as soon as possible after winners have confirmed they want to sell their rights back to the Trust and Surus receives the payment information requested.',
+        answer: 'Payments will be processed as soon as reasonably practicable after auction winners are notified of their accepted bids and Surus receives any payment information required to complete settlement.',
       },
     ],
   },

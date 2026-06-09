@@ -581,6 +581,7 @@ export function RoadmapView() {
                             onPinToggle={handlePinToggle}
                             isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
                             canCurate={canCurate}
+                            warnPinOrder={index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount}
                           />
                         ))
                       )}
@@ -725,6 +726,7 @@ export function RoadmapView() {
                               onPinToggle={handlePinToggle}
                               isPinDisabled={!item.viewerHasPinned && (pinsRemaining !== null && pinsRemaining <= 0)}
                               canCurate={canCurate}
+                              warnPinOrder={index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount}
                             />
                           ))}
                         </RoadmapDropColumn>

@@ -16,15 +16,25 @@ import s from './Roadmap.module.scss';
 const USE_MOCK_PINNERS = true;
 
 const MOCK_NAMES = [
-  'Brad Eccles', 'Lacey Kane', 'La Christa Eccles', 'Aboud Jardaneh',
-  'Sarah Chen', 'Mike Torres', 'Julia Park', 'Alex Williams', 'Emma Davis', 'James Lee',
+  'Brad Eccles',
+  'Lacey Kane',
+  'La Christa Eccles',
+  'Aboud Jardaneh',
+  'Sarah Chen',
+  'Mike Torres',
+  'Julia Park',
+  'Alex Williams',
+  'Emma Davis',
+  'James Lee',
 ];
 const MOCK_NOTES = [
   'Saves the ops team ~4 hrs/week of manual sync.',
   'Critical for our Q3 launch.',
   'Blocking multiple team workflows.',
   'Needed before next release cut.',
-  null, null, null,
+  null,
+  null,
+  null,
 ];
 function getMockPinners(item: GantryItem): GantryPinner[] {
   if (item.pinCount <= 0) return [];
@@ -49,7 +59,12 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 function initials(name: string) {
-  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
 }
 
 const MAX_PINNERS_VISIBLE = 3;
@@ -69,12 +84,16 @@ function CardPinnersSection({ item }: { item: GantryItem }) {
         const c = avatarColor(p.name);
         return (
           <div key={p.uid} className={s.pinnerRow}>
-            <span className={s.pinnerAvatar} style={{ background: c.bg, color: c.text }}>{initials(p.name)}</span>
+            <span className={s.pinnerAvatar} style={{ background: c.bg, color: c.text }}>
+              {initials(p.name)}
+            </span>
             <div className={s.pinnerInfo}>
               <span className={s.pinnerName}>{p.name}</span>
-              {p.note
-                ? <span className={s.pinnerNote}>{p.note}</span>
-                : <span className={s.pinnerNoNote}>No note</span>}
+              {p.note ? (
+                <span className={s.pinnerNote}>{p.note}</span>
+              ) : (
+                <span className={s.pinnerNoNote}>No note</span>
+              )}
             </div>
           </div>
         );
@@ -114,6 +133,7 @@ interface CardContentProps {
   readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
   readonly isPinDisabled: boolean;
   readonly canCurate: boolean;
+  readonly warnPinOrder?: boolean;
 }
 
 function RoadmapCardContent({
@@ -126,6 +146,7 @@ function RoadmapCardContent({
   onPinToggle,
   isPinDisabled,
   canCurate,
+  warnPinOrder,
 }: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
   const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
@@ -162,7 +183,9 @@ function RoadmapCardContent({
       {item.tags && item.tags.length > 0 && (
         <div className={s.cardTags} aria-label={`Tags: ${item.tags.join(', ')}`}>
           {item.tags.map((tag) => (
-            <span key={tag} className={s.cardTagChip}>{tag}</span>
+            <span key={tag} className={s.cardTagChip}>
+              {tag}
+            </span>
           ))}
         </div>
       )}
@@ -193,16 +216,26 @@ function RoadmapCardContent({
         </div>
       </div>
 
+      {warnPinOrder && position !== undefined && (
+        <div className={s.pinOrderWarning}>
+          <WarningIcon />
+          <span>
+            High demand ({item.pinCount} pins) vs. rank #{position} — revisit?
+          </span>
+        </div>
+      )}
+
       {item.stage === 'IN_PROGRESS' && (
         <p className={s.cardFrozenNote}>
-          <span className={s.cardFrozenBullet}>*</span>
-          {' '}Counts frozen — entered with {item.pinCount ?? 0} pins
+          <span className={s.cardFrozenBullet}>*</span> Counts frozen — entered with {item.pinCount ?? 0} pins
         </p>
       )}
+
       {(item.stage === 'SHIPPED' || item.stage === 'DECLINED') && (
         <p className={s.cardFinalNote}>
           <ClockIcon />
-          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.upvoteCount} thumbs · {item.pinCount ?? 0} pins
+          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.upvoteCount} thumbs · {item.pinCount ?? 0}{' '}
+          pins
         </p>
       )}
 
@@ -215,7 +248,6 @@ interface Props extends CardContentProps {
   readonly isAdminOrdering: boolean;
 }
 
-
 export function RoadmapCard({
   item,
   position,
@@ -226,6 +258,7 @@ export function RoadmapCard({
   onPinToggle,
   isPinDisabled,
   canCurate,
+  warnPinOrder,
 }: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -261,6 +294,7 @@ export function RoadmapCard({
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
         canCurate={canCurate}
+        warnPinOrder={warnPinOrder}
       />
     </article>
   );
@@ -270,7 +304,18 @@ interface DragOverlayProps extends CardContentProps {
   readonly width?: number;
 }
 
-export function RoadmapCardDragOverlay({ item, width, position, canUpvote, onUpvoteToggle, canPin, onPinToggle, isPinDisabled, canCurate }: DragOverlayProps) {
+export function RoadmapCardDragOverlay({
+  item,
+  width,
+  position,
+  canUpvote,
+  onUpvoteToggle,
+  canPin,
+  onPinToggle,
+  isPinDisabled,
+  canCurate,
+  warnPinOrder,
+}: DragOverlayProps) {
   return (
     <article className={s.cardDragOverlay} style={width ? { width } : undefined}>
       <RoadmapCardContent
@@ -282,6 +327,7 @@ export function RoadmapCardDragOverlay({ item, width, position, canUpvote, onUpv
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
         canCurate={canCurate}
+        warnPinOrder={warnPinOrder}
       />
     </article>
   );
@@ -314,7 +360,23 @@ function ClockIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
       <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M6 3.5V6l1.75 1.75" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 3.5V6l1.75 1.75"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function WarningIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path d="M7 1.5L13 12.5H1L7 1.5Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M7 5.5V8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <circle cx="7" cy="10.25" r="0.75" fill="currentColor" />
     </svg>
   );
 }

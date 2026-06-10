@@ -139,7 +139,10 @@ function RoadmapCardContent({
         </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
         {item.objective && (
-          <span className={s.objectiveBadge}>O{item.objective.order}</span>
+          <span className={s.objectiveBadge}>
+            <span className={s.objectiveDot} aria-hidden />
+            O{item.objective.order}
+          </span>
         )}
       </div>
 

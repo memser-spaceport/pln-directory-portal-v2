@@ -1,7 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
+import { useTeamPitchEditContext } from '@/components/page/pitch/TeamPitchEditContext';
 import { DemoDayQueryKeys } from '@/services/demo-day/constants';
 import { getOnePagerUploadUrl, confirmOnePagerUpload, uploadOnePagerPreview } from '../fundraising-profile.service';
+import {
+  confirmTeamPitchOnePagerUpload,
+  getTeamPitchOnePagerUploadUrl,
+  uploadTeamPitchOnePagerPreview,
+} from '@/services/team-pitch/team-pitch-profile.service';
+import { invalidateTeamPitchQueries } from '@/services/team-pitch/invalidateTeamPitchQueries';
 import { uploadToS3 } from '@/utils/s3-upload.utils';
 import { generatePdfPreview } from '@/utils/pdf-preview.utils';
 
@@ -14,6 +21,40 @@ interface UploadOnePagerParams {
   file: File;
   teamUid?: string; // Optional team UID for admin uploads
   onProgress?: (progress: number, status?: string) => void; // Progress callback with optional status
+}
+
+async function uploadPitchOnePager(pitchSlug: string, params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
+  const { file, onProgress } = params;
+
+  const { uploadUid, presignedUrl } = await getTeamPitchOnePagerUploadUrl(pitchSlug, {
+    filename: file.name,
+    filesize: file.size,
+    mimetype: file.type,
+  });
+
+  await uploadToS3(file, presignedUrl, file.type, (progress) => {
+    onProgress?.(progress, 'Uploading');
+  });
+
+  const result = await confirmTeamPitchOnePagerUpload(pitchSlug, uploadUid);
+
+  try {
+    if (file.type === 'application/pdf') {
+      onProgress?.(100, 'Processing');
+
+      const previewImage = await generatePdfPreview(file, 4.0, 'jpeg', 0.95);
+      const previewImageSmall = await generatePdfPreview(file, 1, 'jpeg', 0.7);
+
+      await uploadTeamPitchOnePagerPreview(pitchSlug, {
+        previewImage,
+        previewImageSmall,
+      });
+    }
+  } catch (previewError) {
+    console.warn('Failed to generate/upload team pitch preview image:', previewError);
+  }
+
+  return result;
 }
 
 async function uploadOnePager(demoDayId: string, params: UploadOnePagerParams): Promise<UploadOnePagerResponse> {
@@ -79,14 +120,19 @@ export function useUploadOnePager() {
   const queryClient = useQueryClient();
   const params = useParams();
   const demoDayId = params.demoDayId as string;
+  const { pitchSlug } = useTeamPitchEditContext();
 
   return useMutation({
-    mutationFn: (uploadParams: UploadOnePagerParams) => uploadOnePager(demoDayId, uploadParams),
+    mutationFn: (uploadParams: UploadOnePagerParams) =>
+      pitchSlug ? uploadPitchOnePager(pitchSlug, uploadParams) : uploadOnePager(demoDayId, uploadParams),
     onSuccess: (_, variables) => {
-      // Invalidate and refetch the fundraising profile data
+      if (pitchSlug) {
+        invalidateTeamPitchQueries(queryClient, pitchSlug);
+        return;
+      }
+
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_FUNDRAISING_PROFILE, demoDayId] });
       queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_TEAMS_LIST, demoDayId] });
-      // Only invalidate admin list if uploading as admin
       if (variables.teamUid) {
         queryClient.invalidateQueries({ queryKey: [DemoDayQueryKeys.GET_ALL_FUNDRAISING_PROFILES, demoDayId] });
       }

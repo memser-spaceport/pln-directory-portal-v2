@@ -6,6 +6,8 @@ import { IMember, IMemberPreferences } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 import { TEditContactForm } from '@/components/page/member-details/ContactDetails/types';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
+import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
+import { EditOfficeHoursMobileControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursMobileControls';
 import Image from 'next/image';
 import { omit } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
@@ -178,7 +180,11 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
   return (
     <FormProvider {...methods}>
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
-        <EditFormControls onClose={onClose} title="Edit Contact Details" />
+        {variant === 'drawer' ? (
+          <EditOfficeHoursFormControls onClose={onClose} title="Edit Contact Details" />
+        ) : (
+          <EditFormControls onClose={onClose} title="Edit Contact Details" />
+        )}
         <div className={s.body}>
           <div className={s.row}>
             <Image src={getContactLogoByProvider('email')} alt="Email" height={24} width={24} />
@@ -238,7 +244,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
             </div>
           )}
         </div>
-        <EditFormMobileControls />
+        {variant === 'drawer' ? <EditOfficeHoursMobileControls /> : <EditFormMobileControls />}
       </form>
     </FormProvider>
   );

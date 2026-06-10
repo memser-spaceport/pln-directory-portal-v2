@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
-import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
+import {
+  useTeamPitchExpressInterest,
+  PitchInterestType,
+} from '@/services/team-pitch/hooks/useTeamPitchExpressInterest';
+import { DemoDayModeType, useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -38,6 +41,11 @@ interface TeamProfileCardProps {
   onInvestCompany?: (team: TeamProfile) => void;
   isAdmin?: boolean;
   canEdit?: boolean;
+  pitchSlug?: string;
+  isPrepPitch?: boolean;
+  hideSave?: boolean;
+  showStageAlways?: boolean;
+  pageContext?: string;
 }
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
@@ -45,13 +53,18 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   onClick,
   isAdmin = false,
   canEdit: canEditTeams,
+  pitchSlug,
+  isPrepPitch = false,
+  hideSave = false,
+  showStageAlways = false,
+  pageContext = 'active-view',
 }) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const descriptionRef = React.useRef<HTMLParagraphElement>(null);
   const params = useParams();
-  const slug = params.demoDayId as string;
+  const slug = pitchSlug ?? (params.demoDayId as string);
 
   // Analytics hooks
   const {
@@ -70,37 +83,42 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     onActiveViewVideoWatchTime,
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest(team.team?.name);
+  const demoDayExpressInterest = useExpressInterest(team.team?.name);
+  const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', team.team?.name);
+  const expressInterest = pitchSlug ? pitchExpressInterest : demoDayExpressInterest;
   const saveTeam = useSaveTeam();
   const { currentUser: userInfo } = useCurrentUserStore();
-  const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
-  const isPrepDemoDay = useIsPrepDemoDay();
-  const demoDayMode = useDemoDayMode();
+  const canEdit = pitchSlug
+    ? !!canEditTeams
+    : isAdmin
+      ? (canEditTeams ?? true)
+      : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const isPrepDemoDayHook = useIsPrepDemoDay();
+  const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
+  const demoDayModeHook = useDemoDayMode();
+  const demoDayMode = pitchSlug ? 'active' : demoDayModeHook;
   const { data: demoDayData } = useGetDemoDayState();
 
-  // Analytics helper function for team details
-  const getTeamAnalyticsData = () => ({
-    teamName: team.team?.name,
-    teamUid: team.uid,
-    teamShortDescription: team.team?.shortDescription,
-    fundingStage: team.team?.fundingStage?.title,
-    fundingStageUid: team.team?.fundingStage?.uid,
-    industryTags: team.team?.industryTags?.map((tag) => tag.title),
-    industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
-    foundersCount: team.founders?.length || 0,
-    founderNames: team.founders?.map((f) => f.name),
-    hasLogo: !!team.team?.logo?.url,
-  });
+  const getTeamAnalyticsData = useCallback(
+    () => ({
+      teamName: team.team?.name,
+      teamUid: team.uid,
+      teamShortDescription: team.team?.shortDescription,
+      fundingStage: team.team?.fundingStage?.title,
+      fundingStageUid: team.team?.fundingStage?.uid,
+      industryTags: team.team?.industryTags?.map((tag) => tag.title),
+      industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+      foundersCount: team.founders?.length || 0,
+      founderNames: team.founders?.map((f) => f.name),
+      hasLogo: !!team.team?.logo?.url,
+    }),
+    [team],
+  );
 
-  // Handle card visibility tracking
   const handleCardVisible = useCallback(() => {
     if (!userInfo?.email) return;
-
-    const analyticsData = getTeamAnalyticsData();
-
-    // PostHog analytics
-    onActiveViewTeamCardViewed(analyticsData);
-  }, [userInfo, team, onActiveViewTeamCardViewed, reportAnalytics]);
+    onActiveViewTeamCardViewed(getTeamAnalyticsData());
+  }, [userInfo?.email, getTeamAnalyticsData, onActiveViewTeamCardViewed]);
 
   // Track card visibility using Intersection Observer
   const cardRef = useCardVisibilityTracking<HTMLDivElement>({
@@ -218,12 +236,20 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       reportAnalytics.mutate(interestEvent);
     }
 
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: interestType,
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: interestType as PitchInterestType,
+        isPrep: isPrepPitch,
+      });
+    } else {
+      demoDayExpressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: interestType,
+        isPrepDemoDay,
+        demoDayMode: demoDayMode as DemoDayModeType | undefined,
+      });
+    }
   };
 
   const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
@@ -257,14 +283,22 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       reportAnalytics.mutate(referEvent);
     }
 
-    // Express interest via API with referral data
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: 'referral',
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-      referralData,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: 'referral',
+        isPrep: isPrepPitch,
+        referralData,
+      });
+    } else {
+      demoDayExpressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'referral',
+        isPrepDemoDay,
+        demoDayMode: demoDayMode as DemoDayModeType | undefined,
+        referralData,
+      });
+    }
 
     // Close modal
     setIsReferModalOpen(false);
@@ -329,21 +363,28 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       reportAnalytics.mutate(feedbackSubmittedEvent);
     }
 
-    // Express interest via API with feedback data
-    expressInterest.mutate(
-      {
-        teamFundraisingProfileUid: team.uid,
-        interestType: 'feedback' as InterestType,
-        isPrepDemoDay,
-        demoDayMode: demoDayMode ?? undefined,
-        feedbackData,
-      },
-      {
-        onSuccess: () => {
-          setIsFeedbackModalOpen(false);
+    if (pitchSlug) {
+      pitchExpressInterest.mutate(
+        {
+          teamPitchProfileUid: team.uid,
+          interestType: 'feedback',
+          isPrep: isPrepPitch,
+          feedbackData,
         },
-      },
-    );
+        { onSuccess: () => setIsFeedbackModalOpen(false) },
+      );
+    } else {
+      demoDayExpressInterest.mutate(
+        {
+          teamFundraisingProfileUid: team.uid,
+          interestType: 'feedback' as InterestType,
+          isPrepDemoDay,
+          demoDayMode: demoDayMode as DemoDayModeType | undefined,
+          feedbackData,
+        },
+        { onSuccess: () => setIsFeedbackModalOpen(false) },
+      );
+    }
   };
 
   // Analytics handlers for media viewing
@@ -455,8 +496,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
-        program={team.program ?? undefined}
-        showStage={demoDayData?.stageTagEnabled !== false}
+        program={pitchSlug ? undefined : (team.program ?? undefined)}
+        showStage={showStageAlways || demoDayData?.stageTagEnabled !== false}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
         uid={team?.team?.uid}
@@ -466,7 +507,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
       >
         <div className={s.linksWrapper}>
-          {team.analyticsReportUrl && (
+          {!pitchSlug && team.analyticsReportUrl && (
             <Link
               className={s.link}
               href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
@@ -476,54 +517,55 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
               <ChartIcon /> Demo Day Stats
             </Link>
           )}
-          <button
-            className={s.drawerEditButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
+          {!hideSave && !pitchSlug && (
+            <button
+              className={s.drawerEditButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
 
-              // Report analytics for save/unsave click
-              if (userInfo?.email) {
-                const analyticsData = getTeamAnalyticsData();
-                onActiveViewLikeCompanyClicked(analyticsData);
+                if (userInfo?.email) {
+                  const analyticsData = getTeamAnalyticsData();
+                  onActiveViewLikeCompanyClicked(analyticsData);
 
-                const saveEvent: TrackEventDto = {
-                  name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
-                  distinctId: userInfo.email,
-                  properties: {
-                    userId: userInfo.uid,
-                    userEmail: userInfo.email,
-                    userName: userInfo.name,
-                    path: '/demoday',
-                    timestamp: new Date().toISOString(),
-                    action: team.saved ? 'unsave_company' : 'save_company',
-                    ...analyticsData,
-                  },
-                };
+                  const saveEvent: TrackEventDto = {
+                    name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
+                    distinctId: userInfo.email,
+                    properties: {
+                      userId: userInfo.uid,
+                      userEmail: userInfo.email,
+                      userName: userInfo.name,
+                      path: '/demoday',
+                      timestamp: new Date().toISOString(),
+                      action: team.saved ? 'unsave_company' : 'save_company',
+                      ...analyticsData,
+                    },
+                  };
 
-                reportAnalytics.mutate(saveEvent);
-              }
+                  reportAnalytics.mutate(saveEvent);
+                }
 
-              saveTeam.mutate({
-                teamFundraisingProfileUid: team.uid,
-                isPrepDemoDay,
-                isSaved: !!team.saved,
-              });
-            }}
-            disabled={saveTeam.isPending || !team.uid}
-          >
-            {team.saved ? (
-              <>
-                <BookmarkIconFilled />
-                <span>Unsave</span>
-              </>
-            ) : (
-              <>
-                <BookmarkIcon />
-                <span>Save</span>
-              </>
-            )}
-          </button>
+                saveTeam.mutate({
+                  teamFundraisingProfileUid: team.uid,
+                  isPrepDemoDay,
+                  isSaved: !!team.saved,
+                });
+              }}
+              disabled={saveTeam.isPending || !team.uid}
+            >
+              {team.saved ? (
+                <>
+                  <BookmarkIconFilled />
+                  <span>Unsave</span>
+                </>
+              ) : (
+                <>
+                  <BookmarkIcon />
+                  <span>Save</span>
+                </>
+              )}
+            </button>
+          )}
           <div className={s.editButtonContainer}>
             <div className={s.drawerEditButton}>
               {canEdit ? <EditIcon /> : <EyeIcon />}
@@ -575,7 +617,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onGiveFeedback={handleGiveFeedbackClick}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
-        isLoading={expressInterest.isPending}
+        isLoading={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
         variant="card"
         userInfo={userInfo ?? undefined}
       />
@@ -613,7 +655,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
         onSubmit={handleReferSubmit}
         teamName={team?.team?.name || 'this company'}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
       />
 
       {/* Give Feedback Modal */}
@@ -622,7 +664,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onClose={() => setIsFeedbackModalOpen(false)}
         onSubmit={handleFeedbackSubmit}
         teamName={team?.team?.name || 'this company'}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
       />
     </div>
   );

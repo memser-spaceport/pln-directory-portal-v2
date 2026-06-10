@@ -141,18 +141,29 @@ export function RoadmapView() {
     if (nextHasUpvoted) analytics.onItemUpvoted(uid);
   };
 
-  const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => ({
-    item,
-    position: index + 1,
-    isAdminOrdering,
-    canUpvote,
-    onUpvoteToggle: handleUpvoteToggle,
-    canPin: !!currentUser,
-    onPinToggle: handlePinToggle,
-    isPinDisabled: false,
-    canCurate,
-    warnPinOrder: index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
-  });
+  // pinStatus.pins is the authoritative source for the current user's pins.
+  // viewerHasPinned on individual items can lag if the server hasn't updated
+  // the list endpoint — reconcile here so the pin button always reflects reality.
+  const viewerPinnedUids = useMemo(
+    () => new Set(pinStatus?.pins.map((p) => p.item.uid) ?? []),
+    [pinStatus?.pins],
+  );
+
+  const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => {
+    const viewerHasPinned = item.viewerHasPinned || viewerPinnedUids.has(item.uid);
+    return {
+      item: viewerHasPinned !== item.viewerHasPinned ? { ...item, viewerHasPinned } : item,
+      position: index + 1,
+      isAdminOrdering,
+      canUpvote,
+      onUpvoteToggle: handleUpvoteToggle,
+      canPin: !!currentUser,
+      onPinToggle: handlePinToggle,
+      isPinDisabled: false,
+      canCurate,
+      warnPinOrder: index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+    };
+  };
 
   const pinStatusIndicator = pinStatus ? (
     <div

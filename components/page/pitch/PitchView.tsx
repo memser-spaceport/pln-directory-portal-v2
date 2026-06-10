@@ -235,6 +235,7 @@ export const PitchView = () => {
               canEdit={canEdit}
               isAdmin={access.isPitchAdmin}
               pitchSlug={slug}
+              isPrepPitch={access.status === 'DRAFT' || access.isPitchAdmin}
             />
           )}
         </>

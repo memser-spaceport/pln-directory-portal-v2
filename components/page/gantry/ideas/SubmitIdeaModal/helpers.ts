@@ -21,6 +21,11 @@ const typeSchema = yup
   .nullable()
   .optional();
 
+const objectiveSchema = yup
+  .object({ label: yup.string().required(), value: yup.string().required() })
+  .nullable()
+  .optional();
+
 export const submitIdeaSchema = yup.object().shape({
   title: yup
     .string()
@@ -43,6 +48,7 @@ export const submitIdeaSchema = yup.object().shape({
     .optional(),
   tags: tagsSchema,
   type: typeSchema,
+  objective: objectiveSchema,
 });
 
 export const editIdeaSchema = yup.object().shape({
@@ -61,6 +67,7 @@ export interface SubmitIdeaFormData {
   stage?: Option | null;
   tags?: Option[];
   type?: Option | null;
+  objective?: Option | null;
 }
 
 /** True when the rich-text value has visible content (ignores empty Quill markup). */

@@ -12,6 +12,7 @@ import {
   GANTRY_TAG_OPTIONS,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
+import type { GantryObjective } from '@/services/gantry/types';
 import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.scss';
 import type { RoadmapColumnStage } from './RoadmapFilters';
 
@@ -24,9 +25,24 @@ interface Props {
   readonly onSelectedTypesChange: (types: string[]) => void;
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
+  readonly objectives: GantryObjective[];
+  readonly selectedObjective: string | null;
+  readonly onSelectedObjectiveChange: (uid: string | null) => void;
 }
 
-export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, selectedTags, onSelectedTagsChange, selectedTypes, onSelectedTypesChange, searchText, onSearchTextChange }: Props) {
+export function RoadmapFiltersContent({
+  visibleColumns,
+  onVisibleColumnsChange,
+  selectedTags,
+  onSelectedTagsChange,
+  selectedTypes,
+  onSelectedTypesChange,
+  searchText,
+  onSearchTextChange,
+  objectives,
+  selectedObjective,
+  onSelectedObjectiveChange,
+}: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
       onVisibleColumnsChange(visibleColumns.filter((s) => s !== stage));
@@ -62,6 +78,26 @@ export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, 
         </div>
       </FilterSection>
 
+      {objectives.length > 0 && (
+        <FilterSection title="Objective">
+          <div>
+            {objectives.map((obj) => (
+              <CheckboxListItemRepresentation
+                key={obj.uid}
+                label={
+                  <span className={filterStyles.objectiveFilterLabel}>
+                    <span className={filterStyles.objectiveFilterCode}>O{obj.order}</span>
+                    <span className={filterStyles.objectiveFilterTitle}>{obj.title}</span>
+                  </span>
+                }
+                checked={selectedObjective === obj.uid}
+                onClick={() => onSelectedObjectiveChange(selectedObjective === obj.uid ? null : obj.uid)}
+              />
+            ))}
+          </div>
+        </FilterSection>
+      )}
+
       <FilterSection title="Tags">
         <FilterMultiSelect
           options={GANTRY_TAG_OPTIONS}
@@ -74,13 +110,22 @@ export function RoadmapFiltersContent({ visibleColumns, onVisibleColumnsChange, 
       </FilterSection>
 
       <FilterSection title="Type">
-        <FilterMultiSelect
-          options={GANTRY_ITEM_TYPE_OPTIONS}
-          value={GANTRY_ITEM_TYPE_OPTIONS.filter((o) => selectedTypes.includes(o.value))}
-          onChange={(opts) => onSelectedTypesChange(opts.map((o) => o.value))}
-          placeholder="Filter by type..."
-          aria-label="Filter by type"
-        />
+        <div>
+          {GANTRY_ITEM_TYPE_OPTIONS.map((opt) => (
+            <CheckboxListItemRepresentation
+              key={opt.value}
+              label={opt.label}
+              checked={selectedTypes.includes(opt.value)}
+              onClick={() => {
+                if (selectedTypes.includes(opt.value)) {
+                  onSelectedTypesChange(selectedTypes.filter((t) => t !== opt.value));
+                } else {
+                  onSelectedTypesChange([...selectedTypes, opt.value]);
+                }
+              }}
+            />
+          ))}
+        </div>
       </FilterSection>
     </>
   );

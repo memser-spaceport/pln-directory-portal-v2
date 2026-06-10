@@ -11,3 +11,84 @@
     0px 10px 20px -5px rgba(14, 15, 17, 0.06),
     0px 20px 65px -5px rgba(14, 15, 17, 0.06);
 }
+
+.objectiveField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(27, 56, 96, 0.08);
+}
+
+.objectiveLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #455468;
+}
+
+.objectiveCreateBtn {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6d28d9;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.objectiveCreateForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8f7ff;
+  border: 1px solid #ede9fe;
+}
+
+.objectiveCreateInput {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #ddd6fe;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1e1b4b;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+  }
+}
+
+.objectiveCreateMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.objectiveCharCount {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.objectiveCancelBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+
+  &:hover {
+    color: #64748b;
+  }
+}

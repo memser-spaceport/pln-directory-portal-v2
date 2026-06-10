@@ -68,25 +68,15 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
           enableMentions
           simplified
           toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-          minHeight={280}
+          minHeight={100}
           maxLength={DESCRIPTION_MAX_LENGTH}
           showCharCount
         />
       </div>
 
-      <FormMultiSelect
-        name="tags"
-        label="Tags"
-        placeholder="Select tags..."
-        options={GANTRY_TAG_OPTIONS}
-      />
+      <FormMultiSelect name="tags" label="Tags" placeholder="Select tags..." options={GANTRY_TAG_OPTIONS} />
 
-      <FormSelect
-        name="type"
-        label="Type"
-        placeholder="Select a type"
-        options={GANTRY_ITEM_TYPE_OPTIONS}
-      />
+      <FormSelect name="type" label="Type" placeholder="Select a type" options={GANTRY_ITEM_TYPE_OPTIONS} />
     </div>
   );
 }

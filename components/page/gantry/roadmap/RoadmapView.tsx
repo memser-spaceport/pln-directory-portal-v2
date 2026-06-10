@@ -185,7 +185,7 @@ export function RoadmapView() {
 
   const modals = (
     <>
-      <SubmitIdeaModal />
+      <SubmitIdeaModal objectives={objectives} />
       <DeclineIdeaModal
         isOpen={dnd.declineTargetUid !== null}
         isPending={transition.isPending}

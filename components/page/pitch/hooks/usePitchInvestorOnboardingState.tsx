@@ -134,6 +134,9 @@ export function usePitchInvestorOnboardingState({
       ? 'Update Investor Profile'
       : 'Set Up Investor Profile';
 
+  // When the pitch card itself is the primary CTA, profile updates are de-emphasized to a link
+  const profileCtaAsLink = canAccessPitch && isProfileComplete;
+
   return {
     isLoggedIn,
     isProfileComplete,
@@ -141,6 +144,7 @@ export function usePitchInvestorOnboardingState({
     statusLine,
     primaryCtaType,
     primaryCtaLabel,
+    profileCtaAsLink,
     handleLogin,
   };
 }

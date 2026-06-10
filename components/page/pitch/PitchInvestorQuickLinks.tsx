@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import clsx from 'clsx';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import type {
@@ -24,6 +25,7 @@ type Props = {
   variant: PitchInvestorVariant;
   primaryCtaType: PrimaryCtaType;
   primaryCtaLabel: string;
+  profileCtaAsLink?: boolean;
   isLoggedIn: boolean;
   userUid?: string;
   onLogin: () => void;
@@ -34,6 +36,7 @@ export const PitchInvestorQuickLinks = ({
   variant,
   primaryCtaType,
   primaryCtaLabel,
+  profileCtaAsLink = false,
   isLoggedIn,
   userUid,
   onLogin,
@@ -65,11 +68,23 @@ export const PitchInvestorQuickLinks = ({
   return (
     <>
       <div className={s.quickLinksSection}>
-        <div className={s.quickLinksActions}>
-          <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
-            {primaryCtaType === 'profile' && <EditIcon />}
-            {primaryCtaLabel}
-          </button>
+        <div className={clsx(s.quickLinksActions, profileCtaAsLink && s.quickLinksActionsWide)}>
+          {profileCtaAsLink ? (
+            <div className={s.profileLinkBlock}>
+              <p className={s.profileHint}>
+                Your profile will be shown to the founder when you request an invite. We also use it to better match
+                which teams we show you.
+              </p>
+              <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
+                {primaryCtaLabel}
+              </button>
+            </div>
+          ) : (
+            <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
+              {primaryCtaType === 'profile' && <EditIcon />}
+              {primaryCtaLabel}
+            </button>
+          )}
           <p className={s.supportLine}>
             Questions or feedback?{' '}
             <button type="button" className={s.supportLink} onClick={handleContactSupport}>

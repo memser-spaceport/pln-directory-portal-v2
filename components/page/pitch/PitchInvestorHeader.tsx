@@ -43,7 +43,7 @@ export const PitchInvestorHeader = ({
   showWelcomeMessage = false,
   embedded = false,
 }: Props) => {
-  const { isLoggedIn, userUid, statusLine, primaryCtaType, primaryCtaLabel, handleLogin } =
+  const { isLoggedIn, userUid, statusLine, primaryCtaType, primaryCtaLabel, profileCtaAsLink, handleLogin } =
     usePitchInvestorOnboardingState({
       pitchSlug,
       prefillEmail,
@@ -76,6 +76,7 @@ export const PitchInvestorHeader = ({
         variant={variant}
         primaryCtaType={primaryCtaType}
         primaryCtaLabel={primaryCtaLabel}
+        profileCtaAsLink={profileCtaAsLink}
         isLoggedIn={isLoggedIn}
         userUid={userUid}
         onLogin={handleLogin}

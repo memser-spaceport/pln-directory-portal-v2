@@ -19,6 +19,12 @@ import { PitchViewSkeleton } from '@/components/page/pitch/PitchViewSkeleton';
 import { ProfileSkeleton } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileSkeleton';
 import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.module.scss';
 import pitchHeaderS from '@/components/page/pitch/PitchInvestorHeader.module.scss';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { usePageViewAnalytics } from '@/hooks/usePageViewAnalytics';
+import { useTimeOnPage } from '@/hooks/useTimeOnPage';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 
 function getPitchStatusLabel(
   status: 'DRAFT' | 'OPEN' | 'CLOSED',
@@ -50,6 +56,44 @@ export const PitchView = () => {
     access.access !== 'restricted' &&
     !(access.status === 'CLOSED' && access.participantType === 'INVESTOR' && !access.isPitchAdmin);
   const { data: pitch, isLoading: pitchLoading } = useGetTeamPitch(slug, canLoadPitch);
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+
+  const pitchPageProperties = {
+    pitchSlug: slug,
+    pitchStatus: access?.status,
+    participantType: access?.participantType,
+    isPitchAdmin: access?.isPitchAdmin,
+    isLoggedIn,
+  };
+
+  usePageViewAnalytics({
+    postHogEventFunction: () => teamPitchAnalytics.onPageOpened(pitchPageProperties),
+    customEventName: TEAM_PITCH_ANALYTICS.ON_PAGE_OPENED,
+    path: `/pitch/${slug}`,
+    requireAuth: false,
+    distinctId: currentUser?.email ?? `pitch-anonymous-${slug}`,
+    skip: accessLoading || !access,
+    additionalProperties: pitchPageProperties,
+  });
+
+  useTimeOnPage({
+    enabled: !accessLoading && !!access,
+    onTimeReport: (timeSpent, sessionId) => {
+      teamPitchAnalytics.onTimeOnPage({ ...pitchPageProperties, timeSpent, sessionId });
+
+      const distinctId = currentUser?.email ?? `pitch-anonymous-${slug}`;
+      reportAnalytics.mutate(
+        buildEngagementTrackEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, distinctId, `/pitch/${slug}`, slug, {
+          ...(currentUser ? { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.name } : {}),
+          timeSpent,
+          eventId: sessionId,
+          ...pitchPageProperties,
+        }),
+      );
+    },
+    reportInterval: 30000,
+  });
 
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
   const loginRedirectAttemptedRef = useRef(false);

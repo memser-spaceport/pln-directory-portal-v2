@@ -216,6 +216,7 @@ export function InvestorDrawer({ access }: Props) {
             <div className={s.section}>
               <h3 className={s.sectionTitle}>Warm paths</h3>
               <WarmPathDetail
+                key={investor.investor_id} // key to remount the component which resets viewedRef and allows trackPathsViewed to fire for each investor
                 investorId={investor.investor_id}
                 bestProximityCode={investor.best_proximity_code}
                 canEdit={access.canEdit}

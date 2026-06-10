@@ -26,23 +26,22 @@ const PAGE_LIMIT = 25;
 export function CrosswalkReviewPanel({ open, onClose, canEdit }: Props) {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useCrosswalkReview(page, PAGE_LIMIT, open && canEdit);
-  const resolve = useResolveCrosswalk();
-  const { trackCrosswalkConfirmed, trackCrosswalkRejected } = useInvestorsAnalytics();
 
-  const [pending, setPending] = useState<string | null>(null);
+  const resolve = useResolveCrosswalk();
+  const { isPending, variables } = resolve;
+
+  const { trackCrosswalkConfirmed, trackCrosswalkRejected } = useInvestorsAnalytics();
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
   const onResolve = async (item: CrosswalkReviewItem, confirmed: boolean) => {
-    setPending(item.id);
     const ok = await resolve.mutateAsync({ id: item.id, confirmed });
     if (ok) {
       if (confirmed) trackCrosswalkConfirmed({ crosswalkId: item.id });
       else trackCrosswalkRejected({ crosswalkId: item.id });
     }
-    setPending(null);
   };
 
   return (
@@ -92,15 +91,15 @@ export function CrosswalkReviewPanel({ open, onClose, canEdit }: Props) {
                   <button
                     type="button"
                     className={s.confirmBtn}
-                    disabled={pending === item.id}
+                    disabled={isPending && variables?.id === item.id}
                     onClick={() => onResolve(item, true)}
                   >
-                    {pending === item.id ? '…' : 'Confirm (link)'}
+                    {isPending && variables?.id === item.id ? '…' : 'Confirm (link)'}
                   </button>
                   <button
                     type="button"
                     className={s.rejectBtn}
-                    disabled={pending === item.id}
+                    disabled={isPending && variables?.id === item.id}
                     onClick={() => onResolve(item, false)}
                   >
                     Reject

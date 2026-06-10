@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -124,6 +124,23 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     sectors: filters.wi_sectors as SectorTag[],
     check: filters.wi_check_size,
   }));
+
+  // Keep draft in sync when URL params change externally (browser back/forward,
+  // deep-link navigation). Skip the first mount since useState already captured
+  // the initial values.
+  const isMounted = useRef(false);
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
+    setDraft({
+      stage: filters.wi_stage,
+      sectors: filters.wi_sectors as SectorTag[],
+      check: filters.wi_check_size,
+    });
+  }, [filters.wi_stage, filters.wi_sectors, filters.wi_check_size]);
 
   const applied = useMemo(
     () => ({

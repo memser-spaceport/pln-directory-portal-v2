@@ -32,7 +32,7 @@ export function PinNotePopover({ uid, pos, onSave }: Props) {
             <PushPinIcon width={16} height={16} />
           </span>
           <div className={s.headText}>
-            <h4 className={s.title}>Pinned — nice.</h4>
+            <h4 className={s.title}>Boosted!</h4>
             <p className={s.sub}>Add a one-line why-now? (optional)</p>
           </div>
           <button type="button" className={s.closeBtn} onClick={() => save(note)} aria-label="Close">

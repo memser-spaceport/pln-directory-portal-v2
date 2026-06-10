@@ -11,7 +11,6 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItems } from '@/services/gantry/hooks/useGantryItems';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
-import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
 import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
 import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
 import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives';
@@ -28,7 +27,6 @@ import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitBut
 import { SubmitIdeaModal } from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal';
 import { DeclineIdeaModal } from '@/components/page/gantry/shared/DeclineIdeaModal';
 import { useSubmitIdeaModalStore } from '@/services/gantry/store';
-import { PushPinIcon } from '@/components/icons/PushPinIcon';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
@@ -45,6 +43,22 @@ import { useRoadmapMobileNav } from './hooks/useRoadmapMobileNav';
 import { useRoadmapPinActions } from './hooks/useRoadmapPinActions';
 import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
+
+const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
+
+function ArrowUpSmallIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M6 10V2m0 0L2.5 5.5M6 2L9.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function RoadmapView() {
   const analytics = useGantryAnalytics();
@@ -64,6 +78,7 @@ export function RoadmapView() {
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
+  const [showBoostTip, setShowBoostTip] = useState(false);
 
   const isNarrow = useIsNarrow();
 
@@ -78,7 +93,6 @@ export function RoadmapView() {
 
   const transition = useGantryTransition();
   const reorder = useReorderGantryItem();
-  const upvote = useGantryUpvote();
   const pin = useGantryPin();
   const pinNote = useGantryPinNote();
 
@@ -136,9 +150,15 @@ export function RoadmapView() {
     analytics.onRoadmapViewed();
   }, [analytics]);
 
-  const handleUpvoteToggle = async (uid: string, nextHasUpvoted: boolean) => {
-    await upvote.mutateAsync({ uid, nextHasUpvoted });
-    if (nextHasUpvoted) analytics.onItemUpvoted(uid);
+  useEffect(() => {
+    if (!localStorage.getItem(BOOST_TIP_KEY)) {
+      setShowBoostTip(true);
+    }
+  }, []);
+
+  const dismissBoostTip = () => {
+    localStorage.setItem(BOOST_TIP_KEY, '1');
+    setShowBoostTip(false);
   };
 
   // pinStatus.pins is the authoritative source for the current user's pins.
@@ -155,30 +175,44 @@ export function RoadmapView() {
       item: viewerHasPinned !== item.viewerHasPinned ? { ...item, viewerHasPinned } : item,
       position: index + 1,
       isAdminOrdering,
-      canUpvote,
-      onUpvoteToggle: handleUpvoteToggle,
-      canPin: !!currentUser,
+      canPin: canUpvote,
       onPinToggle: handlePinToggle,
-      isPinDisabled: false,
+      isPinDisabled: !canUpvote,
       canCurate,
       warnPinOrder: index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
-  const pinStatusIndicator = pinStatus ? (
-    <div
-      ref={pinStatusRef}
-      className={s.pinStatus}
-      aria-label={`${pinsRemaining} of ${pinStatus.limit} pins remaining`}
-    >
-      <PushPinIcon width={12} height={12} className={s.pinStatusIcon} aria-hidden />
-      <span className={s.pinStatusText}>{pinsRemaining} of {pinStatus.limit} left</span>
-      {pinStatus.limit <= 6 && (
-        <span className={s.pinDots} aria-hidden>
-          {Array.from({ length: pinStatus.limit }, (_, i) => (
-            <span key={i} className={clsx(s.pinDot, i < pinStatus.used && s.pinDotUsed)} />
-          ))}
-        </span>
+  const boostStatusIndicator = pinStatus ? (
+    <div className={s.boostStatusWrapper}>
+      <div
+        ref={pinStatusRef}
+        className={s.boostStatus}
+        aria-label={`${pinsRemaining} of ${pinStatus.limit} boosts remaining`}
+      >
+        <ArrowUpSmallIcon />
+        <span className={s.boostStatusText}>{pinsRemaining} of {pinStatus.limit} boosts left</span>
+        {pinStatus.limit <= 6 && (
+          <span className={s.boostDots} aria-hidden>
+            {Array.from({ length: pinStatus.limit }, (_, i) => (
+              <span key={i} className={clsx(s.boostDot, i < pinStatus.used && s.boostDotUsed)} />
+            ))}
+          </span>
+        )}
+      </div>
+      {showBoostTip && (
+        <div className={s.boostTip} role="tooltip">
+          <p className={s.boostTipTitle}>You have {pinStatus.limit} boosts</p>
+          <p className={s.boostTipBody}>
+            Spend them on what matters most — you get them back when items ship.
+          </p>
+          <div className={s.boostTipFooter}>
+            <button type="button" className={s.boostTipBtn} onClick={dismissBoostTip}>
+              Got it
+            </button>
+            <span className={s.boostTipMeta}>One-time tip</span>
+          </div>
+        </div>
       )}
     </div>
   ) : null;
@@ -221,7 +255,7 @@ export function RoadmapView() {
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
                   <div className={s.mobileActionsRow}>
-                    {pinStatusIndicator}
+                    {boostStatusIndicator}
                     <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
                       <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
                         <path d="M2 4h12M4.5 8h7M7 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -359,7 +393,7 @@ export function RoadmapView() {
                     </p>
                   </div>
                   <div className={s.actions}>
-                    {pinStatusIndicator}
+                    {boostStatusIndicator}
                     {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
@@ -417,11 +451,9 @@ export function RoadmapView() {
                         <RoadmapCardDragOverlay
                           item={dnd.activeDragItem}
                           width={dnd.activeDragWidth ?? undefined}
-                          canUpvote={canUpvote}
-                          onUpvoteToggle={handleUpvoteToggle}
-                          canPin={!!currentUser}
+                          canPin={canUpvote}
                           onPinToggle={handlePinToggle}
-                          isPinDisabled={false}
+                          isPinDisabled={!canUpvote}
                           canCurate={canCurate}
                         />
                       ) : null}

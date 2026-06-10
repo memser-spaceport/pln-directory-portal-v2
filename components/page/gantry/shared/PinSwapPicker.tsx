@@ -29,14 +29,14 @@ export function PinSwapPicker({ targetItemTitle, pins, pos, onSelect, onDismiss 
       <div className={s.backdrop} onClick={onDismiss} />
       <div className={s.popover} style={{ top: pos.top, left: pos.left }}>
         <div className={s.header}>
-          <span className={s.headerTitle}>All pins in use</span>
+          <span className={s.headerTitle}>All boosts in use</span>
           <button type="button" className={s.closeBtn} onClick={onDismiss} aria-label="Close">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
               <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
-        <p className={s.sub}>Unpin one to move it to &ldquo;{targetItemTitle}&rdquo;</p>
+        <p className={s.sub}>Remove a boost to move it to &ldquo;{targetItemTitle}&rdquo;</p>
 
         <ul className={s.pinList}>
           {pins.map((pin) => (
@@ -54,7 +54,7 @@ export function PinSwapPicker({ targetItemTitle, pins, pos, onSelect, onDismiss 
                 className={s.unPinBtn}
                 onClick={(e) => { e.stopPropagation(); onSelect(pin.item.uid); }}
               >
-                Unpin &amp; place
+                Boost this
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
                   <path d="M2.5 6h7m0 0L7 3.5M9.5 6L7 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -68,7 +68,7 @@ export function PinSwapPicker({ targetItemTitle, pins, pos, onSelect, onDismiss 
             <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" strokeWidth="1.2" />
             <path d="M6.5 5.5v4M6.5 4.25v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
-          Net change: 0 pins — one out, one in.
+          Net change: 0 boosts — one out, one in.
         </div>
       </div>
     </>

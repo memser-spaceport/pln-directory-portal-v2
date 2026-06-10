@@ -42,14 +42,14 @@ export function useRoadmapPinActions(
     try {
       await pin.mutateAsync({ uid, nextIsPinned });
       if (nextIsPinned) {
-        analytics.onItemPinned(uid);
+        analytics.onItemBoosted(uid);
         flyPin(el, pinStatusRef.current);
         const rect = el.getBoundingClientRect();
         const top = Math.min(rect.bottom + 8, window.innerHeight - 320);
         const left = Math.min(Math.max(12, rect.left - 120), window.innerWidth - 332);
         setTimeout(() => setPinNotePopover({ uid, top, left }), 200);
       } else {
-        analytics.onItemUnpinned(uid);
+        analytics.onItemUnboosted(uid);
       }
     } catch (err) {
       // Fallback: server says budget exhausted even though we thought we had room
@@ -71,7 +71,7 @@ export function useRoadmapPinActions(
     setSwapPickerState(null);
     try {
       await pin.mutateAsync({ uid: targetUid, nextIsPinned: true, swapItemUid });
-      analytics.onItemPinned(targetUid);
+      analytics.onItemBoosted(targetUid);
     } catch {
       // Swap failed — rollback applied in onError
     }

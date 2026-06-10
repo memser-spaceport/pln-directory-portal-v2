@@ -18,8 +18,8 @@ export const GANTRY_EVENTS = {
   OBJECTIVES_FILTERED: 'gantry_objectives_filtered',
   SEARCHED: 'gantry_searched',
   ITEM_REORDERED: 'gantry_item_reordered',
-  ITEM_PINNED: 'gantry_item_pinned',
-  ITEM_UNPINNED: 'gantry_item_unpinned',
+  ITEM_BOOSTED: 'gantry_item_boosted',
+  ITEM_UNBOOSTED: 'gantry_item_unboosted',
 } as const;
 
 export function useGantryAnalytics() {
@@ -44,7 +44,7 @@ export function useGantryAnalytics() {
     onObjectivesFiltered: (objectives: string[]) => capture(GANTRY_EVENTS.OBJECTIVES_FILTERED, { objectives, count: objectives.length }),
     onSearched: (query: string) => capture(GANTRY_EVENTS.SEARCHED, { query, query_length: query.length }),
     onItemReordered: (itemUid: string, stage: string) => capture(GANTRY_EVENTS.ITEM_REORDERED, { itemUid, stage }),
-    onItemPinned: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_PINNED, { itemUid }),
-    onItemUnpinned: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UNPINNED, { itemUid }),
+    onItemBoosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_BOOSTED, { itemUid }),
+    onItemUnboosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UNBOOSTED, { itemUid }),
   };
 }

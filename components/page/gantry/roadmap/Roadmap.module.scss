@@ -84,7 +84,14 @@
   }
 }
 
-.pinStatus {
+.boostStatusWrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.boostStatus {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -94,25 +101,25 @@
   border: 1px solid #dbeafe;
 }
 
-.pinStatusIcon {
+.boostStatusIcon {
   color: #1b4dff;
   flex-shrink: 0;
 }
 
-.pinStatusText {
+.boostStatusText {
   font-size: 12px;
   font-weight: 600;
   color: #1b4dff;
   white-space: nowrap;
 }
 
-.pinDots {
+.boostDots {
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
-.pinDot {
+.boostDot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -121,7 +128,7 @@
   flex-shrink: 0;
 }
 
-.pinDotUsed {
+.boostDotUsed {
   background: #1b4dff;
   border-color: #1b4dff;
 }
@@ -388,7 +395,7 @@
   gap: 8px;
 }
 
-.pinOrderWarning {
+.boostOrderWarning {
   margin: 8px 0 0;
   padding: 7px 10px;
   border-radius: 8px;
@@ -439,13 +446,13 @@
   }
 }
 
-.pinnersLoading {
+.boostersLoading {
   margin-top: 8px;
   font-size: 0.75rem;
   color: #9ca3af;
 }
 
-.pinnersSection {
+.boostersSection {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid #f1f5f9;
@@ -454,7 +461,7 @@
   gap: 6px;
 }
 
-.pinnersHeader {
+.boostersHeader {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -470,13 +477,13 @@
   }
 }
 
-.pinnerRow {
+.boosterRow {
   display: flex;
   align-items: flex-start;
   gap: 7px;
 }
 
-.pinnerAvatar {
+.boosterAvatar {
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -488,14 +495,14 @@
   letter-spacing: 0.02em;
 }
 
-.pinnerInfo {
+.boosterInfo {
   display: flex;
   flex-direction: column;
   gap: 1px;
   min-width: 0;
 }
 
-.pinnerName {
+.boosterName {
   font-size: 12px;
   font-weight: 600;
   color: #0f172a;
@@ -504,7 +511,7 @@
   text-overflow: ellipsis;
 }
 
-.pinnerNote {
+.boosterNote {
   font-size: 11px;
   color: #475569;
   line-height: 1.4;
@@ -514,13 +521,13 @@
   overflow: hidden;
 }
 
-.pinnerNoNote {
+.boosterNoNote {
   font-size: 11px;
   color: #94a3b8;
   font-style: italic;
 }
 
-.showAllPinners {
+.showAllBoosters {
   margin-top: 2px;
   font-size: 11px;
   font-weight: 600;
@@ -681,4 +688,77 @@
   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
   background-size: 400% 100%;
   animation: roadmapSkeleton 1.4s ease infinite;
+}
+
+.boostTip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 272px;
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(14, 15, 17, 0.12), 0 2px 8px rgba(14, 15, 17, 0.06);
+  z-index: 3;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: 20px;
+    width: 9px;
+    height: 9px;
+    background: #fff;
+    border-top: 1px solid rgba(14, 15, 17, 0.12);
+    border-left: 1px solid rgba(14, 15, 17, 0.12);
+    transform: rotate(45deg);
+  }
+}
+
+.boostTipTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.boostTipBody {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.boostTipFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.boostTipBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: none;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: #1740d9;
+  }
+}
+
+.boostTipMeta {
+  font-size: 11px;
+  color: #9ca3af;
 }

@@ -8,8 +8,7 @@ import type { GantryItem } from '@/services/gantry/types';
 import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
-import { PinButton } from '../shared/PinButton';
-import { UpvoteButton } from '../shared/UpvoteButton';
+import { BoostButton } from '../shared/BoostButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
 
@@ -36,39 +35,39 @@ function initials(name: string) {
 
 const MAX_PINNERS_VISIBLE = 3;
 
-function CardPinnersSection({ item }: { item: GantryItem }) {
+function CardBoostersSection({ item }: { item: GantryItem }) {
   const { data: pinners = [], isLoading } = useGantryItemPins(item.uid, item.pinCount > 0);
-  if (isLoading) return <div className={s.pinnersLoading}>Loading pinners…</div>;
+  if (isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
   if (pinners.length === 0) return null;
   const visible = pinners.slice(0, MAX_PINNERS_VISIBLE);
   const hasMore = item.pinCount > MAX_PINNERS_VISIBLE;
   return (
-    <div className={s.pinnersSection}>
-      <div className={s.pinnersHeader}>
+    <div className={s.boostersSection}>
+      <div className={s.boostersHeader}>
         <LockIcon />
-        <span>{item.pinCount} PINNED · TEAM-ONLY</span>
+        <span>{item.pinCount} BOOSTED · TEAM-ONLY</span>
       </div>
       {visible.map((p) => {
         const c = avatarColor(p.member.name);
         return (
-          <div key={p.uid} className={s.pinnerRow}>
-            <span className={s.pinnerAvatar} style={{ background: c.bg, color: c.text }}>
+          <div key={p.uid} className={s.boosterRow}>
+            <span className={s.boosterAvatar} style={{ background: c.bg, color: c.text }}>
               {initials(p.member.name)}
             </span>
-            <div className={s.pinnerInfo}>
-              <span className={s.pinnerName}>{p.member.name}</span>
+            <div className={s.boosterInfo}>
+              <span className={s.boosterName}>{p.member.name}</span>
               {p.note ? (
-                <span className={s.pinnerNote}>{p.note}</span>
+                <span className={s.boosterNote}>{p.note}</span>
               ) : (
-                <span className={s.pinnerNoNote}>No note</span>
+                <span className={s.boosterNoNote}>No note</span>
               )}
             </div>
           </div>
         );
       })}
       {hasMore && (
-        <button type="button" className={s.showAllPinners} onClick={(e) => e.stopPropagation()}>
-          Show all {item.pinCount} pinners &amp; notes
+        <button type="button" className={s.showAllBoosters} onClick={(e) => e.stopPropagation()}>
+          Show all {item.pinCount} boosters &amp; notes
         </button>
       )}
     </div>
@@ -95,8 +94,6 @@ interface CardContentProps {
   readonly item: GantryItem;
   readonly position?: number;
   readonly dragHandleProps?: SyntheticListenerMap;
-  readonly canUpvote: boolean;
-  readonly onUpvoteToggle: (uid: string, next: boolean) => void;
   readonly canPin: boolean;
   readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
   readonly isPinDisabled: boolean;
@@ -108,8 +105,6 @@ function RoadmapCardContent({
   item,
   position,
   dragHandleProps,
-  canUpvote,
-  onUpvoteToggle,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -167,14 +162,7 @@ function RoadmapCardContent({
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
         <div className={s.cardActions}>
-          <UpvoteButton
-            count={item.upvoteCount}
-            hasUpvoted={item.viewerHasUpvoted}
-            readonly={interactionLocked}
-            disabled={!canUpvote}
-            onToggle={(next) => onUpvoteToggle(item.uid, next)}
-          />
-          <PinButton
+          <BoostButton
             count={item.pinCount}
             hasPinned={item.viewerHasPinned}
             readonly={interactionLocked}
@@ -185,29 +173,28 @@ function RoadmapCardContent({
       </div>
 
       {warnPinOrder && position !== undefined && (
-        <div className={s.pinOrderWarning}>
+        <div className={s.boostOrderWarning}>
           <WarningIcon />
           <span>
-            High demand ({item.pinCount} pins) vs. rank #{position} — revisit?
+            High demand ({item.pinCount} boosts) vs. rank #{position} — revisit?
           </span>
         </div>
       )}
 
       {item.stage === 'IN_PROGRESS' && (
         <p className={s.cardFrozenNote}>
-          <span className={s.cardFrozenBullet}>*</span> Counts frozen — entered with {item.pinCount ?? 0} pins
+          <span className={s.cardFrozenBullet}>*</span> Count frozen — entered with {item.pinCount ?? 0} boosts
         </p>
       )}
 
       {(item.stage === 'SHIPPED' || item.stage === 'DECLINED') && (
         <p className={s.cardFinalNote}>
           <ClockIcon />
-          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.upvoteCount} thumbs · {item.pinCount ?? 0}{' '}
-          pins
+          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.pinCount ?? 0} boosts
         </p>
       )}
 
-      {canCurate && item.pinCount > 0 && <CardPinnersSection item={item} />}
+      {canCurate && item.pinCount > 0 && <CardBoostersSection item={item} />}
     </>
   );
 }
@@ -220,8 +207,6 @@ export function RoadmapCard({
   item,
   position,
   isAdminOrdering,
-  canUpvote,
-  onUpvoteToggle,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -256,8 +241,6 @@ export function RoadmapCard({
         item={item}
         position={position}
         dragHandleProps={isAdminOrdering ? listeners : undefined}
-        canUpvote={canUpvote}
-        onUpvoteToggle={onUpvoteToggle}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
@@ -276,8 +259,6 @@ export function RoadmapCardDragOverlay({
   item,
   width,
   position,
-  canUpvote,
-  onUpvoteToggle,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -289,8 +270,6 @@ export function RoadmapCardDragOverlay({
       <RoadmapCardContent
         item={item}
         position={position}
-        canUpvote={canUpvote}
-        onUpvoteToggle={onUpvoteToggle}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}

@@ -3,7 +3,6 @@
 import { clsx } from 'clsx';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
-import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import {
   GANTRY_ITEM_TYPE_OPTIONS,
@@ -110,13 +109,22 @@ export function RoadmapFiltersContent({
       </FilterSection>
 
       <FilterSection title="Type">
-        <FilterMultiSelect
-          options={GANTRY_ITEM_TYPE_OPTIONS}
-          value={GANTRY_ITEM_TYPE_OPTIONS.filter((o) => selectedTypes.includes(o.value))}
-          onChange={(opts) => onSelectedTypesChange(opts.map((o) => o.value))}
-          placeholder="Filter by type..."
-          aria-label="Filter by type"
-        />
+        <div>
+          {GANTRY_ITEM_TYPE_OPTIONS.map((opt) => (
+            <CheckboxListItemRepresentation
+              key={opt.value}
+              label={opt.label}
+              checked={selectedTypes.includes(opt.value)}
+              onClick={() => {
+                if (selectedTypes.includes(opt.value)) {
+                  onSelectedTypesChange(selectedTypes.filter((t) => t !== opt.value));
+                } else {
+                  onSelectedTypesChange([...selectedTypes, opt.value]);
+                }
+              }}
+            />
+          ))}
+        </div>
       </FilterSection>
     </>
   );

@@ -45,16 +45,13 @@ export function ObjectiveSelector({ item, canCurate, objectives, isLoadingObject
   const assign = useAssignGantryItemObjective(item.uid);
 
   const options: SelectOption[] = objectives.map((o) => ({
-    label: `${o.code} · ${o.title}`,
+    label: `O${o.order} · ${o.title}`,
     value: o.uid,
   }));
 
-  const matchedObjective = objectives.find((o) => o.uid === item.objective?.uid);
   const currentValue: SelectOption | null = item.objective
     ? {
-        label: matchedObjective
-          ? `${matchedObjective.code} · ${item.objective.title}`
-          : item.objective.title,
+        label: `O${item.objective.order} · ${item.objective.title}`,
         value: item.objective.uid,
       }
     : null;

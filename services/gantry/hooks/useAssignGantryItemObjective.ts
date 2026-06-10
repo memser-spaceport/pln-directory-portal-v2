@@ -41,7 +41,7 @@ export function useAssignGantryItemObjective(uid: string) {
           if (item.uid !== uid) return item;
           return {
             ...item,
-            objective: nextObjective ? { uid: nextObjective.uid, title: nextObjective.title } : null,
+            objective: nextObjective ? { uid: nextObjective.uid, order: nextObjective.order, title: nextObjective.title } : null,
           };
         };
 

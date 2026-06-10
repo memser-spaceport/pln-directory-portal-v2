@@ -86,7 +86,7 @@ export function RoadmapFiltersContent({
                 key={obj.uid}
                 label={
                   <span className={filterStyles.objectiveFilterLabel}>
-                    <span className={filterStyles.objectiveFilterCode}>{obj.code}</span>
+                    <span className={filterStyles.objectiveFilterCode}>O{obj.order}</span>
                     <span className={filterStyles.objectiveFilterTitle}>{obj.title}</span>
                   </span>
                 }

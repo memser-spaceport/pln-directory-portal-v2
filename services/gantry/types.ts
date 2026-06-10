@@ -10,7 +10,7 @@ export interface GantryMemberSummary {
 
 export interface GantryObjective {
   uid: string;
-  code: string;
+  order: number;
   title: string;
   itemCount: number;
   createdAt: string;
@@ -51,7 +51,7 @@ export interface GantryItem {
   acceptanceCriteria: string | null;
   stage: GantryStage;
   focusArea: string | null;
-  objective: { uid: string; title: string } | null;
+  objective: { uid: string; order: number; title: string } | null;
   tags: string[] | null;
   type: GantryItemType | null;
   order: number | null;

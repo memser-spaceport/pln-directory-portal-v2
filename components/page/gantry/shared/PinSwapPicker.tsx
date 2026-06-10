@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import dialogStyles from '@/components/core/ConfirmDialog/ConfirmDialog.module.css';
 import { GANTRY_STAGE_LABELS } from '@/services/gantry/constants';
 import type { GantryUserPin } from '@/services/gantry/types';
 import s from './PinSwapPicker.module.scss';
@@ -9,57 +7,70 @@ import s from './PinSwapPicker.module.scss';
 interface Props {
   readonly targetItemTitle: string;
   readonly pins: GantryUserPin[];
+  readonly pos: { top: number; left: number };
   readonly onSelect: (swapItemUid: string) => void;
   readonly onDismiss: () => void;
 }
 
-export function PinSwapPicker({ targetItemTitle, pins, onSelect, onDismiss }: Props) {
-  const [selectedUid, setSelectedUid] = useState<string | null>(null);
-
-  const handleConfirm = () => {
-    if (!selectedUid) return;
-    onSelect(selectedUid);
-  };
-
+function PinItemIcon() {
   return (
-    <div className={dialogStyles.modal}>
-      <div className={dialogStyles.modalContent}>
-        <button type="button" className={dialogStyles.closeButton} onClick={onDismiss} aria-label="Close" />
-        <h2 className={s.heading}>Your pin limit is full</h2>
-        <p className={s.sub}>
-          Select a pin to release to make room for &ldquo;{targetItemTitle}&rdquo;
-        </p>
+    <span className={s.pinItemIcon} aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect width="16" height="16" rx="4" fill="#e0e7ff" />
+        <path d="M8 4v5m0 0l-2-2m2 2l2-2" stroke="#6366f1" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
+export function PinSwapPicker({ targetItemTitle, pins, pos, onSelect, onDismiss }: Props) {
+  return (
+    <>
+      <div className={s.backdrop} onClick={onDismiss} />
+      <div className={s.popover} style={{ top: pos.top, left: pos.left }}>
+        <div className={s.header}>
+          <span className={s.headerTitle}>All pins in use</span>
+          <button type="button" className={s.closeBtn} onClick={onDismiss} aria-label="Close">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+        <p className={s.sub}>Unpin one to move it to &ldquo;{targetItemTitle}&rdquo;</p>
 
         <ul className={s.pinList}>
           {pins.map((pin) => (
-            <li key={pin.uid}>
+            <li key={pin.uid} className={s.pinRow}>
+              <PinItemIcon />
+              <div className={s.pinItemBody}>
+                <span className={s.pinItemTitle}>{pin.item.title}</span>
+                <span className={s.pinItemMeta}>
+                  {GANTRY_STAGE_LABELS[pin.item.stage]}
+                  {pin.note && <> &middot; &ldquo;{pin.note.slice(0, 48)}{pin.note.length > 48 ? '…' : ''}&rdquo;</>}
+                </span>
+              </div>
               <button
                 type="button"
-                className={`${s.pinRow} ${selectedUid === pin.item.uid ? s.pinRowSelected : ''}`}
-                onClick={() => setSelectedUid(pin.item.uid)}
+                className={s.unPinBtn}
+                onClick={(e) => { e.stopPropagation(); onSelect(pin.item.uid); }}
               >
-                <span className={s.pinItemTitle}>{pin.item.title}</span>
-                <span className={s.pinItemStage}>{GANTRY_STAGE_LABELS[pin.item.stage]}</span>
-                {pin.note && <span className={s.pinItemNote}>&ldquo;{pin.note}&rdquo;</span>}
+                Unpin &amp; place
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path d="M2.5 6h7m0 0L7 3.5M9.5 6L7 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             </li>
           ))}
         </ul>
 
-        <div className={dialogStyles.dialogControls}>
-          <button type="button" className={dialogStyles.secondaryButton} onClick={onDismiss}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={dialogStyles.primaryButton}
-            onClick={handleConfirm}
-            disabled={!selectedUid}
-          >
-            Release &amp; Pin
-          </button>
+        <div className={s.footer}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+            <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+            <path d="M6.5 5.5v4M6.5 4.25v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+          Net change: 0 pins — one out, one in.
         </div>
       </div>
-    </div>
+    </>
   );
 }

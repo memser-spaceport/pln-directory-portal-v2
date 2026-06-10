@@ -85,8 +85,8 @@ export function RoadmapView() {
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
     useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
   const { pinStatusRef, pinNotePopover, handlePinToggle, handlePinNoteSave,
-    swapPickerTargetUid, handleSwapSelect, handleSwapDismiss } =
-    useRoadmapPinActions(pin, pinNote, analytics);
+    swapPickerState, handleSwapSelect, handleSwapDismiss } =
+    useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
 
   const itemsByStage = useMemo(() => {
     const map = Object.fromEntries(orderedVisibleColumns.map((stage) => [stage, [] as GantryItem[]])) as Record<
@@ -149,7 +149,7 @@ export function RoadmapView() {
     onUpvoteToggle: handleUpvoteToggle,
     canPin: !!currentUser,
     onPinToggle: handlePinToggle,
-    isPinDisabled: !item.viewerHasPinned && pinsRemaining !== null && pinsRemaining <= 0,
+    isPinDisabled: false,
     canCurate,
     warnPinOrder: index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
   });
@@ -188,10 +188,11 @@ export function RoadmapView() {
           onSave={handlePinNoteSave}
         />
       )}
-      {swapPickerTargetUid && (
+      {swapPickerState && (
         <PinSwapPicker
-          targetItemTitle={data?.items.find((i) => i.uid === swapPickerTargetUid)?.title ?? ''}
+          targetItemTitle={data?.items.find((i) => i.uid === swapPickerState.uid)?.title ?? ''}
           pins={pinStatus?.pins ?? []}
+          pos={{ top: swapPickerState.top, left: swapPickerState.left }}
           onSelect={handleSwapSelect}
           onDismiss={handleSwapDismiss}
         />

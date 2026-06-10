@@ -4,6 +4,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from '@/components/common/Button';
 import { useUpdateGantryItem } from '@/services/gantry/hooks/useUpdateGantryItem';
+import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives';
+import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { isPreRoadmapStage, tagsToOptions } from '@/services/gantry/constants';
 import type { GantryItem, GantryItemType } from '@/services/gantry/types';
 import {
@@ -12,6 +14,7 @@ import {
   type SubmitIdeaFormData,
 } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { IdeaFormFields } from './IdeaFormFields';
+import { ObjectiveSelector } from './ObjectiveSelector';
 import s from './EditIdeaForm.module.scss';
 
 interface Props {
@@ -21,6 +24,8 @@ interface Props {
 }
 
 export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
+  const access = useGantryAccess();
+  const { data: objectives = [], isLoading: isLoadingObjectives } = useGantryObjectives();
   const updateMutation = useUpdateGantryItem(item.uid);
 
   const methods = useForm<SubmitIdeaFormData>({
@@ -55,6 +60,16 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
         <div className={s.fields}>
           <IdeaFormFields />
         </div>
+
+        <div className={s.objectiveSection}>
+          <ObjectiveSelector
+            item={item}
+            canCurate={access.canCurate}
+            objectives={objectives}
+            isLoadingObjectives={isLoadingObjectives}
+          />
+        </div>
+
         <div className={s.footer}>
           <Button style="border" variant="neutral" onClick={onCancel} disabled={updateMutation.isPending}>
             Cancel

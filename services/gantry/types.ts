@@ -10,6 +10,7 @@ export interface GantryMemberSummary {
 
 export interface GantryObjective {
   uid: string;
+  code: string;
   title: string;
   itemCount: number;
   createdAt: string;

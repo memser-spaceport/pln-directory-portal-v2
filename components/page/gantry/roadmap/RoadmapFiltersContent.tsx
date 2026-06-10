@@ -86,8 +86,8 @@ export function RoadmapFiltersContent({
                 key={obj.uid}
                 label={
                   <span className={filterStyles.objectiveFilterLabel}>
-                    <span className={filterStyles.objectiveFilterDot} aria-hidden />
-                    {obj.title}
+                    <span className={filterStyles.objectiveFilterCode}>{obj.code}</span>
+                    <span className={filterStyles.objectiveFilterTitle}>{obj.title}</span>
                   </span>
                 }
                 checked={selectedObjective === obj.uid}

@@ -173,6 +173,24 @@ export async function declineGantryItem(uid: string, reason: string): Promise<Ga
   return parseJsonOrThrow<GantryItem>(res, 'Failed to decline gantry item');
 }
 
+export type AssignObjectiveBody =
+  | { objectiveUid: string }
+  | { objectiveUid: null }
+  | { title: string };
+
+export async function assignGantryItemObjective(uid: string, body: AssignObjectiveBody): Promise<GantryItem> {
+  const res = await customFetch(
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/objective`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    true,
+  );
+  return parseJsonOrThrow<GantryItem>(res, 'Failed to assign objective');
+}
+
 export async function fetchGantryObjectives(): Promise<GantryObjective[]> {
   const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/roadmap/objectives`, { method: 'GET' }, true);
   const data = await parseJsonOrThrow<{ objectives: GantryObjective[] }>(res, 'Failed to fetch gantry objectives');

@@ -295,12 +295,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </p>
         </header>
 
-        <div className={s.field} style={{ marginBottom: 12 }}>
+        <div className={clsx(s.field, s.fieldMb)}>
           <label className={s.label}>Target list</label>
           <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
         </div>
 
-        <div className={s.field} style={{ marginBottom: 12 }}>
+        <div className={clsx(s.field, s.fieldMb)}>
           <label className={s.label}>Search investors, funds, founders or teams</label>
           <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
         </div>
@@ -365,7 +365,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </div>
         </div>
 
-        <div className={s.field} style={{ marginTop: 12 }}>
+        <div className={clsx(s.field, s.fieldMt)}>
           <label className={s.label}>{INDUSTRY_SECTOR_LABEL}</label>
           <div className={s.sectorChips}>
             {SECTOR_TAGS.map((sec) => (
@@ -501,6 +501,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                         <tr className={s.detailRow}>
                           <td colSpan={colCount} onClick={(e) => e.stopPropagation()}>
                             <WarmPathDetail
+                              key={inv.investor_id}
                               investorId={inv.investor_id}
                               bestProximityCode={inv.best_proximity_code}
                               canEdit={access.canEdit}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Drawer } from '@/components/common/Drawer/Drawer';
-import s from './ScoringMethodologyModal.module.scss';
+import s from './GlossaryModal.module.scss';
 
 interface Props {
   open: boolean;

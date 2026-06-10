@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import clsx from 'clsx';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
@@ -87,7 +87,7 @@ export function InvestorDrawer({ access }: Props) {
               <h3 className={s.sectionTitle}>LabOS profile</h3>
               <LabOsBadge profile={investor.lab_os_profile} variant="full" />
               {investor.lab_os_profile.last_active_at && (
-                <div className={s.metaSub} style={{ marginTop: 8 }}>
+                <div className={clsx(s.metaSub, s.metaSubSpaced)}>
                   Last active: {investor.lab_os_profile.last_active_at}
                 </div>
               )}
@@ -301,7 +301,7 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Dedupe key</dt>
               <dd className={s.mono}>{investor.dedupe_key}</dd>
             </dl>
-            <h3 className={s.sectionTitle} style={{ marginTop: 16 }}>
+            <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>
               Enrichment notes
             </h3>
             <EnrichmentNotesViewer notes={investor.enrichment_notes} />

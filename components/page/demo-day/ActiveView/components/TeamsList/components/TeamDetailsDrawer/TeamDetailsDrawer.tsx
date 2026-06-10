@@ -11,6 +11,7 @@ import { TeamPitchEditProvider } from '@/components/page/pitch/TeamPitchEditCont
 import { mapTeamProfileToFundraisingProfile } from '@/services/team-pitch/mapTeamProfileToFundraisingProfile';
 import { useGetFundraisingProfile } from '@/services/demo-day/hooks/useGetFundraisingProfile';
 import { useExpressInterest } from '@/services/demo-day/hooks/useExpressInterest';
+import { useTeamPitchExpressInterest } from '@/services/team-pitch/hooks/useTeamPitchExpressInterest';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useCurrentUserStore } from '@/services/auth/store';
 import Link from 'next/link';
@@ -53,6 +54,7 @@ interface TeamDetailsDrawerProps {
   isAdmin?: boolean;
   canEdit?: boolean;
   pitchSlug?: string;
+  isPrepPitch?: boolean;
 }
 
 export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
@@ -64,6 +66,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   isAdmin = false,
   canEdit: canEditTeams = true,
   pitchSlug,
+  isPrepPitch = false,
 }) => {
   const pathname = usePathname();
   const { data: demoDayData } = useGetDemoDayState();
@@ -90,6 +93,8 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team?.team?.name);
+  const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', team?.team?.name);
+  const interestPending = pitchSlug ? pitchExpressInterest.isPending : expressInterest.isPending;
   const { currentUser: userInfo } = useCurrentUserStore();
 
   if (!team) return null;
@@ -167,12 +172,20 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
 
     // Express interest via API (state will be updated automatically via useGetExpressedInterests)
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: 'connect',
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: 'connect',
+        isPrep: isPrepPitch,
+      });
+    } else {
+      expressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'connect',
+        isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
+      });
+    }
   };
 
   const handleInvestCompanyClick = () => {
@@ -199,12 +212,20 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
 
     // Express interest via API (state will be updated automatically via useGetExpressedInterests)
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: 'invest',
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: 'invest',
+        isPrep: isPrepPitch,
+      });
+    } else {
+      expressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'invest',
+        isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
+      });
+    }
   };
 
   const handleReferCompanyClick = () => {
@@ -268,13 +289,22 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
 
     // Express interest via API with referral data
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: 'referral',
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-      referralData,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: 'referral',
+        isPrep: isPrepPitch,
+        referralData,
+      });
+    } else {
+      expressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'referral',
+        isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
+        referralData,
+      });
+    }
 
     // Close modal
     setIsReferModalOpen(false);
@@ -340,20 +370,36 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     }
 
     // Express interest via API with feedback data
-    expressInterest.mutate(
-      {
-        teamFundraisingProfileUid: team.uid,
-        interestType: 'feedback' as any,
-        isPrepDemoDay,
-        demoDayMode: demoDayMode ?? undefined,
-        feedbackData,
-      },
-      {
-        onSuccess: () => {
-          setIsFeedbackModalOpen(false);
+    if (pitchSlug) {
+      pitchExpressInterest.mutate(
+        {
+          teamPitchProfileUid: team.uid,
+          interestType: 'feedback',
+          isPrep: isPrepPitch,
+          feedbackData,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            setIsFeedbackModalOpen(false);
+          },
+        },
+      );
+    } else {
+      expressInterest.mutate(
+        {
+          teamFundraisingProfileUid: team.uid,
+          interestType: 'feedback' as any,
+          isPrepDemoDay,
+          demoDayMode: demoDayMode ?? undefined,
+          feedbackData,
+        },
+        {
+          onSuccess: () => {
+            setIsFeedbackModalOpen(false);
+          },
+        },
+      );
+    }
   };
 
   // Analytics handlers for media viewing
@@ -471,7 +517,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     );
 
     if (pitchSlug) {
-      return <TeamPitchEditProvider pitchSlug={pitchSlug}>{drawer}</TeamPitchEditProvider>;
+      return (
+        <TeamPitchEditProvider pitchSlug={pitchSlug} isPrep={isPrepPitch}>
+          {drawer}
+        </TeamPitchEditProvider>
+      );
     }
 
     return drawer;
@@ -630,7 +680,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
                     onGiveFeedback={handleGiveFeedbackClick}
                     onConnect={handleConnectCompanyClick}
                     onInvest={handleInvestCompanyClick}
-                    isLoading={expressInterest.isPending}
+                    isLoading={interestPending}
                     variant="drawer"
                     userInfo={userInfo ?? undefined}
                   />
@@ -672,7 +722,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
             }}
             onSubmit={handleReferSubmit}
             teamName={team?.team?.name || 'this company'}
-            isSubmitting={expressInterest.isPending}
+            isSubmitting={interestPending}
           />
 
           {/* Give Feedback Modal */}
@@ -681,7 +731,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
             onClose={() => setIsFeedbackModalOpen(false)}
             onSubmit={handleFeedbackSubmit}
             teamName={team?.team?.name || 'this company'}
-            isSubmitting={expressInterest.isPending}
+            isSubmitting={interestPending}
           />
         </>
       )}

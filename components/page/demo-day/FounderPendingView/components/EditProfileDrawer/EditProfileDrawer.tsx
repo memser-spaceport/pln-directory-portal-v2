@@ -20,6 +20,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
+import { useTeamPitchExpressInterest } from '@/services/team-pitch/hooks/useTeamPitchExpressInterest';
 import { Drawer } from '@/components/common/Drawer';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { ReferCompanyModal } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal';
@@ -86,7 +87,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   team,
 }) => {
   const pathname = usePathname();
-  const { pitchSlug } = useTeamPitchEditContext();
+  const { pitchSlug, isPrep: isPrepPitch } = useTeamPitchEditContext();
   const { currentUser: userInfo } = useCurrentUserStore();
   const isPrepDemoDay = useIsPrepDemoDay();
   const demoDayMode = useDemoDayMode();
@@ -111,6 +112,8 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(data?.team?.name);
+  const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', data?.team?.name);
+  const interestPending = pitchSlug ? pitchExpressInterest.isPending : expressInterest.isPending;
   const previousDataRef = useRef<FundraisingProfile | undefined>(data);
 
   const handleEditClick = () => {
@@ -418,8 +421,47 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     }
   };
 
+  const handleConnectInvestClick = (interestType: 'connect' | 'invest') => {
+    if (!data?.uid) {
+      return;
+    }
+
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: data.uid,
+        interestType,
+        isPrep: isPrepPitch,
+      });
+    } else {
+      expressInterest.mutate({
+        teamFundraisingProfileUid: data.uid,
+        interestType,
+        isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
+      });
+    }
+  };
+
   const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
-    if (data?.uid) {
+    if (!data?.uid) {
+      return;
+    }
+
+    if (pitchSlug) {
+      pitchExpressInterest.mutate(
+        {
+          teamPitchProfileUid: data.uid,
+          interestType: 'referral',
+          isPrep: isPrepPitch,
+          referralData,
+        },
+        {
+          onSuccess: () => {
+            setIsReferModalOpen(false);
+          },
+        },
+      );
+    } else {
       expressInterest.mutate(
         {
           teamFundraisingProfileUid: data.uid,
@@ -438,9 +480,26 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   };
 
   const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
-    if (data?.uid) {
-      // TODO: Add analytics for feedback submission
+    if (!data?.uid) {
+      return;
+    }
+    // TODO: Add analytics for feedback submission
 
+    if (pitchSlug) {
+      pitchExpressInterest.mutate(
+        {
+          teamPitchProfileUid: data.uid,
+          interestType: 'feedback',
+          isPrep: isPrepPitch,
+          feedbackData,
+        },
+        {
+          onSuccess: () => {
+            setIsFeedbackModalOpen(false);
+          },
+        },
+      );
+    } else {
       expressInterest.mutate(
         {
           teamFundraisingProfileUid: data.uid,
@@ -705,23 +764,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
             isFeedbackGiven={team?.feedback}
             onMakeIntro={() => setIsReferModalOpen(true)}
             onGiveFeedback={() => setIsFeedbackModalOpen(true)}
-            onConnect={() =>
-              expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid || '',
-                interestType: 'connect',
-                isPrepDemoDay,
-                demoDayMode: demoDayMode ?? undefined,
-              })
-            }
-            onInvest={() =>
-              expressInterest.mutate({
-                teamFundraisingProfileUid: data?.uid || '',
-                interestType: 'invest',
-                isPrepDemoDay,
-                demoDayMode: demoDayMode ?? undefined,
-              })
-            }
-            isLoading={expressInterest.isPending}
+            onConnect={() => handleConnectInvestClick('connect')}
+            onInvest={() => handleConnectInvestClick('invest')}
+            isLoading={interestPending}
             disabled={!data?.uid}
             variant="drawer"
             userInfo={userInfo ?? undefined}
@@ -735,7 +780,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         onClose={() => setIsReferModalOpen(false)}
         onSubmit={handleReferSubmit}
         teamName={data?.team?.name || ''}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={interestPending}
       />
 
       {/* Give Feedback Modal */}
@@ -744,7 +789,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         onClose={() => setIsFeedbackModalOpen(false)}
         onSubmit={handleFeedbackSubmit}
         teamName={data?.team?.name || ''}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={interestPending}
       />
 
       {/* Founders List Modal */}

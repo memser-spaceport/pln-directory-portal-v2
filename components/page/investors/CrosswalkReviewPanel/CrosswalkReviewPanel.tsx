@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { useCrosswalkReview } from '@/services/investors/hooks/useCrosswalkReview';
 import { useResolveCrosswalk } from '@/services/investors/hooks/useResolveCrosswalk';
@@ -25,6 +25,13 @@ const PAGE_LIMIT = 25;
  */
 export function CrosswalkReviewPanel({ open, onClose, canEdit }: Props) {
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (!open) {
+      setPage(1);
+    }
+  }, [open]);
+
   const { data, isLoading } = useCrosswalkReview(page, PAGE_LIMIT, open && canEdit);
 
   const resolve = useResolveCrosswalk();

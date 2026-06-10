@@ -29,7 +29,9 @@ export function useConnectorLens(
   enabled: boolean,
 ): ConnectorLensResult {
   const active = enabled && !!connectorLabel;
-  const ids = active ? members.filter((m) => m.has_path).map((m) => m.investor_id) : [];
+  // Exclude only confirmed-cold (has_path === false); undefined means the
+  // pathfinder hasn't run yet and the investor may still have a matching path.
+  const ids = active ? members.filter((m) => m.has_path !== false).map((m) => m.investor_id) : [];
 
   const results = useQueries({
     queries: ids.map((id) => ({

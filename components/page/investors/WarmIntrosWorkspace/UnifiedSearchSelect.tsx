@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import { useSearchInvestors } from '@/services/investors/hooks/useSearchInvestors';
 import type { PlPortfolioTeam } from '@/services/investors/types';
@@ -33,20 +34,15 @@ type LocalRow = { kind: 'founder' | 'team'; nodeLabel: string; sub: string; key:
  */
 export function UnifiedSearchSelect({ teams, onSelect }: Props) {
   const [term, setTerm] = useState('');
-  const [debounced, setDebounced] = useState('');
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(-1);
   const ref = useRef<HTMLDivElement>(null);
+  const debounced = useDebounce(term, 300);
 
   useOnClickOutside([ref], () => {
     setOpen(false);
     setHi(-1);
   });
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(term), 300);
-    return () => clearTimeout(t);
-  }, [term]);
 
   const { data, isPending } = useSearchInvestors(debounced, open);
   const investorItems = data?.items ?? [];
@@ -86,7 +82,6 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
 
   const reset = () => {
     setTerm('');
-    setDebounced('');
     setOpen(false);
     setHi(-1);
   };
@@ -127,7 +122,10 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     }
   };
 
-  const localCount = localRows.length;
+  // Derive localCount from the merged flat array so the investor-segment offset
+  // is always consistent with what flat actually contains, even during the debounce
+  // window when localRows and investorItems reflect different terms.
+  const localCount = flat.filter((e) => e.type === 'local').length;
 
   return (
     <div className={s.wrap} ref={ref}>

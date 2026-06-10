@@ -72,8 +72,9 @@ export const PitchInvestorQuickLinks = ({
           {profileCtaAsLink ? (
             <div className={s.profileLinkBlock}>
               <p className={s.profileHint}>
-                Your profile will be shown to the founder when you request an invite. We also use it to better match
-                which teams we show you.
+                Your profile will be shown to the founder when you request an invite.
+                <br />
+                We also use it to better match which teams we show you.
               </p>
               <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
                 {primaryCtaLabel}

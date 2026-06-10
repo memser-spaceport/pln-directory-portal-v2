@@ -5,10 +5,23 @@ import type {
   GantryItemListResponse,
   GantryListParams,
   GantryObjective,
+  GantryPinBalance,
+  GantryPinner,
   GantryPinStatus,
   GantryStage,
   UpdateGantryItemPayload,
 } from './types';
+
+export class PinBalanceExhaustedError extends Error {
+  constructor() {
+    super('PIN_BALANCE_EXHAUSTED');
+    this.name = 'PinBalanceExhaustedError';
+  }
+}
+
+type AddPinResult =
+  | { ok: true; item: GantryItem; balance: GantryPinBalance }
+  | { ok: false; error: 'PIN_BALANCE_EXHAUSTED' | 'UNKNOWN'; status: number };
 
 const ROADMAP_API_URL = `${process.env.DIRECTORY_API_URL}/v1/roadmap/items`;
 
@@ -27,9 +40,7 @@ function buildQuery(params: GantryListParams): string {
   if (params.type?.length) {
     search.set('type', params.type.join(','));
   }
-  if (params.objective?.length) {
-    search.set('objective', params.objective.join(','));
-  }
+  if (params.objectiveUid) search.set('objectiveUid', params.objectiveUid);
   return search.toString();
 }
 
@@ -164,43 +175,72 @@ export async function declineGantryItem(uid: string, reason: string): Promise<Ga
 
 export async function fetchGantryObjectives(): Promise<GantryObjective[]> {
   const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/roadmap/objectives`, { method: 'GET' }, true);
-  return parseJsonOrThrow<GantryObjective[]>(res, 'Failed to fetch gantry objectives');
+  const data = await parseJsonOrThrow<{ objectives: GantryObjective[] }>(res, 'Failed to fetch gantry objectives');
+  return data.objectives;
 }
 
-export async function addGantryPin(uid: string): Promise<GantryItem> {
+export async function addGantryPin(
+  uid: string,
+  params?: { note?: string | null; swapItemUid?: string | null },
+): Promise<AddPinResult> {
   const res = await customFetch(
     `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note: params?.note ?? null, swapItemUid: params?.swapItemUid ?? null }),
+    },
     true,
   );
-  return parseJsonOrThrow<GantryItem>(res, 'Failed to pin gantry item');
+  if (!res) return { ok: false, error: 'UNKNOWN', status: 0 };
+  if (res.status === 409) {
+    const json = await res.json().catch(() => null);
+    const code = json?.errorCode ?? json?.body?.errorCode;
+    return {
+      ok: false,
+      error: code === 'PIN_BALANCE_EXHAUSTED' ? 'PIN_BALANCE_EXHAUSTED' : 'UNKNOWN',
+      status: 409,
+    };
+  }
+  if (!res.ok) return { ok: false, error: 'UNKNOWN', status: res.status };
+  const json = await res.json();
+  const data = json?.body ?? json;
+  return { ok: true, item: data.item, balance: data.balance };
 }
 
-export async function removeGantryPin(uid: string): Promise<GantryItem> {
+export async function removeGantryPin(uid: string): Promise<{ item: GantryItem; balance: GantryPinBalance }> {
   const res = await customFetch(
     `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
     { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) },
     true,
   );
-  return parseJsonOrThrow<GantryItem>(res, 'Failed to unpin gantry item');
+  if (!res || !res.ok) throw new Error('Failed to unpin gantry item');
+  const json = await res.json();
+  const data = json?.body ?? json;
+  return { item: data.item, balance: data.balance };
 }
 
 export async function fetchGantryPinStatus(): Promise<GantryPinStatus> {
-  const res = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/roadmap/me/pin-status`,
-    { method: 'GET' },
-    true,
-  );
+  const res = await customFetch(`${process.env.DIRECTORY_API_URL}/v1/roadmap/pins/me`, { method: 'GET' }, true);
   return parseJsonOrThrow<GantryPinStatus>(res, 'Failed to fetch pin status');
 }
 
-export async function savePinNote(uid: string, note: string): Promise<void> {
+export async function savePinNote(uid: string, note: string): Promise<{ item: GantryItem; balance: GantryPinBalance }> {
   const res = await customFetch(
-    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin-note`,
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
     { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) },
     true,
   );
-  await parseJsonOrThrow(res, 'Failed to save pin note');
+  if (!res || !res.ok) throw new Error('Failed to save pin note');
+  const json = await res.json();
+  const data = json?.body ?? json;
+  return { item: data.item, balance: data.balance };
+}
+
+export async function fetchGantryItemPins(uid: string): Promise<GantryPinner[]> {
+  const res = await customFetch(`${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pins`, { method: 'GET' }, true);
+  const data = await parseJsonOrThrow<{ total: number; pins: GantryPinner[] }>(res, 'Failed to fetch item pins');
+  return data.pins;
 }
 
 export async function trackBuildButtonClick(uid: string): Promise<void> {

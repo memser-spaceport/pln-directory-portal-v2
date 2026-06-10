@@ -1,0 +1,66 @@
+.heading {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.sub {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 16px;
+}
+
+.pinList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.pinRow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: #a3a3a3;
+    background: #f9fafb;
+  }
+}
+
+.pinRowSelected {
+  border-color: #6366f1;
+  background: #f0f0ff;
+}
+
+.pinItemTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.pinItemStage {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.pinItemNote {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

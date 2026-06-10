@@ -26,8 +26,8 @@ interface Props {
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
   readonly objectives: GantryObjective[];
-  readonly selectedObjectives: string[];
-  readonly onSelectedObjectivesChange: (uids: string[]) => void;
+  readonly selectedObjective: string | null;
+  readonly onSelectedObjectiveChange: (uid: string | null) => void;
 }
 
 export function RoadmapFiltersContent({
@@ -40,8 +40,8 @@ export function RoadmapFiltersContent({
   searchText,
   onSearchTextChange,
   objectives,
-  selectedObjectives,
-  onSelectedObjectivesChange,
+  selectedObjective,
+  onSelectedObjectiveChange,
 }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
@@ -49,14 +49,6 @@ export function RoadmapFiltersContent({
       return;
     }
     onVisibleColumnsChange(sortRoadmapColumnStages([...visibleColumns, stage]));
-  };
-
-  const toggleObjective = (uid: string) => {
-    if (selectedObjectives.includes(uid)) {
-      onSelectedObjectivesChange(selectedObjectives.filter((id) => id !== uid));
-    } else {
-      onSelectedObjectivesChange([...selectedObjectives, uid]);
-    }
   };
 
   return (
@@ -95,12 +87,11 @@ export function RoadmapFiltersContent({
                 label={
                   <span className={filterStyles.objectiveFilterLabel}>
                     <span className={filterStyles.objectiveFilterDot} aria-hidden />
-                    <span className={filterStyles.objectiveFilterCode}>{obj.code}</span>
-                    {obj.label}
+                    {obj.title}
                   </span>
                 }
-                checked={selectedObjectives.includes(obj.uid)}
-                onClick={() => toggleObjective(obj.uid)}
+                checked={selectedObjective === obj.uid}
+                onClick={() => onSelectedObjectiveChange(selectedObjective === obj.uid ? null : obj.uid)}
               />
             ))}
           </div>

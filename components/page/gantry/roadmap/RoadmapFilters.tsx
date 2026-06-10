@@ -18,8 +18,8 @@ interface Props {
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
   readonly objectives: GantryObjective[];
-  readonly selectedObjectives: string[];
-  readonly onSelectedObjectivesChange: (uids: string[]) => void;
+  readonly selectedObjective: string | null;
+  readonly onSelectedObjectiveChange: (uid: string | null) => void;
 }
 
 export function RoadmapFilters({
@@ -32,21 +32,21 @@ export function RoadmapFilters({
   searchText,
   onSearchTextChange,
   objectives,
-  selectedObjectives,
-  onSelectedObjectivesChange,
+  selectedObjective,
+  onSelectedObjectiveChange,
 }: Props) {
   const clearParams = () => {
     onVisibleColumnsChange([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
     onSelectedTagsChange([]);
     onSelectedTypesChange([]);
-    onSelectedObjectivesChange([]);
+    onSelectedObjectiveChange(null);
     onSearchTextChange('');
   };
 
   return (
     <FiltersSidePanel
       clearParams={clearParams}
-      appliedFiltersCount={selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText ? 1 : 0)}
+      appliedFiltersCount={selectedTags.length + selectedTypes.length + (selectedObjective ? 1 : 0) + (searchText ? 1 : 0)}
       className={filterStyles.filterRail}
       hideFooter
     >
@@ -60,8 +60,8 @@ export function RoadmapFilters({
         searchText={searchText}
         onSearchTextChange={onSearchTextChange}
         objectives={objectives}
-        selectedObjectives={selectedObjectives}
-        onSelectedObjectivesChange={onSelectedObjectivesChange}
+        selectedObjective={selectedObjective}
+        onSelectedObjectiveChange={onSelectedObjectiveChange}
       />
     </FiltersSidePanel>
   );

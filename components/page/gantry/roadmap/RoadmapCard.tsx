@@ -4,47 +4,14 @@ import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { clsx } from 'clsx';
-import type { GantryItem, GantryPinner } from '@/services/gantry/types';
+import type { GantryItem } from '@/services/gantry/types';
+import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
 import { PinButton } from '../shared/PinButton';
 import { UpvoteButton } from '../shared/UpvoteButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
-
-// TODO: set to false when /v1/roadmap/items/:uid/pinners is live
-const USE_MOCK_PINNERS = true;
-
-const MOCK_NAMES = [
-  'Brad Eccles',
-  'Lacey Kane',
-  'La Christa Eccles',
-  'Aboud Jardaneh',
-  'Sarah Chen',
-  'Mike Torres',
-  'Julia Park',
-  'Alex Williams',
-  'Emma Davis',
-  'James Lee',
-];
-const MOCK_NOTES = [
-  'Saves the ops team ~4 hrs/week of manual sync.',
-  'Critical for our Q3 launch.',
-  'Blocking multiple team workflows.',
-  'Needed before next release cut.',
-  null,
-  null,
-  null,
-];
-function getMockPinners(item: GantryItem): GantryPinner[] {
-  if (item.pinCount <= 0) return [];
-  const seed = item.uid.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return Array.from({ length: Math.min(item.pinCount, 10) }, (_, i) => ({
-    uid: `mock-${item.uid}-${i}`,
-    name: MOCK_NAMES[(seed + i) % MOCK_NAMES.length],
-    note: MOCK_NOTES[(seed + i * 3) % MOCK_NOTES.length],
-  }));
-}
 
 const AVATAR_COLORS = [
   { bg: '#dbeafe', text: '#1d4ed8' },
@@ -70,7 +37,8 @@ function initials(name: string) {
 const MAX_PINNERS_VISIBLE = 3;
 
 function CardPinnersSection({ item }: { item: GantryItem }) {
-  const pinners = USE_MOCK_PINNERS ? getMockPinners(item) : (item.pinners ?? []);
+  const { data: pinners = [], isLoading } = useGantryItemPins(item.uid, item.pinCount > 0);
+  if (isLoading) return <div className={s.pinnersLoading}>Loading pinners…</div>;
   if (pinners.length === 0) return null;
   const visible = pinners.slice(0, MAX_PINNERS_VISIBLE);
   const hasMore = item.pinCount > MAX_PINNERS_VISIBLE;
@@ -81,14 +49,14 @@ function CardPinnersSection({ item }: { item: GantryItem }) {
         <span>{item.pinCount} PINNED · TEAM-ONLY</span>
       </div>
       {visible.map((p) => {
-        const c = avatarColor(p.name);
+        const c = avatarColor(p.member.name);
         return (
           <div key={p.uid} className={s.pinnerRow}>
             <span className={s.pinnerAvatar} style={{ background: c.bg, color: c.text }}>
-              {initials(p.name)}
+              {initials(p.member.name)}
             </span>
             <div className={s.pinnerInfo}>
-              <span className={s.pinnerName}>{p.name}</span>
+              <span className={s.pinnerName}>{p.member.name}</span>
               {p.note ? (
                 <span className={s.pinnerNote}>{p.note}</span>
               ) : (
@@ -173,7 +141,7 @@ function RoadmapCardContent({
         {item.objective && (
           <span className={s.objectiveBadge}>
             <span className={s.objectiveDot} aria-hidden />
-            {item.objective.code}
+            {item.objective.title}
           </span>
         )}
       </div>

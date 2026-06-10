@@ -34,6 +34,7 @@ import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
+import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
@@ -73,7 +74,7 @@ export function RoadmapView() {
   const { data, isLoading, isError } = useGantryItems(filters.params, !!currentUser && orderedVisibleColumns.length > 0);
   const { data: objectives = [] } = useGantryObjectives();
   const { data: pinStatus } = useGantryPinStatus(!!currentUser);
-  const pinsRemaining = pinStatus ? pinStatus.limit - pinStatus.used : null;
+  const pinsRemaining = pinStatus ? pinStatus.remaining : null;
 
   const transition = useGantryTransition();
   const reorder = useReorderGantryItem();
@@ -83,7 +84,8 @@ export function RoadmapView() {
 
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
     useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
-  const { pinStatusRef, pinNotePopover, handlePinToggle, handlePinNoteSave } =
+  const { pinStatusRef, pinNotePopover, handlePinToggle, handlePinNoteSave,
+    swapPickerTargetUid, handleSwapSelect, handleSwapDismiss } =
     useRoadmapPinActions(pin, pinNote, analytics);
 
   const itemsByStage = useMemo(() => {
@@ -184,6 +186,14 @@ export function RoadmapView() {
           uid={pinNotePopover.uid}
           pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
           onSave={handlePinNoteSave}
+        />
+      )}
+      {swapPickerTargetUid && (
+        <PinSwapPicker
+          targetItemTitle={data?.items.find((i) => i.uid === swapPickerTargetUid)?.title ?? ''}
+          pins={pinStatus?.pins ?? []}
+          onSelect={handleSwapSelect}
+          onDismiss={handleSwapDismiss}
         />
       )}
     </>
@@ -287,8 +297,8 @@ export function RoadmapView() {
             searchText={filters.searchText}
             onSearchTextChange={filters.handleSearchTextChange}
             objectives={objectives}
-            selectedObjectives={filters.selectedObjectives}
-            onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
+            selectedObjective={filters.selectedObjective}
+            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
           />
         </MobileDrawer>
 
@@ -311,8 +321,8 @@ export function RoadmapView() {
             searchText={filters.searchText}
             onSearchTextChange={filters.handleSearchTextChange}
             objectives={objectives}
-            selectedObjectives={filters.selectedObjectives}
-            onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
+            selectedObjective={filters.selectedObjective}
+            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
           />
         }
         content={

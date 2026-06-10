@@ -1,14 +1,13 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addGantryPin, removeGantryPin } from '../gantry.service';
+import { addGantryPin, removeGantryPin, PinBalanceExhaustedError } from '../gantry.service';
 import { GantryQueryKeys } from '../constants';
-import type { GantryItem, GantryItemListResponse, GantryPinStatus } from '../types';
+import type { GantryItem, GantryItemListResponse, GantryPinBalance, GantryPinStatus } from '../types';
 
-// TODO: set to false when POST/DELETE /v1/roadmap/items/:uid/pin is live
-const USE_MOCK = true;
+type PinPayload = { uid: string; nextIsPinned: boolean; swapItemUid?: string | null };
 
-type PinPayload = { uid: string; nextIsPinned: boolean };
+type PinResult = { item: GantryItem; balance: GantryPinBalance };
 
 type PinContext = {
   previousLists: [readonly unknown[], GantryItemListResponse | undefined][];
@@ -25,19 +24,25 @@ function applyPin(item: GantryItem, uid: string, nextIsPinned: boolean): GantryI
   };
 }
 
-async function pinMutationFn({ uid, nextIsPinned }: PinPayload): Promise<void> {
-  if (USE_MOCK) return; // optimistic cache update in onMutate is the only state change
-  if (nextIsPinned) await addGantryPin(uid);
-  else await removeGantryPin(uid);
+async function pinMutationFn({ uid, nextIsPinned, swapItemUid }: PinPayload): Promise<PinResult> {
+  if (nextIsPinned) {
+    const result = await addGantryPin(uid, { swapItemUid: swapItemUid ?? null });
+    if (!result.ok) {
+      if (result.error === 'PIN_BALANCE_EXHAUSTED') throw new PinBalanceExhaustedError();
+      throw new Error('Failed to pin item');
+    }
+    return { item: result.item, balance: result.balance };
+  }
+  return removeGantryPin(uid);
 }
 
 export function useGantryPin() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, PinPayload, PinContext>({
+  return useMutation<PinResult, Error, PinPayload, PinContext>({
     mutationFn: pinMutationFn,
 
-    onMutate: async ({ uid, nextIsPinned }) => {
+    onMutate: async ({ uid, nextIsPinned, swapItemUid }) => {
       await Promise.all([
         queryClient.cancelQueries({ queryKey: [GantryQueryKeys.ITEMS] }),
         queryClient.cancelQueries({ queryKey: [GantryQueryKeys.ITEM, uid] }),
@@ -51,7 +56,15 @@ export function useGantryPin() {
 
       queryClient.setQueriesData<GantryItemListResponse>(
         { queryKey: [GantryQueryKeys.ITEMS] },
-        (old) => old && { ...old, items: old.items.map((it) => applyPin(it, uid, nextIsPinned)) },
+        (old) =>
+          old && {
+            ...old,
+            items: old.items.map((it) => {
+              if (it.uid === uid) return applyPin(it, uid, nextIsPinned);
+              if (swapItemUid && nextIsPinned && it.uid === swapItemUid) return applyPin(it, swapItemUid, false);
+              return it;
+            }),
+          },
       );
 
       if (previousItem) {
@@ -59,9 +72,11 @@ export function useGantryPin() {
       }
 
       if (previousPinStatus) {
+        const balanceDelta = swapItemUid && nextIsPinned ? 0 : nextIsPinned ? 1 : -1;
         queryClient.setQueryData<GantryPinStatus>([GantryQueryKeys.PIN_STATUS], {
           ...previousPinStatus,
-          used: previousPinStatus.used + (nextIsPinned ? 1 : -1),
+          used: previousPinStatus.used + balanceDelta,
+          remaining: previousPinStatus.remaining - balanceDelta,
         });
       }
 
@@ -81,12 +96,10 @@ export function useGantryPin() {
       }
     },
 
-    onSettled: USE_MOCK
-      ? undefined
-      : (_result, _err, { uid }) => {
-          queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEMS] });
-          queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM, uid] });
-          queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.PIN_STATUS] });
-        },
+    onSettled: (_result, _err, { uid }) => {
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEMS] });
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM, uid] });
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.PIN_STATUS] });
+    },
   });
 }

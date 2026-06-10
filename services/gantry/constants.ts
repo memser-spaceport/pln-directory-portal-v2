@@ -7,6 +7,7 @@ export enum GantryQueryKeys {
   FOCUS_AREAS = 'gantry-focus-areas',
   OBJECTIVES = 'gantry-objectives',
   PIN_STATUS = 'gantry-pin-status',
+  ITEM_PINS = 'gantry-item-pins',
 }
 
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;

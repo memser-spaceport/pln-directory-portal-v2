@@ -10,20 +10,37 @@ export interface GantryMemberSummary {
 
 export interface GantryObjective {
   uid: string;
-  code: string;
-  label: string;
+  title: string;
+  itemCount: number;
+  createdAt: string;
+}
+
+export interface GantryPinBalance {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface GantryUserPin {
+  uid: string;
+  note: string | null;
+  createdAt: string;
+  item: { uid: string; title: string; stage: GantryStage };
 }
 
 export interface GantryPinStatus {
   limit: number;
   used: number;
+  remaining: number;
+  pins: GantryUserPin[];
 }
 
 export interface GantryPinner {
   uid: string;
-  name: string;
-  imageUrl?: string | null;
-  note?: string | null;
+  note: string | null;
+  createdAt: string;
+  releasedAt: string | null;
+  member: { uid: string; name: string; imageUrl: string | null };
 }
 
 export interface GantryItem {
@@ -33,7 +50,7 @@ export interface GantryItem {
   acceptanceCriteria: string | null;
   stage: GantryStage;
   focusArea: string | null;
-  objective: GantryObjective | null;
+  objective: { uid: string; title: string } | null;
   tags: string[] | null;
   type: GantryItemType | null;
   order: number | null;
@@ -47,7 +64,7 @@ export interface GantryItem {
   viewerHasUpvoted: boolean;
   pinCount: number;
   viewerHasPinned: boolean;
-  pinners?: GantryPinner[];
+  viewerPinNote: string | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -61,7 +78,8 @@ export interface GantryItemListResponse {
 export interface GantryListParams {
   stage?: GantryStage[];
   focusArea?: string;
-  objective?: string[];
+  objectiveUid?: string;
+  sort?: 'default' | 'trending' | 'top_pins' | 'newest';
   tags?: string[];
   type?: string[];
   mine?: boolean;

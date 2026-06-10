@@ -3,6 +3,7 @@
 import { clsx } from 'clsx';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
+import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import {
   GANTRY_ITEM_TYPE_OPTIONS,

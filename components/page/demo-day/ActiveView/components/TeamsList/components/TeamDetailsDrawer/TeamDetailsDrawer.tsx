@@ -16,9 +16,8 @@ import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useCurrentUserStore } from '@/services/auth/store';
 import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
-import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
-import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { useTeamEngagementAnalytics } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
@@ -76,21 +75,7 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-  // Analytics hooks
-  const {
-    onActiveViewLikeCompanyClicked,
-    onActiveViewConnectCompanyClicked,
-    onActiveViewInvestCompanyClicked,
-    onActiveViewTeamPitchDeckViewed,
-    onActiveViewTeamPitchVideoViewed,
-    onActiveViewReferCompanyClicked,
-    onActiveViewIntroCompanyClicked,
-    onActiveViewIntroCompanyCancelClicked,
-    onActiveViewIntroCompanyConfirmClicked,
-    onActiveViewGiveFeedbackClicked,
-    onActiveViewFeedbackSubmitted,
-    onActiveViewVideoWatchTime,
-  } = useDemoDayAnalytics();
+  const engagement = useTeamEngagementAnalytics(pitchSlug);
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(team?.team?.name);
   const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', team?.team?.name);
@@ -118,25 +103,13 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   // Analytics handlers for action buttons
   const handleLikeCompanyClick = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewLikeCompanyClicked(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const likeEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'like_company',
-          ...getTeamAnalyticsData(),
-        },
-      };
-
-      reportAnalytics.mutate(likeEvent);
+      const analyticsData = getTeamAnalyticsData();
+      engagement.capture.likeCompanyClicked(analyticsData);
+      const event = engagement.trackEngagement('likeCompanyClicked', userInfo, {
+        action: 'like_company',
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     // Express interest via API (state will be updated automatically via useGetExpressedInterests)
@@ -150,25 +123,13 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   const handleConnectCompanyClick = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewConnectCompanyClicked(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const connectEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_CONNECT_COMPANY_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'connect_company',
-          ...getTeamAnalyticsData(),
-        },
-      };
-
-      reportAnalytics.mutate(connectEvent);
+      const analyticsData = getTeamAnalyticsData();
+      engagement.capture.connectClicked(analyticsData);
+      const event = engagement.trackEngagement('connectClicked', userInfo, {
+        action: 'connect_company',
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     // Express interest via API (state will be updated automatically via useGetExpressedInterests)
@@ -190,25 +151,13 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
 
   const handleInvestCompanyClick = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewInvestCompanyClicked(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const investEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INVEST_COMPANY_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'invest_company',
-          ...getTeamAnalyticsData(),
-        },
-      };
-
-      reportAnalytics.mutate(investEvent);
+      const analyticsData = getTeamAnalyticsData();
+      engagement.capture.investClicked(analyticsData);
+      const event = engagement.trackEngagement('investClicked', userInfo, {
+        action: 'invest_company',
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     // Express interest via API (state will be updated automatically via useGetExpressedInterests)
@@ -231,29 +180,11 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   const handleReferCompanyClick = () => {
     setIsReferModalOpen(true);
 
-    // Report intro company clicked analytics
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
-
-      // PostHog analytics
-      onActiveViewIntroCompanyClicked(analyticsData);
-
-      // Custom analytics event
-      const introEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'intro_company',
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(introEvent);
+      engagement.capture.introClicked(analyticsData);
+      const event = engagement.trackEngagement('introClicked', userInfo, { action: 'intro_company', ...analyticsData });
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
@@ -261,31 +192,17 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
 
-      // PostHog analytics
-      onActiveViewIntroCompanyConfirmClicked({
+      const referParams = {
         ...analyticsData,
         referralName: referralData.investorName,
         referralEmail: referralData.investorEmail,
-      });
-
-      // Custom analytics event
-      const referEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'intro_company',
-          ...analyticsData,
-          referralName: referralData.investorName,
-          referralEmail: referralData.investorEmail,
-        },
       };
-
-      reportAnalytics.mutate(referEvent);
+      engagement.capture.introConfirmClicked(referParams);
+      const event = engagement.trackEngagement('introConfirmClicked', userInfo, {
+        action: 'intro_company',
+        ...referParams,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     // Express interest via API with referral data
@@ -311,62 +228,29 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   };
 
   const handleGiveFeedbackClick = () => {
-    // Report give feedback clicked analytics
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
-
-      // PostHog analytics
-      onActiveViewGiveFeedbackClicked(analyticsData);
-
-      // Custom analytics event
-      const feedbackEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'give_feedback',
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(feedbackEvent);
+      engagement.capture.giveFeedbackClicked(analyticsData);
+      const event = engagement.trackEngagement('giveFeedbackClicked', userInfo, {
+        action: 'give_feedback',
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     setIsFeedbackModalOpen(true);
   };
 
   const handleFeedbackSubmit = (feedbackData: { feedback: string }) => {
-    // Report feedback submitted analytics
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
-
-      // PostHog analytics
-      onActiveViewFeedbackSubmitted({
-        ...analyticsData,
-        feedbackLength: feedbackData.feedback.length,
+      const feedbackParams = { ...analyticsData, feedbackLength: feedbackData.feedback.length };
+      engagement.capture.feedbackSubmitted(feedbackParams);
+      const event = engagement.trackEngagement('feedbackSubmitted', userInfo, {
+        action: 'feedback_submitted',
+        ...feedbackParams,
       });
-
-      // Custom analytics event
-      const feedbackSubmittedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'feedback_submitted',
-          feedbackLength: feedbackData.feedback.length,
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(feedbackSubmittedEvent);
+      if (event) reportAnalytics.mutate(event);
     }
 
     // Express interest via API with feedback data
@@ -405,95 +289,37 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
   // Analytics handlers for media viewing
   const handlePitchDeckView = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewTeamPitchDeckViewed(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const pitchDeckEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          materialType: 'pitch_deck',
-          materialUrl: team.onePagerUpload?.url,
-          ...getTeamAnalyticsData(),
-        },
+      const analyticsData = {
+        ...getTeamAnalyticsData(),
+        materialType: 'pitch_deck',
+        materialUrl: team.onePagerUpload?.url,
       };
-
-      reportAnalytics.mutate(pitchDeckEvent);
+      engagement.capture.deckViewed(analyticsData);
+      const event = engagement.trackEngagement('deckViewed', userInfo, analyticsData);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handlePitchVideoView = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewTeamPitchVideoViewed(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const pitchVideoEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          materialType: 'pitch_video',
-          materialUrl: team.videoUpload?.url,
-          ...getTeamAnalyticsData(),
-        },
+      const analyticsData = {
+        ...getTeamAnalyticsData(),
+        materialType: 'pitch_video',
+        materialUrl: team.videoUpload?.url,
       };
-
-      reportAnalytics.mutate(pitchVideoEvent);
+      engagement.capture.videoViewed(analyticsData);
+      const event = engagement.trackEngagement('videoViewed', userInfo, analyticsData);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
-  // Handle video watch time reports
   const handleVideoWatchTime = (data: VideoWatchTimeData) => {
     if (!userInfo?.email) return;
 
-    const analyticsData = getTeamAnalyticsData();
-
-    // PostHog analytics
-    onActiveViewVideoWatchTime({
-      ...analyticsData,
-      ...data,
-    });
-
-    // Custom analytics event to backend
-    const watchTimeEvent: TrackEventDto = {
-      name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME,
-      distinctId: userInfo.email,
-      properties: {
-        userId: userInfo.uid,
-        userEmail: userInfo.email,
-        userName: userInfo.name,
-        path: '/demoday',
-        timestamp: new Date().toISOString(),
-        ...analyticsData,
-        // Watch time data
-        sessionId: data.sessionId,
-        videoUrl: data.videoUrl,
-        watchTimeMs: data.watchTimeMs,
-        totalWatchTimeMs: data.totalWatchTimeMs,
-        videoDurationMs: data.videoDurationMs,
-        percentWatched: data.percentWatched,
-        currentPosition: data.currentPosition,
-        playbackRate: data.playbackRate,
-        isComplete: data.isComplete,
-        isFinalReport: data.isFinalReport,
-        exitPosition: data.exitPosition,
-        maxPositionReached: data.maxPositionReached,
-        watchedSegments: data.watchedSegments,
-      },
-    };
-
-    reportAnalytics.mutate(watchTimeEvent);
+    const watchParams = { ...getTeamAnalyticsData(), ...data };
+    engagement.capture.videoWatchTime(watchParams);
+    const event = engagement.trackEngagement('videoWatchTime', userInfo, watchParams);
+    if (event) reportAnalytics.mutate(event);
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -695,29 +521,14 @@ export const TeamDetailsDrawer: React.FC<TeamDetailsDrawerProps> = ({
             onClose={() => {
               setIsReferModalOpen(false);
 
-              // Report intro company cancel analytics
               if (userInfo?.email) {
                 const analyticsData = getTeamAnalyticsData();
-
-                // PostHog analytics
-                onActiveViewIntroCompanyCancelClicked(analyticsData);
-
-                // Custom analytics event
-                const cancelEvent: TrackEventDto = {
-                  name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED,
-                  distinctId: userInfo.email,
-                  properties: {
-                    userId: userInfo.uid,
-                    userEmail: userInfo.email,
-                    userName: userInfo.name,
-                    path: '/demoday',
-                    timestamp: new Date().toISOString(),
-                    action: 'intro_company_cancel',
-                    ...analyticsData,
-                  },
-                };
-
-                reportAnalytics.mutate(cancelEvent);
+                engagement.capture.introCancelClicked(analyticsData);
+                const event = engagement.trackEngagement('introCancelClicked', userInfo, {
+                  action: 'intro_company_cancel',
+                  ...analyticsData,
+                });
+                if (event) reportAnalytics.mutate(event);
               }
             }}
             onSubmit={handleReferSubmit}

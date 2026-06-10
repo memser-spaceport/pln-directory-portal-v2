@@ -9,6 +9,11 @@ import type {
   PrimaryCtaType,
 } from '@/components/page/pitch/hooks/usePitchInvestorOnboardingState';
 import stepperStyles from '@/components/page/demo-day/AppliedInvestorSteps/AppliedInvestorSteps.module.scss';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchInvestorHeader.module.scss';
 
 const EditIcon = () => (
@@ -43,9 +48,27 @@ export const PitchInvestorQuickLinks = ({
 }: Props) => {
   const { openModal } = useContactSupportStore((s) => s.actions);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const { currentUser: userInfo } = useCurrentUserStore();
+
+  const trackPitchEvent = (eventName: string, posthogFn: () => void, extra: Record<string, unknown> = {}) => {
+    posthogFn();
+    const distinctId = userInfo?.email ?? `pitch-anonymous-${pitchSlug}`;
+    reportAnalytics.mutate(
+      buildEngagementTrackEvent(eventName, distinctId, `/pitch/${pitchSlug}`, pitchSlug, {
+        ...(userInfo ? { userId: userInfo.uid, userEmail: userInfo.email, userName: userInfo.name } : {}),
+        variant,
+        ...extra,
+      }),
+    );
+  };
 
   const handleContactSupport = () => {
     if (variant === 'restricted') {
+      trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_RESTRICTED_ACCESS_SUPPORT_CLICKED, () =>
+        teamPitchAnalytics.onRestrictedAccessSupportClicked({ pitchSlug, variant }),
+      );
       openModal(
         { reason: 'team_pitch_access_denied', pitchSlug },
         'contactSupport',
@@ -54,14 +77,23 @@ export const PitchInvestorQuickLinks = ({
       return;
     }
 
+    trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_CONTACT_SUPPORT_CLICKED, () =>
+      teamPitchAnalytics.onContactSupportClicked({ pitchSlug, variant }),
+    );
     openModal({ pitchSlug }, 'askQuestion');
   };
 
   const handlePrimaryCta = () => {
     if (primaryCtaType === 'login') {
+      trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_LOGIN_CLICKED, () =>
+        teamPitchAnalytics.onLoginClicked({ pitchSlug, variant }),
+      );
       onLogin();
       return;
     }
+    trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_INVESTOR_PROFILE_CTA_CLICKED, () =>
+      teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant, profileCtaAsLink }),
+    );
     setDrawerOpen(true);
   };
 

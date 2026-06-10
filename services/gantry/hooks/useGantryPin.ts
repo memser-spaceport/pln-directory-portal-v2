@@ -96,10 +96,14 @@ export function useGantryPin() {
       }
     },
 
-    onSettled: (_result, _err, { uid }) => {
+    onSettled: (_result, _err, { uid, swapItemUid }) => {
       queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEMS] });
       queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM, uid] });
       queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.PIN_STATUS] });
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM_PINS, uid] });
+      if (swapItemUid) {
+        queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM_PINS, swapItemUid] });
+      }
     },
   });
 }

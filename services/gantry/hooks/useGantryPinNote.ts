@@ -27,6 +27,7 @@ export function useGantryPinNote() {
     onSettled: (_r, _e, { uid }) => {
       queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEMS] });
       queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM, uid] });
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.ITEM_PINS, uid] });
     },
   });
 }

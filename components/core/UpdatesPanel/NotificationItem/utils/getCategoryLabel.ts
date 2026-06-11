@@ -20,6 +20,8 @@ export function getCategoryLabel(category: PushNotification['category']): string
       return 'Founder Guides';
     case 'NEW_FEATURE':
       return 'New Feature';
+    case 'GANTRY':
+      return 'Gantry';
     case 'SYSTEM':
     default:
       return 'System';

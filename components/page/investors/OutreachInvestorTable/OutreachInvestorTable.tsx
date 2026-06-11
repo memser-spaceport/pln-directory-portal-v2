@@ -65,7 +65,7 @@ const COLUMN_LABELS: Record<string, string> = {
   canonical_id: 'Canonical ID',
   investor_id: 'Investor ID',
   lab_os_profile: 'In LabOS',
-  co_invested_team_ids: 'Co-investor',
+  co_invested_team_ids: 'Co-invested Teams',
 };
 
 const SORTABLE_COLUMNS: Record<string, string> = {
@@ -203,7 +203,7 @@ export function OutreachInvestorTable(props: Props) {
       },
       {
         id: 'co_invested_team_ids',
-        header: 'Co-investor',
+        header: 'Co-invested Teams',
         accessorFn: (r) => r.co_invested_team_ids.length,
         cell: ({ row }) => {
           const ids = row.original.co_invested_team_ids;

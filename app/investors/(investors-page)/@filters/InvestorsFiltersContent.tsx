@@ -1,32 +1,33 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
+import { useMount, useToggle } from 'react-use';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { FiltersPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout';
 import { InvestorsFilterRail } from '@/components/page/investors/InvestorsFilterRail/InvestorsFilterRail';
-// import { WarmIntrosFilterRail } from '@/components/page/investors/WarmIntrosFilterRail/WarmIntrosFilterRail';
 import { investorsFilterParsers } from '../searchParams';
 
 export default function InvestorsFiltersContent() {
+  const [mounted, toggleMounted] = useToggle(false);
+
+  useMount(() => toggleMounted());
+
   const access = useInvestorsAccess();
   const [filters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
 
-  if (access.isLoading) {
-    return <FiltersPanelSkeletonLoader />;
+  if (!mounted || access.isLoading) {
+    return mounted ? <FiltersPanelSkeletonLoader /> : null;
   }
 
-  const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
+  // Warm Intros carries its own filter UI in the workspace, so the side rail is
+  // hidden there. (Lists IA: the old co-investors tab is retired.)
+  const isWarmIntros = filters.mode === 'warm-intros';
   if (!access.canView || isWarmIntros) {
     return null;
   }
-
-  // const isWarmIntros = filters.tab === 'co-investors' && filters.mode === 'warm-intros';
-  // if (isWarmIntros) {
-  //   return <WarmIntrosFilterRail />;
-  // }
 
   return <InvestorsFilterRail tab={filters.tab} />;
 }

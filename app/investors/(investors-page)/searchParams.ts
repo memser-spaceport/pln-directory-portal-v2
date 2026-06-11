@@ -44,10 +44,14 @@ export const investorsFilterParsers = {
   investorId: parseAsString.withDefault(''),
 
   // Warm intros workspace (only used when mode=warm-intros)
-  wi_team_id: parseAsString.withDefault(''),
+  /** Selected target list id (Lists IA). Drives the ranked member table. */
+  wi_list_id: parseAsString.withDefault(''),
   wi_stage: parseAsString.withDefault(''),
   wi_sectors: parseAsArrayOf(parseAsString, ',').withDefault([]),
   wi_check_size: parseAsString.withDefault(''),
+  /** Connector-lens label — when set, only members whose paths route through
+   *  this founder/team node are shown. */
+  wi_connector: parseAsString.withDefault(''),
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

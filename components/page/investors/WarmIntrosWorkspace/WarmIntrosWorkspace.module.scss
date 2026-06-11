@@ -25,6 +25,12 @@
   margin-bottom: 4px;
 }
 
+.titleActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .howScoredLink {
   background: none;
   border: none;
@@ -39,6 +45,57 @@
 
   &:hover {
     color: #1a3fd9;
+  }
+}
+
+.lensBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lensLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #455468;
+}
+
+.lensChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  background: #eef2ff;
+  border: 1px solid #1b4dff;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #1b4dff;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.lensClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: rgba(27, 77, 255, 0.16);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #1b4dff;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.28);
   }
 }
 
@@ -70,6 +127,14 @@
   gap: 6px;
   min-width: 200px;
   flex: 1 1 200px;
+}
+
+.fieldMb {
+  margin-bottom: 12px;
+}
+
+.fieldMt {
+  margin-top: 12px;
 }
 
 .label {
@@ -431,6 +496,39 @@
   margin-top: 1px;
 }
 
+.warmPathCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: #1a3fd9;
+  }
+}
+
+.detailRow {
+  background: #fcfcfd;
+
+  & > td {
+    padding: 4px 16px 14px !important;
+    border-bottom: 1px solid #f3f4f6;
+  }
+}
+
 .path {
   font-size: 12px;
   color: #455468;
@@ -488,6 +586,149 @@
 }
 
 .fitLo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ── Redesigned search bar + single ranked table ─────────────────────────────── */
+
+.searchRow {
+  margin-bottom: 12px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+
+  &:focus {
+    border-color: #1b4dff;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+  }
+}
+
+.relChips {
+  display: inline-flex;
+  gap: 6px;
+  margin-right: 8px;
+}
+
+.relChip {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #455468;
+}
+
+.relChipOn {
+  background: #eef2ff;
+  border-color: #1b4dff;
+  color: #1b4dff;
+  font-weight: 600;
+}
+
+.tableWrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.table thead th {
+  padding: 9px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+  background: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 11px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.row {
+  cursor: pointer;
+  transition: background 0.08s;
+
+  &:hover {
+    background: #fafbfc;
+  }
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #0a0c11;
+}
+
+.subtle {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.teamCell {
+  font-weight: 500;
+  color: #0a0c11;
+}
+
+.proximityCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.relCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.relPill {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.relCo {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.relEngaged {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.relCold {
   background: #f3f4f6;
   color: #6b7280;
 }

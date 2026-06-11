@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
-import { useFindWarmIntros } from '@/services/investors/hooks/useFindWarmIntros';
+import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
+import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
+import { useConnectorLens } from '@/services/investors/hooks/useConnectorLens';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 
 import {
   CHECK_SIZE_RANGES,
   INDUSTRY_SECTOR_LABEL,
+  INVESTOR_TYPE_LABEL,
   SECTOR_TAGS,
   SECTOR_TAG_LABEL,
   STAGE_FOCUSES,
@@ -19,100 +22,236 @@ import {
 
 import type {
   CheckSizeRange,
+  InvestorList,
+  OutreachInvestor,
   SectorTag,
   StageFocus,
-  WarmIntroCandidate,
-  WarmIntrosParams,
+  WarmIntroTier,
 } from '@/services/investors/types';
-import { effectiveTeamRaisingStage } from '@/services/investors/raising-stage';
+import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
-import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
+import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
+import { ProximityCodeBadge } from '../ProximityCodeBadge/ProximityCodeBadge';
+import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
+import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPanel';
 import { exportInvestorsCsv } from '../utils/exportCsv';
-import { ScoringMethodologyModal } from './ScoringMethodologyModal';
+import { GlossaryModal } from './GlossaryModal';
+import { ListPicker } from './ListPicker';
+import { UnifiedSearchSelect, type UnifiedSelection } from './UnifiedSearchSelect';
 import s from './WarmIntrosWorkspace.module.scss';
 
 interface Props {
   onCountChange?: (count: number) => void;
 }
 
+const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
+  { tier: 'co_invested', label: 'Co-invested' },
+  { tier: 'engaged', label: 'Engaged' },
+  { tier: 'cold_match', label: 'Cold' },
+];
+
+const PAGE_LIMIT = 100;
+
+// Derive the relationship tier off the investor record (list members are plain
+// OutreachInvestor, not WarmIntroCandidate): co-invested > engaged > cold.
+function relationshipTier(inv: OutreachInvestor): WarmIntroTier {
+  if (inv.co_invested_team_ids.length > 0) return 'co_invested';
+  if (inv.engagement_tier && inv.engagement_tier !== 'T4_cold') return 'engaged';
+  return 'cold_match';
+}
+
+// Warmer first: caliber A < B < none, then fewer hops; cold (no path) last.
+function proximityRank(inv: OutreachInvestor): number {
+  if (!inv.has_path || !inv.best_proximity_code) return 999;
+  const code = inv.best_proximity_code;
+  const cal = code.slice(-1);
+  const calRank = cal === 'A' ? 0 : cal === 'B' ? 1 : 2;
+  const hopMatch = code.match(/\+(\d)/);
+  const hops = hopMatch ? Number(hopMatch[1]) : 9;
+  return calRank * 10 + hops;
+}
+
+type Draft = {
+  stage: string;
+  sectors: SectorTag[];
+  check: string;
+};
+
 export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const access = useInvestorsAccess();
+  const analytics = useInvestorsAnalytics();
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
 
+  const { data: lists } = useGetInvestorLists(access.canView);
   const { data: teams } = useGetCoInvestorTeams(access.canView);
 
-  const teamId = filters.wi_team_id;
-  const team = teamId && teams ? teams.find((t) => t.team_id === teamId) : undefined;
-  const teamRaisingStage = effectiveTeamRaisingStage(team);
-
-  // Auto-fill criteria from selected team unless user has overridden them
-  const effectiveStage = (filters.wi_stage || teamRaisingStage || team?.pl_invested_stage) as StageFocus | '';
-  const effectiveSectors: SectorTag[] = useMemo(
-    () => (filters.wi_sectors.length ? (filters.wi_sectors as SectorTag[]) : (team?.sectors ?? [])),
-    [filters.wi_sectors, team?.sectors],
-  );
-  const effectiveCheckSize = (filters.wi_check_size || '') as CheckSizeRange | '';
-
-  const params: WarmIntrosParams = useMemo(
-    () => ({
-      team_id: teamId || undefined,
-      stage_focus: effectiveStage || undefined,
-      sector_tags: effectiveSectors.length ? effectiveSectors : undefined,
-      check_size_range: effectiveCheckSize || undefined,
-    }),
-    [teamId, effectiveStage, effectiveSectors, effectiveCheckSize],
+  // ── Target list selection ───────────────────────────────────────────────────
+  const selectedList = useMemo<InvestorList | undefined>(
+    () => (lists ? lists.find((l) => l.id === filters.wi_list_id) : undefined),
+    [lists, filters.wi_list_id],
   );
 
-  const enabled = access.canView && (!!teamId || effectiveSectors.length > 0);
-  const { data, isLoading } = useFindWarmIntros(params, enabled);
-
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [scoringOpen, setScoringOpen] = useState(false);
-  const [activeTier, setActiveTier] = useState<WarmIntroCandidate['tier']>('co_invested');
-
-  const candidates = useMemo(() => data?.candidates ?? [], [data]);
-
+  // Default-select the first list once they load (keeps the workspace useful out
+  // of the box; v1 = Neuro + Gold).
   useEffect(() => {
-    if (data) onCountChange?.(candidates.length);
-  }, [candidates.length, data, onCountChange]);
+    if (!filters.wi_list_id && lists && lists.length > 0) {
+      // Default to the primary LP pipeline (neuro-lp) when present, else the first
+      // GRAPHED list (proximity is meaningful), else the first list. Now that Gold
+      // is also graphed, a bare find(is_graphed) would pick Gold (sorts first by
+      // name), so prefer the flagship neuro list explicitly.
+      const def =
+        lists.find((l) => l.slug === 'neuro-lp' && l.is_graphed) ??
+        lists.find((l) => l.is_graphed) ??
+        lists[0];
+      setFilters({ wi_list_id: def.id });
+    }
+  }, [filters.wi_list_id, lists, setFilters]);
 
-  const grouped = useMemo(() => {
-    const out: Record<WarmIntroCandidate['tier'], WarmIntroCandidate[]> = {
-      co_invested: [],
-      engaged: [],
-      cold_match: [],
-    };
-    for (const c of candidates) out[c.tier].push(c);
-    return out;
-  }, [candidates]);
-
-  // If the active tab becomes empty (results changed), fall back to the first non-empty tier.
-  const TIERS = ['co_invested', 'engaged', 'cold_match'] as const;
-  const displayTier: WarmIntroCandidate['tier'] =
-    grouped[activeTier].length > 0 ? activeTier : (TIERS.find((t) => grouped[t].length > 0) ?? activeTier);
-
-  const toggleSector = (sec: SectorTag) => {
-    const cur = filters.wi_sectors;
-    const next = cur.includes(sec) ? cur.filter((x) => x !== sec) : [...cur, sec];
-    setFilters({ wi_sectors: next.length ? next : null });
+  const onPickList = (list: InvestorList) => {
+    setFilters({ wi_list_id: list.id, wi_connector: null });
+    setExpandedIds(new Set());
+    setSelectedIds(new Set());
+    analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
   };
 
-  const reset = () => {
-    setFilters({
-      wi_team_id: null,
-      wi_stage: null,
-      wi_sectors: null,
-      wi_check_size: null,
+  // ── In-list refinement: draft (form) vs applied (URL) ───────────────────────
+  const [draft, setDraft] = useState<Draft>(() => ({
+    stage: filters.wi_stage,
+    sectors: filters.wi_sectors as SectorTag[],
+    check: filters.wi_check_size,
+  }));
+
+  // Keep draft in sync when URL params change externally (browser back/forward,
+  // deep-link navigation). Skip the first mount since useState already captured
+  // the initial values.
+  const isMounted = useRef(false);
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
+    setDraft({
+      stage: filters.wi_stage,
+      sectors: filters.wi_sectors as SectorTag[],
+      check: filters.wi_check_size,
     });
+  }, [filters.wi_stage, filters.wi_sectors, filters.wi_check_size]);
+
+  const applied = useMemo(
+    () => ({
+      stage: filters.wi_stage as StageFocus | '',
+      sectors: filters.wi_sectors as SectorTag[],
+      check: filters.wi_check_size as CheckSizeRange | '',
+    }),
+    [filters.wi_stage, filters.wi_sectors, filters.wi_check_size],
+  );
+
+  const toggleDraftSector = (sec: SectorTag) =>
+    setDraft((d) => ({
+      ...d,
+      sectors: d.sectors.includes(sec) ? d.sectors.filter((x) => x !== sec) : [...d.sectors, sec],
+    }));
+
+  const apply = () => {
+    setFilters({
+      wi_stage: draft.stage || null,
+      wi_sectors: draft.sectors.length ? draft.sectors : null,
+      wi_check_size: draft.check || null,
+    });
+  };
+
+  const clear = () => {
+    setDraft({ stage: '', sectors: [], check: '' });
+    setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, wi_connector: null });
     setSelectedIds(new Set());
+    setExpandedIds(new Set());
+  };
+
+  // ── Relationship lens (client chips, server filter) ─────────────────────────
+  const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
+    co_invested: true,
+    engaged: true,
+    // Show cold by default: an LP pipeline is mostly prospects with NO co-invest
+    // or engagement relationship yet (their value is the warm PATH, not an existing
+    // relationship). Hiding cold emptied the whole table for the real neuro list.
+    cold_match: true,
+  });
+
+  const enabled = access.canView && !!filters.wi_list_id;
+  const { data, isLoading } = useGetListMembers(
+    filters.wi_list_id,
+    {
+      stage_focus: applied.stage ? [applied.stage] : undefined,
+      sector_tags: applied.sectors.length ? applied.sectors : undefined,
+      check_size_range: applied.check ? [applied.check] : undefined,
+      page: 1,
+      limit: PAGE_LIMIT,
+    },
+    enabled,
+  );
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [crosswalkOpen, setCrosswalkOpen] = useState(false);
+
+  const members = useMemo(() => data?.items ?? [], [data]);
+
+  // Connector lens: when a founder/team is chosen in the unified search, keep
+  // only members whose paths route through that node.
+  const connectorLabel = filters.wi_connector;
+  const { matchedIds: lensMatched, isLoading: lensLoading } = useConnectorLens(
+    members,
+    connectorLabel,
+    !!connectorLabel,
+  );
+
+  const visible = useMemo(() => {
+    let rows = members.filter((m) => relFilter[relationshipTier(m)]);
+    if (connectorLabel) rows = rows.filter((m) => lensMatched.has(m.investor_id));
+    return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
+  }, [members, relFilter, connectorLabel, lensMatched]);
+
+  // Report the total list size (not the filtered subset) to the tab badge.
+  useEffect(() => {
+    if (data) onCountChange?.(data.total);
+  }, [data, onCountChange]);
+
+  const onUnifiedSelect = (sel: UnifiedSelection) => {
+    if (sel.kind === 'investor') {
+      setFilters({ investorId: sel.investorId });
+    } else {
+      // founder / team → connector-lens filter
+      setFilters({ wi_connector: sel.nodeLabel });
+      analytics.trackConnectorLensApplied({ nodeLabel: sel.nodeLabel, kind: sel.kind });
+    }
+  };
+
+  const toggleExpanded = (id: string, bestProximityCode?: string | null) => {
+    const isExpanding = !expandedIds.has(id);
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      isExpanding ? next.add(id) : next.delete(id);
+      return next;
+    });
+    if (isExpanding) analytics.trackPathExpanded({ investorId: id, bestProximityCode });
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   const exportSelectedCsv = () => {
-    const rows = candidates.filter((c) => selectedIds.has(c.investor.investor_id)).map((c) => c.investor);
+    const rows = visible.filter((m) => selectedIds.has(m.investor_id));
     if (rows.length === 0) return;
     const cols = [
       'name',
@@ -122,60 +261,74 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       'investor_type',
       'stage_focus',
       'sector_tags',
-      'engagement_tier',
-      'email_status',
+      'best_proximity_code',
     ];
-    const filename = `warm-intros-${team ? team.team_name.toLowerCase().replace(/\s+/g, '-') : 'manual'}-${new Date().getTime()}.csv`;
-    exportInvestorsCsv(rows, cols, filename);
+    const slug = selectedList ? selectedList.slug || selectedList.name.toLowerCase().replace(/\s+/g, '-') : 'list';
+    exportInvestorsCsv(rows, cols, `warm-intros-${slug}-${new Date().getTime()}.csv`);
+    analytics.trackExport({ count: rows.length, teamName: selectedList?.name });
   };
+
+  const canSelect = access.canEdit;
+  const colCount = (canSelect ? 1 : 0) + 7;
 
   return (
     <div className={s.root}>
+      {/* ── List picker + search + filter bar ───────────────────────────────── */}
       <section className={s.builder}>
         <header className={s.builderH}>
           <div className={s.builderTitleRow}>
             <h2 className={s.title}>Find warm investor intros</h2>
-            <button
-              type="button"
-              className={s.howScoredLink}
-              onClick={() => setScoringOpen(true)}
-              aria-label="How are candidates ranked?"
-            >
-              How is the Fit score calculated?
-            </button>
+            <div className={s.titleActions}>
+              {access.canEdit && (
+                <button type="button" className={s.howScoredLink} onClick={() => setCrosswalkOpen(true)}>
+                  Crosswalk review
+                </button>
+              )}
+              <button type="button" className={s.howScoredLink} onClick={() => setGlossaryOpen(true)}>
+                What do these terms mean?
+              </button>
+            </div>
           </div>
           <p className={s.desc}>
-            Use any combination of filters below to see investor intro paths sorted by Fit score.
+            Pick a target list, then search for an investor or fund — or filter the list down — to see the warmest paths
+            PL can use to reach them.
           </p>
         </header>
 
-        <div className={s.builderRow}>
-          <div className={s.field}>
-            <label className={s.label}>Portfolio team</label>
-            <select
-              className={s.select}
-              value={teamId}
-              onChange={(e) => setFilters({ wi_team_id: e.target.value || null })}
-            >
-              <option value="">— or set criteria manually —</option>
-              {teams?.map((t) => {
-                const raisingStage = effectiveTeamRaisingStage(t);
-                return (
-                  <option key={t.team_id} value={t.team_id}>
-                    {t.team_name} · PL invested {STAGE_FOCUS_LABEL[t.pl_invested_stage]}
-                    {raisingStage ? ` · raising ${STAGE_FOCUS_LABEL[raisingStage]}` : ''}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+        <div className={clsx(s.field, s.fieldMb)}>
+          <label className={s.label}>Target list</label>
+          <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
+        </div>
 
+        <div className={clsx(s.field, s.fieldMb)}>
+          <label className={s.label}>Search investors, funds, founders or teams</label>
+          <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
+        </div>
+
+        {connectorLabel && (
+          <div className={s.lensBar}>
+            <span className={s.lensLabel}>Connector lens:</span>
+            <span className={s.lensChip}>
+              paths through <strong>{connectorLabel}</strong>
+              <button
+                type="button"
+                className={s.lensClear}
+                onClick={() => setFilters({ wi_connector: null })}
+                aria-label="Clear connector lens"
+              >
+                &times;
+              </button>
+            </span>
+          </div>
+        )}
+
+        <div className={s.builderRow}>
           <div className={s.field}>
             <label className={s.label}>Stage focus</label>
             <select
               className={s.select}
-              value={effectiveStage}
-              onChange={(e) => setFilters({ wi_stage: e.target.value || null })}
+              value={draft.stage}
+              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
             >
               <option value="">Any</option>
               {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
@@ -190,8 +343,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <label className={s.label}>Check size</label>
             <select
               className={s.select}
-              value={effectiveCheckSize}
-              onChange={(e) => setFilters({ wi_check_size: e.target.value || null })}
+              value={draft.check}
+              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
             >
               <option value="">Any</option>
               {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
@@ -203,46 +356,37 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </div>
 
           <div className={s.actions}>
-            <button className={s.btn} onClick={reset}>
-              Reset
+            <button className={s.btnPrimary} onClick={apply}>
+              Apply
+            </button>
+            <button className={s.btn} onClick={clear}>
+              Clear
             </button>
           </div>
         </div>
 
-        <div className={s.field} style={{ marginTop: 12 }}>
+        <div className={clsx(s.field, s.fieldMt)}>
           <label className={s.label}>{INDUSTRY_SECTOR_LABEL}</label>
           <div className={s.sectorChips}>
             {SECTOR_TAGS.map((sec) => (
               <button
                 key={sec}
-                className={clsx(s.chip, effectiveSectors.includes(sec) && s.chipOn)}
-                onClick={() => toggleSector(sec)}
+                className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
+                onClick={() => toggleDraftSector(sec)}
               >
                 {SECTOR_TAG_LABEL[sec]}
               </button>
             ))}
           </div>
         </div>
-
-        {team && (
-          <div className={s.summary}>
-            <strong>Auto-pulled from {team.team_name}:</strong>
-            <span>
-              <span className={s.auto}>stage</span>{' '}
-              {STAGE_FOCUS_LABEL[(teamRaisingStage ?? team.pl_invested_stage) as StageFocus]} ·{' '}
-              <span className={s.auto}>sectors</span> {team.sectors.join(', ')} · <span className={s.auto}>geo</span>{' '}
-              {team.geo}
-            </span>
-          </div>
-        )}
       </section>
 
       {!enabled && (
         <div className={s.placeholder}>
           <div className={s.placeholderIcon}>⚡</div>
-          <div className={s.placeholderTitle}>Pick a team or set criteria to start</div>
+          <div className={s.placeholderTitle}>Pick a target list to begin</div>
           <div className={s.placeholderDesc}>
-            Once you select a portfolio team or pick at least one sector, candidates appear here ranked by warmth.
+            Choose a list above to see its members ranked by how warmly PL can reach them.
           </div>
         </div>
       )}
@@ -252,17 +396,28 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           <div className={s.resultsHeader}>
             <div className={s.resultsCount}>
               {isLoading ? (
-                'Searching…'
+                'Loading members…'
               ) : (
                 <>
-                  <strong>{candidates.length} candidates</strong> · ranked by warmth + sector fit
+                  <strong>{visible.length}</strong> shown · {(data?.total ?? members.length).toLocaleString()} in{' '}
+                  {selectedList?.name ?? 'list'}
+                  {connectorLabel && lensLoading ? ' · finding paths…' : ''} · sorted by proximity (warmest first)
                 </>
               )}
             </div>
             <div className={s.resultsActions}>
-              <button type="button" className={s.howScoredLink} onClick={() => setScoringOpen(true)}>
-                How is the Fit score calculated?
-              </button>
+              <div className={s.relChips}>
+                {REL_FILTERS.map(({ tier, label }) => (
+                  <button
+                    key={tier}
+                    type="button"
+                    className={clsx(s.relChip, relFilter[tier] && s.relChipOn)}
+                    onClick={() => setRelFilter((r) => ({ ...r, [tier]: !r[tier] }))}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               {access.canEdit && (
                 <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
                   ⤓ Export CSV ({selectedIds.size})
@@ -271,154 +426,130 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
           </div>
 
-          <div className={s.tabs}>
-            {TIERS.map((tier) => {
-              const count = grouped[tier].length;
-              const isActive = displayTier === tier;
-              return (
-                <button
-                  key={tier}
-                  className={clsx(s.tab, isActive && s.tabActive)}
-                  disabled={count === 0}
-                  onClick={() => setActiveTier(tier)}
-                >
-                  {TIER_META[tier].label}
-                  <span className={clsx(s.tabCount, isActive && s.tabCountActive)}>{count}</span>
-                </button>
-              );
-            })}
+          <div className={s.tableWrap}>
+            <table className={s.table}>
+              <thead>
+                <tr>
+                  {canSelect && <th className={s.checkboxCol}></th>}
+                  <th>Investor</th>
+                  <th>Team</th>
+                  <th>{INDUSTRY_SECTOR_LABEL}</th>
+                  <th>Stage</th>
+                  <th>Type</th>
+                  <th>Relationship</th>
+                  <th>Proximity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((inv) => {
+                  const isExpanded = expandedIds.has(inv.investor_id);
+                  const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
+                  return (
+                    <Fragment key={inv.investor_id}>
+                      <tr className={s.row} onClick={() => setFilters({ investorId: inv.investor_id })}>
+                        {canSelect && (
+                          <td className={s.checkboxCol}>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(inv.investor_id)}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleSelected(inv.investor_id)}
+                            />
+                          </td>
+                        )}
+                        <td>
+                          <div className={s.nameCell}>
+                            {inv.first_name} {inv.last_name}
+                            <LabOsBadge profile={inv.lab_os_profile} variant="icon" />
+                          </div>
+                          <div className={s.subtle}>{inv.email}</div>
+                        </td>
+                        <td>
+                          <div className={s.teamCell}>{inv.firm || <span className={s.muted}>—</span>}</div>
+                          {inv.title && <div className={s.subtle}>{inv.title}</div>}
+                        </td>
+                        <td>
+                          <SectorTagsList tags={inv.sector_tags} max={3} />
+                        </td>
+                        <td>{STAGE_FOCUS_LABEL[inv.stage_focus] ?? <span className={s.muted}>—</span>}</td>
+                        <td>{INVESTOR_TYPE_LABEL[inv.investor_type] ?? <span className={s.muted}>—</span>}</td>
+                        <td>
+                          <RelationshipCell investor={inv} />
+                        </td>
+                        <td>
+                          <div className={s.proximityCell}>
+                            {hasProximity ? (
+                              <ProximityCodeBadge code={inv.best_proximity_code} cold={inv.has_path === false} />
+                            ) : (
+                              <span className={s.muted}>—</span>
+                            )}
+                            <button
+                              type="button"
+                              className={s.expandBtn}
+                              aria-expanded={isExpanded}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpanded(inv.investor_id, inv.best_proximity_code);
+                              }}
+                            >
+                              {isExpanded ? 'Hide' : 'View paths'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className={s.detailRow}>
+                          <td colSpan={colCount} onClick={(e) => e.stopPropagation()}>
+                            <WarmPathDetail
+                              key={inv.investor_id}
+                              investorId={inv.investor_id}
+                              bestProximityCode={inv.best_proximity_code}
+                              canEdit={access.canEdit}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
-          {grouped[displayTier].length > 0 && (
-            <TierSection
-              tier={displayTier}
-              candidates={grouped[displayTier]}
-              selectedIds={selectedIds}
-              onToggleSelected={(id) => {
-                const next = new Set(selectedIds);
-                next.has(id) ? next.delete(id) : next.add(id);
-                setSelectedIds(next);
-              }}
-              onOpenInvestor={(id) => setFilters({ investorId: id })}
-              canSelect={access.canEdit}
-            />
-          )}
-
-          {candidates.length === 0 && !isLoading && (
+          {!isLoading && members.length === 0 && (
             <div className={s.empty}>
-              No matching candidates. Try widening the sectors or removing the check-size constraint.
+              This list has no matching members. Try widening the sectors or removing the check-size constraint.
+            </div>
+          )}
+          {!isLoading && members.length > 0 && visible.length === 0 && (
+            <div className={s.empty}>
+              {members.length} member{members.length === 1 ? '' : 's'} hidden by the current filters — adjust the
+              relationship chips{connectorLabel ? ' or clear the connector lens' : ''}.
             </div>
           )}
         </section>
       )}
 
-      <ScoringMethodologyModal open={scoringOpen} onClose={() => setScoringOpen(false)} />
+      <GlossaryModal open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <CrosswalkReviewPanel open={crosswalkOpen} onClose={() => setCrosswalkOpen(false)} canEdit={access.canEdit} />
     </div>
   );
 }
 
-const TIER_META: Record<WarmIntroCandidate['tier'], { label: string; sub: string }> = {
-  co_invested: {
-    label: 'Co-invested with PL',
-    sub: 'Same investor was on a PL portfolio cap table',
-  },
-  engaged: {
-    label: 'Engaged with PL',
-    sub: 'Tier 1 / 2 / 3 outreach signal, not yet co-invested',
-  },
-  cold_match: {
-    label: 'Cold matches',
-    sub: 'No path, but high sector + stage fit',
-  },
-};
-
-interface TierSectionProps {
-  tier: WarmIntroCandidate['tier'];
-  candidates: WarmIntroCandidate[];
-  selectedIds: Set<string>;
-  onToggleSelected: (id: string) => void;
-  onOpenInvestor: (id: string) => void;
-  canSelect: boolean;
-}
-
-function TierSection({ tier, candidates, selectedIds, onToggleSelected, onOpenInvestor, canSelect }: TierSectionProps) {
-  const meta = TIER_META[tier];
+function RelationshipCell({ investor }: { investor: OutreachInvestor }) {
+  const tier = relationshipTier(investor);
+  const { label, cls } =
+    tier === 'co_invested'
+      ? { label: 'Co-invested', cls: s.relCo }
+      : tier === 'engaged'
+        ? { label: 'Engaged', cls: s.relEngaged }
+        : { label: 'Cold', cls: s.relCold };
   return (
-    <div className={s.tierSection}>
-      <header className={s.tierHeader}>
-        <div className={s.tierTitleWrap}>
-          <span className={s.tierTitle}>
-            {meta.label} <span className={s.tierCountInline}>({candidates.length})</span>
-          </span>
-          <span className={s.tierSub}>{meta.sub}</span>
-        </div>
-      </header>
-      <table className={s.tierTable}>
-        <thead>
-          <tr>
-            {canSelect && <th className={s.checkboxCol}></th>}
-            <th>Investor</th>
-            <th>Firm</th>
-            <th>Warm path</th>
-            <th>Email</th>
-            <th className={s.fitCol}>Fit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {candidates.map((c) => {
-            const inv = c.investor;
-            const fitClass = c.fit_score >= 80 ? s.fitHi : c.fit_score >= 60 ? s.fitMi : s.fitLo;
-            return (
-              <tr key={inv.investor_id} className={s.candidateRow} onClick={() => onOpenInvestor(inv.investor_id)}>
-                {canSelect && (
-                  <td className={s.checkboxCol}>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(inv.investor_id)}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={() => onToggleSelected(inv.investor_id)}
-                    />
-                  </td>
-                )}
-                <td>
-                  <div className={s.candidateName}>
-                    {inv.first_name} {inv.last_name}
-                    <LabOsBadge profile={inv.lab_os_profile} variant="icon" />
-                  </div>
-                  <div className={s.candidateEmail}>{inv.email}</div>
-                </td>
-                <td>
-                  <div className={s.candidateFirm}>{inv.firm || <span className={s.muted}>—</span>}</div>
-                  {inv.title && <div className={s.candidateTitle}>{inv.title}</div>}
-                </td>
-                <td>
-                  <div className={s.path}>{c.reason}</div>
-                  {c.evidence.length > 0 && (
-                    <div className={s.evRow}>
-                      {c.evidence.map((e) => {
-                        return (
-                          <span key={e} className={s.ev}>
-                            {e}
-                          </span>
-                        );
-                      })}
-                      {inv.engagement_tier !== 'T4_cold' && tier !== 'cold_match' && (
-                        <EngagementTierBadge tier={inv.engagement_tier} compact />
-                      )}
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <EmailStatusPill status={inv.email_status} />
-                </td>
-                <td className={s.fitCol}>
-                  <span className={clsx(s.fit, fitClass)}>{c.fit_score}</span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className={s.relCell}>
+      <span className={clsx(s.relPill, cls)}>{label}</span>
+      {tier === 'engaged' && investor.engagement_tier !== 'T4_cold' && (
+        <EngagementTierBadge tier={investor.engagement_tier} compact />
+      )}
     </div>
   );
 }

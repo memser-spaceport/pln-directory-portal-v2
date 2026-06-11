@@ -1,0 +1,113 @@
+/* Shared styles for the team/founder + investor/fund typeaheads. Mirrors the
+   member-profile author autocomplete, sized to the warm-intros filter bar. */
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 30px 8px 10px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  color: #0a0c11;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #1b4dff;
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+  }
+}
+
+.clearBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: rgba(14, 15, 17, 0.08);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  color: #455468;
+  font-size: 12px;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.16);
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(14, 15, 17, 0.1);
+  z-index: 20;
+  padding: 4px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover,
+  &.highlighted {
+    background: rgba(27, 77, 255, 0.06);
+  }
+}
+
+.optName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a0c11;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.optSub {
+  font-size: 11px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #8897ae;
+  text-align: center;
+}
+
+.groupLabel {
+  padding: 7px 10px 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #9ca3af;
+}

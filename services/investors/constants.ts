@@ -6,6 +6,8 @@ import type {
   EnrichmentStatus,
   InvestorSource,
   InvestorType,
+  PathCaliber,
+  PathConnectorType,
   SectorTag,
   StageFocus,
 } from './types';
@@ -17,7 +19,29 @@ export enum InvestorsQueryKeys {
   FILTER_VALUES = 'investors-filter-values',
   WARM_INTROS = 'investors-warm-intros',
   SAVED_VIEWS = 'investors-saved-views',
+  PATHS_FOR_TARGET = 'investors-paths-for-target',
+  // Lists IA
+  INVESTOR_LISTS = 'investors-lists',
+  LIST_MEMBERS = 'investors-list-members',
+  // Crosswalk review queue
+  CROSSWALK_REVIEW = 'investors-crosswalk-review',
 }
+
+// ─── PL Path Finder display labels ─────────────────────────────────────────────
+
+export const PATH_CONNECTOR_LABEL: Record<PathConnectorType, string> = {
+  F: 'Portfolio founder',
+  VC: 'Co-investor / VC',
+  JB: 'JB rolodex',
+  PL: 'PL rolodex',
+  O: 'Other connector',
+  C: 'Cold — no path',
+};
+
+export const PATH_CALIBER_LABEL: Record<PathCaliber, string> = {
+  A: 'A — strong (relationship & prestige)',
+  B: 'B — partial (relationship or prestige)',
+};
 
 export const SOURCES: InvestorSource[] = [
   'W26',
@@ -249,21 +273,22 @@ export const COLUMN_PRESETS = {
 
 export type ColumnPresetKey = keyof typeof COLUMN_PRESETS;
 
-// ---- Tabs (2 tabs over the same dataset, different default filters) ----
+// ---- Tabs (Lists IA — DECISIONS LOCKED) ----
 //
-// "In Network" was dropped — it's just a filter on All Investors (`in_lab_os`).
-// Co-investors is its own tab because the filter scope (`is_co_investor=true`)
-// is the canonical entry point for the warm-intros workflow.
+// IA = All Investors (the universe) + Warm Intros (proximity workspace, driven
+// by a target-list picker). The old "Co-investors" tab is RETIRED — co-invested
+// is now just a value on the relationship filter ("Co-invested Teams" column +
+// `is_co_investor` flag on All Investors). "In Network" was likewise dropped
+// (it's the `in_lab_os` filter).
 
-export const INVESTOR_TAB_VALUES = ['all', 'co-investors'] as const;
+export const INVESTOR_TAB_VALUES = ['all'] as const;
 export type InvestorTab = (typeof INVESTOR_TAB_VALUES)[number];
 
 export const INVESTOR_TAB_LABEL: Record<InvestorTab, string> = {
   all: 'All Investors',
-  'co-investors': 'Co-investors',
 };
 
-// Co-investors tab modes. Default = list (investor table); warm-intros swaps
-// to the workspace UI in-place.
+// `mode` toggles the Warm Intros workspace in place of the All Investors table.
+// Kept as a string-literal union for the nuqs parser.
 export const CO_INVESTOR_MODE_VALUES = ['list', 'warm-intros'] as const;
 export type CoInvestorMode = (typeof CO_INVESTOR_MODE_VALUES)[number];

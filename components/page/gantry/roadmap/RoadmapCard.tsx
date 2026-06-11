@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
-import { UpvoteButton } from '../shared/UpvoteButton';
+import { BoostButton } from '../shared/BoostButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
 
@@ -38,9 +38,9 @@ function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProp
     <>
       <div className={s.cardHead}>
         <h3 className={s.cardTitle}>{item.title}</h3>
-        <UpvoteButton
+        <BoostButton
           count={item.upvoteCount}
-          hasUpvoted={item.viewerHasUpvoted}
+          hasPinned={item.viewerHasUpvoted}
           disabled={!canUpvote}
           onToggle={(next) => onUpvoteToggle(item.uid, next)}
         />

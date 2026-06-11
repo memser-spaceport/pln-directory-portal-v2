@@ -172,6 +172,15 @@
   white-space: nowrap;
 }
 
+.boostArea {
+  padding: 0 20px;
+  margin-top: 12px;
+
+  @include mobile-only {
+    padding: 0;
+  }
+}
+
 .mobileDivider {
   display: none;
 

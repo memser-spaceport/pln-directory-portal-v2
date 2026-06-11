@@ -31,6 +31,7 @@ type Props = {
   primaryCtaType: PrimaryCtaType;
   primaryCtaLabel: string;
   profileCtaAsLink?: boolean;
+  showProfileCta?: boolean;
   isLoggedIn: boolean;
   userUid?: string;
   onLogin: () => void;
@@ -42,6 +43,7 @@ export const PitchInvestorQuickLinks = ({
   primaryCtaType,
   primaryCtaLabel,
   profileCtaAsLink = false,
+  showProfileCta = true,
   isLoggedIn,
   userUid,
   onLogin,
@@ -101,24 +103,25 @@ export const PitchInvestorQuickLinks = ({
   return (
     <>
       <div className={s.quickLinksSection}>
-        <div className={clsx(s.quickLinksActions, profileCtaAsLink && s.quickLinksActionsWide)}>
-          {profileCtaAsLink ? (
-            <div className={s.profileLinkBlock}>
-              <p className={s.profileHint}>
-                Your profile will be shown to the founder when you request an invite.
-                <br />
-                We also use it to better match which teams we show you.
-              </p>
-              <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
+        <div className={clsx(s.quickLinksActions, showProfileCta && profileCtaAsLink && s.quickLinksActionsWide)}>
+          {showProfileCta &&
+            (profileCtaAsLink ? (
+              <div className={s.profileLinkBlock}>
+                <p className={s.profileHint}>
+                  Your profile will be shown to the founder when you request an invite.
+                  <br />
+                  We also use it to better match which teams we show you.
+                </p>
+                <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
+                  {primaryCtaLabel}
+                </button>
+              </div>
+            ) : (
+              <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
+                {primaryCtaType === 'profile' && <EditIcon />}
                 {primaryCtaLabel}
               </button>
-            </div>
-          ) : (
-            <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
-              {primaryCtaType === 'profile' && <EditIcon />}
-              {primaryCtaLabel}
-            </button>
-          )}
+            ))}
           <p className={s.supportLine}>
             Questions or feedback?{' '}
             <button type="button" className={s.supportLink} onClick={handleContactSupport}>
@@ -128,7 +131,7 @@ export const PitchInvestorQuickLinks = ({
         </div>
       </div>
 
-      {isLoggedIn && userUid && (
+      {showProfileCta && isLoggedIn && userUid && (
         <EditInvestorProfileDrawer
           isOpen={drawerOpen}
           onClose={() => setDrawerOpen(false)}

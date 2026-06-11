@@ -14,9 +14,8 @@ import Link from 'next/link';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
-import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
-import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { useFounderProfileAnalytics } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
@@ -99,17 +98,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   const [isFoundersModalOpen, setIsFoundersModalOpen] = useState(false);
   const successAlertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Analytics hooks
-  const {
-    onFounderSaveTeamDetailsClicked,
-    onFounderCancelTeamDetailsClicked,
-    onFounderDemoMaterialUploadStarted,
-    onFounderDemoMaterialUploadSuccess,
-    onFounderDemoMaterialUploadFailed,
-    onFounderDemoMaterialDeleted,
-    onFounderDemoMaterialViewed,
-    onFounderEditTeamProfileButtonClicked,
-  } = useDemoDayAnalytics();
+  const founderAnalytics = useFounderProfileAnalytics(pitchSlug);
   const reportAnalytics = useReportAnalyticsEvent();
   const expressInterest = useExpressInterest(data?.team?.name);
   const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', data?.team?.name);
@@ -118,27 +107,14 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
   const handleEditClick = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onFounderEditTeamProfileButtonClicked();
-
-      // Custom analytics event
-      const editButtonClickedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_EDIT_TEAM_PROFILE_BUTTON_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          hasOnePager: !!data?.onePagerUpload?.url,
-          hasVideo: !!data?.videoUpload?.url,
-        },
-      };
-
-      reportAnalytics.mutate(editButtonClickedEvent);
+      founderAnalytics.capture.editProfileClicked();
+      const event = founderAnalytics.trackFounder('editProfileClicked', userInfo, {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        hasOnePager: !!data?.onePagerUpload?.url,
+        hasVideo: !!data?.videoUpload?.url,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     setEditView(true);
@@ -151,26 +127,13 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
   const handleBackToView = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onFounderCancelTeamDetailsClicked();
-
-      // Custom analytics event
-      const cancelEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_CANCEL_TEAM_DETAILS_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          action: 'back_to_view',
-        },
-      };
-
-      reportAnalytics.mutate(cancelEvent);
+      founderAnalytics.capture.cancelProfileClicked();
+      const event = founderAnalytics.trackFounder('cancelProfileClicked', userInfo, {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        action: 'back_to_view',
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     setEditView(false);
@@ -178,25 +141,12 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
 
   const handleFormClose = (saved = false) => {
     if (userInfo?.email && saved) {
-      // PostHog analytics
-      onFounderSaveTeamDetailsClicked();
-
-      // Custom analytics event
-      const saveEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_SAVE_TEAM_DETAILS_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-        },
-      };
-
-      reportAnalytics.mutate(saveEvent);
+      founderAnalytics.capture.saveProfileClicked();
+      const event = founderAnalytics.trackFounder('saveProfileClicked', userInfo, {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     setEditView(false);
@@ -239,25 +189,16 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
       if (!hadBothFilesBefore && hasBothFilesNow) {
         setShowSuccessAlert(true);
 
-        // Report team profile ready analytics
         if (userInfo?.email) {
-          const teamProfileReadyEvent: TrackEventDto = {
-            name: DEMO_DAY_ANALYTICS.ON_TEAM_PROFILE_READY,
-            distinctId: userInfo.email,
-            properties: {
-              userId: userInfo.uid,
-              userEmail: userInfo.email,
-              userName: userInfo.name,
-              path: '/demoday',
-              timestamp: new Date().toISOString(),
-              teamId: data?.team?.uid,
-              teamName: data?.team?.name,
-              hasOnePager: !!currentData?.onePagerUpload,
-              hasVideo: !!currentData?.videoUpload,
-            },
+          const profileReadyParams = {
+            teamId: data?.team?.uid,
+            teamName: data?.team?.name,
+            hasOnePager: !!currentData?.onePagerUpload,
+            hasVideo: !!currentData?.videoUpload,
           };
-
-          reportAnalytics.mutate(teamProfileReadyEvent);
+          founderAnalytics.capture.profileReady(profileReadyParams);
+          const event = founderAnalytics.trackFounder('profileReady', userInfo, profileReadyParams);
+          if (event) reportAnalytics.mutate(event);
         }
 
         // Clear any existing timeout
@@ -295,129 +236,100 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   // Analytics helper functions for demo materials
   const handleDemoMaterialUploadStarted = (fileMetadata: any) => {
     if (userInfo?.email) {
-      onFounderDemoMaterialUploadStarted(fileMetadata);
-
-      const uploadStartedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_STARTED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          fileName: fileMetadata.fileName,
-          fileSize: fileMetadata.fileSize,
-          fileType: fileMetadata.fileType,
-          materialType: fileMetadata.materialType, // 'onePager' or 'video'
-        },
+      const params = {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        fileName: fileMetadata.fileName,
+        fileSize: fileMetadata.fileSize,
+        fileType: fileMetadata.fileType,
+        materialType: fileMetadata.materialType,
       };
-
-      reportAnalytics.mutate(uploadStartedEvent);
+      founderAnalytics.capture.materialUploadStarted(params);
+      const event = founderAnalytics.trackFounder('materialUploadStarted', userInfo, params);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handleDemoMaterialUploadSuccess = (fileMetadata: any) => {
     if (userInfo?.email) {
-      onFounderDemoMaterialUploadSuccess(fileMetadata);
-
-      const uploadSuccessEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_SUCCESS,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          fileName: fileMetadata.fileName,
-          fileSize: fileMetadata.fileSize,
-          fileType: fileMetadata.fileType,
-          materialType: fileMetadata.materialType,
-          uploadDuration: fileMetadata.uploadDuration,
-        },
+      const params = {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        fileName: fileMetadata.fileName,
+        fileSize: fileMetadata.fileSize,
+        fileType: fileMetadata.fileType,
+        materialType: fileMetadata.materialType,
+        uploadDuration: fileMetadata.uploadDuration,
       };
-
-      reportAnalytics.mutate(uploadSuccessEvent);
+      founderAnalytics.capture.materialUploadSuccess(params);
+      const event = founderAnalytics.trackFounder('materialUploadSuccess', userInfo, params);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handleDemoMaterialUploadFailed = (fileMetadata: any, error: string) => {
     if (userInfo?.email) {
-      onFounderDemoMaterialUploadFailed({ ...fileMetadata, error });
-
-      const uploadFailedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_UPLOAD_FAILED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          fileName: fileMetadata.fileName,
-          fileSize: fileMetadata.fileSize,
-          fileType: fileMetadata.fileType,
-          materialType: fileMetadata.materialType,
-          error: error,
-        },
+      const params = {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        fileName: fileMetadata.fileName,
+        fileSize: fileMetadata.fileSize,
+        fileType: fileMetadata.fileType,
+        materialType: fileMetadata.materialType,
+        error,
       };
-
-      reportAnalytics.mutate(uploadFailedEvent);
+      founderAnalytics.capture.materialUploadFailed(params);
+      const event = founderAnalytics.trackFounder('materialUploadFailed', userInfo, params);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handleDemoMaterialDeleted = (materialType: string, fileName: string) => {
     if (userInfo?.email) {
-      onFounderDemoMaterialDeleted({ materialType, fileName });
-
-      const deletedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_DELETED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          materialType: materialType,
-          fileName: fileName,
-        },
+      const params = {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        materialType,
+        fileName,
       };
-
-      reportAnalytics.mutate(deletedEvent);
+      founderAnalytics.capture.materialDeleted(params);
+      const event = founderAnalytics.trackFounder('materialDeleted', userInfo, params);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handleDemoMaterialViewed = (materialType: string, fileName: string) => {
     if (userInfo?.email) {
-      onFounderDemoMaterialViewed({ materialType, fileName });
-
-      const viewedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_FOUNDER_DEMO_MATERIAL_VIEWED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: data?.team?.name,
-          teamUid: data?.teamUid,
-          materialType: materialType,
-          fileName: fileName,
-        },
+      const params = {
+        teamName: data?.team?.name,
+        teamUid: data?.teamUid,
+        materialType,
+        fileName,
       };
+      founderAnalytics.capture.materialViewed(params);
+      const event = founderAnalytics.trackFounder('materialViewed', userInfo, params);
+      if (event) reportAnalytics.mutate(event);
+    }
+  };
 
-      reportAnalytics.mutate(viewedEvent);
+  const handleConnectInvestClick = (interestType: 'connect' | 'invest') => {
+    if (!data?.uid) {
+      return;
+    }
+
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: data.uid,
+        interestType,
+        isPrep: isPrepPitch,
+      });
+    } else {
+      expressInterest.mutate({
+        teamFundraisingProfileUid: data.uid,
+        interestType,
+        isPrepDemoDay,
+        demoDayMode: demoDayMode ?? undefined,
+      });
     }
   };
 

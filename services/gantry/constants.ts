@@ -42,6 +42,11 @@ export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filt
 
 export const GANTRY_VISIBLE_COLUMNS_STORAGE_KEY = 'gantry.board.visibleColumns';
 
+/** Planned / In Progress / Shipped use admin rank order; Submitted uses trending boost sort. */
+export function isAdminOrderedRoadmapStage(stage: (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number]): boolean {
+  return stage === 'PLANNED' || stage === 'IN_PROGRESS' || stage === 'SHIPPED';
+}
+
 export function sortRoadmapColumnStages(
   columns: readonly (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][],
 ): (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][] {
@@ -60,6 +65,33 @@ export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
     if (a.order == null) return 1;
     if (b.order == null) return -1;
     return a.order - b.order;
+  });
+}
+
+function compareGantryItemsByRecency(a: GantryItem, b: GantryItem): number {
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+/** Day-based decay — gentler than hour-based so boost count matters more over a few days. */
+const TRENDING_AGE_OFFSET_DAYS = 1;
+const TRENDING_GRAVITY = 1.2;
+
+/**
+ * Time-decayed boost score (PRD §3.5). List items only expose pinCount, so boosts are
+ * approximated on submission age — a 5–10× boost lead can outweigh a few days of recency.
+ */
+export function gantryTrendingScore(item: GantryItem, nowMs = Date.now()): number {
+  const pins = item.pinCount ?? 0;
+  if (pins <= 0) return 0;
+  const daysAge = (nowMs - new Date(item.createdAt).getTime()) / 86_400_000;
+  return pins / Math.pow(daysAge + TRENDING_AGE_OFFSET_DAYS, TRENDING_GRAVITY);
+}
+
+export function sortGantryItemsByTrending(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => {
+    const scoreDiff = gantryTrendingScore(b) - gantryTrendingScore(a);
+    if (scoreDiff !== 0) return scoreDiff;
+    return compareGantryItemsByRecency(a, b);
   });
 }
 

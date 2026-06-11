@@ -11,7 +11,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import type { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import type { GantryItem, GantryItemListResponse, GantryStage } from '@/services/gantry/types';
-import { isPreRoadmapStage } from '@/services/gantry/constants';
+import { isAdminOrderedRoadmapStage, isPreRoadmapStage } from '@/services/gantry/constants';
 import type { RoadmapColumnStage } from '../RoadmapFilters';
 import { isRoadmapColumnStage } from '../RoadmapDropColumn';
 
@@ -20,10 +20,7 @@ type Analytics = ReturnType<typeof useGantryAnalytics>;
 interface TransitionAPI {
   mutateAsync: (vars: {
     uid: string;
-    payload:
-      | { type: 'promote' }
-      | { type: 'decline'; reason: string }
-      | { type: 'transition'; stage: GantryStage };
+    payload: { type: 'promote' } | { type: 'decline'; reason: string } | { type: 'transition'; stage: GantryStage };
   }) => Promise<unknown>;
   isPending: boolean;
 }
@@ -90,7 +87,9 @@ export function useRoadmapDnd({
 
   const applyReorder = async (activeId: string, overId: string) => {
     const activeItem = data?.items.find((i) => i.uid === activeId);
-    if (!activeItem || !isRoadmapColumnStage(activeItem.stage)) return;
+    if (!activeItem || !isRoadmapColumnStage(activeItem.stage) || !isAdminOrderedRoadmapStage(activeItem.stage)) {
+      return;
+    }
     const columnItems = itemsByStage[activeItem.stage];
     const activeIdx = columnItems.findIndex((i) => i.uid === activeId);
     const overIdx = columnItems.findIndex((i) => i.uid === overId);
@@ -111,6 +110,7 @@ export function useRoadmapDnd({
   };
 
   const lockDropPosition = (activeId: string, destStage: RoadmapColumnStage, preview: typeof dropPreview) => {
+    if (!isAdminOrderedRoadmapStage(destStage)) return;
     const columnUids = itemsByStage[destStage].map((i) => i.uid);
     const insertIndex = preview?.columnId === destStage ? preview.insertIndex : columnUids.length;
     const newOrder = [...columnUids.slice(0, insertIndex), activeId, ...columnUids.slice(insertIndex)];
@@ -125,7 +125,10 @@ export function useRoadmapDnd({
   const handleDragOver = (event: DragOverEvent) => {
     const activeId = String(event.active.id);
     const overId = event.over?.id ? String(event.over.id) : null;
-    if (!overId) { setDropPreview(null); return; }
+    if (!overId) {
+      setDropPreview(null);
+      return;
+    }
 
     const draggedItem = data?.items.find((i) => i.uid === activeId);
     let targetStage: RoadmapColumnStage | null = null;
@@ -136,11 +139,17 @@ export function useRoadmapDnd({
       insertIndex = itemsByStage[overId]?.length ?? 0;
     } else {
       const overItem = data?.items.find((i) => i.uid === overId);
-      if (!overItem || !isRoadmapColumnStage(overItem.stage)) { setDropPreview(null); return; }
+      if (!overItem || !isRoadmapColumnStage(overItem.stage)) {
+        setDropPreview(null);
+        return;
+      }
       targetStage = overItem.stage;
       const columnItems = itemsByStage[targetStage] ?? [];
       const overIdx = columnItems.findIndex((i) => i.uid === overId);
-      if (overIdx === -1) { setDropPreview(null); return; }
+      if (overIdx === -1) {
+        setDropPreview(null);
+        return;
+      }
       const activeTranslated = event.active.rect.current.translated;
       const overRect = event.over?.rect;
       let insertBefore = true;
@@ -152,7 +161,10 @@ export function useRoadmapDnd({
       insertIndex = insertBefore ? overIdx : overIdx + 1;
     }
 
-    if (!targetStage || !draggedItem || draggedItem.stage === targetStage) { setDropPreview(null); return; }
+    if (!targetStage || !draggedItem || draggedItem.stage === targetStage) {
+      setDropPreview(null);
+      return;
+    }
     setDropPreview({ columnId: targetStage, insertIndex });
   };
 
@@ -169,7 +181,8 @@ export function useRoadmapDnd({
       if (!activeItem || !overItem) return;
 
       if (activeItem.stage !== overItem.stage) {
-        if (!canTransition || !isRoadmapColumnStage(overItem.stage) || !orderedVisibleColumns.includes(overItem.stage)) return;
+        if (!canTransition || !isRoadmapColumnStage(overItem.stage) || !orderedVisibleColumns.includes(overItem.stage))
+          return;
         lockDropPosition(activeId, overItem.stage, savedDropPreview);
         await applyStageChange(activeId, activeItem, overItem.stage);
         return;

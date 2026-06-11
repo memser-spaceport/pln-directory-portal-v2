@@ -17,7 +17,9 @@ import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives
 import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
   GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
+  isAdminOrderedRoadmapStage,
   sortGantryItemsByDefault,
+  sortGantryItemsByTrending,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
 import { useReorderGantryItem } from '@/services/gantry/hooks/useReorderGantryItem';
@@ -129,6 +131,16 @@ export function RoadmapView() {
     });
 
     orderedVisibleColumns.forEach((stage) => {
+      if (stage === 'IDEA') {
+        map[stage] = sortGantryItemsByTrending(map[stage]);
+        return;
+      }
+
+      if (!isAdminOrderedRoadmapStage(stage)) {
+        map[stage] = sortGantryItemsByDefault(map[stage]);
+        return;
+      }
+
       map[stage] = sortGantryItemsByDefault(map[stage]);
       const adminOrder = adminOrderMap[stage];
       if (adminOrder) {
@@ -176,15 +188,16 @@ export function RoadmapView() {
 
   const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => {
     const viewerHasPinned = item.viewerHasPinned || viewerPinnedUids.has(item.uid);
+    const columnAllowsAdminOrdering = isAdminOrdering && isAdminOrderedRoadmapStage(stage);
     return {
       item: viewerHasPinned !== item.viewerHasPinned ? { ...item, viewerHasPinned } : item,
       position: index + 1,
-      isAdminOrdering,
+      isAdminOrdering: columnAllowsAdminOrdering,
       canPin: canUpvote,
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder: columnAllowsAdminOrdering && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
@@ -304,7 +317,6 @@ export function RoadmapView() {
                   classes={{ tab: s.mobileTab }}
                 />
               </div>
-
               {isLoading ? (
                 <div className={s.mobileScrollContainer}>
                   {orderedVisibleColumns.map((stage) => (
@@ -450,7 +462,7 @@ export function RoadmapView() {
                         <RoadmapDropColumn
                           key={stage}
                           stage={stage}
-                          isAdminOrdering={isAdminOrdering}
+                          isAdminOrdering={isAdminOrdering && isAdminOrderedRoadmapStage(stage)}
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
                           dropPreviewIndex={
                             dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined

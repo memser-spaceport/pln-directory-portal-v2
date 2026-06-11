@@ -48,7 +48,14 @@ function linkifyHtml(html: string): string {
 export function QuillContent(props: Props) {
   const { html, className } = props;
 
-  const linkifiedHtml = useMemo(() => linkifyHtml(html ?? ''), [html]);
+  const linkifiedHtml = useMemo(() => {
+    // Quill stores content with white-space:pre-wrap, which means it uses &nbsp;
+    // in place of regular spaces to prevent collapse. In read-only view mode we
+    // use white-space:normal, so those &nbsp; create unbreakable text runs that
+    // cause text to overflow without wrapping. Replace them before rendering.
+    const normalized = (html ?? '').replace(/&nbsp;/gi, ' ');
+    return linkifyHtml(normalized);
+  }, [html]);
 
   return (
     <div

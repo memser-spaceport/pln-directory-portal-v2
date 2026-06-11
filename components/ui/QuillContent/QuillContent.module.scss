@@ -14,16 +14,21 @@
   // API responses use plain <ul>/<ol><li> without that structure, so
   // .ql-editor li { list-style-type: none } strips all markers. Override with
   // higher specificity (.content ul/ol li beats .ql-editor li).
+  // list-style-position:inside keeps the marker within the li's padding area
+  // (Quill sets padding-left:1.5em on li, leaving room for the marker).
   ul li {
     list-style-type: disc;
+    list-style-position: inside;
   }
 
   ul ul li {
     list-style-type: circle;
+    list-style-position: inside;
   }
 
   ol li {
     list-style-type: decimal;
+    list-style-position: inside;
   }
 
   ul,

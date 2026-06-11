@@ -15,13 +15,14 @@ export function isRoadmapColumnStage(stage: string): stage is RoadmapColumnStage
 export function RoadmapDropColumn({
   stage,
   children,
-  isAdminOrdering,
+  isDraggable,
   itemIds,
   dropPreviewIndex,
 }: {
   stage: RoadmapColumnStage;
   children: ReactNode;
-  isAdminOrdering: boolean;
+  /** Enables SortableContext — reorder and/or cross-column stage transitions. */
+  isDraggable: boolean;
   itemIds: string[];
   dropPreviewIndex?: number;
 }) {
@@ -46,7 +47,7 @@ export function RoadmapDropColumn({
       <div className={s.columnHeader}>
         <StageBadge stage={stage} className={s.columnHeaderBadge} />
       </div>
-      {isAdminOrdering ? (
+      {isDraggable ? (
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
           {list}
         </SortableContext>

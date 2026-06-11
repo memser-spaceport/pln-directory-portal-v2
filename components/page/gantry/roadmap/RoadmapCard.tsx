@@ -61,7 +61,7 @@ function RoadmapCardContent({
               className={s.dragHandle}
               {...dragHandleProps}
               onClick={(e) => e.stopPropagation()}
-              aria-label="Drag to reorder"
+              aria-label="Drag to move"
             >
               <DragGripIcon />
             </button>
@@ -138,12 +138,14 @@ function RoadmapCardContent({
 
 interface Props extends CardContentProps {
   readonly isAdminOrdering: boolean;
+  readonly canDrag: boolean;
 }
 
 export function RoadmapCard({
   item,
   position,
   isAdminOrdering,
+  canDrag,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -154,6 +156,7 @@ export function RoadmapCard({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.uid,
     data: { stage: item.stage },
+    disabled: !canDrag,
   });
 
   const style = {
@@ -165,7 +168,7 @@ export function RoadmapCard({
   return (
     <article
       ref={setNodeRef}
-      className={clsx(s.card, isAdminOrdering && s.cardOrdering)}
+      className={clsx(s.card, canDrag && s.cardOrdering)}
       style={style}
       {...attributes}
       {...cardNavigate}
@@ -177,7 +180,7 @@ export function RoadmapCard({
       <RoadmapCardContent
         item={item}
         position={position}
-        dragHandleProps={isAdminOrdering ? listeners : undefined}
+        dragHandleProps={canDrag ? listeners : undefined}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}

@@ -186,18 +186,25 @@ export function RoadmapView() {
   // the list endpoint — reconcile here so the pin button always reflects reality.
   const viewerPinnedUids = useMemo(() => new Set(pinStatus?.pins.map((p) => p.item.uid) ?? []), [pinStatus?.pins]);
 
+  const columnDragState = (stage: RoadmapColumnStage) => {
+    const allowsAdminOrdering = isAdminOrdering && isAdminOrderedRoadmapStage(stage);
+    const isDraggable = allowsAdminOrdering || (canTransition && !isAdminOrderedRoadmapStage(stage));
+    return { allowsAdminOrdering, isDraggable };
+  };
+
   const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => {
     const viewerHasPinned = item.viewerHasPinned || viewerPinnedUids.has(item.uid);
-    const columnAllowsAdminOrdering = isAdminOrdering && isAdminOrderedRoadmapStage(stage);
+    const { allowsAdminOrdering, isDraggable } = columnDragState(stage);
     return {
       item: viewerHasPinned !== item.viewerHasPinned ? { ...item, viewerHasPinned } : item,
       position: index + 1,
-      isAdminOrdering: columnAllowsAdminOrdering,
+      isAdminOrdering: allowsAdminOrdering,
+      canDrag: isDraggable,
       canPin: canUpvote,
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: columnAllowsAdminOrdering && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder: allowsAdminOrdering && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
@@ -458,11 +465,13 @@ export function RoadmapView() {
                       className={s.columns}
                       style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
                     >
-                      {orderedVisibleColumns.map((stage) => (
+                      {orderedVisibleColumns.map((stage) => {
+                        const { isDraggable } = columnDragState(stage);
+                        return (
                         <RoadmapDropColumn
                           key={stage}
                           stage={stage}
-                          isAdminOrdering={isAdminOrdering && isAdminOrderedRoadmapStage(stage)}
+                          isDraggable={isDraggable}
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
                           dropPreviewIndex={
                             dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
@@ -472,7 +481,8 @@ export function RoadmapView() {
                             <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
                           ))}
                         </RoadmapDropColumn>
-                      ))}
+                        );
+                      })}
                     </div>
                     <DragOverlay dropAnimation={null}>
                       {dnd.activeDragItem ? (

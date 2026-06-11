@@ -76,7 +76,7 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
 
       <FormMultiSelect name="tags" label="Tags" placeholder="Select tags..." options={GANTRY_TAG_OPTIONS} />
 
-      <FormSelect name="type" label="Type" placeholder="Select a type" options={GANTRY_ITEM_TYPE_OPTIONS} />
+      <FormSelect name="type" label="Type of request" placeholder="Select a type" options={GANTRY_ITEM_TYPE_OPTIONS} />
     </div>
   );
 }

@@ -109,7 +109,7 @@ export function RoadmapFiltersContent({
         />
       </FilterSection>
 
-      <FilterSection title="Type">
+      <FilterSection title="Type of request">
         <div>
           {GANTRY_ITEM_TYPE_OPTIONS.map((opt) => (
             <CheckboxListItemRepresentation

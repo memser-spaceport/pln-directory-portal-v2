@@ -12,6 +12,7 @@ import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/component
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer/TeamDetailsDrawer';
 import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { PitchInvestorHeader } from '@/components/page/pitch/PitchInvestorHeader';
+import { PitchTopQuickLinks } from '@/components/page/pitch/PitchTopQuickLinks';
 import { PitchConfidentialityModal } from '@/components/page/pitch/PitchConfidentialityModal';
 import { PitchComingSoonCard } from '@/components/page/pitch/PitchComingSoonCard';
 import { PitchClosedCard } from '@/components/page/pitch/PitchClosedCard';
@@ -124,6 +125,7 @@ export const PitchView = () => {
   }, [prefillEmail, isLoggedIn, isHydrated, access, accessLoading, router]);
 
   const isInvestor = access?.participantType === 'INVESTOR';
+  const isFounder = access?.participantType === 'FOUNDER';
 
   if (!isHydrated || accessLoading) {
     return <PitchViewSkeleton />;
@@ -158,7 +160,7 @@ export const PitchView = () => {
         <div className={s.stepsCard}>
           <PitchInvestorHeader variant="draft" {...investorHeaderProps} />
         </div>
-        <PitchComingSoonCard teamName={access.teamName} />
+        {isLoggedIn && <PitchComingSoonCard teamName={access.teamName} />}
       </div>
     );
   }
@@ -181,7 +183,7 @@ export const PitchView = () => {
         <div className={s.stepsCard}>
           <PitchInvestorHeader variant="closed" {...investorHeaderProps} />
         </div>
-        <PitchClosedCard teamName={access.teamName} teamUid={access.teamUid} />
+        {isLoggedIn && <PitchClosedCard teamName={access.teamName} teamUid={access.teamUid} />}
       </div>
     );
   }
@@ -190,6 +192,7 @@ export const PitchView = () => {
   const showConfidentialityModal = isLoggedIn && !access.confidentialityAccepted && !access.isPitchAdmin;
   const canEdit = access.access === 'edit';
   const pitchStatusLabel = getPitchStatusLabel(access.status, access.isPitchAdmin, isInvestor);
+  const pitchQuickLinksVariant = access.status === 'DRAFT' ? 'draft' : access.status === 'CLOSED' ? 'closed' : 'open';
 
   return (
     <div className={s.root}>
@@ -235,6 +238,15 @@ export const PitchView = () => {
                       <p>This pitch is closed. Investors no longer have access.</p>
                     </Alert>
                   )}
+
+                  <PitchTopQuickLinks
+                    pitchSlug={slug}
+                    variant={pitchQuickLinksVariant}
+                    showProfileCta={!isFounder}
+                    prefillEmail={prefillEmail}
+                    pitchStatus={access.status}
+                    investorHasAccess={investorHasAccess}
+                  />
 
                   <Alert>
                     <p>

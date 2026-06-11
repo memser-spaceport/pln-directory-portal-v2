@@ -9,4 +9,25 @@
   white-space: normal;
   outline: none;
   line-height: inherit;
+
+  // Quill v2 renders bullets only via li[data-list=bullet] > .ql-ui:before.
+  // API responses use plain <ul>/<ol><li> without that structure, so
+  // .ql-editor li { list-style-type: none } strips all markers. Override with
+  // higher specificity (.content ul/ol li beats .ql-editor li).
+  ul li {
+    list-style-type: disc;
+  }
+
+  ul ul li {
+    list-style-type: circle;
+  }
+
+  ol li {
+    list-style-type: decimal;
+  }
+
+  ul,
+  ol {
+    margin: 0.25em 0;
+  }
 }

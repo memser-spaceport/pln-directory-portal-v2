@@ -1,0 +1,125 @@
+@use 'styles/media';
+
+.root {
+  margin: 0 auto;
+  max-width: 900px;
+  padding-top: 24px;
+  padding-bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  padding-inline: 8px;
+
+  @include media.tablet-landscape {
+    padding-inline: 0;
+  }
+}
+
+@mixin shimmer {
+  background: linear-gradient(90deg, #f0f3f9 25%, #e2e8f0 50%, #f0f3f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.headerCard {
+  width: 100%;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  @include media.mobile-only {
+    padding: 24px 16px;
+    gap: 16px;
+  }
+}
+
+.headerTitle {
+  width: min(420px, 72%);
+  height: 36px;
+  @include shimmer;
+
+  @include media.mobile-only {
+    height: 28px;
+    width: 80%;
+  }
+}
+
+.headerDescription {
+  width: min(560px, 88%);
+  height: 20px;
+  @include shimmer;
+
+  @include media.mobile-only {
+    height: 16px;
+    width: 92%;
+  }
+}
+
+.headerDescriptionShort {
+  width: min(400px, 60%);
+  height: 20px;
+  @include shimmer;
+
+  @include media.mobile-only {
+    height: 16px;
+    width: 70%;
+  }
+}
+
+.stepsBlock {
+  width: 100%;
+  max-width: 322px;
+  height: 200px;
+  margin-top: 8px;
+  @include shimmer;
+  border-radius: 12px;
+}
+
+.alertBlock {
+  width: 100%;
+  height: 72px;
+  @include shimmer;
+  border-radius: 8px;
+}
+
+.supportCard {
+  width: 100%;
+  padding: 20px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 56, 96, 0.06);
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.supportTitle {
+  width: 180px;
+  height: 20px;
+  @include shimmer;
+}
+
+.supportLine {
+  width: min(480px, 90%);
+  height: 16px;
+  @include shimmer;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

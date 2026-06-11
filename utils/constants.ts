@@ -579,6 +579,38 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
 };
 
+export const TEAM_PITCH_ANALYTICS = {
+  ON_PAGE_OPENED: 'team-pitch-page-opened',
+  ON_TIME_ON_PAGE: 'team-pitch-time-on-page',
+  ON_CONFIDENTIALITY_MODAL_SUBMITTED: 'team-pitch-confidentiality-modal-submitted',
+  ON_CONFIDENTIALITY_MODAL_CLOSED: 'team-pitch-confidentiality-modal-closed',
+  ON_LOGIN_CLICKED: 'team-pitch-login-clicked',
+  ON_INVESTOR_PROFILE_CTA_CLICKED: 'team-pitch-investor-profile-cta-clicked',
+  ON_CONTACT_SUPPORT_CLICKED: 'team-pitch-contact-support-clicked',
+  ON_RESTRICTED_ACCESS_SUPPORT_CLICKED: 'team-pitch-restricted-access-support-clicked',
+  ON_TEAM_CARD_VIEWED: 'team-pitch-team-card-viewed',
+  ON_TEAM_CARD_CLICKED: 'team-pitch-team-card-clicked',
+  ON_DECK_VIEWED: 'team-pitch-deck-viewed',
+  ON_VIDEO_VIEWED: 'team-pitch-video-viewed',
+  ON_VIDEO_WATCH_TIME: 'team-pitch-video-watch-time',
+  ON_CONNECT_CLICKED: 'team-pitch-connect-clicked',
+  ON_INVEST_CLICKED: 'team-pitch-invest-clicked',
+  ON_INTRO_CLICKED: 'team-pitch-intro-clicked',
+  ON_INTRO_CANCEL_CLICKED: 'team-pitch-intro-cancel-clicked',
+  ON_INTRO_CONFIRM_CLICKED: 'team-pitch-intro-confirm-clicked',
+  ON_GIVE_FEEDBACK_CLICKED: 'team-pitch-give-feedback-clicked',
+  ON_FEEDBACK_SUBMITTED: 'team-pitch-feedback-submitted',
+  ON_EDIT_PROFILE_CLICKED: 'team-pitch-edit-profile-clicked',
+  ON_SAVE_PROFILE_CLICKED: 'team-pitch-save-profile-clicked',
+  ON_CANCEL_PROFILE_CLICKED: 'team-pitch-cancel-profile-clicked',
+  ON_MATERIAL_UPLOAD_STARTED: 'team-pitch-material-upload-started',
+  ON_MATERIAL_UPLOAD_SUCCESS: 'team-pitch-material-upload-success',
+  ON_MATERIAL_UPLOAD_FAILED: 'team-pitch-material-upload-failed',
+  ON_MATERIAL_DELETED: 'team-pitch-material-deleted',
+  ON_MATERIAL_VIEWED: 'team-pitch-material-viewed',
+  ON_PROFILE_READY: 'team-pitch-profile-ready',
+};
+
 export const EVENTS_ANALYTICS = {
   EVENTS_PAGE_IRL_CARD_CLICKED: 'events-page-irl-card-clicked',
   EVENTS_PAGE_EVENT_CARD_CLICKED: 'events-page-event-card-clicked',

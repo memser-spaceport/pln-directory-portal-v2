@@ -233,7 +233,13 @@ export const INVESTOR_COLUMN_GROUPS = [
   },
   {
     group: 'Pipeline meta',
-    columns: ['enrichment_status', 'enrichment_date', 'last_enrichment_attempt', 'enrichment_notes'],
+    columns: [
+      'proximity_code',
+      'enrichment_status',
+      'enrichment_date',
+      'last_enrichment_attempt',
+      'enrichment_notes',
+    ],
   },
   {
     group: 'LabOS',

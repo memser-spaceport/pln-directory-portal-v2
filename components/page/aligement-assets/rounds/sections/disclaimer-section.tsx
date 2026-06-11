@@ -1,10 +1,30 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DISCLOSURE_URL } from '@/constants/plaa';
 
-export default function DisclaimerSection() {
+interface DisclaimerSectionProps {
+  /** Optional override for the disclaimer body text */
+  children?: ReactNode;
+}
+
+export default function DisclaimerSection({ children }: DisclaimerSectionProps) {
+  const defaultContent = (
+    <>
+      The Alignment Asset is still in private beta, and we&apos;re actively experimenting. The points program may evolve
+      at any time as we learn and improve. While the alignment asset trust ultimately controls token distributions, and
+      we cannot guarantee the conversion of points to tokens, your participation now puts you at the forefront of this
+      exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax
+      advice. Please read our{' '}
+      <Link href={DISCLOSURE_URL} className="disclaimer-section__link">
+        disclosure
+      </Link>
+      .
+    </>
+  );
+
   return (
     <>
       <section className="disclaimer-section">
@@ -15,8 +35,7 @@ export default function DisclaimerSection() {
           </div>
           
           <p className="disclaimer-section__text">
-            <em>The Alignment Asset is still in private beta, and we&apos;re actively experimenting. The points program may evolve at any time as we learn and improve. While the alignment asset trust ultimately controls token distributions, and we cannot guarantee the conversion of points to tokens, your participation now puts you at the forefront of this exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax advice. Please read our{' '}
-            <Link href={DISCLOSURE_URL} className="disclaimer-section__link">disclosure</Link>.</em>
+            <em>{children ?? defaultContent}</em>
           </p>
         </div>
       </section>

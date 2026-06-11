@@ -38,6 +38,7 @@ interface Props {
   hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
   isClearable?: boolean; // Show cross icon to clear selected value
   selectRef?: React.RefObject<SelectInstance | null>;
+  menuPlacement?: 'top' | 'bottom' | 'auto';
 }
 
 export const FormSelect = (props: Props) => {
@@ -58,6 +59,7 @@ export const FormSelect = (props: Props) => {
     isClearable,
     selectRef: externalSelectRef,
     formatOptionLabel,
+    menuPlacement,
   } = props;
 
   const {
@@ -146,7 +148,7 @@ export const FormSelect = (props: Props) => {
               }
             }) as any
           }
-          menuPlacement="auto"
+          menuPlacement={menuPlacement ?? 'auto'}
           placeholder={placeholder}
           options={enhancedOptions}
           value={value}

@@ -4,7 +4,8 @@ import { clsx } from 'clsx';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect';
-import { GANTRY_CREATE_STAGE_OPTIONS } from '@/services/gantry/constants';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect/FormMultiSelect';
+import { GANTRY_CREATE_STAGE_OPTIONS, GANTRY_ITEM_TYPE_OPTIONS, GANTRY_TAG_OPTIONS } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
 import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
@@ -67,11 +68,15 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
           enableMentions
           simplified
           toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-          minHeight={280}
+          minHeight={100}
           maxLength={DESCRIPTION_MAX_LENGTH}
           showCharCount
         />
       </div>
+
+      <FormMultiSelect name="tags" label="Tags" placeholder="Select tags..." options={GANTRY_TAG_OPTIONS} />
+
+      <FormSelect name="type" label="Type" placeholder="Select a type" options={GANTRY_ITEM_TYPE_OPTIONS} />
     </div>
   );
 }

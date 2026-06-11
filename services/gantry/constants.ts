@@ -1,9 +1,13 @@
+import type { Option } from '@/components/form/FormSelect/types';
 import type { GantryItem } from './types';
 
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
   ITEM = 'gantry-item',
   FOCUS_AREAS = 'gantry-focus-areas',
+  OBJECTIVES = 'gantry-objectives',
+  PIN_STATUS = 'gantry-pin-status',
+  ITEM_PINS = 'gantry-item-pins',
 }
 
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
@@ -49,12 +53,13 @@ export function isPreRoadmapStage(stage: (typeof GANTRY_STAGE_VALUES)[number]): 
   return (GANTRY_PRE_ROADMAP_STAGES as readonly string[]).includes(stage);
 }
 
-/** Most upvotes first; ties broken by most recently updated. */
-export function sortGantryItems(items: GantryItem[]): GantryItem[] {
+/** Admin-curated order ASC; items with null order sort to the end. */
+export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
   return [...items].sort((a, b) => {
-    const countDiff = b.upvoteCount - a.upvoteCount;
-    if (countDiff !== 0) return countDiff;
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    if (a.order == null && b.order == null) return 0;
+    if (a.order == null) return 1;
+    if (b.order == null) return -1;
+    return a.order - b.order;
   });
 }
 
@@ -71,3 +76,41 @@ export const GANTRY_CREATE_STAGE_OPTIONS = GANTRY_STAGE_VALUES.map((value) => ({
   label: GANTRY_STAGE_LABELS[value],
   value,
 }));
+
+const GANTRY_TAG_LABELS = [
+  'Members',
+  'Teams',
+  'Projects',
+  'Job Board',
+  'Deals',
+  'Founder Guides',
+  'Demo Day',
+  'Team Pitch',
+  'Gantry',
+  'Investor DB',
+  'Founder DB',
+  'Home',
+  'Forum',
+  'Husky',
+  'Office Hours',
+  'Events',
+  'IRL Gatherings',
+  'Team News',
+  'Notifications',
+  'Settings / Profile',
+  'Contact Support',
+  'Search',
+  'Back Office / Admin',
+] as const;
+
+export const GANTRY_TAG_OPTIONS: Option[] = GANTRY_TAG_LABELS.map((label) => ({ label, value: label }));
+
+export function tagsToOptions(tags: string[] | null | undefined): Option[] {
+  return GANTRY_TAG_OPTIONS.filter((o) => tags?.includes(o.value) ?? false);
+}
+
+export const GANTRY_ITEM_TYPE_OPTIONS: Option[] = [
+  { label: 'Bug', value: 'Bug' },
+  { label: 'Improvement', value: 'Improvement' },
+  { label: 'Feature Request', value: 'Feature Request' },
+];

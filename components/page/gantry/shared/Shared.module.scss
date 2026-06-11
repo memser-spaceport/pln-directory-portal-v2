@@ -51,37 +51,176 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #8897ae;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
   font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: -0.2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: all 0.12s;
 
   &:hover:not(:disabled) {
-    color: #6b7b93;
+    border-color: #156ff7;
+    color: #156ff7;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
 .upvoteIcon {
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .upvoteActive {
-  color: #1b4dff;
+  color: #156ff7;
+  border-color: #dbeafe;
+  background: #eff5ff;
 
   &:hover:not(:disabled) {
-    color: #1640d6;
+    border-color: #156ff7;
+    background: #dbeafe;
   }
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  //border: 1.5px solid #156ff7;
+  //background: #fff;
+  //color: #1b4dff;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover:not(:disabled) {
+    background: #eff5ff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.pinIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.pinActive {
+  color: #fff;
+  border-color: transparent;
+  background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  box-shadow: 0 2px 8px rgba(21, 111, 247, 0.35);
+  background-size: 120%;
+  background-position: center;
+
+  &:hover:not(:disabled) {
+    background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+    filter: brightness(1.03);
+    background-size: 120%;
+    background-position: center;
+  }
+}
+
+/* Read-only stat — shown for frozen/terminal stages (no button chrome) */
+.readStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #64748b;
+
+  span {
+    line-height: 1;
+    transform: translateY(1px);
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}
+
+.readStatPin {
+  //color: #1b4dff;
+}
+
+.boost {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: #1b4dff;
+    color: #1b4dff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.boostActive {
+  color: #fff;
+  border-color: transparent;
+  background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  box-shadow: 0 2px 8px rgba(21, 111, 247, 0.35);
+  background-size: 120%;
+  background-position: center;
+
+  &:hover:not(:disabled) {
+    background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+    filter: brightness(1.03);
+    background-size: 120%;
+    background-position: center;
+  }
+}
+
+.boostLabel {
+  line-height: 1;
+}
+
+.boostDivider {
+  width: 1px;
+  height: 12px;
+  background: currentColor;
+  opacity: 0.25;
+  flex-shrink: 0;
 }
 
 .buildButton {

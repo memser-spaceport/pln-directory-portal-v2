@@ -16,6 +16,8 @@ export const gantryItemFormSchema = z.object({
   acceptanceCriteria: z.string().optional().nullable(),
   focusAreaUid: z.string().optional().nullable(),
   externalTrackerUrl: z.string().max(2000).optional().nullable(),
+  tags: z.array(z.string()).optional(),
+  type: z.enum(['Bug', 'Improvement', 'Feature Request']).optional().nullable(),
 });
 
 export type GantryItemFormValues = z.infer<typeof gantryItemFormSchema>;

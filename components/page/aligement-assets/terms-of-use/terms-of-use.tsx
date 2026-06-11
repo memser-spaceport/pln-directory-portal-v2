@@ -33,7 +33,7 @@ export default function TermsOfUsePage() {
         <div className="terms-of-use__header">
           <h1 className="terms-of-use__header__title">Terms of Use</h1>
           <p className="terms-of-use__header__date">
-            <em>Last Updated: May 8, 2025</em>
+            <em>Last Updated: June 3, 2026</em>
           </p>
         </div>
 
@@ -41,10 +41,11 @@ export default function TermsOfUsePage() {
         <div className="terms-of-use__overview">
           <p className="terms-of-use__overview__paragraph">
             The following terms and conditions govern your access to and use of the Network Contribution Points program,
-            any PL Alignment Asset Hub dashboards, websites, webforms, tools, and documents, and all content, services,
-            tools and products available at or through the PL Alignment Asset Hub dashboards, websites, webforms, tools,
-            and documents (collectively, the “Platform”). Please read these terms carefully. If you don’t agree to all
-            of these terms and conditions (“Terms”) without modification, you may not use or access the Platform.
+            any PL Alignment Asset Rights Hub dashboards, websites, webforms, tools, and documents, and all content,
+            services, tools and products available at or through the PL Alignment Asset Rights Hub dashboards, websites,
+            webforms, tools, and documents (collectively, the “Platform”). Please read these terms carefully. If you
+            don’t agree to all of these terms and conditions (“Terms”) without modification, you may not use or access
+            the Platform.
           </p>
           <p className="terms-of-use__content__paragraph">
             Polaris Labs, Inc. (“we,” “our,” “us,” or “Polaris”) may make changes to these Terms from time to time. If
@@ -93,11 +94,13 @@ export default function TermsOfUsePage() {
                   .
                 </p>
                 <p className="terms-of-use__content__paragraph">
-                  Third parties such as the PLAA1 Trust and the Surus Trust Company have full discretion on whether to
-                  issue you any securities or other forms of value based on network activity, and you are solely
-                  responsible for any expenses or tax consequences as a result of these third parties’ decisions to
-                  issue these forms of value according to their terms and conditions. Polaris may provide these parties
-                  information about your network activity.
+                  Third parties, such as the PLAA1 Trust and Surus Trust Company, have full discretion, in accordance
+                  with their governing documents and applicable terms and conditions, to issue auction participation
+                  rights (“Rights”) or other forms of consideration in connection with network activity. Any Rights
+                  issued may be settled through the issuance of tokens and redeemed for cash or other consideration in
+                  accordance with the governing documents of PLAA1 Trust. You are solely responsible for any expenses,
+                  taxes or other consequences arising from the issuance, receipt, settlement or redemption of any such
+                  Rights, tokens or other consideration.
                 </p>
                 <p className="terms-of-use__content__paragraph">
                   Some activities that Program participants may collect Points for include user submissions. We retain
@@ -109,8 +112,8 @@ export default function TermsOfUsePage() {
                 <p className="terms-of-use__content__paragraph">
                   While we will make an effort to communicate important updates, the Program is an experimental,
                   iterative program that we may evolve over time with or without notice to you. We may discontinue
-                  running the Program or providing the Platform at any time, and
-                  <b> there is no guarantee that your participation in the Program will result in any reward.</b>
+                  running the Program or providing the Platform at any time, and there is no guarantee that your
+                  participation in the Program will result in any cash, Rights, tokens or other form of consideration.
                 </p>
                 <p className="terms-of-use__content__paragraph">
                   Any Points offered via the Program are provided “AS IS,” without any offer of warranty or guarantee,
@@ -121,7 +124,7 @@ export default function TermsOfUsePage() {
                     href={DISCLOSURE_URL}
                     className="terms-of-use__link"
                   >
-                    PL Alignment Asset Disclosure
+                    Alignment Asset Tokens Disclosure
                   </Link>
                 </p>
                 <p className="terms-of-use__content__paragraph">
@@ -132,12 +135,12 @@ export default function TermsOfUsePage() {
                   Network Contribution Points through the Program.
                 </p>
                 <p className="terms-of-use__content__paragraph">
-                  If you are on any U.S. or E.U. sanctions list, or residing in any U.S. or E.U.-sanctioned region, you
-                  may not use the Platform and will not be eligible for any Points or other reward. You agree not to use
-                  any technologies (such as VPNs) to obscure your location or identity for the purpose of accessing the
-                  Platform or entering into the Program in violation of any U.S. or E.U. sanctions policy. Any such use
-                  constitutes a violation of these Terms and may result in the immediate suspension or termination of
-                  your account.
+                  If you are the subject of any U.S. or E.U. sanctions, or are residing in any region the subject of any
+                  U.S. or E.U. sanctions, you may not use the Platform and will not be eligible for any Points or other
+                  reward. You agree not to use any technologies (such as VPNs) to obscure your location or identity for
+                  the purpose of accessing the Platform or entering into the Program in violation of any U.S. or E.U.
+                  sanctions policy. Any such use constitutes a violation of these Terms and may result in the immediate
+                  suspension or termination of your account.
                 </p>
               </div>
             )}
@@ -204,7 +207,7 @@ export default function TermsOfUsePage() {
                   The Platform may contain message boards, webforms, forums, leaderboards, and other interactive
                   features that allow users to post, submit, publish, display, or transmit data or information to
                   others. If you use the Platform to upload any data or information, you are entirely responsible for
-                  all data you send or cause to be sent through the Platform (“Content”) - and you’re also responsible
+                  all data you send or cause to be sent through the Platform (“Content”), and you’re also responsible
                   for any harm resulting from that Content.
                 </p>
                 <p className="terms-of-use__content__paragraph">
@@ -423,7 +426,18 @@ export default function TermsOfUsePage() {
 
         {/* Disclaimer Box */}
         <div className="terms-of-use__disclaimer">
-          <DisclaimerSection />
+          <DisclaimerSection>
+            The Points Program may evolve over time as we continue to learn and improve. While the PLAA1 Trust
+            ultimately has discretion over the issuance of Rights and the settlement of such Rights through Tokens,
+            which may in turn be redeemed for cash or other consideration, we cannot guarantee that Points will be
+            converted into Rights or result in any settlement. Nevertheless, participation today allows you to engage
+            with and help shape this evolving initiative. This information is provided for informational purposes only,
+            and does not constitute legal, tax, financial or investment advice. Please read our{' '}
+            <Link href={DISCLOSURE_URL} className="terms-of-use__link">
+              disclosure
+            </Link>
+            .
+          </DisclaimerSection>
         </div>
 
         {/* Footer/Contact Information */}

@@ -1,13 +1,78 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
+import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
-import { UpvoteButton } from '../shared/UpvoteButton';
+import { BoostButton } from '../shared/BoostButton';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
 import s from './Roadmap.module.scss';
+
+const AVATAR_COLORS = [
+  { bg: '#dbeafe', text: '#1d4ed8' },
+  { bg: '#dcfce7', text: '#15803d' },
+  { bg: '#ede9fe', text: '#6d28d9' },
+  { bg: '#fce7f3', text: '#9d174d' },
+  { bg: '#fef3c7', text: '#92400e' },
+  { bg: '#e0f2fe', text: '#0369a1' },
+];
+function avatarColor(name: string) {
+  const h = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function initials(name: string) {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+}
+
+const MAX_PINNERS_VISIBLE = 3;
+
+function CardBoostersSection({ item }: { item: GantryItem }) {
+  const { data: pinners = [], isLoading } = useGantryItemPins(item.uid, item.pinCount > 0);
+  if (isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
+  if (pinners.length === 0) return null;
+  const visible = pinners.slice(0, MAX_PINNERS_VISIBLE);
+  const hasMore = item.pinCount > MAX_PINNERS_VISIBLE;
+  return (
+    <div className={s.boostersSection}>
+      <div className={s.boostersHeader}>
+        <LockIcon />
+        <span>{item.pinCount} BOOSTED · TEAM-ONLY</span>
+      </div>
+      {visible.map((p) => {
+        const c = avatarColor(p.member.name);
+        return (
+          <div key={p.uid} className={s.boosterRow}>
+            <span className={s.boosterAvatar} style={{ background: c.bg, color: c.text }}>
+              {initials(p.member.name)}
+            </span>
+            <div className={s.boosterInfo}>
+              <span className={s.boosterName}>{p.member.name}</span>
+              {p.note ? (
+                <span className={s.boosterNote}>{p.note}</span>
+              ) : (
+                <span className={s.boosterNoNote}>No note</span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      {hasMore && (
+        <button type="button" className={s.showAllBoosters} onClick={(e) => e.stopPropagation()}>
+          Show all {item.pinCount} boosters &amp; notes
+        </button>
+      )}
+    </div>
+  );
+}
 
 const CARD_DESCRIPTION_MAX_LENGTH = 160;
 
@@ -27,52 +92,144 @@ function toPlainText(html: string): string {
 
 interface CardContentProps {
   readonly item: GantryItem;
-  readonly canUpvote: boolean;
-  readonly onUpvoteToggle: (uid: string, next: boolean) => void;
+  readonly position?: number;
+  readonly dragHandleProps?: SyntheticListenerMap;
+  readonly canPin: boolean;
+  readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
+  readonly isPinDisabled: boolean;
+  readonly canCurate: boolean;
+  readonly warnPinOrder?: boolean;
 }
 
-function RoadmapCardContent({ item, canUpvote, onUpvoteToggle }: CardContentProps) {
+function RoadmapCardContent({
+  item,
+  position,
+  dragHandleProps,
+  canPin,
+  onPinToggle,
+  isPinDisabled,
+  canCurate,
+  warnPinOrder,
+}: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
-
+  const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
   return (
     <>
-      <div className={s.cardHead}>
+      <div className={s.cardTopRow}>
+        <div className={s.cardPositionBadge}>
+          {dragHandleProps && (
+            <button
+              type="button"
+              className={s.dragHandle}
+              {...dragHandleProps}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Drag to reorder"
+            >
+              <DragGripIcon />
+            </button>
+          )}
+          {position !== undefined && item.stage !== 'IDEA' && item.stage !== 'SHIPPED' && item.stage !== 'DECLINED' && (
+            <span className={clsx(s[`cardPosition_${item.stage}`])}>#{position}</span>
+          )}
+        </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
-        <UpvoteButton
-          count={item.upvoteCount}
-          hasUpvoted={item.viewerHasUpvoted}
-          disabled={!canUpvote}
-          onToggle={(next) => onUpvoteToggle(item.uid, next)}
-        />
+        {item.objective && (
+          <span className={s.objectiveBadge}>
+            <span className={s.objectiveDot} aria-hidden />
+            O{item.objective.order}
+          </span>
+        )}
       </div>
+
       {descriptionPreview && <p className={s.cardDescription}>{descriptionPreview}</p>}
+
+      {item.tags && item.tags.length > 0 && (
+        <div className={s.cardTags} aria-label={`Tags: ${item.tags.join(', ')}`}>
+          {item.tags.map((tag) => (
+            <span key={tag} className={s.cardTagChip}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {item.type && (
+        <div className={s.cardTypeBadge} aria-label={`Type: ${item.type}`}>
+          {item.type}
+        </div>
+      )}
+
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
+        <div className={s.cardActions}>
+          <BoostButton
+            count={item.pinCount}
+            hasPinned={item.viewerHasPinned}
+            readonly={interactionLocked}
+            disabled={isPinDisabled}
+            onToggle={(next, el) => onPinToggle(item.uid, next, el)}
+          />
+        </div>
       </div>
+
+      {warnPinOrder && position !== undefined && (
+        <div className={s.boostOrderWarning}>
+          <WarningIcon />
+          <span>
+            High demand ({item.pinCount} boosts) vs. rank #{position} — revisit?
+          </span>
+        </div>
+      )}
+
+      {item.stage === 'IN_PROGRESS' && (
+        <p className={s.cardFrozenNote}>
+          <span className={s.cardFrozenBullet}>*</span> Count frozen — entered with {item.pinCount ?? 0} boosts
+        </p>
+      )}
+
+      {(item.stage === 'SHIPPED' || item.stage === 'DECLINED') && (
+        <p className={s.cardFinalNote}>
+          <ClockIcon />
+          {item.stage === 'SHIPPED' ? 'Shipped' : 'Declined'} — final: {item.pinCount ?? 0} boosts
+        </p>
+      )}
+
+      {canCurate && item.pinCount > 0 && <CardBoostersSection item={item} />}
     </>
   );
 }
 
-interface Props extends CardContentProps {}
+interface Props extends CardContentProps {
+  readonly isAdminOrdering: boolean;
+}
 
-export function RoadmapCard({ item, canUpvote, onUpvoteToggle }: Props) {
+export function RoadmapCard({
+  item,
+  position,
+  isAdminOrdering,
+  canPin,
+  onPinToggle,
+  isPinDisabled,
+  canCurate,
+  warnPinOrder,
+}: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.uid,
     data: { stage: item.stage },
   });
 
   const style = {
-    transform: isDragging ? undefined : CSS.Translate.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
+    transition,
     opacity: isDragging ? 0.35 : 1,
   };
 
   return (
     <article
       ref={setNodeRef}
-      className={s.card}
+      className={clsx(s.card, isAdminOrdering && s.cardOrdering)}
       style={style}
-      {...listeners}
       {...attributes}
       {...cardNavigate}
       onClick={(e) => {
@@ -80,7 +237,16 @@ export function RoadmapCard({ item, canUpvote, onUpvoteToggle }: Props) {
         cardNavigate.onClick(e);
       }}
     >
-      <RoadmapCardContent item={item} canUpvote={canUpvote} onUpvoteToggle={onUpvoteToggle} />
+      <RoadmapCardContent
+        item={item}
+        position={position}
+        dragHandleProps={isAdminOrdering ? listeners : undefined}
+        canPin={canPin}
+        onPinToggle={onPinToggle}
+        isPinDisabled={isPinDisabled}
+        canCurate={canCurate}
+        warnPinOrder={warnPinOrder}
+      />
     </article>
   );
 }
@@ -89,10 +255,75 @@ interface DragOverlayProps extends CardContentProps {
   readonly width?: number;
 }
 
-export function RoadmapCardDragOverlay({ item, width, canUpvote, onUpvoteToggle }: DragOverlayProps) {
+export function RoadmapCardDragOverlay({
+  item,
+  width,
+  position,
+  canPin,
+  onPinToggle,
+  isPinDisabled,
+  canCurate,
+  warnPinOrder,
+}: DragOverlayProps) {
   return (
     <article className={s.cardDragOverlay} style={width ? { width } : undefined}>
-      <RoadmapCardContent item={item} canUpvote={canUpvote} onUpvoteToggle={onUpvoteToggle} />
+      <RoadmapCardContent
+        item={item}
+        position={position}
+        canPin={canPin}
+        onPinToggle={onPinToggle}
+        isPinDisabled={isPinDisabled}
+        canCurate={canCurate}
+        warnPinOrder={warnPinOrder}
+      />
     </article>
+  );
+}
+
+function DragGripIcon() {
+  return (
+    <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden>
+      <circle cx="2" cy="2" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="2" r="1.5" fill="currentColor" />
+      <circle cx="2" cy="7" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="7" r="1.5" fill="currentColor" />
+      <circle cx="2" cy="12" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="12" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden>
+      <rect x="1.5" y="5.5" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M3.5 5.5V3.5a2 2 0 0 1 4 0v2" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <circle cx="5.5" cy="9" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
+      <path
+        d="M6 3.5V6l1.75 1.75"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function WarningIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path d="M7 1.5L13 12.5H1L7 1.5Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M7 5.5V8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <circle cx="7" cy="10.25" r="0.75" fill="currentColor" />
+    </svg>
   );
 }

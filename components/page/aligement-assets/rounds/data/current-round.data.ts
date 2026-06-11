@@ -18,7 +18,7 @@ export const currentRoundData: CurrentRoundData = {
     roundId: 'round-17-jun-2026',
     roundNumber: 17,
     isCurrentRound: true,
-    lastUpdated: '2026-06-01T00:00:00'
+    lastUpdated: '2026-06-08T09:17:00'
   },
 
   // ============================================================================
@@ -66,7 +66,7 @@ export const currentRoundData: CurrentRoundData = {
         text: 'Your token amount depends on participation within each category: when more people contribute, the token pool is more widely distributed; when activity is lower in a category, more tokens are available per contributor.'
       },
       {
-        text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Blog Creation, Talent Referrals, Curated X Spaces, and Referral Program submissions. Our new {unifiedForm} streamlines most submissions, though some activities will still require manual updates. We\'ll continue updating as new submissions come in and are working toward more automation in 2026.',
+        text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Blog Creation, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new {unifiedForm} streamlines most submissions, though some activities will still require manual updates. We\'ll continue updating as new submissions come in and are working toward more automation in 2026.',
         links: [
           {
             placeholder: '{unifiedForm}',
@@ -129,14 +129,14 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI Pillar In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 1000,
+    maxValue: 700,
     chartData: [
       { name: 'Brand', value: 0 },
       { name: 'Knowledge', value: 0 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 0 },
-      { name: 'Projects', value: 0 }
+      { name: 'Programs', value: 650 },
+      { name: 'Projects', value: 50 }
     ]
   },
 
@@ -167,7 +167,7 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '0',
+    totalPointsCollected: '700',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

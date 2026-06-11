@@ -1,16 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import Image from 'next/image';
 import { ProfileHeader } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileHeader';
 import { ProfileContent } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileContent';
 import { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { useExpressInterest, InterestType } from '@/services/demo-day/hooks/useExpressInterest';
-import { useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
+import {
+  useTeamPitchExpressInterest,
+  PitchInterestType,
+} from '@/services/team-pitch/hooks/useTeamPitchExpressInterest';
+import { DemoDayModeType, useDemoDayMode } from '@/services/demo-day/hooks/useDemoDayMode';
 import { useSaveTeam } from '@/services/demo-day/hooks/useSaveTeam';
 import s from './TeamProfileCard.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
-import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { useTeamEngagementAnalytics } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { getVideoPlaybackUrl } from '@/utils/upload-url.utils';
 import { VideoWatchTimeData } from '@/components/common/VideoPlayer/hooks/useTrackVideoWatchTime';
 import { useIsPrepDemoDay } from '@/services/demo-day/hooks/useIsPrepDemoDay';
@@ -38,6 +40,11 @@ interface TeamProfileCardProps {
   onInvestCompany?: (team: TeamProfile) => void;
   isAdmin?: boolean;
   canEdit?: boolean;
+  pitchSlug?: string;
+  isPrepPitch?: boolean;
+  hideSave?: boolean;
+  showStageAlways?: boolean;
+  pageContext?: string;
 }
 
 export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
@@ -45,62 +52,60 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   onClick,
   isAdmin = false,
   canEdit: canEditTeams,
+  pitchSlug,
+  isPrepPitch = false,
+  hideSave = false,
+  showStageAlways = false,
+  pageContext = 'active-view',
 }) => {
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const descriptionRef = React.useRef<HTMLParagraphElement>(null);
   const params = useParams();
-  const slug = params.demoDayId as string;
+  const slug = pitchSlug ?? (params.demoDayId as string);
 
-  // Analytics hooks
-  const {
-    onActiveViewTeamCardClicked,
-    onActiveViewTeamCardViewed,
-    onActiveViewLikeCompanyClicked,
-    onActiveViewConnectCompanyClicked,
-    onActiveViewInvestCompanyClicked,
-    onActiveViewIntroCompanyClicked,
-    onActiveViewIntroCompanyCancelClicked,
-    onActiveViewIntroCompanyConfirmClicked,
-    onActiveViewGiveFeedbackClicked,
-    onActiveViewFeedbackSubmitted,
-    onActiveViewTeamPitchDeckViewed,
-    onActiveViewTeamPitchVideoViewed,
-    onActiveViewVideoWatchTime,
-  } = useDemoDayAnalytics();
+  const engagement = useTeamEngagementAnalytics(pitchSlug);
   const reportAnalytics = useReportAnalyticsEvent();
-  const expressInterest = useExpressInterest(team.team?.name);
+  const demoDayExpressInterest = useExpressInterest(team.team?.name);
+  const pitchExpressInterest = useTeamPitchExpressInterest(pitchSlug ?? '', team.team?.name);
+  const expressInterest = pitchSlug ? pitchExpressInterest : demoDayExpressInterest;
   const saveTeam = useSaveTeam();
   const { currentUser: userInfo } = useCurrentUserStore();
-  const canEdit = isAdmin ? (canEditTeams ?? true) : team.founders.some((founder) => founder.uid === userInfo?.uid);
-  const isPrepDemoDay = useIsPrepDemoDay();
-  const demoDayMode = useDemoDayMode();
+  const canEdit = pitchSlug
+    ? !!canEditTeams
+    : isAdmin
+      ? (canEditTeams ?? true)
+      : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const isPrepDemoDayHook = useIsPrepDemoDay();
+  const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
+  const demoDayModeHook = useDemoDayMode();
+  const demoDayMode = pitchSlug ? 'active' : demoDayModeHook;
   const { data: demoDayData } = useGetDemoDayState();
 
-  // Analytics helper function for team details
-  const getTeamAnalyticsData = () => ({
-    teamName: team.team?.name,
-    teamUid: team.uid,
-    teamShortDescription: team.team?.shortDescription,
-    fundingStage: team.team?.fundingStage?.title,
-    fundingStageUid: team.team?.fundingStage?.uid,
-    industryTags: team.team?.industryTags?.map((tag) => tag.title),
-    industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
-    foundersCount: team.founders?.length || 0,
-    founderNames: team.founders?.map((f) => f.name),
-    hasLogo: !!team.team?.logo?.url,
-  });
+  const getTeamAnalyticsData = useCallback(
+    () => ({
+      teamName: team.team?.name,
+      teamUid: team.uid,
+      teamShortDescription: team.team?.shortDescription,
+      fundingStage: team.team?.fundingStage?.title,
+      fundingStageUid: team.team?.fundingStage?.uid,
+      industryTags: team.team?.industryTags?.map((tag) => tag.title),
+      industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+      foundersCount: team.founders?.length || 0,
+      founderNames: team.founders?.map((f) => f.name),
+      hasLogo: !!team.team?.logo?.url,
+    }),
+    [team],
+  );
 
-  // Handle card visibility tracking
   const handleCardVisible = useCallback(() => {
     if (!userInfo?.email) return;
-
     const analyticsData = getTeamAnalyticsData();
-
-    // PostHog analytics
-    onActiveViewTeamCardViewed(analyticsData);
-  }, [userInfo, team, onActiveViewTeamCardViewed, reportAnalytics]);
+    engagement.capture.teamCardViewed(analyticsData);
+    const event = engagement.trackEngagement('teamCardViewed', userInfo, analyticsData);
+    if (event) reportAnalytics.mutate(event);
+  }, [userInfo, getTeamAnalyticsData, engagement, reportAnalytics]);
 
   // Track card visibility using Intersection Observer
   const cardRef = useCardVisibilityTracking<HTMLDivElement>({
@@ -110,39 +115,21 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   });
 
   const handleCardClick = () => {
-    // Report team card click analytics
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewTeamCardClicked({
+      const analyticsData = {
         teamName: team.team?.name,
         teamUid: team.uid,
         fundingStage: team.team?.fundingStage?.title,
         industryTags: team.team?.industryTags?.map((tag) => tag.title),
-      });
-
-      // Custom analytics event
-      const teamCardEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_CARD_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          teamName: team.team?.name,
-          teamUid: team.uid,
-          teamShortDescription: team.team?.shortDescription,
-          fundingStage: team.team?.fundingStage?.title,
-          fundingStageUid: team.team?.fundingStage?.uid,
-          industryTags: team.team?.industryTags?.map((tag) => tag.title),
-          industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
-          foundersCount: team.founders?.length || 0,
-          hasLogo: !!team.team?.logo?.url,
-        },
+        teamShortDescription: team.team?.shortDescription,
+        fundingStageUid: team.team?.fundingStage?.uid,
+        industryTagUids: team.team?.industryTags?.map((tag) => tag.uid),
+        foundersCount: team.founders?.length || 0,
+        hasLogo: !!team.team?.logo?.url,
       };
-
-      reportAnalytics.mutate(teamCardEvent);
+      engagement.capture.teamCardClicked(analyticsData);
+      const event = engagement.trackEngagement('teamCardClicked', userInfo, analyticsData);
+      if (event) reportAnalytics.mutate(event);
     }
 
     onClick?.(team);
@@ -156,115 +143,83 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     if (interestType === 'referral') {
       setIsReferModalOpen(true);
 
-      // Report intro company clicked analytics
       if (userInfo?.email) {
         const analyticsData = getTeamAnalyticsData();
-
-        // PostHog analytics
-        onActiveViewIntroCompanyClicked(analyticsData);
-
-        // Custom analytics event
-        const introEvent: TrackEventDto = {
-          name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CLICKED,
-          distinctId: userInfo.email,
-          properties: {
-            userId: userInfo.uid,
-            userEmail: userInfo.email,
-            userName: userInfo.name,
-            path: '/demoday',
-            timestamp: new Date().toISOString(),
-            action: 'intro_company',
-            ...analyticsData,
-          },
-        };
-
-        reportAnalytics.mutate(introEvent);
+        engagement.capture.introClicked(analyticsData);
+        const event = engagement.trackEngagement('introClicked', userInfo, {
+          action: 'intro_company',
+          ...analyticsData,
+        });
+        if (event) reportAnalytics.mutate(event);
       }
 
       return;
     }
 
-    // Report analytics for interest company click
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
-
-      // PostHog analytics
-      switch (interestType) {
-        case 'connect':
-          onActiveViewConnectCompanyClicked(analyticsData);
-          break;
-        case 'invest':
-          onActiveViewInvestCompanyClicked(analyticsData);
-          break;
+      const eventKey = interestType === 'connect' ? 'connectClicked' : 'investClicked';
+      if (interestType === 'connect') {
+        engagement.capture.connectClicked(analyticsData);
+      } else {
+        engagement.capture.investClicked(analyticsData);
       }
-
-      // Custom analytics event
-      const interestEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS[
-          `ON_ACTIVE_VIEW_${interestType.toUpperCase()}_COMPANY_CLICKED` as keyof typeof DEMO_DAY_ANALYTICS
-        ],
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: `${interestType}_company`,
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(interestEvent);
+      const event = engagement.trackEngagement(eventKey, userInfo, {
+        action: `${interestType}_company`,
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: interestType,
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: interestType as PitchInterestType,
+        isPrep: isPrepPitch,
+      });
+    } else {
+      demoDayExpressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: interestType,
+        isPrepDemoDay,
+        demoDayMode: demoDayMode as DemoDayModeType | undefined,
+      });
+    }
   };
 
   const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
 
-      // PostHog analytics
-      onActiveViewIntroCompanyConfirmClicked({
+      const referParams = {
         ...analyticsData,
         referralName: referralData.investorName,
         referralEmail: referralData.investorEmail,
-      });
-
-      // Custom analytics event
-      const referEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CONFIRM_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'intro_company',
-          ...analyticsData,
-          referralName: referralData.investorName,
-          referralEmail: referralData.investorEmail,
-        },
       };
-
-      reportAnalytics.mutate(referEvent);
+      engagement.capture.introConfirmClicked(referParams);
+      const event = engagement.trackEngagement('introConfirmClicked', userInfo, {
+        action: 'intro_company',
+        ...referParams,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
-    // Express interest via API with referral data
-    expressInterest.mutate({
-      teamFundraisingProfileUid: team.uid,
-      interestType: 'referral',
-      isPrepDemoDay,
-      demoDayMode: demoDayMode ?? undefined,
-      referralData,
-    });
+    if (pitchSlug) {
+      pitchExpressInterest.mutate({
+        teamPitchProfileUid: team.uid,
+        interestType: 'referral',
+        isPrep: isPrepPitch,
+        referralData,
+      });
+    } else {
+      demoDayExpressInterest.mutate({
+        teamFundraisingProfileUid: team.uid,
+        interestType: 'referral',
+        isPrepDemoDay,
+        demoDayMode: demoDayMode as DemoDayModeType | undefined,
+        referralData,
+      });
+    }
 
     // Close modal
     setIsReferModalOpen(false);
@@ -275,25 +230,12 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
 
-      // PostHog analytics
-      onActiveViewGiveFeedbackClicked(analyticsData);
-
-      // Custom analytics event
-      const feedbackEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_GIVE_FEEDBACK_CLICKED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'give_feedback',
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(feedbackEvent);
+      engagement.capture.giveFeedbackClicked(analyticsData);
+      const event = engagement.trackEngagement('giveFeedbackClicked', userInfo, {
+        action: 'give_feedback',
+        ...analyticsData,
+      });
+      if (event) reportAnalytics.mutate(event);
     }
 
     setIsFeedbackModalOpen(true);
@@ -304,96 +246,63 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     if (userInfo?.email) {
       const analyticsData = getTeamAnalyticsData();
 
-      // PostHog analytics
-      onActiveViewFeedbackSubmitted({
-        ...analyticsData,
-        feedbackLength: feedbackData.feedback.length,
+      const feedbackParams = { ...analyticsData, feedbackLength: feedbackData.feedback.length };
+      engagement.capture.feedbackSubmitted(feedbackParams);
+      const event = engagement.trackEngagement('feedbackSubmitted', userInfo, {
+        action: 'feedback_submitted',
+        ...feedbackParams,
       });
-
-      // Custom analytics event
-      const feedbackSubmittedEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_FEEDBACK_SUBMITTED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          action: 'feedback_submitted',
-          feedbackLength: feedbackData.feedback.length,
-          ...analyticsData,
-        },
-      };
-
-      reportAnalytics.mutate(feedbackSubmittedEvent);
+      if (event) reportAnalytics.mutate(event);
     }
 
-    // Express interest via API with feedback data
-    expressInterest.mutate(
-      {
-        teamFundraisingProfileUid: team.uid,
-        interestType: 'feedback' as InterestType,
-        isPrepDemoDay,
-        demoDayMode: demoDayMode ?? undefined,
-        feedbackData,
-      },
-      {
-        onSuccess: () => {
-          setIsFeedbackModalOpen(false);
+    if (pitchSlug) {
+      pitchExpressInterest.mutate(
+        {
+          teamPitchProfileUid: team.uid,
+          interestType: 'feedback',
+          isPrep: isPrepPitch,
+          feedbackData,
         },
-      },
-    );
+        { onSuccess: () => setIsFeedbackModalOpen(false) },
+      );
+    } else {
+      demoDayExpressInterest.mutate(
+        {
+          teamFundraisingProfileUid: team.uid,
+          interestType: 'feedback' as InterestType,
+          isPrepDemoDay,
+          demoDayMode: demoDayMode as DemoDayModeType | undefined,
+          feedbackData,
+        },
+        { onSuccess: () => setIsFeedbackModalOpen(false) },
+      );
+    }
   };
 
   // Analytics handlers for media viewing
   const handlePitchDeckView = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewTeamPitchDeckViewed(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const pitchDeckEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_DECK_VIEWED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          materialType: 'pitch_deck',
-          materialUrl: team.onePagerUpload?.url,
-          ...getTeamAnalyticsData(),
-        },
+      const analyticsData = {
+        ...getTeamAnalyticsData(),
+        materialType: 'pitch_deck',
+        materialUrl: team.onePagerUpload?.url,
       };
-
-      reportAnalytics.mutate(pitchDeckEvent);
+      engagement.capture.deckViewed(analyticsData);
+      const event = engagement.trackEngagement('deckViewed', userInfo, analyticsData);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
   const handlePitchVideoView = () => {
     if (userInfo?.email) {
-      // PostHog analytics
-      onActiveViewTeamPitchVideoViewed(getTeamAnalyticsData());
-
-      // Custom analytics event
-      const pitchVideoEvent: TrackEventDto = {
-        name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_VIEWED,
-        distinctId: userInfo.email,
-        properties: {
-          userId: userInfo.uid,
-          userEmail: userInfo.email,
-          userName: userInfo.name,
-          path: '/demoday',
-          timestamp: new Date().toISOString(),
-          materialType: 'pitch_video',
-          materialUrl: team.videoUpload?.url,
-          ...getTeamAnalyticsData(),
-        },
+      const analyticsData = {
+        ...getTeamAnalyticsData(),
+        materialType: 'pitch_video',
+        materialUrl: team.videoUpload?.url,
       };
-
-      reportAnalytics.mutate(pitchVideoEvent);
+      engagement.capture.videoViewed(analyticsData);
+      const event = engagement.trackEngagement('videoViewed', userInfo, analyticsData);
+      if (event) reportAnalytics.mutate(event);
     }
   };
 
@@ -403,41 +312,10 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
 
     const analyticsData = getTeamAnalyticsData();
 
-    // PostHog analytics
-    onActiveViewVideoWatchTime({
-      ...analyticsData,
-      ...data,
-    });
-
-    // Custom analytics event to backend
-    const watchTimeEvent: TrackEventDto = {
-      name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_TEAM_PITCH_VIDEO_WATCH_TIME,
-      distinctId: userInfo.email,
-      properties: {
-        userId: userInfo.uid,
-        userEmail: userInfo.email,
-        userName: userInfo.name,
-        path: '/demoday',
-        timestamp: new Date().toISOString(),
-        ...analyticsData,
-        // Watch time data
-        sessionId: data.sessionId,
-        videoUrl: data.videoUrl,
-        watchTimeMs: data.watchTimeMs,
-        totalWatchTimeMs: data.totalWatchTimeMs,
-        videoDurationMs: data.videoDurationMs,
-        percentWatched: data.percentWatched,
-        currentPosition: data.currentPosition,
-        playbackRate: data.playbackRate,
-        isComplete: data.isComplete,
-        isFinalReport: data.isFinalReport,
-        exitPosition: data.exitPosition,
-        maxPositionReached: data.maxPositionReached,
-        watchedSegments: data.watchedSegments,
-      },
-    };
-
-    reportAnalytics.mutate(watchTimeEvent);
+    const watchParams = { ...analyticsData, ...data };
+    engagement.capture.videoWatchTime(watchParams);
+    const event = engagement.trackEngagement('videoWatchTime', userInfo, watchParams);
+    if (event) reportAnalytics.mutate(event);
   };
 
   // Check if description is truncated
@@ -455,8 +333,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         name={team.team?.name || 'Team Name'}
         description={team?.team?.shortDescription || '-'}
         fundingStage={team?.team?.fundingStage?.title || '-'}
-        program={team.program ?? undefined}
-        showStage={demoDayData?.stageTagEnabled !== false}
+        program={pitchSlug ? undefined : (team.program ?? undefined)}
+        showStage={showStageAlways || demoDayData?.stageTagEnabled !== false}
         tags={team?.team.industryTags.map((tag) => tag.title) || []}
         founders={team.founders}
         uid={team?.team?.uid}
@@ -466,7 +344,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
       >
         <div className={s.linksWrapper}>
-          {team.analyticsReportUrl && (
+          {!pitchSlug && team.analyticsReportUrl && (
             <Link
               className={s.link}
               href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
@@ -476,54 +354,44 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
               <ChartIcon /> Demo Day Stats
             </Link>
           )}
-          <button
-            className={s.drawerEditButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
+          {!hideSave && !pitchSlug && (
+            <button
+              className={s.drawerEditButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
 
-              // Report analytics for save/unsave click
-              if (userInfo?.email) {
-                const analyticsData = getTeamAnalyticsData();
-                onActiveViewLikeCompanyClicked(analyticsData);
-
-                const saveEvent: TrackEventDto = {
-                  name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_LIKE_COMPANY_CLICKED,
-                  distinctId: userInfo.email,
-                  properties: {
-                    userId: userInfo.uid,
-                    userEmail: userInfo.email,
-                    userName: userInfo.name,
-                    path: '/demoday',
-                    timestamp: new Date().toISOString(),
+                if (userInfo?.email) {
+                  const analyticsData = getTeamAnalyticsData();
+                  engagement.capture.likeCompanyClicked(analyticsData);
+                  const event = engagement.trackEngagement('likeCompanyClicked', userInfo, {
                     action: team.saved ? 'unsave_company' : 'save_company',
                     ...analyticsData,
-                  },
-                };
+                  });
+                  if (event) reportAnalytics.mutate(event);
+                }
 
-                reportAnalytics.mutate(saveEvent);
-              }
-
-              saveTeam.mutate({
-                teamFundraisingProfileUid: team.uid,
-                isPrepDemoDay,
-                isSaved: !!team.saved,
-              });
-            }}
-            disabled={saveTeam.isPending || !team.uid}
-          >
-            {team.saved ? (
-              <>
-                <BookmarkIconFilled />
-                <span>Unsave</span>
-              </>
-            ) : (
-              <>
-                <BookmarkIcon />
-                <span>Save</span>
-              </>
-            )}
-          </button>
+                saveTeam.mutate({
+                  teamFundraisingProfileUid: team.uid,
+                  isPrepDemoDay,
+                  isSaved: !!team.saved,
+                });
+              }}
+              disabled={saveTeam.isPending || !team.uid}
+            >
+              {team.saved ? (
+                <>
+                  <BookmarkIconFilled />
+                  <span>Unsave</span>
+                </>
+              ) : (
+                <>
+                  <BookmarkIcon />
+                  <span>Save</span>
+                </>
+              )}
+            </button>
+          )}
           <div className={s.editButtonContainer}>
             <div className={s.drawerEditButton}>
               {canEdit ? <EditIcon /> : <EyeIcon />}
@@ -575,7 +443,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onGiveFeedback={handleGiveFeedbackClick}
         onConnect={(e) => handleInterestCompanyClick(e, 'connect')}
         onInvest={(e) => handleInterestCompanyClick(e, 'invest')}
-        isLoading={expressInterest.isPending}
+        isLoading={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
         variant="card"
         userInfo={userInfo ?? undefined}
       />
@@ -586,34 +454,19 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onClose={() => {
           setIsReferModalOpen(false);
 
-          // Report intro company cancel analytics
           if (userInfo?.email) {
             const analyticsData = getTeamAnalyticsData();
-
-            // PostHog analytics
-            onActiveViewIntroCompanyCancelClicked(analyticsData);
-
-            // Custom analytics event
-            const cancelEvent: TrackEventDto = {
-              name: DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_INTRO_COMPANY_CANCEL_CLICKED,
-              distinctId: userInfo.email,
-              properties: {
-                userId: userInfo.uid,
-                userEmail: userInfo.email,
-                userName: userInfo.name,
-                path: '/demoday',
-                timestamp: new Date().toISOString(),
-                action: 'intro_company_cancel',
-                ...analyticsData,
-              },
-            };
-
-            reportAnalytics.mutate(cancelEvent);
+            engagement.capture.introCancelClicked(analyticsData);
+            const event = engagement.trackEngagement('introCancelClicked', userInfo, {
+              action: 'intro_company_cancel',
+              ...analyticsData,
+            });
+            if (event) reportAnalytics.mutate(event);
           }
         }}
         onSubmit={handleReferSubmit}
         teamName={team?.team?.name || 'this company'}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
       />
 
       {/* Give Feedback Modal */}
@@ -622,7 +475,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         onClose={() => setIsFeedbackModalOpen(false)}
         onSubmit={handleFeedbackSubmit}
         teamName={team?.team?.name || 'this company'}
-        isSubmitting={expressInterest.isPending}
+        isSubmitting={pitchSlug ? pitchExpressInterest.isPending : demoDayExpressInterest.isPending}
       />
     </div>
   );

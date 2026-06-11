@@ -163,7 +163,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: $lines;
   display: -webkit-box;
-  line-clamp: 2;
+  line-clamp: $lines;
   overflow: hidden;
   word-wrap: break-word;
 }

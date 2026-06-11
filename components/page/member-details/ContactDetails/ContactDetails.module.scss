@@ -1,4 +1,20 @@
-.root.root {
+@use 'styles/media';
+
+.root {
   padding: 0;
   gap: 0;
+
+  &.editView {
+    @include media.tablet-landscape {
+      padding: 16px !important;
+      border: 1px solid var(--border-brand-subtle, #aebfff);
+      background: var(--background-brand-soft-surface, #f2f5ff);
+    }
+
+    form {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+  }
 }

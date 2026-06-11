@@ -46,6 +46,30 @@ jest.mock('@/services/gantry/hooks/useGantryUpvote', () => ({
   useGantryUpvote: () => ({ mutateAsync: jest.fn() }),
 }));
 
+jest.mock('@/services/gantry/hooks/useGantryPin', () => ({
+  useGantryPin: () => ({ mutateAsync: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/services/gantry/hooks/useGantryPinStatus', () => ({
+  useGantryPinStatus: () => ({ data: undefined, isLoading: false }),
+}));
+
+jest.mock('@/services/gantry/hooks/useGantryPinNote', () => ({
+  useGantryPinNote: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/services/gantry/hooks/useGantryObjectives', () => ({
+  useGantryObjectives: () => ({ data: [], isLoading: false }),
+}));
+
+jest.mock('@/services/gantry/hooks/useGantryItemPins', () => ({
+  useGantryItemPins: () => ({ data: [], isLoading: false }),
+}));
+
+jest.mock('@/services/gantry/hooks/useReorderGantryItem', () => ({
+  useReorderGantryItem: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock('@/analytics/gantry.analytics', () => ({
   useGantryAnalytics: () => ({
     onRoadmapViewed: jest.fn(),
@@ -81,8 +105,14 @@ describe('RoadmapView', () => {
             promotedByUid: null,
             declinedReason: null,
             externalTrackerUrl: null,
+            tags: null,
+            type: null,
+            order: null,
             upvoteCount: 1,
             viewerHasUpvoted: false,
+            pinCount: 0,
+            viewerHasPinned: false,
+            objective: null,
             deletedAt: null,
             createdAt: '',
             updatedAt: '',

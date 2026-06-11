@@ -333,27 +333,6 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
     }
   };
 
-  const handleConnectInvestClick = (interestType: 'connect' | 'invest') => {
-    if (!data?.uid) {
-      return;
-    }
-
-    if (pitchSlug) {
-      pitchExpressInterest.mutate({
-        teamPitchProfileUid: data.uid,
-        interestType,
-        isPrep: isPrepPitch,
-      });
-    } else {
-      expressInterest.mutate({
-        teamFundraisingProfileUid: data.uid,
-        interestType,
-        isPrepDemoDay,
-        demoDayMode: demoDayMode ?? undefined,
-      });
-    }
-  };
-
   const handleReferSubmit = (referralData: { investorName: string; investorEmail: string; message: string }) => {
     if (!data?.uid) {
       return;

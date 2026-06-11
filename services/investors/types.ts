@@ -102,8 +102,6 @@ export type OutreachInvestor = {
   firm: string;
   firm_domain: string;
   title: string;
-  /** Firm-level warm-intro reachability from co-investment graph, e.g. "VC+1A", "C". */
-  proximity_code?: string | null;
   // Investor profile
   investor_type: InvestorType;
   fund_thesis: string;

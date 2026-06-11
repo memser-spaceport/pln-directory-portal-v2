@@ -14,14 +14,20 @@ import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItem } from '@/services/gantry/hooks/useGantryItem';
 import { useArchiveGantryItem } from '@/services/gantry/hooks/useArchiveGantryItem';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
-import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
+import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
+import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
 import { isPreRoadmapStage } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
+import { useRoadmapPinActions } from './roadmap/hooks/useRoadmapPinActions';
 import { EditIdeaForm } from './shared/EditIdeaForm';
+import { BoostersSection } from './shared/BoostersSection';
+import { BoostButton } from './shared/BoostButton';
 import { GantryItemAuthor } from './shared/GantryItemAuthor';
+import { PinNotePopover } from './shared/PinNotePopover';
+import { PinSwapPicker } from './shared/PinSwapPicker';
 import { StageSelector } from './shared/StageSelector';
-import { UpvoteButton } from './shared/UpvoteButton';
 import { BuildWithAgentsButton } from './shared/BuildWithAgentsButton';
 import { DeclineIdeaModal } from './shared/DeclineIdeaModal';
 import s from './GantryDetailPage.module.scss';
@@ -40,7 +46,18 @@ export function GantryDetailPage({ uid }: Props) {
   const { data: item, isLoading, isError } = useGantryItem(uid);
   const archiveMutation = useArchiveGantryItem(uid);
   const transitionMutation = useGantryTransition();
-  const upvoteMutation = useGantryUpvote();
+  const pin = useGantryPin();
+  const pinNote = useGantryPinNote();
+  const { data: pinStatus } = useGantryPinStatus(!!currentUser);
+  const {
+    pinNotePopover,
+    setPinNotePopover,
+    handlePinToggle,
+    handlePinNoteSave,
+    swapPickerState,
+    handleSwapSelect,
+    handleSwapDismiss,
+  } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
@@ -169,16 +186,19 @@ export function GantryDetailPage({ uid }: Props) {
                 <span className={s.metaDot} aria-hidden />
                 <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
                 <span className={s.metaDot} aria-hidden />
-                <UpvoteButton
-                  count={item.upvoteCount}
-                  hasUpvoted={item.viewerHasUpvoted}
-                  disabled={!access.canUpvote}
-                  onToggle={(next) => {
-                    upvoteMutation.mutateAsync({ uid: item.uid, nextHasUpvoted: next });
-                    if (next) analytics.onItemUpvoted(item.uid);
-                  }}
+                <BoostButton
+                  count={item.pinCount}
+                  hasPinned={item.viewerHasPinned}
+                  readonly={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+                  disabled={!currentUser || pin.isPending}
+                  onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
                 />
               </div>
+              {access.canCurate && item.pinCount > 0 && (
+                <div className={s.boostArea}>
+                  <BoostersSection item={item} />
+                </div>
+              )}
             </div>
 
             {item.tags && item.tags.length > 0 && !isEditMode && (
@@ -229,6 +249,23 @@ export function GantryDetailPage({ uid }: Props) {
           </div>
         </div>
       </div>
+
+      {pinNotePopover && (
+        <PinNotePopover
+          uid={pinNotePopover.uid}
+          pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
+          onSave={handlePinNoteSave}
+        />
+      )}
+      {swapPickerState && (
+        <PinSwapPicker
+          targetItemTitle={item.title}
+          pins={pinStatus?.pins ?? []}
+          pos={{ top: swapPickerState.top, left: swapPickerState.left }}
+          onSelect={handleSwapSelect}
+          onDismiss={handleSwapDismiss}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={isArchiveModalOpen}

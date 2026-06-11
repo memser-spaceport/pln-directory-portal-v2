@@ -9,6 +9,11 @@ import type {
   PrimaryCtaType,
 } from '@/components/page/pitch/hooks/usePitchInvestorOnboardingState';
 import stepperStyles from '@/components/page/demo-day/AppliedInvestorSteps/AppliedInvestorSteps.module.scss';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchInvestorHeader.module.scss';
 
 const EditIcon = () => (
@@ -26,6 +31,7 @@ type Props = {
   primaryCtaType: PrimaryCtaType;
   primaryCtaLabel: string;
   profileCtaAsLink?: boolean;
+  showProfileCta?: boolean;
   isLoggedIn: boolean;
   userUid?: string;
   onLogin: () => void;
@@ -37,6 +43,7 @@ export const PitchInvestorQuickLinks = ({
   primaryCtaType,
   primaryCtaLabel,
   profileCtaAsLink = false,
+  showProfileCta = true,
   isLoggedIn,
   userUid,
   onLogin,
@@ -44,8 +51,27 @@ export const PitchInvestorQuickLinks = ({
   const { openModal } = useContactSupportStore((s) => s.actions);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const { currentUser: userInfo } = useCurrentUserStore();
+
+  const trackPitchEvent = (eventName: string, posthogFn: () => void, extra: Record<string, unknown> = {}) => {
+    posthogFn();
+    const distinctId = userInfo?.email ?? `pitch-anonymous-${pitchSlug}`;
+    reportAnalytics.mutate(
+      buildEngagementTrackEvent(eventName, distinctId, `/pitch/${pitchSlug}`, pitchSlug, {
+        ...(userInfo ? { userId: userInfo.uid, userEmail: userInfo.email, userName: userInfo.name } : {}),
+        variant,
+        ...extra,
+      }),
+    );
+  };
+
   const handleContactSupport = () => {
     if (variant === 'restricted') {
+      trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_RESTRICTED_ACCESS_SUPPORT_CLICKED, () =>
+        teamPitchAnalytics.onRestrictedAccessSupportClicked({ pitchSlug, variant }),
+      );
       openModal(
         { reason: 'team_pitch_access_denied', pitchSlug },
         'contactSupport',
@@ -54,38 +80,48 @@ export const PitchInvestorQuickLinks = ({
       return;
     }
 
+    trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_CONTACT_SUPPORT_CLICKED, () =>
+      teamPitchAnalytics.onContactSupportClicked({ pitchSlug, variant }),
+    );
     openModal({ pitchSlug }, 'askQuestion');
   };
 
   const handlePrimaryCta = () => {
     if (primaryCtaType === 'login') {
+      trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_LOGIN_CLICKED, () =>
+        teamPitchAnalytics.onLoginClicked({ pitchSlug, variant }),
+      );
       onLogin();
       return;
     }
+    trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_INVESTOR_PROFILE_CTA_CLICKED, () =>
+      teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant, profileCtaAsLink }),
+    );
     setDrawerOpen(true);
   };
 
   return (
     <>
       <div className={s.quickLinksSection}>
-        <div className={clsx(s.quickLinksActions, profileCtaAsLink && s.quickLinksActionsWide)}>
-          {profileCtaAsLink ? (
-            <div className={s.profileLinkBlock}>
-              <p className={s.profileHint}>
-                Your profile will be shown to the founder when you request an invite.
-                <br />
-                We also use it to better match which teams we show you.
-              </p>
-              <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
+        <div className={clsx(s.quickLinksActions, showProfileCta && profileCtaAsLink && s.quickLinksActionsWide)}>
+          {showProfileCta &&
+            (profileCtaAsLink ? (
+              <div className={s.profileLinkBlock}>
+                <p className={s.profileHint}>
+                  Your profile will be shown to the founder when you request an invite.
+                  <br />
+                  We also use it to better match which teams we show you.
+                </p>
+                <button type="button" className={s.supportLink} onClick={handlePrimaryCta}>
+                  {primaryCtaLabel}
+                </button>
+              </div>
+            ) : (
+              <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
+                {primaryCtaType === 'profile' && <EditIcon />}
                 {primaryCtaLabel}
               </button>
-            </div>
-          ) : (
-            <button type="button" className={stepperStyles.primaryButton} onClick={handlePrimaryCta}>
-              {primaryCtaType === 'profile' && <EditIcon />}
-              {primaryCtaLabel}
-            </button>
-          )}
+            ))}
           <p className={s.supportLine}>
             Questions or feedback?{' '}
             <button type="button" className={s.supportLink} onClick={handleContactSupport}>
@@ -95,7 +131,7 @@ export const PitchInvestorQuickLinks = ({
         </div>
       </div>
 
-      {isLoggedIn && userUid && (
+      {showProfileCta && isLoggedIn && userUid && (
         <EditInvestorProfileDrawer
           isOpen={drawerOpen}
           onClose={() => setDrawerOpen(false)}

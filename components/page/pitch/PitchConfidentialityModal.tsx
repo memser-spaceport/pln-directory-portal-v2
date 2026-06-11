@@ -4,6 +4,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { useAcceptTeamPitchConfidentiality } from '@/services/team-pitch/hooks/useAcceptTeamPitchConfidentiality';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from '@/components/page/demo-day/ActiveView/components/ConfidentialityModal/ConfidentialityModal.module.scss';
 
 const InfoIcon = () => (
@@ -36,13 +41,34 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
   const router = useRouter();
   const [isChecked, setIsChecked] = useState(false);
   const acceptConfidentiality = useAcceptTeamPitchConfidentiality(pitchSlug);
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const { currentUser: userInfo } = useCurrentUserStore();
+
+  const trackConfidentiality = (eventName: string, posthogFn: () => void) => {
+    posthogFn();
+    if (!userInfo?.email) return;
+    reportAnalytics.mutate(
+      buildEngagementTrackEvent(eventName, userInfo.email, `/pitch/${pitchSlug}`, pitchSlug, {
+        userId: userInfo.uid,
+        userEmail: userInfo.email,
+        userName: userInfo.name,
+      }),
+    );
+  };
 
   const handleClose = () => {
+    trackConfidentiality(TEAM_PITCH_ANALYTICS.ON_CONFIDENTIALITY_MODAL_CLOSED, () =>
+      teamPitchAnalytics.onConfidentialityModalClosed({ pitchSlug }),
+    );
     router.push('/members');
   };
 
   const handleSubmit = () => {
     if (isChecked) {
+      trackConfidentiality(TEAM_PITCH_ANALYTICS.ON_CONFIDENTIALITY_MODAL_SUBMITTED, () =>
+        teamPitchAnalytics.onConfidentialityModalSubmitted({ pitchSlug }),
+      );
       acceptConfidentiality.mutate({ accepted: true });
     }
   };

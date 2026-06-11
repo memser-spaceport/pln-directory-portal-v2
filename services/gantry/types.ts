@@ -1,6 +1,6 @@
 export type GantryStage = 'IDEA' | 'BACKLOG' | 'PLANNED' | 'IN_PROGRESS' | 'SHIPPED' | 'DECLINED';
 
-export type GantryItemType = 'Bug' | 'Improvement' | 'Feature Request';
+export type GantryItemType = 'Bug Report' | 'Enhancement Request' | 'New Feature Request';
 
 export interface GantryMemberSummary {
   uid: string;

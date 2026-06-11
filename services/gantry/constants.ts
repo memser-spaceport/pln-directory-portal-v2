@@ -78,29 +78,24 @@ export const GANTRY_CREATE_STAGE_OPTIONS = GANTRY_STAGE_VALUES.map((value) => ({
 }));
 
 const GANTRY_TAG_LABELS = [
-  'Members',
-  'Teams',
-  'Projects',
+  'Directory',
+  'Events',
+  'Home Page',
+  'News Feed',
+  'Forum',
+  'Demo Day',
+  'Search',
+  'Back Office',
+  'Notifications',
+  'Profile',
+  'Office Hours',
   'Job Board',
   'Deals',
-  'Founder Guides',
-  'Demo Day',
-  'Team Pitch',
-  'Gantry',
   'Investor DB',
   'Founder DB',
-  'Home',
-  'Forum',
-  'Husky',
-  'Office Hours',
-  'Events',
-  'IRL Gatherings',
-  'Team News',
-  'Notifications',
-  'Settings / Profile',
-  'Contact Support',
-  'Search',
-  'Back Office / Admin',
+  'Warm Intros',
+  'Pitch Page',
+  'Gantry',
 ] as const;
 
 export const GANTRY_TAG_OPTIONS: Option[] = GANTRY_TAG_LABELS.map((label) => ({ label, value: label }));
@@ -110,7 +105,7 @@ export function tagsToOptions(tags: string[] | null | undefined): Option[] {
 }
 
 export const GANTRY_ITEM_TYPE_OPTIONS: Option[] = [
-  { label: 'Bug', value: 'Bug' },
-  { label: 'Improvement', value: 'Improvement' },
-  { label: 'Feature Request', value: 'Feature Request' },
+  { label: 'Bug Report', value: 'Bug Report' },
+  { label: 'Enhancement Request', value: 'Enhancement Request' },
+  { label: 'New Feature Request', value: 'New Feature Request' },
 ];

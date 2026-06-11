@@ -86,7 +86,10 @@ export function RoadmapView() {
 
   const filters = useRoadmapFilters(orderedVisibleColumns, analytics);
 
-  const { data, isLoading, isError } = useGantryItems(filters.params, !!currentUser && orderedVisibleColumns.length > 0);
+  const { data, isLoading, isError } = useGantryItems(
+    filters.params,
+    !!currentUser && orderedVisibleColumns.length > 0,
+  );
   const { data: objectives = [] } = useGantryObjectives();
   const { data: pinStatus } = useGantryPinStatus(!!currentUser);
   const pinsRemaining = pinStatus ? pinStatus.remaining : null;
@@ -98,9 +101,15 @@ export function RoadmapView() {
 
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
     useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
-  const { pinStatusRef, pinNotePopover, handlePinToggle, handlePinNoteSave,
-    swapPickerState, handleSwapSelect, handleSwapDismiss } =
-    useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
+  const {
+    pinStatusRef,
+    pinNotePopover,
+    handlePinToggle,
+    handlePinNoteSave,
+    swapPickerState,
+    handleSwapSelect,
+    handleSwapDismiss,
+  } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
 
   const itemsByStage = useMemo(() => {
     const map = Object.fromEntries(orderedVisibleColumns.map((stage) => [stage, [] as GantryItem[]])) as Record<
@@ -113,8 +122,7 @@ export function RoadmapView() {
       if (!isRoadmapColumnStage(item.stage) || !(item.stage in map)) return;
       if (lowerSearch) {
         const plainDesc = stripHtml(item.description ?? '');
-        const matches =
-          item.title.toLowerCase().includes(lowerSearch) || plainDesc.toLowerCase().includes(lowerSearch);
+        const matches = item.title.toLowerCase().includes(lowerSearch) || plainDesc.toLowerCase().includes(lowerSearch);
         if (!matches) return;
       }
       map[item.stage].push(item);
@@ -164,10 +172,7 @@ export function RoadmapView() {
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated
   // the list endpoint — reconcile here so the pin button always reflects reality.
-  const viewerPinnedUids = useMemo(
-    () => new Set(pinStatus?.pins.map((p) => p.item.uid) ?? []),
-    [pinStatus?.pins],
-  );
+  const viewerPinnedUids = useMemo(() => new Set(pinStatus?.pins.map((p) => p.item.uid) ?? []), [pinStatus?.pins]);
 
   const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => {
     const viewerHasPinned = item.viewerHasPinned || viewerPinnedUids.has(item.uid);
@@ -191,7 +196,9 @@ export function RoadmapView() {
         aria-label={`${pinsRemaining} of ${pinStatus.limit} boosts remaining`}
       >
         <ArrowUpSmallIcon />
-        <span className={s.boostStatusText}>{pinsRemaining} of {pinStatus.limit} boosts left</span>
+        <span className={s.boostStatusText}>
+          {pinsRemaining} of {pinStatus.limit} boosts left
+        </span>
         {pinStatus.limit <= 6 && (
           <span className={s.boostDots} aria-hidden>
             {Array.from({ length: pinStatus.limit }, (_, i) => (
@@ -204,7 +211,7 @@ export function RoadmapView() {
         <div className={s.boostTip} role="tooltip">
           <p className={s.boostTipTitle}>You have {pinStatus.limit} boosts</p>
           <p className={s.boostTipBody}>
-            Spend them on what matters most — you get them back when items ship.
+            Spend them on what matters most — you get them back when a boosted item moves to In Progress.
           </p>
           <div className={s.boostTipFooter}>
             <button type="button" className={s.boostTipBtn} onClick={dismissBoostTip}>
@@ -258,7 +265,12 @@ export function RoadmapView() {
                     {boostStatusIndicator}
                     <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
                       <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path d="M2 4h12M4.5 8h7M7 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <path
+                          d="M2 4h12M4.5 8h7M7 12h2"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
                       </svg>
                       Filters
                       {filters.activeFiltersCount > 0 && (
@@ -297,7 +309,9 @@ export function RoadmapView() {
                 <div className={s.mobileScrollContainer}>
                   {orderedVisibleColumns.map((stage) => (
                     <div key={stage} className={s.mobileSkeletonColumn}>
-                      {[1, 2, 3].map((i) => <div key={i} className={s.mobileSkeletonCard} />)}
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className={s.mobileSkeletonCard} />
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -438,7 +452,9 @@ export function RoadmapView() {
                           stage={stage}
                           isAdminOrdering={isAdminOrdering}
                           itemIds={itemsByStage[stage].map((i) => i.uid)}
-                          dropPreviewIndex={dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined}
+                          dropPreviewIndex={
+                            dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
+                          }
                         >
                           {itemsByStage[stage].map((item, index) => (
                             <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />

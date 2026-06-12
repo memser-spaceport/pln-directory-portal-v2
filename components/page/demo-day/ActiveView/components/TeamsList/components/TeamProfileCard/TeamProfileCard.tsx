@@ -146,7 +146,10 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       if (userInfo?.email) {
         const analyticsData = getTeamAnalyticsData();
         engagement.capture.introClicked(analyticsData);
-        const event = engagement.trackEngagement('introClicked', userInfo, { action: 'intro_company', ...analyticsData });
+        const event = engagement.trackEngagement('introClicked', userInfo, {
+          action: 'intro_company',
+          ...analyticsData,
+        });
         if (event) reportAnalytics.mutate(event);
       }
 

@@ -50,6 +50,7 @@ export const PitchInvestorQuickLinks = ({
 }: Props) => {
   const { openModal } = useContactSupportStore((s) => s.actions);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
   const teamPitchAnalytics = useTeamPitchAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
   const { currentUser: userInfo } = useCurrentUserStore();

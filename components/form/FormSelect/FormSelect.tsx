@@ -38,6 +38,8 @@ interface Props {
   hideOptionsWhenEmpty?: boolean; // Hide options list when search field is empty
   isClearable?: boolean; // Show cross icon to clear selected value
   selectRef?: React.RefObject<SelectInstance | null>;
+  menuPlacement?: 'top' | 'bottom' | 'auto';
+  menuPortalTarget?: HTMLElement | null;
 }
 
 export const FormSelect = (props: Props) => {
@@ -58,6 +60,8 @@ export const FormSelect = (props: Props) => {
     isClearable,
     selectRef: externalSelectRef,
     formatOptionLabel,
+    menuPlacement,
+    menuPortalTarget,
   } = props;
 
   const {
@@ -146,7 +150,9 @@ export const FormSelect = (props: Props) => {
               }
             }) as any
           }
-          menuPlacement="auto"
+          menuPlacement={menuPlacement ?? 'auto'}
+          menuPortalTarget={menuPortalTarget}
+          menuPosition={menuPortalTarget ? 'fixed' : undefined}
           placeholder={placeholder}
           options={enhancedOptions}
           value={value}
@@ -228,7 +234,9 @@ export const FormSelect = (props: Props) => {
             option: (baseStyles) => ({
               ...baseStyles,
               fontSize: '14px',
-              fontWeight: 300,
+              fontWeight: 500,
+              lineHeight: '20px',
+              letterSpacing: '-0.2px',
               color: '#455468',
               '&:hover': {
                 background: 'rgba(27, 56, 96, 0.12)',
@@ -248,6 +256,7 @@ export const FormSelect = (props: Props) => {
               flexDirection: 'column',
               alignItems: 'flex-start',
             }),
+            menuPortal: (base) => ({ ...base, zIndex: 10000 }),
             placeholder: (baseStyles) => ({
               ...baseStyles,
               color: '#CBD5E1',

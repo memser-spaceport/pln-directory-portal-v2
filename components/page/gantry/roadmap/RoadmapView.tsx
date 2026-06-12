@@ -1,33 +1,29 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  TouchSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { useEffect, useMemo, useState } from 'react';
+import { clsx } from 'clsx';
+import { DndContext, DragOverlay } from '@dnd-kit/core';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { useIsNarrow } from '@/hooks/useIsNarrow';
-import type { GantryItem, GantryStage } from '@/services/gantry/types';
+import type { GantryItem } from '@/services/gantry/types';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItems } from '@/services/gantry/hooks/useGantryItems';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
-import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
+import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
+import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
+import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives';
 import {
   DEFAULT_ROADMAP_VISIBLE_COLUMNS,
-  GANTRY_ROADMAP_COLUMN_STAGES,
   GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
-  isPreRoadmapStage,
+  isAdminOrderedRoadmapStage,
+  sortGantryItemsByDefault,
+  sortGantryItemsByTrending,
   sortRoadmapColumnStages,
 } from '@/services/gantry/constants';
+import { useReorderGantryItem } from '@/services/gantry/hooks/useReorderGantryItem';
+import { stripHtml } from '@/utils/forum';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
 import { SubmitIdeaModal } from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal';
@@ -36,26 +32,35 @@ import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
+import FilterCount from '@/components/ui/filter-count';
+import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
+import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
+import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
 import { RoadmapFiltersContent } from './RoadmapFiltersContent';
+import { useRoadmapFilters } from './hooks/useRoadmapFilters';
+import { useRoadmapDnd } from './hooks/useRoadmapDnd';
+import { useRoadmapMobileNav } from './hooks/useRoadmapMobileNav';
+import { useRoadmapPinActions } from './hooks/useRoadmapPinActions';
 import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
-function RoadmapDropColumn({ stage, children }: { stage: RoadmapColumnStage; children: ReactNode }) {
-  const { isOver, setNodeRef } = useDroppable({ id: stage });
-  return (
-    <div ref={setNodeRef} className={s.column} data-over={isOver || undefined}>
-      <div className={s.columnHeader}>
-        <StageBadge stage={stage} className={s.columnHeaderBadge} />
-      </div>
-      <div className={s.list}>{children}</div>
-    </div>
-  );
-}
+const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
 
-function isRoadmapColumnStage(stage: string): stage is RoadmapColumnStage {
-  return (GANTRY_ROADMAP_COLUMN_STAGES as readonly string[]).includes(stage);
+function ArrowUpSmallIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M6 10V2m0 0L2.5 5.5M6 2L9.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function RoadmapView() {
@@ -63,119 +68,51 @@ export function RoadmapView() {
   const { currentUser } = useCurrentUserStore();
   const { canCreateIdea, canCurate, canTransition, canUpvote } = useGantryAccess();
   const { actions: submitIdeaModalActions } = useSubmitIdeaModalStore();
+  const isAdminOrdering = canCurate;
+
   const canSetStageOnCreate = canCurate || canTransition;
   const canCreate = canSetStageOnCreate || canCreateIdea;
   const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
+
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
     GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
     [...DEFAULT_ROADMAP_VISIBLE_COLUMNS],
   );
-  const [declineTargetUid, setDeclineTargetUid] = useState<string | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
-
-  // Mobile layout state (< 1024px)
-  const isNarrow = useIsNarrow();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [activeColumn, setActiveColumn] = useState<RoadmapColumnStage | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const columnRefs = useRef<Map<RoadmapColumnStage, HTMLDivElement>>(new Map());
-  const tabsWrapperRef = useRef<HTMLDivElement>(null);
-  const isProgrammaticScrollRef = useRef(false);
+  const [adminOrderMap, setAdminOrderMap] = useState<Partial<Record<RoadmapColumnStage, string[]>>>({});
+  const [showBoostTip, setShowBoostTip] = useState(false);
+
+  const isNarrow = useIsNarrow();
 
   const orderedVisibleColumns = useMemo(() => sortRoadmapColumnStages(visibleColumns), [visibleColumns]);
 
-  const params = useMemo(
-    () => ({
-      stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
-    }),
-    [orderedVisibleColumns],
-  );
+  const filters = useRoadmapFilters(orderedVisibleColumns, analytics);
 
-  const { data, isLoading, isError } = useGantryItems(params, !!currentUser && orderedVisibleColumns.length > 0);
+  const { data, isLoading, isError } = useGantryItems(
+    filters.params,
+    !!currentUser && orderedVisibleColumns.length > 0,
+  );
+  const { data: objectives = [] } = useGantryObjectives();
+  const { data: pinStatus } = useGantryPinStatus(!!currentUser);
+  const pinsRemaining = pinStatus ? pinStatus.remaining : null;
+
   const transition = useGantryTransition();
-  const upvote = useGantryUpvote();
+  const reorder = useReorderGantryItem();
+  const pin = useGantryPin();
+  const pinNote = useGantryPinNote();
 
-  useEffect(() => {
-    analytics.onRoadmapViewed();
-  }, [analytics]);
-
-  // Derived: always resolves to a valid visible column even when activeColumn is stale
-  const effectiveActiveColumn = useMemo(() => {
-    if (orderedVisibleColumns.length === 0) return null;
-    if (activeColumn && orderedVisibleColumns.includes(activeColumn)) return activeColumn;
-    return orderedVisibleColumns[0];
-  }, [activeColumn, orderedVisibleColumns]);
-
-  // When effectiveActiveColumn differs from what user last set (i.e. a filter removed the active column),
-  // snap the scroll container back to the new first column without animation.
-  const prevEffectiveColumnRef = useRef<RoadmapColumnStage | null>(null);
-  useEffect(() => {
-    if (effectiveActiveColumn !== prevEffectiveColumnRef.current && !isProgrammaticScrollRef.current) {
-      if (effectiveActiveColumn && prevEffectiveColumnRef.current !== null) {
-        const container = scrollContainerRef.current;
-        const colEl = columnRefs.current.get(effectiveActiveColumn);
-        if (container && colEl) {
-          container.scrollTo({ left: colEl.offsetLeft, behavior: 'instant' as ScrollBehavior });
-        }
-      }
-    }
-    prevEffectiveColumnRef.current = effectiveActiveColumn;
-  }, [effectiveActiveColumn]);
-
-  // Swipe → tab: IntersectionObserver watches columns inside the scroll container
-  useEffect(() => {
-    if (!isNarrow || !scrollContainerRef.current) return;
-    const container = scrollContainerRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isProgrammaticScrollRef.current) return;
-        const visible = entries.find((e) => e.isIntersecting && e.intersectionRatio >= 0.5);
-        if (visible) {
-          const stage = visible.target.getAttribute('data-stage') as RoadmapColumnStage;
-          if (stage) setActiveColumn(stage);
-        }
-      },
-      { threshold: 0.5, root: container },
-    );
-    columnRefs.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [isNarrow, orderedVisibleColumns]);
-
-  // Active tab scroll-into-view when effectiveActiveColumn changes (driven by swipe or filter reset).
-  // Uses getBoundingClientRect + direct scrollTo on the Tabs root to avoid scrolling the page.
-  useEffect(() => {
-    if (!isNarrow || !effectiveActiveColumn || !tabsWrapperRef.current) return;
-    const tabIndex = orderedVisibleColumns.indexOf(effectiveActiveColumn);
-    const tabsRoot = tabsWrapperRef.current.firstElementChild as HTMLElement | null;
-    if (!tabsRoot || tabIndex < 0) return;
-    const tabEl = tabsRoot.querySelectorAll<HTMLElement>('[role="tab"]')[tabIndex];
-    if (!tabEl) return;
-    const tabRect = tabEl.getBoundingClientRect();
-    const containerRect = tabsRoot.getBoundingClientRect();
-    const tabCenterInScroll = tabRect.left - containerRect.left + tabsRoot.scrollLeft + tabEl.offsetWidth / 2;
-    const targetScrollLeft = tabCenterInScroll - containerRect.width / 2;
-    tabsRoot.scrollTo({ left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
-  }, [effectiveActiveColumn, isNarrow, orderedVisibleColumns]);
-
-  const handleTabChange = (stage: RoadmapColumnStage) => {
-    setActiveColumn(stage);
-    isProgrammaticScrollRef.current = true;
-    const container = scrollContainerRef.current;
-    const colEl = columnRefs.current.get(stage);
-    if (container && colEl) {
-      container.scrollTo({ left: colEl.offsetLeft, behavior: 'smooth' });
-    }
-    setTimeout(() => {
-      isProgrammaticScrollRef.current = false;
-    }, 500);
-  };
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  );
+  const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
+    useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
+  const {
+    pinStatusRef,
+    pinNotePopover,
+    handlePinToggle,
+    handlePinNoteSave,
+    swapPickerState,
+    handleSwapSelect,
+    handleSwapDismiss,
+  } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
 
   const itemsByStage = useMemo(() => {
     const map = Object.fromEntries(orderedVisibleColumns.map((stage) => [stage, [] as GantryItem[]])) as Record<
@@ -183,75 +120,163 @@ export function RoadmapView() {
       GantryItem[]
     >;
 
+    const lowerSearch = filters.searchText.trim().toLowerCase();
     (data?.items ?? []).forEach((item) => {
-      if (isRoadmapColumnStage(item.stage) && item.stage in map) {
-        map[item.stage].push(item);
+      if (!isRoadmapColumnStage(item.stage) || !(item.stage in map)) return;
+      if (lowerSearch) {
+        const plainDesc = stripHtml(item.description ?? '');
+        const matches = item.title.toLowerCase().includes(lowerSearch) || plainDesc.toLowerCase().includes(lowerSearch);
+        if (!matches) return;
+      }
+      map[item.stage].push(item);
+    });
+
+    orderedVisibleColumns.forEach((stage) => {
+      if (stage === 'IDEA') {
+        map[stage] = sortGantryItemsByTrending(map[stage]);
+        return;
+      }
+
+      if (!isAdminOrderedRoadmapStage(stage)) {
+        map[stage] = sortGantryItemsByDefault(map[stage]);
+        return;
+      }
+
+      map[stage] = sortGantryItemsByDefault(map[stage]);
+      const adminOrder = adminOrderMap[stage];
+      if (adminOrder) {
+        const itemMap = new Map(map[stage].map((item) => [item.uid, item]));
+        const known = adminOrder.filter((uid) => itemMap.has(uid)).map((uid) => itemMap.get(uid)!);
+        const extra = map[stage].filter((item) => !new Set(adminOrder).has(item.uid));
+        map[stage] = [...known, ...extra];
       }
     });
 
     return map;
-  }, [data?.items, orderedVisibleColumns]);
+  }, [data?.items, orderedVisibleColumns, filters.searchText, adminOrderMap]);
 
-  const applyStageChange = async (itemUid: string, item: GantryItem, nextStage: GantryStage) => {
-    if (nextStage === 'DECLINED') {
-      setDeclineTargetUid(itemUid);
-      return;
+  const dnd = useRoadmapDnd({
+    data,
+    itemsByStage,
+    setAdminOrderMap,
+    orderedVisibleColumns,
+    canTransition,
+    isAdminOrdering,
+    transition,
+    reorder,
+    analytics,
+  });
+
+  useEffect(() => {
+    analytics.onRoadmapViewed();
+  }, [analytics]);
+
+  useEffect(() => {
+    if (!localStorage.getItem(BOOST_TIP_KEY)) {
+      setShowBoostTip(true);
     }
+  }, []);
 
-    if (isPreRoadmapStage(item.stage) && nextStage === 'PLANNED') {
-      await transition.mutateAsync({ uid: itemUid, payload: { type: 'promote' } });
-      return;
-    }
-
-    await transition.mutateAsync({ uid: itemUid, payload: { type: 'transition', stage: nextStage } });
+  const dismissBoostTip = () => {
+    localStorage.setItem(BOOST_TIP_KEY, '1');
+    setShowBoostTip(false);
   };
 
-  const activeDragItem = useMemo(
-    () => (activeDragId ? data?.items.find((i) => i.uid === activeDragId) : undefined),
-    [activeDragId, data?.items],
+  const handleClearAllFilters = () => {
+    filters.handleClearAll();
+    setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
+  };
+
+  // pinStatus.pins is the authoritative source for the current user's pins.
+  // viewerHasPinned on individual items can lag if the server hasn't updated
+  // the list endpoint — reconcile here so the pin button always reflects reality.
+  const viewerPinnedUids = useMemo(() => new Set(pinStatus?.pins.map((p) => p.item.uid) ?? []), [pinStatus?.pins]);
+
+  const columnDragState = (stage: RoadmapColumnStage) => {
+    const allowsAdminOrdering = isAdminOrdering && isAdminOrderedRoadmapStage(stage);
+    const isDraggable = allowsAdminOrdering || (canTransition && !isAdminOrderedRoadmapStage(stage));
+    return { allowsAdminOrdering, isDraggable };
+  };
+
+  const sharedCardProps = (item: GantryItem, index: number, stage: RoadmapColumnStage) => {
+    const viewerHasPinned = item.viewerHasPinned || viewerPinnedUids.has(item.uid);
+    const { allowsAdminOrdering, isDraggable } = columnDragState(stage);
+    return {
+      item: viewerHasPinned !== item.viewerHasPinned ? { ...item, viewerHasPinned } : item,
+      position: index + 1,
+      isAdminOrdering: allowsAdminOrdering,
+      canDrag: isDraggable,
+      canPin: canUpvote,
+      onPinToggle: handlePinToggle,
+      isPinDisabled: !canUpvote,
+      canCurate,
+      warnPinOrder: allowsAdminOrdering && stage === 'PLANNED' && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+    };
+  };
+
+  const boostStatusIndicator = pinStatus ? (
+    <div className={s.boostStatusWrapper}>
+      <div
+        ref={pinStatusRef}
+        className={s.boostStatus}
+        aria-label={`${pinsRemaining} of ${pinStatus.limit} boosts remaining`}
+      >
+        <ArrowUpSmallIcon />
+        <span className={s.boostStatusText}>
+          {pinsRemaining} of {pinStatus.limit} boosts left
+        </span>
+        {pinStatus.limit <= 6 && (
+          <span className={s.boostDots} aria-hidden>
+            {Array.from({ length: pinStatus.limit }, (_, i) => (
+              <span key={i} className={clsx(s.boostDot, i < pinStatus.used && s.boostDotUsed)} />
+            ))}
+          </span>
+        )}
+      </div>
+      {showBoostTip && (
+        <div className={s.boostTip} role="tooltip">
+          <p className={s.boostTipTitle}>You have {pinStatus.limit} boosts</p>
+          <p className={s.boostTipBody}>
+            Spend them on what matters most — you get them back when a boosted item moves to In Progress.
+          </p>
+          <div className={s.boostTipFooter}>
+            <button type="button" className={s.boostTipBtn} onClick={dismissBoostTip}>
+              Got it
+            </button>
+            <span className={s.boostTipMeta}>One-time tip</span>
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  const modals = (
+    <>
+      <SubmitIdeaModal objectives={objectives} />
+      <DeclineIdeaModal
+        isOpen={dnd.declineTargetUid !== null}
+        isPending={transition.isPending}
+        onClose={() => dnd.setDeclineTargetUid(null)}
+        onConfirm={dnd.handleDeclineConfirm}
+      />
+      {pinNotePopover && (
+        <PinNotePopover
+          uid={pinNotePopover.uid}
+          pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
+          onSave={handlePinNoteSave}
+        />
+      )}
+      {swapPickerState && (
+        <PinSwapPicker
+          targetItemTitle={data?.items.find((i) => i.uid === swapPickerState.uid)?.title ?? ''}
+          pins={pinStatus?.pins ?? []}
+          pos={{ top: swapPickerState.top, left: swapPickerState.left }}
+          onSelect={handleSwapSelect}
+          onDismiss={handleSwapDismiss}
+        />
+      )}
+    </>
   );
-
-  const clearActiveDrag = () => {
-    setActiveDragId(null);
-    setActiveDragWidth(null);
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(String(event.active.id));
-    setActiveDragWidth(event.active.rect.current.initial?.width ?? null);
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    clearActiveDrag();
-    if (!canTransition) return;
-    const itemUid = String(event.active.id);
-    const nextStage = event.over?.id ? String(event.over.id) : null;
-    if (!nextStage || !isRoadmapColumnStage(nextStage) || !orderedVisibleColumns.includes(nextStage)) return;
-
-    const item = data?.items.find((i) => i.uid === itemUid);
-    if (!item || item.stage === nextStage) return;
-
-    await applyStageChange(itemUid, item, nextStage);
-  };
-
-  const handleDragCancel = () => {
-    clearActiveDrag();
-  };
-
-  const handleDeclineConfirm = async (reason: string) => {
-    if (!declineTargetUid) return;
-    try {
-      await transition.mutateAsync({ uid: declineTargetUid, payload: { type: 'decline', reason } });
-      setDeclineTargetUid(null);
-    } catch {
-      // Keep modal open for retry.
-    }
-  };
-
-  const handleUpvoteToggle = async (uid: string, nextHasUpvoted: boolean) => {
-    await upvote.mutateAsync({ uid, nextHasUpvoted });
-    if (nextHasUpvoted) analytics.onItemUpvoted(uid);
-  };
 
   if (isNarrow) {
     return (
@@ -262,28 +287,29 @@ export function RoadmapView() {
               <div className={s.titleSection}>
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
-                  <div className={s.mobileActionsRow}>
-                    <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
-                      <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path
-                          d="M2 4h12M4.5 8h7M7 12h2"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      Filters
-                      {visibleColumns.length > 0 && (
-                        <span className={s.filtersButtonBadge}>{visibleColumns.length}</span>
-                      )}
-                    </button>
-                    {canCreate && (
-                      <IdeasSubmitButton
-                        label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                  {boostStatusIndicator}
+                </div>
+                <div className={s.mobileActionsRow}>
+                  <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
+                    <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M2 4h12M4.5 8h7M7 12h2"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       />
+                    </svg>
+                    Filters
+                    {filters.activeFiltersCount > 0 && (
+                      <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
                     )}
-                  </div>
+                  </button>
+                  {canCreate && (
+                    <IdeasSubmitButton
+                      label={createLabel}
+                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                    />
+                  )}
                 </div>
                 <p className={s.subtitle}>
                   Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
@@ -301,12 +327,9 @@ export function RoadmapView() {
                   tabs={orderedVisibleColumns.map((stage) => ({ value: stage, label: <StageBadge stage={stage} /> }))}
                   value={effectiveActiveColumn ?? orderedVisibleColumns[0]}
                   onValueChange={(v) => handleTabChange(v as RoadmapColumnStage)}
-                  classes={{
-                    tab: s.mobileTab,
-                  }}
+                  classes={{ tab: s.mobileTab }}
                 />
               </div>
-
               {isLoading ? (
                 <div className={s.mobileScrollContainer}>
                   {orderedVisibleColumns.map((stage) => (
@@ -332,15 +355,12 @@ export function RoadmapView() {
                       className={s.mobileColumn}
                     >
                       {itemsByStage[stage].length === 0 ? (
-                        <p className={s.mobileColumnEmpty}>No items in this stage.</p>
+                        <p className={s.mobileColumnEmpty}>
+                          {filters.searchText ? 'No items match your search.' : 'No items in this stage.'}
+                        </p>
                       ) : (
-                        itemsByStage[stage].map((item) => (
-                          <RoadmapCard
-                            key={item.uid}
-                            item={item}
-                            canUpvote={canUpvote}
-                            onUpvoteToggle={handleUpvoteToggle}
-                          />
+                        itemsByStage[stage].map((item, index) => (
+                          <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
                         ))
                       )}
                     </div>
@@ -351,17 +371,37 @@ export function RoadmapView() {
           )}
         </div>
 
-        <MobileDrawer isOpen={filtersOpen} onClose={() => setFiltersOpen(false)} title="Stages">
-          <RoadmapFiltersContent visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />
+        <MobileDrawer
+          isOpen={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          title={
+            <>
+              Filters
+              {filters.activeFiltersCount > 0 && <FilterCount count={filters.activeFiltersCount} />}
+            </>
+          }
+          headerAction={
+            <button className={s.drawerClearAllBtn} onClick={handleClearAllFilters} type="button">
+              Clear all
+            </button>
+          }
+        >
+          <RoadmapFiltersContent
+            visibleColumns={visibleColumns}
+            onVisibleColumnsChange={setVisibleColumns}
+            selectedTags={filters.selectedTags}
+            onSelectedTagsChange={filters.handleSelectedTagsChange}
+            selectedTypes={filters.selectedTypes}
+            onSelectedTypesChange={filters.handleSelectedTypesChange}
+            searchText={filters.searchText}
+            onSearchTextChange={filters.handleSearchTextChange}
+            objectives={objectives}
+            selectedObjective={filters.selectedObjective}
+            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+          />
         </MobileDrawer>
 
-        <SubmitIdeaModal />
-        <DeclineIdeaModal
-          isOpen={declineTargetUid !== null}
-          isPending={transition.isPending}
-          onClose={() => setDeclineTargetUid(null)}
-          onConfirm={handleDeclineConfirm}
-        />
+        {modals}
       </div>
     );
   }
@@ -369,7 +409,21 @@ export function RoadmapView() {
   return (
     <div className={s.pageLayout}>
       <DashboardPagesLayout
-        filters={<RoadmapFilters visibleColumns={visibleColumns} onVisibleColumnsChange={setVisibleColumns} />}
+        filters={
+          <RoadmapFilters
+            visibleColumns={visibleColumns}
+            onVisibleColumnsChange={setVisibleColumns}
+            selectedTags={filters.selectedTags}
+            onSelectedTagsChange={filters.handleSelectedTagsChange}
+            selectedTypes={filters.selectedTypes}
+            onSelectedTypesChange={filters.handleSelectedTypesChange}
+            searchText={filters.searchText}
+            onSearchTextChange={filters.handleSearchTextChange}
+            objectives={objectives}
+            selectedObjective={filters.selectedObjective}
+            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+          />
+        }
         content={
           <div className={gantryPageStyles.contentShell}>
             <div className={s.content}>
@@ -391,14 +445,15 @@ export function RoadmapView() {
                       Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
                     </p>
                   </div>
-                  {canCreate && (
-                    <div className={s.actions}>
+                  <div className={s.actions}>
+                    {boostStatusIndicator}
+                    {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
                         onClick={() => submitIdeaModalActions.openModal(createVariant)}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -420,35 +475,44 @@ export function RoadmapView() {
               ) : (
                 <div className={s.boardScroll}>
                   <DndContext
-                    sensors={sensors}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    onDragCancel={handleDragCancel}
+                    sensors={dnd.sensors}
+                    onDragStart={dnd.handleDragStart}
+                    onDragOver={dnd.handleDragOver}
+                    onDragEnd={dnd.handleDragEnd}
+                    onDragCancel={dnd.handleDragCancel}
                   >
                     <div
                       className={s.columns}
                       style={{ gridTemplateColumns: `repeat(${orderedVisibleColumns.length}, minmax(240px, 1fr))` }}
                     >
-                      {orderedVisibleColumns.map((stage) => (
-                        <RoadmapDropColumn key={stage} stage={stage}>
-                          {itemsByStage[stage].map((item) => (
-                            <RoadmapCard
-                              key={item.uid}
-                              item={item}
-                              canUpvote={canUpvote}
-                              onUpvoteToggle={handleUpvoteToggle}
-                            />
+                      {orderedVisibleColumns.map((stage) => {
+                        const { isDraggable } = columnDragState(stage);
+                        return (
+                        <RoadmapDropColumn
+                          key={stage}
+                          stage={stage}
+                          isDraggable={isDraggable}
+                          itemIds={itemsByStage[stage].map((i) => i.uid)}
+                          dropPreviewIndex={
+                            dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
+                          }
+                        >
+                          {itemsByStage[stage].map((item, index) => (
+                            <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
                           ))}
                         </RoadmapDropColumn>
-                      ))}
+                        );
+                      })}
                     </div>
                     <DragOverlay dropAnimation={null}>
-                      {activeDragItem ? (
+                      {dnd.activeDragItem ? (
                         <RoadmapCardDragOverlay
-                          item={activeDragItem}
-                          width={activeDragWidth ?? undefined}
-                          canUpvote={canUpvote}
-                          onUpvoteToggle={handleUpvoteToggle}
+                          item={dnd.activeDragItem}
+                          width={dnd.activeDragWidth ?? undefined}
+                          canPin={canUpvote}
+                          onPinToggle={handlePinToggle}
+                          isPinDisabled={!canUpvote}
+                          canCurate={canCurate}
                         />
                       ) : null}
                     </DragOverlay>
@@ -460,14 +524,7 @@ export function RoadmapView() {
         }
       />
 
-      <SubmitIdeaModal />
-
-      <DeclineIdeaModal
-        isOpen={declineTargetUid !== null}
-        isPending={transition.isPending}
-        onClose={() => setDeclineTargetUid(null)}
-        onConfirm={handleDeclineConfirm}
-      />
+      {modals}
     </div>
   );
 }

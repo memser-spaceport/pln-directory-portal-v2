@@ -13,6 +13,13 @@ export const GANTRY_EVENTS = {
   IDEAS_VIEWED: 'gantry_ideas_viewed',
   ROADMAP_VIEWED: 'gantry_roadmap_viewed',
   BUILD_BUTTON_CLICKED: 'gantry_build_button_clicked',
+  TAGS_FILTERED: 'gantry_tags_filtered',
+  TYPE_FILTERED: 'gantry_type_filtered',
+  OBJECTIVES_FILTERED: 'gantry_objectives_filtered',
+  SEARCHED: 'gantry_searched',
+  ITEM_REORDERED: 'gantry_item_reordered',
+  ITEM_BOOSTED: 'gantry_item_boosted',
+  ITEM_UNBOOSTED: 'gantry_item_unboosted',
 } as const;
 
 export function useGantryAnalytics() {
@@ -28,8 +35,16 @@ export function useGantryAnalytics() {
   return {
     onIdeasViewed: () => capture(GANTRY_EVENTS.IDEAS_VIEWED),
     onRoadmapViewed: () => capture(GANTRY_EVENTS.ROADMAP_VIEWED),
-    onIdeaCreated: (itemUid: string) => capture(GANTRY_EVENTS.IDEA_CREATED, { itemUid }),
+    onIdeaCreated: (itemUid: string, tags: string[] = [], itemType?: string) =>
+      capture(GANTRY_EVENTS.IDEA_CREATED, { itemUid, tags, tag_count: tags.length, ...(itemType ? { type: itemType } : {}) }),
     onItemUpvoted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UPVOTED, { itemUid }),
     onBuildButtonClicked: (itemUid: string) => capture(GANTRY_EVENTS.BUILD_BUTTON_CLICKED, { itemUid }),
+    onTagsFiltered: (tags: string[]) => capture(GANTRY_EVENTS.TAGS_FILTERED, { tags, tag_count: tags.length }),
+    onTypeFiltered: (types: string[]) => capture(GANTRY_EVENTS.TYPE_FILTERED, { types, type_count: types.length }),
+    onObjectivesFiltered: (objectives: string[]) => capture(GANTRY_EVENTS.OBJECTIVES_FILTERED, { objectives, count: objectives.length }),
+    onSearched: (query: string) => capture(GANTRY_EVENTS.SEARCHED, { query, query_length: query.length }),
+    onItemReordered: (itemUid: string, stage: string) => capture(GANTRY_EVENTS.ITEM_REORDERED, { itemUid, stage }),
+    onItemBoosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_BOOSTED, { itemUid }),
+    onItemUnboosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UNBOOSTED, { itemUid }),
   };
 }

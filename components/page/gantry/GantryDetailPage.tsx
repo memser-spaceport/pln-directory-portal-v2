@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { EditButton } from '@/components/common/profile/EditButton';
@@ -14,14 +14,20 @@ import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryItem } from '@/services/gantry/hooks/useGantryItem';
 import { useArchiveGantryItem } from '@/services/gantry/hooks/useArchiveGantryItem';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
-import { useGantryUpvote } from '@/services/gantry/hooks/useGantryUpvote';
+import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
+import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
 import { isPreRoadmapStage } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
+import { useRoadmapPinActions } from './roadmap/hooks/useRoadmapPinActions';
 import { EditIdeaForm } from './shared/EditIdeaForm';
+import { BoostersSection } from './shared/BoostersSection';
+import { BoostButton } from './shared/BoostButton';
 import { GantryItemAuthor } from './shared/GantryItemAuthor';
+import { PinNotePopover } from './shared/PinNotePopover';
+import { PinSwapPicker } from './shared/PinSwapPicker';
 import { StageSelector } from './shared/StageSelector';
-import { UpvoteButton } from './shared/UpvoteButton';
 import { BuildWithAgentsButton } from './shared/BuildWithAgentsButton';
 import { DeclineIdeaModal } from './shared/DeclineIdeaModal';
 import s from './GantryDetailPage.module.scss';
@@ -40,7 +46,19 @@ export function GantryDetailPage({ uid }: Props) {
   const { data: item, isLoading, isError } = useGantryItem(uid);
   const archiveMutation = useArchiveGantryItem(uid);
   const transitionMutation = useGantryTransition();
-  const upvoteMutation = useGantryUpvote();
+  const pin = useGantryPin();
+  const pinNote = useGantryPinNote();
+  const { data: pinStatus } = useGantryPinStatus(!!currentUser);
+  const {
+    pinNotePopover,
+    setPinNotePopover,
+    handlePinToggle,
+    handlePinNoteSave,
+    swapPickerState,
+    handleSwapSelect,
+    handleSwapDismiss,
+  } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
+  const isNavigatingAwayRef = useRef(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
@@ -73,6 +91,7 @@ export function GantryDetailPage({ uid }: Props) {
               <div className={s.header}>
                 <div className={s.skeletonBlock} style={{ width: '70%', height: 42 }} />
                 <div className={s.skeletonBlock} style={{ width: '40%', height: 24, marginTop: 12 }} />
+                <div className={s.skeletonBlock} style={{ width: '60%', height: 20, marginTop: 12 }} />
               </div>
               <div className={s.content}>
                 <div className={s.skeletonBlock} style={{ width: '100%', height: 120 }} />
@@ -85,6 +104,24 @@ export function GantryDetailPage({ uid }: Props) {
   }
 
   if (isError || !item) {
+    if (isNavigatingAwayRef.current) {
+      return (
+        <div className={s.root}>
+          <div className={s.headerContainer}>
+            <BackButton to="/gantry/dashboard" className={s.backButton} />
+          </div>
+          <div className={s.page}>
+            <div className={s.card}>
+              <div className={s.mainContent}>
+                <div className={s.header}>
+                  <div className={s.skeletonBlock} style={{ width: '70%', height: 42 }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={s.root}>
         <div className={s.headerContainer}>
@@ -111,10 +148,12 @@ export function GantryDetailPage({ uid }: Props) {
 
   const handleArchiveConfirm = async () => {
     try {
+      isNavigatingAwayRef.current = true;
       await archiveMutation.mutateAsync('Archived from detail page');
       setIsArchiveModalOpen(false);
       router.push('/gantry/dashboard');
     } catch {
+      isNavigatingAwayRef.current = false;
       // Keep modal open so the user can retry or cancel.
     }
   };
@@ -168,17 +207,40 @@ export function GantryDetailPage({ uid }: Props) {
                 <span className={s.metaDot} aria-hidden />
                 <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
                 <span className={s.metaDot} aria-hidden />
-                <UpvoteButton
-                  count={item.upvoteCount}
-                  hasUpvoted={item.viewerHasUpvoted}
-                  disabled={!access.canUpvote}
-                  onToggle={(next) => {
-                    upvoteMutation.mutateAsync({ uid: item.uid, nextHasUpvoted: next });
-                    if (next) analytics.onItemUpvoted(item.uid);
-                  }}
+                <BoostButton
+                  count={item.pinCount}
+                  hasPinned={item.viewerHasPinned}
+                  readonly={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+                  disabled={!currentUser || pin.isPending}
+                  onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
                 />
               </div>
+              {access.canCurate && item.pinCount > 0 && (
+                <div className={s.boostArea}>
+                  <BoostersSection item={item} />
+                </div>
+              )}
             </div>
+
+            {item.tags && item.tags.length > 0 && !isEditMode && (
+              <div className={s.tagsRow}>
+                <span className={s.tagsLabel}>Tags</span>
+                <div className={s.tagsList} aria-label={`Tags: ${item.tags.join(', ')}`}>
+                  {item.tags.map((tag) => (
+                    <span key={tag} className={s.tagChip}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {item.type && !isEditMode && (
+              <div className={s.tagsRow}>
+                <span className={s.tagsLabel}>Type of request</span>
+                <div className={s.tagsList}>
+                  <span className={s.tagChip}>{item.type}</span>
+                </div>
+              </div>
+            )}
 
             <div className={s.mobileDivider} />
 
@@ -208,6 +270,23 @@ export function GantryDetailPage({ uid }: Props) {
           </div>
         </div>
       </div>
+
+      {pinNotePopover && (
+        <PinNotePopover
+          uid={pinNotePopover.uid}
+          pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
+          onSave={handlePinNoteSave}
+        />
+      )}
+      {swapPickerState && (
+        <PinSwapPicker
+          targetItemTitle={item.title}
+          pins={pinStatus?.pins ?? []}
+          pos={{ top: swapPickerState.top, left: swapPickerState.left }}
+          onSelect={handleSwapSelect}
+          onDismiss={handleSwapDismiss}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={isArchiveModalOpen}

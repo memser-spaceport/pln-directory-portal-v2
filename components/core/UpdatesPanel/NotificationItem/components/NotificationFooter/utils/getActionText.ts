@@ -18,6 +18,8 @@ export function getActionText(category: PushNotification['category']): string {
       return 'Read more';
     case 'FORUM_REPLY':
       return 'View comment';
+    case 'GANTRY':
+      return 'View item';
     case 'SYSTEM':
     default:
       return 'View';

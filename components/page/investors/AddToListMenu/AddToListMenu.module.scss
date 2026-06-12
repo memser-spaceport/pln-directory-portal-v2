@@ -1,0 +1,78 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  background: #fff;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.positioner {
+  z-index: 50;
+}
+
+.popup {
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(14, 15, 17, 0.1);
+  padding: 4px;
+}
+
+.empty {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #8897ae;
+  text-align: center;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  color: #0a0c11;
+
+  &:hover:not(:disabled) {
+    background: rgba(27, 77, 255, 0.06);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.optName {
+  font-weight: 500;
+}
+
+.plus {
+  color: #1b4dff;
+  font-weight: 600;
+}
+
+.added {
+  font-size: 11px;
+  font-weight: 600;
+  color: #065f46;
+}

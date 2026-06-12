@@ -1,9 +1,13 @@
+import type { Option } from '@/components/form/FormSelect/types';
 import type { GantryItem } from './types';
 
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
   ITEM = 'gantry-item',
   FOCUS_AREAS = 'gantry-focus-areas',
+  OBJECTIVES = 'gantry-objectives',
+  PIN_STATUS = 'gantry-pin-status',
+  ITEM_PINS = 'gantry-item-pins',
 }
 
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
@@ -38,6 +42,11 @@ export const DEFAULT_ROADMAP_VISIBLE_COLUMNS = GANTRY_ROADMAP_COLUMN_STAGES.filt
 
 export const GANTRY_VISIBLE_COLUMNS_STORAGE_KEY = 'gantry.board.visibleColumns';
 
+/** Planned / In Progress / Shipped use admin rank order; Submitted uses trending boost sort. */
+export function isAdminOrderedRoadmapStage(stage: (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number]): boolean {
+  return stage === 'PLANNED' || stage === 'IN_PROGRESS' || stage === 'SHIPPED';
+}
+
 export function sortRoadmapColumnStages(
   columns: readonly (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][],
 ): (typeof GANTRY_ROADMAP_COLUMN_STAGES)[number][] {
@@ -49,12 +58,40 @@ export function isPreRoadmapStage(stage: (typeof GANTRY_STAGE_VALUES)[number]): 
   return (GANTRY_PRE_ROADMAP_STAGES as readonly string[]).includes(stage);
 }
 
-/** Most upvotes first; ties broken by most recently updated. */
-export function sortGantryItems(items: GantryItem[]): GantryItem[] {
+/** Admin-curated order ASC; items with null order sort to the end. */
+export function sortGantryItemsByDefault(items: GantryItem[]): GantryItem[] {
   return [...items].sort((a, b) => {
-    const countDiff = b.upvoteCount - a.upvoteCount;
-    if (countDiff !== 0) return countDiff;
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    if (a.order == null && b.order == null) return 0;
+    if (a.order == null) return 1;
+    if (b.order == null) return -1;
+    return a.order - b.order;
+  });
+}
+
+function compareGantryItemsByRecency(a: GantryItem, b: GantryItem): number {
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+/** Day-based decay — gentler than hour-based so boost count matters more over a few days. */
+const TRENDING_AGE_OFFSET_DAYS = 1;
+const TRENDING_GRAVITY = 1.2;
+
+/**
+ * Time-decayed boost score (PRD §3.5). List items only expose pinCount, so boosts are
+ * approximated on submission age — a 5–10× boost lead can outweigh a few days of recency.
+ */
+export function gantryTrendingScore(item: GantryItem, nowMs = Date.now()): number {
+  const pins = item.pinCount ?? 0;
+  if (pins <= 0) return 0;
+  const daysAge = (nowMs - new Date(item.createdAt).getTime()) / 86_400_000;
+  return pins / Math.pow(daysAge + TRENDING_AGE_OFFSET_DAYS, TRENDING_GRAVITY);
+}
+
+export function sortGantryItemsByTrending(items: GantryItem[]): GantryItem[] {
+  return [...items].sort((a, b) => {
+    const scoreDiff = gantryTrendingScore(b) - gantryTrendingScore(a);
+    if (scoreDiff !== 0) return scoreDiff;
+    return compareGantryItemsByRecency(a, b);
   });
 }
 
@@ -71,3 +108,36 @@ export const GANTRY_CREATE_STAGE_OPTIONS = GANTRY_STAGE_VALUES.map((value) => ({
   label: GANTRY_STAGE_LABELS[value],
   value,
 }));
+
+const GANTRY_TAG_LABELS = [
+  'Directory',
+  'Events',
+  'Home Page',
+  'News Feed',
+  'Forum',
+  'Demo Day',
+  'Search',
+  'Back Office',
+  'Notifications',
+  'Profile',
+  'Office Hours',
+  'Job Board',
+  'Deals',
+  'Investor DB',
+  'Founder DB',
+  'Warm Intros',
+  'Pitch Page',
+  'Gantry',
+] as const;
+
+export const GANTRY_TAG_OPTIONS: Option[] = GANTRY_TAG_LABELS.map((label) => ({ label, value: label }));
+
+export function tagsToOptions(tags: string[] | null | undefined): Option[] {
+  return GANTRY_TAG_OPTIONS.filter((o) => tags?.includes(o.value) ?? false);
+}
+
+export const GANTRY_ITEM_TYPE_OPTIONS: Option[] = [
+  { label: 'Bug Report', value: 'Bug Report' },
+  { label: 'Enhancement Request', value: 'Enhancement Request' },
+  { label: 'New Feature Request', value: 'New Feature Request' },
+];

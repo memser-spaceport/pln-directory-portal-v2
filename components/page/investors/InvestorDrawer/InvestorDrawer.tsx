@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import clsx from 'clsx';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
@@ -15,6 +15,8 @@ import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge'
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesViewer';
+import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
+import { AddToListMenu } from '../AddToListMenu/AddToListMenu';
 import { CopyButton } from '@/components/ui/CopyButton';
 import s from './InvestorDrawer.module.scss';
 
@@ -65,7 +67,11 @@ export function InvestorDrawer({ access }: Props) {
                 </div>
                 <div className={s.metaSub}>
                   {investor.investor_id}
-                  {investor.canonical_id && <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>}
+                  {/* canonical_id == investor_id is the DB-wide convention for "is canonical",
+                      not a duplicate — only a differing canonical id marks a merged record. */}
+                  {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
+                    <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>
+                  )}
                 </div>
               </div>
               <button className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
@@ -85,7 +91,7 @@ export function InvestorDrawer({ access }: Props) {
               <h3 className={s.sectionTitle}>LabOS profile</h3>
               <LabOsBadge profile={investor.lab_os_profile} variant="full" />
               {investor.lab_os_profile.last_active_at && (
-                <div className={s.metaSub} style={{ marginTop: 8 }}>
+                <div className={clsx(s.metaSub, s.metaSubSpaced)}>
                   Last active: {investor.lab_os_profile.last_active_at}
                 </div>
               )}
@@ -130,6 +136,9 @@ export function InvestorDrawer({ access }: Props) {
 
           <div className={s.section}>
             <h3 className={s.sectionTitle}>Investor profile</h3>
+            {investor.enrichment?.bio && (
+              <p className={s.enrichBio}>{renderCited(investor.enrichment.bio, investor.enrichment.sources)}</p>
+            )}
             <dl className={s.kv}>
               <dt>Type</dt>
               <dd>{INVESTOR_TYPE_LABEL[investor.investor_type]}</dd>
@@ -139,6 +148,12 @@ export function InvestorDrawer({ access }: Props) {
               <dd>
                 <SectorTagsList tags={investor.sector_tags} max={20} />
               </dd>
+              {investor.enrichment?.fund_focus && (
+                <>
+                  <dt>Fund focus</dt>
+                  <dd>{renderCited(investor.enrichment.fund_focus, investor.enrichment.sources)}</dd>
+                </>
+              )}
               <dt>Check size</dt>
               <dd>
                 {investor.check_size_range !== 'unknown' ? (
@@ -149,19 +164,69 @@ export function InvestorDrawer({ access }: Props) {
               </dd>
               <dt>AUM</dt>
               <dd>
-                {investor.aum_range !== 'unknown' ? investor.aum_range : <span className={s.muted}>unknown</span>}
+                {investor.enrichment?.aum ? (
+                  investor.enrichment.aum
+                ) : investor.aum_range !== 'unknown' ? (
+                  investor.aum_range
+                ) : (
+                  <span className={s.muted}>unknown</span>
+                )}
               </dd>
               <dt>Geo focus</dt>
               <dd>{investor.geo_focus || <span className={s.muted}>—</span>}</dd>
-              <dt>Recent deals</dt>
-              <dd>{investor.recent_deals || <span className={s.muted}>—</span>}</dd>
+              {investor.enrichment && investor.enrichment.notable_investments.length > 0 ? (
+                <>
+                  <dt>Notable investments</dt>
+                  <dd>{investor.enrichment.notable_investments.join(', ')}</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Recent deals</dt>
+                  <dd>{investor.recent_deals || <span className={s.muted}>—</span>}</dd>
+                </>
+              )}
             </dl>
-            {investor.fund_thesis && (
+            {(investor.enrichment?.thesis || investor.fund_thesis) && (
               <p className={s.thesis}>
-                <strong>Thesis:</strong> {investor.fund_thesis}
+                <strong>Thesis:</strong>{' '}
+                {investor.enrichment?.thesis
+                  ? renderCited(investor.enrichment.thesis, investor.enrichment.sources)
+                  : investor.fund_thesis}
               </p>
             )}
+            {investor.enrichment && investor.enrichment.sources.length > 0 && (
+              <div className={s.sources}>
+                <div className={s.sourcesLabel}>Sources</div>
+                <ol className={s.sourcesList}>
+                  {investor.enrichment.sources.map((u, i) => (
+                    <li key={i}>
+                      <a href={u} target="_blank" rel="noopener noreferrer" className={s.link}>
+                        {u} ↗
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {investor.enrichment?.enriched_via && (
+              <div className={s.enrichFooter}>
+                enriched via {investor.enrichment.enriched_via}
+                {investor.enrichment.fetched_at ? ` · ${investor.enrichment.fetched_at}` : ''}
+              </div>
+            )}
           </div>
+
+          {(investor.has_path || investor.best_proximity_code) && (
+            <div className={s.section}>
+              <h3 className={s.sectionTitle}>Warm paths</h3>
+              <WarmPathDetail
+                key={investor.investor_id} // key to remount the component which resets viewedRef and allows trackPathsViewed to fire for each investor
+                investorId={investor.investor_id}
+                bestProximityCode={investor.best_proximity_code}
+                canEdit={access.canEdit}
+              />
+            </div>
+          )}
 
           <div className={s.section}>
             <h3 className={s.sectionTitle}>Outreach history</h3>
@@ -240,13 +305,12 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Dedupe key</dt>
               <dd className={s.mono}>{investor.dedupe_key}</dd>
             </dl>
-            <h3 className={s.sectionTitle} style={{ marginTop: 16 }}>
-              Enrichment notes
-            </h3>
+            <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>Enrichment notes</h3>
             <EnrichmentNotesViewer notes={investor.enrichment_notes} />
           </div>
 
           <div className={s.footer}>
+            <AddToListMenu investorId={investor.investor_id} canEdit={access.canEdit} className={s.btn} />
             <CopyButton text={investor.email} label="Copy email" className={s.btn} />
             {investor.firm_domain && (
               <a
@@ -261,9 +325,7 @@ export function InvestorDrawer({ access }: Props) {
             {investor.lab_os_profile && (
               <a
                 className={s.btn}
-                href={
-                  `${investor.lab_os_profile.type === 'member' ? `/members/${investor.lab_os_profile.uid}` : `/teams/${investor.lab_os_profile.uid}`}?backTo=${encodeURIComponent(backTo)}`
-                }
+                href={`${investor.lab_os_profile.type === 'member' ? `/members/${investor.lab_os_profile.uid}` : `/teams/${investor.lab_os_profile.uid}`}?backTo=${encodeURIComponent(backTo)}`}
               >
                 👤 View in LabOS
               </a>
@@ -275,3 +337,22 @@ export function InvestorDrawer({ access }: Props) {
   );
 }
 
+/** Render text with [1], [2]… markers turned into clickable source superscripts. */
+function renderCited(text: string, sources: string[]) {
+  return text.split(/(\[\d+\])/g).map((part, i) => {
+    const m = part.match(/^\[(\d+)\]$/);
+    if (m) {
+      const url = sources[parseInt(m[1], 10) - 1];
+      if (url) {
+        return (
+          <sup key={i} className={s.cite}>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              [{m[1]}]
+            </a>
+          </sup>
+        );
+      }
+    }
+    return <span key={i}>{part}</span>;
+  });
+}

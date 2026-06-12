@@ -4,6 +4,10 @@ import type { SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitId
 
 export type SubmitIdeaModalVariant = 'idea' | 'roadmap';
 
+export function getSubmitIdeaDraftKey(variant: SubmitIdeaModalVariant): string {
+  return `form-draft:gantry:submit-idea:${variant}`;
+}
+
 export const SUBMIT_IDEA_MODAL_COPY: Record<
   SubmitIdeaModalVariant,
   {
@@ -40,5 +44,8 @@ export function getSubmitIdeaFormDefaults(variant: SubmitIdeaModalVariant): Subm
     title: '',
     description: '',
     stage,
+    tags: [],
+    type: null,
+    objective: null,
   };
 }

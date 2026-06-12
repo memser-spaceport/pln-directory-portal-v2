@@ -5,6 +5,7 @@ import type {
   EngagementTier,
   EmailStatus,
   EnrichmentStatus,
+  InvestorEnrichment,
   InvestorListParams,
   InvestorListResponse,
   InvestorSource,
@@ -93,7 +94,20 @@ function mapLabOsProfile(dto: AnyDto): LabOsProfileRef {
   };
 }
 
-function mapInvestorDto(dto: AnyDto): OutreachInvestor {
+function mapEnrichment(dto: AnyDto): InvestorEnrichment {
+  return {
+    bio: dto.bio ?? null,
+    fund_focus: dto.fundFocus ?? null,
+    aum: dto.aum ?? null,
+    notable_investments: (dto.notableInvestments ?? []) as string[],
+    thesis: dto.thesis ?? null,
+    sources: (dto.sources ?? []) as string[],
+    enriched_via: dto.enrichedVia ?? null,
+    fetched_at: dto.fetchedAt ?? null,
+  };
+}
+
+export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
   return {
     investor_id: dto.investorId as string,
     canonical_id: dto.canonicalId ?? '',
@@ -107,6 +121,7 @@ function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     firm: dto.firm ?? '',
     firm_domain: dto.firmDomain ?? '',
     title: dto.title ?? '',
+    proximity_code: dto.proximityCode ?? null,
     investor_type: dto.investorType as InvestorType,
     fund_thesis: dto.fundThesis ?? '',
     aum_range: (dto.aumRange ?? '') as AumRange,
@@ -130,6 +145,9 @@ function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     lab_os_profile: dto.labOsProfile ? mapLabOsProfile(dto.labOsProfile) : null,
     tags: (dto.tags ?? []) as string[],
     co_invested_team_ids: (dto.coInvestedTeamIds ?? []) as string[],
+    best_proximity_code: dto.bestProximityCode ?? null,
+    has_path: dto.hasPath ?? false,
+    enrichment: dto.enrichment ? mapEnrichment(dto.enrichment) : null,
   };
 }
 
@@ -138,6 +156,10 @@ function mapPortfolioTeamDto(dto: AnyDto): PlPortfolioTeam {
     investor_id: c.investorId as string,
     deal_amount: c.dealAmount as number | undefined,
     deal_date: c.dealDate as string | undefined,
+  }));
+  const founders = ((dto.founders ?? []) as AnyDto[]).map((f) => ({
+    name: f.name as string,
+    member_uid: (f.memberUid ?? f.member_uid ?? '') as string,
   }));
   return {
     team_id: dto.teamUid as string,
@@ -153,6 +175,7 @@ function mapPortfolioTeamDto(dto: AnyDto): PlPortfolioTeam {
     raising_source: dto.raisingSource as string | undefined,
     sectors: (dto.sectors ?? []) as SectorTag[],
     geo: dto.geo ?? '',
+    founders,
     co_investors,
   };
 }

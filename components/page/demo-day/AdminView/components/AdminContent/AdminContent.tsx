@@ -81,22 +81,22 @@ export const AdminContent = ({
             </div>
             <PageTitle
               size="small"
-              subtitle={
-                <div className={s.stats}>
-                  <span>
-                    {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
-                  </span>
-                  {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 && showMembersDirectoryLink ? (
-                    <>
-                      &nbsp;&bull;&nbsp;
-                      <Link href={`/members?isInvestor=true`}>
-                        {demoDayData?.investorsCount} Investor{(demoDayData?.investorsCount ?? 0) > 1 ? 's' : ''}
-                        <LinkIcon />
-                      </Link>
-                    </>
-                  ) : null}
-                </div>
-              }
+              // subtitle={
+              //   <div className={s.stats}>
+              //     <span>
+              //       {demoDayData?.teamsCount} Team{(demoDayData?.teamsCount ?? 0) > 1 ? 's' : ''}
+              //     </span>
+              //     {demoDayData?.investorsCount && demoDayData?.investorsCount > 100 && showMembersDirectoryLink ? (
+              //       <>
+              //         &nbsp;&bull;&nbsp;
+              //         <Link href={`/members?isInvestor=true`}>
+              //           {demoDayData?.investorsCount} Investor{(demoDayData?.investorsCount ?? 0) > 1 ? 's' : ''}
+              //           <LinkIcon />
+              //         </Link>
+              //       </>
+              //     ) : null}
+              //   </div>
+              // }
             />
           </div>
           {hasVideo && materials && (

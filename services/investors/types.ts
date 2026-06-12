@@ -70,6 +70,20 @@ export type LabOsProfileRef = {
   last_active_at?: string;
 };
 
+/** Aggregated "who is this investor/LP" background + verifiable sources, from the
+ *  Phase-1 / prestige enrichment pass. bio/thesis may carry [1], [2]… markers
+ *  that index into `sources`. */
+export type InvestorEnrichment = {
+  bio: string | null;
+  fund_focus: string | null;
+  aum: string | null;
+  notable_investments: string[];
+  thesis: string | null;
+  sources: string[];
+  enriched_via: string | null;
+  fetched_at: string | null;
+};
+
 export type OutreachInvestor = {
   // Identity
   investor_id: string;
@@ -112,6 +126,9 @@ export type OutreachInvestor = {
   last_enrichment_attempt: string;
   enrichment_notes: string;
 
+  /** PL Path Finder proximity code from ingest (e.g. "VC+1A"). null when not set. */
+  proximity_code: string | null;
+
   // ---- Additive fields (frontend-injected for V1 mock; backend ask for Vova) ----
 
   /** Resolved LabOS profile if this investor's email matches a network user.
@@ -127,11 +144,33 @@ export type OutreachInvestor = {
    *  Empty array = not a co-investor. Derived server-side from cap-table data
    *  (InvestorPortfolioOverlap); populated by the ingest pipeline in Phase 2. */
   co_invested_team_ids: string[];
+
+  // ---- Path Finder summary (additive; denormalized from PathfinderPath) ----
+
+  /** Best (rank 1) proximity code for this investor, e.g. "F+2B". Denormalized
+   *  onto the record by the pathfinder ingest so the list can render the
+   *  proximity axis without fetching the full path list. Undefined/null until a
+   *  pathfinder run has covered this investor. */
+  best_proximity_code?: string | null;
+
+  /** Whether any warm path exists. false/undefined = cold (no path). */
+  has_path?: boolean;
+
+  /** Aggregated background + sources ("who is this investor"); null until enriched. */
+  enrichment?: InvestorEnrichment | null;
 };
 
 /** A "Network investor" is just an OutreachInvestor with a non-null
  *  lab_os_profile. Kept as a type alias for clarity. */
 export type NetworkInvestor = OutreachInvestor & { lab_os_profile: LabOsProfileRef };
+
+/** A founder on a PL portfolio team — used for the unified search (founder/team
+ *  → connector-lens filter). Sourced from the `founders[]` array now included on
+ *  `/co-investors/by-team`. */
+export type TeamFounder = {
+  name: string;
+  member_uid: string;
+};
 
 export type PlPortfolioTeam = {
   team_id: string;
@@ -147,11 +186,43 @@ export type PlPortfolioTeam = {
   raising_source?: string;
   sectors: SectorTag[];
   geo: string;
+  /** Founders of this team (name + LabOS member uid). Used as connector nodes
+   *  in the unified search. Empty if the team has no resolved founders. */
+  founders: TeamFounder[];
   co_investors: Array<{
     investor_id: string;
     deal_amount?: number;
     deal_date?: string;
   }>;
+};
+
+// ─── Investor Lists (Lists IA) ──────────────────────────────────────────────
+//
+// A curated, pre-created target set the warm-intros workspace operates over.
+// Proximity is only meaningful within a graphed list. v1: lists are seeded /
+// imported (not user-created) — see "Lists IA — DECISIONS LOCKED".
+
+export type InvestorList = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  /** Whether a pathfinder run has graphed this list's members (proximity codes
+   *  only render for graphed lists). */
+  is_graphed: boolean;
+  member_count: number;
+};
+
+/** Filters for the in-list member refinement (server-side). */
+export type ListMembersParams = {
+  q?: string;
+  sector_tags?: SectorTag[];
+  stage_focus?: StageFocus[];
+  check_size_range?: CheckSizeRange[];
+  /** Relationship lens: co-invested / engaged / cold. */
+  relationship?: WarmIntroTier[];
+  page?: number;
+  limit?: number;
 };
 
 export type InvestorListParams = {
@@ -217,6 +288,129 @@ export type WarmIntrosResponse = {
   team?: PlPortfolioTeam; // populated if team_id was passed
   total: number;
   candidates: WarmIntroCandidate[];
+};
+
+// ─── PL Path Finder ─────────────────────────────────────────────────────────
+//
+// Proximity (reachability) is a SEPARATE axis from `fit_score` (sector/stage
+// fit). The path engine answers "how warmly can PL reach this investor", not
+// "should PL want them" — keep the two axes distinct in the UI.
+
+/** Connector category — which "door" the path goes through. Categorical, NOT a
+ *  ladder: F = portfolio founder, VC = co-investor / known VC, JB / PL =
+ *  rolodex, O = other, C = cold (no path). */
+export type PathConnectorType = 'F' | 'VC' | 'JB' | 'PL' | 'O' | 'C';
+
+/** Caliber gate result: A = relationship AND contact prestige; B = either. */
+export type PathCaliber = 'A' | 'B';
+
+export type PathHopNode = {
+  id: string;
+  label: string;
+  type: 'person' | 'org';
+};
+
+export type PathHopEdge = {
+  from: string;
+  to: string;
+  connector_type: string;
+  probability: number;
+  evidence: string | null;
+};
+
+export type PathHopChain = {
+  nodes: PathHopNode[];
+  edges: PathHopEdge[];
+  /** Plain-English description of the path, surfaced in the expanded row. */
+  explanation: string;
+};
+
+/** A single ranked warm path to a target investor (one PathfinderPath row). */
+export type PathfinderPath = {
+  id: number;
+  target_investor_id: string;
+  connector_type: PathConnectorType;
+  /** Social distance: 1 = direct, 2 = one intermediary, 3 = hard ceiling. */
+  hops: number;
+  /** null when cold. */
+  caliber: PathCaliber | null;
+  /** Denormalized human-facing code, e.g. "JB+1A", "F+2B", "C". */
+  proximity_code: string;
+  /** 0–1 success-probability score (product of edge probabilities). Warmer = higher. */
+  score: number;
+  /** 0–1 confidence in the computed caliber/code; null when the model abstains. */
+  caliber_confidence: number | null;
+  hop_chain: PathHopChain;
+  /** Rank within this target's path list (1 = best). */
+  rank: number;
+  computed_at?: string;
+  /** Pending (not yet recomputed) human overrides already submitted for this
+   *  path — shown so admins don't submit the same correction twice. */
+  corrections: PathCorrection[];
+};
+
+/** A pending correction on a path, as returned by GET /pathfinder/paths/:investorId. */
+export type PathCorrection = {
+  id: number;
+  field: PathCorrectionField | string;
+  old_value: unknown;
+  new_value: unknown;
+  note: string | null;
+  actor_email: string | null;
+  created_at: string;
+};
+
+export type PathsForTargetResponse = {
+  target_investor_id: string;
+  total: number;
+  paths: PathfinderPath[];
+};
+
+/** ID domain of a correction's subject_id (mirrors backend CreateCorrectionDto):
+ *  subject_type says what kind of thing subject_id identifies; `field` says which
+ *  attribute is being corrected. A caliber override on a path is subject_type
+ *  'path' + field 'caliber'. */
+export type CorrectionSubjectType = 'path' | 'crosswalk' | 'entity' | 'action' | 'curation';
+
+/** Attributes correctable on a PathfinderPath (mirrors backend PATH_CORRECTION_FIELDS). */
+export type PathCorrectionField = 'caliber' | 'connector_type' | 'valid' | 'note';
+
+/** A persisted investment-team override; feeds the next recompute and seeds the
+ *  future Affinity write-back. */
+export type CorrectionInput = {
+  subject_type: CorrectionSubjectType;
+  subject_id: string;
+  field: string;
+  old_value?: unknown;
+  new_value?: unknown;
+  note?: string;
+};
+
+// ─── Crosswalk review queue ─────────────────────────────────────────────────
+//
+// Entity-resolution candidates the pathfinder could not auto-link (fuzzy
+// name/firm match). A curator confirms (link) or rejects (keep separate); the
+// resolution is logged as a PathfinderCorrection and feeds the next recompute.
+
+export type CrosswalkReviewItem = {
+  id: string;
+  /** The Directory/Affinity entity being resolved. */
+  source_label: string;
+  /** The candidate it might be the same as. */
+  candidate_label: string;
+  /** 0–1 fuzzy match confidence. */
+  match_confidence: number;
+  /** Why it landed in review, e.g. "name match, firm differs". */
+  reason: string;
+  source_domain?: string;
+  candidate_domain?: string;
+};
+
+export type CrosswalkReviewResponse = {
+  page: number;
+  limit: number;
+  total: number;
+  items: CrosswalkReviewItem[];
 };
 
 /** A user-saved filter combination for quick recall, like Linear views. */

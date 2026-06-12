@@ -35,23 +35,35 @@ describe('useConnectorLens', () => {
 
     const { result } = renderHook(
       () =>
-        useConnectorLens([member('inv-1'), member('inv-2'), member('inv-3')], ['Neuro Labs', 'Alice Founder'], true),
+        useConnectorLens(
+          [member('inv-1'), member('inv-2'), member('inv-3')],
+          { exactLabels: ['Neuro Labs', 'Alice Founder'] },
+          true,
+        ),
       { wrapper },
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(mockFetchMatches).toHaveBeenCalledTimes(1);
-    expect(mockFetchMatches).toHaveBeenCalledWith(['inv-1', 'inv-2', 'inv-3'], ['Neuro Labs', 'Alice Founder']);
+    expect(mockFetchMatches).toHaveBeenCalledWith(['inv-1', 'inv-2', 'inv-3'], ['Neuro Labs', 'Alice Founder'], []);
     expect(result.current.matchedIds).toEqual(new Set(['inv-1', 'inv-2']));
   });
 
-  it('accepts a single label string (workspace passes wi_connector directly)', async () => {
+  it('passes contains labels for team substring matching', async () => {
     mockFetchMatches.mockResolvedValue(['inv-1']);
 
-    const { result } = renderHook(() => useConnectorLens([member('inv-1')], 'SOSV', true), { wrapper });
+    const { result } = renderHook(
+      () =>
+        useConnectorLens(
+          [member('inv-1')],
+          { exactLabels: ['Modular Globe'], containsLabels: ['Modular Globe'] },
+          true,
+        ),
+      { wrapper },
+    );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(mockFetchMatches).toHaveBeenCalledWith(['inv-1'], ['SOSV']);
+    expect(mockFetchMatches).toHaveBeenCalledWith(['inv-1'], ['Modular Globe'], ['Modular Globe']);
     expect(result.current.matchedIds).toEqual(new Set(['inv-1']));
   });
 
@@ -59,17 +71,20 @@ describe('useConnectorLens', () => {
     mockFetchMatches.mockResolvedValue([]);
 
     const { result } = renderHook(
-      () => useConnectorLens([member('cold-1', false), member('warm-1', true)], ['Alice Founder'], true),
+      () =>
+        useConnectorLens([member('cold-1', false), member('warm-1', true)], { exactLabels: ['Alice Founder'] }, true),
       { wrapper },
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(mockFetchMatches).toHaveBeenCalledTimes(1);
-    expect(mockFetchMatches).toHaveBeenCalledWith(['warm-1'], ['Alice Founder']);
+    expect(mockFetchMatches).toHaveBeenCalledWith(['warm-1'], ['Alice Founder'], []);
   });
 
   it('does not request at all when the lens is inactive or labels are blank', () => {
-    const { result } = renderHook(() => useConnectorLens([member('inv-1')], '  ', true), { wrapper });
+    const { result } = renderHook(() => useConnectorLens([member('inv-1')], { exactLabels: ['  '] }, true), {
+      wrapper,
+    });
 
     expect(mockFetchMatches).not.toHaveBeenCalled();
     expect(result.current).toEqual({ matchedIds: new Set(), isLoading: false });

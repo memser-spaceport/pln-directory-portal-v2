@@ -38,6 +38,7 @@ import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPan
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import { GlossaryModal } from './GlossaryModal';
 import { ListPicker } from './ListPicker';
+import { CLEAR_CONNECTOR_LENS, selectionToConnectorFilter } from './connectorLensFilters';
 import { UnifiedSearchSelect, type UnifiedSelection } from './UnifiedSearchSelect';
 import s from './WarmIntrosWorkspace.module.scss';
 
@@ -110,7 +111,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   }, [filters.wi_list_id, lists, setFilters]);
 
   const onPickList = (list: InvestorList) => {
-    setFilters({ wi_list_id: list.id, wi_connector: null });
+    setFilters({ wi_list_id: list.id, ...CLEAR_CONNECTOR_LENS });
     setExpandedIds(new Set());
     setSelectedIds(new Set());
     analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
@@ -165,7 +166,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const clear = () => {
     setDraft({ stage: '', sectors: [], check: '' });
-    setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, wi_connector: null });
+    setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, ...CLEAR_CONNECTOR_LENS });
     setSelectedIds(new Set());
     setExpandedIds(new Set());
   };
@@ -200,12 +201,15 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const members = useMemo(() => data?.items ?? [], [data]);
 
-  // Connector lens: when a founder/team is chosen in the unified search, keep
-  // only members whose paths route through that node.
+  // Connector lens: when a unified-search result is chosen, keep only members
+  // whose paths route through matching hop-chain nodes.
   const connectorLabel = filters.wi_connector;
+  const connectorExactLabels =
+    filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
+  const connectorContainsLabels = filters.wi_connector_contains;
   const { matchedIds: lensMatched, isLoading: lensLoading } = useConnectorLens(
     members,
-    connectorLabel,
+    { exactLabels: connectorExactLabels, containsLabels: connectorContainsLabels },
     !!connectorLabel,
   );
 
@@ -221,13 +225,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   }, [data, onCountChange]);
 
   const onUnifiedSelect = (sel: UnifiedSelection) => {
-    if (sel.kind === 'investor') {
-      setFilters({ investorId: sel.investorId });
-    } else {
-      // founder / team → connector-lens filter
-      setFilters({ wi_connector: sel.nodeLabel });
-      analytics.trackConnectorLensApplied({ nodeLabel: sel.nodeLabel, kind: sel.kind });
-    }
+    setFilters(selectionToConnectorFilter(sel));
+    analytics.trackConnectorLensApplied({ nodeLabel: sel.displayLabel, kind: sel.kind });
   };
 
   const toggleExpanded = (id: string, bestProximityCode?: string | null) => {
@@ -311,7 +310,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               <button
                 type="button"
                 className={s.lensClear}
-                onClick={() => setFilters({ wi_connector: null })}
+                onClick={() => setFilters(CLEAR_CONNECTOR_LENS)}
                 aria-label="Clear connector lens"
               >
                 &times;

@@ -71,9 +71,9 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
-  /** Fired when a founder/team is chosen in the unified search → connector-lens filter. */
+  /** Fired when a unified-search result applies the connector-lens filter. */
   const trackConnectorLensApplied = useCallback(
-    (params: { nodeLabel: string; kind: 'founder' | 'team' }) => {
+    (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CONNECTOR_LENS_APPLIED, params);
     },
     [posthog],

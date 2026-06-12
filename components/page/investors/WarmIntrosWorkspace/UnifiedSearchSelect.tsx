@@ -8,12 +8,13 @@ import { useSearchInvestors } from '@/services/investors/hooks/useSearchInvestor
 import type { PlPortfolioTeam } from '@/services/investors/types';
 import s from './WorkspaceTypeahead.module.scss';
 
-/** The chosen result, discriminated by kind. investor/fund → open drawer;
- *  founder/team → apply the connector-lens filter (label is the hop-chain node). */
-export type UnifiedSelection =
-  | { kind: 'investor'; investorId: string; label: string }
-  | { kind: 'founder'; nodeLabel: string }
-  | { kind: 'team'; nodeLabel: string };
+/** Chosen typeahead result — all kinds apply the connector-lens table filter. */
+export type UnifiedSelection = {
+  kind: 'founder' | 'team' | 'investor';
+  displayLabel: string;
+  matchLabels: string[];
+  containsLabels?: string[];
+};
 
 interface Props {
   /** Portfolio teams (with founders[]) for the local founder/team group. */
@@ -23,7 +24,14 @@ interface Props {
 
 const MAX_LOCAL = 6;
 
-type LocalRow = { kind: 'founder' | 'team'; nodeLabel: string; sub: string; key: string };
+type LocalRow = {
+  kind: 'founder' | 'team';
+  displayLabel: string;
+  matchLabels: string[];
+  containsLabels?: string[];
+  sub: string;
+  key: string;
+};
 
 /**
  * One unified typeahead merging the two previous search bars. Results are
@@ -54,14 +62,23 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     if (q.length < 2) return [];
     const rows: LocalRow[] = [];
     (teams ?? []).forEach((t) => {
+      const founderNames = t.founders.map((f) => f.name).filter(Boolean);
       if (t.team_name.toLowerCase().includes(q)) {
-        rows.push({ kind: 'team', nodeLabel: t.team_name, sub: 'Portfolio team', key: `team-${t.team_id}` });
+        rows.push({
+          kind: 'team',
+          displayLabel: t.team_name,
+          matchLabels: [t.team_name, ...founderNames],
+          containsLabels: [t.team_name],
+          sub: 'Portfolio team',
+          key: `team-${t.team_id}`,
+        });
       }
       t.founders.forEach((f) => {
         if (f.name.toLowerCase().includes(q)) {
           rows.push({
             kind: 'founder',
-            nodeLabel: f.name,
+            displayLabel: f.name,
+            matchLabels: [f.name],
             sub: `Founder · ${t.team_name}`,
             key: `founder-${t.team_id}-${f.member_uid || f.name}`,
           });
@@ -90,17 +107,12 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     const entry = flat[i];
     if (!entry) return;
     if (entry.type === 'local') {
-      onSelect(
-        entry.row.kind === 'founder'
-          ? { kind: 'founder', nodeLabel: entry.row.nodeLabel }
-          : { kind: 'team', nodeLabel: entry.row.nodeLabel },
-      );
+      const { kind, displayLabel, matchLabels, containsLabels } = entry.row;
+      onSelect({ kind, displayLabel, matchLabels, containsLabels });
     } else {
-      onSelect({
-        kind: 'investor',
-        investorId: entry.inv.investor_id,
-        label: `${entry.inv.first_name} ${entry.inv.last_name}`.trim(),
-      });
+      const displayLabel = `${entry.inv.first_name} ${entry.inv.last_name}`.trim();
+      const matchLabels = [displayLabel, entry.inv.firm].filter((l): l is string => !!l?.trim());
+      onSelect({ kind: 'investor', displayLabel, matchLabels });
     }
     reset();
   };
@@ -156,7 +168,7 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
                   onClick={() => pick(i)}
                   onMouseEnter={() => setHi(i)}
                 >
-                  <span className={s.optName}>{r.nodeLabel}</span>
+                  <span className={s.optName}>{r.displayLabel}</span>
                   <span className={s.optSub}>{r.sub}</span>
                 </div>
               ))}

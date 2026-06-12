@@ -49,9 +49,12 @@ export const investorsFilterParsers = {
   wi_stage: parseAsString.withDefault(''),
   wi_sectors: parseAsArrayOf(parseAsString, ',').withDefault([]),
   wi_check_size: parseAsString.withDefault(''),
-  /** Connector-lens label — when set, only members whose paths route through
-   *  this founder/team node are shown. */
+  /** Connector-lens display label (chip). */
   wi_connector: parseAsString.withDefault(''),
+  /** Exact hop-chain node labels sent to connector-matches. */
+  wi_connector_labels: parseAsArrayOf(parseAsString, '|').withDefault([]),
+  /** Substring hop-chain node labels (team names embedded in longer labels). */
+  wi_connector_contains: parseAsArrayOf(parseAsString, '|').withDefault([]),
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

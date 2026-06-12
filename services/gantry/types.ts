@@ -66,6 +66,7 @@ export interface GantryItem {
   pinCount: number;
   viewerHasPinned: boolean;
   viewerPinNote: string | null;
+  pins?: GantryPinner[];
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;

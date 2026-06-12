@@ -27,6 +27,7 @@ interface Props {
   showNone?: boolean;
   noneLabel?: string;
   notFoundContent?: ReactNode;
+  menuPortalTarget?: HTMLElement | null;
 }
 
 const filterAndSort = (option: MultiSelectOption, input: string) => {
@@ -59,6 +60,7 @@ export const FormMultiSelect = ({
   showNone,
   noneLabel = 'None',
   notFoundContent,
+  menuPortalTarget,
 }: Props) => {
   const {
     formState: { errors },
@@ -110,6 +112,8 @@ export const FormMultiSelect = ({
       )}
       <Select
         menuPlacement="auto"
+        menuPortalTarget={menuPortalTarget}
+        menuPosition={menuPortalTarget ? 'fixed' : undefined}
         isMulti
         onInputChange={(value) => setInputValue(value)}
         inputValue={inputValue}
@@ -260,8 +264,11 @@ export const FormMultiSelect = ({
           option: (baseStyles) => ({
             ...baseStyles,
             fontSize: '14px',
-            fontWeight: 300,
+            fontWeight: 500,
+            lineHeight: '20px',
+            letterSpacing: '-0.2px',
             color: '#455468',
+            padding: '12px 8px',
             '&:hover': {
               background: 'rgba(27, 56, 96, 0.12)',
             },
@@ -271,6 +278,7 @@ export const FormMultiSelect = ({
             outline: 'none',
             zIndex: 3,
           }),
+          menuPortal: (base) => ({ ...base, zIndex: 10000 }),
           multiValueRemove: (base) => ({
             ...base,
             height: '100%',

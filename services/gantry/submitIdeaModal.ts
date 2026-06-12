@@ -46,5 +46,6 @@ export function getSubmitIdeaFormDefaults(variant: SubmitIdeaModalVariant): Subm
     stage,
     tags: [],
     type: null,
+    objective: null,
   };
 }

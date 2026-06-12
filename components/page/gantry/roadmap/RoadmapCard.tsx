@@ -98,15 +98,17 @@ function RoadmapCardContent({
 
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
-        <div className={s.cardActions}>
-          <BoostButton
-            count={item.pinCount}
-            hasPinned={item.viewerHasPinned}
-            readonly={interactionLocked}
-            disabled={isPinDisabled}
-            onToggle={(next, el) => onPinToggle(item.uid, next, el)}
-          />
-        </div>
+        {item.stage !== 'BACKLOG' && (
+          <div className={s.cardActions}>
+            <BoostButton
+              count={item.pinCount}
+              hasPinned={item.viewerHasPinned}
+              readonly={interactionLocked}
+              disabled={isPinDisabled}
+              onToggle={(next, el) => onPinToggle(item.uid, next, el)}
+            />
+          </div>
+        )}
       </div>
 
       {warnPinOrder && position !== undefined && canCurate && (

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { BackButton } from '@/components/ui/BackButton/BackButton';
 import { EditButton } from '@/components/common/profile/EditButton';
@@ -58,6 +58,7 @@ export function GantryDetailPage({ uid }: Props) {
     handleSwapSelect,
     handleSwapDismiss,
   } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
+  const isNavigatingAwayRef = useRef(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
@@ -103,6 +104,24 @@ export function GantryDetailPage({ uid }: Props) {
   }
 
   if (isError || !item) {
+    if (isNavigatingAwayRef.current) {
+      return (
+        <div className={s.root}>
+          <div className={s.headerContainer}>
+            <BackButton to="/gantry/dashboard" className={s.backButton} />
+          </div>
+          <div className={s.page}>
+            <div className={s.card}>
+              <div className={s.mainContent}>
+                <div className={s.header}>
+                  <div className={s.skeletonBlock} style={{ width: '70%', height: 42 }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={s.root}>
         <div className={s.headerContainer}>
@@ -129,10 +148,12 @@ export function GantryDetailPage({ uid }: Props) {
 
   const handleArchiveConfirm = async () => {
     try {
+      isNavigatingAwayRef.current = true;
       await archiveMutation.mutateAsync('Archived from detail page');
       setIsArchiveModalOpen(false);
       router.push('/gantry/dashboard');
     } catch {
+      isNavigatingAwayRef.current = false;
       // Keep modal open so the user can retry or cancel.
     }
   };

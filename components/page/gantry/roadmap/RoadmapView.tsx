@@ -210,7 +210,7 @@ export function RoadmapView() {
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: allowsAdminOrdering && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder: allowsAdminOrdering && stage === 'PLANNED' && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 

@@ -104,9 +104,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       // is also graphed, a bare find(is_graphed) would pick Gold (sorts first by
       // name), so prefer the flagship neuro list explicitly.
       const def =
-        lists.find((l) => l.slug === 'neuro-lp' && l.is_graphed) ??
-        lists.find((l) => l.is_graphed) ??
-        lists[0];
+        lists.find((l) => l.slug === 'neuro-lp' && l.is_graphed) ?? lists.find((l) => l.is_graphed) ?? lists[0];
       setFilters({ wi_list_id: def.id });
     }
   }, [filters.wi_list_id, lists, setFilters]);

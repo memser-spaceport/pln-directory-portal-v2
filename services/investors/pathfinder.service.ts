@@ -78,6 +78,24 @@ export async function fetchPathsForTarget(investorId: string): Promise<PathsForT
   };
 }
 
+/** Batch connector lens: of the given targets, which have a path routing
+ *  through any of the given connector node labels. One request for the whole
+ *  visible page (POST because the id list is too long for a query string). */
+export async function fetchConnectorMatches(targetInvestorIds: string[], connectorLabels: string[]): Promise<string[]> {
+  const res = await customFetch(
+    `${PATHFINDER_API_URL}/connector-matches`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_investor_ids: targetInvestorIds, connector_labels: connectorLabels }),
+    },
+    true,
+  );
+  if (!res || !res.ok) return [];
+  const json = await res.json();
+  return ((json.matchedIds ?? []) as string[]).filter((id) => typeof id === 'string');
+}
+
 /** Persist an investment-team override (caliber / connector / path validity).
  *  Returns true on success. Gated server-side on investor_db.edit. */
 export async function submitCorrection(input: CorrectionInput): Promise<boolean> {

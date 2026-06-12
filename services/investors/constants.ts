@@ -20,6 +20,7 @@ export enum InvestorsQueryKeys {
   WARM_INTROS = 'investors-warm-intros',
   SAVED_VIEWS = 'investors-saved-views',
   PATHS_FOR_TARGET = 'investors-paths-for-target',
+  CONNECTOR_MATCHES = 'investors-connector-matches',
   // Lists IA
   INVESTOR_LISTS = 'investors-lists',
   LIST_MEMBERS = 'investors-list-members',
@@ -233,13 +234,7 @@ export const INVESTOR_COLUMN_GROUPS = [
   },
   {
     group: 'Pipeline meta',
-    columns: [
-      'proximity_code',
-      'enrichment_status',
-      'enrichment_date',
-      'last_enrichment_attempt',
-      'enrichment_notes',
-    ],
+    columns: ['proximity_code', 'enrichment_status', 'enrichment_date', 'last_enrichment_attempt', 'enrichment_notes'],
   },
   {
     group: 'LabOS',

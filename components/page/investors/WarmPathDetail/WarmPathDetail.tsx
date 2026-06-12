@@ -91,7 +91,7 @@ function formatDate(iso: string): string {
 export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props) {
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
   const { trackPathsViewed, trackCorrectionSubmitted } = useInvestorsAnalytics();
-  const submitCorrection = useSubmitCorrection();
+  const submitCorrection = useSubmitCorrection(investorId);
 
   const paths = data?.paths ?? [];
 

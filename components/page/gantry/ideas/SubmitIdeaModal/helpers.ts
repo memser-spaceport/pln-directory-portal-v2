@@ -70,6 +70,26 @@ export interface SubmitIdeaFormData {
   objective?: Option | null;
 }
 
+export type SubmitIdeaDraft = {
+  form: SubmitIdeaFormData;
+  showCreateObjective: boolean;
+  newObjectiveTitle: string;
+};
+
+export function isSubmitIdeaDraftEmpty(draft: SubmitIdeaDraft): boolean {
+  const { form, newObjectiveTitle, showCreateObjective } = draft;
+
+  return (
+    !form.title.trim() &&
+    !hasRichTextContent(form.description) &&
+    !(form.tags?.length) &&
+    !form.type &&
+    !form.objective &&
+    !newObjectiveTitle.trim() &&
+    !showCreateObjective
+  );
+}
+
 /** True when the rich-text value has visible content (ignores empty Quill markup). */
 export function hasRichTextContent(html: string | undefined | null): boolean {
   return !!html && stripHtml(html).length > 0;

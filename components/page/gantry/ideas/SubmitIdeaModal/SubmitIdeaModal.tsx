@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -17,11 +17,19 @@ import { assignGantryItemObjective } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
 
 import {
+  getSubmitIdeaDraftKey,
   getSubmitIdeaFormDefaults,
   SUBMIT_IDEA_MODAL_COPY,
 } from '@/services/gantry/submitIdeaModal';
+import { useFormDraft } from '@/hooks/useFormDraft';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
-import { submitIdeaSchema, hasRichTextContent, type SubmitIdeaFormData } from './helpers';
+import {
+  submitIdeaSchema,
+  hasRichTextContent,
+  isSubmitIdeaDraftEmpty,
+  type SubmitIdeaDraft,
+  type SubmitIdeaFormData,
+} from './helpers';
 import dealModalStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import s from './SubmitIdeaModal.module.scss';
 
@@ -54,16 +62,26 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     formState: { isValid },
   } = methods;
 
-  useEffect(() => {
-    if (open) {
-      reset(getSubmitIdeaFormDefaults(variant));
-      setShowCreateObjective(false);
-      setNewObjectiveTitle('');
-    }
-  }, [open, variant, reset]);
+  const { clearDraft } = useFormDraft<SubmitIdeaFormData, SubmitIdeaDraft>({
+    storageKey: getSubmitIdeaDraftKey(variant),
+    enabled: open,
+    methods,
+    getDefaults: () => getSubmitIdeaFormDefaults(variant),
+    toDraft: (form) => ({
+      form,
+      showCreateObjective,
+      newObjectiveTitle,
+    }),
+    fromDraft: (draft) => draft.form,
+    isEmpty: isSubmitIdeaDraftEmpty,
+    onRestore: (draft) => {
+      setShowCreateObjective(draft?.showCreateObjective ?? false);
+      setNewObjectiveTitle(draft?.newObjectiveTitle ?? '');
+    },
+    saveDeps: [showCreateObjective, newObjectiveTitle],
+  });
 
   const onClose = () => {
-    reset(getSubmitIdeaFormDefaults('idea'));
     actions.closeModal();
   };
 
@@ -99,7 +117,10 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
             }
           }
           analytics.onIdeaCreated(created.uid, tags, itemType);
+          clearDraft();
           reset(getSubmitIdeaFormDefaults('idea'));
+          setShowCreateObjective(false);
+          setNewObjectiveTitle('');
           actions.closeModal();
           router.push(`/gantry/${created.uid}`);
         },

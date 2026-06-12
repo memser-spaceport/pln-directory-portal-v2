@@ -32,6 +32,7 @@ import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
+import FilterCount from '@/components/ui/filter-count';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
@@ -181,6 +182,11 @@ export function RoadmapView() {
     setShowBoostTip(false);
   };
 
+  const handleClearAllFilters = () => {
+    filters.handleClearAll();
+    setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
+  };
+
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated
   // the list endpoint — reconcile here so the pin button always reflects reality.
@@ -204,7 +210,7 @@ export function RoadmapView() {
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: allowsAdminOrdering && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder: allowsAdminOrdering && stage === 'PLANNED' && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
@@ -281,29 +287,29 @@ export function RoadmapView() {
               <div className={s.titleSection}>
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
-                  <div className={s.mobileActionsRow}>
-                    {boostStatusIndicator}
-                    <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
-                      <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path
-                          d="M2 4h12M4.5 8h7M7 12h2"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      Filters
-                      {filters.activeFiltersCount > 0 && (
-                        <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
-                      )}
-                    </button>
-                    {canCreate && (
-                      <IdeasSubmitButton
-                        label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                  {boostStatusIndicator}
+                </div>
+                <div className={s.mobileActionsRow}>
+                  <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
+                    <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M2 4h12M4.5 8h7M7 12h2"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       />
+                    </svg>
+                    Filters
+                    {filters.activeFiltersCount > 0 && (
+                      <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
                     )}
-                  </div>
+                  </button>
+                  {canCreate && (
+                    <IdeasSubmitButton
+                      label={createLabel}
+                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                    />
+                  )}
                 </div>
                 <p className={s.subtitle}>
                   Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
@@ -365,7 +371,21 @@ export function RoadmapView() {
           )}
         </div>
 
-        <MobileDrawer isOpen={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+        <MobileDrawer
+          isOpen={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          title={
+            <>
+              Filters
+              {filters.activeFiltersCount > 0 && <FilterCount count={filters.activeFiltersCount} />}
+            </>
+          }
+          headerAction={
+            <button className={s.drawerClearAllBtn} onClick={handleClearAllFilters} type="button">
+              Clear all
+            </button>
+          }
+        >
           <RoadmapFiltersContent
             visibleColumns={visibleColumns}
             onVisibleColumnsChange={setVisibleColumns}

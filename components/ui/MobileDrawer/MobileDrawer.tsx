@@ -8,12 +8,13 @@ import { clsx } from 'clsx';
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
+  title?: React.ReactNode;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }
 
-export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, title, children, className }) => {
+export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, title, headerAction, children, className }) => {
   // Handle escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -30,7 +31,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, tit
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
 
@@ -46,6 +47,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, tit
         {title && (
           <div className={styles.header}>
             <h3 className={styles.title}>{title}</h3>
+            {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
             <button className={styles.closeButton} onClick={onClose} aria-label="Close drawer">
               <CloseIcon />
             </button>

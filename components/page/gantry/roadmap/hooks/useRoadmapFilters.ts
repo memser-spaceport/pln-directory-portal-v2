@@ -42,6 +42,13 @@ export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], a
 
   const activeFiltersCount = selectedTags.length + selectedTypes.length + (selectedObjective ? 1 : 0) + (searchText ? 1 : 0);
 
+  const handleClearAll = () => {
+    setSelectedTags([]);
+    setSelectedTypes([]);
+    setSelectedObjective(null);
+    setSearchText('');
+  };
+
   return {
     selectedTags,
     handleSelectedTagsChange,
@@ -51,6 +58,7 @@ export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], a
     handleSelectedObjectiveChange,
     searchText,
     handleSearchTextChange,
+    handleClearAll,
     params,
     activeFiltersCount,
   };

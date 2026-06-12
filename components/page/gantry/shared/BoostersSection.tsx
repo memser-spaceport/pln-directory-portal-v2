@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
-import type { GantryItem } from '@/services/gantry/types';
+import type { GantryItem, GantryPinner } from '@/services/gantry/types';
 import s from './BoostersSection.module.scss';
 
 const AVATAR_COLORS = [
@@ -42,8 +42,15 @@ function LockIcon() {
 
 export function BoostersSection({ item }: { item: GantryItem }) {
   const [showAll, setShowAll] = useState(false);
-  const { data: pinners = [], isLoading } = useGantryItemPins(item.uid, item.pinCount > 0);
-  if (isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
+  // Use inline pins from the list/detail response when available to avoid N+1 requests.
+  // Fall back to the dedicated hook only when pins weren't embedded (e.g. older API responses).
+  const inlinePins = item.pins;
+  const { data: fetchedPins, isLoading } = useGantryItemPins(
+    item.uid,
+    !inlinePins && item.pinCount > 0,
+  );
+  const pinners: GantryPinner[] = inlinePins ?? fetchedPins ?? [];
+  if (!inlinePins && isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
   if (pinners.length === 0) return null;
   const visible = showAll ? pinners : pinners.slice(0, MAX_PINNERS_VISIBLE);
   const hasMore = pinners.length > MAX_PINNERS_VISIBLE;

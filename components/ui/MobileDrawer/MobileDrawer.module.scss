@@ -79,6 +79,10 @@
   overflow-y: auto;
   padding: 8px 12px;
   -webkit-overflow-scrolling: touch;
+
+  > div {
+    margin-bottom: 12px;
+  }
 }
 
 /* Animations */

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import type { GantryItem } from '@/services/gantry/types';
 import s from './BoostersSection.module.scss';
@@ -40,11 +41,12 @@ function LockIcon() {
 }
 
 export function BoostersSection({ item }: { item: GantryItem }) {
+  const [showAll, setShowAll] = useState(false);
   const { data: pinners = [], isLoading } = useGantryItemPins(item.uid, item.pinCount > 0);
   if (isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
   if (pinners.length === 0) return null;
-  const visible = pinners.slice(0, MAX_PINNERS_VISIBLE);
-  const hasMore = item.pinCount > MAX_PINNERS_VISIBLE;
+  const visible = showAll ? pinners : pinners.slice(0, MAX_PINNERS_VISIBLE);
+  const hasMore = pinners.length > MAX_PINNERS_VISIBLE;
   return (
     <div className={s.boostersSection}>
       <div className={s.boostersHeader}>
@@ -70,8 +72,15 @@ export function BoostersSection({ item }: { item: GantryItem }) {
         );
       })}
       {hasMore && (
-        <button type="button" className={s.showAllBoosters} onClick={(e) => e.stopPropagation()}>
-          Show all {item.pinCount} boosters &amp; notes
+        <button
+          type="button"
+          className={s.showAllBoosters}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAll((v) => !v);
+          }}
+        >
+          {showAll ? 'Show less' : `Show all ${item.pinCount} boosters & notes`}
         </button>
       )}
     </div>

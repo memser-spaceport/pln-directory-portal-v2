@@ -281,29 +281,29 @@ export function RoadmapView() {
               <div className={s.titleSection}>
                 <div className={s.titleInline}>
                   <h1 className={s.title}>Gantry</h1>
-                  <div className={s.mobileActionsRow}>
-                    {boostStatusIndicator}
-                    <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
-                      <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path
-                          d="M2 4h12M4.5 8h7M7 12h2"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      Filters
-                      {filters.activeFiltersCount > 0 && (
-                        <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
-                      )}
-                    </button>
-                    {canCreate && (
-                      <IdeasSubmitButton
-                        label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                  {boostStatusIndicator}
+                </div>
+                <div className={s.mobileActionsRow}>
+                  <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
+                    <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M2 4h12M4.5 8h7M7 12h2"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       />
+                    </svg>
+                    Filters
+                    {filters.activeFiltersCount > 0 && (
+                      <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
                     )}
-                  </div>
+                  </button>
+                  {canCreate && (
+                    <IdeasSubmitButton
+                      label={createLabel}
+                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                    />
+                  )}
                 </div>
                 <p className={s.subtitle}>
                   Submit what you need, see what we are building. The shortest path to the LabOS roadmap.

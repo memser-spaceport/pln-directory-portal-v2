@@ -9,6 +9,11 @@
   width: 100%;
   min-height: 0;
   margin: 0;
+
+  @include mobile-only {
+    height: calc(100dvh - var(--app-header-height, 56px));
+    overflow: hidden;
+  }
 }
 
 .content {
@@ -584,7 +589,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .filtersButton {
@@ -632,8 +638,6 @@
 
 .mobileTabs {
   flex-shrink: 0;
-  position: sticky;
-  top: var(--app-header-height, 56px);
   background: #f1f5f9;
   z-index: 10;
 }

@@ -3,6 +3,7 @@ import type {
   CorrectionInput,
   PathCaliber,
   PathConnectorType,
+  PathCorrection,
   PathHopChain,
   PathfinderPath,
   PathsForTargetResponse,
@@ -32,6 +33,18 @@ function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
   return { nodes, edges, explanation: (dto?.explanation ?? '') as string };
 }
 
+function mapCorrection(dto: AnyDto): PathCorrection {
+  return {
+    id: dto.id as number,
+    field: (dto.field ?? '') as string,
+    old_value: dto.oldValue ?? null,
+    new_value: dto.newValue ?? null,
+    note: (dto.note ?? null) as string | null,
+    actor_email: (dto.actorEmail ?? null) as string | null,
+    created_at: (dto.createdAt ?? '') as string,
+  };
+}
+
 export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
   return {
     id: dto.id as number,
@@ -45,6 +58,7 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
     hop_chain: mapHopChain(dto.hopChain),
     rank: (dto.rank ?? 0) as number,
     computed_at: dto.computedAt ?? undefined,
+    corrections: ((dto.corrections ?? []) as AnyDto[]).map(mapCorrection),
   };
 }
 

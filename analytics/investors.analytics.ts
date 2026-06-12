@@ -36,7 +36,7 @@ export function useInvestorsAnalytics() {
   );
 
   const trackCorrectionSubmitted = useCallback(
-    (params: { investorId: string; subjectType: string; field: string }) => {
+    (params: { investorId: string; pathId: number; subjectType: string; field: string }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.PATHFINDER_CORRECTION_SUBMITTED, params);
     },
     [posthog],

@@ -344,6 +344,20 @@ export type PathfinderPath = {
   /** Rank within this target's path list (1 = best). */
   rank: number;
   computed_at?: string;
+  /** Pending (not yet recomputed) human overrides already submitted for this
+   *  path — shown so admins don't submit the same correction twice. */
+  corrections: PathCorrection[];
+};
+
+/** A pending correction on a path, as returned by GET /pathfinder/paths/:investorId. */
+export type PathCorrection = {
+  id: number;
+  field: PathCorrectionField | string;
+  old_value: unknown;
+  new_value: unknown;
+  note: string | null;
+  actor_email: string | null;
+  created_at: string;
 };
 
 export type PathsForTargetResponse = {
@@ -352,8 +366,14 @@ export type PathsForTargetResponse = {
   paths: PathfinderPath[];
 };
 
-/** Subject of a human correction (mirrors backend CreateCorrectionDto). */
-export type CorrectionSubjectType = 'path' | 'caliber' | 'connector' | 'crosswalk' | 'entity' | 'action' | 'curation';
+/** ID domain of a correction's subject_id (mirrors backend CreateCorrectionDto):
+ *  subject_type says what kind of thing subject_id identifies; `field` says which
+ *  attribute is being corrected. A caliber override on a path is subject_type
+ *  'path' + field 'caliber'. */
+export type CorrectionSubjectType = 'path' | 'crosswalk' | 'entity' | 'action' | 'curation';
+
+/** Attributes correctable on a PathfinderPath (mirrors backend PATH_CORRECTION_FIELDS). */
+export type PathCorrectionField = 'caliber' | 'connector_type' | 'valid' | 'note';
 
 /** A persisted investment-team override; feeds the next recompute and seeds the
  *  future Affinity write-back. */

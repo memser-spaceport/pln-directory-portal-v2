@@ -67,7 +67,11 @@ export function InvestorDrawer({ access }: Props) {
                 </div>
                 <div className={s.metaSub}>
                   {investor.investor_id}
-                  {investor.canonical_id && <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>}
+                  {/* canonical_id == investor_id is the DB-wide convention for "is canonical",
+                      not a duplicate — only a differing canonical id marks a merged record. */}
+                  {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
+                    <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>
+                  )}
                 </div>
               </div>
               <button className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
@@ -301,9 +305,7 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Dedupe key</dt>
               <dd className={s.mono}>{investor.dedupe_key}</dd>
             </dl>
-            <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>
-              Enrichment notes
-            </h3>
+            <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>Enrichment notes</h3>
             <EnrichmentNotesViewer notes={investor.enrichment_notes} />
           </div>
 

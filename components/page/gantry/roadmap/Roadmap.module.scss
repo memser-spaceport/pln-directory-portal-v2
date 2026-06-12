@@ -10,7 +10,7 @@
   min-height: 0;
   margin: 0;
 
-  @include mobile-only {
+  @media (max-width: 1023px) {
     height: calc(100dvh - var(--app-header-height, 56px));
     overflow: hidden;
   }
@@ -25,7 +25,7 @@
   max-width: 100%;
   min-height: 0;
 
-  @include mobile-only {
+  @media (max-width: 1023px) {
     padding: 12px 8px;
   }
 }
@@ -33,6 +33,11 @@
 .pageHeader {
   flex-shrink: 0;
   width: 100%;
+
+  @media (min-width: 1024px) {
+    background: #f1f5f9;
+    padding-bottom: 4px;
+  }
 }
 
 .titleRow {
@@ -41,8 +46,7 @@
   gap: 8px;
   width: 100%;
 
-  @include mobile-only {
-    align-items: flex-start;
+  @media (max-width: 1023px) {
     justify-content: space-between;
   }
 }
@@ -61,8 +65,7 @@
   gap: 8px;
   width: 100%;
 
-  @include mobile-only {
-    align-items: flex-start;
+  @media (max-width: 1023px) {
     justify-content: space-between;
   }
 }
@@ -591,6 +594,21 @@
   gap: 8px;
   width: 100%;
   justify-content: space-between;
+}
+
+.drawerClearAllBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #156ff7;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .filtersButton {

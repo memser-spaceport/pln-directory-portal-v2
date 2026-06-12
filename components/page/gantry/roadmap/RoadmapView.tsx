@@ -32,6 +32,7 @@ import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
+import FilterCount from '@/components/ui/filter-count';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
@@ -179,6 +180,11 @@ export function RoadmapView() {
   const dismissBoostTip = () => {
     localStorage.setItem(BOOST_TIP_KEY, '1');
     setShowBoostTip(false);
+  };
+
+  const handleClearAllFilters = () => {
+    filters.handleClearAll();
+    setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   };
 
   // pinStatus.pins is the authoritative source for the current user's pins.
@@ -365,7 +371,21 @@ export function RoadmapView() {
           )}
         </div>
 
-        <MobileDrawer isOpen={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+        <MobileDrawer
+          isOpen={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          title={
+            <>
+              Filters
+              {filters.activeFiltersCount > 0 && <FilterCount count={filters.activeFiltersCount} />}
+            </>
+          }
+          headerAction={
+            <button className={s.drawerClearAllBtn} onClick={handleClearAllFilters} type="button">
+              Clear all
+            </button>
+          }
+        >
           <RoadmapFiltersContent
             visibleColumns={visibleColumns}
             onVisibleColumnsChange={setVisibleColumns}

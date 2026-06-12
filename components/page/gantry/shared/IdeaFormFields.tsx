@@ -74,9 +74,21 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
         />
       </div>
 
-      <FormMultiSelect name="tags" label="Tags" placeholder="Select tags..." options={GANTRY_TAG_OPTIONS} />
+      <FormMultiSelect
+        name="tags"
+        label="Tags"
+        placeholder="Select tags..."
+        options={GANTRY_TAG_OPTIONS}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+      />
 
-      <FormSelect name="type" label="Type of request" placeholder="Select a type" options={GANTRY_ITEM_TYPE_OPTIONS} />
+      <FormSelect
+        name="type"
+        label="Type of request"
+        placeholder="Select a type"
+        options={GANTRY_ITEM_TYPE_OPTIONS}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+      />
     </div>
   );
 }

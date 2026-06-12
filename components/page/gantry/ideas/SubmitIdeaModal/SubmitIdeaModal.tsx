@@ -131,7 +131,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
                   placeholder="Select an objective..."
                   options={objectiveOptions}
                   isClearable
-                  menuPlacement="top"
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                   onChange={() => {
                     setShowCreateObjective(false);
                     setNewObjectiveTitle('');

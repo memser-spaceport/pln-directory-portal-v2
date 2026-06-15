@@ -794,6 +794,9 @@
 .mobileScrollLocked {
   overflow-x: hidden !important;
   touch-action: none;
+  // Disable snap while dragging so the browser can't jump to another snap point
+  // when overflow changes from scroll→hidden.
+  scroll-snap-type: none !important;
 }
 
 // DragOverlay wrapper on mobile — must exceed .mobileTabs (z-index: 10).

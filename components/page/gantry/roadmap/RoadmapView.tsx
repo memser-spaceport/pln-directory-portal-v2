@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
-import { DndContext, DragOverlay } from '@dnd-kit/core';
+import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
@@ -194,6 +194,24 @@ export function RoadmapView() {
     setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   };
 
+  // Imperatively lock the mobile scroll container's position when a drag starts so
+  // that the browser's scroll-snap can't jump to another column while overflow changes.
+  const scrollLockCleanupRef = useRef<(() => void) | null>(null);
+  const handleMobileDragStart = (event: DragStartEvent) => {
+    dnd.handleDragStart(event);
+    const container = scrollContainerRef.current;
+    if (container) {
+      const locked = container.scrollLeft;
+      const reset = () => { container.scrollLeft = locked; };
+      container.addEventListener('scroll', reset, { passive: true });
+      scrollLockCleanupRef.current = () => container.removeEventListener('scroll', reset);
+    }
+  };
+  const releaseMobileScrollLock = () => {
+    scrollLockCleanupRef.current?.();
+    scrollLockCleanupRef.current = null;
+  };
+
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated
   // the list endpoint — reconcile here so the pin button always reflects reality.
@@ -289,10 +307,10 @@ export function RoadmapView() {
     return (
       <DndContext
         sensors={dnd.sensors}
-        onDragStart={dnd.handleDragStart}
+        onDragStart={handleMobileDragStart}
         onDragOver={dnd.handleDragOver}
-        onDragEnd={dnd.handleDragEnd}
-        onDragCancel={dnd.handleDragCancel}
+        onDragEnd={(e) => { releaseMobileScrollLock(); dnd.handleDragEnd(e); }}
+        onDragCancel={() => { releaseMobileScrollLock(); dnd.handleDragCancel(); }}
       >
         <div className={s.pageLayout}>
           <div className={s.content}>

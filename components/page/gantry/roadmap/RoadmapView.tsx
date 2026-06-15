@@ -215,18 +215,18 @@ export function RoadmapView() {
       if (now - lastSwitch < COOLDOWN_MS) return;
       const idx = Math.round(container.scrollLeft / container.offsetWidth);
       if (lastX > window.innerWidth - EDGE_PX && idx < orderedVisibleColumns.length - 1) {
-        const el = columnRefs.current.get(orderedVisibleColumns[idx + 1]);
-        if (el) { container.scrollTo({ left: el.offsetLeft, behavior: 'smooth' }); lastSwitch = now; }
+        handleTabChange(orderedVisibleColumns[idx + 1]);
+        lastSwitch = now;
       } else if (lastX < EDGE_PX && idx > 0) {
-        const el = columnRefs.current.get(orderedVisibleColumns[idx - 1]);
-        if (el) { container.scrollTo({ left: el.offsetLeft, behavior: 'smooth' }); lastSwitch = now; }
+        handleTabChange(orderedVisibleColumns[idx - 1]);
+        lastSwitch = now;
       }
     };
 
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     const id = setInterval(tick, 150);
     return () => { window.removeEventListener('touchmove', onTouchMove); clearInterval(id); };
-  }, [isNarrow, dnd.isDragging, orderedVisibleColumns, columnRefs, scrollContainerRef]);
+  }, [isNarrow, dnd.isDragging, orderedVisibleColumns, scrollContainerRef, handleTabChange]);
 
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated

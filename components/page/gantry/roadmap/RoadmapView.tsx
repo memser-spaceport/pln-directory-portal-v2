@@ -361,7 +361,7 @@ export function RoadmapView() {
                     className={clsx(s.mobileScrollContainer, dnd.isDragging && s.mobileScrollLocked)}
                   >
                     {orderedVisibleColumns.map((stage) => {
-                      const canDragInColumn = isAdminOrdering && isAdminOrderedRoadmapStage(stage);
+                      const { isDraggable: canDragInColumn } = columnDragState(stage);
                       const canMoveStage =
                         canTransition && orderedVisibleColumns.length > 1 && stage !== 'DECLINED' && stage !== 'IDEA';
                       const availableStages = orderedVisibleColumns.filter((col) => col !== stage);

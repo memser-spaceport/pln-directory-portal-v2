@@ -36,6 +36,7 @@ interface CardContentProps {
   readonly item: GantryItem;
   readonly position?: number;
   readonly dragHandleProps?: SyntheticListenerMap;
+  readonly showDragIndicator?: boolean;
   readonly canPin: boolean;
   readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
   readonly isPinDisabled: boolean;
@@ -50,6 +51,7 @@ function RoadmapCardContent({
   item,
   position,
   dragHandleProps,
+  showDragIndicator,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -65,7 +67,7 @@ function RoadmapCardContent({
     <>
       <div className={s.cardTopRow}>
         <div className={s.cardPositionBadge}>
-          {dragHandleProps && (
+          {dragHandleProps ? (
             <button
               type="button"
               className={s.dragHandle}
@@ -75,7 +77,11 @@ function RoadmapCardContent({
             >
               <DragGripIcon />
             </button>
-          )}
+          ) : showDragIndicator ? (
+            <span className={s.dragHandle} aria-hidden>
+              <DragGripIcon />
+            </span>
+          ) : null}
           {position !== undefined && item.stage !== 'IDEA' && item.stage !== 'SHIPPED' && item.stage !== 'DECLINED' && (
             <span className={clsx(s[`cardPosition_${item.stage}`])}>#{position}</span>
           )}
@@ -212,6 +218,7 @@ export function RoadmapCard({
         item={item}
         position={position}
         dragHandleProps={!isMobile && canDrag ? listeners : undefined}
+        showDragIndicator={isMobile && canDrag}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}

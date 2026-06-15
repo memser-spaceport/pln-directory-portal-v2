@@ -1,4 +1,4 @@
-@import "styles/mixins";
+@import 'styles/mixins';
 
 .wrap {
   display: flex;
@@ -33,7 +33,7 @@
   font-size: 12px;
   color: #64748b;
   white-space: nowrap;
-  background: var(--background-neutral-soft-surface, #F9FAFB);
+  background: var(--background-neutral-soft-surface, #f9fafb);
 }
 
 // ── Frozen first column ───────────────────────────────────────────────────────
@@ -53,12 +53,18 @@
 
 thead .frozenName {
   z-index: 3;
-  background: var(--background-neutral-soft-surface, #F9FAFB);
+  background: var(--background-neutral-soft-surface, #f9fafb);
 }
 
-.row:hover .frozenName { background: #f8fafc; }
-.rowSelected .frozenName { background: #eef2ff; }
-.rowSelected:hover .frozenName { background: #e0e7ff; }
+.row:hover .frozenName {
+  background: #f8fafc;
+}
+.rowSelected .frozenName {
+  background: #eef2ff;
+}
+.rowSelected:hover .frozenName {
+  background: #e0e7ff;
+}
 
 // ── Rows ─────────────────────────────────────────────────────────────────────
 
@@ -67,9 +73,15 @@ thead .frozenName {
   transition: background 0.08s;
 }
 
-.row:hover { background: #f8fafc; }
-.rowSelected { background: #eef2ff; }
-.rowSelected:hover { background: #e0e7ff; }
+.row:hover {
+  background: #f8fafc;
+}
+.rowSelected {
+  background: #eef2ff;
+}
+.rowSelected:hover {
+  background: #e0e7ff;
+}
 
 .td {
   padding: 10px 16px;
@@ -87,6 +99,30 @@ thead .frozenName {
   min-width: 200px;
   max-width: 300px;
   white-space: normal;
+}
+
+.headlinePrimary {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
+  @include ellipse-text;
+  max-width: 280px;
+}
+
+.nameSecondary {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.pedigreeLine {
+  @include ellipse-text;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+  max-width: 280px;
 }
 
 .namePrimary {
@@ -124,7 +160,6 @@ thead .frozenName {
   font-weight: 600;
 }
 
-
 .sourcesBadge {
   display: inline-flex;
   align-items: center;
@@ -136,7 +171,9 @@ thead .frozenName {
   font-weight: 500;
 }
 
-.muted { color: #94a3b8; }
+.muted {
+  color: #94a3b8;
+}
 
 .empty {
   padding: 48px 32px;

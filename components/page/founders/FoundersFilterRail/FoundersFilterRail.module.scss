@@ -140,3 +140,33 @@
   flex-direction: column;
   gap: 6px;
 }
+
+@import 'components/form/FormSwitch/FormSwitch.module';
+
+.toggleRow {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.toggleLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.switch {
+  @extend .Switch;
+}
+
+.thumb {
+  @extend .Thumb;
+}
+
+.dot {
+  @extend .dot;
+}

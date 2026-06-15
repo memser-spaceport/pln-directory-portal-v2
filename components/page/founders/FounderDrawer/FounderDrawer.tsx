@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { useGetFounderById } from '@/services/founders/hooks/useGetFounderById';
 import { LabOsBadge } from '@/components/page/investors/LabOsBadge/LabOsBadge';
 import { FounderReviewStateBadge } from '../FounderReviewStateBadge/FounderReviewStateBadge';
 import { ReviewActionsPanel } from '../ReviewActionsPanel/ReviewActionsPanel';
-import { FUND_LABEL } from '@/services/founders/constants';
-import { getFundTag } from '@/services/founders/types';
+import { FUND_LABEL, REVIEW_CHANNEL_LABEL } from '@/services/founders/constants';
+import { founderHeadline, getFundTag } from '@/services/founders/types';
+import { FounderSignalBadges } from '../FounderSignalBadges/FounderSignalBadges';
 import type { FounderDetail, PlvsFeatures } from '@/services/founders/types';
 import s from './FounderDrawer.module.scss';
 
@@ -62,113 +63,11 @@ function PlvsFeatureGrid({ features }: { features: PlvsFeatures }) {
   );
 }
 
-export function FounderScoringModal({ open, onClose, triggerRef }: {
-  open: boolean;
-  onClose: () => void;
-  triggerRef: React.RefObject<HTMLButtonElement | null>;
-}) {
-  if (!open) return null;
-
-  const handleClose = () => {
-    onClose();
-    triggerRef.current?.focus();
-  };
-
-  return (
-    <Drawer isOpen={open} onClose={handleClose} width={520} noBlur>
-      <div
-        className={s.scoringBody}
-        id="founder-scoring-panel"
-        aria-labelledby="founder-scoring-title"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            handleClose();
-          }
-        }}
-      >
-        <header className={s.scoringHeader}>
-          <h2 id="founder-scoring-title" className={s.scoringTitle}>Score methodology</h2>
-          <button type="button" className={s.scoringClose} onClick={handleClose} aria-label="Close">✕</button>
-        </header>
-
-        <section className={s.scoringSection}>
-          <h3 className={s.scoringH3}>Alignment Score</h3>
-          <p className={s.scoringLead}>
-            A 0–100% confidence score showing how strongly this founder matches the thesis of their
-            best-matched fund (PLVS, Neuro Tech, or Crypto). The classifier reads the founder&apos;s bio,
-            extracted topics, and signal keywords against each fund&apos;s thesis vocabulary. Alignment
-            shows the highest confidence across all fund tags assigned to this person.
-          </p>
-          <div className={s.scoringNote}>
-            Alignment is not PLN proximity. PLN proximity (shown as a badge) measures graph-distance
-            to the Protocol Labs network — these are separate signals.
-          </div>
-        </section>
-
-        <section className={s.scoringSection}>
-          <h3 className={s.scoringH3}>PLVS Score</h3>
-          <p className={s.scoringLead}>
-            A deterministic, weight-pinned 0–100 investment score computed only for founders tagged
-            to the PLVS fund. Same inputs always produce the same score — no model drift, fully
-            auditable. Each component contributes up to its cap; caps sum to 100.
-          </p>
-          <table className={s.scoringTable}>
-            <thead>
-              <tr>
-                <th>Component</th>
-                <th className={s.scoringRight}>Max pts</th>
-                <th>What it measures</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Domain Match</td>
-                <td className={s.scoringRight}>30</td>
-                <td>Overlap with PLVS thesis vocabulary (agent, llm-infra, ai-native, etc.). The single biggest driver.</td>
-              </tr>
-              <tr>
-                <td>Technical Depth</td>
-                <td className={s.scoringRight}>20</td>
-                <td>Engineering-rigor proxies: GitHub followers, stargazers, h-index, repo count</td>
-              </tr>
-              <tr>
-                <td>Stage Fit</td>
-                <td className={s.scoringRight}>15</td>
-                <td>Intent ladder — just-shipped / stealth-launching scores highest; default (no signal) scores lowest</td>
-              </tr>
-              <tr>
-                <td>Corroboration</td>
-                <td className={s.scoringRight}>15</td>
-                <td>Distinct sources that independently surfaced this founder — more sources, more trust</td>
-              </tr>
-              <tr>
-                <td>Recency</td>
-                <td className={s.scoringRight}>10</td>
-                <td>Exponential decay, 24-month half-life. Academic-to-founder paths remain scorable longer.</td>
-              </tr>
-              <tr>
-                <td>Trajectory</td>
-                <td className={s.scoringRight}>10</td>
-                <td>Growth velocity in followers, commits, and citations</td>
-              </tr>
-            </tbody>
-          </table>
-          <div className={s.scoringNote}>
-            Network signals — PLN proximity and PL alignment — are not part of this score. They
-            appear as separate badges on the founder card and act as tie-breakers only.
-          </div>
-        </section>
-      </div>
-    </Drawer>
-  );
-}
-
 function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; canEdit: boolean; onClose: () => void }) {
-  const [scoringOpen, setScoringOpen] = useState(false);
-  const scoringTriggerRef = useRef<HTMLButtonElement>(null);
-
   const raw = founder.rawPayload;
+  const headline = founderHeadline(founder);
+  const pedigree = founder.pedigree ?? raw?.pedigree;
+  const review = founder.reviewState;
   const fundTags = raw?.fund_tags ?? [];
   const provenance = raw?.provenance ?? [];
   const warmIntros = raw?.warm_intro_paths ?? [];
@@ -182,17 +81,25 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
       <div className={s.header}>
         <div className={s.headerTop}>
           <div className={s.headerWho}>
-            <h2 className={s.name}>{founder.name}</h2>
-            {founder.whyNow && <p className={s.whyNow}>{founder.whyNow}</p>}
+            {headline && <p className={s.headlinePrimary}>{headline}</p>}
+            <h2 className={s.nameSecondary}>{founder.name}</h2>
+            {pedigree && <p className={s.pedigreeLine}>{pedigree}</p>}
           </div>
-          <button className={s.closeBtn} onClick={onClose} aria-label="Close drawer">✕</button>
+          <button className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
+            ✕
+          </button>
         </div>
+        <FounderSignalBadges founder={founder} />
         <div className={s.pillRow}>
           <FounderReviewStateBadge status={founder.reviewState.status} />
           {fundTags.map((t, i) => {
             const key = getFundTag(t);
             if (!key) return null;
-            return <span key={`${key}-${i}`} className={s.fundPill}>{FUND_LABEL[key] ?? key}</span>;
+            return (
+              <span key={`${key}-${i}`} className={s.fundPill}>
+                {FUND_LABEL[key] ?? key}
+              </span>
+            );
           })}
           {founder.labOsProfile && <LabOsBadge profile={founder.labOsProfile} variant="chip" />}
         </div>
@@ -203,7 +110,12 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
         <Section title="Links">
           <div className={s.linkRow}>
             {founder.github && (
-              <a href={`https://github.com/${founder.github}`} target="_blank" rel="noopener noreferrer" className={s.link}>
+              <a
+                href={`https://github.com/${founder.github}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.link}
+              >
                 github.com/{founder.github} ↗
               </a>
             )}
@@ -218,7 +130,12 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
               </a>
             )}
             {founder.twitter && (
-              <a href={`https://twitter.com/${founder.twitter}`} target="_blank" rel="noopener noreferrer" className={s.link}>
+              <a
+                href={`https://twitter.com/${founder.twitter}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.link}
+              >
                 @{founder.twitter} ↗
               </a>
             )}
@@ -232,46 +149,46 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
           <p className={s.bio}>{founder.bio}</p>
           {(founder.topics ?? []).length > 0 && (
             <div className={s.chipList}>
-              {founder.topics!.map((t) => <span key={t} className={s.chip}>{t}</span>)}
+              {founder.topics!.map((t) => (
+                <span key={t} className={s.chip}>
+                  {t}
+                </span>
+              ))}
             </div>
           )}
         </Section>
       )}
 
-      {/* Scores */}
-      <div className={s.section}>
-        <div className={s.sectionHeaderRow}>
-          <h3 className={s.sectionTitle}>Scores</h3>
-          <button
-            ref={scoringTriggerRef}
-            type="button"
-            className={s.howScoredLink}
-            onClick={() => setScoringOpen(true)}
-            aria-expanded={scoringOpen}
-            aria-controls="founder-scoring-panel"
-          >
-            How are scores calculated?
-          </button>
-        </div>
+      <CollapsibleSection title="Affinity-stage detail">
         <dl className={s.kv}>
           <dt>Alignment</dt>
-          <dd>{founder.alignmentMax !== undefined && founder.alignmentMax !== null
-            ? `${Math.round(founder.alignmentMax * 100)}%`
-            : <span className={s.muted}>—</span>}
+          <dd>
+            {founder.alignmentMax !== undefined && founder.alignmentMax !== null ? (
+              `${Math.round(founder.alignmentMax * 100)}%`
+            ) : (
+              <span className={s.muted}>—</span>
+            )}
           </dd>
           <dt>PLVS Score</dt>
           <dd>
-            {founder.plvsScore !== undefined && founder.plvsScore !== null ? founder.plvsScore : <span className={s.muted}>—</span>}
+            {founder.plvsScore !== undefined && founder.plvsScore !== null ? (
+              founder.plvsScore
+            ) : (
+              <span className={s.muted}>—</span>
+            )}
             {founder.plvsRecommendation && <span className={s.recommendation}>{founder.plvsRecommendation}</span>}
           </dd>
           <dt>PLN Proximity</dt>
-          <dd>{founder.plnProximity !== undefined && founder.plnProximity !== null
-            ? founder.plnProximity.toFixed(2)
-            : <span className={s.muted}>—</span>}
+          <dd>
+            {founder.plnProximity !== undefined && founder.plnProximity !== null ? (
+              founder.plnProximity.toFixed(2)
+            ) : (
+              <span className={s.muted}>—</span>
+            )}
           </dd>
         </dl>
         {plvsFeatures && <PlvsFeatureGrid features={plvsFeatures} />}
-      </div>
+      </CollapsibleSection>
 
       {/* Warm intros */}
       {warmIntros.length > 0 && (
@@ -280,7 +197,9 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
             {warmIntros.map((w, i) => (
               <li key={i} className={s.introItem}>
                 <span className={s.introVia}>{w.via_display}</span>
-                <span className={s.introKind}>{w.kind} · distance {w.distance}</span>
+                <span className={s.introKind}>
+                  {w.kind} · distance {w.distance}
+                </span>
                 <span className={s.introEvidence}>{w.evidence}</span>
               </li>
             ))}
@@ -307,7 +226,11 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
                 </a>
                 {(p.matched_anchors ?? []).length > 0 && (
                   <div className={s.anchorRow}>
-                    {p.matched_anchors!.map((a) => <span key={a} className={s.anchor}>{a}</span>)}
+                    {p.matched_anchors!.map((a) => (
+                      <span key={a} className={s.anchor}>
+                        {a}
+                      </span>
+                    ))}
                   </div>
                 )}
               </li>
@@ -319,12 +242,12 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
       {/* Verification */}
       {(raw?.verification_status || verificationRationale.length > 0) && (
         <Section title="Verification">
-          {raw?.verification_status && (
-            <span className={s.verificationBadge}>{raw.verification_status}</span>
-          )}
+          {raw?.verification_status && <span className={s.verificationBadge}>{raw.verification_status}</span>}
           {verificationRationale.length > 0 && (
             <ul className={s.rationaleList}>
-              {verificationRationale.map((r, i) => <li key={i}>{r}</li>)}
+              {verificationRationale.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
             </ul>
           )}
         </Section>
@@ -344,23 +267,48 @@ function DrawerBody({ founder, canEdit, onClose }: { founder: FounderDetail; can
         </Section>
       )}
 
-      {/* Review Actions */}
-      {canEdit && (
-        <Section title="Review">
-          <ReviewActionsPanel
-            founderId={founder.founderId}
-            currentStatus={founder.reviewState.status}
-            currentFeedback={founder.reviewState.feedback}
-            currentNote={founder.reviewState.note}
-          />
+      {(review.channel || review.field || review.area || review.note || review.decided_at) && (
+        <Section title="Review notes">
+          <dl className={s.kv}>
+            {review.channel && (
+              <>
+                <dt>Channel</dt>
+                <dd>{REVIEW_CHANNEL_LABEL[review.channel] ?? review.channel}</dd>
+              </>
+            )}
+            {review.field && (
+              <>
+                <dt>Field</dt>
+                <dd>{review.field}</dd>
+              </>
+            )}
+            {review.area && (
+              <>
+                <dt>Area</dt>
+                <dd>{review.area}</dd>
+              </>
+            )}
+            {review.note && (
+              <>
+                <dt>Note</dt>
+                <dd>{review.note}</dd>
+              </>
+            )}
+            {review.decided_at && (
+              <>
+                <dt>Decided</dt>
+                <dd>{new Date(review.decided_at).toLocaleString()}</dd>
+              </>
+            )}
+          </dl>
         </Section>
       )}
 
-      <FounderScoringModal
-        open={scoringOpen}
-        onClose={() => setScoringOpen(false)}
-        triggerRef={scoringTriggerRef}
-      />
+      {canEdit && (
+        <Section title="Review">
+          <ReviewActionsPanel founderId={founder.founderId} currentStatus={founder.reviewState.status} />
+        </Section>
+      )}
     </div>
   );
 }

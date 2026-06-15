@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import type { FounderItem } from '@/services/founders/types';
-import { getFundTag } from '@/services/founders/types';
+import { founderHeadline, getFundTag } from '@/services/founders/types';
 import { LabOsBadge } from '@/components/page/investors/LabOsBadge/LabOsBadge';
 import { FounderReviewStateBadge } from '../FounderReviewStateBadge/FounderReviewStateBadge';
+import { FounderSignalBadges } from '../FounderSignalBadges/FounderSignalBadges';
 import { FUND_LABEL } from '@/services/founders/constants';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './FounderTable.module.scss';
@@ -22,12 +23,20 @@ interface Props {
   isFetchingMore?: boolean;
 }
 
-export function FounderTable({ founders, selectedFounderId, onRowClick, isLoading, visibleColumns, onLoadMore, hasMore, isFetchingMore }: Props) {
+export function FounderTable({
+  founders,
+  selectedFounderId,
+  onRowClick,
+  isLoading,
+  visibleColumns,
+  onLoadMore,
+  hasMore,
+  isFetchingMore,
+}: Props) {
   const analytics = useFoundersAnalytics();
   const visibleSet = new Set(visibleColumns);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // IntersectionObserver-based load-more — works regardless of scroll container
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel || !onLoadMore) return;
@@ -52,14 +61,22 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
         header: 'Founder',
         cell: ({ row }) => {
           const f = row.original;
+          const headline = founderHeadline(f);
+          const pedigree = f.pedigree ?? f.rawPayload?.pedigree;
           return (
             <div className={s.nameCell}>
-              <span className={s.namePrimary}>{f.name}</span>
-              {f.whyNow && (
-                <span className={s.nameSecondary} title={f.whyNow}>
-                  {f.whyNow.length > 80 ? f.whyNow.slice(0, 80) + '…' : f.whyNow}
+              {headline && (
+                <span className={s.headlinePrimary} title={headline}>
+                  {headline.length > 120 ? headline.slice(0, 120) + '…' : headline}
                 </span>
               )}
+              <span className={s.nameSecondary}>{f.name}</span>
+              {pedigree && (
+                <span className={s.pedigreeLine} title={pedigree}>
+                  {pedigree.length > 80 ? pedigree.slice(0, 80) + '…' : pedigree}
+                </span>
+              )}
+              <FounderSignalBadges founder={f} />
               {f.labOsProfile && <LabOsBadge profile={f.labOsProfile} variant="chip" />}
             </div>
           );
@@ -87,32 +104,14 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
         },
       },
       {
-        id: 'alignmentMax',
-        header: 'Alignment',
-        cell: ({ row }) => {
-          const v = row.original.alignmentMax;
-          return v !== undefined && v !== null ? <span>{Math.round(v * 100)}%</span> : <span className={s.muted}>—</span>;
-        },
-      },
-      {
-        id: 'plvsScore',
-        header: 'PLVS Score',
-        cell: ({ row }) => {
-          const v = row.original.plvsScore;
-          return v !== undefined && v !== null ? (
-            <span>{v.toFixed(2)}</span>
-          ) : (
-            <span className={s.muted}>—</span>
-          );
-        },
-      },
-      {
         id: 'sources',
         header: 'Sources',
         cell: ({ row }) => {
           const count = row.original.sources?.length ?? 0;
           return count > 0 ? (
-            <span className={s.sourcesBadge}>{count} source{count !== 1 ? 's' : ''}</span>
+            <span className={s.sourcesBadge}>
+              {count} source{count !== 1 ? 's' : ''}
+            </span>
           ) : (
             <span className={s.muted}>—</span>
           );
@@ -186,7 +185,6 @@ export function FounderTable({ founders, selectedFounderId, onRowClick, isLoadin
         </table>
       </div>
 
-      {/* Scroll sentinel — observed by IntersectionObserver to trigger next page load */}
       <div ref={sentinelRef} className={s.sentinel} />
       {isFetchingMore && <div className={s.sentinelLoader}>Loading more…</div>}
     </div>

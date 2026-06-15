@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { clsx } from 'clsx';
+import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
@@ -172,13 +173,17 @@ export function RoadmapView() {
   }, [analytics]);
 
   useEffect(() => {
-    if (!localStorage.getItem(BOOST_TIP_KEY)) {
-      setShowBoostTip(true);
+    if (!currentUser?.uid) {
+      setShowBoostTip(false);
+      return;
     }
-  }, []);
+    getUiFlag(`${BOOST_TIP_KEY}_${currentUser.uid}`).then((dismissed) => {
+      setShowBoostTip(!dismissed);
+    });
+  }, [currentUser?.uid]);
 
   const dismissBoostTip = () => {
-    localStorage.setItem(BOOST_TIP_KEY, '1');
+    if (currentUser?.uid) setUiFlag(`${BOOST_TIP_KEY}_${currentUser.uid}`);
     setShowBoostTip(false);
   };
 

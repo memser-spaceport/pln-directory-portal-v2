@@ -1,37 +1,108 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { useContactSupportStore } from '@/services/contact-support/store';
 import s from './PitchComingSoonCard.module.scss';
+
+type Variant = 'upcoming' | 'active' | 'closed';
 
 type Props = {
   teamName?: string;
+  isLoggedIn?: boolean;
+  onLogin?: () => void;
+  variant?: Variant;
+  teamProfileHref?: string;
 };
 
-export const PitchComingSoonCard = ({ teamName }: Props) => (
-  <div className={s.card}>
-    <div className={s.icon} aria-hidden>
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4Z"
-          stroke="#1B4DFF"
-          strokeWidth="2"
-        />
-        <path d="M16 10V16L20 18" stroke="#1B4DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-    <h2 className={s.title}>Coming soon</h2>
-    <p className={s.description}>
-      {teamName ? (
-        <>
-          <strong>{teamName} </strong> has not opened this pitch to investors yet. Check back later — we&apos;ll email
-          you when materials are available.
-        </>
-      ) : (
-        <>
-          This team pitch is not open to investors yet. Check back later — we&apos;ll email you when materials are
-          available.
-        </>
+type VariantConfig = {
+  badgeClass: string;
+  dotClass: string;
+  badgeLabel: string;
+  getHeading: (teamName?: string) => React.ReactNode;
+  getDescription: (teamName?: string, teamProfileHref?: string) => React.ReactNode;
+  buttonLabel: string;
+};
+
+const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
+  upcoming: {
+    badgeClass: s.badgeUpcoming,
+    dotClass: s.dotUpcoming,
+    badgeLabel: 'Upcoming',
+    getHeading: (teamName) => (
+      <>
+        {teamName && <>{teamName} </>}has not opened this pitch to investors yet
+      </>
+    ),
+    getDescription: () => (
+      <>If you received an invitation, we&apos;ll notify you as soon as pitch materials become available.</>
+    ),
+    buttonLabel: 'Log in',
+  },
+  active: {
+    badgeClass: s.badgeActive,
+    dotClass: s.dotActive,
+    badgeLabel: 'Pitch Active',
+    getHeading: (teamName) => <>{teamName ? `${teamName} Pitch` : 'Team Pitch'}</>,
+    getDescription: () => (
+      <>
+        This is a private team pitch page for invited investors.
+        <br />
+        Log in with the email that received your invite to confirm access.
+        <br />
+        We will notify you when pitch materials are available.
+      </>
+    ),
+    buttonLabel: 'Log in to view pitch',
+  },
+  closed: {
+    badgeClass: s.badgeCompleted,
+    dotClass: s.dotCompleted,
+    badgeLabel: 'Completed',
+    getHeading: (teamName) => <>{teamName ? `${teamName} Pitch Closed` : 'Pitch Closed'}</>,
+    getDescription: (teamName, teamProfileHref) => (
+      <>
+        This fundraising opportunity has ended and pitch materials are no longer available. You can still learn more
+        about{' '}
+        {teamProfileHref ? (
+          <Link href={teamProfileHref} className={s.teamLink}>
+            {teamName}
+          </Link>
+        ) : (
+          <strong className={s.teamLink}>{teamName}</strong>
+        )}{' '}
+        on the Protocol Labs Network.
+      </>
+    ),
+    buttonLabel: 'Log in to view team profile',
+  },
+};
+
+export const PitchComingSoonCard = ({ teamName, isLoggedIn, onLogin, variant = 'upcoming', teamProfileHref }: Props) => {
+  const { openModal } = useContactSupportStore((state) => state.actions);
+  const config = VARIANT_CONFIG[variant];
+
+  return (
+    <div className={s.card}>
+      <div className={config.badgeClass}>
+        <span className={config.dotClass} aria-hidden />
+        <span className={s.badgeLabel}>{config.badgeLabel}</span>
+      </div>
+      <h2 className={s.title}>{config.getHeading(teamName)}</h2>
+      <p className={s.description}>{config.getDescription(teamName, teamProfileHref)}</p>
+      {!isLoggedIn && (
+        <div className={s.actions}>
+          <button type="button" className={s.primaryButton} onClick={onLogin}>
+            {config.buttonLabel}
+          </button>
+          <p className={s.supportText}>
+            Questions or feedback?{' '}
+            <button type="button" className={s.supportLink} onClick={() => openModal()}>
+              Contact support
+            </button>
+          </p>
+        </div>
       )}
-    </p>
-  </div>
-);
+    </div>
+  );
+};

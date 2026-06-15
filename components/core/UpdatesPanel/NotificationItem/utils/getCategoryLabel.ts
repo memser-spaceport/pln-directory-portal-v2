@@ -22,6 +22,8 @@ export function getCategoryLabel(category: PushNotification['category']): string
       return 'New Feature';
     case 'GANTRY':
       return 'Gantry';
+    case 'TEAM_NEWS':
+      return 'Network News';
     case 'SYSTEM':
     default:
       return 'System';

@@ -188,6 +188,9 @@ export function RoadmapCard({
     transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.35 : 1,
+    // Required for dnd-kit TouchSensor: without this the browser's scroll handler
+    // claims the touch gesture before the 300ms delay can complete.
+    ...(isMobile && canDrag ? { touchAction: 'none' as const } : {}),
   };
 
   return (

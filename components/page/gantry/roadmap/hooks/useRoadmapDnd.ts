@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   type DragEndEvent,
   type DragOverEvent,
@@ -29,6 +29,8 @@ interface ReorderAPI {
   mutateAsync: (vars: { uid: string; order: number }) => Promise<unknown>;
 }
 
+const CROSS_COLUMN_DEBOUNCE_MS = 500;
+
 interface UseRoadmapDndParams {
   data: GantryItemListResponse | undefined;
   itemsByStage: Record<RoadmapColumnStage, GantryItem[]>;
@@ -36,6 +38,7 @@ interface UseRoadmapDndParams {
   orderedVisibleColumns: RoadmapColumnStage[];
   canTransition: boolean;
   isAdminOrdering: boolean;
+  isMobile?: boolean;
   transition: TransitionAPI;
   reorder: ReorderAPI;
   analytics: Analytics;
@@ -48,6 +51,7 @@ export function useRoadmapDnd({
   orderedVisibleColumns,
   canTransition,
   isAdminOrdering,
+  isMobile,
   transition,
   reorder,
   analytics,
@@ -56,6 +60,7 @@ export function useRoadmapDnd({
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragWidth, setActiveDragWidth] = useState<number | null>(null);
   const [dropPreview, setDropPreview] = useState<{ columnId: RoadmapColumnStage; insertIndex: number } | null>(null);
+  const crossColumnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -68,6 +73,10 @@ export function useRoadmapDnd({
   );
 
   const clearActiveDrag = () => {
+    if (crossColumnTimerRef.current) {
+      clearTimeout(crossColumnTimerRef.current);
+      crossColumnTimerRef.current = null;
+    }
     setActiveDragId(null);
     setActiveDragWidth(null);
     setDropPreview(null);
@@ -162,10 +171,25 @@ export function useRoadmapDnd({
     }
 
     if (!targetStage || !draggedItem || draggedItem.stage === targetStage) {
+      if (crossColumnTimerRef.current) {
+        clearTimeout(crossColumnTimerRef.current);
+        crossColumnTimerRef.current = null;
+      }
       setDropPreview(null);
       return;
     }
-    setDropPreview({ columnId: targetStage, insertIndex });
+
+    if (isMobile) {
+      if (crossColumnTimerRef.current) clearTimeout(crossColumnTimerRef.current);
+      const pendingStage = targetStage;
+      const pendingIndex = insertIndex;
+      crossColumnTimerRef.current = setTimeout(() => {
+        crossColumnTimerRef.current = null;
+        setDropPreview({ columnId: pendingStage, insertIndex: pendingIndex });
+      }, CROSS_COLUMN_DEBOUNCE_MS);
+    } else {
+      setDropPreview({ columnId: targetStage, insertIndex });
+    }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {

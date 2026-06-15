@@ -164,6 +164,7 @@ export function RoadmapView() {
     orderedVisibleColumns,
     canTransition,
     isAdminOrdering,
+    isMobile: isNarrow,
     transition,
     reorder,
     analytics,

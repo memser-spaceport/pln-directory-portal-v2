@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { clsx } from 'clsx';
 import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
-import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
@@ -194,23 +194,39 @@ export function RoadmapView() {
     setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   };
 
-  // Imperatively lock the mobile scroll container's position when a drag starts so
-  // that the browser's scroll-snap can't jump to another column while overflow changes.
-  const scrollLockCleanupRef = useRef<(() => void) | null>(null);
-  const handleMobileDragStart = (event: DragStartEvent) => {
-    dnd.handleDragStart(event);
+  // While dragging on mobile, scroll to the adjacent column when the finger
+  // is held within EDGE_PX of the left or right screen edge.
+  useEffect(() => {
+    if (!isNarrow || !dnd.isDragging) return;
     const container = scrollContainerRef.current;
-    if (container) {
-      const locked = container.scrollLeft;
-      const reset = () => { container.scrollLeft = locked; };
-      container.addEventListener('scroll', reset, { passive: true });
-      scrollLockCleanupRef.current = () => container.removeEventListener('scroll', reset);
-    }
-  };
-  const releaseMobileScrollLock = () => {
-    scrollLockCleanupRef.current?.();
-    scrollLockCleanupRef.current = null;
-  };
+    if (!container) return;
+
+    const EDGE_PX = 64;
+    const COOLDOWN_MS = 700;
+
+    let lastX = -1;
+    let lastSwitch = 0;
+
+    const onTouchMove = (e: TouchEvent) => { lastX = e.touches[0]?.clientX ?? -1; };
+
+    const tick = () => {
+      if (lastX < 0) return;
+      const now = Date.now();
+      if (now - lastSwitch < COOLDOWN_MS) return;
+      const idx = Math.round(container.scrollLeft / container.offsetWidth);
+      if (lastX > window.innerWidth - EDGE_PX && idx < orderedVisibleColumns.length - 1) {
+        const el = columnRefs.current.get(orderedVisibleColumns[idx + 1]);
+        if (el) { container.scrollTo({ left: el.offsetLeft, behavior: 'smooth' }); lastSwitch = now; }
+      } else if (lastX < EDGE_PX && idx > 0) {
+        const el = columnRefs.current.get(orderedVisibleColumns[idx - 1]);
+        if (el) { container.scrollTo({ left: el.offsetLeft, behavior: 'smooth' }); lastSwitch = now; }
+      }
+    };
+
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    const id = setInterval(tick, 150);
+    return () => { window.removeEventListener('touchmove', onTouchMove); clearInterval(id); };
+  }, [isNarrow, dnd.isDragging, orderedVisibleColumns, columnRefs, scrollContainerRef]);
 
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated
@@ -307,10 +323,10 @@ export function RoadmapView() {
     return (
       <DndContext
         sensors={dnd.sensors}
-        onDragStart={handleMobileDragStart}
+        onDragStart={dnd.handleDragStart}
         onDragOver={dnd.handleDragOver}
-        onDragEnd={(e) => { releaseMobileScrollLock(); dnd.handleDragEnd(e); }}
-        onDragCancel={() => { releaseMobileScrollLock(); dnd.handleDragCancel(); }}
+        onDragEnd={dnd.handleDragEnd}
+        onDragCancel={dnd.handleDragCancel}
       >
         <div className={s.pageLayout}>
           <div className={s.content}>

@@ -792,10 +792,10 @@
 // Mobile DnD scroll-lock — applied to .mobileScrollContainer while a drag is active.
 // Prevents horizontal scroll-snap from switching columns during a vertical drag gesture.
 .mobileScrollLocked {
-  overflow-x: hidden !important;
+  // touch-action: none blocks swipe-scroll on the container itself while drag is active.
+  // overflow-x stays 'scroll' so programmatic scrollTo() still works (edge-triggered column switching).
+  // scroll-snap-type: none prevents the browser from re-snapping when layout changes during drag.
   touch-action: none;
-  // Disable snap while dragging so the browser can't jump to another snap point
-  // when overflow changes from scroll→hidden.
   scroll-snap-type: none !important;
 }
 

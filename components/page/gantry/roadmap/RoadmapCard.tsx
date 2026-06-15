@@ -1,15 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Menu } from '@base-ui-components/react/menu';
 import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
 import { BoostersSection } from '../shared/BoostersSection';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
 import { BoostButton } from '../shared/BoostButton';
+import { StageBadge } from '../shared/StageBadge';
 import { useGantryCardNavigate } from '../shared/useGantryCardNavigate';
+import type { RoadmapColumnStage } from './RoadmapFilters';
 import s from './Roadmap.module.scss';
 
 const CARD_DESCRIPTION_MAX_LENGTH = 160;
@@ -37,6 +41,9 @@ interface CardContentProps {
   readonly isPinDisabled: boolean;
   readonly canCurate: boolean;
   readonly warnPinOrder?: boolean;
+  readonly onMoveToStage?: (targetStage: RoadmapColumnStage) => void;
+  readonly availableStages?: RoadmapColumnStage[];
+  readonly isTransitionPending?: boolean;
 }
 
 function RoadmapCardContent({
@@ -48,6 +55,9 @@ function RoadmapCardContent({
   isPinDisabled,
   canCurate,
   warnPinOrder,
+  onMoveToStage,
+  availableStages,
+  isTransitionPending,
 }: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
   const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
@@ -111,6 +121,14 @@ function RoadmapCardContent({
         )}
       </div>
 
+      {onMoveToStage && availableStages && availableStages.length > 0 && (
+        <MobileCardStagePicker
+          availableStages={availableStages}
+          onSelect={onMoveToStage}
+          disabled={isTransitionPending}
+        />
+      )}
+
       {warnPinOrder && position !== undefined && canCurate && (
         <div className={s.boostOrderWarning}>
           <WarningIcon />
@@ -141,6 +159,7 @@ function RoadmapCardContent({
 interface Props extends CardContentProps {
   readonly isAdminOrdering: boolean;
   readonly canDrag: boolean;
+  readonly isMobile?: boolean;
 }
 
 export function RoadmapCard({
@@ -148,11 +167,15 @@ export function RoadmapCard({
   position,
   isAdminOrdering,
   canDrag,
+  isMobile,
   canPin,
   onPinToggle,
   isPinDisabled,
   canCurate,
   warnPinOrder,
+  onMoveToStage,
+  availableStages,
+  isTransitionPending,
 }: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -173,6 +196,9 @@ export function RoadmapCard({
       className={clsx(s.card, canDrag && s.cardOrdering)}
       style={style}
       {...attributes}
+      // On mobile: listeners on the card container so long-press anywhere activates drag.
+      // On desktop: listeners go to the drag handle button via dragHandleProps.
+      {...(isMobile && canDrag ? listeners : {})}
       {...cardNavigate}
       onClick={(e) => {
         if (isDragging) return;
@@ -182,12 +208,15 @@ export function RoadmapCard({
       <RoadmapCardContent
         item={item}
         position={position}
-        dragHandleProps={canDrag ? listeners : undefined}
+        dragHandleProps={!isMobile && canDrag ? listeners : undefined}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}
         canCurate={canCurate}
         warnPinOrder={warnPinOrder}
+        onMoveToStage={onMoveToStage}
+        availableStages={availableStages}
+        isTransitionPending={isTransitionPending}
       />
     </article>
   );
@@ -219,6 +248,63 @@ export function RoadmapCardDragOverlay({
         warnPinOrder={warnPinOrder}
       />
     </article>
+  );
+}
+
+function MobileCardStagePicker({
+  availableStages,
+  onSelect,
+  disabled,
+}: {
+  availableStages: RoadmapColumnStage[];
+  onSelect: (stage: RoadmapColumnStage) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Menu.Root>
+      <Menu.Trigger
+        className={s.moveToStageButton}
+        disabled={disabled}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Move to stage"
+      >
+        <MoveStageIcon />
+        Move
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner className={s.moveToStagePositioner} sideOffset={4} align="start">
+          <Menu.Popup className={s.moveToStageMenu}>
+            <div className={s.moveToStageMenuHint}>Move to</div>
+            {availableStages.map((stage) => (
+              <Menu.Item
+                key={stage}
+                className={s.moveToStageMenuItem}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(stage);
+                }}
+              >
+                <StageBadge stage={stage} />
+              </Menu.Item>
+            ))}
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
+}
+
+function MoveStageIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M2 6h8M7 3l3 3-3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

@@ -59,7 +59,7 @@ export function useRoadmapDnd({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 5 } }),
   );
 
   const activeDragItem = useMemo(
@@ -212,6 +212,12 @@ export function useRoadmapDnd({
     }
   };
 
+  const moveItemToStage = (uid: string, targetStage: RoadmapColumnStage): void => {
+    const item = data?.items.find((i) => i.uid === uid);
+    if (!item) return;
+    applyStageChange(uid, item, targetStage as GantryStage);
+  };
+
   return {
     sensors,
     activeDragItem,
@@ -224,5 +230,8 @@ export function useRoadmapDnd({
     handleDragEnd,
     handleDragCancel,
     handleDeclineConfirm,
+    isDragging: !!activeDragId,
+    moveItemToStage,
+    isTransitionPending: transition.isPending,
   };
 }

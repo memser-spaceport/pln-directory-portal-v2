@@ -10,6 +10,7 @@ export type TeamPitchFull = {
   uid: string;
   slug: string;
   status: string;
+  closedAt?: string | null;
   title: string;
   description: string;
   supportEmail: string;

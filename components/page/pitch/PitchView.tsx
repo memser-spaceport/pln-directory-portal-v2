@@ -38,8 +38,7 @@ export const PitchView = () => {
   const canLoadPitch =
     isLoggedIn &&
     access &&
-    access.access !== 'restricted' &&
-    !(access.status === 'CLOSED' && access.participantType === 'INVESTOR' && !access.isPitchAdmin);
+    access.access !== 'restricted';
   const { data: pitch, isLoading: pitchLoading } = useGetTeamPitch(slug, canLoadPitch);
   const teamPitchAnalytics = useTeamPitchAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -196,7 +195,7 @@ export const PitchView = () => {
           teamUid={access.teamUid}
           pitchSlug={slug}
           prefillEmail={prefillEmail}
-          closedAt={access.closedAt ?? access.updatedAt}
+          closedAt={pitch?.closedAt}
         />
       </div>
     );

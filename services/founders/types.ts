@@ -177,9 +177,21 @@ export type FounderListParams = {
   limit?: number;
 };
 
+export type FounderMethodologyPayload = {
+  schema_version?: number;
+  methodology_version?: string;
+  generated_at?: string;
+  summary?: string;
+  how_it_works_html?: string;
+  how_it_works_markdown?: string;
+  source_counts?: Record<string, number>;
+  funds?: unknown[];
+  sources?: unknown[];
+};
+
 export type FounderMethodologyResponse = {
   version: string;
-  payload: Record<string, unknown>;
+  payload: FounderMethodologyPayload | Record<string, unknown>;
   createdAt: string;
 };
 

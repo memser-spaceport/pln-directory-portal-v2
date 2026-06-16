@@ -25,10 +25,12 @@ export const PitchEventHeader = ({ title, description, status }: Props) => {
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
-          <div className={badge.badgeClass}>
-            <span className={badge.dotClass} aria-hidden />
-            <span className={s.badgeLabel}>{badge.label}</span>
-          </div>
+          {status !== 'OPEN' && (
+            <div className={badge.badgeClass}>
+              <span className={badge.dotClass} aria-hidden />
+              <span className={s.badgeLabel}>{badge.label}</span>
+            </div>
+          )}
           <h1 className={s.title}>{title}</h1>
           {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
         </div>

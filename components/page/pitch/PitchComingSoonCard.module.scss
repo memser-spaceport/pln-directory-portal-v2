@@ -81,6 +81,51 @@
   letter-spacing: -0.2px;
 }
 
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeDate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.secondaryButton {
+  display: flex;
+  width: 238px;
+  padding: 12px 20px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 15, 17, 0.16);
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+
+  @include media.mobile-only {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
 .title {
   margin: 0;
   max-width: 600px;

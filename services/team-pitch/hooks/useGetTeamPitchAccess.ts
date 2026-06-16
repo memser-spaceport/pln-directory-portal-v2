@@ -8,6 +8,7 @@ export type TeamPitchAccess = {
   uid: string;
   slug: string;
   createdAt: string;
+  updatedAt?: string | null;
   status: 'DRAFT' | 'OPEN' | 'CLOSED';
   title: string;
   description: string;
@@ -22,6 +23,7 @@ export type TeamPitchAccess = {
   confidentialityAccepted: boolean;
   teamUid: string;
   teamName: string;
+  closedAt?: string | null;
 };
 
 export async function getTeamPitchAccess(slug: string, authenticated: boolean) {

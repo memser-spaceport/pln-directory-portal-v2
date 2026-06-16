@@ -81,7 +81,10 @@ export const PitchView = () => {
   });
 
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
+  const [restrictedModalDismissed, setRestrictedModalDismissed] = useState(false);
   const loginRedirectAttemptedRef = useRef(false);
+
+  const showRestrictedModal = isLoggedIn && !accessLoading && access?.access === 'restricted' && !restrictedModalDismissed;
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isHydrated || accessLoading || !access) {
@@ -143,6 +146,15 @@ export const PitchView = () => {
   };
 
   if (isLimitedDraftView) {
+    if (isLoggedIn && isInvestor && access.participantAccess === 'VIEW') {
+      return (
+        <div className={s.root}>
+          <div className={s.stepsCard}>
+            <PitchInvestorHeader variant="draft" {...investorHeaderProps} />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={s.root}>
         <PitchComingSoonCard teamName={access.teamName} isLoggedIn={isLoggedIn} onLogin={handleLogin} />
@@ -153,8 +165,10 @@ export const PitchView = () => {
   if (isLoggedIn && access.access === 'restricted') {
     return (
       <div className={s.root}>
-        <PitchComingSoonCard teamName={access.teamName} isLoggedIn variant="active" />
-        <PitchAccessRestrictedModal isOpen />
+        <div className={s.stepsCard}>
+          <PitchInvestorHeader variant="restricted" {...investorHeaderProps} />
+        </div>
+        <PitchAccessRestrictedModal isOpen={showRestrictedModal} onClose={() => setRestrictedModalDismissed(true)} />
       </div>
     );
   }
@@ -177,10 +191,13 @@ export const PitchView = () => {
     }
     return (
       <div className={s.root}>
-        <div className={s.stepsCard}>
-          <PitchInvestorHeader variant="closed" {...investorHeaderProps} />
-        </div>
-        <PitchClosedCard teamName={access.teamName} teamUid={access.teamUid} />
+        <PitchClosedCard
+          teamName={access.teamName}
+          teamUid={access.teamUid}
+          pitchSlug={slug}
+          prefillEmail={prefillEmail}
+          closedAt={access.closedAt ?? access.updatedAt}
+        />
       </div>
     );
   }
@@ -210,7 +227,7 @@ export const PitchView = () => {
       )}
 
       {!isLoggedIn && showInvestorHeader && (
-        <PitchComingSoonCard teamName={access.teamName} isLoggedIn={false} onLogin={handleLogin} variant="active" />
+        <PitchComingSoonCard teamName={access.teamName} isLoggedIn={false} onLogin={handleLogin} variant="active" hideBadge />
       )}
 
       {canLoadPitch && pitchLoading && !teamProfile && <ProfileSkeleton />}

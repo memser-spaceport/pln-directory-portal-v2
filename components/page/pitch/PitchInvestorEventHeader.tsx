@@ -30,7 +30,7 @@ export const PitchInvestorEventHeader = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { openModal } = useContactSupportStore((state) => state.actions);
 
-  const { primaryCtaLabel, userUid } = usePitchInvestorOnboardingState({
+  const { primaryCtaLabel, userUid, isProfileComplete } = usePitchInvestorOnboardingState({
     pitchSlug,
     prefillEmail,
     pitchStatus,
@@ -39,28 +39,41 @@ export const PitchInvestorEventHeader = ({
   });
 
   const isComingSoon = pitchStatus === 'DRAFT' || !investorHasAccess;
+  const isInvestorDraft = pitchStatus === 'DRAFT' && investorHasAccess;
 
   return (
     <div className={s.card}>
       <div className={s.content}>
         <div className={s.headline}>
           <div className={s.headlineText}>
-            <div className={isComingSoon ? s.badgeComingSoon : s.badgeActive}>
-              <span className={isComingSoon ? s.dotComingSoon : s.dotActive} aria-hidden />
-              <span className={s.badgeLabel}>{isComingSoon ? 'Coming Soon' : 'Pitch Active'}</span>
-            </div>
-
-            {isComingSoon ? (
-              <h1 className={s.title}>
-                {teamName} Pitch
-                <br />
-                has not yet opened to investors
-              </h1>
-            ) : (
-              <h1 className={s.title}>{title}</h1>
+            {isComingSoon && !isInvestorDraft && (
+              <div className={s.badgeComingSoon}>
+                <span className={s.dotComingSoon} aria-hidden />
+                <span className={s.badgeLabel}>Coming Soon</span>
+              </div>
             )}
 
-            {isComingSoon ? (
+            <h1 className={s.title}>
+              {isInvestorDraft || isComingSoon ? `${teamName} Pitch` : title}
+              {isComingSoon && !isInvestorDraft && (
+                <>
+                  <br />
+                  has not yet opened to investors
+                </>
+              )}
+            </h1>
+
+            {isInvestorDraft ? (
+              <p className={s.description}>
+                {teamName} has not opened this pitch to investors yet
+                <br />
+                You are on the invite list for this pitch. We will email you when materials go live.
+                <br />
+                {isProfileComplete
+                  ? 'Update your investor profile below while you wait.'
+                  : 'Set up your investor profile below while you wait.'}
+              </p>
+            ) : isComingSoon ? (
               <p className={s.description}>
                 If you received an invitation, we&apos;ll notify you when materials become available.
               </p>

@@ -13,6 +13,7 @@ type Props = {
   onLogin?: () => void;
   variant?: Variant;
   teamProfileHref?: string;
+  hideBadge?: boolean;
 };
 
 type VariantConfig = {
@@ -29,13 +30,15 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
     badgeClass: s.badgeUpcoming,
     dotClass: s.dotUpcoming,
     badgeLabel: 'Upcoming',
-    getHeading: (teamName) => (
+    getHeading: (teamName) => <>{teamName ? `${teamName} pitch` : 'Team pitch'}</>,
+    getDescription: (teamName) => (
       <>
         {teamName && <>{teamName} </>}has not opened this pitch to investors yet
+        <br />
+        Log in with the email that received your invite to confirm access.
+        <br />
+        We will notify you when pitch materials are available.
       </>
-    ),
-    getDescription: () => (
-      <>If you received an invitation, we&apos;ll notify you as soon as pitch materials become available.</>
     ),
     buttonLabel: 'Log in',
   },
@@ -78,16 +81,18 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
   },
 };
 
-export const PitchComingSoonCard = ({ teamName, isLoggedIn, onLogin, variant = 'upcoming', teamProfileHref }: Props) => {
+export const PitchComingSoonCard = ({ teamName, isLoggedIn, onLogin, variant = 'upcoming', teamProfileHref, hideBadge }: Props) => {
   const { openModal } = useContactSupportStore((state) => state.actions);
   const config = VARIANT_CONFIG[variant];
 
   return (
     <div className={s.card}>
-      <div className={config.badgeClass}>
-        <span className={config.dotClass} aria-hidden />
-        <span className={s.badgeLabel}>{config.badgeLabel}</span>
-      </div>
+      {!hideBadge && (
+        <div className={config.badgeClass}>
+          <span className={config.dotClass} aria-hidden />
+          <span className={s.badgeLabel}>{config.badgeLabel}</span>
+        </div>
+      )}
       <h2 className={s.title}>{config.getHeading(teamName)}</h2>
       <p className={s.description}>{config.getDescription(teamName, teamProfileHref)}</p>
       {!isLoggedIn && (

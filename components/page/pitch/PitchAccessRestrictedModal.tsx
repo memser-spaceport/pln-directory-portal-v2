@@ -29,14 +29,19 @@ const CloseIcon = () => (
 
 type Props = {
   isOpen: boolean;
+  onClose?: () => void;
 };
 
-export const PitchAccessRestrictedModal: React.FC<Props> = ({ isOpen }) => {
+export const PitchAccessRestrictedModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { openModal } = useContactSupportStore((state) => state.actions);
 
   const handleClose = () => {
-    router.push('/');
+    if (onClose) {
+      onClose();
+    } else {
+      router.push('/');
+    }
   };
 
   return (

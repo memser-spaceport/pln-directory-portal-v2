@@ -3,23 +3,51 @@
 .card {
   display: flex;
   flex-direction: column;
+  gap: 40px;
   align-items: center;
-  gap: 24px;
   width: 100%;
-  padding: 40px 20px;
-  text-align: center;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  overflow: hidden;
 
   @include media.mobile-only {
-    padding: 32px 16px;
+    gap: 24px;
   }
 }
 
-.badgeUpcoming,
-.badgeActive,
-.badgeCompleted {
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: center;
+  width: 100%;
+  padding: 40px 20px;
+
+  @include media.mobile-only {
+    padding: 32px 16px;
+    gap: 24px;
+  }
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.headlineText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.badgeComingSoon,
+.badgeActive {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -27,7 +55,7 @@
   border-radius: 9999px;
 }
 
-.badgeUpcoming {
+.badgeComingSoon {
   background: rgba(27, 77, 255, 0.04);
 
   .badgeLabel {
@@ -43,17 +71,8 @@
   }
 }
 
-.badgeCompleted {
-  background: rgba(14, 15, 17, 0.06);
-
-  .badgeLabel {
-    color: var(--foreground-neutral-secondary, #455468);
-  }
-}
-
-.dotUpcoming,
-.dotActive,
-.dotCompleted {
+.dotComingSoon,
+.dotActive {
   display: inline-block;
   width: 7px;
   height: 7px;
@@ -61,16 +80,12 @@
   flex-shrink: 0;
 }
 
-.dotUpcoming {
+.dotComingSoon {
   background: #4174ff;
 }
 
 .dotActive {
   background: #11a75c;
-}
-
-.dotCompleted {
-  background: #8898aa;
 }
 
 .badgeLabel {
@@ -79,51 +94,6 @@
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
-}
-
-.badgeRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.badgeDate {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-}
-
-.secondaryButton {
-  display: flex;
-  width: 238px;
-  padding: 12px 20px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 10px;
-  border: 1px solid rgba(14, 15, 17, 0.16);
-  background: #fff;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-
-  &:hover {
-    background: rgba(14, 15, 17, 0.04);
-  }
-
-  @include media.mobile-only {
-    width: 100%;
-    max-width: 320px;
-  }
 }
 
 .title {
@@ -205,16 +175,6 @@
   line-height: 22px;
   letter-spacing: -0.2px;
   text-align: center;
-}
-
-.teamLink {
-  color: #0f3cd9;
-  font-weight: 600;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .supportLink {

@@ -69,7 +69,12 @@ export const PitchInvestorHeader = ({
           <PitchTeamTitle teamName={teamName} teamUid={teamUid} />
         ))}
 
-      {statusLine && <p className={s.statusLine}>{statusLine}</p>}
+      {(variant === 'draft' || statusLine) && (
+        <p className={s.statusLine}>
+          {variant === 'draft' && teamName && <>{teamName} has not opened this pitch to investors yet<br /></>}
+          {statusLine}
+        </p>
+      )}
 
       <PitchInvestorQuickLinks
         pitchSlug={pitchSlug}

@@ -77,6 +77,11 @@ jest.mock('@/analytics/gantry.analytics', () => ({
   }),
 }));
 
+jest.mock('@/services/gantry/hooks/useGantryDraft', () => ({
+  useGantryDraftQuery: () => ({ data: null, isLoading: false }),
+  useGantryDiscardDraftMutation: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
 jest.mock('@/hooks/useIsNarrow', () => ({
   useIsNarrow: () => false,
 }));

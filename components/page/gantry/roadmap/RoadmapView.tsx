@@ -38,6 +38,14 @@ import FilterCount from '@/components/ui/filter-count';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
+import {
+  useGantryDraftQuery,
+  useGantryDiscardDraftMutation,
+} from '@/services/gantry/hooks/useGantryDraft';
+import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import { GantryDraftBanner } from '@/components/page/gantry/ideas/GantryDraftBanner';
+import { GantryDraftChip } from '@/components/page/gantry/ideas/GantryDraftChip';
+import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
@@ -50,6 +58,9 @@ import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
 const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
+
+const DEFAULT_SUBTITLE = 'Submit what you need, see what we are building. The shortest path to the LabOS roadmap.';
+const DRAFT_SUBTITLE = 'Share what the network needs and track it across the roadmap. You can keep one draft at a time.';
 
 function ArrowUpSmallIcon() {
   return (
@@ -76,6 +87,28 @@ export function RoadmapView() {
   const canCreate = canSetStageOnCreate || canCreateIdea;
   const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
+
+  // Draft state
+  const { data: draftResult } = useGantryDraftQuery(createVariant);
+  const discardDraftMutation = useGantryDiscardDraftMutation(createVariant);
+  const hasDraft = !!draftResult && !isSubmitIdeaDraftEmpty(draftResult.data);
+  const draftSavedAt = draftResult?.savedAt ?? 0;
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+
+  const handleResumeDraft = () => {
+    submitIdeaModalActions.openModal(createVariant);
+  };
+
+  const handleOpenDiscardDialog = () => {
+    setDiscardDialogOpen(true);
+  };
+
+  const handleConfirmDiscard = () => {
+    discardDraftMutation.mutate();
+    setDiscardDialogOpen(false);
+  };
+
+  const subtitle = hasDraft ? DRAFT_SUBTITLE : DEFAULT_SUBTITLE;
 
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
     GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
@@ -316,6 +349,12 @@ export function RoadmapView() {
           onDismiss={handleSwapDismiss}
         />
       )}
+      <DiscardDraftDialog
+        isOpen={discardDialogOpen}
+        draftTitle={draftResult?.data.form.title ?? ''}
+        onKeep={() => setDiscardDialogOpen(false)}
+        onDiscard={handleConfirmDiscard}
+      />
     </>
   );
 
@@ -355,13 +394,19 @@ export function RoadmapView() {
                     {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                        hasDraft={hasDraft}
+                        onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
                       />
                     )}
                   </div>
-                  <p className={s.subtitle}>
-                    Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
-                  </p>
+                  {hasDraft && (
+                    <GantryDraftChip
+                      title={draftResult?.data.form.title ?? ''}
+                      onResume={handleResumeDraft}
+                      onDiscard={handleOpenDiscardDialog}
+                    />
+                  )}
+                  <p className={s.subtitle}>{subtitle}</p>
                 </div>
               </div>
             </div>
@@ -529,26 +574,35 @@ export function RoadmapView() {
                         <div className={s.actionsMobile}>
                           <IdeasSubmitButton
                             label={createLabel}
-                            onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                            hasDraft={hasDraft}
+                            onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
                           />
                         </div>
                       )}
                     </div>
-                    <p className={s.subtitle}>
-                      Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
-                    </p>
+                    <p className={s.subtitle}>{subtitle}</p>
                   </div>
                   <div className={s.actions}>
                     {boostStatusIndicator}
                     {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                        hasDraft={hasDraft}
+                        onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
                       />
                     )}
                   </div>
                 </div>
               </div>
+
+              {hasDraft && (
+                <GantryDraftBanner
+                  title={draftResult?.data.form.title ?? ''}
+                  savedAt={draftSavedAt}
+                  onResume={handleResumeDraft}
+                  onDiscard={handleOpenDiscardDialog}
+                />
+              )}
 
               {orderedVisibleColumns.length === 0 ? (
                 <p className={s.empty}>Select at least one column to view the roadmap.</p>

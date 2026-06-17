@@ -10,11 +10,26 @@ import s from './WorkspaceTypeahead.module.scss';
 
 /** Chosen typeahead result — all kinds apply the connector-lens table filter. */
 export type UnifiedSelection = {
-  kind: 'founder' | 'team' | 'investor';
+  kind: 'founder' | 'team' | 'investor' | 'pl_team';
   displayLabel: string;
   matchLabels: string[];
   containsLabels?: string[];
 };
+
+/**
+ * PL Capital venture leads, searchable as connector-lens targets (task 04).
+ * Names MUST equal the `hopChain.plConnector.name` written by the relationship
+ * seed (task 01) — the backend match is exact (lowercased) on that field. Exact
+ * match only (no contains) so a lead name never accidentally hits a node label.
+ */
+const PL_TEAM_MEMBERS = [
+  'Marc Johnson',
+  'Brad Holden',
+  'Lacey Wisdom',
+  'Charlotte Kapoor',
+  'Christina DesVaux',
+  'Juan Benet',
+] as const;
 
 interface Props {
   /** Portfolio teams (with founders[]) for the local founder/team group. */
@@ -25,7 +40,7 @@ interface Props {
 const MAX_LOCAL = 6;
 
 type LocalRow = {
-  kind: 'founder' | 'team';
+  kind: 'founder' | 'team' | 'pl_team';
   displayLabel: string;
   matchLabels: string[];
   containsLabels?: string[];
@@ -89,13 +104,28 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     return rows.slice(0, MAX_LOCAL);
   }, [teams, term]);
 
-  // Flattened, navigable list: founders/teams first, then investors/funds.
+  // PL Capital venture leads, filtered client-side by the live term (task 04).
+  const plTeamRows = useMemo<LocalRow[]>(() => {
+    const q = term.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return PL_TEAM_MEMBERS.filter((name) => name.toLowerCase().includes(q)).map((name) => ({
+      kind: 'pl_team',
+      displayLabel: name,
+      matchLabels: [name], // exact-name match on hopChain.plConnector.name
+      sub: 'PL team',
+      key: `pl-team-${name}`,
+    }));
+  }, [term]);
+
+  // Flattened, navigable list — render order: PL team, then founders/teams, then
+  // investors/funds. Indices below derive offsets from this same order.
   const flat = useMemo(
     () => [
+      ...plTeamRows.map((r) => ({ type: 'local' as const, row: r })),
       ...localRows.map((r) => ({ type: 'local' as const, row: r })),
       ...investorItems.map((inv) => ({ type: 'investor' as const, inv })),
     ],
-    [localRows, investorItems],
+    [plTeamRows, localRows, investorItems],
   );
 
   const reset = () => {
@@ -147,7 +177,7 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
       <input
         className={s.input}
         type="search"
-        placeholder="Search an investor, fund, founder or team…"
+        placeholder="Search an investor, fund, founder, team or PL member…"
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);
@@ -161,10 +191,10 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
         <div className={s.dropdown}>
           {!searching && localCount === 0 && <div className={s.hint}>Type at least 2 characters to search</div>}
 
-          {localRows.length > 0 && (
+          {plTeamRows.length > 0 && (
             <>
-              <div className={s.groupLabel}>Founders / Teams</div>
-              {localRows.map((r, i) => (
+              <div className={s.groupLabel}>PL team</div>
+              {plTeamRows.map((r, i) => (
                 <div
                   key={r.key}
                   className={clsx(s.option, i === hi && s.highlighted)}
@@ -175,6 +205,26 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
                   <span className={s.optSub}>{r.sub}</span>
                 </div>
               ))}
+            </>
+          )}
+
+          {localRows.length > 0 && (
+            <>
+              <div className={s.groupLabel}>Founders / Teams</div>
+              {localRows.map((r, i) => {
+                const idx = plTeamRows.length + i;
+                return (
+                  <div
+                    key={r.key}
+                    className={clsx(s.option, idx === hi && s.highlighted)}
+                    onClick={() => pick(idx)}
+                    onMouseEnter={() => setHi(idx)}
+                  >
+                    <span className={s.optName}>{r.displayLabel}</span>
+                    <span className={s.optSub}>{r.sub}</span>
+                  </div>
+                );
+              })}
             </>
           )}
 

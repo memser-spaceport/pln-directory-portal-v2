@@ -63,4 +63,19 @@ describe('selectionToConnectorFilter', () => {
       investorId: null,
     });
   });
+
+  it('routes a PL team member selection to an exact-name connector label (task 04)', () => {
+    expect(
+      selectionToConnectorFilter({
+        kind: 'pl_team',
+        displayLabel: 'Brad Holden',
+        matchLabels: ['Brad Holden'],
+      }),
+    ).toEqual({
+      wi_connector: 'Brad Holden',
+      wi_connector_labels: ['Brad Holden'],
+      wi_connector_contains: [],
+      investorId: null,
+    });
+  });
 });

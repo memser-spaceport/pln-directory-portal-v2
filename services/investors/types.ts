@@ -221,6 +221,10 @@ export type ListMembersParams = {
   check_size_range?: CheckSizeRange[];
   /** Relationship lens: co-invested / engaged / cold. */
   relationship?: WarmIntroTier[];
+  /** Connector lens (task 04): exact / substring connector labels — server-side
+   *  filter to members reachable through that connector across the whole list. */
+  connector_labels?: string[];
+  connector_labels_contains?: string[];
   page?: number;
   limit?: number;
 };

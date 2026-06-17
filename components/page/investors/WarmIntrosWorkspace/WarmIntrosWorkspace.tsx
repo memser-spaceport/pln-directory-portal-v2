@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
@@ -52,7 +52,7 @@ const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'cold_match', label: 'Cold' },
 ];
 
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 200;
 
 // Derive the relationship tier off the investor record (list members are plain
 // OutreachInvestor, not WarmIntroCandidate): co-invested > engaged > cold.
@@ -162,6 +162,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_sectors: draft.sectors.length ? draft.sectors : null,
       wi_check_size: draft.check || null,
     });
+    setSelectedIds(new Set());
+    setExpandedIds(new Set());
   };
 
   const clear = () => {
@@ -182,13 +184,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   });
 
   const enabled = access.canView && !!filters.wi_list_id;
-  const { data, isLoading } = useGetListMembers(
+  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
     filters.wi_list_id,
     {
       stage_focus: applied.stage ? [applied.stage] : undefined,
       sector_tags: applied.sectors.length ? applied.sectors : undefined,
       check_size_range: applied.check ? [applied.check] : undefined,
-      page: 1,
       limit: PAGE_LIMIT,
     },
     enabled,
@@ -198,8 +199,29 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const members = useMemo(() => data?.items ?? [], [data]);
+  const members = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const total = data?.pages.at(-1)?.total ?? 0;
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) handleLoadMore();
+      },
+      { rootMargin: '300px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
 
   // Connector lens: when a unified-search result is chosen, keep only members
   // whose paths route through matching hop-chain nodes.
@@ -221,8 +243,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
-    if (data) onCountChange?.(data.total);
-  }, [data, onCountChange]);
+    if (data) onCountChange?.(total);
+  }, [total, data, onCountChange]);
 
   const onUnifiedSelect = (sel: UnifiedSelection) => {
     setFilters(selectionToConnectorFilter(sel));
@@ -392,12 +414,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         <section className={s.results}>
           <div className={s.resultsHeader}>
             <div className={s.resultsCount}>
-              {isLoading ? (
+              {isLoading && members.length === 0 ? (
                 'Loading members…'
               ) : (
                 <>
-                  <strong>{visible.length}</strong> shown · {(data?.total ?? members.length).toLocaleString()} in{' '}
-                  {selectedList?.name ?? 'list'}
+                  <strong>{visible.length}</strong> shown · {members.length.toLocaleString()} loaded ·{' '}
+                  {total.toLocaleString()} in {selectedList?.name ?? 'list'}
                   {connectorLabel && lensLoading ? ' · finding paths…' : ''} · sorted by proximity (warmest first)
                 </>
               )}
@@ -512,6 +534,9 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               </tbody>
             </table>
           </div>
+
+          <div ref={sentinelRef} className={s.sentinel} />
+          {isFetchingNextPage && <div className={s.sentinelLoader}>Loading more…</div>}
 
           {!isLoading && members.length === 0 && (
             <div className={s.empty}>

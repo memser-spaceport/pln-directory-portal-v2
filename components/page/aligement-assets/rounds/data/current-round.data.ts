@@ -18,7 +18,7 @@ export const currentRoundData: CurrentRoundData = {
     roundId: 'round-17-jun-2026',
     roundNumber: 17,
     isCurrentRound: true,
-    lastUpdated: '2026-06-08T09:17:00'
+    lastUpdated: '2026-06-15T10:55:00'
   },
 
   // ============================================================================
@@ -129,13 +129,13 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI Pillar In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 700,
+    maxValue: 725,
     chartData: [
       { name: 'Brand', value: 0 },
       { name: 'Knowledge', value: 0 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 650 },
+      { name: 'Programs', value: 675 },
       { name: 'Projects', value: 50 }
     ]
   },
@@ -167,7 +167,7 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '700',
+    totalPointsCollected: '725',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

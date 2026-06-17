@@ -403,7 +403,7 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'Why is there an allocation cap on the buyback?',
-        answer: 'The allocation cap ensures that no single participant can capture more than a predetermined percentage of the pool (currently 50%). This ensures broader participation and preserves fairness.',
+        answer: 'The allocation cap ensures that no single participant can capture more than a predetermined percentage of the pool (currently 4.5%). This ensures broader participation and preserves fairness.',
       },
       {
         question: 'Do earlier bids have an advantage?',
@@ -434,7 +434,7 @@ const faqCategories: FAQCategoryData[] = [
             <ol style={{ paddingLeft: '24px', marginBottom: '12px' }}>
               <li style={{ marginBottom: '4px' }}><strong>Your bid price vs. the clearing price:</strong> Your bid must be at or below the clearing price to be accepted.</li>
               <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (rights × your bid price). So if you bid 100 rights at $5 and the clearing price is $20, you&apos;ll sell 25 rights for $500, not all 100.</li>
-              <li><strong>The 50% per-bidder cap:</strong> No single participant can receive more than half the total buyback pool.</li>
+              <li><strong>The 4.5% per-bidder cap:</strong> No single participant can receive more than 4.5% of the total buyback pool.</li>
             </ol>
             <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
           </div>

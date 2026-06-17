@@ -78,7 +78,8 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
           rows.push({
             kind: 'founder',
             displayLabel: f.name,
-            matchLabels: [f.name],
+            matchLabels: [f.name, t.team_name],
+            containsLabels: [t.team_name],
             sub: `Founder · ${t.team_name}`,
             key: `founder-${t.team_id}-${f.member_uid || f.name}`,
           });
@@ -111,8 +112,10 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
       onSelect({ kind, displayLabel, matchLabels, containsLabels });
     } else {
       const displayLabel = `${entry.inv.first_name} ${entry.inv.last_name}`.trim();
-      const matchLabels = [displayLabel, entry.inv.firm].filter((l): l is string => !!l?.trim());
-      onSelect({ kind: 'investor', displayLabel, matchLabels });
+      const firm = entry.inv.firm?.trim();
+      const matchLabels = [displayLabel, firm].filter((l): l is string => !!l);
+      const containsLabels = firm ? [firm] : [];
+      onSelect({ kind: 'investor', displayLabel, matchLabels, containsLabels });
     }
     reset();
   };

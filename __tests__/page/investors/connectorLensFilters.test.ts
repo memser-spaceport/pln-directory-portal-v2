@@ -16,6 +16,22 @@ describe('selectionToConnectorFilter', () => {
     });
   });
 
+  it('includes contains labels for investor firm matching', () => {
+    expect(
+      selectionToConnectorFilter({
+        kind: 'investor',
+        displayLabel: 'Josh Baer',
+        matchLabels: ['Josh Baer', 'Capital Factory'],
+        containsLabels: ['Capital Factory'],
+      }),
+    ).toEqual({
+      wi_connector: 'Josh Baer',
+      wi_connector_labels: ['Josh Baer', 'Capital Factory'],
+      wi_connector_contains: ['Capital Factory'],
+      investorId: null,
+    });
+  });
+
   it('includes contains labels for team selection', () => {
     expect(
       selectionToConnectorFilter({
@@ -32,17 +48,18 @@ describe('selectionToConnectorFilter', () => {
     });
   });
 
-  it('routes founder selection to a single exact label', () => {
+  it('routes founder selection to exact and team contains labels', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'founder',
         displayLabel: 'Alice Founder',
-        matchLabels: ['Alice Founder'],
+        matchLabels: ['Alice Founder', 'Modular Globe'],
+        containsLabels: ['Modular Globe'],
       }),
     ).toEqual({
       wi_connector: 'Alice Founder',
-      wi_connector_labels: ['Alice Founder'],
-      wi_connector_contains: [],
+      wi_connector_labels: ['Alice Founder', 'Modular Globe'],
+      wi_connector_contains: ['Modular Globe'],
       investorId: null,
     });
   });

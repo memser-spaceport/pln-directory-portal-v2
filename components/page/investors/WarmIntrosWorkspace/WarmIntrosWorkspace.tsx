@@ -545,8 +545,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           )}
           {!isLoading && members.length > 0 && visible.length === 0 && (
             <div className={s.empty}>
-              {members.length} member{members.length === 1 ? '' : 's'} hidden by the current filters — adjust the
-              relationship chips{connectorLabel ? ' or clear the connector lens' : ''}.
+              {connectorLabel && lensLoading ? (
+                <>Finding warm paths for {connectorLabel}…</>
+              ) : connectorLabel && lensMatched.size === 0 ? (
+                <>No warm path exists for {connectorLabel} on this list.</>
+              ) : (
+                <>
+                  {members.length} member{members.length === 1 ? '' : 's'} hidden by the current filters — adjust the
+                  relationship chips{connectorLabel ? ' or clear the connector lens' : ''}.
+                </>
+              )}
             </div>
           )}
         </section>

@@ -22,13 +22,15 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Gantry',
     load: () => import('./entries/gantry-saved-draft-item/GantrySavedDraftItemPrototype'),
   },
-  {
-    key: 'warm-intros-side-drawer-improvements',
-    title: 'Warm Intros side drawer improvements',
-    description: 'Mocked Investor DB drawer preview for surfacing warm-intro context near the top.',
-    category: 'Investor DB',
-    load: () => import('./entries/warm-intros-side-drawer-improvements/WarmIntrosSideDrawerPrototype'),
-  },
+  // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
+  // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
+  // {
+  //   key: 'warm-intros-side-drawer-improvements',
+  //   title: 'Warm Intros side drawer improvements',
+  //   description: 'Mocked Investor DB drawer preview for surfacing warm-intro context near the top.',
+  //   category: 'Investor DB',
+  //   load: () => import('./entries/warm-intros-side-drawer-improvements/WarmIntrosSideDrawerPrototype'),
+  // },
 ];
 
 export function getPrototypeEntry(key: string): PrototypeEntry | undefined {

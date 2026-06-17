@@ -31,8 +31,6 @@ import type { GantryItem, GantryItemType, GantryStage } from '@/services/gantry/
 // Production roadmap + submit-button styles — reused so the prototype chrome matches 1:1.
 import roadmap from '@/components/page/gantry/roadmap/Roadmap.module.scss';
 import ideas from '@/components/page/gantry/ideas/Ideas.module.scss';
-// Stage status-pill styles, reused (read-only) the same way StageBadge composes them.
-import shared from '@/components/page/gantry/shared/Shared.module.scss';
 // Real submit-modal chrome, reused (read-only) exactly as production SubmitIdeaModal composes it.
 import submitIdea from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal.module.scss';
 import dealModal from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
@@ -408,8 +406,8 @@ export default function GantrySavedDraftItemPrototype() {
   const draftBanner = draft ? (
     <div className={s.draftBanner}>
       <button type="button" className={s.draftBannerMain} onClick={openCreateModal} aria-label="Resume saved draft">
-        {/* Stage-pill styles + neutral color, 12px column-header size — aligned to the title line. */}
-        <span className={clsx(shared.stageBadge, shared.stage_IDEA, roadmap.columnHeaderBadge)}>Draft</span>
+        {/* Real design-system Badge — same component + shared small-badge size as the save status badges. */}
+        <Badge variant="default" className={s.statusBadge}>Draft</Badge>
         <span className={s.draftBannerInfo}>
           <span className={s.draftBannerTitleRow}>
             <span className={s.draftBannerTitle}>{draftTitle}</span>
@@ -434,8 +432,8 @@ export default function GantrySavedDraftItemPrototype() {
   const draftChip = draft ? (
     <div className={s.draftChip}>
       <button type="button" className={s.draftChipMain} onClick={openCreateModal} aria-label="Resume saved draft">
-        {/* Mobile: base stage-pill size (14px) to match the tab stage badges. */}
-        <span className={clsx(shared.stageBadge, shared.stage_IDEA)}>Draft</span>
+        {/* Real design-system Badge — same component + shared small-badge size as the desktop banner. */}
+        <Badge variant="default" className={s.statusBadge}>Draft</Badge>
         <span className={s.draftChipTitle}>{draftTitle}</span>
       </button>
       <button type="button" className={s.draftChipDiscard} onClick={requestDiscard} aria-label="Discard draft">

@@ -6,7 +6,7 @@
 
 .root {
   width: 100%;
-  color: #0a0c11;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 // Prototype-only: widen the gap between the mobile title row and the Filters/Create buttons
@@ -22,14 +22,14 @@
   align-items: center;
   gap: 12px;
   padding: 10px;
-  border: 1px solid rgba(14, 15, 17, 0.1);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 10px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.04);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 
   // Match the board card hover (Roadmap.module.scss .card:hover) — border tint only, no shadow.
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
   }
 
   @include media.mobile-only {
@@ -50,7 +50,7 @@
   text-align: left;
 
   &:hover .draftBannerTitle {
-    color: #1b4dff;
+    color: var(--foreground-brand-primary, #1b4dff);
   }
 }
 
@@ -64,7 +64,7 @@
 .draftBannerTitle {
   overflow: hidden;
   min-width: 0;
-  color: #0f172a;
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
@@ -73,7 +73,7 @@
 }
 
 .draftBannerMeta {
-  color: #64748b;
+  color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 12px;
   line-height: 16px;
 }
@@ -99,9 +99,10 @@
   opacity: 1;
 }
 
-// The real common/Badge, with the tick passed as children and a 12px override (the component is
-// otherwise locked to 14px). Scoped under .modalTitleRow so it wins over Badge's own .root font-size.
-.modalTitleRow .statusBadge {
+// Shared small-badge size for every Badge in this prototype (save status + the Draft pill) so they
+// read as one consistent family. The component is otherwise locked to 14px; the doubled class
+// (specificity 0-2-0) beats Badge's own .root font-size without needing a parent scope.
+.statusBadge.statusBadge {
   gap: 4px;
   font-size: 12px;
   line-height: 16px;
@@ -113,7 +114,7 @@
 .modalTitleRow .statusSaved {
   background: rgba(10, 153, 82, 0.12);
   border-color: rgba(10, 153, 82, 0.2);
-  color: #0a9952;
+  color: var(--foreground-success-primary, #0a9952);
 }
 
 .savedIcon {
@@ -136,10 +137,10 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px 6px 12px;
-  border: 1px solid rgba(14, 15, 17, 0.1);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 10px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.04);
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 .draftChipMain {
@@ -157,7 +158,7 @@
 
 .draftChipTitle {
   overflow: hidden;
-  color: #0f172a;
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
@@ -179,7 +180,7 @@
   cursor: pointer;
 
   &:hover {
-    background: rgba(14, 15, 17, 0.04);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
 }
 
@@ -224,7 +225,7 @@
 
 .confirmTitle {
   margin: 0;
-  color: #0a0c11;
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 18px;
   font-weight: 600;
   line-height: 26px;
@@ -233,7 +234,7 @@
 
 .confirmText {
   margin: 0;
-  color: #455468;
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 14px;
   line-height: 20px;
 }

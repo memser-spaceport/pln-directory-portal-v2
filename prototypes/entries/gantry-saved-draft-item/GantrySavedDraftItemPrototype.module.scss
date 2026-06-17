@@ -1,0 +1,246 @@
+@use 'styles/media';
+
+// Board, columns, cards, page header, filters and the primary button all come from the reused
+// production modules. Only the draft banner, the save badge row and the modal/confirm chrome
+// live here.
+
+.root {
+  width: 100%;
+  color: #0a0c11;
+}
+
+// Prototype-only: widen the gap between the mobile title row and the Filters/Create buttons
+// (production .titleSection uses a tight 4px gap).
+.mobileActionsSpacing {
+  margin-top: 12px;
+}
+
+/* --- Draft banner above the board (single saved draft) --- */
+
+.draftBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid rgba(14, 15, 17, 0.1);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.04);
+
+  // Match the board card hover (Roadmap.module.scss .card:hover) — border tint only, no shadow.
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  @include media.mobile-only {
+    flex-wrap: wrap;
+  }
+}
+
+.draftBannerMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover .draftBannerTitle {
+    color: #1b4dff;
+  }
+}
+
+.draftBannerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.draftBannerTitle {
+  overflow: hidden;
+  min-width: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draftBannerMeta {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.draftBannerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+// Subtle edit affordance — design-system pencil icon + neutral-tertiary grey, on banner hover.
+.draftEditIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.draftBanner:hover .draftEditIcon {
+  opacity: 1;
+}
+
+// The real common/Badge, with the tick passed as children and a 12px override (the component is
+// otherwise locked to 14px). Scoped under .modalTitleRow so it wins over Badge's own .root font-size.
+.modalTitleRow .statusBadge {
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// Override the Badge success green to match the gantry stage pills (#0a9952 @ 12% fill) — the
+// design system's intended "shipped" green. Prototype-only; the real Badge component should be
+// updated to this in the design system (flagged). See memory: project-stage-vs-badge-green.
+.modalTitleRow .statusSaved {
+  background: rgba(10, 153, 82, 0.12);
+  border-color: rgba(10, 153, 82, 0.2);
+  color: #0a9952;
+}
+
+.savedIcon {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.draftBannerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* --- Mobile draft chip (compact, one line) --- */
+
+.draftChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid rgba(14, 15, 17, 0.1);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.04);
+}
+
+.draftChipMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.draftChipTitle {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draftChipDiscard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+/* --- Create / resume modal — reuses production SubmitIdeaModal / SubmitDealModal styles --- */
+
+/* Title + save-status badge inline (the badge is a draft-only add-on, not in production). */
+.modalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Production deal-modal uses 16px side padding for header/footer but 24px for content, so the title
+// and buttons didn't line up with the form fields. Align header + footer to the content's 24px.
+// Scoped under .formModal so it reliably beats the production .header/.footer classes.
+.formModal .formHeader,
+.formModal .formFooter {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* --- Discard confirmation --- */
+
+.confirmContainer {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0 20px 65px -5px rgba(14, 15, 17, 0.06);
+}
+
+.confirmRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: #fff;
+}
+
+.confirmTitle {
+  margin: 0;
+  color: #0a0c11;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+}
+
+.confirmText {
+  margin: 0;
+  color: #455468;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

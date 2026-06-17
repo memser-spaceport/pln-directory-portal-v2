@@ -6,7 +6,6 @@ import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
 import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
-import { useConnectorLens } from '@/services/investors/hooks/useConnectorLens';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 
@@ -184,16 +183,30 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   });
 
   const enabled = access.canView && !!filters.wi_list_id;
-  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
+
+  // Connector lens (task 04): filtered SERVER-SIDE so it spans the whole list, not
+  // just the loaded page. The chosen connector's labels flow to the members
+  // endpoint, which keeps only LPs with a warm path through that connector.
+  const connectorLabel = filters.wi_connector;
+  const connectorExactLabels =
+    filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
+  const connectorContainsLabels = filters.wi_connector_contains;
+
+  const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
     filters.wi_list_id,
     {
       stage_focus: applied.stage ? [applied.stage] : undefined,
       sector_tags: applied.sectors.length ? applied.sectors : undefined,
       check_size_range: applied.check ? [applied.check] : undefined,
+      connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
+      connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
       limit: PAGE_LIMIT,
     },
     enabled,
   );
+
+  /** True while (re)fetching the connector-filtered set (not paginating it). */
+  const lensLoading = !!connectorLabel && isFetching && !isFetchingNextPage;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -223,23 +236,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     return () => observer.disconnect();
   }, [handleLoadMore]);
 
-  // Connector lens: when a unified-search result is chosen, keep only members
-  // whose paths route through matching hop-chain nodes.
-  const connectorLabel = filters.wi_connector;
-  const connectorExactLabels =
-    filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
-  const connectorContainsLabels = filters.wi_connector_contains;
-  const { matchedIds: lensMatched, isLoading: lensLoading } = useConnectorLens(
-    members,
-    { exactLabels: connectorExactLabels, containsLabels: connectorContainsLabels },
-    !!connectorLabel,
-  );
-
+  // Members already arrive connector-filtered from the server (task 04); the
+  // relationship chips refine the loaded set further, client-side.
   const visible = useMemo(() => {
-    let rows = members.filter((m) => relFilter[relationshipTier(m)]);
-    if (connectorLabel) rows = rows.filter((m) => lensMatched.has(m.investor_id));
+    const rows = members.filter((m) => relFilter[relationshipTier(m)]);
     return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [members, relFilter, connectorLabel, lensMatched]);
+  }, [members, relFilter]);
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
@@ -540,7 +542,13 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
           {!isLoading && members.length === 0 && (
             <div className={s.empty}>
-              This list has no matching members. Try widening the sectors or removing the check-size constraint.
+              {lensLoading ? (
+                <>Finding warm paths for {connectorLabel}…</>
+              ) : connectorLabel ? (
+                <>No warm path exists for {connectorLabel} on this list.</>
+              ) : (
+                <>This list has no matching members. Try widening the sectors or removing the check-size constraint.</>
+              )}
             </div>
           )}
           {!isLoading && members.length > 0 && visible.length === 0 && (

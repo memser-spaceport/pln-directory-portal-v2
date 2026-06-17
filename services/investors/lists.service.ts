@@ -31,6 +31,8 @@ function toListMembersApiParams(p: ListMembersParams): Record<string, unknown> {
     stageFocus: p.stage_focus,
     checkSizeRange: p.check_size_range,
     relationship: p.relationship,
+    connectorLabels: p.connector_labels,
+    connectorLabelsContains: p.connector_labels_contains,
     page: p.page,
     limit: p.limit,
   };

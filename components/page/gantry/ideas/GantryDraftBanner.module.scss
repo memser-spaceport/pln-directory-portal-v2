@@ -1,0 +1,100 @@
+@import 'styles/media.scss';
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 15, 17, 0.1);
+  background: #fff;
+  flex-shrink: 0;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.draftPill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0a0c11;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.resumeBtn {
+  padding: 6px 14px;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0a0c11;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.discardBtn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #dd2c5a;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #fff1f2;
+  }
+}

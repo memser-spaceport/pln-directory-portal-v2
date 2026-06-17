@@ -1,12 +1,11 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
 import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
-import { useConnectorLens } from '@/services/investors/hooks/useConnectorLens';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 
@@ -52,7 +51,7 @@ const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'cold_match', label: 'Cold' },
 ];
 
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 200;
 
 // Derive the relationship tier off the investor record (list members are plain
 // OutreachInvestor, not WarmIntroCandidate): co-invested > engaged > cold.
@@ -162,6 +161,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_sectors: draft.sectors.length ? draft.sectors : null,
       wi_check_size: draft.check || null,
     });
+    setSelectedIds(new Set());
+    setExpandedIds(new Set());
   };
 
   const clear = () => {
@@ -182,47 +183,70 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   });
 
   const enabled = access.canView && !!filters.wi_list_id;
-  const { data, isLoading } = useGetListMembers(
+
+  // Connector lens (task 04): filtered SERVER-SIDE so it spans the whole list, not
+  // just the loaded page. The chosen connector's labels flow to the members
+  // endpoint, which keeps only LPs with a warm path through that connector.
+  const connectorLabel = filters.wi_connector;
+  const connectorExactLabels =
+    filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
+  const connectorContainsLabels = filters.wi_connector_contains;
+
+  const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
     filters.wi_list_id,
     {
       stage_focus: applied.stage ? [applied.stage] : undefined,
       sector_tags: applied.sectors.length ? applied.sectors : undefined,
       check_size_range: applied.check ? [applied.check] : undefined,
-      page: 1,
+      connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
+      connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
       limit: PAGE_LIMIT,
     },
     enabled,
   );
 
+  /** True while (re)fetching the connector-filtered set (not paginating it). */
+  const lensLoading = !!connectorLabel && isFetching && !isFetchingNextPage;
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const members = useMemo(() => data?.items ?? [], [data]);
+  const members = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const total = data?.pages.at(-1)?.total ?? 0;
 
-  // Connector lens: when a unified-search result is chosen, keep only members
-  // whose paths route through matching hop-chain nodes.
-  const connectorLabel = filters.wi_connector;
-  const connectorExactLabels =
-    filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
-  const connectorContainsLabels = filters.wi_connector_contains;
-  const { matchedIds: lensMatched, isLoading: lensLoading } = useConnectorLens(
-    members,
-    { exactLabels: connectorExactLabels, containsLabels: connectorContainsLabels },
-    !!connectorLabel,
-  );
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) handleLoadMore();
+      },
+      { rootMargin: '300px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
+
+  // Members already arrive connector-filtered from the server (task 04); the
+  // relationship chips refine the loaded set further, client-side.
   const visible = useMemo(() => {
-    let rows = members.filter((m) => relFilter[relationshipTier(m)]);
-    if (connectorLabel) rows = rows.filter((m) => lensMatched.has(m.investor_id));
+    const rows = members.filter((m) => relFilter[relationshipTier(m)]);
     return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [members, relFilter, connectorLabel, lensMatched]);
+  }, [members, relFilter]);
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
-    if (data) onCountChange?.(data.total);
-  }, [data, onCountChange]);
+    if (data) onCountChange?.(total);
+  }, [total, data, onCountChange]);
 
   const onUnifiedSelect = (sel: UnifiedSelection) => {
     setFilters(selectionToConnectorFilter(sel));
@@ -392,12 +416,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         <section className={s.results}>
           <div className={s.resultsHeader}>
             <div className={s.resultsCount}>
-              {isLoading ? (
+              {isLoading && members.length === 0 ? (
                 'Loading members…'
               ) : (
                 <>
-                  <strong>{visible.length}</strong> shown · {(data?.total ?? members.length).toLocaleString()} in{' '}
-                  {selectedList?.name ?? 'list'}
+                  <strong>{visible.length}</strong> shown · {members.length.toLocaleString()} loaded ·{' '}
+                  {total.toLocaleString()} in {selectedList?.name ?? 'list'}
                   {connectorLabel && lensLoading ? ' · finding paths…' : ''} · sorted by proximity (warmest first)
                 </>
               )}
@@ -513,9 +537,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </table>
           </div>
 
+          <div ref={sentinelRef} className={s.sentinel} />
+          {isFetchingNextPage && <div className={s.sentinelLoader}>Loading more…</div>}
+
           {!isLoading && members.length === 0 && (
             <div className={s.empty}>
-              This list has no matching members. Try widening the sectors or removing the check-size constraint.
+              {lensLoading ? (
+                <>Finding warm paths for {connectorLabel}…</>
+              ) : connectorLabel ? (
+                <>No warm path exists for {connectorLabel} on this list.</>
+              ) : (
+                <>This list has no matching members. Try widening the sectors or removing the check-size constraint.</>
+              )}
             </div>
           )}
           {!isLoading && members.length > 0 && visible.length === 0 && (

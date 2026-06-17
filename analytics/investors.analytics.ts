@@ -73,7 +73,7 @@ export function useInvestorsAnalytics() {
 
   /** Fired when a unified-search result applies the connector-lens filter. */
   const trackConnectorLensApplied = useCallback(
-    (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' }) => {
+    (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' | 'pl_team' }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CONNECTOR_LENS_APPLIED, params);
     },
     [posthog],

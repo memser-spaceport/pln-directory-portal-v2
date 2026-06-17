@@ -89,4 +89,19 @@ describe('useConnectorLens', () => {
     expect(mockFetchMatches).not.toHaveBeenCalled();
     expect(result.current).toEqual({ matchedIds: new Set(), isLoading: false });
   });
+
+  it('batches connector-match requests when loaded members exceed 500 ids', async () => {
+    const members = Array.from({ length: 501 }, (_, i) => member(`inv-${i}`));
+    mockFetchMatches.mockImplementation(async (ids: string[]) => ids.slice(0, 1));
+
+    const { result } = renderHook(() => useConnectorLens(members, { exactLabels: ['Alice Founder'] }, true), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetchMatches).toHaveBeenCalledTimes(2);
+    expect(mockFetchMatches.mock.calls[0][0]).toHaveLength(500);
+    expect(mockFetchMatches.mock.calls[1][0]).toHaveLength(1);
+    expect(result.current.matchedIds.size).toBe(2);
+  });
 });

@@ -25,7 +25,7 @@ export const PitchTopQuickLinks = ({
   pitchStatus,
   investorHasAccess,
 }: Props) => {
-  const { primaryCtaType, primaryCtaLabel, handleLogin } = usePitchInvestorOnboardingState({
+  const { isLoggedIn, primaryCtaType, primaryCtaLabel, handleLogin } = usePitchInvestorOnboardingState({
     pitchSlug,
     prefillEmail,
     pitchStatus,
@@ -40,6 +40,7 @@ export const PitchTopQuickLinks = ({
       primaryCtaType={primaryCtaType}
       primaryCtaLabel={primaryCtaLabel}
       showLoginCta={showLoginCta}
+      isLoggedIn={isLoggedIn}
       onLogin={handleLogin}
     />
   );

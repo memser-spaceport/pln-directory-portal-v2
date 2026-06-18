@@ -124,9 +124,8 @@ export const PitchInvestorQuickLinks = ({
               </button>
             ))}
           <p className={s.supportLine}>
-            Questions or feedback?{' '}
             <button type="button" className={s.supportLink} onClick={handleContactSupport}>
-              Contact support
+              Questions or feedback?
             </button>
           </p>
         </div>

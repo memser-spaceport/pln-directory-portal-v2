@@ -88,9 +88,8 @@ export const PitchInvestorEventHeader = ({
                 {primaryCtaLabel}
               </button>
               <p className={s.supportText}>
-                Questions or feedback?{' '}
                 <button type="button" className={s.supportLink} onClick={() => openModal({ pitchSlug }, 'askQuestion')}>
-                  Contact support
+                  Questions or feedback?
                 </button>
               </p>
             </div>

@@ -1,71 +1,77 @@
-import { openDB } from 'idb';
+import {
+  discardGantryDraftFromApi,
+  fetchGantryDraftFromApi,
+  saveGantryDraftToApi,
+} from '@/services/gantry/gantry.service';
+import type { ApiGantryDraft, ApiGantryDraftPayload } from '@/services/gantry/types';
+import { GANTRY_STAGE_LABELS } from '@/services/gantry/constants';
+import type { GantryStage } from '@/services/gantry/types';
 import type { SubmitIdeaModalVariant } from '@/services/gantry/submitIdeaModal';
 import type { SubmitIdeaDraft } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 
-const DB_NAME = 'gantry-drafts';
-const DB_VERSION = 1;
-const STORE_NAME = 'drafts';
-const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-export type GantryDraftEnvelope = {
-  v: 1;
-  savedAt: number;
-  data: SubmitIdeaDraft;
-};
-
-async function getDB() {
-  return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    },
-  });
+function draftToApiPayload(variant: SubmitIdeaModalVariant, draft: SubmitIdeaDraft): ApiGantryDraftPayload {
+  return {
+    variant,
+    title: draft.form.title,
+    description: draft.form.description ?? '',
+    tags: draft.form.tags?.map((o) => o.value) ?? [],
+    type: draft.form.type?.value ?? null,
+    stage: draft.form.stage?.value ?? null,
+    objectiveUid: draft.form.objective?.value ?? null,
+    newObjectiveTitle: draft.newObjectiveTitle || null,
+    showCreateObjective: draft.showCreateObjective,
+  };
 }
 
-export async function readGantryDraft(variant: SubmitIdeaModalVariant): Promise<SubmitIdeaDraft | null> {
+function apiDraftToDraft(api: ApiGantryDraft): SubmitIdeaDraft {
+  return {
+    form: {
+      title: api.title,
+      description: api.description ?? '',
+      tags: (api.tags ?? []).map((v) => ({ label: v, value: v })),
+      type: api.type ? { label: api.type, value: api.type } : null,
+      stage: api.stage
+        ? { label: GANTRY_STAGE_LABELS[api.stage as GantryStage] ?? api.stage, value: api.stage }
+        : null,
+      objective: api.objectiveUid ? { label: '', value: api.objectiveUid } : null,
+    },
+    showCreateObjective: api.showCreateObjective ?? false,
+    newObjectiveTitle: api.newObjectiveTitle ?? '',
+  };
+}
+
+export async function readGantryDraftResult(
+  variant: SubmitIdeaModalVariant,
+): Promise<{ data: SubmitIdeaDraft; savedAt: number } | null> {
   try {
-    const db = await getDB();
-    const envelope = await db.get(STORE_NAME, variant) as GantryDraftEnvelope | undefined;
-    if (!envelope || envelope.v !== 1 || typeof envelope.savedAt !== 'number' || !envelope.data) {
-      return null;
-    }
-    if (Date.now() - envelope.savedAt > DRAFT_TTL_MS) {
-      await db.delete(STORE_NAME, variant);
-      return null;
-    }
-    return envelope.data;
+    const api = await fetchGantryDraftFromApi();
+    if (!api || api.variant !== variant) return null;
+    return { data: apiDraftToDraft(api), savedAt: new Date(api.updatedAt).getTime() };
   } catch {
     return null;
   }
 }
 
+export async function readGantryDraft(variant: SubmitIdeaModalVariant): Promise<SubmitIdeaDraft | null> {
+  return (await readGantryDraftResult(variant))?.data ?? null;
+}
+
 export async function writeGantryDraft(variant: SubmitIdeaModalVariant, data: SubmitIdeaDraft): Promise<void> {
   try {
-    const db = await getDB();
-    const envelope: GantryDraftEnvelope = { v: 1, savedAt: Date.now(), data };
-    await db.put(STORE_NAME, envelope, variant);
+    await saveGantryDraftToApi(draftToApiPayload(variant, data));
   } catch {
-    // IDB unavailable or quota exceeded — fail silently
+    // network or auth error — fail silently
   }
 }
 
-export async function deleteGantryDraft(variant: SubmitIdeaModalVariant): Promise<void> {
+export async function deleteGantryDraft(_variant: SubmitIdeaModalVariant): Promise<void> {
   try {
-    const db = await getDB();
-    await db.delete(STORE_NAME, variant);
+    await discardGantryDraftFromApi();
   } catch {
     // ignore
   }
 }
 
 export async function readGantryDraftSavedAt(variant: SubmitIdeaModalVariant): Promise<number | null> {
-  try {
-    const db = await getDB();
-    const envelope = await db.get(STORE_NAME, variant) as GantryDraftEnvelope | undefined;
-    if (!envelope || envelope.v !== 1) return null;
-    return envelope.savedAt;
-  } catch {
-    return null;
-  }
+  return (await readGantryDraftResult(variant))?.savedAt ?? null;
 }

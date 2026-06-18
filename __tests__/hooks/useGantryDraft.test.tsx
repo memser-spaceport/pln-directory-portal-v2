@@ -2,25 +2,18 @@ import { type ReactNode } from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { SubmitIdeaDraft } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import type { ApiGantryDraft } from '@/services/gantry/types';
 
 jest.unmock('@tanstack/react-query');
 
-// In-memory IDB simulation
-function makeMemoryDB() {
-  const store = new Map<string, unknown>();
-  return {
-    get: jest.fn((_s: string, key: string) => Promise.resolve(store.get(key))),
-    put: jest.fn((_s: string, value: unknown, key: string) => { store.set(key, value); return Promise.resolve(); }),
-    delete: jest.fn((_s: string, key: string) => { store.delete(key); return Promise.resolve(); }),
-    objectStoreNames: { contains: () => true },
-    _store: store,
-  };
-}
+const mockFetchGantryDraftFromApi = jest.fn<Promise<ApiGantryDraft | null>, []>();
+const mockSaveGantryDraftToApi = jest.fn<Promise<void>, [unknown]>();
+const mockDiscardGantryDraftFromApi = jest.fn<Promise<void>, []>();
 
-let memDB = makeMemoryDB();
-
-jest.mock('idb', () => ({
-  openDB: jest.fn(() => Promise.resolve(memDB)),
+jest.mock('@/services/gantry/gantry.service', () => ({
+  fetchGantryDraftFromApi: (...args: unknown[]) => mockFetchGantryDraftFromApi(...(args as [])),
+  saveGantryDraftToApi: (...args: unknown[]) => mockSaveGantryDraftToApi(...(args as [unknown])),
+  discardGantryDraftFromApi: (...args: unknown[]) => mockDiscardGantryDraftFromApi(...(args as [])),
 }));
 
 import {
@@ -28,6 +21,22 @@ import {
   useGantrySaveDraftMutation,
   useGantryDiscardDraftMutation,
 } from '@/services/gantry/hooks/useGantryDraft';
+
+const UPDATED_AT = '2026-06-17T12:00:00.000Z';
+
+const apiDraft: ApiGantryDraft = {
+  uid: 'draft-1',
+  variant: 'idea',
+  title: 'Test title',
+  description: '',
+  tags: [],
+  type: null,
+  stage: null,
+  objectiveUid: null,
+  newObjectiveTitle: null,
+  showCreateObjective: false,
+  updatedAt: UPDATED_AT,
+};
 
 const sampleDraft: SubmitIdeaDraft = {
   form: { title: 'Test title', description: '', tags: [], type: null, objective: null },
@@ -37,65 +46,81 @@ const sampleDraft: SubmitIdeaDraft = {
 
 function makeWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return { client, wrapper: ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  )};
+  return {
+    client,
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  };
 }
 
 beforeEach(() => {
-  memDB = makeMemoryDB();
-  const { openDB } = require('idb');
-  (openDB as jest.Mock).mockResolvedValue(memDB);
+  jest.clearAllMocks();
+  mockFetchGantryDraftFromApi.mockResolvedValue(null);
+  mockSaveGantryDraftToApi.mockResolvedValue(undefined);
+  mockDiscardGantryDraftFromApi.mockResolvedValue(undefined);
 });
 
 describe('useGantryDraftQuery', () => {
-  it('returns null when no draft is stored', async () => {
+  it('returns null when no draft exists', async () => {
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useGantryDraftQuery('idea'), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBeNull();
   });
+
+  it('returns draft data when API returns a matching draft', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(apiDraft);
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useGantryDraftQuery('idea'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).not.toBeNull();
+    expect(result.current.data!.data.form.title).toBe('Test title');
+    expect(result.current.data!.savedAt).toBe(new Date(UPDATED_AT).getTime());
+  });
 });
 
 describe('useGantrySaveDraftMutation', () => {
-  it('writes draft and resolves successfully', async () => {
+  it('calls saveGantryDraftToApi and resolves successfully', async () => {
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useGantrySaveDraftMutation('idea'), { wrapper });
     await act(async () => { result.current.mutate(sampleDraft); });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(memDB.put).toHaveBeenCalled();
+    expect(mockSaveGantryDraftToApi).toHaveBeenCalledWith(
+      expect.objectContaining({ variant: 'idea', title: 'Test title' }),
+    );
   });
 });
 
 describe('useGantryDiscardDraftMutation', () => {
-  it('deletes the draft and resolves successfully', async () => {
-    const envelope = { v: 1, savedAt: Date.now(), data: sampleDraft };
-    memDB._store.set('idea', envelope);
-
+  it('calls discardGantryDraftFromApi and resolves successfully', async () => {
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useGantryDiscardDraftMutation('idea'), { wrapper });
     await act(async () => { result.current.mutate(); });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(memDB._store.has('idea')).toBe(false);
+    expect(mockDiscardGantryDraftFromApi).toHaveBeenCalled();
   });
 });
 
 describe('save then discard flow', () => {
-  it('draft is null after save + discard', async () => {
-    const { wrapper, client } = makeWrapper();
+  it('draft is null after discard invalidates the query', async () => {
+    // Start with a draft visible, then discard it
+    mockFetchGantryDraftFromApi
+      .mockResolvedValueOnce(apiDraft)  // initial query fetch → has draft
+      .mockResolvedValueOnce(null);      // re-fetch after discard → no draft
 
-    const { result: saveResult } = renderHook(() => useGantrySaveDraftMutation('idea'), { wrapper });
-    await act(async () => { saveResult.current.mutate(sampleDraft); });
-    await waitFor(() => expect(saveResult.current.isSuccess).toBe(true));
+    const { wrapper } = makeWrapper();
+
+    // Render query first so it subscribes before mutations fire
+    const { result: queryResult } = renderHook(() => useGantryDraftQuery('idea'), { wrapper });
+    await waitFor(() => expect(queryResult.current.isSuccess).toBe(true));
+    expect(queryResult.current.data).not.toBeNull();
 
     const { result: discardResult } = renderHook(() => useGantryDiscardDraftMutation('idea'), { wrapper });
     await act(async () => { discardResult.current.mutate(); });
     await waitFor(() => expect(discardResult.current.isSuccess).toBe(true));
 
-    await act(async () => { await client.invalidateQueries(); });
-
-    const { result: queryResult } = renderHook(() => useGantryDraftQuery('idea'), { wrapper });
-    await waitFor(() => expect(queryResult.current.isSuccess).toBe(true));
-    expect(queryResult.current.data).toBeNull();
+    // invalidateQueries triggers a re-fetch of the active query
+    await waitFor(() => expect(queryResult.current.data).toBeNull());
   });
 });

@@ -100,6 +100,32 @@ export interface CreateGantryItemPayload {
   type?: GantryItemType;
 }
 
+export interface ApiGantryDraft {
+  uid: string;
+  variant: 'idea' | 'roadmap';
+  title: string;
+  description: string | null;
+  tags: string[];
+  type: string | null;
+  stage: string | null;
+  objectiveUid: string | null;
+  newObjectiveTitle: string | null;
+  showCreateObjective: boolean;
+  updatedAt: string;
+}
+
+export interface ApiGantryDraftPayload {
+  variant: 'idea' | 'roadmap';
+  title: string;
+  description?: string;
+  tags?: string[];
+  type?: string | null;
+  stage?: string | null;
+  objectiveUid?: string | null;
+  newObjectiveTitle?: string | null;
+  showCreateObjective?: boolean;
+}
+
 export interface UpdateGantryItemPayload {
   title?: string;
   description?: string;

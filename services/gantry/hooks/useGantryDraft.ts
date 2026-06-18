@@ -3,8 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deleteGantryDraft,
-  readGantryDraft,
-  readGantryDraftSavedAt,
+  readGantryDraftResult,
   writeGantryDraft,
 } from '@/utils/gantryDraftStorage';
 import { GantryQueryKeys } from '../constants';
@@ -19,14 +18,7 @@ export type GantryDraftQueryResult = {
 export function useGantryDraftQuery(variant: SubmitIdeaModalVariant) {
   return useQuery<GantryDraftQueryResult>({
     queryKey: [GantryQueryKeys.DRAFT, variant],
-    queryFn: async () => {
-      const [data, savedAt] = await Promise.all([
-        readGantryDraft(variant),
-        readGantryDraftSavedAt(variant),
-      ]);
-      if (!data || savedAt === null) return null;
-      return { data, savedAt };
-    },
+    queryFn: () => readGantryDraftResult(variant),
     staleTime: Infinity,
   });
 }

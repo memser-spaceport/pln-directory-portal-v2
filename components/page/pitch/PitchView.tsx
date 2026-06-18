@@ -144,6 +144,17 @@ export const PitchView = () => {
     headerImageUrl: access.headerImageUrl,
   };
 
+  if (isLoggedIn && access.access === 'restricted') {
+    return (
+      <div className={s.root}>
+        <div className={s.stepsCard}>
+          <PitchInvestorHeader variant="restricted" {...investorHeaderProps} />
+        </div>
+        <PitchAccessRestrictedModal isOpen={showRestrictedModal} onClose={() => setRestrictedModalDismissed(true)} />
+      </div>
+    );
+  }
+
   if (isLimitedDraftView) {
     if (isLoggedIn && isInvestor && access.participantAccess === 'VIEW') {
       return (
@@ -157,17 +168,6 @@ export const PitchView = () => {
     return (
       <div className={s.root}>
         <PitchComingSoonCard teamName={access.teamName} isLoggedIn={isLoggedIn} onLogin={handleLogin} />
-      </div>
-    );
-  }
-
-  if (isLoggedIn && access.access === 'restricted') {
-    return (
-      <div className={s.root}>
-        <div className={s.stepsCard}>
-          <PitchInvestorHeader variant="restricted" {...investorHeaderProps} />
-        </div>
-        <PitchAccessRestrictedModal isOpen={showRestrictedModal} onClose={() => setRestrictedModalDismissed(true)} />
       </div>
     );
   }

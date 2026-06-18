@@ -38,10 +38,7 @@ import FilterCount from '@/components/ui/filter-count';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
-import {
-  useGantryDraftQuery,
-  useGantryDiscardDraftMutation,
-} from '@/services/gantry/hooks/useGantryDraft';
+import { useGantryDraftQuery, useGantryDiscardDraftMutation } from '@/services/gantry/hooks/useGantryDraft';
 import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryDraftBanner } from '@/components/page/gantry/ideas/GantryDraftBanner';
 import { GantryDraftChip } from '@/components/page/gantry/ideas/GantryDraftChip';
@@ -60,7 +57,8 @@ import s from './Roadmap.module.scss';
 const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
 
 const DEFAULT_SUBTITLE = 'Submit what you need, see what we are building. The shortest path to the LabOS roadmap.';
-const DRAFT_SUBTITLE = 'Share what the network needs and track it across the roadmap. You can keep one draft at a time.';
+const DRAFT_SUBTITLE =
+  'Share what the network needs and track it across the roadmap. You can keep one draft at a time.';
 
 function ArrowUpSmallIcon() {
   return (
@@ -240,7 +238,9 @@ export function RoadmapView() {
     let lastX = -1;
     let lastSwitch = 0;
 
-    const onTouchMove = (e: TouchEvent) => { lastX = e.touches[0]?.clientX ?? -1; };
+    const onTouchMove = (e: TouchEvent) => {
+      lastX = e.touches[0]?.clientX ?? -1;
+    };
 
     const tick = () => {
       if (lastX < 0) return;
@@ -258,7 +258,10 @@ export function RoadmapView() {
 
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     const id = setInterval(tick, 150);
-    return () => { window.removeEventListener('touchmove', onTouchMove); clearInterval(id); };
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      clearInterval(id);
+    };
   }, [isNarrow, dnd.isDragging, orderedVisibleColumns, scrollContainerRef, handleTabChange]);
 
   // pinStatus.pins is the authoritative source for the current user's pins.
@@ -284,7 +287,11 @@ export function RoadmapView() {
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: allowsAdminOrdering && stage === 'PLANNED' && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder:
+        allowsAdminOrdering &&
+        stage === 'PLANNED' &&
+        index > 0 &&
+        item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
@@ -399,6 +406,7 @@ export function RoadmapView() {
                       />
                     )}
                   </div>
+                  <p className={s.subtitle}>{subtitle}</p>
                   {hasDraft && (
                     <GantryDraftChip
                       title={draftResult?.data.form.title ?? ''}
@@ -406,7 +414,6 @@ export function RoadmapView() {
                       onDiscard={handleOpenDiscardDialog}
                     />
                   )}
-                  <p className={s.subtitle}>{subtitle}</p>
                 </div>
               </div>
             </div>
@@ -453,9 +460,7 @@ export function RoadmapView() {
                           canDrag={canDragInColumn}
                           isMobile
                           onMoveToStage={
-                            canMoveStage
-                              ? (targetStage) => dnd.moveItemToStage(item.uid, targetStage)
-                              : undefined
+                            canMoveStage ? (targetStage) => dnd.moveItemToStage(item.uid, targetStage) : undefined
                           }
                           availableStages={canMoveStage ? availableStages : undefined}
                           isTransitionPending={dnd.isTransitionPending}
@@ -575,7 +580,9 @@ export function RoadmapView() {
                           <IdeasSubmitButton
                             label={createLabel}
                             hasDraft={hasDraft}
-                            onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
+                            onClick={
+                              hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)
+                            }
                           />
                         </div>
                       )}
@@ -635,19 +642,19 @@ export function RoadmapView() {
                       {orderedVisibleColumns.map((stage) => {
                         const { isDraggable } = columnDragState(stage);
                         return (
-                        <RoadmapDropColumn
-                          key={stage}
-                          stage={stage}
-                          isDraggable={isDraggable}
-                          itemIds={itemsByStage[stage].map((i) => i.uid)}
-                          dropPreviewIndex={
-                            dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
-                          }
-                        >
-                          {itemsByStage[stage].map((item, index) => (
-                            <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
-                          ))}
-                        </RoadmapDropColumn>
+                          <RoadmapDropColumn
+                            key={stage}
+                            stage={stage}
+                            isDraggable={isDraggable}
+                            itemIds={itemsByStage[stage].map((i) => i.uid)}
+                            dropPreviewIndex={
+                              dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
+                            }
+                          >
+                            {itemsByStage[stage].map((item, index) => (
+                              <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
+                            ))}
+                          </RoadmapDropColumn>
                         );
                       })}
                     </div>

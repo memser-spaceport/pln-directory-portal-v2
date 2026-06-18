@@ -42,7 +42,9 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
 
   const statusConfig = getStatusConfig(status);
   const isCompleted = status === 'COMPLETED';
-  const formattedDate = approximateStartDate || format(new Date(date), 'd MMMM, yyyy');
+  const formattedDate = isCompleted
+    ? null
+    : approximateStartDate || format(new Date(date), 'd MMMM, yyyy');
   const showMore = status !== 'UPCOMING';
 
   const handleDescriptionClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
@@ -85,10 +87,12 @@ export const DemoDayCard: React.FC<DemoDayCardProps> = (props) => {
             <BadgeDot />
             <span className={s.badgeText}>{statusConfig.label}</span>
           </div>
-          <div className={s.date}>
-            <CalendarIcon />
-            <span className={s.dateText}>{formattedDate}</span>
-          </div>
+          {formattedDate && (
+            <div className={s.date}>
+              <CalendarIcon />
+              <span className={s.dateText}>{formattedDate}</span>
+            </div>
+          )}
         </div>
         <div className={s.textBlock}>
           <h3 className={s.title}>{title}</h3>

@@ -13,8 +13,9 @@ export function useAddToList() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ listId, investorId }: { listId: string; investorId: string }) => addToList(listId, investorId),
-    onSuccess: (_ok, { listId }) => {
+    onSuccess: (result, { listId, investorId }) => {
       queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.INVESTOR_LISTS] });
+      queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.INVESTOR_LISTS, investorId] });
       queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.LIST_MEMBERS, listId] });
     },
   });

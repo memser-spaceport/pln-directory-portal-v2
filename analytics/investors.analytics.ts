@@ -14,6 +14,7 @@ const INVESTORS_ANALYTICS_EVENTS = {
   LIST_SELECTED: 'investor-list-selected',
   CONNECTOR_LENS_APPLIED: 'investor-connector-lens-applied',
   ADDED_TO_LIST: 'investor-added-to-list',
+  REMOVED_FROM_LIST: 'investor-removed-from-list',
 } as const;
 
 export function useInvestorsAnalytics() {
@@ -86,6 +87,13 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
+  const trackRemovedFromList = useCallback(
+    (params: { listId: string; investorId: string }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.REMOVED_FROM_LIST, params);
+    },
+    [posthog],
+  );
+
   return {
     trackPathsViewed,
     trackPathExpanded,
@@ -96,5 +104,6 @@ export function useInvestorsAnalytics() {
     trackListSelected,
     trackConnectorLensApplied,
     trackAddedToList,
+    trackRemovedFromList,
   };
 }

@@ -12,8 +12,9 @@ export function useRemoveFromList() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ listId, investorId }: { listId: string; investorId: string }) => removeFromList(listId, investorId),
-    onSuccess: (_ok, { listId }) => {
+    onSuccess: (_ok, { listId, investorId }) => {
       queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.INVESTOR_LISTS] });
+      queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.INVESTOR_LISTS, investorId] });
       queryClient.invalidateQueries({ queryKey: [InvestorsQueryKeys.LIST_MEMBERS, listId] });
     },
   });

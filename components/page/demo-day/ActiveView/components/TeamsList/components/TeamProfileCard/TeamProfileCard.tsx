@@ -77,6 +77,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     : isAdmin
       ? (canEditTeams ?? true)
       : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  const canOpenDrawer = !pitchSlug || canEdit || isAdmin;
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();
@@ -115,6 +117,8 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   });
 
   const handleCardClick = () => {
+    if (!canOpenDrawer) return;
+
     if (userInfo?.email) {
       const analyticsData = {
         teamName: team.team?.name,
@@ -327,7 +331,11 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
   }, [team.description]);
 
   return (
-    <div ref={cardRef} className={s.profileCard} onClick={handleCardClick}>
+    <div
+      ref={cardRef}
+      className={clsx(s.profileCard, { [s.profileCardClickable]: canOpenDrawer })}
+      onClick={canOpenDrawer ? handleCardClick : undefined}
+    >
       <ProfileHeader
         image={team.team.logo?.url || getDefaultAvatar(team?.team?.name) || '/images/demo-day/profile-placeholder.svg'}
         name={team.team?.name || 'Team Name'}
@@ -392,12 +400,14 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
               )}
             </button>
           )}
-          <div className={s.editButtonContainer}>
-            <div className={s.drawerEditButton}>
-              {canEdit ? <EditIcon /> : <EyeIcon />}
-              {canEdit ? <span>Edit</span> : <span>More Info</span>}
+          {canOpenDrawer && (
+            <div className={s.editButtonContainer}>
+              <div className={s.drawerEditButton}>
+                {canEdit ? <EditIcon /> : <EyeIcon />}
+                {canEdit ? <span>Edit</span> : <span>More Info</span>}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </ProfileHeader>
 
@@ -414,15 +424,22 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       {/* Team Description */}
       {team.description && (
         <div className={s.descriptionSection}>
-          <p ref={descriptionRef} className={clsx(s.description, { [s.truncated]: isDescriptionTruncated })}>
+          <p
+            ref={descriptionRef}
+            className={clsx(s.description, { [s.truncated]: isDescriptionTruncated && !isDescriptionExpanded })}
+          >
             {team.description}
           </p>
-          {isDescriptionTruncated && (
+          {isDescriptionTruncated && !isDescriptionExpanded && (
             <button
               className={s.showMoreButton}
               onClick={(e) => {
                 e.stopPropagation();
-                handleCardClick();
+                if (canOpenDrawer) {
+                  handleCardClick();
+                } else {
+                  setIsDescriptionExpanded(true);
+                }
               }}
             >
               Show more

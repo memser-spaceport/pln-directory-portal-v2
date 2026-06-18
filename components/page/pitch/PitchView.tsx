@@ -246,9 +246,13 @@ export const PitchView = () => {
             showStageAlways
             canEdit={canEdit}
             isAdmin={access.isPitchAdmin}
-            onClick={() => setSelectedTeam(teamProfile)}
+            onClick={() => {
+              if (canEdit || access.isPitchAdmin) {
+                setSelectedTeam(teamProfile);
+              }
+            }}
           />
-          {selectedTeam && (
+          {selectedTeam && (canEdit || access.isPitchAdmin) && (
             <TeamDetailsDrawer
               team={pitch?.teamProfile ?? selectedTeam}
               isOpen={!!selectedTeam}

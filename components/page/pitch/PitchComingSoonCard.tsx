@@ -87,7 +87,7 @@ export const PitchComingSoonCard = ({
   onLogin,
   variant = 'upcoming',
   teamProfileHref,
-  hideBadge,
+  hideBadge = true,
 }: Props) => {
   const { openModal } = useContactSupportStore((state) => state.actions);
   const config = VARIANT_CONFIG[variant];
@@ -108,9 +108,8 @@ export const PitchComingSoonCard = ({
             {config.buttonLabel}
           </button>
           <p className={s.supportText}>
-            Questions or feedback?{' '}
             <button type="button" className={s.supportLink} onClick={() => openModal()}>
-              Contact support
+              Questions or feedback?
             </button>
           </p>
         </div>

@@ -2,7 +2,7 @@
 
 .statusLine {
   margin: 12px auto 0;
-  max-width: 600px;
+  max-width: 690px;
   color: var(--foreground-neutral-secondary, #455468);
   font-size: 18px;
   font-weight: 400;
@@ -84,6 +84,24 @@
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
+
+  &:hover {
+    color: #1a45e6;
+  }
+}
+
+.inlineLink {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font: inherit;
+  font-weight: 500;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  vertical-align: baseline;
 
   &:hover {
     color: #1a45e6;

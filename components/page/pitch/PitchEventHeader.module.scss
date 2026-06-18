@@ -122,6 +122,12 @@
   letter-spacing: -0.4px;
   text-align: center;
 
+  :is(ul, ol) {
+    text-align: left;
+    display: inline-block;
+    list-style-position: outside;
+  }
+
   @include media.mobile-only {
     font-size: 16px;
     line-height: 22px;

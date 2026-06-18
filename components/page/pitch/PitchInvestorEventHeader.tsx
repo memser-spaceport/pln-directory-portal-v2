@@ -3,8 +3,15 @@
 import React, { useState } from 'react';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
+import { ProfileWhileYouWait } from '@/components/page/pitch/InvestorProfileInlineLink';
 import { usePitchInvestorOnboardingState } from '@/components/page/pitch/hooks/usePitchInvestorOnboardingState';
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
 import s from './PitchInvestorEventHeader.module.scss';
 
@@ -29,8 +36,33 @@ export const PitchInvestorEventHeader = ({
 }: Props) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { openModal } = useContactSupportStore((state) => state.actions);
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const { currentUser: userInfo } = useCurrentUserStore();
 
-  const { primaryCtaLabel, userUid, isProfileComplete } = usePitchInvestorOnboardingState({
+  const openProfileDrawer = () => {
+    teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant: 'open', profileCtaAsLink: true });
+    if (userInfo?.email) {
+      reportAnalytics.mutate(
+        buildEngagementTrackEvent(
+          TEAM_PITCH_ANALYTICS.ON_INVESTOR_PROFILE_CTA_CLICKED,
+          userInfo.email,
+          getTeamSpotlightPath(pitchSlug),
+          pitchSlug,
+          {
+            userId: userInfo.uid,
+            userEmail: userInfo.email,
+            userName: userInfo.name,
+            variant: 'open',
+            profileCtaAsLink: true,
+          },
+        ),
+      );
+    }
+    setDrawerOpen(true);
+  };
+
+  const { primaryCtaLabel, primaryCtaType, userUid, isProfileComplete, handleLogin } = usePitchInvestorOnboardingState({
     pitchSlug,
     prefillEmail,
     pitchStatus,
@@ -46,13 +78,6 @@ export const PitchInvestorEventHeader = ({
       <div className={s.content}>
         <div className={s.headline}>
           <div className={s.headlineText}>
-            {isComingSoon && !isInvestorDraft && (
-              <div className={s.badgeComingSoon}>
-                <span className={s.dotComingSoon} aria-hidden />
-                <span className={s.badgeLabel}>Coming Soon</span>
-              </div>
-            )}
-
             <h1 className={s.title}>
               {isInvestorDraft || isComingSoon ? `${teamName} Spotlight` : title}
               {isComingSoon && !isInvestorDraft && (
@@ -69,9 +94,7 @@ export const PitchInvestorEventHeader = ({
                 <br />
                 You are on the invite list for this spotlight. We will email you when materials go live.
                 <br />
-                {isProfileComplete
-                  ? 'Update your investor profile below while you wait.'
-                  : 'Set up your investor profile below while you wait.'}
+                <ProfileWhileYouWait isComplete={isProfileComplete} onClick={openProfileDrawer} />
               </p>
             ) : isComingSoon ? (
               <p className={s.description}>
@@ -84,13 +107,14 @@ export const PitchInvestorEventHeader = ({
 
           {isComingSoon && (
             <div className={s.actions}>
-              <button type="button" className={s.primaryButton} onClick={() => setDrawerOpen(true)}>
-                {primaryCtaLabel}
-              </button>
+              {primaryCtaType === 'login' && (
+                <button type="button" className={s.primaryButton} onClick={handleLogin}>
+                  {primaryCtaLabel}
+                </button>
+              )}
               <p className={s.supportText}>
-                Questions or feedback?{' '}
                 <button type="button" className={s.supportLink} onClick={() => openModal({ pitchSlug }, 'askQuestion')}>
-                  Contact support
+                  Questions or feedback?
                 </button>
               </p>
             </div>

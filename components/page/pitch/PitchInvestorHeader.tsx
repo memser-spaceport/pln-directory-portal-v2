@@ -1,24 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PageTitle } from '@/components/page/demo-day/PageTitle';
 import { PitchTeamTitle } from '@/components/page/pitch/PitchTeamTitle';
 import { PitchInvestorQuickLinks } from '@/components/page/pitch/PitchInvestorQuickLinks';
+import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import {
   usePitchInvestorOnboardingState,
   type PitchInvestorVariant,
 } from '@/components/page/pitch/hooks/usePitchInvestorOnboardingState';
 import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
+import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
+import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
+import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
+import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import clsx from 'clsx';
 import s from './PitchInvestorHeader.module.scss';
-
-type Status = TeamPitchAccess['status'];
-
-const BADGE_CONFIG: Record<Status, { badgeClass: string; dotClass: string; label: string }> = {
-  DRAFT: { badgeClass: s.badgeUpcoming, dotClass: s.dotUpcoming, label: 'Upcoming' },
-  OPEN: { badgeClass: s.badgeActive, dotClass: s.dotActive, label: 'Spotlight Active' },
-  CLOSED: { badgeClass: s.badgeCompleted, dotClass: s.dotCompleted, label: 'Completed' },
-};
 
 type Props = {
   variant: PitchInvestorVariant;
@@ -51,26 +50,45 @@ export const PitchInvestorHeader = ({
   showWelcomeMessage = false,
   embedded = false,
 }: Props) => {
-  const { isLoggedIn, userUid, statusLine, primaryCtaType, primaryCtaLabel, profileCtaAsLink, handleLogin } =
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const teamPitchAnalytics = useTeamPitchAnalytics();
+  const reportAnalytics = useReportAnalyticsEvent();
+  const { currentUser: userInfo } = useCurrentUserStore();
+
+  const openProfileDrawer = () => {
+    teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant, profileCtaAsLink: true });
+    if (userInfo?.email) {
+      reportAnalytics.mutate(
+        buildEngagementTrackEvent(
+          TEAM_PITCH_ANALYTICS.ON_INVESTOR_PROFILE_CTA_CLICKED,
+          userInfo.email,
+          getTeamSpotlightPath(pitchSlug),
+          pitchSlug,
+          {
+            userId: userInfo.uid,
+            userEmail: userInfo.email,
+            userName: userInfo.name,
+            variant,
+            profileCtaAsLink: true,
+          },
+        ),
+      );
+    }
+    setDrawerOpen(true);
+  };
+
+  const { isLoggedIn, userUid, statusLine, primaryCtaType, primaryCtaLabel, handleLogin } =
     usePitchInvestorOnboardingState({
       pitchSlug,
       prefillEmail,
       pitchStatus,
       investorHasAccess,
       variant,
+      onProfileClick: openProfileDrawer,
     });
-
-  const badge = pitchStatus ? BADGE_CONFIG[pitchStatus] : null;
 
   return (
     <div className={clsx(s.headerContent, embedded && s.embedded, embedded && !statusLine && s.embeddedCompact)}>
-      {!embedded && badge && (
-        <div className={badge.badgeClass}>
-          <span className={badge.dotClass} aria-hidden />
-          <span className={s.badgeLabel}>{badge.label}</span>
-        </div>
-      )}
-
       {!embedded && showWelcomeMessage && headerImageUrl && (
         <div className={s.headerImage}>
           <img src={headerImageUrl} alt="" />
@@ -103,11 +121,19 @@ export const PitchInvestorHeader = ({
         variant={variant}
         primaryCtaType={primaryCtaType}
         primaryCtaLabel={primaryCtaLabel}
-        profileCtaAsLink={profileCtaAsLink}
         isLoggedIn={isLoggedIn}
-        userUid={userUid}
         onLogin={handleLogin}
       />
+
+      {isLoggedIn && userUid && (
+        <EditInvestorProfileDrawer
+          isOpen={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          uid={userUid}
+          isLoggedIn
+          isInvestor
+        />
+      )}
     </div>
   );
 };

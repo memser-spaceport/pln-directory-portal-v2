@@ -11,7 +11,6 @@ import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { PitchInvestorHeader } from '@/components/page/pitch/PitchInvestorHeader';
 import { PitchConfidentialityModal } from '@/components/page/pitch/PitchConfidentialityModal';
 import { PitchComingSoonCard } from '@/components/page/pitch/PitchComingSoonCard';
-import { PitchAccessRestrictedModal } from '@/components/page/pitch/PitchAccessRestrictedModal';
 import { PitchClosedCard } from '@/components/page/pitch/PitchClosedCard';
 import { PitchEventHeader } from '@/components/page/pitch/PitchEventHeader';
 import { PitchInvestorEventHeader } from '@/components/page/pitch/PitchInvestorEventHeader';
@@ -78,11 +77,7 @@ export const PitchView = () => {
   });
 
   const [selectedTeam, setSelectedTeam] = useState<TeamProfile | null>(null);
-  const [restrictedModalDismissed, setRestrictedModalDismissed] = useState(false);
   const loginRedirectAttemptedRef = useRef(false);
-
-  const showRestrictedModal =
-    isLoggedIn && !accessLoading && access?.access === 'restricted' && !restrictedModalDismissed;
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isHydrated || accessLoading || !access) {
@@ -129,7 +124,8 @@ export const PitchView = () => {
 
   const isLimitedDraftView = access.status === 'DRAFT' && !canViewFullDraftPitch;
   const investorHasAccess = access.access === 'view' || access.access === 'edit';
-  const showInvestorHeader = !access.isPitchAdmin && (isInvestor || !isLoggedIn);
+  const showAdminHeader = isLoggedIn && (canViewFullDraftPitch || access.access === 'edit');
+  const showInvestorHeader = !canViewFullDraftPitch && (isInvestor || !isLoggedIn);
 
   const investorHeaderProps = {
     pitchSlug: slug,
@@ -149,7 +145,6 @@ export const PitchView = () => {
         <div className={s.stepsCard}>
           <PitchInvestorHeader variant="restricted" {...investorHeaderProps} />
         </div>
-        <PitchAccessRestrictedModal isOpen={showRestrictedModal} onClose={() => setRestrictedModalDismissed(true)} />
       </div>
     );
   }
@@ -171,7 +166,7 @@ export const PitchView = () => {
     );
   }
 
-  const isClosedInvestorView = access.status === 'CLOSED' && !access.isPitchAdmin && (isInvestor || !isLoggedIn);
+  const isClosedInvestorView = access.status === 'CLOSED' && !canViewFullDraftPitch && (isInvestor || !isLoggedIn);
 
   if (isClosedInvestorView) {
     if (!isLoggedIn) {
@@ -194,7 +189,6 @@ export const PitchView = () => {
           teamUid={access.teamUid}
           pitchSlug={slug}
           prefillEmail={prefillEmail}
-          closedAt={pitch?.closedAt}
         />
       </div>
     );
@@ -220,18 +214,16 @@ export const PitchView = () => {
         />
       )}
 
-      {isLoggedIn && !showInvestorHeader && (
-        <PitchEventHeader title={access.title} description={access.description} status={access.status} />
+      {showAdminHeader && (
+        <PitchEventHeader
+          title={access.title}
+          description={access.description}
+          status={canViewFullDraftPitch && access.status !== 'OPEN' ? access.status : undefined}
+        />
       )}
 
       {!isLoggedIn && showInvestorHeader && (
-        <PitchComingSoonCard
-          teamName={access.teamName}
-          isLoggedIn={false}
-          onLogin={handleLogin}
-          variant="active"
-          hideBadge
-        />
+        <PitchComingSoonCard teamName={access.teamName} isLoggedIn={false} onLogin={handleLogin} variant="active" />
       )}
 
       {canLoadPitch && pitchLoading && !teamProfile && <ProfileSkeleton />}

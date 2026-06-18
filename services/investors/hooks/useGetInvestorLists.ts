@@ -11,7 +11,7 @@ import { InvestorsQueryKeys } from '../constants';
 export function useGetInvestorLists(enabled: boolean) {
   return useQuery({
     queryKey: [InvestorsQueryKeys.INVESTOR_LISTS],
-    queryFn: fetchInvestorLists,
+    queryFn: () => fetchInvestorLists(),
     enabled,
     staleTime: 5 * 60 * 1000,
   });

@@ -59,8 +59,9 @@ export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail, cl
         This spotlight is closed and materials are no longer available.
         <br />
         You can{' '}
-        <InvestorProfileInlineLink onClick={() => setDrawerOpen(true)}>{profilePhrase}</InvestorProfileInlineLink>{' '}
-        or{' '}
+        <InvestorProfileInlineLink onClick={() => setDrawerOpen(true)}>
+          {profilePhrase}
+        </InvestorProfileInlineLink> or{' '}
         <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.teamLink}>
           explore {teamName}
         </Link>{' '}

@@ -29,7 +29,7 @@ export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail }: 
 
   return (
     <div className={s.card}>
-      <h2 className={s.title}>{teamName} Spotlight Closed</h2>
+      <h2 className={s.title}>{teamName} Spotlight</h2>
 
       <p className={s.description}>
         This spotlight is closed and materials are no longer available.

@@ -62,7 +62,7 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
     badgeClass: s.badgeCompleted,
     dotClass: s.dotCompleted,
     badgeLabel: 'Completed',
-    getHeading: (teamName) => <>{teamName ? `${teamName} Spotlight Closed` : 'Spotlight Closed'}</>,
+    getHeading: (teamName) => <>{teamName ? `${teamName} Spotlight` : 'Spotlight'}</>,
     getDescription: (teamName, teamProfileHref) => (
       <>
         This fundraising opportunity has ended and spotlight materials are no longer available. You can still learn more

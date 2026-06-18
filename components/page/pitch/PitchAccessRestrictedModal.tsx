@@ -58,7 +58,7 @@ export const PitchAccessRestrictedModal: React.FC<Props> = ({ isOpen, onClose })
           <div className={s.textContent}>
             <h2 className={s.title}>Access Restricted</h2>
             <p className={s.body}>
-              This pitch is only available to investors who were invited by the Protocol Labs team.
+              This spotlight is only available to investors who were invited by the Protocol Labs team.
             </p>
             <p className={s.body}>
               Please make sure you&apos;re signed in with the email address that received the invitation.

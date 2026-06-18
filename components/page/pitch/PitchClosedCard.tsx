@@ -52,10 +52,10 @@ export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail, cl
         )}
       </div>
 
-      <h2 className={s.title}>{teamName} Pitch Closed</h2>
+      <h2 className={s.title}>{teamName} Spotlight Closed</h2>
 
       <p className={s.description}>
-        This pitch is closed and materials are no longer available.
+        This spotlight is closed and materials are no longer available.
         <br />
         Use the links below to set up your investor profile
         <br />

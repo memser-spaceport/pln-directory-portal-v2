@@ -30,14 +30,14 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
     badgeClass: s.badgeUpcoming,
     dotClass: s.dotUpcoming,
     badgeLabel: 'Upcoming',
-    getHeading: (teamName) => <>{teamName ? `${teamName} pitch` : 'Team pitch'}</>,
+    getHeading: (teamName) => <>{teamName ? `${teamName} spotlight` : 'Team spotlight'}</>,
     getDescription: (teamName) => (
       <>
-        {teamName && <>{teamName} </>}has not opened this pitch to investors yet
+        {teamName && <>{teamName} </>}has not opened this spotlight to investors yet
         <br />
         Log in with the email that received your invite to confirm access.
         <br />
-        We will notify you when pitch materials are available.
+        We will notify you when spotlight materials are available.
       </>
     ),
     buttonLabel: 'Log in',
@@ -45,27 +45,27 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
   active: {
     badgeClass: s.badgeActive,
     dotClass: s.dotActive,
-    badgeLabel: 'Pitch Active',
-    getHeading: (teamName) => <>{teamName ? `${teamName} Pitch` : 'Team Pitch'}</>,
+    badgeLabel: 'Spotlight Active',
+    getHeading: (teamName) => <>{teamName ? `${teamName} Spotlight` : 'Team Spotlight'}</>,
     getDescription: () => (
       <>
-        This is a private team pitch page for invited investors.
+        This is a private team spotlight page for invited investors.
         <br />
         Log in with the email that received your invite to confirm access.
         <br />
-        We will notify you when pitch materials are available.
+        We will notify you when spotlight materials are available.
       </>
     ),
-    buttonLabel: 'Log in to view pitch',
+    buttonLabel: 'Log in to view spotlight',
   },
   closed: {
     badgeClass: s.badgeCompleted,
     dotClass: s.dotCompleted,
     badgeLabel: 'Completed',
-    getHeading: (teamName) => <>{teamName ? `${teamName} Pitch Closed` : 'Pitch Closed'}</>,
+    getHeading: (teamName) => <>{teamName ? `${teamName} Spotlight Closed` : 'Spotlight Closed'}</>,
     getDescription: (teamName, teamProfileHref) => (
       <>
-        This fundraising opportunity has ended and pitch materials are no longer available. You can still learn more
+        This fundraising opportunity has ended and spotlight materials are no longer available. You can still learn more
         about{' '}
         {teamProfileHref ? (
           <Link href={teamProfileHref} className={s.teamLink}>
@@ -81,7 +81,14 @@ const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
   },
 };
 
-export const PitchComingSoonCard = ({ teamName, isLoggedIn, onLogin, variant = 'upcoming', teamProfileHref, hideBadge }: Props) => {
+export const PitchComingSoonCard = ({
+  teamName,
+  isLoggedIn,
+  onLogin,
+  variant = 'upcoming',
+  teamProfileHref,
+  hideBadge,
+}: Props) => {
   const { openModal } = useContactSupportStore((state) => state.actions);
   const config = VARIANT_CONFIG[variant];
 

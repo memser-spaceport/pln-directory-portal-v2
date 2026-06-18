@@ -16,7 +16,7 @@ type Status = TeamPitchAccess['status'];
 
 const BADGE_CONFIG: Record<Status, { badgeClass: string; dotClass: string; label: string }> = {
   DRAFT: { badgeClass: s.badgeUpcoming, dotClass: s.dotUpcoming, label: 'Upcoming' },
-  OPEN: { badgeClass: s.badgeActive, dotClass: s.dotActive, label: 'Pitch Active' },
+  OPEN: { badgeClass: s.badgeActive, dotClass: s.dotActive, label: 'Spotlight Active' },
   CLOSED: { badgeClass: s.badgeCompleted, dotClass: s.dotCompleted, label: 'Completed' },
 };
 
@@ -88,7 +88,12 @@ export const PitchInvestorHeader = ({
 
       {(variant === 'draft' || statusLine) && (
         <p className={s.statusLine}>
-          {variant === 'draft' && teamName && <>{teamName} has not opened this pitch to investors yet<br /></>}
+          {variant === 'draft' && teamName && (
+            <>
+              {teamName} has not opened this spotlight to investors yet
+              <br />
+            </>
+          )}
           {statusLine}
         </p>
       )}

@@ -127,7 +127,7 @@ const GANTRY_TAG_LABELS = [
   'Investor DB',
   'Founder DB',
   'Warm Intros',
-  'Pitch Page',
+  'Spotlight Page',
   'Gantry',
 ] as const;
 

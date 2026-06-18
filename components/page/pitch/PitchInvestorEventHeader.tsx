@@ -54,7 +54,7 @@ export const PitchInvestorEventHeader = ({
             )}
 
             <h1 className={s.title}>
-              {isInvestorDraft || isComingSoon ? `${teamName} Pitch` : title}
+              {isInvestorDraft || isComingSoon ? `${teamName} Spotlight` : title}
               {isComingSoon && !isInvestorDraft && (
                 <>
                   <br />
@@ -65,9 +65,9 @@ export const PitchInvestorEventHeader = ({
 
             {isInvestorDraft ? (
               <p className={s.description}>
-                {teamName} has not opened this pitch to investors yet
+                {teamName} has not opened this spotlight to investors yet
                 <br />
-                You are on the invite list for this pitch. We will email you when materials go live.
+                You are on the invite list for this spotlight. We will email you when materials go live.
                 <br />
                 {isProfileComplete
                   ? 'Update your investor profile below while you wait.'
@@ -78,9 +78,7 @@ export const PitchInvestorEventHeader = ({
                 If you received an invitation, we&apos;ll notify you when materials become available.
               </p>
             ) : (
-              description && (
-                <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />
-              )
+              description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />
             )}
           </div>
 

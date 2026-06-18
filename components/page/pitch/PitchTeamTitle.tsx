@@ -28,6 +28,6 @@ export const PitchTeamTitle = ({ teamName, teamUid }: Props) => (
         <ExternalLinkIcon />
       </span>
     </Link>
-    <span className={s.suffix}>Pitch</span>
+    <span className={s.suffix}>Spotlight</span>
   </h1>
 );

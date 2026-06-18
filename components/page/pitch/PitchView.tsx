@@ -24,6 +24,7 @@ import { usePageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useTimeOnPage } from '@/hooks/useTimeOnPage';
 import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 
 export const PitchView = () => {
   const params = useParams();
@@ -51,7 +52,7 @@ export const PitchView = () => {
   usePageViewAnalytics({
     postHogEventFunction: () => teamPitchAnalytics.onPageOpened(pitchPageProperties),
     customEventName: TEAM_PITCH_ANALYTICS.ON_PAGE_OPENED,
-    path: `/pitch/${slug}`,
+    path: getTeamSpotlightPath(slug),
     requireAuth: false,
     distinctId: currentUser?.email ?? `pitch-anonymous-${slug}`,
     skip: accessLoading || !access,
@@ -65,7 +66,7 @@ export const PitchView = () => {
 
       const distinctId = currentUser?.email ?? `pitch-anonymous-${slug}`;
       reportAnalytics.mutate(
-        buildEngagementTrackEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, distinctId, `/pitch/${slug}`, slug, {
+        buildEngagementTrackEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, distinctId, getTeamSpotlightPath(slug), slug, {
           ...(currentUser ? { userId: currentUser.uid, userEmail: currentUser.email, userName: currentUser.name } : {}),
           timeSpent,
           eventId: sessionId,
@@ -110,7 +111,7 @@ export const PitchView = () => {
 
   const handleLogin = () => {
     const email = prefillEmail || '';
-    router.replace(`/pitch/${slug}?prefillEmail=${encodeURIComponent(email)}#login`);
+    router.replace(`${getTeamSpotlightPath(slug)}?prefillEmail=${encodeURIComponent(email)}#login`);
   };
 
   const isInvestor = access?.participantType === 'INVESTOR';
@@ -120,7 +121,7 @@ export const PitchView = () => {
   }
 
   if (accessError || !access) {
-    return <div className={s.root}>Pitch not found</div>;
+    return <div className={s.root}>Spotlight not found</div>;
   }
 
   const canViewFullDraftPitch =

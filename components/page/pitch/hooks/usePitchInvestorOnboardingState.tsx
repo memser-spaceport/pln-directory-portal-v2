@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { useMember } from '@/services/members/hooks/useMember';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
 
 export type PitchInvestorVariant = 'open' | 'draft' | 'closed' | 'restricted';
@@ -36,7 +37,7 @@ export function usePitchInvestorOnboardingState({
     [memberData?.memberInfo, userInfo],
   );
 
-  const pitchPath = `/pitch/${pitchSlug}`;
+  const pitchPath = getTeamSpotlightPath(pitchSlug);
 
   const handleLogin = () => {
     const email = prefillEmail || '';
@@ -51,17 +52,17 @@ export function usePitchInvestorOnboardingState({
         case 'draft':
           return (
             <>
-              This is a private team pitch page for invited investors.
+              This is a private team spotlight page for invited investors.
               <br />
               Log in with the email that received your invite to confirm access.
               <br />
-              We will notify you when pitch materials are available.
+              We will notify you when spotlight materials are available.
             </>
           );
         case 'closed':
           return (
             <>
-              This is a private team pitch page for invited investors.
+              This is a private team spotlight page for invited investors.
               <br />
               Log in with your invite email to update your investor profile.
             </>
@@ -69,9 +70,9 @@ export function usePitchInvestorOnboardingState({
         default:
           return (
             <>
-              This is a private team pitch page for invited investors.
+              This is a private team spotlight page for invited investors.
               <br />
-              Log in with the email that received your invite to view the pitch.
+              Log in with the email that received your invite to view the spotlight.
             </>
           );
       }
@@ -81,7 +82,7 @@ export function usePitchInvestorOnboardingState({
       case 'restricted':
         return (
           <>
-            Your account is not on the invite list for this pitch page.
+            Your account is not on the invite list for this spotlight page.
             <br />
             Contact support if you believe this is a mistake.
           </>
@@ -89,7 +90,7 @@ export function usePitchInvestorOnboardingState({
       case 'draft':
         return (
           <>
-            You are on the invite list for this pitch. We will email you when materials go live.
+            You are on the invite list for this spotlight. We will email you when materials go live.
             <br />
             {isProfileComplete
               ? 'Update your investor profile below while you wait.'

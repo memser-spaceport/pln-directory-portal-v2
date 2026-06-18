@@ -13,6 +13,7 @@ import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
 import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
 import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchInvestorHeader.module.scss';
 
@@ -59,7 +60,7 @@ export const PitchInvestorQuickLinks = ({
     posthogFn();
     const distinctId = userInfo?.email ?? `pitch-anonymous-${pitchSlug}`;
     reportAnalytics.mutate(
-      buildEngagementTrackEvent(eventName, distinctId, `/pitch/${pitchSlug}`, pitchSlug, {
+      buildEngagementTrackEvent(eventName, distinctId, getTeamSpotlightPath(pitchSlug), pitchSlug, {
         ...(userInfo ? { userId: userInfo.uid, userEmail: userInfo.email, userName: userInfo.name } : {}),
         variant,
         ...extra,
@@ -75,7 +76,7 @@ export const PitchInvestorQuickLinks = ({
       openModal(
         { reason: 'team_pitch_access_denied', pitchSlug },
         'contactSupport',
-        'I need access to a team pitch page',
+        'I need access to a team spotlight page',
       );
       return;
     }

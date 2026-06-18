@@ -35,10 +35,7 @@ export const PitchView = () => {
   const isLoggedIn = !!currentUser?.uid;
 
   const { data: access, isLoading: accessLoading, isError: accessError } = useGetTeamPitchAccess(slug);
-  const canLoadPitch =
-    isLoggedIn &&
-    access &&
-    access.access !== 'restricted';
+  const canLoadPitch = isLoggedIn && access && access.access !== 'restricted';
   const { data: pitch, isLoading: pitchLoading } = useGetTeamPitch(slug, canLoadPitch);
   const teamPitchAnalytics = useTeamPitchAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -83,7 +80,8 @@ export const PitchView = () => {
   const [restrictedModalDismissed, setRestrictedModalDismissed] = useState(false);
   const loginRedirectAttemptedRef = useRef(false);
 
-  const showRestrictedModal = isLoggedIn && !accessLoading && access?.access === 'restricted' && !restrictedModalDismissed;
+  const showRestrictedModal =
+    isLoggedIn && !accessLoading && access?.access === 'restricted' && !restrictedModalDismissed;
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isHydrated || accessLoading || !access) {
@@ -226,7 +224,13 @@ export const PitchView = () => {
       )}
 
       {!isLoggedIn && showInvestorHeader && (
-        <PitchComingSoonCard teamName={access.teamName} isLoggedIn={false} onLogin={handleLogin} variant="active" hideBadge />
+        <PitchComingSoonCard
+          teamName={access.teamName}
+          isLoggedIn={false}
+          onLogin={handleLogin}
+          variant="active"
+          hideBadge
+        />
       )}
 
       {canLoadPitch && pitchLoading && !teamProfile && <ProfileSkeleton />}

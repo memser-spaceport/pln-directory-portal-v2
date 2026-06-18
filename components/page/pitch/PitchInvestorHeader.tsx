@@ -12,6 +12,14 @@ import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitc
 import clsx from 'clsx';
 import s from './PitchInvestorHeader.module.scss';
 
+type Status = TeamPitchAccess['status'];
+
+const BADGE_CONFIG: Record<Status, { badgeClass: string; dotClass: string; label: string }> = {
+  DRAFT: { badgeClass: s.badgeUpcoming, dotClass: s.dotUpcoming, label: 'Upcoming' },
+  OPEN: { badgeClass: s.badgeActive, dotClass: s.dotActive, label: 'Pitch Active' },
+  CLOSED: { badgeClass: s.badgeCompleted, dotClass: s.dotCompleted, label: 'Completed' },
+};
+
 type Props = {
   variant: PitchInvestorVariant;
   pitchSlug: string;
@@ -52,8 +60,17 @@ export const PitchInvestorHeader = ({
       variant,
     });
 
+  const badge = pitchStatus ? BADGE_CONFIG[pitchStatus] : null;
+
   return (
     <div className={clsx(s.headerContent, embedded && s.embedded, embedded && !statusLine && s.embeddedCompact)}>
+      {!embedded && badge && (
+        <div className={badge.badgeClass}>
+          <span className={badge.dotClass} aria-hidden />
+          <span className={s.badgeLabel}>{badge.label}</span>
+        </div>
+      )}
+
       {!embedded && showWelcomeMessage && headerImageUrl && (
         <div className={s.headerImage}>
           <img src={headerImageUrl} alt="" />

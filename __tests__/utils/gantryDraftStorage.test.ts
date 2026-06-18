@@ -1,116 +1,168 @@
 import type { SubmitIdeaDraft } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import type { ApiGantryDraft } from '@/services/gantry/types';
 
-// In-memory IDB simulation — keeps one store keyed by string.
-function makeMemoryDB() {
-  const store = new Map<string, unknown>();
-  return {
-    get: jest.fn((_s: string, key: string) => Promise.resolve(store.get(key))),
-    put: jest.fn((_s: string, value: unknown, key: string) => { store.set(key, value); return Promise.resolve(); }),
-    delete: jest.fn((_s: string, key: string) => { store.delete(key); return Promise.resolve(); }),
-    objectStoreNames: { contains: () => true },
-    _store: store,
-  };
-}
+const mockFetchGantryDraftFromApi = jest.fn<Promise<ApiGantryDraft | null>, []>();
+const mockSaveGantryDraftToApi = jest.fn<Promise<void>, [unknown]>();
+const mockDiscardGantryDraftFromApi = jest.fn<Promise<void>, []>();
 
-let memDB = makeMemoryDB();
-
-jest.mock('idb', () => ({
-  openDB: jest.fn(() => Promise.resolve(memDB)),
+jest.mock('@/services/gantry/gantry.service', () => ({
+  fetchGantryDraftFromApi: (...args: unknown[]) => mockFetchGantryDraftFromApi(...(args as [])),
+  saveGantryDraftToApi: (...args: unknown[]) => mockSaveGantryDraftToApi(...(args as [unknown])),
+  discardGantryDraftFromApi: (...args: unknown[]) => mockDiscardGantryDraftFromApi(...(args as [])),
 }));
 
 import {
   readGantryDraft,
+  readGantryDraftResult,
+  readGantryDraftSavedAt,
   writeGantryDraft,
   deleteGantryDraft,
-  readGantryDraftSavedAt,
 } from '@/utils/gantryDraftStorage';
 
-const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const UPDATED_AT = '2026-06-17T12:00:00.000Z';
+const UPDATED_AT_MS = new Date(UPDATED_AT).getTime();
 
 const sampleDraft: SubmitIdeaDraft = {
-  form: { title: 'Need better filters', description: '', tags: [], type: null, objective: null },
+  form: { title: 'Need better filters', description: '', tags: [], type: null, stage: null, objective: null },
   showCreateObjective: false,
   newObjectiveTitle: '',
 };
 
+const apiDraft: ApiGantryDraft = {
+  uid: 'draft-1',
+  variant: 'idea',
+  title: 'Need better filters',
+  description: '',
+  tags: [],
+  type: null,
+  stage: null,
+  objectiveUid: null,
+  newObjectiveTitle: null,
+  showCreateObjective: false,
+  updatedAt: UPDATED_AT,
+};
+
 beforeEach(() => {
-  memDB = makeMemoryDB();
-  const { openDB } = require('idb');
-  (openDB as jest.Mock).mockResolvedValue(memDB);
-  jest.useFakeTimers();
-  jest.setSystemTime(new Date('2026-06-12T12:00:00Z'));
+  jest.clearAllMocks();
 });
 
-afterEach(() => {
-  jest.useRealTimers();
+describe('readGantryDraftResult', () => {
+  it('returns mapped draft and savedAt when variant matches', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(apiDraft);
+    const result = await readGantryDraftResult('idea');
+    expect(result).not.toBeNull();
+    expect(result!.savedAt).toBe(UPDATED_AT_MS);
+    expect(result!.data.form.title).toBe('Need better filters');
+  });
+
+  it('returns null when no draft exists', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(null);
+    expect(await readGantryDraftResult('idea')).toBeNull();
+  });
+
+  it('returns null when stored draft variant does not match requested variant', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, variant: 'roadmap' });
+    expect(await readGantryDraftResult('idea')).toBeNull();
+  });
+
+  it('returns null on API error', async () => {
+    mockFetchGantryDraftFromApi.mockRejectedValueOnce(new Error('network error'));
+    expect(await readGantryDraftResult('idea')).toBeNull();
+  });
 });
 
-describe('writeGantryDraft + readGantryDraft', () => {
-  it('writes and reads back a draft', async () => {
-    await writeGantryDraft('idea', sampleDraft);
-    const result = await readGantryDraft('idea');
-    expect(result).toEqual(sampleDraft);
-  });
-
-  it('returns null when no draft is stored', async () => {
-    expect(await readGantryDraft('idea')).toBeNull();
-  });
-
-  it('stores drafts per variant independently', async () => {
-    await writeGantryDraft('idea', sampleDraft);
-    expect(await readGantryDraft('roadmap')).toBeNull();
+describe('readGantryDraft', () => {
+  it('returns draft data', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(apiDraft);
     expect(await readGantryDraft('idea')).toEqual(sampleDraft);
   });
-});
 
-describe('expired draft', () => {
-  it('returns null and deletes a draft past TTL', async () => {
-    await writeGantryDraft('idea', sampleDraft);
-    jest.setSystemTime(new Date('2026-06-12T12:00:00Z').getTime() + DRAFT_TTL_MS + 1000);
-    expect(await readGantryDraft('idea')).toBeNull();
-    expect(memDB.delete).toHaveBeenCalledWith(STORE_NAME_SENTINEL, 'idea');
-  });
-});
-
-// Sentinel for store name used in assertions
-const STORE_NAME_SENTINEL = 'drafts';
-
-describe('deleteGantryDraft', () => {
-  it('removes the stored draft', async () => {
-    await writeGantryDraft('idea', sampleDraft);
-    await deleteGantryDraft('idea');
+  it('returns null when no draft', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(null);
     expect(await readGantryDraft('idea')).toBeNull();
   });
 });
 
 describe('readGantryDraftSavedAt', () => {
-  it('returns the savedAt timestamp', async () => {
-    await writeGantryDraft('idea', sampleDraft);
-    const savedAt = await readGantryDraftSavedAt('idea');
-    expect(savedAt).toBe(new Date('2026-06-12T12:00:00Z').getTime());
+  it('returns the updatedAt timestamp as ms', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(apiDraft);
+    expect(await readGantryDraftSavedAt('idea')).toBe(UPDATED_AT_MS);
   });
 
   it('returns null when no draft exists', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce(null);
     expect(await readGantryDraftSavedAt('idea')).toBeNull();
   });
 });
 
-describe('IDB unavailable fallback', () => {
-  it('writeGantryDraft silently swallows errors', async () => {
-    const { openDB } = require('idb');
-    (openDB as jest.Mock).mockRejectedValueOnce(new Error('IDB unavailable'));
+describe('writeGantryDraft', () => {
+  it('calls saveGantryDraftToApi with mapped payload', async () => {
+    mockSaveGantryDraftToApi.mockResolvedValueOnce(undefined);
+    await writeGantryDraft('idea', sampleDraft);
+    expect(mockSaveGantryDraftToApi).toHaveBeenCalledWith(
+      expect.objectContaining({ variant: 'idea', title: 'Need better filters' }),
+    );
+  });
+
+  it('silently swallows API errors', async () => {
+    mockSaveGantryDraftToApi.mockRejectedValueOnce(new Error('network error'));
     await expect(writeGantryDraft('idea', sampleDraft)).resolves.toBeUndefined();
   });
+});
 
-  it('readGantryDraft returns null on error', async () => {
-    const { openDB } = require('idb');
-    (openDB as jest.Mock).mockRejectedValueOnce(new Error('IDB unavailable'));
-    expect(await readGantryDraft('idea')).toBeNull();
+describe('deleteGantryDraft', () => {
+  it('calls discardGantryDraftFromApi', async () => {
+    mockDiscardGantryDraftFromApi.mockResolvedValueOnce(undefined);
+    await deleteGantryDraft('idea');
+    expect(mockDiscardGantryDraftFromApi).toHaveBeenCalled();
   });
 
-  it('deleteGantryDraft silently swallows errors', async () => {
-    const { openDB } = require('idb');
-    (openDB as jest.Mock).mockRejectedValueOnce(new Error('IDB unavailable'));
+  it('silently swallows API errors', async () => {
+    mockDiscardGantryDraftFromApi.mockRejectedValueOnce(new Error('network error'));
     await expect(deleteGantryDraft('idea')).resolves.toBeUndefined();
+  });
+});
+
+describe('field mapping — API → SubmitIdeaDraft', () => {
+  it('maps tags from string[] to Option[]', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({
+      ...apiDraft,
+      tags: ['infra', 'perf'],
+    });
+    const result = await readGantryDraft('idea');
+    expect(result!.form.tags).toEqual([
+      { label: 'infra', value: 'infra' },
+      { label: 'perf', value: 'perf' },
+    ]);
+  });
+
+  it('maps type string to Option', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, type: 'Bug Report' });
+    const result = await readGantryDraft('idea');
+    expect(result!.form.type).toEqual({ label: 'Bug Report', value: 'Bug Report' });
+  });
+
+  it('maps stage string to Option with label from GANTRY_STAGE_LABELS', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, stage: 'PLANNED' });
+    const result = await readGantryDraft('idea');
+    expect(result!.form.stage?.value).toBe('PLANNED');
+    expect(result!.form.stage?.label).toBe('Planned');
+  });
+
+  it('maps objectiveUid to Option with empty label', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, objectiveUid: 'obj-123' });
+    const result = await readGantryDraft('idea');
+    expect(result!.form.objective).toEqual({ label: '', value: 'obj-123' });
+  });
+
+  it('maps newObjectiveTitle and showCreateObjective', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({
+      ...apiDraft,
+      newObjectiveTitle: 'Q3 Access',
+      showCreateObjective: true,
+    });
+    const result = await readGantryDraft('idea');
+    expect(result!.newObjectiveTitle).toBe('Q3 Access');
+    expect(result!.showCreateObjective).toBe(true);
   });
 });

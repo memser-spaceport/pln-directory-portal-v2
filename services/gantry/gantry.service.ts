@@ -1,5 +1,7 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import type {
+  ApiGantryDraft,
+  ApiGantryDraftPayload,
   CreateGantryItemPayload,
   GantryItem,
   GantryItemListResponse,
@@ -274,4 +276,25 @@ export async function trackBuildButtonClick(uid: string): Promise<void> {
   if (!res || !res.ok) {
     throw new Error('Failed to track build button click');
   }
+}
+
+const ROADMAP_DRAFT_URL = `${process.env.DIRECTORY_API_URL}/v1/roadmap/drafts/me`;
+
+export async function fetchGantryDraftFromApi(): Promise<ApiGantryDraft | null> {
+  const res = await customFetch(ROADMAP_DRAFT_URL, { method: 'GET' }, true);
+  if (!res || !res.ok) return null;
+  const json = await res.json();
+  return json.draft ?? null;
+}
+
+export async function saveGantryDraftToApi(payload: ApiGantryDraftPayload): Promise<void> {
+  await customFetch(
+    ROADMAP_DRAFT_URL,
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
+    true,
+  );
+}
+
+export async function discardGantryDraftFromApi(): Promise<void> {
+  await customFetch(ROADMAP_DRAFT_URL, { method: 'DELETE' }, true);
 }

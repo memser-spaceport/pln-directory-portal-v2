@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import { usePitchInvestorOnboardingState } from '@/components/page/pitch/hooks/usePitchInvestorOnboardingState';
+import { InvestorProfileInlineLink } from '@/components/page/pitch/InvestorProfileInlineLink';
 import s from './PitchComingSoonCard.module.scss';
 
 const CalendarIcon = () => (
@@ -35,7 +36,7 @@ export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail, cl
     variant: 'closed',
   });
 
-  const primaryCtaLabel = isProfileComplete ? 'Update Investor Profile' : 'Set Up Investor Profile';
+  const profilePhrase = isProfileComplete ? 'update your investor profile' : 'set up your investor profile';
 
   return (
     <div className={s.card}>
@@ -57,19 +58,14 @@ export const PitchClosedCard = ({ teamName, teamUid, pitchSlug, prefillEmail, cl
       <p className={s.description}>
         This spotlight is closed and materials are no longer available.
         <br />
-        Use the links below to set up your investor profile
-        <br />
-        or explore the team on the Protocol Labs Network.
+        You can{' '}
+        <InvestorProfileInlineLink onClick={() => setDrawerOpen(true)}>{profilePhrase}</InvestorProfileInlineLink>{' '}
+        or{' '}
+        <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.teamLink}>
+          explore {teamName}
+        </Link>{' '}
+        on the Protocol Labs Network.
       </p>
-
-      <div className={s.actions}>
-        <button type="button" className={s.primaryButton} onClick={() => setDrawerOpen(true)}>
-          {primaryCtaLabel}
-        </button>
-        <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.secondaryButton}>
-          View team profile
-        </Link>
-      </div>
 
       {userUid && (
         <EditInvestorProfileDrawer

@@ -11,7 +11,7 @@ import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitc
 type Props = {
   pitchSlug: string;
   variant: PitchInvestorVariant;
-  showProfileCta: boolean;
+  showLoginCta: boolean;
   prefillEmail?: string;
   pitchStatus: TeamPitchAccess['status'];
   investorHasAccess: boolean;
@@ -20,19 +20,18 @@ type Props = {
 export const PitchTopQuickLinks = ({
   pitchSlug,
   variant,
-  showProfileCta,
+  showLoginCta,
   prefillEmail,
   pitchStatus,
   investorHasAccess,
 }: Props) => {
-  const { isLoggedIn, userUid, primaryCtaType, primaryCtaLabel, profileCtaAsLink, handleLogin } =
-    usePitchInvestorOnboardingState({
-      pitchSlug,
-      prefillEmail,
-      pitchStatus,
-      investorHasAccess,
-      variant,
-    });
+  const { primaryCtaType, primaryCtaLabel, handleLogin } = usePitchInvestorOnboardingState({
+    pitchSlug,
+    prefillEmail,
+    pitchStatus,
+    investorHasAccess,
+    variant,
+  });
 
   return (
     <PitchInvestorQuickLinks
@@ -40,10 +39,7 @@ export const PitchTopQuickLinks = ({
       variant={variant}
       primaryCtaType={primaryCtaType}
       primaryCtaLabel={primaryCtaLabel}
-      profileCtaAsLink={profileCtaAsLink}
-      showProfileCta={showProfileCta}
-      isLoggedIn={isLoggedIn}
-      userUid={userUid}
+      showLoginCta={showLoginCta}
       onLogin={handleLogin}
     />
   );

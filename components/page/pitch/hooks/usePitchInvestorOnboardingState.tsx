@@ -7,6 +7,11 @@ import { checkInvestorProfileComplete } from '@/utils/member.utils';
 import { useMember } from '@/services/members/hooks/useMember';
 import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import type { TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
+import {
+  CompleteProfileBeforeMaterials,
+  ProfileWhileYouWait,
+  InvestorProfileInlineLink,
+} from '@/components/page/pitch/InvestorProfileInlineLink';
 
 export type PitchInvestorVariant = 'open' | 'draft' | 'closed' | 'restricted';
 
@@ -18,6 +23,7 @@ type UsePitchInvestorOnboardingStateParams = {
   pitchStatus?: TeamPitchAccess['status'];
   investorHasAccess?: boolean;
   variant: PitchInvestorVariant;
+  onProfileClick?: () => void;
 };
 
 export function usePitchInvestorOnboardingState({
@@ -26,6 +32,7 @@ export function usePitchInvestorOnboardingState({
   pitchStatus,
   investorHasAccess = false,
   variant,
+  onProfileClick,
 }: UsePitchInvestorOnboardingStateParams) {
   const router = useRouter();
   const { currentUser: userInfo } = useCurrentUserStore();
@@ -84,6 +91,18 @@ export function usePitchInvestorOnboardingState({
           <>
             Your account is not on the invite list for this spotlight page.
             <br />
+            Please make sure you&apos;re signed in with the email address that received the invitation.
+            <br />
+            {onProfileClick ? (
+              <>
+                In the meantime, you can{' '}
+                <InvestorProfileInlineLink onClick={onProfileClick}>
+                  {isProfileComplete ? 'update your investor profile' : 'set up your investor profile'}
+                </InvestorProfileInlineLink>
+                .
+                <br />
+              </>
+            ) : null}
             Contact support if you believe this is a mistake.
           </>
         );
@@ -92,21 +111,33 @@ export function usePitchInvestorOnboardingState({
           <>
             You are on the invite list for this spotlight. We will email you when materials go live.
             <br />
-            {isProfileComplete
-              ? 'Update your investor profile below while you wait.'
-              : 'Set up your investor profile below while you wait.'}
+            {onProfileClick ? (
+              <ProfileWhileYouWait isComplete={isProfileComplete} onClick={onProfileClick} />
+            ) : isProfileComplete ? (
+              'Update your investor profile while you wait.'
+            ) : (
+              'Set up your investor profile while you wait.'
+            )}
           </>
         );
       case 'closed':
-        return isProfileComplete ? (
+        return onProfileClick ? (
           <>
-            Use the links below to update your investor profile
+            You can{' '}
+            <InvestorProfileInlineLink onClick={onProfileClick}>
+              {isProfileComplete ? 'update your investor profile' : 'set up your investor profile'}
+            </InvestorProfileInlineLink>{' '}
+            or explore the team on the Protocol Labs Network.
+          </>
+        ) : isProfileComplete ? (
+          <>
+            You can update your investor profile
             <br />
             or explore the team on the Protocol Labs Network.
           </>
         ) : (
           <>
-            Use the links below to set up your investor profile
+            You can set up your investor profile
             <br />
             or explore the team on the Protocol Labs Network.
           </>
@@ -116,7 +147,13 @@ export function usePitchInvestorOnboardingState({
           return null;
         }
         if (!isProfileComplete) {
-          return (
+          return onProfileClick ? (
+            <>
+              <CompleteProfileBeforeMaterials onClick={onProfileClick} />
+              <br />
+              Founders see this when you are introduced.
+            </>
+          ) : (
             <>
               Complete your investor profile before reviewing materials.
               <br />
@@ -126,17 +163,10 @@ export function usePitchInvestorOnboardingState({
         }
         return null;
     }
-  }, [variant, isLoggedIn, canAccessPitch, isProfileComplete]);
+  }, [variant, isLoggedIn, canAccessPitch, isProfileComplete, onProfileClick]);
 
   const primaryCtaType: PrimaryCtaType = !isLoggedIn ? 'login' : 'profile';
-  const primaryCtaLabel = !isLoggedIn
-    ? 'Log in'
-    : isProfileComplete
-      ? 'Update Investor Profile'
-      : 'Set Up Investor Profile';
-
-  // When the pitch card itself is the primary CTA, profile updates are de-emphasized to a link
-  const profileCtaAsLink = canAccessPitch;
+  const primaryCtaLabel = !isLoggedIn ? 'Log in' : '';
 
   return {
     isLoggedIn,
@@ -145,7 +175,6 @@ export function usePitchInvestorOnboardingState({
     statusLine,
     primaryCtaType,
     primaryCtaLabel,
-    profileCtaAsLink,
     handleLogin,
   };
 }

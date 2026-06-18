@@ -78,13 +78,6 @@ export const PitchInvestorEventHeader = ({
       <div className={s.content}>
         <div className={s.headline}>
           <div className={s.headlineText}>
-            {isComingSoon && !isInvestorDraft && (
-              <div className={s.badgeComingSoon}>
-                <span className={s.dotComingSoon} aria-hidden />
-                <span className={s.badgeLabel}>Coming Soon</span>
-              </div>
-            )}
-
             <h1 className={s.title}>
               {isInvestorDraft || isComingSoon ? `${teamName} Spotlight` : title}
               {isComingSoon && !isInvestorDraft && (

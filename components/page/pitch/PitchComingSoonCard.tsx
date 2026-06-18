@@ -87,7 +87,7 @@ export const PitchComingSoonCard = ({
   onLogin,
   variant = 'upcoming',
   teamProfileHref,
-  hideBadge,
+  hideBadge = true,
 }: Props) => {
   const { openModal } = useContactSupportStore((state) => state.actions);
   const config = VARIANT_CONFIG[variant];

@@ -32,7 +32,11 @@ export const PitchView = () => {
   const isLoggedIn = !!currentUser?.uid;
 
   const { data: access, isLoading: accessLoading, isError: accessError } = useGetTeamPitchAccess(slug);
-  const canLoadPitch = isLoggedIn && access && access.access !== 'restricted';
+  const canViewFullPitch =
+    !!access &&
+    (access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT');
+  const canLoadPitch =
+    isLoggedIn && !!access && access.access !== 'restricted' && (access.status !== 'CLOSED' || canViewFullPitch);
   const { data: pitch, isLoading: pitchLoading } = useGetTeamPitch(slug, canLoadPitch);
   const teamPitchAnalytics = useTeamPitchAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -111,8 +115,7 @@ export const PitchView = () => {
     return <div className={s.root}>Spotlight not found</div>;
   }
 
-  const canViewFullDraftPitch =
-    access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
+  const canViewFullDraftPitch = canViewFullPitch;
 
   const isLimitedDraftView = access.status === 'DRAFT' && !canViewFullDraftPitch;
   const investorHasAccess = access.access === 'view' || access.access === 'edit';
@@ -177,12 +180,12 @@ export const PitchView = () => {
         <PitchSpotlightHero variant="draftPreview" {...spotlightHeroProps} />
       )}
 
-      {showAdminHeader && access.status !== 'DRAFT' && (
-        <PitchEventHeader
-          title={access.title}
-          description={access.description}
-          status={canViewFullDraftPitch && access.status !== 'OPEN' ? access.status : undefined}
-        />
+      {showAdminHeader && access.status === 'CLOSED' && (
+        <PitchSpotlightHero variant="closedPreview" {...spotlightHeroProps} />
+      )}
+
+      {showAdminHeader && access.status !== 'DRAFT' && access.status !== 'CLOSED' && (
+        <PitchEventHeader title={access.title} description={access.description} />
       )}
 
       {!isLoggedIn && showInvestorHeader && <PitchSpotlightHero variant="notLoggedIn" {...spotlightHeroProps} />}

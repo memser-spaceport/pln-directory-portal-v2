@@ -118,6 +118,19 @@ export function FounderTable({
         },
       },
       {
+        id: 'plnProximity',
+        header: 'PLN Proximity',
+        cell: ({ row }) => {
+          const value = row.original.plnProximity;
+
+          if (value == null) {
+            return <span className={s.muted}>—</span>;
+          }
+
+          return <span>{Math.round(value * 100)}%</span>;
+        },
+      },
+      {
         id: 'reviewState',
         header: 'Status',
         cell: ({ row }) => <FounderReviewStateBadge status={row.original.reviewState.status} />,

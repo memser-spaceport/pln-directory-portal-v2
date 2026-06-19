@@ -72,8 +72,31 @@ export const PitchSpotlightHero = ({
   );
 
   const openProfileDrawer = () => {
-    teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant, profileCtaAsLink: true });
+    trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_INVESTOR_PROFILE_CTA_CLICKED, () =>
+      teamPitchAnalytics.onInvestorProfileCtaClicked({ pitchSlug, variant, profileCtaAsLink: true }),
+    );
     setDrawerOpen(true);
+  };
+
+  const handleTeamLinkClick = (linkContext: 'spotlight_line' | 'explore_team') => {
+    trackPitchEvent(
+      TEAM_PITCH_ANALYTICS.ON_SPOTLIGHT_TEAM_LINK_CLICKED,
+      () => teamPitchAnalytics.onSpotlightTeamLinkClicked({ pitchSlug, variant, linkContext, teamUid }),
+      { linkContext, teamUid },
+    );
+  };
+
+  const handleMemberProfileLinkClick = () => {
+    trackPitchEvent(
+      TEAM_PITCH_ANALYTICS.ON_SPOTLIGHT_MEMBER_PROFILE_LINK_CLICKED,
+      () =>
+        teamPitchAnalytics.onSpotlightMemberProfileLinkClicked({
+          pitchSlug,
+          variant,
+          memberUid: userInfo?.uid,
+        }),
+      { memberUid: userInfo?.uid },
+    );
   };
 
   const handleGetInTouch = () => {
@@ -109,7 +132,14 @@ export const PitchSpotlightHero = ({
 
   const renderTeamLine = () => (
     <p className={s.spotlightLine}>
-      <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.teamLink}>
+      {isPastSpotlight ? 'Past Spotlight: ' : 'This Spotlight: '}
+      <Link
+        href={`/teams/${teamUid}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={s.teamLink}
+        onClick={() => handleTeamLinkClick('spotlight_line')}
+      >
         {teamName}
       </Link>
       {!isPastSpotlight && statement ? ` — ${statement}` : null}
@@ -161,7 +191,11 @@ export const PitchSpotlightHero = ({
               Please make sure you&apos;re logged in with the email address that received the invitation — you&apos;re
               currently signed in as{' '}
               {userInfo?.uid && userInfo.email ? (
-                <Link href={`/members/${userInfo.uid}?backTo=${encodeURIComponent(pathname)}`} className={s.teamLink}>
+                <Link
+                  href={`/members/${userInfo.uid}?backTo=${encodeURIComponent(pathname)}`}
+                  className={s.teamLink}
+                  onClick={handleMemberProfileLinkClick}
+                >
                   {userInfo.email}
                 </Link>
               ) : (
@@ -192,7 +226,13 @@ export const PitchSpotlightHero = ({
                 {profileClosedPhrase}
               </InvestorProfileInlineLink>{' '}
               to be matched to future spotlights, <br /> or{' '}
-              <Link href={`/teams/${teamUid}`} target="_blank" rel="noopener noreferrer" className={s.teamLink}>
+              <Link
+                href={`/teams/${teamUid}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.teamLink}
+                onClick={() => handleTeamLinkClick('explore_team')}
+              >
                 explore {teamName}&apos;s profile
               </Link>
               .

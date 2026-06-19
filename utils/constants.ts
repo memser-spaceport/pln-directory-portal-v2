@@ -588,6 +588,8 @@ export const TEAM_PITCH_ANALYTICS = {
   ON_INVESTOR_PROFILE_CTA_CLICKED: 'team-pitch-investor-profile-cta-clicked',
   ON_CONTACT_SUPPORT_CLICKED: 'team-pitch-contact-support-clicked',
   ON_RESTRICTED_ACCESS_SUPPORT_CLICKED: 'team-pitch-restricted-access-support-clicked',
+  ON_SPOTLIGHT_TEAM_LINK_CLICKED: 'team-pitch-spotlight-team-link-clicked',
+  ON_SPOTLIGHT_MEMBER_PROFILE_LINK_CLICKED: 'team-pitch-spotlight-member-profile-link-clicked',
   ON_TEAM_CARD_VIEWED: 'team-pitch-team-card-viewed',
   ON_TEAM_CARD_CLICKED: 'team-pitch-team-card-clicked',
   ON_DECK_VIEWED: 'team-pitch-deck-viewed',

@@ -11,6 +11,8 @@ export type TeamPitchAccess = {
   status: 'DRAFT' | 'OPEN' | 'CLOSED';
   title: string;
   description: string;
+  spotlightFrequency: string;
+  spotlightStatement: string | null;
   supportEmail: string;
   logoUrl: string | null;
   primaryColor: string;

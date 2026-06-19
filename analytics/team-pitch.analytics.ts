@@ -38,6 +38,10 @@ export const useTeamPitchAnalytics = () => {
       captureEvent(TEAM_PITCH_ANALYTICS.ON_CONTACT_SUPPORT_CLICKED, eventParams),
     onRestrictedAccessSupportClicked: (eventParams: Record<string, unknown> = {}) =>
       captureEvent(TEAM_PITCH_ANALYTICS.ON_RESTRICTED_ACCESS_SUPPORT_CLICKED, eventParams),
+    onSpotlightTeamLinkClicked: (eventParams: Record<string, unknown> = {}) =>
+      captureEvent(TEAM_PITCH_ANALYTICS.ON_SPOTLIGHT_TEAM_LINK_CLICKED, eventParams),
+    onSpotlightMemberProfileLinkClicked: (eventParams: Record<string, unknown> = {}) =>
+      captureEvent(TEAM_PITCH_ANALYTICS.ON_SPOTLIGHT_MEMBER_PROFILE_LINK_CLICKED, eventParams),
     onTeamCardViewed: (eventParams: Record<string, unknown> = {}) =>
       captureEvent(TEAM_PITCH_ANALYTICS.ON_TEAM_CARD_VIEWED, eventParams),
     onTeamCardClicked: (eventParams: Record<string, unknown> = {}) =>

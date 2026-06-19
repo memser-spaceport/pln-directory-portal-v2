@@ -80,12 +80,12 @@ export function isSubmitIdeaDraftEmpty(draft: SubmitIdeaDraft): boolean {
   const { form, newObjectiveTitle, showCreateObjective } = draft;
 
   return (
-    !form.title.trim() &&
+    !(form.title ?? '').trim() &&
     !hasRichTextContent(form.description) &&
     !(form.tags?.length) &&
     !form.type &&
     !form.objective &&
-    !newObjectiveTitle.trim() &&
+    !(newObjectiveTitle ?? '').trim() &&
     !showCreateObjective
   );
 }

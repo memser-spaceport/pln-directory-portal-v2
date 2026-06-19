@@ -40,8 +40,6 @@ import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
 import { useGantryDraftQuery, useGantryDiscardDraftMutation } from '@/services/gantry/hooks/useGantryDraft';
 import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
-import { GantryDraftBanner } from '@/components/page/gantry/ideas/GantryDraftBanner';
-import { GantryDraftChip } from '@/components/page/gantry/ideas/GantryDraftChip';
 import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
@@ -407,13 +405,13 @@ export function RoadmapView() {
                     )}
                   </div>
                   <p className={s.subtitle}>{subtitle}</p>
-                  {hasDraft && (
-                    <GantryDraftChip
-                      title={draftResult?.data.form.title ?? ''}
-                      onResume={handleResumeDraft}
-                      onDiscard={handleOpenDiscardDialog}
-                    />
-                  )}
+                  {/*{hasDraft && (*/}
+                  {/*  <GantryDraftChip*/}
+                  {/*    title={draftResult?.data.form.title ?? ''}*/}
+                  {/*    onResume={handleResumeDraft}*/}
+                  {/*    onDiscard={handleOpenDiscardDialog}*/}
+                  {/*  />*/}
+                  {/*)}*/}
                 </div>
               </div>
             </div>
@@ -602,14 +600,14 @@ export function RoadmapView() {
                 </div>
               </div>
 
-              {hasDraft && (
-                <GantryDraftBanner
-                  title={draftResult?.data.form.title ?? ''}
-                  savedAt={draftSavedAt}
-                  onResume={handleResumeDraft}
-                  onDiscard={handleOpenDiscardDialog}
-                />
-              )}
+              {/*{hasDraft && (*/}
+              {/*  <GantryDraftBanner*/}
+              {/*    title={draftResult?.data.form.title ?? ''}*/}
+              {/*    savedAt={draftSavedAt}*/}
+              {/*    onResume={handleResumeDraft}*/}
+              {/*    onDiscard={handleOpenDiscardDialog}*/}
+              {/*  />*/}
+              {/*)}*/}
 
               {orderedVisibleColumns.length === 0 ? (
                 <p className={s.empty}>Select at least one column to view the roadmap.</p>

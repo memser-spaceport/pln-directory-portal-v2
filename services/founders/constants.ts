@@ -43,9 +43,10 @@ export const FOUNDER_COLUMNS = [
   { key: 'name', label: 'Founder', sortable: false },
   { key: 'fundTags', label: 'Fund', sortable: false },
   { key: 'sources', label: 'Sources', sortable: false },
+  { key: 'plnProximity', label: 'PLN Proximity', sortable: false },
   { key: 'reviewState', label: 'Status', sortable: false },
 ];
 
-export const DEFAULT_VISIBLE_COLUMNS = ['name', 'fundTags', 'sources', 'reviewState'];
+export const DEFAULT_VISIBLE_COLUMNS = ['name', 'fundTags', 'sources', 'plnProximity', 'reviewState'];
 
 export const FOUNDER_DB_COLUMNS_STORAGE_KEY = 'founder_db.columns.v1';

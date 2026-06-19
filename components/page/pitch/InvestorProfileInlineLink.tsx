@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import s from './PitchInvestorHeader.module.scss';
+import s from './PitchSpotlightHero.module.scss';
 
 type Props = {
   onClick: () => void;
@@ -14,24 +14,5 @@ export function InvestorProfileInlineLink({ onClick, children, className }: Prop
     <button type="button" className={className ?? s.inlineLink} onClick={onClick}>
       {children}
     </button>
-  );
-}
-
-export function ProfileWhileYouWait({ isComplete, onClick }: { isComplete: boolean; onClick: () => void }) {
-  const phrase = isComplete ? 'Update your investor profile' : 'Set up your investor profile';
-
-  return (
-    <>
-      <InvestorProfileInlineLink onClick={onClick}>{phrase}</InvestorProfileInlineLink> while you wait.
-    </>
-  );
-}
-
-export function CompleteProfileBeforeMaterials({ onClick }: { onClick: () => void }) {
-  return (
-    <>
-      <InvestorProfileInlineLink onClick={onClick}>Complete your investor profile</InvestorProfileInlineLink> before
-      reviewing materials.
-    </>
   );
 }

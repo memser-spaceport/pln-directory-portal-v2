@@ -38,7 +38,10 @@ export function useGantryDiscardDraftMutation(variant: SubmitIdeaModalVariant) {
   return useMutation({
     mutationFn: () => deleteGantryDraft(variant),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.DRAFT, variant] });
+      // Invalidate all variant keys — the modal store resets `variant` to 'idea'
+      // on close before onSuccess fires, so targeting only the current variant
+      // would miss the active query in RoadmapView when variants differ.
+      queryClient.invalidateQueries({ queryKey: [GantryQueryKeys.DRAFT] });
     },
   });
 }

@@ -1,0 +1,48 @@
+// Prototype-only override for the objective filter rows.
+// Production CheckboxListItemRepresentation centers the checkbox against the whole label and
+// GantryFilters .objectiveFilterTitle truncates — neither is editable (production). So objective
+// rows are rendered locally here: top-left aligned with the title wrapping, while the checkbox and
+// the O-code chip line up with the title's first line. Reuses the production Checkbox + code chip.
+
+.objectiveItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 32px;
+  padding-block: 4px;
+  cursor: pointer;
+  color: var(--action-foreground-neutral-normal, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+// Centers a first-line element (checkbox, O-code chip) within the title's 20px first line, so
+// everything lines up while the title still wraps below.
+.firstLineSlot {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.objectiveCheckbox {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+}
+
+.objectiveLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.objectiveTitle {
+  min-width: 0;
+  line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

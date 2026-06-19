@@ -1,15 +1,25 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { DEFAULT_PAGE_SIZE } from './constants';
-import type { FounderDetail, FounderFiltersResponse, FounderListParams, FounderListResponse, KpiSummary, ReviewFounderPayload } from './types';
+import type {
+  FounderDetail,
+  FounderFiltersResponse,
+  FounderListParams,
+  FounderListResponse,
+  FounderMethodologyResponse,
+  KpiSummary,
+  ReviewFounderPayload,
+} from './types';
 
 const BASE = `${process.env.DIRECTORY_API_URL}/v1/founder-sourcing`;
 
 function buildQuery(params: Record<string, unknown>): string {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
-    if (v === undefined || v === null || v === '' || v === 0) continue;
+    if (v === undefined || v === null || v === '' || v === 0 || v === false) continue;
     if (Array.isArray(v)) {
       if (v.length > 0) qs.set(k, v.join(','));
+    } else if (typeof v === 'boolean') {
+      qs.set(k, v ? 'true' : 'false');
     } else {
       qs.set(k, String(v));
     }
@@ -38,6 +48,14 @@ export async function fetchFoundersKpiSummary(weeks = 4): Promise<KpiSummary | n
 
 export async function fetchFounderFilters(): Promise<FounderFiltersResponse | null> {
   const res = await customFetch(`${BASE}/filters`, { method: 'GET' }, true);
+  if (!res?.ok) return null;
+  const data = (await res.json()) as FounderFiltersResponse;
+  return { sources: data.sources ?? [], focusAreas: data.focusAreas ?? [] };
+}
+
+export async function fetchFounderMethodology(): Promise<FounderMethodologyResponse | null> {
+  const res = await customFetch(`${BASE}/methodology`, { method: 'GET' }, true);
+  if (res?.status === 404) return null;
   if (!res?.ok) return null;
   return res.json();
 }

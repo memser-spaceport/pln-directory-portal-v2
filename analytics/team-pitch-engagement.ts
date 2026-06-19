@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
 import { DEMO_DAY_ANALYTICS, TEAM_PITCH_ANALYTICS } from '@/utils/constants';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import type { TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 
 type UserInfo = {
@@ -33,7 +34,7 @@ export function useTeamEngagementAnalytics(pitchSlug?: string) {
   const demoDay = useDemoDayAnalytics();
   const teamPitch = useTeamPitchAnalytics();
   const isPitch = !!pitchSlug;
-  const path = isPitch ? `/pitch/${pitchSlug}` : '/demoday';
+  const path = isPitch ? getTeamSpotlightPath(pitchSlug) : '/demoday';
 
   const capture = useMemo(
     () => ({
@@ -130,7 +131,7 @@ export function useFounderProfileAnalytics(pitchSlug?: string) {
   const demoDay = useDemoDayAnalytics();
   const teamPitch = useTeamPitchAnalytics();
   const isPitch = !!pitchSlug;
-  const path = isPitch ? `/pitch/${pitchSlug}` : '/demoday';
+  const path = isPitch ? getTeamSpotlightPath(pitchSlug) : '/demoday';
 
   const capture = useMemo(
     () => ({

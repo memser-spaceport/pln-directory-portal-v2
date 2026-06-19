@@ -1,3 +1,26 @@
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.discardDraftLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #dd2c5a;
+  cursor: pointer;
+  margin-right: auto;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .root {
   display: flex;
   flex-direction: column;

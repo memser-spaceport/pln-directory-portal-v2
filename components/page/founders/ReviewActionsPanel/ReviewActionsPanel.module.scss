@@ -1,41 +1,153 @@
-.form {
+.wrap {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.field {
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btnSecondary,
+.btnApprove,
+.btnReject,
+.btnPrimary {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background 0.1s,
+    opacity 0.1s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btnSecondary {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+
+  &:hover:not(:disabled) {
+    background: #f9fafb;
+  }
+}
+
+.btnApprove {
+  background: #15803d;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #166534;
+  }
+}
+
+.btnReject {
+  background: #fff;
+  color: #b91c1c;
+  border-color: #fecaca;
+
+  &:hover:not(:disabled) {
+    background: #fef2f2;
+  }
+}
+
+.btnPrimary {
+  background: #1b4dff;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #1940d6;
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+.modalTitle {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+}
+
+.modalFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fieldLabel {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.label {
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
   font-family: 'Inter', sans-serif;
 }
 
-.submitBtn {
-  align-self: flex-start;
-  padding: 8px 18px;
-  background: #1b4dff;
-  color: #fff;
-  border: none;
+.optional {
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.select,
+.noteInput {
+  width: 100%;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
+  padding: 8px 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.1s;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+}
 
-  &:hover:not(:disabled) {
-    background: #1940d6;
-  }
+.noteInput {
+  resize: vertical;
+  min-height: 96px;
+}
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+.charCount {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
 }

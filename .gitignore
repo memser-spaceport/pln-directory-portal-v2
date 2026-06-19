@@ -51,3 +51,4 @@ approve-pr.sh
 /docs
 .graphifyignore
 graphify-out
+openspec

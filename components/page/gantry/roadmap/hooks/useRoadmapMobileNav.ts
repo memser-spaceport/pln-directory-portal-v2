@@ -7,6 +7,9 @@ export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[],
   const columnRefs = useRef<Map<RoadmapColumnStage, HTMLDivElement>>(new Map());
   const tabsWrapperRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrollRef = useRef(false);
+  // Set to true when activeColumn is updated by the IntersectionObserver (user swipe).
+  // Prevents the effectiveActiveColumn useEffect from fighting the swipe with an instant snap.
+  const isSwipeUpdateRef = useRef(false);
 
   const effectiveActiveColumn = useMemo(() => {
     if (orderedVisibleColumns.length === 0) return null;
@@ -14,11 +17,14 @@ export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[],
     return orderedVisibleColumns[0];
   }, [activeColumn, orderedVisibleColumns]);
 
-  // Snap to new first column when a filter removes the active one.
+  // Snap to the correct column when a filter removes the currently active one.
+  // Must NOT fire during user swipes (that would fight the scroll animation).
   const prevEffectiveColumnRef = useRef<RoadmapColumnStage | null>(null);
   useEffect(() => {
     if (effectiveActiveColumn !== prevEffectiveColumnRef.current && !isProgrammaticScrollRef.current) {
-      if (effectiveActiveColumn && prevEffectiveColumnRef.current !== null) {
+      if (isSwipeUpdateRef.current) {
+        isSwipeUpdateRef.current = false;
+      } else if (effectiveActiveColumn && prevEffectiveColumnRef.current !== null) {
         const container = scrollContainerRef.current;
         const colEl = columnRefs.current.get(effectiveActiveColumn);
         if (container && colEl) {
@@ -39,7 +45,10 @@ export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[],
         const visible = entries.find((e) => e.isIntersecting && e.intersectionRatio >= 0.5);
         if (visible) {
           const stage = visible.target.getAttribute('data-stage') as RoadmapColumnStage;
-          if (stage) setActiveColumn(stage);
+          if (stage) {
+            isSwipeUpdateRef.current = true;
+            setActiveColumn(stage);
+          }
         }
       },
       { threshold: 0.5, root: container },

@@ -588,6 +588,8 @@ export const TEAM_PITCH_ANALYTICS = {
   ON_INVESTOR_PROFILE_CTA_CLICKED: 'team-pitch-investor-profile-cta-clicked',
   ON_CONTACT_SUPPORT_CLICKED: 'team-pitch-contact-support-clicked',
   ON_RESTRICTED_ACCESS_SUPPORT_CLICKED: 'team-pitch-restricted-access-support-clicked',
+  ON_SPOTLIGHT_TEAM_LINK_CLICKED: 'team-pitch-spotlight-team-link-clicked',
+  ON_SPOTLIGHT_MEMBER_PROFILE_LINK_CLICKED: 'team-pitch-spotlight-member-profile-link-clicked',
   ON_TEAM_CARD_VIEWED: 'team-pitch-team-card-viewed',
   ON_TEAM_CARD_CLICKED: 'team-pitch-team-card-clicked',
   ON_DECK_VIEWED: 'team-pitch-deck-viewed',
@@ -751,6 +753,26 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.17 - Team Spotlights & Network News',
+    tag: 'New Feature',
+    date: '19, Jun 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">PL Spotlight</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Spotlights</span> - Private pages for invited investors to review a featured team's profile and pitch materials; accept confidentiality terms to unlock the deck, and set up or update your investor profile from the page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Network News alerts</span> - In-app notifications and the daily email digest now surface fresh team news from the home feed.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Listing accuracy</span> - Closed roles are removed from the board when they're no longer posted on a team's careers page.</li>
+      </ul>
+      </div>`,
+  },
   {
     title: 'Version 4.5.16 - Quick Actions, Team News & Investor DB',
     tag: 'Improvements',

@@ -35,6 +35,11 @@ const nextConfig = {
         destination: '/alignment-asset',
         permanent: true,
       },
+      {
+        source: '/pitch/:slug',
+        destination: '/spotlight/:slug',
+        permanent: true,
+      },
     ];
   },
   env: {

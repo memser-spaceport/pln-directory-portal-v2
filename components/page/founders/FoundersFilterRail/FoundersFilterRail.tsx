@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
+import { Switch } from '@base-ui-components/react/switch';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FUND_VALUES, FUND_LABEL, FOUNDER_STATUS_VALUES, FOUNDER_STATUS_LABEL } from '@/services/founders/constants';
@@ -117,69 +118,6 @@ function SearchableCheckboxOptions({
   );
 }
 
-function NumericInput({
-  value,
-  onChange,
-  min,
-  max,
-  step,
-  placeholder,
-  suffix,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  placeholder?: string;
-  suffix?: string;
-}) {
-  const [localValue, setLocalValue] = useState<string>(value > 0 ? String(value) : '');
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Sync when parent resets the value (e.g. Clear filters)
-  useEffect(() => {
-    setLocalValue(value > 0 ? String(value) : '');
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalValue(e.target.value);
-    const v = parseFloat(e.target.value);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      if (isNaN(v)) {
-        onChange(0);
-        return;
-      }
-      const clamped = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
-      setLocalValue(String(clamped));
-      onChange(clamped);
-    }, 300);
-  };
-
-  const input = (
-    <input
-      type="number"
-      className={s.input}
-      value={localValue}
-      min={min}
-      max={max}
-      step={step}
-      placeholder={placeholder}
-      onChange={handleChange}
-    />
-  );
-
-  if (!suffix) return input;
-
-  return (
-    <div className={s.inputWrap}>
-      {input}
-      <span className={s.inputSuffix}>{suffix}</span>
-    </div>
-  );
-}
-
 export function FoundersFilterRail({ filters, setFilters }: Props) {
   const analytics = useFoundersAnalytics();
   const access = useFoundersAccess();
@@ -196,8 +134,8 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
       fund: null,
       status: null,
       source: null,
-      minAlignment: null,
-      minPlnProximity: null,
+      isRaising: null,
+      focusArea: null,
       page: null,
     } as never);
   }, [setFilters]);
@@ -208,17 +146,24 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
     n += filters.fund.length;
     n += filters.status.length;
     n += filters.source.length;
-    if (filters.minAlignment > 0) n++;
-    if (filters.minPlnProximity > 0) n++;
+    n += filters.focusArea.length;
+    if (filters.isRaising) n++;
     return n;
   }, [filters]);
 
   const sourceOptions = useMemo(() => {
     const apiSources = filterOptions?.sources ?? [];
-    const apiLower = new Set(apiSources.map((s) => s.toLowerCase()));
-    const extra = filters.source.filter((s) => !apiLower.has(s.toLowerCase()));
+    const apiLower = new Set(apiSources.map((src) => src.toLowerCase()));
+    const extra = filters.source.filter((src) => !apiLower.has(src.toLowerCase()));
     return [...apiSources, ...extra];
   }, [filterOptions?.sources, filters.source]);
+
+  const focusAreaOptions = useMemo(() => {
+    const apiAreas = filterOptions?.focusAreas ?? [];
+    const apiLower = new Set(apiAreas.map((a) => a.toLowerCase()));
+    const extra = filters.focusArea.filter((a) => !apiLower.has(a.toLowerCase()));
+    return [...apiAreas, ...extra];
+  }, [filterOptions?.focusAreas, filters.focusArea]);
 
   return (
     <FiltersSidePanel clearParams={onClear} appliedFiltersCount={appliedFiltersCount} hideFooter>
@@ -235,6 +180,24 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
         />
       </FilterSection>
 
+      <FilterSection title="Raising now">
+        <label className={s.toggleRow}>
+          <span className={s.toggleLabel}>Currently raising</span>
+          <Switch.Root
+            className={s.switch}
+            checked={filters.isRaising}
+            onCheckedChange={(checked) => {
+              setFilter({ isRaising: checked ? true : null } as never);
+              analytics.onFilterApplied('isRaising', checked);
+            }}
+          >
+            <Switch.Thumb className={s.thumb}>
+              <div className={s.dot} />
+            </Switch.Thumb>
+          </Switch.Root>
+        </label>
+      </FilterSection>
+
       <FilterSection title="Fund">
         <CheckboxOptions<FundTag>
           options={FUND_VALUES}
@@ -245,6 +208,22 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
           }}
           label={(v) => FUND_LABEL[v]}
         />
+      </FilterSection>
+
+      <FilterSection title="Thesis">
+        {focusAreaOptions.length === 0 ? (
+          <div className={s.emptyHint}>No thesis areas yet.</div>
+        ) : (
+          <SearchableCheckboxOptions
+            options={focusAreaOptions}
+            values={filters.focusArea}
+            onChange={(next) => {
+              setFilter({ focusArea: next.length ? next : null } as never);
+              analytics.onFilterApplied('focusArea', next);
+            }}
+            placeholder="Search thesis…"
+          />
+        )}
       </FilterSection>
 
       <FilterSection title="Review status">
@@ -275,36 +254,6 @@ export function FoundersFilterRail({ filters, setFilters }: Props) {
             placeholder="Search sources…"
           />
         )}
-      </FilterSection>
-
-      <FilterSection title="Min alignment">
-        <NumericInput
-          value={filters.minAlignment > 0 ? Math.round(filters.minAlignment * 100) : 0}
-          onChange={(pct) => {
-            const v = pct > 0 ? pct / 100 : 0;
-            setFilter({ minAlignment: v > 0 ? v : null } as never);
-            analytics.onFilterApplied('minAlignment', v);
-          }}
-          min={0}
-          max={100}
-          step={1}
-          placeholder="0 – 100"
-          suffix="%"
-        />
-      </FilterSection>
-
-      <FilterSection title="Min PLN proximity">
-        <NumericInput
-          value={filters.minPlnProximity}
-          onChange={(v) => {
-            setFilter({ minPlnProximity: v > 0 ? v : null } as never);
-            analytics.onFilterApplied('minPlnProximity', v);
-          }}
-          min={0}
-          max={1}
-          step={0.01}
-          placeholder="0.00 – 1.00"
-        />
       </FilterSection>
     </FiltersSidePanel>
   );

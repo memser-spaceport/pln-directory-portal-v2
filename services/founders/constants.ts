@@ -1,4 +1,4 @@
-import type { FundTag, FounderStatus, ReviewFeedback } from './types';
+import type { FundTag, FounderStatus, ReviewChannel } from './types';
 
 export const FOUNDER_DB_ENABLED = true;
 
@@ -7,17 +7,20 @@ export enum FoundersQueryKeys {
   FOUNDER_DETAIL = 'founders-detail',
   FOUNDERS_KPI_SUMMARY = 'founders-kpi-summary',
   FOUNDERS_FILTERS = 'founders-filters',
+  FOUNDERS_METHODOLOGY = 'founders-methodology',
 }
 
 export const FUND_VALUES: FundTag[] = ['PLVS', 'NEURO', 'CRYPTO'];
-export const FOUNDER_STATUS_VALUES: FounderStatus[] = [
-  'new',
-  'in-review',
-  'approved',
-  'rejected',
-  'hold',
-];
-export const REVIEW_FEEDBACK_VALUES: ReviewFeedback[] = ['good', 'bad', 'wrong-fund', 'needs-context'];
+export const FOUNDER_STATUS_VALUES: FounderStatus[] = ['new', 'in-review', 'approved', 'rejected', 'hold'];
+
+export const REVIEW_CHANNEL_LABEL: Record<ReviewChannel, string> = {
+  'lead-decision': 'Lead decision',
+  'record-quality': 'Record quality',
+  platform: 'Platform',
+};
+
+export const RECORD_QUALITY_FIELDS = ['why_now', 'bio', 'org', 'score', 'email'] as const;
+export const PLATFORM_FEEDBACK_AREAS = ['scoring', 'filters', 'digest'] as const;
 
 export const FUND_LABEL: Record<FundTag, string> = {
   PLVS: 'PLVS',
@@ -33,25 +36,17 @@ export const FOUNDER_STATUS_LABEL: Record<FounderStatus, string> = {
   hold: 'Hold',
 };
 
-export const REVIEW_FEEDBACK_LABEL: Record<ReviewFeedback, string> = {
-  good: 'Good fit',
-  bad: 'Not a fit',
-  'wrong-fund': 'Wrong fund',
-  'needs-context': 'Needs context',
-};
-
-export const DEFAULT_SORT = 'alignmentMax:desc';
+export const DEFAULT_SORT = 'lastSignalAt:desc';
 export const DEFAULT_PAGE_SIZE = 25;
 
 export const FOUNDER_COLUMNS = [
   { key: 'name', label: 'Founder', sortable: false },
   { key: 'fundTags', label: 'Fund', sortable: false },
-  { key: 'alignmentMax', label: 'Alignment', sortable: true },
-  { key: 'plvsScore', label: 'PLVS Score', sortable: true },
   { key: 'sources', label: 'Sources', sortable: false },
+  { key: 'plnProximity', label: 'PLN Proximity', sortable: false },
   { key: 'reviewState', label: 'Status', sortable: false },
 ];
 
-export const DEFAULT_VISIBLE_COLUMNS = ['name', 'fundTags', 'alignmentMax', 'plvsScore', 'sources', 'reviewState'];
+export const DEFAULT_VISIBLE_COLUMNS = ['name', 'fundTags', 'sources', 'plnProximity', 'reviewState'];
 
 export const FOUNDER_DB_COLUMNS_STORAGE_KEY = 'founder_db.columns.v1';

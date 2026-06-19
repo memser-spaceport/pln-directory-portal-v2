@@ -2,6 +2,6 @@
 
 import { PitchView } from '@/components/page/pitch/PitchView';
 
-export default function PitchPage() {
+export default function SpotlightPage() {
   return <PitchView />;
 }

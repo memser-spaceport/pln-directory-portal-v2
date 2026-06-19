@@ -9,7 +9,8 @@ import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-la
 import { foundersFilterParsers } from '../searchParams';
 import FoundersTableSection from '@/components/page/founders/FoundersTableSection/FoundersTableSection';
 import KpiSummaryStrip from '@/components/page/founders/KpiSummaryStrip/KpiSummaryStrip';
-import FounderDrawer, { FounderScoringModal } from '@/components/page/founders/FounderDrawer/FounderDrawer';
+import FounderDrawer from '@/components/page/founders/FounderDrawer/FounderDrawer';
+import { FounderMethodologyModal } from '@/components/page/founders/FounderMethodologyModal/FounderMethodologyModal';
 import { useFoundersAnalytics } from '@/analytics/founders.analytics';
 import s from './page.module.scss';
 
@@ -68,7 +69,11 @@ export default function FoundersContent() {
         canEdit={access.canEdit}
       />
 
-      <FounderScoringModal open={scoringOpen} onClose={() => setScoringOpen(false)} triggerRef={scoringTriggerRef} />
+      <FounderMethodologyModal
+        open={scoringOpen}
+        onClose={() => setScoringOpen(false)}
+        triggerRef={scoringTriggerRef}
+      />
     </div>
   );
 }

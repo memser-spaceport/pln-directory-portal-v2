@@ -66,6 +66,7 @@ function mapInvestorList(dto: AnyDto): InvestorList {
     description: dto.description ?? '',
     is_graphed: dto.isGraphed ?? false,
     member_count: dto.memberCount ?? 0,
+    ...(dto.isMember !== undefined ? { is_member: dto.isMember } : {}),
   };
 }
 
@@ -88,8 +89,9 @@ function mapCrosswalkReviewItem(dto: AnyDto): CrosswalkReviewItem {
 // ─── Lists ────────────────────────────────────────────────────────────────────
 
 /** All target lists the user can pick in the warm-intros workspace (v1: Neuro + Gold). */
-export async function fetchInvestorLists(): Promise<InvestorList[]> {
-  const res = await customFetch(`${LISTS_API_URL}`, { method: 'GET' }, true);
+export async function fetchInvestorLists(investorId?: string): Promise<InvestorList[]> {
+  const qs = investorId ? `?investorId=${encodeURIComponent(investorId)}` : '';
+  const res = await customFetch(`${LISTS_API_URL}${qs}`, { method: 'GET' }, true);
   if (!res || !res.ok) return [];
   const json = await res.json();
   return ((json.items ?? []) as AnyDto[]).map(mapInvestorList);
@@ -111,14 +113,16 @@ export async function fetchListMembers(
   return { ...json, items: ((json.items ?? []) as AnyDto[]).map(mapInvestorDto) };
 }
 
-/** Add an investor to a list. Gated server-side on investor_db.edit. Returns true on success. */
-export async function addToList(listId: string, investorId: string): Promise<boolean> {
+/** Add an investor to a list. Gated server-side on investor_db.edit. */
+export async function addToList(listId: string, investorId: string): Promise<'ok' | 'conflict' | 'error'> {
   const res = await customFetch(
     `${LISTS_API_URL}/${encodeURIComponent(listId)}/members`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ investorId }) },
     true,
   );
-  return !!res && res.ok;
+  if (!res) return 'error';
+  if (res.status === 409) return 'conflict';
+  return res.ok ? 'ok' : 'error';
 }
 
 /** Remove an investor from a list. Gated server-side on investor_db.edit. */

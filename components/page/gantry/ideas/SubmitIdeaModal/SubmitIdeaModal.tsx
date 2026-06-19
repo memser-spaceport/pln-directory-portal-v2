@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 
@@ -15,13 +15,12 @@ import { useCreateGantryItem } from '@/services/gantry/hooks/useCreateGantryItem
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { assignGantryItemObjective } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
-
+import { getSubmitIdeaFormDefaults, SUBMIT_IDEA_MODAL_COPY } from '@/services/gantry/submitIdeaModal';
 import {
-  getSubmitIdeaDraftKey,
-  getSubmitIdeaFormDefaults,
-  SUBMIT_IDEA_MODAL_COPY,
-} from '@/services/gantry/submitIdeaModal';
-import { useFormDraft } from '@/hooks/useFormDraft';
+  useGantryDiscardDraftMutation,
+  useGantryDraftQuery,
+  useGantrySaveDraftMutation,
+} from '@/services/gantry/hooks/useGantryDraft';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import {
   submitIdeaSchema,
@@ -30,8 +29,12 @@ import {
   type SubmitIdeaDraft,
   type SubmitIdeaFormData,
 } from './helpers';
+import { DraftSaveStatus } from './DraftSaveStatus';
+import { DiscardDraftDialog } from '../DiscardDraftDialog';
 import dealModalStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import s from './SubmitIdeaModal.module.scss';
+
+const SAVE_DEBOUNCE_MS = 500;
 
 interface Props {
   readonly objectives?: GantryObjective[];
@@ -49,45 +52,98 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
 
   const [showCreateObjective, setShowCreateObjective] = useState(false);
   const [newObjectiveTitle, setNewObjectiveTitle] = useState('');
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+
+  const { data: draftResult } = useGantryDraftQuery(variant);
+  const saveDraftMutation = useGantrySaveDraftMutation(variant);
+  const discardDraftMutation = useGantryDiscardDraftMutation(variant);
+
+  const hasDraft = !!draftResult && !isSubmitIdeaDraftEmpty(draftResult.data);
+
+  const saveStatus = saveDraftMutation.isPending
+    ? 'saving'
+    : saveDraftMutation.isSuccess
+    ? 'saved'
+    : 'idle';
 
   const methods = useForm<SubmitIdeaFormData>({
     resolver: yupResolver(submitIdeaSchema) as any,
-    defaultValues: getSubmitIdeaFormDefaults('idea'),
+    defaultValues: getSubmitIdeaFormDefaults(variant),
     mode: 'onChange',
   });
 
   const {
     handleSubmit,
     reset,
+    getValues,
+    control,
     formState: { isValid },
   } = methods;
 
-  const { clearDraft } = useFormDraft<SubmitIdeaFormData, SubmitIdeaDraft>({
-    storageKey: getSubmitIdeaDraftKey(variant),
-    enabled: open,
-    methods,
-    getDefaults: () => getSubmitIdeaFormDefaults(variant),
-    toDraft: (form) => ({
-      form,
-      showCreateObjective,
-      newObjectiveTitle,
-    }),
-    fromDraft: (draft) => draft.form,
-    isEmpty: isSubmitIdeaDraftEmpty,
-    onRestore: (draft) => {
-      setShowCreateObjective(draft?.showCreateObjective ?? false);
-      setNewObjectiveTitle(draft?.newObjectiveTitle ?? '');
-    },
-    saveDeps: [showCreateObjective, newObjectiveTitle],
-  });
+  const values = useWatch({ control });
+  const skipSaveRef = useRef(true);
+
+  // Restore draft when modal opens
+  useEffect(() => {
+    if (!open) {
+      skipSaveRef.current = true;
+      return;
+    }
+    skipSaveRef.current = true;
+    if (draftResult && !isSubmitIdeaDraftEmpty(draftResult.data)) {
+      reset(draftResult.data.form);
+      setShowCreateObjective(draftResult.data.showCreateObjective ?? false);
+      setNewObjectiveTitle(draftResult.data.newObjectiveTitle ?? '');
+    } else {
+      reset(getSubmitIdeaFormDefaults(variant));
+      setShowCreateObjective(false);
+      setNewObjectiveTitle('');
+    }
+    const id = window.setTimeout(() => { skipSaveRef.current = false; }, 0);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, variant]);
+
+  // Autosave draft while modal is open
+  const toDraft = useCallback((): SubmitIdeaDraft => ({
+    form: getValues(),
+    showCreateObjective,
+    newObjectiveTitle,
+  }), [getValues, showCreateObjective, newObjectiveTitle]);
+
+  useEffect(() => {
+    if (!open || skipSaveRef.current) return;
+    const id = window.setTimeout(() => {
+      const draft = toDraft();
+      if (isSubmitIdeaDraftEmpty(draft)) {
+        discardDraftMutation.mutate();
+      } else {
+        saveDraftMutation.mutate(draft);
+      }
+    }, SAVE_DEBOUNCE_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, values, showCreateObjective, newObjectiveTitle]);
 
   const onClose = () => {
     actions.closeModal();
   };
 
+  const handleDiscardFromModal = () => {
+    setDiscardDialogOpen(true);
+  };
+
+  const handleConfirmDiscard = () => {
+    discardDraftMutation.mutate();
+    setDiscardDialogOpen(false);
+    reset(getSubmitIdeaFormDefaults(variant));
+    setShowCreateObjective(false);
+    setNewObjectiveTitle('');
+    actions.closeModal();
+  };
+
   const onSubmit = (data: SubmitIdeaFormData) => {
     const stageValue = data.stage?.value as GantryStage | undefined;
-
     const tags = data.tags?.map((o) => o.value) ?? [];
     const itemType = data.type?.value as GantryItemType | undefined;
 
@@ -117,7 +173,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
             }
           }
           analytics.onIdeaCreated(created.uid, tags, itemType);
-          clearDraft();
+          discardDraftMutation.mutate();
           reset(getSubmitIdeaFormDefaults('idea'));
           setShowCreateObjective(false);
           setNewObjectiveTitle('');
@@ -129,106 +185,121 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
   };
 
   return (
-    <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false}>
-      <div className={s.root}>
-        <div className={dealModalStyles.header}>
-          <div className={dealModalStyles.headerText}>
-            <h2 className={dealModalStyles.title}>{copy.title}</h2>
-            <p className={dealModalStyles.subtitle}>{copy.subtitle}</p>
-          </div>
-          <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
-            <CloseIcon width={20} height={20} color="#0a0c11" />
-          </button>
-        </div>
-
-        <div className={dealModalStyles.content}>
-          <FormProvider {...methods}>
-            <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
-            {canCurate && (
-              <div className={s.objectiveField}>
-                <FormSelect
-                  name="objective"
-                  label="Objective"
-                  placeholder="Select an objective..."
-                  options={objectiveOptions}
-                  isClearable
-                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                  onChange={() => {
-                    setShowCreateObjective(false);
-                    setNewObjectiveTitle('');
-                  }}
-                />
-                {!showCreateObjective ? (
-                  <button
-                    type="button"
-                    className={s.objectiveCreateBtn}
-                    onClick={() => {
-                      setShowCreateObjective(true);
-                    }}
-                  >
-                    + New objective
-                  </button>
-                ) : (
-                  <div className={s.objectiveCreateForm}>
-                    <input
-                      className={s.objectiveCreateInput}
-                      value={newObjectiveTitle}
-                      onChange={(e) => setNewObjectiveTitle(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          setShowCreateObjective(false);
-                          setNewObjectiveTitle('');
-                        }
-                      }}
-                      placeholder="Objective title..."
-                      maxLength={150}
-                      autoFocus
-                    />
-                    <div className={s.objectiveCreateMeta}>
-                      <span className={s.objectiveCharCount}>{newObjectiveTitle.length}/150</span>
-                      <button
-                        type="button"
-                        className={s.objectiveCancelBtn}
-                        onClick={() => {
-                          setShowCreateObjective(false);
-                          setNewObjectiveTitle('');
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
+    <>
+      <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false}>
+        <div className={s.root}>
+          <div className={dealModalStyles.header}>
+            <div className={dealModalStyles.headerText}>
+              <div className={s.titleRow}>
+                <h2 className={dealModalStyles.title}>{copy.title}</h2>
+                <DraftSaveStatus status={saveStatus} />
               </div>
-            )}
-          </FormProvider>
-        </div>
+              <p className={dealModalStyles.subtitle}>{copy.subtitle}</p>
+            </div>
+            <button type="button" className={dealModalStyles.closeButton} onClick={onClose} aria-label="Close">
+              <CloseIcon width={20} height={20} color="#0a0c11" />
+            </button>
+          </div>
 
-        <div className={dealModalStyles.footer}>
-          {copy.footerNote ? (
-            <>
-              <p className={dealModalStyles.footerNote}>{copy.footerNote}</p>
-              <div className={dealModalStyles.footerActions}>
-                <Button style="link" variant="secondary" onClick={onClose}>
+          <div className={dealModalStyles.content}>
+            <FormProvider {...methods}>
+              <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
+              {canCurate && (
+                <div className={s.objectiveField}>
+                  <FormSelect
+                    name="objective"
+                    label="Objective"
+                    placeholder="Select an objective..."
+                    options={objectiveOptions}
+                    isClearable
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                    onChange={() => {
+                      setShowCreateObjective(false);
+                      setNewObjectiveTitle('');
+                    }}
+                  />
+                  {!showCreateObjective ? (
+                    <button
+                      type="button"
+                      className={s.objectiveCreateBtn}
+                      onClick={() => { setShowCreateObjective(true); }}
+                    >
+                      + New objective
+                    </button>
+                  ) : (
+                    <div className={s.objectiveCreateForm}>
+                      <input
+                        className={s.objectiveCreateInput}
+                        value={newObjectiveTitle}
+                        onChange={(e) => setNewObjectiveTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setShowCreateObjective(false);
+                            setNewObjectiveTitle('');
+                          }
+                        }}
+                        placeholder="Objective title..."
+                        maxLength={150}
+                        autoFocus
+                      />
+                      <div className={s.objectiveCreateMeta}>
+                        <span className={s.objectiveCharCount}>{newObjectiveTitle.length}/150</span>
+                        <button
+                          type="button"
+                          className={s.objectiveCancelBtn}
+                          onClick={() => {
+                            setShowCreateObjective(false);
+                            setNewObjectiveTitle('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </FormProvider>
+          </div>
+
+          <div className={dealModalStyles.footer}>
+            {hasDraft && (
+              <button type="button" className={s.discardDraftLink} onClick={handleDiscardFromModal}>
+                Discard draft
+              </button>
+            )}
+            {copy.footerNote ? (
+              <>
+                <p className={dealModalStyles.footerNote}>{copy.footerNote}</p>
+                <div className={dealModalStyles.footerActions}>
+                  <Button style="link" variant="secondary" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
+                    {isPending ? copy.submittingLabel : copy.submitLabel}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Button style="border" variant="neutral" onClick={onClose}>
                   Cancel
                 </Button>
                 <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
                   {isPending ? copy.submittingLabel : copy.submitLabel}
                 </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Button style="border" variant="neutral" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit(onSubmit)} disabled={!isValid || isPending}>
-                {isPending ? copy.submittingLabel : copy.submitLabel}
-              </Button>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
+
+      <DiscardDraftDialog
+        isOpen={discardDialogOpen}
+        draftTitle={draftResult?.data.form.title ?? ''}
+        onKeep={() => setDiscardDialogOpen(false)}
+        onDiscard={handleConfirmDiscard}
+      />
+    </>
   );
 }

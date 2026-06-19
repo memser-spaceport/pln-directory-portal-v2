@@ -8,6 +8,7 @@ import { useTeamPitchAnalytics } from '@/analytics/team-pitch.analytics';
 import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
 import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from '@/components/page/demo-day/ActiveView/components/ConfidentialityModal/ConfidentialityModal.module.scss';
 
@@ -49,7 +50,7 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
     posthogFn();
     if (!userInfo?.email) return;
     reportAnalytics.mutate(
-      buildEngagementTrackEvent(eventName, userInfo.email, `/pitch/${pitchSlug}`, pitchSlug, {
+      buildEngagementTrackEvent(eventName, userInfo.email, getTeamSpotlightPath(pitchSlug), pitchSlug, {
         userId: userInfo.uid,
         userEmail: userInfo.email,
         userName: userInfo.name,
@@ -115,7 +116,7 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
             onClick={handleSubmit}
             disabled={!isChecked || acceptConfidentiality.isPending}
           >
-            {acceptConfidentiality.isPending ? 'Processing...' : 'Continue to pitch'}
+            {acceptConfidentiality.isPending ? 'Processing...' : 'Continue to spotlight'}
           </button>
         </div>
       </div>

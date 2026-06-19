@@ -211,6 +211,8 @@ export type InvestorList = {
    *  only render for graphed lists). */
   is_graphed: boolean;
   member_count: number;
+  /** Present when lists were fetched with ?investorId= for membership context. */
+  is_member?: boolean;
 };
 
 /** Filters for the in-list member refinement (server-side). */

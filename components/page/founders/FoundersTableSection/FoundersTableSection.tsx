@@ -31,9 +31,8 @@ interface Props {
 }
 
 const SORT_OPTIONS = [
-  { label: 'Alignment (high–low)', value: 'alignmentMax:desc' },
-  { label: 'Alignment (low–high)', value: 'alignmentMax:asc' },
-  { label: 'PLVS Score (high–low)', value: 'plvsScore:desc' },
+  { label: 'Last signal (newest)', value: 'lastSignalAt:desc' },
+  { label: 'Last signal (oldest)', value: 'lastSignalAt:asc' },
   { label: 'Name A–Z', value: 'name:asc' },
   { label: 'Name Z–A', value: 'name:desc' },
 ] as const;
@@ -44,8 +43,8 @@ function hasActiveFilters(filters: Filters): boolean {
     filters.fund.length > 0 ||
     filters.status.length > 0 ||
     filters.source.length > 0 ||
-    filters.minAlignment > 0 ||
-    filters.minPlnProximity > 0
+    filters.focusArea.length > 0 ||
+    filters.isRaising
   );
 }
 
@@ -55,8 +54,8 @@ function countActiveFilters(filters: Filters): number {
   n += filters.fund.length;
   n += filters.status.length;
   n += filters.source.length;
-  if (filters.minAlignment > 0) n++;
-  if (filters.minPlnProximity > 0) n++;
+  n += filters.focusArea.length;
+  if (filters.isRaising) n++;
   return n;
 }
 
@@ -75,8 +74,8 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
       fund: filters.fund.length ? filters.fund : undefined,
       status: filters.status.length ? filters.status : undefined,
       source: filters.source.length ? filters.source : undefined,
-      minAlignment: filters.minAlignment > 0 ? filters.minAlignment : undefined,
-      minPlnProximity: filters.minPlnProximity > 0 ? filters.minPlnProximity : undefined,
+      isRaising: filters.isRaising || undefined,
+      focusArea: filters.focusArea.length ? filters.focusArea : undefined,
       sort: filters.sort || undefined,
       limit: DEFAULT_PAGE_SIZE,
     }),
@@ -105,8 +104,8 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
       fund: null,
       status: null,
       source: null,
-      minAlignment: null,
-      minPlnProximity: null,
+      isRaising: null,
+      focusArea: null,
     } as never);
   };
 
@@ -123,7 +122,7 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
           </span>
           {onHowScored && (
             <button type="button" className={s.howScoredLink} onClick={onHowScored}>
-              How are scores calculated?
+              About this data
             </button>
           )}
         </div>
@@ -137,7 +136,7 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
           <FounderColumnChooser />
           <button
             className={s.exportBtn}
-            onClick={() => exportFoundersCsv(founders, visibleColumns, `founders-${new Date().toISOString().slice(0, 10)}.csv`)}
+            onClick={() => exportFoundersCsv(founders, visibleColumns)}
             disabled={founders.length === 0}
           >
             <ExportIcon />
@@ -173,9 +172,7 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
       )}
 
       <div className={s.footer}>
-        <span className={s.footerCount}>
-          {total > 0 ? `${total.toLocaleString()} founders total` : ''}
-        </span>
+        <span className={s.footerCount}>{total > 0 ? `${total.toLocaleString()} founders total` : ''}</span>
       </div>
 
       <Dialog.Root open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -193,7 +190,9 @@ export default function FoundersTableSection({ filters, setFilters, canView, onH
               <FoundersFilterRail filters={filters} setFilters={setFilters} />
             </div>
             <div className={s.drawerFooter}>
-              <Button style="border" onClick={handleClearFilters}>Clear filters</Button>
+              <Button style="border" onClick={handleClearFilters}>
+                Clear filters
+              </Button>
               <Button onClick={() => setFiltersOpen(false)}>Apply filters</Button>
             </div>
           </Dialog.Popup>

@@ -594,6 +594,7 @@
   gap: 8px;
   width: 100%;
   justify-content: space-between;
+  margin-top: 12px;
 }
 
 .drawerClearAllBtn {
@@ -680,7 +681,7 @@
   width: 100%;
   scroll-snap-align: start;
   overflow-y: auto;
-  padding: 14px 12px;
+  padding: 0 12px 14px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -787,4 +788,85 @@
 .boostTipMeta {
   font-size: 11px;
   color: #9ca3af;
+}
+
+// Mobile DnD scroll-lock — applied to .mobileScrollContainer while a drag is active.
+// Prevents horizontal scroll-snap from switching columns during a vertical drag gesture.
+.mobileScrollLocked {
+  // touch-action: none blocks swipe-scroll on the container itself while drag is active.
+  // overflow-x stays 'scroll' so programmatic scrollTo() still works (edge-triggered column switching).
+  // scroll-snap-type: none prevents the browser from re-snapping when layout changes during drag.
+  touch-action: none;
+  scroll-snap-type: none !important;
+}
+
+// DragOverlay wrapper on mobile — must exceed .mobileTabs (z-index: 10).
+// DragOverlay portals to <body> so this is root-level stacking context.
+.mobileDragOverlay {
+  z-index: 20;
+}
+
+// "Move to stage" picker trigger button on mobile cards
+.moveToStageButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  margin-top: 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid rgba(14, 15, 17, 0.12);
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+  }
+}
+
+.moveToStagePositioner {
+  z-index: 30;
+}
+
+.moveToStageMenu {
+  background: #fff;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(14, 15, 17, 0.08);
+  overflow: hidden;
+  min-width: 160px;
+  padding: 4px;
+}
+
+.moveToStageMenuHint {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8897ae;
+}
+
+.moveToStageMenuItem {
+  display: flex;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: #f8fafc;
+  }
 }

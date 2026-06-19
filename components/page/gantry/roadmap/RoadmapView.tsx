@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { clsx } from 'clsx';
 import { getUiFlag, setUiFlag } from '@/utils/uiFlags';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
 import { useLocalStorageParam } from '@/hooks/useLocalStorageParam';
 import { useIsNarrow } from '@/hooks/useIsNarrow';
@@ -37,6 +38,9 @@ import FilterCount from '@/components/ui/filter-count';
 import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
+import { useGantryDraftQuery, useGantryDiscardDraftMutation } from '@/services/gantry/hooks/useGantryDraft';
+import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
+import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
@@ -49,6 +53,10 @@ import gantryPageStyles from '@/components/page/gantry/GantryPage.module.scss';
 import s from './Roadmap.module.scss';
 
 const BOOST_TIP_KEY = 'gantry_boost_tip_dismissed';
+
+const DEFAULT_SUBTITLE = 'Submit what you need, see what we are building. The shortest path to the LabOS roadmap.';
+const DRAFT_SUBTITLE =
+  'Share what the network needs and track it across the roadmap. You can keep one draft at a time.';
 
 function ArrowUpSmallIcon() {
   return (
@@ -75,6 +83,28 @@ export function RoadmapView() {
   const canCreate = canSetStageOnCreate || canCreateIdea;
   const createLabel = canSetStageOnCreate ? 'Create Item' : 'Share a need';
   const createVariant = canSetStageOnCreate ? 'roadmap' : 'idea';
+
+  // Draft state
+  const { data: draftResult } = useGantryDraftQuery(createVariant);
+  const discardDraftMutation = useGantryDiscardDraftMutation(createVariant);
+  const hasDraft = !!draftResult && !isSubmitIdeaDraftEmpty(draftResult.data);
+  const draftSavedAt = draftResult?.savedAt ?? 0;
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+
+  const handleResumeDraft = () => {
+    submitIdeaModalActions.openModal(createVariant);
+  };
+
+  const handleOpenDiscardDialog = () => {
+    setDiscardDialogOpen(true);
+  };
+
+  const handleConfirmDiscard = () => {
+    discardDraftMutation.mutate();
+    setDiscardDialogOpen(false);
+  };
+
+  const subtitle = hasDraft ? DRAFT_SUBTITLE : DEFAULT_SUBTITLE;
 
   const [visibleColumns, setVisibleColumns] = useLocalStorageParam<RoadmapColumnStage[]>(
     GANTRY_VISIBLE_COLUMNS_STORAGE_KEY,
@@ -163,6 +193,7 @@ export function RoadmapView() {
     orderedVisibleColumns,
     canTransition,
     isAdminOrdering,
+    isMobile: isNarrow,
     transition,
     reorder,
     analytics,
@@ -192,6 +223,45 @@ export function RoadmapView() {
     setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   };
 
+  // While dragging on mobile, scroll to the adjacent column when the finger
+  // is held within EDGE_PX of the left or right screen edge.
+  useEffect(() => {
+    if (!isNarrow || !dnd.isDragging) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const EDGE_PX = 64;
+    const COOLDOWN_MS = 700;
+
+    let lastX = -1;
+    let lastSwitch = 0;
+
+    const onTouchMove = (e: TouchEvent) => {
+      lastX = e.touches[0]?.clientX ?? -1;
+    };
+
+    const tick = () => {
+      if (lastX < 0) return;
+      const now = Date.now();
+      if (now - lastSwitch < COOLDOWN_MS) return;
+      const idx = Math.round(container.scrollLeft / container.offsetWidth);
+      if (lastX > window.innerWidth - EDGE_PX && idx < orderedVisibleColumns.length - 1) {
+        handleTabChange(orderedVisibleColumns[idx + 1]);
+        lastSwitch = now;
+      } else if (lastX < EDGE_PX && idx > 0) {
+        handleTabChange(orderedVisibleColumns[idx - 1]);
+        lastSwitch = now;
+      }
+    };
+
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    const id = setInterval(tick, 150);
+    return () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      clearInterval(id);
+    };
+  }, [isNarrow, dnd.isDragging, orderedVisibleColumns, scrollContainerRef, handleTabChange]);
+
   // pinStatus.pins is the authoritative source for the current user's pins.
   // viewerHasPinned on individual items can lag if the server hasn't updated
   // the list endpoint — reconcile here so the pin button always reflects reality.
@@ -215,7 +285,11 @@ export function RoadmapView() {
       onPinToggle: handlePinToggle,
       isPinDisabled: !canUpvote,
       canCurate,
-      warnPinOrder: allowsAdminOrdering && stage === 'PLANNED' && index > 0 && item.pinCount > itemsByStage[stage][index - 1].pinCount,
+      warnPinOrder:
+        allowsAdminOrdering &&
+        stage === 'PLANNED' &&
+        index > 0 &&
+        item.pinCount > itemsByStage[stage][index - 1].pinCount,
     };
   };
 
@@ -280,134 +354,196 @@ export function RoadmapView() {
           onDismiss={handleSwapDismiss}
         />
       )}
+      <DiscardDraftDialog
+        isOpen={discardDialogOpen}
+        draftTitle={draftResult?.data.form.title ?? ''}
+        onKeep={() => setDiscardDialogOpen(false)}
+        onDiscard={handleConfirmDiscard}
+      />
     </>
   );
 
   if (isNarrow) {
     return (
-      <div className={s.pageLayout}>
-        <div className={s.content}>
-          <div className={s.pageHeader}>
-            <div className={s.titleRow}>
-              <div className={s.titleSection}>
-                <div className={s.titleInline}>
-                  <h1 className={s.title}>Gantry</h1>
-                  {boostStatusIndicator}
-                </div>
-                <div className={s.mobileActionsRow}>
-                  <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
-                    <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-                      <path
-                        d="M2 4h12M4.5 8h7M7 12h2"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
+      <DndContext
+        sensors={dnd.sensors}
+        onDragStart={dnd.handleDragStart}
+        onDragOver={dnd.handleDragOver}
+        onDragEnd={dnd.handleDragEnd}
+        onDragCancel={dnd.handleDragCancel}
+      >
+        <div className={s.pageLayout}>
+          <div className={s.content}>
+            <div className={s.pageHeader}>
+              <div className={s.titleRow}>
+                <div className={s.titleSection}>
+                  <div className={s.titleInline}>
+                    <h1 className={s.title}>Gantry</h1>
+                    {boostStatusIndicator}
+                  </div>
+                  <div className={s.mobileActionsRow}>
+                    <button className={s.filtersButton} onClick={() => setFiltersOpen(true)} type="button">
+                      <svg className={s.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
+                        <path
+                          d="M2 4h12M4.5 8h7M7 12h2"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      Filters
+                      {filters.activeFiltersCount > 0 && (
+                        <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
+                      )}
+                    </button>
+                    {canCreate && (
+                      <IdeasSubmitButton
+                        label={createLabel}
+                        hasDraft={hasDraft}
+                        onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
                       />
-                    </svg>
-                    Filters
-                    {filters.activeFiltersCount > 0 && (
-                      <span className={s.filtersButtonBadge}>{filters.activeFiltersCount}</span>
                     )}
-                  </button>
-                  {canCreate && (
-                    <IdeasSubmitButton
-                      label={createLabel}
-                      onClick={() => submitIdeaModalActions.openModal(createVariant)}
-                    />
-                  )}
+                  </div>
+                  <p className={s.subtitle}>{subtitle}</p>
+                  {/*{hasDraft && (*/}
+                  {/*  <GantryDraftChip*/}
+                  {/*    title={draftResult?.data.form.title ?? ''}*/}
+                  {/*    onResume={handleResumeDraft}*/}
+                  {/*    onDiscard={handleOpenDiscardDialog}*/}
+                  {/*  />*/}
+                  {/*)}*/}
                 </div>
-                <p className={s.subtitle}>
-                  Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
-                </p>
               </div>
             </div>
+
+            {orderedVisibleColumns.length === 0 ? (
+              <p className={s.empty}>Select at least one column to view the roadmap.</p>
+            ) : (
+              <>
+                <div ref={tabsWrapperRef} className={s.mobileTabs}>
+                  <Tabs
+                    tabs={orderedVisibleColumns.map((stage) => ({ value: stage, label: <StageBadge stage={stage} /> }))}
+                    value={effectiveActiveColumn ?? orderedVisibleColumns[0]}
+                    onValueChange={(v) => handleTabChange(v as RoadmapColumnStage)}
+                    classes={{ tab: s.mobileTab }}
+                  />
+                </div>
+                {isLoading ? (
+                  <div className={s.mobileScrollContainer}>
+                    {orderedVisibleColumns.map((stage) => (
+                      <div key={stage} className={s.mobileSkeletonColumn}>
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className={s.mobileSkeletonCard} />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : isError ? (
+                  <p className={s.empty}>Failed to load roadmap.</p>
+                ) : (
+                  <div
+                    ref={scrollContainerRef}
+                    className={clsx(s.mobileScrollContainer, dnd.isDragging && s.mobileScrollLocked)}
+                  >
+                    {orderedVisibleColumns.map((stage) => {
+                      const { isDraggable: canDragInColumn } = columnDragState(stage);
+                      const canMoveStage =
+                        canTransition && orderedVisibleColumns.length > 1 && stage !== 'DECLINED' && stage !== 'IDEA';
+                      const availableStages = orderedVisibleColumns.filter((col) => col !== stage);
+
+                      const cards = itemsByStage[stage].map((item, index) => (
+                        <RoadmapCard
+                          key={item.uid}
+                          {...sharedCardProps(item, index, stage)}
+                          canDrag={canDragInColumn}
+                          isMobile
+                          onMoveToStage={
+                            canMoveStage ? (targetStage) => dnd.moveItemToStage(item.uid, targetStage) : undefined
+                          }
+                          availableStages={canMoveStage ? availableStages : undefined}
+                          isTransitionPending={dnd.isTransitionPending}
+                        />
+                      ));
+
+                      return (
+                        <div
+                          key={stage}
+                          data-stage={stage}
+                          ref={(el) => {
+                            if (el) columnRefs.current.set(stage, el);
+                            else columnRefs.current.delete(stage);
+                          }}
+                          className={s.mobileColumn}
+                        >
+                          {itemsByStage[stage].length === 0 ? (
+                            <p className={s.mobileColumnEmpty}>
+                              {filters.searchText ? 'No items match your search.' : 'No items in this stage.'}
+                            </p>
+                          ) : canDragInColumn ? (
+                            <SortableContext
+                              items={itemsByStage[stage].map((i) => i.uid)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {cards}
+                            </SortableContext>
+                          ) : (
+                            cards
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {orderedVisibleColumns.length === 0 ? (
-            <p className={s.empty}>Select at least one column to view the roadmap.</p>
-          ) : (
-            <>
-              <div ref={tabsWrapperRef} className={s.mobileTabs}>
-                <Tabs
-                  tabs={orderedVisibleColumns.map((stage) => ({ value: stage, label: <StageBadge stage={stage} /> }))}
-                  value={effectiveActiveColumn ?? orderedVisibleColumns[0]}
-                  onValueChange={(v) => handleTabChange(v as RoadmapColumnStage)}
-                  classes={{ tab: s.mobileTab }}
-                />
-              </div>
-              {isLoading ? (
-                <div className={s.mobileScrollContainer}>
-                  {orderedVisibleColumns.map((stage) => (
-                    <div key={stage} className={s.mobileSkeletonColumn}>
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className={s.mobileSkeletonCard} />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ) : isError ? (
-                <p className={s.empty}>Failed to load roadmap.</p>
-              ) : (
-                <div ref={scrollContainerRef} className={s.mobileScrollContainer}>
-                  {orderedVisibleColumns.map((stage) => (
-                    <div
-                      key={stage}
-                      data-stage={stage}
-                      ref={(el) => {
-                        if (el) columnRefs.current.set(stage, el);
-                        else columnRefs.current.delete(stage);
-                      }}
-                      className={s.mobileColumn}
-                    >
-                      {itemsByStage[stage].length === 0 ? (
-                        <p className={s.mobileColumnEmpty}>
-                          {filters.searchText ? 'No items match your search.' : 'No items in this stage.'}
-                        </p>
-                      ) : (
-                        itemsByStage[stage].map((item, index) => (
-                          <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
-                        ))
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+          <MobileDrawer
+            isOpen={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            title={
+              <>
+                Filters
+                {filters.activeFiltersCount > 0 && <FilterCount count={filters.activeFiltersCount} />}
+              </>
+            }
+            headerAction={
+              <button className={s.drawerClearAllBtn} onClick={handleClearAllFilters} type="button">
+                Clear all
+              </button>
+            }
+          >
+            <RoadmapFiltersContent
+              visibleColumns={visibleColumns}
+              onVisibleColumnsChange={setVisibleColumns}
+              selectedTags={filters.selectedTags}
+              onSelectedTagsChange={filters.handleSelectedTagsChange}
+              selectedTypes={filters.selectedTypes}
+              onSelectedTypesChange={filters.handleSelectedTypesChange}
+              searchText={filters.searchText}
+              onSearchTextChange={filters.handleSearchTextChange}
+              objectives={objectives}
+              selectedObjective={filters.selectedObjective}
+              onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+            />
+          </MobileDrawer>
+
+          {modals}
         </div>
 
-        <MobileDrawer
-          isOpen={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-          title={
-            <>
-              Filters
-              {filters.activeFiltersCount > 0 && <FilterCount count={filters.activeFiltersCount} />}
-            </>
-          }
-          headerAction={
-            <button className={s.drawerClearAllBtn} onClick={handleClearAllFilters} type="button">
-              Clear all
-            </button>
-          }
-        >
-          <RoadmapFiltersContent
-            visibleColumns={visibleColumns}
-            onVisibleColumnsChange={setVisibleColumns}
-            selectedTags={filters.selectedTags}
-            onSelectedTagsChange={filters.handleSelectedTagsChange}
-            selectedTypes={filters.selectedTypes}
-            onSelectedTypesChange={filters.handleSelectedTypesChange}
-            searchText={filters.searchText}
-            onSearchTextChange={filters.handleSearchTextChange}
-            objectives={objectives}
-            selectedObjective={filters.selectedObjective}
-            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
-          />
-        </MobileDrawer>
-
-        {modals}
-      </div>
+        <DragOverlay dropAnimation={null} className={s.mobileDragOverlay}>
+          {dnd.activeDragItem ? (
+            <RoadmapCardDragOverlay
+              item={dnd.activeDragItem}
+              width={dnd.activeDragWidth ?? undefined}
+              canPin={canUpvote}
+              onPinToggle={handlePinToggle}
+              isPinDisabled={!canUpvote}
+              canCurate={canCurate}
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     );
   }
 
@@ -441,26 +577,37 @@ export function RoadmapView() {
                         <div className={s.actionsMobile}>
                           <IdeasSubmitButton
                             label={createLabel}
-                            onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                            hasDraft={hasDraft}
+                            onClick={
+                              hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)
+                            }
                           />
                         </div>
                       )}
                     </div>
-                    <p className={s.subtitle}>
-                      Submit what you need, see what we are building. The shortest path to the LabOS roadmap.
-                    </p>
+                    <p className={s.subtitle}>{subtitle}</p>
                   </div>
                   <div className={s.actions}>
                     {boostStatusIndicator}
                     {canCreate && (
                       <IdeasSubmitButton
                         label={createLabel}
-                        onClick={() => submitIdeaModalActions.openModal(createVariant)}
+                        hasDraft={hasDraft}
+                        onClick={hasDraft ? handleResumeDraft : () => submitIdeaModalActions.openModal(createVariant)}
                       />
                     )}
                   </div>
                 </div>
               </div>
+
+              {/*{hasDraft && (*/}
+              {/*  <GantryDraftBanner*/}
+              {/*    title={draftResult?.data.form.title ?? ''}*/}
+              {/*    savedAt={draftSavedAt}*/}
+              {/*    onResume={handleResumeDraft}*/}
+              {/*    onDiscard={handleOpenDiscardDialog}*/}
+              {/*  />*/}
+              {/*)}*/}
 
               {orderedVisibleColumns.length === 0 ? (
                 <p className={s.empty}>Select at least one column to view the roadmap.</p>
@@ -493,19 +640,19 @@ export function RoadmapView() {
                       {orderedVisibleColumns.map((stage) => {
                         const { isDraggable } = columnDragState(stage);
                         return (
-                        <RoadmapDropColumn
-                          key={stage}
-                          stage={stage}
-                          isDraggable={isDraggable}
-                          itemIds={itemsByStage[stage].map((i) => i.uid)}
-                          dropPreviewIndex={
-                            dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
-                          }
-                        >
-                          {itemsByStage[stage].map((item, index) => (
-                            <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
-                          ))}
-                        </RoadmapDropColumn>
+                          <RoadmapDropColumn
+                            key={stage}
+                            stage={stage}
+                            isDraggable={isDraggable}
+                            itemIds={itemsByStage[stage].map((i) => i.uid)}
+                            dropPreviewIndex={
+                              dnd.dropPreview?.columnId === stage ? dnd.dropPreview.insertIndex : undefined
+                            }
+                          >
+                            {itemsByStage[stage].map((item, index) => (
+                              <RoadmapCard key={item.uid} {...sharedCardProps(item, index, stage)} />
+                            ))}
+                          </RoadmapDropColumn>
                         );
                       })}
                     </div>

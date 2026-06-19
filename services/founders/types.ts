@@ -1,26 +1,29 @@
 import type { LabOsProfileRef as _LabOsProfileRef } from '@/services/investors/types';
-// Re-export the shared profile ref so founders components don't need to import from investors
 export type { LabOsProfileRef } from '@/services/investors/types';
 
 export type FundTag = 'PLVS' | 'NEURO' | 'CRYPTO';
 export type FounderStatus = 'new' | 'in-review' | 'approved' | 'rejected' | 'hold';
 export type ReviewFeedback = 'good' | 'bad' | 'wrong-fund' | 'needs-context';
+export type ReviewChannel = 'lead-decision' | 'record-quality' | 'platform';
 
 export type FounderReviewState = {
   profile_id?: string;
   status: FounderStatus;
   feedback?: ReviewFeedback;
+  channel?: ReviewChannel;
+  field?: string;
+  area?: string;
   note?: string;
-  reviewedAt?: string;
+  decided_at?: string;
   reviewedBy?: string;
 };
 
-// The API may return fund_tags as plain strings or enriched objects
 export type FundTagObject = {
   fund: FundTag;
   confidence?: number;
   matched_terms?: string[];
   primary_signal?: string;
+  domain?: string;
 };
 
 export function getFundTag(tag: FundTag | FundTagObject | null | undefined): FundTag | null {
@@ -75,6 +78,15 @@ export type FounderRawPayload = {
   plvs_recommendation?: string;
   plvs_weights_version?: string;
   is_known?: boolean;
+  focus_area?: string;
+  criteria_headline?: string;
+  pedigree?: string;
+  is_raising?: boolean;
+  is_cofounder_search?: boolean;
+  is_coming_out_of_stealth?: boolean;
+  near_network?: boolean;
+  pl_aligned?: boolean;
+  why_now?: string;
 };
 
 export type FounderItem = {
@@ -83,10 +95,18 @@ export type FounderItem = {
   firstName?: string;
   lastName?: string;
   whyNow?: string;
+  criteriaHeadline?: string;
+  pedigree?: string;
+  focusArea?: string;
   alignmentMax?: number;
   plvsScore?: number;
   plvsRecommendation?: string;
   plnProximity?: number;
+  isRaising?: boolean | null;
+  isCofounderSearch?: boolean | null;
+  isComingOutOfStealth?: boolean | null;
+  nearNetwork?: boolean | null;
+  plAligned?: boolean | null;
   sources: string[];
   reviewState: FounderReviewState;
   directoryMemberId?: string;
@@ -111,6 +131,7 @@ export type FounderDetail = FounderItem & {
   topics?: string[];
   thinEvidence?: boolean | null;
   lastSignalAt?: string | null;
+  lastActivitySeenAt?: string | null;
   plAlignment?: number | null;
   createdAt?: string;
   updatedAt?: string;
@@ -124,8 +145,11 @@ export type FounderListResponse = {
 };
 
 export type ReviewFounderPayload = {
-  status: FounderStatus;
+  status?: FounderStatus;
   feedback?: ReviewFeedback;
+  channel?: ReviewChannel;
+  field?: string;
+  area?: string;
   note?: string;
 };
 
@@ -138,6 +162,7 @@ export type KpiSummary = {
 
 export type FounderFiltersResponse = {
   sources: string[];
+  focusAreas: string[];
 };
 
 export type FounderListParams = {
@@ -145,9 +170,38 @@ export type FounderListParams = {
   fund?: FundTag[];
   status?: FounderStatus[];
   source?: string[];
-  minAlignment?: number;
-  minPlnProximity?: number;
+  isRaising?: boolean;
+  focusArea?: string[];
   sort?: string;
   page?: number;
   limit?: number;
 };
+
+export type FounderMethodologyPayload = {
+  schema_version?: number;
+  methodology_version?: string;
+  generated_at?: string;
+  summary?: string;
+  how_it_works_html?: string;
+  how_it_works_markdown?: string;
+  source_counts?: Record<string, number>;
+  funds?: unknown[];
+  sources?: unknown[];
+};
+
+export type FounderMethodologyResponse = {
+  version: string;
+  payload: FounderMethodologyPayload | Record<string, unknown>;
+  createdAt: string;
+};
+
+export function founderHeadline(
+  founder: Pick<FounderItem, 'criteriaHeadline' | 'whyNow' | 'rawPayload'>,
+): string | undefined {
+  return (
+    founder.criteriaHeadline ??
+    founder.rawPayload?.criteria_headline ??
+    founder.whyNow ??
+    (founder.rawPayload?.why_now as string | undefined)
+  );
+}

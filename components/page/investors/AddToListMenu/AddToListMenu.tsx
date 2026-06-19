@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
-import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
+import { useGetInvestorListsForInvestor } from '@/services/investors/hooks/useGetInvestorListsForInvestor';
 import { useAddToList } from '@/services/investors/hooks/useAddToList';
+import { useRemoveFromList } from '@/services/investors/hooks/useRemoveFromList';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
+import type { InvestorList } from '@/services/investors/types';
 import s from './AddToListMenu.module.scss';
 
 interface Props {
@@ -17,18 +19,31 @@ interface Props {
 /** "Add to list" action from the All Investors row / drawer. Lists are the
  *  pre-created target sets (Lists IA). Gated on investor_db.edit. */
 export function AddToListMenu({ investorId, canEdit, className }: Props) {
-  const { data: lists } = useGetInvestorLists(canEdit);
+  const { data: lists, isLoading } = useGetInvestorListsForInvestor(investorId, canEdit);
   const addToList = useAddToList();
-  const { trackAddedToList } = useInvestorsAnalytics();
-  const [addedTo, setAddedTo] = useState<Set<string>>(new Set());
+  const removeFromList = useRemoveFromList();
+  const { trackAddedToList, trackRemovedFromList } = useInvestorsAnalytics();
+  const [pendingListId, setPendingListId] = useState<string | null>(null);
 
   if (!canEdit) return null;
 
-  const onAdd = async (listId: string) => {
-    const ok = await addToList.mutateAsync({ listId, investorId });
-    if (ok) {
-      setAddedTo((prev) => new Set(prev).add(listId));
-      trackAddedToList({ listId, investorId });
+  const isPending = addToList.isPending || removeFromList.isPending;
+
+  const onToggle = async (list: InvestorList) => {
+    if (isPending) return;
+    setPendingListId(list.id);
+    try {
+      if (list.is_member) {
+        const ok = await removeFromList.mutateAsync({ listId: list.id, investorId });
+        if (ok) trackRemovedFromList({ listId: list.id, investorId });
+      } else {
+        const result = await addToList.mutateAsync({ listId: list.id, investorId });
+        if (result === 'ok' || result === 'conflict') {
+          trackAddedToList({ listId: list.id, investorId });
+        }
+      }
+    } finally {
+      setPendingListId(null);
     }
   };
 
@@ -38,21 +53,33 @@ export function AddToListMenu({ investorId, canEdit, className }: Props) {
       <Popover.Portal>
         <Popover.Positioner className={s.positioner} align="end" sideOffset={4}>
           <Popover.Popup className={s.popup}>
-            {!lists || lists.length === 0 ? (
+            {isLoading ? (
+              <div className={s.empty}>Loading lists…</div>
+            ) : !lists || lists.length === 0 ? (
               <div className={s.empty}>No lists available</div>
             ) : (
               lists.map((list) => {
-                const added = addedTo.has(list.id);
+                const inList = list.is_member === true;
+                const rowPending = pendingListId === list.id;
                 return (
                   <button
                     key={list.id}
                     type="button"
-                    className={s.option}
-                    disabled={added || addToList.isPending}
-                    onClick={() => onAdd(list.id)}
+                    className={inList ? `${s.option} ${s.inList}` : s.option}
+                    disabled={rowPending}
+                    onClick={() => onToggle(list)}
                   >
                     <span className={s.optName}>{list.name}</span>
-                    {added ? <span className={s.added}>✓ Added</span> : <span className={s.plus}>＋</span>}
+                    {rowPending ? (
+                      <span className={s.pending}>…</span>
+                    ) : inList ? (
+                      <span className={s.inListBadge} title="Click to remove">
+                        <span className={s.check}>✓</span>
+                        <span className={s.removeHint}>−</span>
+                      </span>
+                    ) : (
+                      <span className={s.plus}>＋</span>
+                    )}
                   </button>
                 );
               })

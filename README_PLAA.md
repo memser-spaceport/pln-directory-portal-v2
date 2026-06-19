@@ -18,9 +18,9 @@ PLAA is a shared rewards program that connects network-wide contributions to mon
 8. [Authentication & Guest Access](#authentication--guest-access)
 9. [Styling Conventions](#styling-conventions)
 10. [Analytics](#analytics)
-11. [Environment Variables](#environment-variables)
-12. [Common Developer Tasks](#common-developer-tasks)
-13. [Shared Constants & Contacts](#shared-constants--contacts)
+11. [Botpress Webchat](#botpress-webchat)
+12. [Environment Variables](#environment-variables)
+13. [Common Developer Tasks](#common-developer-tasks)
 
 ---
 
@@ -63,7 +63,7 @@ The module follows the repository's standard Next.js App Router pattern:
         ┌──────────────────┼──────────────────┐
         ▼                  ▼                  ▼
   services/plaa/    services/points/    app/api/plaa/
-  (leaderboard)     (React Query)       (BFF proxy)
+  (leaderboard)     (React Query)       (API proxy)
         │                  │                  │
         └──────────────────┴──────────────────┘
                            │
@@ -132,7 +132,7 @@ services/plaa/
 
 services/points/hooks/usePoints.ts   # Client hooks → /api/plaa/points
 
-app/api/plaa/points/route.ts   # BFF proxy for authenticated points
+app/api/plaa/points/route.ts   # Server-side API proxy for authenticated points
 
 constants/plaa.ts              # Shared URLs and contact email
 utils/plaa-round.utils.ts      # Round ↔ calendar month mapping
@@ -190,8 +190,8 @@ When updating round content (paragraphs, chart values, buyback bids, stats), edi
 | Endpoint (via env) | Used by | Purpose |
 |--------------------|---------|---------|
 | `GET /api/v1/leaderboard?roundNumber={n}` | `leaderboard.service.ts` | Leaderboard entries (server-side, 5 min revalidate) |
-| `GET /api/v1/points/me` | `/api/plaa/points` BFF | User lifetime points |
-| `GET /api/v1/points/me?snapshotPeriod=YYYY-MM` | `/api/plaa/points` BFF | Per-snapshot activity records |
+| `GET /api/v1/points/me` | `/api/plaa/points` API proxy | User lifetime points |
+| `GET /api/v1/points/me?snapshotPeriod=YYYY-MM` | `/api/plaa/points` API proxy | Per-snapshot activity records |
 
 Leaderboard entries are split by `type`:
 
@@ -199,9 +199,7 @@ Leaderboard entries are split by `type`:
 |------------|----------|
 | `CURRENT_SNAPSHOT` | Current-round leaderboard tab |
 | `CUMULATIVE` | All-time leaderboard tab |
-| `PAST_ROUND` | Past round leaderboard (falls back to `CURRENT_SNAPSHOT`) |
 
-If the API returns no entries, components fall back to static leaderboard data in the round `.data.ts` file.
 
 ### 3. Activities catalog
 
@@ -222,9 +220,9 @@ const { data: leaderboardResponse } = await getLeaderboard(roundNumber);
 
 `getLeaderboard()` reads the `authToken` cookie when present (optional auth). Responses are cached with `next: { revalidate: 300 }`.
 
-### Points (client → BFF → API)
+### Points (client → API proxy → PLAA API)
 
-Client hooks in `services/points/hooks/usePoints.ts` call the local BFF at `/api/plaa/points`, which forwards the `Authorization: Bearer` header to the PLAA API. Returns `null` on 403/404 (user not enrolled or no data).
+Client hooks in `services/points/hooks/usePoints.ts` call the local API proxy at `/api/plaa/points`, which forwards the `Authorization: Bearer` header to the PLAA API. Returns `null` on 403/404 (user not enrolled or no data).
 
 The points dashboard is rendered only when an `authToken` cookie exists (`current-round-component.tsx`, `past-round-component.tsx`).
 
@@ -324,6 +322,42 @@ When adding interactive elements, wire analytics through the existing hook rathe
 
 ---
 
+## Botpress Webchat
+
+The **Activity Assistant** is a Botpress-powered chat widget embedded on all PLAA routes. It helps participants find answers about activities, rounds, and program mechanics without leaving the module.
+
+### Scope & mounting
+
+The widget is mounted once in `app/alignment-asset/layout.tsx` via a dynamically imported client component (`BotpressWebchat` from `app/ClientDynamics.tsx`, `ssr: false`). It appears on every page under `/alignment-asset/**` and is **not** loaded elsewhere in the portal.
+
+### Feature flag
+
+Webchat is **opt-in**. Nothing loads unless:
+
+```bash
+NEXT_PUBLIC_BOTPRESS_WEBCHAT_ENABLED=true
+```
+
+When disabled or unset, `BotpressWebchat` renders nothing and skips script injection.
+
+### How it loads
+
+On mount, `components/core/botpress/BotpressWebchat.tsx` injects two scripts in order:
+
+1. **Inject script** — Botpress webchat runtime (`inject.js` from Botpress CDN)
+2. **Config script** — Bot-specific configuration hosted on Botpress Cloud
+
+URLs are defined in `components/core/botpress/constants.ts` and can be overridden with env vars (see [Environment Variables](#environment-variables)). Script loading and DOM cleanup live in `components/core/botpress/botpress-webchat.utils.ts`.
+
+On unmount (e.g. navigating away from PLAA), `unloadBotpressWebchat()` removes widget nodes, both script tags, and the `window.botpress` global so the chat does not leak into other routes.
+
+### Styling
+
+Botpress injects its launcher onto `document.body`, outside React and CSS module scope. Mobile positioning is adjusted globally in `styles/botpress-webchat.scss` so the launcher sits above the PLAA mobile navigation bar (`bottom: calc(64px + safe-area-inset-bottom)`).
+
+
+---
+
 ## Environment Variables
 
 Add to `.env.local` (see `.env.example`):
@@ -331,10 +365,12 @@ Add to `.env.local` (see `.env.example`):
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PLAA_API_URL` | Yes (for live data) | Base URL for PLAA backend (leaderboard + points) |
-| `NEXT_PUBLIC_BOTPRESS_WEBCHAT_ENABLED` | No | Enables Activity Assistant chatbot on PLAA layout |
+| `NEXT_PUBLIC_BOTPRESS_WEBCHAT_ENABLED` | No | Set to `true` to enable the Activity Assistant on PLAA pages (see [Botpress Webchat](#botpress-webchat)) |
+| `NEXT_PUBLIC_BOTPRESS_INJECT_SCRIPT_URL` | No | Override Botpress inject script URL (default in `constants.ts`) |
+| `NEXT_PUBLIC_BOTPRESS_CONFIG_SCRIPT_URL` | No | Override Botpress bot config script URL (default in `constants.ts`) |
 | `APPLICATION_BASE_URL` | Yes | Used in layout metadata / OG tags |
 
-Without `PLAA_API_URL`, the points BFF returns 500; leaderboard service logs errors and components use static fallback data.
+Without `PLAA_API_URL`, the points API proxy returns 500; leaderboard service logs errors and components use static fallback data.
 
 ---
 
@@ -372,33 +408,6 @@ npm install
 npm run dev   # http://localhost:4200
 ```
 
-Visit `http://localhost:4200/alignment-asset`. Set `PLAA_API_URL` for live leaderboard/points.
+Visit `http://localhost:4200/alignment-asset`. Set `PLAA_API_URL` for live leaderboard/points. Set `NEXT_PUBLIC_BOTPRESS_WEBCHAT_ENABLED=true` to test the Activity Assistant.
 
 ---
-
-## Shared Constants & Contacts
-
-| Item | Value |
-|------|-------|
-| Working group email | `plaa-wg@plrs.xyz` |
-| Activity submission form | `ACTIVITY_FORM_URL` in `constants/plaa.ts` |
-| Token balance (external) | [Surus app](https://app.surus.io/) |
-| Package version tag | `plaa-v*` in root `package.json` (release tracking) |
-
----
-
-## Related Files Outside This Folder
-
-| File | Role |
-|------|------|
-| `app/api/plaa/points/route.ts` | Points BFF |
-| `components/core/navbar/components/PlaaBanner/` | In-module announcement carousel |
-| `components/core/navbar/components/DemoDayBanner/` | Shows PLAA banner on alignment-asset routes |
-| `hooks/useScrollDepthTracking.ts` | Scroll analytics for PLAA pages |
-| `app/ClientDynamics.tsx` | Dynamic import for Botpress webchat |
-
----
-
-## Figma References
-
-Several components include Figma links in file headers (e.g. `plaa-menu.tsx`, `plaa-round-selector.tsx`). Check those files for the latest design source when implementing UI changes.

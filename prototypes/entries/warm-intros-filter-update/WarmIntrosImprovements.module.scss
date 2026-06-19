@@ -1,0 +1,1420 @@
+// Net-new styles for the Warm Intros redesign prototype. Existing layout
+// (builder header, table, path cards, relationship pills) is reused by importing
+// the production .module.scss files in the .tsx, so those track production. Only
+// the styles for the *new* affordances live here. Colors use the prototype
+// token+fallback pattern (see prototypes/CLAUDE.md), with fallbacks copied from
+// the neighboring production investor SCSS.
+
+$brand: var(--foreground-brand-primary, #1b4dff);
+$text: var(--foreground-neutral-primary, #0a0c11);
+$text-2: var(--foreground-neutral-secondary, #455468);
+$muted: var(--foreground-neutral-tertiary, #8897ae);
+$border: var(--border-neutral-subtle, #e5e7eb);
+
+// ── Page shell — copied 1:1 from the production investors page.module.scss
+//    (app/investors/(investors-page)/@content). Kept identical so it tracks dev;
+//    the raw values + 13px tab are production's (slated for the design system). ──
+.pageHeader {
+  padding: 24px 0 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.pageTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.pageTitle {
+  margin: 0;
+  color: $text;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: -0.75px;
+}
+
+.internalBadge {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+  background: rgba(27, 77, 255, 0.02);
+  border: 1px solid #aebfff;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.pageSubtitle {
+  margin: 0;
+  color: var(--Neutral-Slate-600, #475569);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.tabBar {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 48px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  font-size: 13px;
+  padding: 10px 8px;
+}
+
+.tabBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+// ── Prototype DS improvements — OVERRIDE imported production styles ────────────
+//    These deliberately fork from the production search/select (which have no
+//    icon, a native chevron, and 13px type) to demo the design-system fix.
+//    !important is required because we're overriding imported module classes of
+//    equal specificity. Spec these back to production, then delete the overrides.
+.searchWrap {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  color: $muted;
+  pointer-events: none;
+}
+
+.searchInput {
+  padding: 8px 30px 8px 36px !important;
+  font-size: 14px !important;
+}
+
+.select,
+.listPickerWrap select {
+  font-size: 14px !important;
+  padding: 8px 30px 8px 10px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238897ae' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+}
+
+// ── Compact filter bar (this prototype's focus) ───────────────────────────────
+//    Collapses the old stacked builder fields (list / search / stage / check /
+//    sector-wall, each with its own label) into ONE dense, wrapping toolbar.
+//    List + search stay primary; stage/check are inline placeholder selects;
+//    the sector chip-wall hides behind a count-badge popover. Every filter is
+//    still one click away (no hidden-filter anti-pattern) at ~half the height.
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.listField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// Short inline label (replaces the stacked uppercase field labels).
+.inlineLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $text-2;
+  white-space: nowrap;
+}
+
+// Search is the primary control — it grows to absorb spare width.
+.searchField {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+// Apply / Clear / Save view sit at the far right of the bar.
+.filterActions {
+  margin-left: auto;
+}
+
+.lensBarMt {
+  margin-top: 12px;
+}
+
+// Sectors: a select-styled trigger (chevron comes from .select) with a count
+// badge, opening a popover that holds the full chip set.
+.sectorPopWrap {
+  position: relative;
+}
+
+.sectorTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sectorCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: $brand;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sectorPop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 320px;
+  max-width: 90vw;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+.sectorPopHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $text-2;
+}
+
+.sectorClear {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: $brand;
+  cursor: pointer;
+}
+
+// ── Saved-view chips (apply + delete + selected state) ────────────────────────
+//    Mirrors the production saved-view affordance (InvestorsFilterRail: a body
+//    button to apply + an × to delete), restyled as an inline pill that matches
+//    this page's selectable Tag chips. Selected state uses the Tag .active
+//    palette (blue outline + light-blue fill) so it reads as "the active view".
+.savedView {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 24px;
+  background: #fff;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    border-color: rgb(148 163 184);
+  }
+}
+
+.savedViewActive {
+  border-color: rgb(29 78 216);
+  background: rgb(219 234 254);
+
+  .savedViewBody {
+    color: rgb(29 78 216);
+  }
+
+  &:hover {
+    border-color: rgb(29 78 216);
+  }
+}
+
+.savedViewBody {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+// Static text inside the connector-lens chip — mirrors .savedViewBody typography
+// (without the button/cursor) so the lens chip matches a saved-view chip.
+.lensChipText {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #0f172a;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.savedViewDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: $muted;
+  cursor: pointer;
+
+  &:hover {
+    color: rgb(29 78 216);
+  }
+}
+
+// ── "What changed" prototype note (annotation, not product UI) ────────────────
+.bannerToggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: $brand;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.banner {
+  background: linear-gradient(135deg, #fcfcff, #f5f3ff);
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.bannerDesc {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: $text-2;
+}
+
+.bannerList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.bannerItem {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.45;
+  color: $text-2;
+}
+
+.bannerTag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: $brand;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// ── Row hover arrow — signals the row opens the drawer (matches dev's
+//    All Investors table) ───────────────────────────────────────────────────────
+.nameCellRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rowArrow {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: $muted;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.hoverRow:hover .rowArrow {
+  opacity: 1;
+}
+
+// ── Inline "best path" preview in the table cell ──────────────────────────────
+.bestPathCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; // left-align the row + the "View all" link
+  gap: 6px;
+  // Reserve slack so the badge's hover arrow grows into spare column width
+  // instead of resizing the column (which would shift the left columns).
+  min-width: 272px;
+}
+
+// Proximity badge + hop chain on one row, vertically centered together; the
+// "View all" link sits below, left-aligned.
+.pathRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// ── "Who to contact" block in the expanded path ──────────────────────────────
+// Pin the investor header (name + meta + status pills) to the top of the
+// scrolling drawer so it stays visible while reading the lower sections.
+// Production .header already has padding + bottom border; we add the sticky
+// behaviour + an opaque background so content doesn't bleed through.
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--background-base-white, #fff);
+}
+
+// 12px between the explanation above and the profile below.
+.contactBlock {
+  margin-top: 12px;
+}
+
+// Override the production pd.correction's dashed top border → solid (prod uses
+// solid dividers). Applied alongside pd.correction on the correction row.
+.correctionRow {
+  border-top-style: solid !important;
+}
+
+.contactTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
+  margin-bottom: 6px;
+}
+
+.contactChannels {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  // Left-aligned to the card edge (under the avatar) — consistent across person
+  // and org cards.
+  padding-left: 0;
+}
+
+// Card surface — unified with the Warm Paths card (production pd.pathItem, also
+// used by the drawer stat boxes / co-teams): #f9fafb + subtle border + radius 8.
+.channelsBox {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f9fafb);
+  border: 1px solid var(--border-neutral-subtle, #eef0f3);
+}
+
+// Person connector sits flush-left (no inset card) so the avatar + email align
+// with the explanation above. (The org variant re-adds a card via .orgBox.)
+.contactBox {
+  display: flex;
+  flex-direction: column;
+}
+
+// Connector row, Teams-page style: avatar + name + role, divided like the
+// Members list on the Teams page.
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid $border;
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+// Email channel + its copy button kept as one tight unit.
+.emailGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+// When a card has 2+ contacts, every email is cropped to the SHORTEST one's
+// measured width (px set on --email-w by the component) so the copy button +
+// the channels after it line up across rows. The shortest shows in full; longer
+// ones get an ellipsis (full address still in ProfileSocialLink's tooltip).
+// Overrides ProfileSocialLink's styled-jsx max-width (runtime-injected → !important).
+.emailCropped :global(.profile-social-link__link) {
+  width: var(--email-w) !important;
+  max-width: var(--email-w) !important;
+}
+
+.memberLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  // Fixed-width identity column so every row's contact channels start at the
+  // same x (email of row 2 lines up under email of row 1).
+  width: 220px;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .memberArrow {
+    opacity: 1;
+  }
+
+  // Slightly lighten the connector name on hover to reinforce it's clickable.
+  &:hover .memberName {
+    color: $text-2;
+  }
+}
+
+// Name + a hover arrow (shown when the connector links to a profile).
+.memberNameRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.memberArrow {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: $muted;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.memberAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #fff;
+  object-fit: cover;
+}
+
+.memberText {
+  display: flex;
+  flex-direction: column;
+  flex: 1; // fill the fixed identity column so every row's name block is equal width
+  min-width: 0;
+}
+
+.memberName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: $text;
+  transition: color 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memberRole {
+  font-size: 12px;
+  line-height: 16px;
+  color: $muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Hop chain ─────────────────────────────────────────────────────────────────
+// Clickable hop-chain node: keeps the production badge look (pd.nodeLabel) and
+// just layers interactivity — opens a portfolio team page.
+.nodeChip {
+  position: relative; // anchor for the absolutely-positioned hover arrow
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: $brand;
+    // Light-blue brand tint (matches production InvestorDrawer's #eef2ff pills).
+    background: var(--background-brand-subtle, #eef2ff);
+    color: $brand;
+  }
+}
+
+// Hop-chain node with an avatar/logo + label (companies vs the investor).
+.chainNode {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 4px;
+  // System caption size (matches Tag chips / pd.explanation); production
+  // pd.nodeLabel is 11px, so !important to override the equal-specificity class.
+  font-size: 12px !important;
+  // Grow the pill vertically to breathe at 12px (production pd.nodeLabel is 1px
+  // top/bottom); keep production's 7px sides.
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+// Round icon badge for teams (square mark) + the investor (generated avatar).
+.chainIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 1px;
+  border: 1px solid $border;
+}
+
+// Arrow icon for a clickable chain badge — shown on hover only. Positioned
+// ABSOLUTELY just past the badge's right edge so revealing it doesn't grow the
+// badge (which would widen the chain column and shift the whole table row). The
+// badge still hugs its content when not hovered (no reserved gap).
+.chainArrow {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 3px;
+  align-items: center;
+  color: $brand;
+}
+
+.nodeChip:hover .chainArrow {
+  display: inline-flex;
+}
+
+// Inline ↗ INSIDE a person chip — always visible, signals the node opens that
+// person in the PL system. Grey for every chip (incl. team chips), even on hover.
+.chainArrowInline {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 1px;
+  color: $muted !important;
+}
+
+// ── People-first node states ────────────────────────────────────────────────
+// Known person NOT in the PL network: grey person icon, no link/hover arrow.
+.chainNodeExternal {
+  color: $text-2;
+}
+
+// Grey person badge for non-network connectors (chain). ContributorIcon has no
+// size prop, so constrain its svg to fit the 16px badge.
+.chainPersonIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $muted;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+// Org we can route through but person unknown: dashed, muted, with a "?" badge.
+.chainNodeOrg {
+  color: $text-2;
+  border-style: dashed !important;
+}
+
+.chainOrgIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: $muted;
+}
+
+// "Person unknown" marker — the QuestionCircleIcon is itself a circle, so no
+// background needed; just sit it inline, muted.
+.chainUnknownBadge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: $muted;
+}
+
+// ── Drawer connector card (person + teams + contacts) ───────────────────────
+// Single connector only — padding lives on the .contactBox card, so no extra
+// vertical padding here (avoids a big gap below the divider).
+.connectorCard {
+  display: flex;
+  flex-direction: column;
+  // 4px between the profile and the contacts row.
+  gap: 4px;
+}
+
+.connectorTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.connectorIdentity {
+  display: flex;
+  align-items: flex-start; // top-align the avatar/icon against multi-line text
+  gap: 12px;
+  min-width: 0;
+}
+
+// Avatar links to the member page (separate from the name link → no nested <a>).
+.memberAvatarLink {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+// Name link (avatar + name link separately to keep team links un-nested).
+.memberNameLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .memberName {
+    color: $text-2;
+  }
+  &:hover .memberArrow {
+    opacity: 1;
+  }
+}
+
+// Role line that carries the team(s) inline as links — wraps rather than clips.
+.memberRoleLine {
+  font-size: 12px;
+  line-height: 18px;
+  color: $muted;
+}
+
+// Inline team text-link (no logo) with a small grey ↗. On hover the WHOLE link
+// (name + arrow) turns brand blue.
+.teamInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: $text-2;
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: $brand;
+    text-decoration: underline;
+
+    .teamInlineArrow {
+      color: $brand;
+    }
+  }
+}
+
+.teamInlineArrow {
+  display: inline-flex;
+  align-items: center;
+  color: $muted;
+}
+
+// Middot divider between inline team links.
+.teamDivider {
+  margin: 0 4px;
+  color: $muted;
+}
+
+// 32px grey circle holding the person silhouette (non-network connector).
+.memberAvatarExternal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $muted;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Team chips: the team(s) a connector belongs to (can be several). Aligned to
+// start under the name (avatar 32 + 12 gap).
+.teamChips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  // Start at the avatar's left edge (no name-indent) so it reads as a tidy
+  // block under the connector rather than a detached, offset row.
+  padding-left: 0;
+}
+
+// Light inline label (sentence case) — demoted from the uppercase caption
+// treatment so "Who to contact" is the single high-attention caption.
+.teamChipsLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: $muted;
+}
+
+.teamChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid $border;
+  font-size: 12px;
+  line-height: 18px;
+  color: $text;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.teamChipLink {
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: $brand;
+    color: $brand;
+  }
+}
+
+// Grey ↗ inside a linkable team chip — stays grey even when the chip hovers blue.
+.teamChipArrow {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 1px;
+  color: $muted;
+}
+
+.teamChipLogo {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 1px;
+  border: 1px solid $border;
+}
+
+// "+N more" / "Show less" toggle for the collapsed team list.
+.teamMoreBtn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: $muted;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: $text-2;
+    text-decoration: underline;
+  }
+}
+
+// ── Drawer org-led line (person unknown) ────────────────────────────────────
+.orgBox {
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  background: var(--background-neutral-subtle, #f9fafb);
+  padding: 12px;
+  gap: 8px;
+}
+
+// Signal tags ("Org connection", "Person unknown") on their own line under the
+// org name (mirrors the person card's role line placement).
+.orgTagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+// Org "why this works" description — wraps under the tags.
+.orgDescription {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 18px;
+  color: $muted;
+}
+
+.orgAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $text-2;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Real logo for a PL-network org (clickable to its team profile).
+.orgLogo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #fff;
+  object-fit: contain;
+  padding: 2px;
+  border: 1px solid $border;
+}
+
+.orgNameRow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// Signal chip ("Org connection", "Person unknown") — dashed to read as a
+// status/uncertainty marker rather than a solid label.
+.orgTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
+  white-space: nowrap;
+}
+
+.orgChannels {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding-left: 44px;
+}
+
+// External-link text link with a trailing arrow icon, vertically centered.
+.extLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// Icon-only contact channel (linkedin / telegram): reuse ProfileSocialLink but
+// hide its handle text, keeping just the logo (the tooltip still shows the handle).
+.iconOnly {
+  display: inline-flex;
+  align-items: center;
+
+  // ProfileSocialLink styles its label via styled-jsx (injected at runtime, so
+  // same specificity but later in source) — !important is needed to hide it.
+  :global(.profile-social-link__link) {
+    display: none !important;
+  }
+}
+
+// Thin vertical separator between contact channels (email | linkedin | …).
+.channelDivider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 16px;
+  margin: 0 4px;
+  background: $border;
+}
+
+// Stubbed "Suggest a correction" inline note.
+.correctionNote {
+  font-size: 12px;
+  line-height: 1.5;
+  color: $text-2;
+}
+
+// "Suggest a correction" link — pin to 13px (overrides the production Button
+// size="s" type). Equal-specificity override of an imported module class.
+.correctionLink {
+  font-size: 13px !important;
+}
+
+// Path-card labels (Best path / Alternative #N, warmth N%) bumped from
+// production's 11px to the system's 12px caption size (matches Tag / pd.explanation).
+.rankSm,
+.warmthSm {
+  font-size: 12px !important;
+}
+
+// A touch more vertical rhythm between the path-card rows (header → explanation
+// → chain); production pairs these at 6px, here 10px to breathe. Panel-only —
+// the inline table chain doesn't get these classes.
+.explanationSpaced,
+.chainSpaced {
+  margin-top: 10px !important;
+}
+
+// Path header carries the proximity badge + warmth + the node chain on one row;
+// let it wrap gracefully and sit the chain inline (no top margin).
+.pathHeadWrap {
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 6px;
+}
+
+.chainInline {
+  margin-top: 0 !important;
+}
+
+.copyEmail {
+  color: $muted;
+  padding: 2px;
+
+  // Smaller than the stock 16px icon, sits snug against the email.
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: $brand;
+  }
+}
+
+// ── Show-more paths ───────────────────────────────────────────────────────────
+.showMoreBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 7px 12px;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: $text-2;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $brand;
+    color: $brand;
+  }
+}
+
+.coldNote {
+  font-size: 12px;
+  color: $muted;
+}
+
+// ── Add-to-list popover (bulk row action + drawer) + drawer membership chips ──
+.addListWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.addListMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 240px;
+  max-width: 90vw;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+// Opens upward — used by the drawer-footer trigger (sits at the bottom).
+.addListMenuUp {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.addListHead {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $text-2;
+}
+
+.addListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  color: $text;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:disabled {
+    color: $muted;
+    cursor: default;
+  }
+}
+
+.addListIn {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// In-list rows that toggle membership off when clicked (drawer single-investor).
+.addListItemToggle {
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.addListToggle {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+// Default: show the "✓ In list" state.
+.addListToggleIn {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// Hover: swap to a "Remove" hint so the row clearly reads as removable.
+.addListToggleRemove {
+  display: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.addListItemToggle:hover {
+  .addListToggleIn {
+    display: none;
+  }
+
+  .addListToggleRemove {
+    display: inline;
+  }
+}
+
+// Drawer: the investor's list memberships, each removable.
+.listChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.listChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  color: $text;
+}
+
+.listChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  color: $muted;
+  cursor: pointer;
+
+  &:hover {
+    color: rgb(29 78 216);
+  }
+}
+
+.listEmpty {
+  font-size: 13px;
+  color: $muted;
+}
+
+// ── Page padding (was an inline style; moved here so it can adapt on mobile) ───
+.page {
+  padding: 8px 20px 48px;
+}
+
+// ── Mobile card list — the table is replaced by tappable cards on small screens ─
+.mobileCards {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, #eef0f3);
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mCardMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mCardFirm {
+  font-size: 12px;
+  color: $text-2;
+}
+
+// Relationship chips + Export shouldn't wrap their own text into tall ovals.
+// Vertically center the chips against the Add-to-list / Export buttons.
+.resultsActionsResp {
+  align-items: center;
+}
+
+.resultsActionsResp button {
+  white-space: nowrap;
+}
+
+// ── Responsive: stack the filters/header + swap the table for cards (<640px) ───
+@media (max-width: 639px) {
+  // Chips + Export in one row; Export wraps under them only if it doesn't fit.
+  // Pin children to content width so a wrapped Export doesn't stretch full-width.
+  .resultsActionsResp {
+    flex-wrap: wrap;
+    align-items: center;
+
+    > * {
+      flex: 0 0 auto;
+    }
+  }
+
+  .page {
+    padding: 8px 12px 40px;
+  }
+
+  .pageTitleRow {
+    flex-wrap: wrap;
+  }
+
+  .pageTitle {
+    font-size: 24px;
+    line-height: 30px;
+    letter-spacing: -0.4px;
+  }
+
+  .tableDesktop {
+    display: none;
+  }
+
+  .mobileCards {
+    display: flex;
+  }
+
+  .builderRowResp {
+    flex-direction: column;
+    align-items: stretch;
+
+    // Production .field uses `flex: 1 1 200px`; in a column that makes each field
+    // grow vertically and leaves huge gaps. Size them to content instead.
+    > * {
+      flex: 0 0 auto;
+    }
+  }
+
+  .resultsHeaderResp {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  // Target-list selector: stack the "LIST" caption on top of the picker, and let
+  // the picker shrink to the available width (ListPicker's desktop min-width 320px
+  // would otherwise overflow).
+  .listField {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  // Industry / Sector trigger spans the full width like the other fields.
+  .sectorPopWrap,
+  .sectorTrigger {
+    width: 100%;
+  }
+
+  .listPickerWrap {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .listPickerWrap select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  // Connector card is already fluid (identity row + contacts row stack; channels
+  // wrap). On small screens give a wrapped contacts row a little row spacing and
+  // tighten the org card padding so it doesn't eat the narrow width.
+  .contactChannels {
+    row-gap: 6px;
+  }
+
+  .orgBox {
+    padding: 10px;
+  }
+
+  // Let the path header (badge · warmth) wrap rather than overflow.
+  .pathHeadWrap {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  // Filter actions: make the primary Apply button full-width (easy tap target);
+  // Clear + Save view wrap to a row below it. (Also clears the desktop
+  // margin-left:auto so the block spans the column.)
+  .builderActions {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  // Both Apply and Clear span the full width (stacked), each an easy tap target.
+  .builderActions > button {
+    flex: 1 1 100%;
+  }
+}
+
+// ── Relationship filter chips (Co-invested / Engaged / Cold) ──────────────────
+//    The production Tag .secondary variant sets `white-space: wrap`, so the
+//    multi-word "Co-invested" label wraps to two lines and that chip renders
+//    ~2x the height of the single-word "Engaged"/"Cold" chips. Force a single
+//    line so all three sit at the same height in a tidy inline row. `!important`
+//    is needed because .secondary is an equal-specificity module class.
+//    Sizing (padding/font/line-height) is left to the Tag .root so these stay
+//    visually consistent with the sector chips (also Tag variant="secondary").
+.relChip {
+  white-space: nowrap !important;
+  align-items: center;
+  // Keep the normal Tag pill (24px radius, 12px text) — just reduce the height:
+  // tighter top/bottom padding so they're not so tall.
+  // Hug content — never grow/stretch to fill the row.
+  flex: 0 0 auto !important;
+  width: auto !important;
+  // Fixed 32px-tall pill; content centered.
+  height: 32px !important;
+  min-height: 32px !important;
+  box-sizing: border-box !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}

@@ -22,6 +22,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Gantry',
     load: () => import('./entries/gantry-saved-draft-item/GantrySavedDraftItemPrototype'),
   },
+  {
+    key: 'warm-intros-filter-update',
+    title: 'Warm intros update',
+    description:
+      'People-first warm-intros workspace: connector states (in-network / external / org-unknown), per-investor paths, and an investor drawer with sticky header.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-filter-update/WarmIntrosFilterUpdatePrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

@@ -132,7 +132,7 @@ export const PitchSpotlightHero = ({
 
   const renderTeamLine = () => (
     <p className={s.spotlightLine}>
-      {isPastSpotlight ? 'Past Spotlight: ' : 'This Spotlight: '}
+      {isPastSpotlight ? 'Spotlighted: ' : 'Spotlighting: '}
       <Link
         href={`/teams/${teamUid}`}
         target="_blank"
@@ -256,7 +256,7 @@ export const PitchSpotlightHero = ({
           <p className={s.intro}>
             Every {frequency}, PL Spotlight introduces investors to a company building in the Protocol Labs network.
           </p>
-          {renderTeamLine()}
+          {variant !== 'closed' && renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
         </div>

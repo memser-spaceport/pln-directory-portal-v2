@@ -173,7 +173,11 @@ export const PitchView = () => {
 
       {isOpenInvestorView && <PitchSpotlightHero variant="open" {...spotlightHeroProps} />}
 
-      {showAdminHeader && (
+      {showAdminHeader && access.status === 'DRAFT' && (
+        <PitchSpotlightHero variant="draftPreview" {...spotlightHeroProps} />
+      )}
+
+      {showAdminHeader && access.status !== 'DRAFT' && (
         <PitchEventHeader
           title={access.title}
           description={access.description}

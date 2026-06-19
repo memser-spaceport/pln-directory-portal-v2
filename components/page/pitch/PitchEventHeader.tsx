@@ -16,7 +16,8 @@ export const PitchEventHeader = ({ title, description, status }: Props) => {
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
-          {status && <PitchStatusBadge status={status} />}
+          {status === 'DRAFT' && <p className={s.prepLabel}>[Draft Page]</p>}
+          {status === 'CLOSED' && <PitchStatusBadge status={status} />}
           <h1 className={s.title}>{title}</h1>
           {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
         </div>

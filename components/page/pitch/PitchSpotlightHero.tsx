@@ -23,7 +23,8 @@ export type PitchSpotlightHeroVariant =
   | 'restricted'
   | 'closed'
   | 'closedLoggedOut'
-  | 'open';
+  | 'open'
+  | 'draftPreview';
 
 type Props = {
   variant: PitchSpotlightHeroVariant;
@@ -249,6 +250,7 @@ export const PitchSpotlightHero = ({
       case 'closedLoggedOut':
         return <p className={s.body}>This spotlight has closed and its materials are no longer available.</p>;
       case 'open':
+      case 'draftPreview':
         return (
           <p className={s.footer}>
             <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
@@ -274,10 +276,9 @@ export const PitchSpotlightHero = ({
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
+          {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft Page]</p>}
           <h1 className={s.title}>{title}</h1>
-          {description && (
-            <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />
-          )}
+          {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
           {showTeamLine && renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
@@ -292,7 +293,7 @@ export const PitchSpotlightHero = ({
         )}
       </div>
 
-      {variant === 'open' && (
+      {(variant === 'open' || variant === 'draftPreview') && (
         <Alert>
           <p>
             Confidentiality notice: Materials presented here are confidential and are provided exclusively for your

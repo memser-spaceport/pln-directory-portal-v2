@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
+import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { InvestorProfileInlineLink } from '@/components/page/pitch/InvestorProfileInlineLink';
 import { useContactSupportStore } from '@/services/contact-support/store';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -16,27 +17,31 @@ import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnal
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchSpotlightHero.module.scss';
 
-export type PitchSpotlightHeroVariant = 'notLoggedIn' | 'draftWhitelist' | 'restricted' | 'closed' | 'closedLoggedOut';
+export type PitchSpotlightHeroVariant =
+  | 'notLoggedIn'
+  | 'draftWhitelist'
+  | 'restricted'
+  | 'closed'
+  | 'closedLoggedOut'
+  | 'open';
 
 type Props = {
   variant: PitchSpotlightHeroVariant;
   pitchSlug: string;
   prefillEmail?: string;
   title: string;
-  spotlightFrequency?: string;
+  description?: string;
   spotlightStatement?: string | null;
   teamName: string;
   teamUid: string;
 };
-
-const DEFAULT_FREQUENCY = 'month';
 
 export const PitchSpotlightHero = ({
   variant,
   pitchSlug,
   prefillEmail,
   title,
-  spotlightFrequency = DEFAULT_FREQUENCY,
+  description,
   spotlightStatement,
   teamName,
   teamUid,
@@ -52,7 +57,6 @@ export const PitchSpotlightHero = ({
   const teamPitchAnalytics = useTeamPitchAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
 
-  const frequency = spotlightFrequency?.trim() || DEFAULT_FREQUENCY;
   const statement = spotlightStatement?.trim() || null;
   const isPastSpotlight = variant === 'closed' || variant === 'closedLoggedOut';
 
@@ -128,6 +132,9 @@ export const PitchSpotlightHero = ({
   const profileSetupPhrase = isProfileComplete
     ? 'keep your investor profile up to date'
     : 'set up your investor profile';
+  const openProfileSetupPhrase = isProfileComplete
+    ? 'Keep your investor profile up to date'
+    : 'Set up your investor profile';
   const profileClosedPhrase = isProfileComplete ? 'update your investor profile' : 'set up your investor profile';
 
   const renderTeamLine = () => (
@@ -241,6 +248,19 @@ export const PitchSpotlightHero = ({
         );
       case 'closedLoggedOut':
         return <p className={s.body}>This spotlight has closed and its materials are no longer available.</p>;
+      case 'open':
+        return (
+          <p className={s.footer}>
+            <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
+              {openProfileSetupPhrase}
+            </InvestorProfileInlineLink>{' '}
+            so we can match you with the right teams, and{' '}
+            <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
+              get in touch
+            </button>{' '}
+            if you have questions or feedback.
+          </p>
+        );
       default:
         return null;
     }
@@ -248,15 +268,17 @@ export const PitchSpotlightHero = ({
 
   const showLoginCta = variant === 'notLoggedIn' || variant === 'closedLoggedOut';
 
+  const showTeamLine = variant !== 'closed';
+
   return (
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
           <h1 className={s.title}>{title}</h1>
-          <p className={s.intro}>
-            Every {frequency}, PL Spotlight introduces investors to a company building in the Protocol Labs network.
-          </p>
-          {variant !== 'closed' && renderTeamLine()}
+          {description && (
+            <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />
+          )}
+          {showTeamLine && renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
         </div>
@@ -269,6 +291,16 @@ export const PitchSpotlightHero = ({
           </div>
         )}
       </div>
+
+      {variant === 'open' && (
+        <Alert>
+          <p>
+            Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
+            review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will result in
+            removal from the network.
+          </p>
+        </Alert>
+      )}
 
       {isLoggedIn && userInfo?.uid && (
         <EditInvestorProfileDrawer

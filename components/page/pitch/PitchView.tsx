@@ -11,7 +11,6 @@ import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
 import { PitchConfidentialityModal } from '@/components/page/pitch/PitchConfidentialityModal';
 import { PitchEventHeader } from '@/components/page/pitch/PitchEventHeader';
 import { PitchSpotlightHero } from '@/components/page/pitch/PitchSpotlightHero';
-import { PitchInvestorEventHeader } from '@/components/page/pitch/PitchInvestorEventHeader';
 import { PitchViewSkeleton } from '@/components/page/pitch/PitchViewSkeleton';
 import { ProfileSkeleton } from '@/components/page/demo-day/FounderPendingView/components/ProfileSection/components/ProfileSkeleton';
 import s from '@/components/page/demo-day/FounderPendingView/FounderPendingView.module.scss';
@@ -124,7 +123,7 @@ export const PitchView = () => {
     pitchSlug: slug,
     prefillEmail,
     title: access.title,
-    spotlightFrequency: access.spotlightFrequency ?? 'month',
+    description: access.description,
     spotlightStatement: access.spotlightStatement,
     teamName: access.teamName,
     teamUid: access.teamUid,
@@ -172,7 +171,7 @@ export const PitchView = () => {
     <div className={s.root}>
       {showConfidentialityModal && <PitchConfidentialityModal isOpen pitchSlug={slug} />}
 
-      {isOpenInvestorView && <PitchInvestorEventHeader title={access.title} description={access.description} />}
+      {isOpenInvestorView && <PitchSpotlightHero variant="open" {...spotlightHeroProps} />}
 
       {showAdminHeader && (
         <PitchEventHeader

@@ -4,14 +4,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 40px;
   width: 100%;
   padding: 40px 20px;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
+  overflow: hidden;
 
   @include media.mobile-only {
     padding: 32px 16px;
+    gap: 24px;
   }
 }
 
@@ -35,6 +38,7 @@
 
 .title {
   margin: 0;
+  margin-bottom: 12px;
   color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 40px;
   font-weight: 600;
@@ -48,7 +52,7 @@
   }
 }
 
-.intro,
+.description,
 .spotlightLine,
 .body,
 .footer {
@@ -65,7 +69,17 @@
   }
 }
 
-.intro,
+.description {
+  width: 100%;
+  text-align: left;
+
+  :is(ul, ol) {
+    text-align: left;
+    display: inline-block;
+    list-style-position: outside;
+  }
+}
+
 .spotlightLine,
 .body,
 .footer {

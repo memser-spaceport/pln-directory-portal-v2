@@ -276,7 +276,7 @@ export const PitchSpotlightHero = ({
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
-          {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft Page]</p>}
+          {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft]</p>}
           <h1 className={s.title}>{title}</h1>
           {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
           {showTeamLine && renderTeamLine()}

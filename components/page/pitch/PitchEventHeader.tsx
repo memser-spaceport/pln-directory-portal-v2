@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
-import { PitchStatusBadge } from '@/components/page/pitch/PitchStatusBadge';
 import s from './PitchEventHeader.module.scss';
 
 type Props = {
@@ -16,8 +15,8 @@ export const PitchEventHeader = ({ title, description, status }: Props) => {
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
-          {status === 'DRAFT' && <p className={s.prepLabel}>[Draft Page]</p>}
-          {status === 'CLOSED' && <PitchStatusBadge status={status} />}
+          {status === 'DRAFT' && <p className={s.prepLabel}>[Draft]</p>}
+          {status === 'CLOSED' && <p className={s.prepLabel}>[Closed]</p>}
           <h1 className={s.title}>{title}</h1>
           {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
         </div>

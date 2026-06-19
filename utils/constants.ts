@@ -754,6 +754,26 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.17 - Team Spotlights & Network News',
+    tag: 'New Feature',
+    date: '19, Jun 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">PL Spotlight</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Spotlights</span> - Private pages for invited investors to review a featured team's profile and pitch materials; accept confidentiality terms to unlock the deck, and set up or update your investor profile from the page.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Network News alerts</span> - In-app notifications and the daily email digest now surface fresh team news from the home feed.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Listing accuracy</span> - Closed roles are removed from the board when they're no longer posted on a team's careers page.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.16 - Quick Actions, Team News & Investor DB',
     tag: 'Improvements',
     date: '29, May 2026',

@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
+import { Badge } from '@/components/common/Badge/Badge';
 import { Button } from '@/components/common/Button/Button';
 import { CopyButton } from '@/components/ui/CopyButton/CopyButton';
 // Reuse the Member-page contact components (icon + handle links) for the connectors.
@@ -11,9 +12,9 @@ import { getProfileFromURL } from '@/utils/common.utils';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // Reuse the production path-card styling so the prototype tracks production.
 import pd from '@/components/page/investors/WarmPathDetail/WarmPathDetail.module.scss';
-import { ArrowUpRightIcon } from '@/components/icons';
 import type { ContactPerson, MockPath, OrgConnector, TeamLink } from './mocks';
 import { PersonGlyph, OrgGlyph } from './PeopleChain';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import x from './WarmIntrosImprovements.module.scss';
 
 interface Props {
@@ -277,10 +278,11 @@ function OrgBlock({ org }: { org: OrgConnector }) {
               ) : (
                 <span className={x.memberName}>{org.name}</span>
               )}
+              {/* DS Badge, neutral grey for both tags. */}
               {org.tags.map((tag) => (
-                <span key={tag} className={x.orgTag}>
+                <Badge key={tag} variant="default" className={x.orgBadge}>
                   {tag}
-                </span>
+                </Badge>
               ))}
             </span>
             <span className={x.orgDescription}>{org.description}</span>

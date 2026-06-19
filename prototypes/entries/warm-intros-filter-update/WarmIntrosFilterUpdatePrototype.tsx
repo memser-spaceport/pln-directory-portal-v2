@@ -24,7 +24,7 @@ import { Tabs } from '@/components/common/Tabs/Tabs';
 import s from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
 import { DEFAULT_LIST_ID, MOCK_INVESTOR_LISTS, MOCK_LISTS, MOCK_MEMBERS, pathChainNodes, type MockInvestor } from './mocks';
 import { PeopleChain } from './PeopleChain';
-import { ArrowUpRightIcon } from '@/components/icons';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import { WorkspaceSearch } from './WorkspaceSearch';
 import { InvestorDrawerMock } from './InvestorDrawerMock';
 import { AddToListButton } from './AddToListButton';

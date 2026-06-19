@@ -19,7 +19,8 @@ import { getProfileFromURL } from '@/utils/common.utils';
 // Reuse the production drawer styling verbatim so the layout matches the original.
 import s from '@/components/page/investors/InvestorDrawer/InvestorDrawer.module.scss';
 import type { InvestorList } from '@/services/investors/types';
-import { ArrowUpRightIcon, CheckIcon } from '@/components/icons';
+import { CheckIcon } from '@/components/icons';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import x from './WarmIntrosImprovements.module.scss';
 import type { MockInvestor } from './mocks';
 import { WarmPathPanel } from './WarmPathPanel';
@@ -253,7 +254,7 @@ export function InvestorDrawerMock({
                 </span>
               </a>
             )}
-            <AddToListButton lists={lists} memberOf={investor.list_ids} onAdd={onAddToList} onRemove={onRemoveFromList} openUp />
+            <AddToListButton lists={lists} memberOf={investor.list_ids} onAdd={onAddToList} onRemove={onRemoveFromList} openUp triggerStyle="ds" />
             <Button style="border" variant="neutral" onClick={copyEmail} disabled={!investor.email}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 {copied ? <CheckIcon width={16} height={16} /> : <CopyIcon />}

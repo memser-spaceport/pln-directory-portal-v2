@@ -9,7 +9,8 @@
 //     (PL-network org also shows its logo + links to /teams.)
 import pd from '@/components/page/investors/WarmPathDetail/WarmPathDetail.module.scss';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { ArrowUpRightIcon, QuestionCircleStrokeIcon } from '@/components/icons';
+import { QuestionCircleStrokeIcon } from '@/components/icons';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import type { RouteNode } from './mocks';
 import x from './WarmIntrosImprovements.module.scss';
 

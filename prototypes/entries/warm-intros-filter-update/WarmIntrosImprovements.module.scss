@@ -538,9 +538,10 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   transition: opacity 0.1s ease;
 }
 
+// 40px avatar to match the production Teams member row; text sizes kept as-is.
 .memberAvatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
   background: #fff;
@@ -550,7 +551,7 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 .memberText {
   display: flex;
   flex-direction: column;
-  flex: 1; // fill the fixed identity column so every row's name block is equal width
+  flex: 1;
   min-width: 0;
 }
 
@@ -704,8 +705,8 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 .connectorCard {
   display: flex;
   flex-direction: column;
-  // 4px between the profile and the contacts row.
-  gap: 4px;
+  // 8px between the profile and the contacts row.
+  gap: 8px;
 }
 
 .connectorTop {
@@ -772,10 +773,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   }
 }
 
+// Arrow inherits the link color so the company name + ↗ read as one link
+// (secondary by default, brand on hover).
 .teamInlineArrow {
   display: inline-flex;
   align-items: center;
-  color: $muted;
+  color: inherit;
 }
 
 // Middot divider between inline team links.
@@ -784,21 +787,21 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   color: $muted;
 }
 
-// 32px grey circle holding the person silhouette (non-network connector).
+// 40px grey circle holding the person silhouette (non-network connector).
 .memberAvatarExternal {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
   color: $muted;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 }
 
@@ -915,23 +918,23 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 8px;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
   color: $text-2;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 }
 
 // Real logo for a PL-network org (clickable to its team profile).
 .orgLogo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 8px;
   background: #fff;
@@ -945,6 +948,13 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+// Shrink the DS Badge a touch for the org tags (keeps the variant colors/border).
+.orgBadge {
+  font-size: 12px !important;
+  line-height: 16px !important;
+  padding: 1px 8px !important;
 }
 
 // Signal chip ("Org connection", "Person unknown") — dashed to read as a
@@ -1010,7 +1020,7 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 // "Suggest a correction" link — pin to 13px (overrides the production Button
 // size="s" type). Equal-specificity override of an imported module class.
 .correctionLink {
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 
 // Path-card labels (Best path / Alternative #N, warmth N%) bumped from

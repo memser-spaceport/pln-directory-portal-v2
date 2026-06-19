@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { InvestorList } from '@/services/investors/types';
 import { PlusIcon } from '@/components/icons';
-// Trigger uses the workspace .btn so it's the exact same size as the Export button.
+import { Button } from '@/components/common/Button/Button';
+// Workspace .btn matches the Export button (toolbar context).
 import s from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
 import x from './WarmIntrosImprovements.module.scss';
 
@@ -21,13 +22,28 @@ interface Props {
   label?: string;
   /** Open the menu upward (for use in the drawer footer at the bottom). */
   openUp?: boolean;
+  /**
+   * Trigger styling per context: 'workspace' = the .btn used by the toolbar's
+   * Export button; 'ds' = the design-system Button used by the drawer footer's
+   * Copy email. Keeps the trigger consistent with its neighbours.
+   */
+  triggerStyle?: 'workspace' | 'ds';
 }
 
 /**
  * Small popover that adds the subject(s) to a chosen list. Used as a bulk action
  * over the selected table rows and inside the drawer for a single investor.
  */
-export function AddToListButton({ lists, onAdd, onRemove, memberOf = [], disabled, label = 'Add to list', openUp }: Props) {
+export function AddToListButton({
+  lists,
+  onAdd,
+  onRemove,
+  memberOf = [],
+  disabled,
+  label = 'Add to list',
+  openUp,
+  triggerStyle = 'workspace',
+}: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,14 +56,24 @@ export function AddToListButton({ lists, onAdd, onRemove, memberOf = [], disable
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  const triggerInner = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <PlusIcon />
+      {label}
+    </span>
+  );
+
   return (
     <div className={x.addListWrap} ref={ref}>
-      <button type="button" className={s.btn} disabled={disabled} onClick={() => setOpen((o) => !o)}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <PlusIcon />
-          {label}
-        </span>
-      </button>
+      {triggerStyle === 'ds' ? (
+        <Button style="border" variant="neutral" disabled={disabled} onClick={() => setOpen((o) => !o)}>
+          {triggerInner}
+        </Button>
+      ) : (
+        <button type="button" className={s.btn} disabled={disabled} onClick={() => setOpen((o) => !o)}>
+          {triggerInner}
+        </button>
+      )}
       {open && (
         <div className={openUp ? `${x.addListMenu} ${x.addListMenuUp}` : x.addListMenu}>
           <div className={x.addListHead}>Add to list</div>

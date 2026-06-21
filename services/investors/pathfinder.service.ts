@@ -3,8 +3,11 @@ import type {
   CorrectionInput,
   PathCaliber,
   PathConnectorType,
+  PathContactPerson,
   PathCorrection,
   PathHopChain,
+  PathOrgConnector,
+  PathRouteNode,
   PathfinderPath,
   PathsForTargetResponse,
 } from './types';
@@ -16,6 +19,48 @@ import type {
 const PATHFINDER_API_URL = `${process.env.DIRECTORY_API_URL}/v1/pathfinder`;
 
 type AnyDto = Record<string, any>;
+
+function mapContactPerson(dto: AnyDto | null | undefined): PathContactPerson | undefined {
+  if (!dto?.name) return undefined;
+  return {
+    name: dto.name as string,
+    role: (dto.role ?? '') as string,
+    email: dto.email ?? undefined,
+    linkedin: dto.linkedin ?? undefined,
+    telegram: dto.telegram ?? undefined,
+    member_uid: dto.memberUid ?? dto.member_uid ?? undefined,
+    teams: dto.teams
+      ? (dto.teams as AnyDto[]).map((t) => ({
+          name: t.name as string,
+          team_uid: t.teamUid ?? t.team_uid ?? undefined,
+          logo: t.logo ?? undefined,
+        }))
+      : undefined,
+  };
+}
+
+function mapOrgConnector(dto: AnyDto | null | undefined): PathOrgConnector | undefined {
+  if (!dto?.name) return undefined;
+  return {
+    name: dto.name as string,
+    team_uid: dto.teamUid ?? dto.team_uid ?? undefined,
+    logo: dto.logo ?? undefined,
+    description: (dto.description ?? '') as string,
+    tags: (dto.tags ?? []) as string[],
+    email: dto.email ?? undefined,
+    website: dto.website ?? undefined,
+  };
+}
+
+function mapRouteNode(dto: AnyDto): PathRouteNode {
+  return {
+    label: dto.label as string,
+    member_uid: dto.memberUid ?? dto.member_uid ?? undefined,
+    team_uid: dto.teamUid ?? dto.team_uid ?? undefined,
+    logo: dto.logo ?? undefined,
+    variant: (dto.variant ?? 'external') as PathRouteNode['variant'],
+  };
+}
 
 function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
   const nodes = ((dto?.nodes ?? []) as AnyDto[]).map((n) => ({
@@ -30,7 +75,23 @@ function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
     probability: (e.probability ?? 0) as number,
     evidence: (e.evidence ?? null) as string | null,
   }));
-  return { nodes, edges, explanation: (dto?.explanation ?? '') as string };
+  const routeNodesRaw = (dto?.routeNodes ?? dto?.route_nodes ?? []) as AnyDto[];
+  const connectorTeamRaw = dto?.connectorTeam ?? dto?.connector_team;
+  return {
+    nodes,
+    edges,
+    explanation: (dto?.explanation ?? '') as string,
+    route_nodes: routeNodesRaw.length > 0 ? routeNodesRaw.map(mapRouteNode) : undefined,
+    contact: mapContactPerson(dto?.contact),
+    org_connector: mapOrgConnector(dto?.orgConnector ?? dto?.org_connector),
+    connector_team: connectorTeamRaw
+      ? {
+          name: connectorTeamRaw.name as string,
+          team_uid: connectorTeamRaw.teamUid ?? connectorTeamRaw.team_uid ?? undefined,
+          leads: ((connectorTeamRaw.leads ?? []) as AnyDto[]).map((l) => mapContactPerson(l) as PathContactPerson),
+        }
+      : undefined,
+  };
 }
 
 function mapCorrection(dto: AnyDto): PathCorrection {

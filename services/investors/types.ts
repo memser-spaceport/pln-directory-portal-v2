@@ -324,11 +324,51 @@ export type PathHopEdge = {
   evidence: string | null;
 };
 
+/** People-first route node (task 06). */
+export type PathRouteNode = {
+  label: string;
+  member_uid?: string;
+  team_uid?: string;
+  logo?: string;
+  variant: 'member' | 'external' | 'org';
+};
+
+export type PathContactPerson = {
+  name: string;
+  role: string;
+  email?: string;
+  linkedin?: string;
+  telegram?: string;
+  member_uid?: string;
+  teams?: Array<{ name: string; team_uid?: string; logo?: string }>;
+};
+
+export type PathOrgConnector = {
+  name: string;
+  team_uid?: string;
+  logo?: string;
+  description: string;
+  tags: string[];
+  email?: string;
+  website?: string;
+};
+
+export type PathConnectorTeam = {
+  name: string;
+  team_uid?: string;
+  leads: PathContactPerson[];
+};
+
 export type PathHopChain = {
   nodes: PathHopNode[];
   edges: PathHopEdge[];
   /** Plain-English description of the path, surfaced in the expanded row. */
   explanation: string;
+  /** People-first presentation (task 06). */
+  route_nodes?: PathRouteNode[];
+  contact?: PathContactPerson;
+  org_connector?: PathOrgConnector;
+  connector_team?: PathConnectorTeam;
 };
 
 /** A single ranked warm path to a target investor (one PathfinderPath row). */

@@ -77,22 +77,18 @@
   }
 }
 
-.description {
+.description,
+.spotlightLine,
+.body,
+.footer {
   width: 100%;
-  text-align: left;
+  text-align: center;
 
   :is(ul, ol) {
     text-align: left;
     display: inline-block;
     list-style-position: outside;
   }
-}
-
-.spotlightLine,
-.body,
-.footer {
-  width: 100%;
-  text-align: left;
 }
 
 .body,

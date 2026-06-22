@@ -3,8 +3,10 @@ import type {
   CorrectionInput,
   PathCaliber,
   PathConnectorType,
+  PathContact,
   PathCorrection,
   PathHopChain,
+  PathOrgConnector,
   PathfinderPath,
   PathsForTargetResponse,
 } from './types';
@@ -17,12 +19,51 @@ const PATHFINDER_API_URL = `${process.env.DIRECTORY_API_URL}/v1/pathfinder`;
 
 type AnyDto = Record<string, any>;
 
+export function mapHopNode(n: AnyDto): PathHopChain['nodes'][number] {
+  const type = (n.type ?? 'person') as 'person' | 'org';
+  // Coerce empty-string → undefined so discriminated union arms are satisfied.
+  const memberUid = ((n.memberUid || n.member_uid) as string | undefined) || undefined;
+  const teamUid = ((n.teamUid || n.team_uid) as string | undefined) || undefined;
+  const id = n.id as string;
+  const label = n.label as string;
+  if (type === 'person' && memberUid) {
+    return { id, label, type: 'person', member_uid: memberUid };
+  }
+  if (type === 'org' && teamUid) {
+    return { id, label, type: 'org', team_uid: teamUid };
+  }
+  if (type === 'org') {
+    return { id, label, type: 'org' };
+  }
+  return { id, label, type: 'person' };
+}
+
+function mapContact(dto: AnyDto): PathContact {
+  return {
+    id: dto.id as string | undefined,
+    name: (dto.name ?? '') as string,
+    role: dto.role as string | undefined,
+    email: dto.email as string | undefined,
+    image_url: (dto.imageUrl ?? dto.image_url) as string | undefined,
+    linkedin_url: (dto.linkedinUrl ?? dto.linkedin_url) as string | undefined,
+    telegram: dto.telegram as string | undefined,
+    member_uid: (dto.memberUid ?? dto.member_uid) as string | undefined,
+  };
+}
+
+function mapOrgConnector(dto: AnyDto): PathOrgConnector {
+  return {
+    id: dto.id as string | undefined,
+    name: (dto.name ?? '') as string,
+    domain: dto.domain as string | undefined,
+    website_url: (dto.websiteUrl ?? dto.website_url) as string | undefined,
+    logo_url: (dto.logoUrl ?? dto.logo_url) as string | undefined,
+    team_uid: (dto.teamUid ?? dto.team_uid) as string | undefined,
+  };
+}
+
 function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
-  const nodes = ((dto?.nodes ?? []) as AnyDto[]).map((n) => ({
-    id: n.id as string,
-    label: n.label as string,
-    type: (n.type ?? 'person') as 'person' | 'org',
-  }));
+  const nodes = ((dto?.nodes ?? []) as AnyDto[]).map(mapHopNode);
   const edges = ((dto?.edges ?? []) as AnyDto[]).map((e) => ({
     from: e.from as string,
     to: e.to as string,
@@ -59,6 +100,8 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
     rank: (dto.rank ?? 0) as number,
     computed_at: dto.computedAt ?? undefined,
     corrections: ((dto.corrections ?? []) as AnyDto[]).map(mapCorrection),
+    contact: dto.contact ? mapContact(dto.contact as AnyDto) : undefined,
+    org_connector: dto.orgConnector ? mapOrgConnector(dto.orgConnector as AnyDto) : undefined,
   };
 }
 

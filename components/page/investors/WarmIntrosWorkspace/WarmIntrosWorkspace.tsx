@@ -1,8 +1,11 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useQueryStates } from 'nuqs';
+import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import clsx from 'clsx';
+import type { PathHopNode } from '@/services/investors/types';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
 import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
@@ -32,7 +35,6 @@ import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { ProximityCodeBadge } from '../ProximityCodeBadge/ProximityCodeBadge';
-import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
 import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPanel';
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import { GlossaryModal } from './GlossaryModal';
@@ -111,7 +113,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const onPickList = (list: InvestorList) => {
     setFilters({ wi_list_id: list.id, ...CLEAR_CONNECTOR_LENS });
-    setExpandedIds(new Set());
     setSelectedIds(new Set());
     analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
   };
@@ -162,14 +163,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_check_size: draft.check || null,
     });
     setSelectedIds(new Set());
-    setExpandedIds(new Set());
   };
 
   const clear = () => {
     setDraft({ stage: '', sectors: [], check: '' });
     setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, ...CLEAR_CONNECTOR_LENS });
     setSelectedIds(new Set());
-    setExpandedIds(new Set());
   };
 
   // ── Relationship lens (client chips, server filter) ─────────────────────────
@@ -209,7 +208,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const lensLoading = !!connectorLabel && isFetching && !isFetchingNextPage;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -253,15 +251,17 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     analytics.trackConnectorLensApplied({ nodeLabel: sel.displayLabel, kind: sel.kind });
   };
 
-  const toggleExpanded = (id: string, bestProximityCode?: string | null) => {
-    const isExpanding = !expandedIds.has(id);
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      isExpanding ? next.add(id) : next.delete(id);
-      return next;
-    });
-    if (isExpanding) analytics.trackPathExpanded({ investorId: id, bestProximityCode });
-  };
+  const [sectorPopoverOpen, setSectorPopoverOpen] = useState(false);
+  const sectorPopoverRef = useRef<HTMLDivElement>(null);
+  useOnClickOutside([sectorPopoverRef], () => setSectorPopoverOpen(false));
+
+  const hasAnyFilter =
+    !!draft.stage ||
+    draft.sectors.length > 0 ||
+    !!draft.check ||
+    !!filters.wi_connector ||
+    filters.wi_connector_labels.length > 0 ||
+    filters.wi_connector_contains.length > 0;
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
@@ -290,7 +290,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   };
 
   const canSelect = access.canEdit;
-  const colCount = (canSelect ? 1 : 0) + 7;
 
   return (
     <div className={s.root}>
@@ -316,14 +315,97 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </p>
         </header>
 
-        <div className={clsx(s.field, s.fieldMb)}>
-          <label className={s.label}>Target list</label>
-          <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
-        </div>
+        {/* Compact single-row filter bar */}
+        <div className={s.filterBar}>
+          {/* LIST label + picker grouped */}
+          <div className={clsx(s.filterBarItem, s.filterBarListGroup)}>
+            <span className={s.filterBarListLabel}>LIST</span>
+            <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
+          </div>
 
-        <div className={clsx(s.field, s.fieldMb)}>
-          <label className={s.label}>Search investors, funds, founders or teams</label>
-          <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
+          {/* Search with magnifier icon */}
+          <div className={clsx(s.filterBarItem, s.filterBarSearch)}>
+            <div className={s.searchWrap}>
+              <span className={s.searchIcon} aria-hidden>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="9" cy="9" r="6" />
+                  <path d="M15 15l-3.5-3.5" strokeLinecap="round" />
+                </svg>
+              </span>
+              <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
+            </div>
+          </div>
+
+          <div className={s.filterBarItem}>
+            <select
+              className={s.select}
+              value={draft.stage}
+              aria-label="Stage focus"
+              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
+            >
+              <option value="">Any stage</option>
+              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
+                <option key={st} value={st}>
+                  {STAGE_FOCUS_LABEL[st]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={s.filterBarItem}>
+            <select
+              className={s.select}
+              value={draft.check}
+              aria-label="Check size"
+              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
+            >
+              <option value="">Any check size</option>
+              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sector popover — styled to match stage/check selects */}
+          <div className={clsx(s.filterBarItem, s.sectorWrap)} ref={sectorPopoverRef}>
+            <button
+              type="button"
+              className={clsx(s.sectorTrigger, draft.sectors.length > 0 && s.sectorTriggerActive)}
+              onClick={() => setSectorPopoverOpen((o) => !o)}
+              aria-expanded={sectorPopoverOpen}
+            >
+              <span className={s.sectorTriggerText}>
+                {draft.sectors.length > 0 ? `${INDUSTRY_SECTOR_LABEL} (${draft.sectors.length})` : INDUSTRY_SECTOR_LABEL}
+              </span>
+              <span className={s.sectorCaret} aria-hidden>▾</span>
+            </button>
+            {sectorPopoverOpen && (
+              <div className={s.sectorPopover} role="dialog" aria-label="Sector filters">
+                <div className={s.sectorPopoverChips}>
+                  {SECTOR_TAGS.map((sec) => (
+                    <button
+                      key={sec}
+                      className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
+                      onClick={() => toggleDraftSector(sec)}
+                    >
+                      {SECTOR_TAG_LABEL[sec]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={s.filterBarActions}>
+            <button className={s.btnApply} onClick={apply}>
+              Apply
+            </button>
+            <button className={s.btnClear} onClick={clear} disabled={!hasAnyFilter}>
+              Clear
+            </button>
+          </div>
         </div>
 
         {connectorLabel && (
@@ -342,64 +424,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </span>
           </div>
         )}
-
-        <div className={s.builderRow}>
-          <div className={s.field}>
-            <label className={s.label}>Stage focus</label>
-            <select
-              className={s.select}
-              value={draft.stage}
-              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
-            >
-              <option value="">Any</option>
-              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
-                <option key={st} value={st}>
-                  {STAGE_FOCUS_LABEL[st]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={s.field}>
-            <label className={s.label}>Check size</label>
-            <select
-              className={s.select}
-              value={draft.check}
-              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
-            >
-              <option value="">Any</option>
-              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={s.actions}>
-            <button className={s.btnPrimary} onClick={apply}>
-              Apply
-            </button>
-            <button className={s.btn} onClick={clear}>
-              Clear
-            </button>
-          </div>
-        </div>
-
-        <div className={clsx(s.field, s.fieldMt)}>
-          <label className={s.label}>{INDUSTRY_SECTOR_LABEL}</label>
-          <div className={s.sectorChips}>
-            {SECTOR_TAGS.map((sec) => (
-              <button
-                key={sec}
-                className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
-                onClick={() => toggleDraftSector(sec)}
-              >
-                {SECTOR_TAG_LABEL[sec]}
-              </button>
-            ))}
-          </div>
-        </div>
       </section>
 
       {!enabled && (
@@ -463,74 +487,73 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               </thead>
               <tbody>
                 {visible.map((inv) => {
-                  const isExpanded = expandedIds.has(inv.investor_id);
                   const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
                   return (
-                    <Fragment key={inv.investor_id}>
-                      <tr className={s.row} onClick={() => setFilters({ investorId: inv.investor_id })}>
-                        {canSelect && (
-                          <td className={s.checkboxCol}>
-                            <input
-                              type="checkbox"
-                              checked={selectedIds.has(inv.investor_id)}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={() => toggleSelected(inv.investor_id)}
-                            />
-                          </td>
-                        )}
-                        <td>
-                          <div className={s.nameCell}>
-                            {inv.first_name} {inv.last_name}
-                            <LabOsBadge profile={inv.lab_os_profile} variant="icon" />
-                          </div>
-                          <div className={s.subtle}>{inv.email}</div>
+                    <tr key={inv.investor_id} className={s.row} onClick={() => setFilters({ investorId: inv.investor_id })}>
+                      {canSelect && (
+                        <td className={s.checkboxCol}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(inv.investor_id)}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleSelected(inv.investor_id)}
+                          />
                         </td>
-                        <td>
-                          <div className={s.teamCell}>{inv.firm || <span className={s.muted}>—</span>}</div>
-                          {inv.title && <div className={s.subtle}>{inv.title}</div>}
-                        </td>
-                        <td>
-                          <SectorTagsList tags={inv.sector_tags} max={3} />
-                        </td>
-                        <td>{STAGE_FOCUS_LABEL[inv.stage_focus] ?? <span className={s.muted}>—</span>}</td>
-                        <td>{INVESTOR_TYPE_LABEL[inv.investor_type] ?? <span className={s.muted}>—</span>}</td>
-                        <td>
-                          <RelationshipCell investor={inv} />
-                        </td>
-                        <td>
+                      )}
+                      <td>
+                        <div className={s.nameCell}>
+                          {inv.first_name} {inv.last_name}
+                          <LabOsBadge profile={inv.lab_os_profile} variant="icon" />
+                        </div>
+                        <div className={s.subtle}>{inv.email}</div>
+                      </td>
+                      <td>
+                        <div className={s.teamCell}>{inv.firm || <span className={s.muted}>—</span>}</div>
+                        {inv.title && <div className={s.subtle}>{inv.title}</div>}
+                      </td>
+                      <td>
+                        <SectorTagsList tags={inv.sector_tags} max={3} />
+                      </td>
+                      <td>{STAGE_FOCUS_LABEL[inv.stage_focus] ?? <span className={s.muted}>—</span>}</td>
+                      <td>{INVESTOR_TYPE_LABEL[inv.investor_type] ?? <span className={s.muted}>—</span>}</td>
+                      <td>
+                        <RelationshipCell investor={inv} />
+                      </td>
+                      <td>
+                        {hasProximity ? (
                           <div className={s.proximityCell}>
-                            {hasProximity ? (
+                            <div className={s.proximityTop}>
                               <ProximityCodeBadge code={inv.best_proximity_code} cold={inv.has_path === false} />
-                            ) : (
-                              <span className={s.muted}>—</span>
+                              {inv.best_route_score != null && (
+                                <span className={s.warmthPct}>{Math.round(inv.best_route_score * 100)}%</span>
+                              )}
+                            </div>
+                            {inv.best_route_nodes && inv.best_route_nodes.length > 0 && (
+                              <div className={s.miniRoute}>
+                                {inv.best_route_nodes.map((n, i) => (
+                                  <span key={`${inv.investor_id}-${n.id}-${i}`} className={s.miniRouteNode}>
+                                    {i > 0 && <span className={s.miniArrow}>→</span>}
+                                    <TableRouteNode node={n} />
+                                  </span>
+                                ))}
+                              </div>
                             )}
                             <button
                               type="button"
-                              className={s.expandBtn}
-                              aria-expanded={isExpanded}
+                              className={s.viewAllLink}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toggleExpanded(inv.investor_id, inv.best_proximity_code);
+                                setFilters({ investorId: inv.investor_id });
                               }}
                             >
-                              {isExpanded ? 'Hide' : 'View paths'}
+                              View all{inv.path_count != null ? ` (${inv.path_count})` : ''}
                             </button>
                           </div>
-                        </td>
-                      </tr>
-                      {isExpanded && (
-                        <tr className={s.detailRow}>
-                          <td colSpan={colCount} onClick={(e) => e.stopPropagation()}>
-                            <WarmPathDetail
-                              key={inv.investor_id}
-                              investorId={inv.investor_id}
-                              bestProximityCode={inv.best_proximity_code}
-                              canEdit={access.canEdit}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
+                        ) : (
+                          <span className={s.muted}>—</span>
+                        )}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
@@ -563,6 +586,67 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       <GlossaryModal open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       <CrosswalkReviewPanel open={crosswalkOpen} onClose={() => setCrosswalkOpen(false)} canEdit={access.canEdit} />
     </div>
+  );
+}
+
+/** Compact flat inline node for the table proximity column. */
+function TableRouteNode({ node }: { node: PathHopNode }) {
+  if (node.type === 'person') {
+    if ('member_uid' in node && node.member_uid) {
+      return (
+        <Link
+          href={`/members/${node.member_uid}`}
+          className={s.miniChip}
+          onClick={(e) => e.stopPropagation()}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className={s.miniDotMember} aria-hidden />
+          <span className={s.miniChipLabel}>{node.label}</span>
+          <svg className={s.miniExtIcon} width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+            <path d="M5 3H2a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V7" />
+            <path d="M8 1h3m0 0v3m0-3L5 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      );
+    }
+    return (
+      <span className={s.miniChip}>
+        <svg className={s.miniPersonIcon} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+        <span className={s.miniChipLabel}>{node.label}</span>
+      </span>
+    );
+  }
+
+  if ('team_uid' in node && node.team_uid) {
+    return (
+      <Link
+        href={`/teams/${node.team_uid}`}
+        className={s.miniChip}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <svg className={s.miniOrgIcon} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <rect x="2" y="7" width="20" height="15" rx="1" />
+          <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+        </svg>
+        <span className={s.miniChipLabel}>{node.label}</span>
+        <span className={s.miniUnknown} aria-label="contact unknown">?</span>
+      </Link>
+    );
+  }
+
+  return (
+    <span className={s.miniChip}>
+      <svg className={s.miniOrgIcon} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <rect x="2" y="7" width="20" height="15" rx="1" />
+        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+      </svg>
+      <span className={s.miniChipLabel}>{node.label}</span>
+      <span className={s.miniUnknown} aria-label="contact unknown">?</span>
+    </span>
   );
 }
 

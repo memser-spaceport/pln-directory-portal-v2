@@ -156,6 +156,16 @@ export type OutreachInvestor = {
   /** Whether any warm path exists. false/undefined = cold (no path). */
   has_path?: boolean;
 
+  /** Nodes of the best (rank 1) path, denormalized from the pathfinder for
+   *  inline table display. Populated when the list endpoint includes bestRouteNodes. */
+  best_route_nodes?: PathHopNode[];
+
+  /** Warmth score (0–1) of the best path, e.g. 0.9 → "90%". */
+  best_route_score?: number;
+
+  /** Total count of computed paths for this investor (for "View all (N)"). */
+  path_count?: number;
+
   /** Aggregated background + sources ("who is this investor"); null until enriched. */
   enrichment?: InvestorEnrichment | null;
 };
@@ -310,10 +320,34 @@ export type PathConnectorType = 'F' | 'VC' | 'JB' | 'PL' | 'O' | 'C';
 /** Caliber gate result: A = relationship AND contact prestige; B = either. */
 export type PathCaliber = 'A' | 'B';
 
-export type PathHopNode = {
-  id: string;
-  label: string;
-  type: 'person' | 'org';
+export type PathHopNode =
+  | { id: string; label: string; type: 'person'; member_uid: string }  // pl_member — in PL network
+  | { id: string; label: string; type: 'person'; member_uid?: never }  // external_person
+  | { id: string; label: string; type: 'org'; team_uid: string }       // portfolio_org — in PL network
+  | { id: string; label: string; type: 'org'; team_uid?: never };      // vc_org — external firm
+
+/** Person to reach when the direct contact is known (additive; from pathfinder v2 API). */
+export type PathContact = {
+  id?: string;
+  name: string;
+  role?: string;
+  email?: string;
+  image_url?: string;
+  linkedin_url?: string;
+  telegram?: string;
+  /** Set when the contact is a PL network member. */
+  member_uid?: string;
+};
+
+/** Firm to route through when the specific person is unknown (additive; from pathfinder v2 API). */
+export type PathOrgConnector = {
+  id?: string;
+  name: string;
+  domain?: string;
+  website_url?: string;
+  logo_url?: string;
+  /** Set when the org is a PL portfolio team. */
+  team_uid?: string;
 };
 
 export type PathHopEdge = {
@@ -353,6 +387,11 @@ export type PathfinderPath = {
   /** Pending (not yet recomputed) human overrides already submitted for this
    *  path — shown so admins don't submit the same correction twice. */
   corrections: PathCorrection[];
+  // ── People-first path data (additive; from pathfinder v2 API) ────────────────
+  /** Direct person to reach when known. Null/absent = contact not resolved. */
+  contact?: PathContact;
+  /** Firm to route through when the specific person is unknown. */
+  org_connector?: PathOrgConnector;
 };
 
 /** A pending correction on a path, as returned by GET /pathfinder/paths/:investorId. */

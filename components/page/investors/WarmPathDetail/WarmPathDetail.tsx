@@ -1,12 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useGetPathsForTarget } from '@/services/investors/hooks/useGetPathsForTarget';
 import { useSubmitCorrection } from '@/services/investors/hooks/useSubmitCorrection';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import { PATH_CONNECTOR_LABEL } from '@/services/investors/constants';
-import type { CorrectionInput, PathConnectorType, PathCorrection, PathfinderPath } from '@/services/investors/types';
+import type {
+  CorrectionInput,
+  PathConnectorType,
+  PathContact,
+  PathCorrection,
+  PathOrgConnector,
+  PathfinderPath,
+} from '@/services/investors/types';
 import { ProximityCodeBadge } from '../ProximityCodeBadge/ProximityCodeBadge';
+import { RouteChip } from '../RouteChip/RouteChip';
+import { CopyButton } from '@/components/ui/CopyButton';
 import s from './WarmPathDetail.module.scss';
 
 interface Props {
@@ -25,12 +35,8 @@ const REASON_OPTIONS: { value: CorrectionReason; label: string }[] = [
   { value: 'other', label: 'Something else' },
 ];
 
-/** Connectors a corrected path can route through ('C' = cold is the absence of one). */
 const CONNECTOR_CHOICES = (Object.keys(PATH_CONNECTOR_LABEL) as PathConnectorType[]).filter((c) => c !== 'C');
 
-// Map the human-facing reason to the backend CreateCorrectionDto shape. Every
-// correction made here is about one specific path, so subject_type is always
-// 'path' (subject_id = PathfinderPath.id) and `field` carries what's corrected.
 export function buildCorrection(
   path: PathfinderPath,
   reason: CorrectionReason,
@@ -61,7 +67,6 @@ export function buildCorrection(
 const connectorLabel = (v: unknown): string =>
   (PATH_CONNECTOR_LABEL as Record<string, string>)[String(v)] ?? String(v ?? '—');
 
-/** One-line human summary of a pending correction, e.g. "Caliber B → A". */
 export function correctionSummary(c: PathCorrection): string {
   switch (c.field) {
     case 'caliber':
@@ -82,18 +87,13 @@ function formatDate(iso: string): string {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString();
 }
 
-/**
- * Expanded warm-path detail for one target investor: the ranked path list (best
- * first), each path's proximity code + confidence + hop chain, its already-
- * submitted pending corrections (so admins don't resubmit), plus a per-path
- * feedback-loop override form (gated on investor_db.edit).
- */
 export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props) {
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
   const { trackPathsViewed, trackCorrectionSubmitted } = useInvestorsAnalytics();
   const submitCorrection = useSubmitCorrection(investorId);
 
   const paths = data?.paths ?? [];
+  const [showAll, setShowAll] = useState(false);
 
   const viewedRef = useRef(false);
   useEffect(() => {
@@ -125,8 +125,6 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props
         subjectType: correction.subject_type,
         field: correction.field,
       });
-      // No local "saved" flag: the mutation invalidates the paths query and the
-      // refetched response carries the new pending correction for this path.
       setOpenPathId(null);
       setNote('');
       setNewConnector('');
@@ -142,25 +140,38 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props
     );
   }
 
+  const visiblePaths = showAll ? paths : paths.slice(0, 1);
+  const hiddenCount = paths.length - 1;
+
   return (
     <div className={s.root}>
       <ol className={s.pathList}>
-        {paths.map((p) => {
+        {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;
           return (
             <li key={p.id} className={s.pathItem}>
-              <div className={s.pathHead}>
+              {/* Header: proximity badge + warmth label */}
+              <div className={s.pathMeta}>
                 <ProximityCodeBadge code={p.proximity_code} confidence={p.caliber_confidence} />
-                <span className={s.rank}>{p.rank <= 1 ? 'Best path' : `Alternative #${p.rank}`}</span>
-                <span className={s.warmth}>warmth {Math.round(p.score * 100)}%</span>
+                <span className={s.warmth}>
+                  {p.rank === 1 ? 'Best path' : `Alternative #${p.rank}`} · {Math.round(p.score * 100)}% warm
+                </span>
               </div>
+
+              {/* Explanation */}
               {p.hop_chain.explanation && <div className={s.explanation}>{p.hop_chain.explanation}</div>}
+
+              {/* Who to contact */}
+              {p.contact && <ContactBlock contact={p.contact} org={p.org_connector} />}
+              {!p.contact && p.org_connector && <OrgBlock org={p.org_connector} />}
+
+              {/* Route chain (secondary, shown below contact) */}
               {p.hop_chain.nodes.length > 0 && (
                 <div className={s.chain}>
                   {p.hop_chain.nodes.map((n, i) => (
                     <span key={`${p.id}-${n.id}-${i}`} className={s.node}>
                       {i > 0 && <span className={s.arrow}>→</span>}
-                      <span className={s.nodeLabel}>{n.label}</span>
+                      <RouteChip node={n} />
                     </span>
                   ))}
                 </div>
@@ -172,7 +183,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props
                     <li key={c.id} className={s.pendingItem}>
                       <span className={s.pendingBadge}>Pending correction</span>
                       <span className={s.pendingSummary}>{correctionSummary(c)}</span>
-                      {c.note && <span className={s.pendingNote}>“{c.note}”</span>}
+                      {c.note && <span className={s.pendingNote}>&ldquo;{c.note}&rdquo;</span>}
                       <span className={s.pendingMeta}>
                         {c.actor_email ?? 'unknown'}
                         {formatDate(c.created_at) ? ` · ${formatDate(c.created_at)}` : ''} · awaiting recompute
@@ -242,6 +253,136 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props
           );
         })}
       </ol>
+
+      {hiddenCount > 0 && !showAll && (
+        <button type="button" className={s.showMore} onClick={() => setShowAll(true)}>
+          + Show {hiddenCount} more {hiddenCount === 1 ? 'path' : 'paths'}
+        </button>
+      )}
+      {hiddenCount > 0 && showAll && (
+        <button type="button" className={s.showMore} onClick={() => setShowAll(false)}>
+          − Show less
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ContactBlock({ contact, org }: { contact: PathContact; org?: PathOrgConnector }) {
+  const initials = contact.name
+    .split(' ')
+    .slice(0, 2)
+    .map((n) => n[0] ?? '')
+    .join('')
+    .toUpperCase();
+
+  const nameEl = contact.member_uid ? (
+    <Link href={`/members/${contact.member_uid}`} className={s.contactName} target="_blank" rel="noopener noreferrer">
+      {contact.name}
+    </Link>
+  ) : (
+    <span className={s.contactName}>{contact.name}</span>
+  );
+
+  const orgEl = org ? (
+    org.team_uid ? (
+      <Link href={`/teams/${org.team_uid}`} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
+        {org.name}
+      </Link>
+    ) : org.website_url ? (
+      <a href={org.website_url} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
+        {org.name}
+      </a>
+    ) : (
+      <span className={s.contactOrgText}>{org.name}</span>
+    )
+  ) : null;
+
+  return (
+    <div className={s.contactBlock}>
+      <div className={s.contactHeader}>
+        <div className={s.contactAvatar}>
+          {contact.image_url ? (
+            <img src={contact.image_url} alt={contact.name} className={s.contactAvatarImg} />
+          ) : (
+            <span className={s.contactAvatarInitials}>{initials}</span>
+          )}
+        </div>
+        <div className={s.contactInfo}>
+          {nameEl}
+          {(contact.role || orgEl) && (
+            <div className={s.contactMeta}>
+              {contact.role && <span>{contact.role}</span>}
+              {contact.role && orgEl && <span className={s.contactMetaSep}> · </span>}
+              {orgEl}
+            </div>
+          )}
+        </div>
+      </div>
+      {(contact.email || contact.linkedin_url || contact.telegram) && (
+        <div className={s.contactSocials}>
+          {contact.email && (
+            <>
+              <a href={`mailto:${contact.email}`} className={s.socialEmail}>
+                <span className={s.socialCircle}>@</span>
+                {contact.email}
+              </a>
+              <CopyButton text={contact.email} />
+            </>
+          )}
+          {contact.linkedin_url && (
+            <a
+              href={contact.linkedin_url}
+              className={s.socialCircleBtn}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+            </a>
+          )}
+          {contact.telegram && (
+            <a
+              href={`https://t.me/${contact.telegram.replace(/^@/, '')}`}
+              className={s.socialCircleBtn}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Telegram"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+              </svg>
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrgBlock({ org }: { org: PathOrgConnector }) {
+  const nameEl = org.website_url || org.team_uid ? (
+    <a
+      href={org.team_uid ? `/teams/${org.team_uid}` : org.website_url}
+      className={s.contactName}
+      target={org.team_uid ? '_self' : '_blank'}
+      rel="noopener noreferrer"
+    >
+      {org.name}
+    </a>
+  ) : (
+    <span className={s.contactName}>{org.name}</span>
+  );
+
+  return (
+    <div className={s.contactBlock}>
+      <div className={s.contactRow}>
+        {nameEl}
+        <span className={s.contactRole}>Contact unknown</span>
+      </div>
+      {org.domain && <div className={s.contactLinks}><span className={s.contactMeta}>{org.domain}</span></div>}
     </div>
   );
 }

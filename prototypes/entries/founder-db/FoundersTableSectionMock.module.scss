@@ -1,0 +1,51 @@
+// Local layout tweaks for the founder table section. Token+fallback colors only.
+
+// Drop the production action-bar bottom border (cleaner separation; the table has
+// its own top border right below).
+.flatActionBar {
+  border-bottom: none !important;
+}
+
+// Tighten the toolbar→table gap so the sort/count line reads as attached to the
+// table (production default is 24px, too loose now the border is gone).
+.tightStack {
+  gap: 14px !important;
+}
+
+// Let the right-hand toolbar controls (Filters · Sort · Columns · Export) wrap
+// instead of overflowing the viewport on small screens. Production .actionBarRight
+// is flex-shrink:0 with no width cap, so on its own wrapped line it expands to fit
+// all buttons (and overflows). Constraining it to the row width forces them to wrap.
+@media (max-width: 1023px) {
+  .actionBarRightWrap {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}
+
+// Keep Sort and the mobile "More" button glued together (no wrap between them).
+.sortGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// Toolbar action visibility: Columns + Export inline on desktop; collapsed into the
+// "More" overflow menu on mobile (≤1023px).
+.desktopOnly {
+  display: inline-flex;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: inline-flex;
+  }
+}

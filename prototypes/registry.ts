@@ -23,6 +23,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/gantry-saved-draft-item/GantrySavedDraftItemPrototype'),
   },
   {
+    key: 'founder-db',
+    title: 'Founder DB — ranking improvements',
+    description:
+      'Alignment as its own tier-colored column (segmented meter + %), a "Strong fit · top 10" band, rank numbers, default Sort by Alignment, row checkboxes with bulk approve/export, and a drawer with a top fit-summary and sticky Approve footer.',
+    category: 'Founder DB',
+    load: () => import('./entries/founder-db/FounderDbPrototype'),
+  },
+  {
     key: 'warm-intros-filter-update',
     title: 'Warm intros update',
     description:

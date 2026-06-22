@@ -1,0 +1,58 @@
+// Qualitative alignment meter — token+fallback colors only. Single hue; filled
+// segment count encodes the level (3 = High, 2 = Medium, 1 = Low).
+
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.seg {
+  width: 16px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// Filled segments take the tier color — green / orange / grey (same scale as the
+// KPI distribution and V1 ranks).
+.segOn {
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.tierStrong .segOn {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+.tierPromising .segOn {
+  background: var(--foreground-warning-secondary, #d97706);
+}
+
+.tierMarginal .segOn {
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Match the PLN Proximity column — plain table text (14px, regular, inherited color).
+.value {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+// Drawer variant — larger segments.
+.lg {
+  .seg {
+    width: 22px;
+    height: 8px;
+  }
+
+  .value {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}

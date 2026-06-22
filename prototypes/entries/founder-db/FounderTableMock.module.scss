@@ -1,0 +1,106 @@
+// v0 local styles layered on top of the reused production FounderTable styles.
+// Token+fallback colors only.
+
+// White surface behind the table so the non-frozen cells match the (white) frozen
+// Founder column — otherwise the grey dashboard background shows through the
+// transparent body cells and creates a two-tone seam at the frozen edge.
+.tableSurface {
+  background: var(--background-neutral-primary, #ffffff);
+}
+
+// ── "Strong fit · top N" group header (sits on top of the top rows) ─────────────
+.groupHeadCell {
+  padding: 8px 16px;
+  background: var(--background-success-soft, rgba(10, 153, 82, 0.08));
+  border-top: 1px solid var(--border-success-subtle, rgba(10, 153, 82, 0.24));
+  border-bottom: 1px solid var(--border-success-subtle, rgba(10, 153, 82, 0.24));
+}
+
+.groupHeadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// Rank number on every row (neutral); the top 10 get .rankTop (green).
+.rankBadge {
+  flex-shrink: 0;
+  min-width: 22px;
+  margin-top: 1px;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rankTop {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// Arrow that fades in on row hover — "opens detail" affordance, matching the
+// Investor table. (tr:hover targets the row from this local module.)
+.arrowIcon {
+  margin-left: auto;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+tr:hover .arrowIcon {
+  opacity: 1;
+}
+
+// ── Selection checkbox ─────────────────────────────────────────────────────────
+// The checkbox lives inside the frozen name cell (not a separate column) so it
+// inherits the row's hover / selected background seamlessly — the whole row,
+// checkbox included, changes color together.
+.nameSelect {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  input {
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+}
+
+// Comfortable, even gap between the data columns so they're packed but not cramped.
+.cell {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+
+// ── Mobile: keep the table from being needlessly wide ───────────────────────────
+@media (max-width: 640px) {
+  // Tighter column gaps on small screens.
+  .cell {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  // Narrow the (non-sticky on mobile) name column so it doesn't dominate the
+  // viewport; let the headline/name/pedigree wrap instead of single-line ellipsis.
+  .nameCol {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 64vw !important;
+  }
+
+  .nameCol span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

@@ -121,11 +121,13 @@ describe('WarmPathDetail per-path corrections', () => {
 
   it('renders a correction affordance per path, not one per investor', () => {
     render(<WarmPathDetail investorId="inv-1" canEdit />);
+    fireEvent.click(screen.getByText(/Show .* more/));
     expect(screen.getAllByText('Suggest a correction')).toHaveLength(2);
   });
 
   it('submits the correction against the clicked path, not the best path', async () => {
     render(<WarmPathDetail investorId="inv-1" canEdit />);
+    fireEvent.click(screen.getByText(/Show .* more/));
     fireEvent.click(screen.getAllByText('Suggest a correction')[1]);
     fireEvent.click(screen.getByText('Submit'));
 

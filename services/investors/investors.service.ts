@@ -1,4 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import { mapHopNode } from './pathfinder.service';
 import type {
   AumRange,
   CheckSizeRange,
@@ -147,6 +148,11 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     co_invested_team_ids: (dto.coInvestedTeamIds ?? []) as string[],
     best_proximity_code: dto.bestProximityCode ?? null,
     has_path: dto.hasPath ?? false,
+    best_route_nodes: dto.bestRouteNodes
+      ? (dto.bestRouteNodes as Record<string, unknown>[]).map(mapHopNode)
+      : undefined,
+    best_route_score: dto.bestRouteScore != null ? (dto.bestRouteScore as number) : undefined,
+    path_count: dto.pathCount != null ? (dto.pathCount as number) : undefined,
     enrichment: dto.enrichment ? mapEnrichment(dto.enrichment) : null,
   };
 }

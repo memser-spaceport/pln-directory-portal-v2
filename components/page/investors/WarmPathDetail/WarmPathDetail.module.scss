@@ -101,13 +101,15 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
-  font-weight: 500;
-  color: #1b4dff;
+  font-weight: 400;
+  color: #6b7280;
   text-decoration: underline;
   text-underline-offset: 2px;
+  text-decoration-color: #d1d5db;
 
   &:hover {
-    color: #1a3fd9;
+    color: #374151;
+    text-decoration-color: #9ca3af;
   }
 }
 
@@ -208,5 +210,183 @@
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+/* ── People-first path layout (Phase 6) ──────────────────────────────────── */
+
+.pathMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.contactBlock {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.contactHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contactAvatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dde1ea;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contactAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contactAvatarInitials {
+  font-size: 13px;
+  font-weight: 700;
+  color: #455468;
+  line-height: 1;
+}
+
+.contactInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contactName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0c11;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &[href]:hover {
+    color: #1b4dff;
+    text-decoration: underline;
+  }
+}
+
+.contactMeta {
+  font-size: 11px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.contactMetaSep {
+  color: #9ca3af;
+}
+
+.contactOrgLink {
+  color: #1b4dff;
+  text-decoration: none;
+  font-size: 11px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.contactOrgText {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.contactSocials {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.socialEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  text-decoration: none;
+
+  &:hover {
+    color: #1b4dff;
+    text-decoration: underline;
+  }
+}
+
+.socialCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.socialCircleBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1b4dff;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #1a3fd9;
+  }
+}
+
+.showMore {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
   }
 }

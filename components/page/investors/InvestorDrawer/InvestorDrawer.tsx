@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import { Fragment } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
@@ -10,6 +11,9 @@ import type { InvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
+import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
+import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
+import { getProfileFromURL } from '@/utils/common.utils';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
@@ -63,7 +67,24 @@ export function InvestorDrawer({ access }: Props) {
                   {investor.first_name} {investor.last_name}
                 </h2>
                 <div className={s.meta}>
-                  {investor.title || '—'} {investor.firm && `· ${investor.firm}`}
+                  {investor.title || '—'}{' '}
+                  {investor.firm && (
+                    <>
+                      ·{' '}
+                      {investor.firm_domain ? (
+                        <a
+                          href={`https://${investor.firm_domain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={s.firmLink}
+                        >
+                          {investor.firm} ↗
+                        </a>
+                      ) : (
+                        investor.firm
+                      )}
+                    </>
+                  )}
                 </div>
                 <div className={s.metaSub}>
                   {investor.investor_id}
@@ -100,38 +121,55 @@ export function InvestorDrawer({ access }: Props) {
 
           <div className={s.section}>
             <h3 className={s.sectionTitle}>Contact</h3>
-            <dl className={s.kv}>
-              <dt>Email</dt>
-              <dd>
-                <span>{investor.email || '—'}</span>
-                {investor.email && <CopyButton text={investor.email} />}
-              </dd>
-              <dt>LinkedIn</dt>
-              <dd>
-                {investor.linkedin_url ? (
-                  <a href={investor.linkedin_url} target="_blank" rel="noopener noreferrer" className={s.link}>
-                    {investor.linkedin_url.replace('https://www.linkedin.com/in/', 'linkedin.com/in/')} ↗
-                  </a>
-                ) : (
-                  <span className={s.muted}>—</span>
-                )}
-              </dd>
-              <dt>Firm domain</dt>
-              <dd>
-                {investor.firm_domain ? (
-                  <a
-                    href={`https://${investor.firm_domain}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={s.link}
-                  >
-                    {investor.firm_domain} ↗
-                  </a>
-                ) : (
-                  <span className={s.muted}>—</span>
-                )}
-              </dd>
-            </dl>
+            <div className={s.channelsBox}>
+              {[
+                investor.email && (
+                  <ProfileSocialLink
+                    key="email"
+                    type="email"
+                    handle={investor.email}
+                    profile={getProfileFromURL(investor.email, 'email') || investor.email}
+                    logo={getContactLogoByProvider('email')}
+                    height={20}
+                    width={20}
+                    callback={() => {}}
+                    suffix={<CopyButton text={investor.email} className={s.copyEmail} />}
+                  />
+                ),
+                investor.linkedin_url && (
+                  <ProfileSocialLink
+                    key="linkedin"
+                    type="linkedin"
+                    handle={investor.linkedin_url}
+                    profile={getProfileFromURL(investor.linkedin_url, 'linkedin') || investor.linkedin_url}
+                    logo={getContactLogoByProvider('linkedin')}
+                    height={20}
+                    width={20}
+                    callback={() => {}}
+                    linkedinProfileKind="member"
+                  />
+                ),
+                investor.firm_domain && (
+                  <ProfileSocialLink
+                    key="website"
+                    type="website"
+                    handle={investor.firm_domain}
+                    profile={investor.firm_domain}
+                    logo={getContactLogoByProvider('website')}
+                    height={20}
+                    width={20}
+                    callback={() => {}}
+                  />
+                ),
+              ]
+                .filter(Boolean)
+                .map((el, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && <span className={s.channelDivider} aria-hidden />}
+                    {el}
+                  </Fragment>
+                ))}
+            </div>
           </div>
 
           <div className={s.section}>
@@ -310,18 +348,18 @@ export function InvestorDrawer({ access }: Props) {
           </div>
 
           <div className={s.footer}>
-            <AddToListMenu investorId={investor.investor_id} canEdit={access.canEdit} className={s.btn} />
-            <CopyButton text={investor.email} label="Copy email" className={s.btn} />
             {investor.firm_domain && (
               <a
-                className={s.btn}
+                className={clsx(s.btn, s.btnPrimary)}
                 href={`https://app.affinity.co/companies/?search=${encodeURIComponent(investor.firm_domain)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                ↗ Open in Affinity
+                Open in Affinity ↗
               </a>
             )}
+            <AddToListMenu investorId={investor.investor_id} canEdit={access.canEdit} className={s.btn} />
+            <CopyButton text={investor.email} label="Copy email" className={s.btn} />
             {investor.lab_os_profile && (
               <a
                 className={s.btn}

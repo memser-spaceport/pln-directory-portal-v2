@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useToggle } from 'react-use';
 import { User } from '@privy-io/react-auth';
 import { usePathname, useRouter, useParams, useSearchParams } from 'next/navigation';
@@ -15,7 +15,7 @@ import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../modals/LinkAccountModal';
-import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
+import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage, consumePostLoginRedirect } from '../../utils';
 
 import './PrivyModals.scss';
 
@@ -58,6 +58,43 @@ export function PrivyModals() {
   // Local state
   const [linkAccountKey, setLinkAccountKey] = useState<LinkMethod | ''>('');
   const [linkAccountModalOpen, toggleLinkAccountModalOpen] = useToggle(false);
+  const loginRef = useRef(login);
+  const readyRef = useRef(ready);
+
+  loginRef.current = login;
+  readyRef.current = ready;
+
+  useEffect(() => {
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function openPrivyLogin() {
+      const stateUid = localStorage.getItem('stateUid');
+      if (!stateUid) {
+        return;
+      }
+
+      const prefillEmail = localStorage.getItem('prefillEmail');
+      const loginOptions = prefillEmail
+        ? { prefill: { type: 'email' as const, value: prefillEmail }, loginMethods: ['email' as const] }
+        : undefined;
+
+      if (!readyRef.current) {
+        retryTimer = window.setTimeout(openPrivyLogin, 100);
+        return;
+      }
+
+      loginRef.current(loginOptions);
+    }
+
+    const unsubscribe = authEvents.on('auth:init-login', openPrivyLogin);
+
+    return () => {
+      if (retryTimer) {
+        window.clearTimeout(retryTimer);
+      }
+      unsubscribe();
+    };
+  }, []);
 
   // ============================================
   // URL Utilities
@@ -152,6 +189,12 @@ export function PrivyModals() {
           window.location.href = decodedBacklink;
           return;
         }
+      }
+
+      const postLoginRedirect = consumePostLoginRedirect();
+      if (postLoginRedirect) {
+        window.location.href = postLoginRedirect;
+        return;
       }
 
       // Use router.refresh() instead of hard reload for better UX
@@ -348,16 +391,6 @@ export function PrivyModals() {
       }
     }
 
-    // Init login handler
-    function handleInitLogin() {
-      const stateUid = localStorage.getItem('stateUid');
-      const prefillEmail = localStorage.getItem('prefillEmail');
-
-      if (stateUid) {
-        login(prefillEmail ? { prefill: { type: 'email', value: prefillEmail }, loginMethods: ['email'] } : undefined);
-      }
-    }
-
     // Add account handler
     function handleAddAccount(method: LinkMethod) {
       analytics.onPrivyAccountLink({ account: method });
@@ -382,7 +415,6 @@ export function PrivyModals() {
 
     // Register typed event listeners using authEvents.on()
     const unsubscribers = [
-      authEvents.on('auth:init-login', handleInitLogin),
       authEvents.on('auth:link-account', handleAddAccount),
       authEvents.on('auth:logout', handleLogout),
       authEvents.on('auth:login-success', handleLoginSuccess),

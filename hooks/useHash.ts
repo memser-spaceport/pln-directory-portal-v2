@@ -12,7 +12,12 @@ const useHash = () => {
 
   useEffect(() => {
     setIsClient(true);
-    setHash(getHash());
+
+    const updateHash = () => setHash(getHash());
+    updateHash();
+
+    window.addEventListener('hashchange', updateHash);
+    return () => window.removeEventListener('hashchange', updateHash);
   }, [params]);
 
   return isClient ? hash : null;

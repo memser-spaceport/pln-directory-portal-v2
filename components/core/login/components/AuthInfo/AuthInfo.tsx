@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAsync } from 'react-use';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
@@ -22,7 +22,6 @@ import s from './AuthInfo.module.scss';
  * 4. Triggers Privy login modal
  */
 export function AuthInfo() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const analytics = useAuthAnalytics();
   const { logout } = usePrivyWrapper();
@@ -49,7 +48,13 @@ export function AuthInfo() {
       }
 
       authEvents.emit('auth:init-login');
-      router.push(`${window.location.pathname}${window.location.search}`);
+
+      // Defer hash cleanup so Privy has a tick to open before AuthInfo unmounts.
+      window.setTimeout(() => {
+        const cleanUrl = `${window.location.pathname}${window.location.search}`;
+        window.history.replaceState(null, '', cleanUrl);
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      }, 0);
     } catch (err) {
       console.log('Login Failed', err);
     }

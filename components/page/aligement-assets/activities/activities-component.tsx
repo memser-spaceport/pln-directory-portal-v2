@@ -72,6 +72,11 @@ export default function ActivitiesComponent() {
     if (hash) {
       // Remove '#' prefix if present
       const activityId = hash.startsWith('#') ? hash.slice(1) : hash;
+
+      if (activityId === 'login') {
+        return;
+      }
+
       const activity = activitiesData.activities.find(a => a.id === activityId);
       
       if (activity) {

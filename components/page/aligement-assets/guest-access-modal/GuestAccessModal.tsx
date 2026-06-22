@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { navigateToLogin } from '@/components/core/login/utils';
 
 interface GuestAccessModalProps {
   isOpen: boolean;
@@ -18,12 +19,14 @@ export function GuestAccessModal({ isOpen, onClose }: GuestAccessModalProps) {
 
   const handleSignIn = () => {
     onClose();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    navigateToLogin();
   };
 
   const handleSignUp = () => {
     onClose();
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    const returnTo = encodeURIComponent(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    );
     router.push(`/sign-up?returnTo=${returnTo}`);
   };
 

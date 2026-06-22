@@ -1,0 +1,12 @@
+.git
+.github
+.next
+node_modules
+coverage
+storybook-static
+Dockerfile*
+.dockerignore
+npm-debug.log*
+.DS_Store
+.env.local
+.env*.local

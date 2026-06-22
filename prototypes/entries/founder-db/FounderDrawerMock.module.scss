@@ -1,0 +1,89 @@
+// Local drawer additions: a top "fit" summary (so the decision numbers are the
+// first thing read, not buried in a collapsed section) and a sticky action footer
+// (so Approve is always reachable without scrolling past every record section).
+// Token+fallback colors only.
+
+// ── Fit summary (top of drawer) ────────────────────────────────────────────────
+.fitSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.fitBarRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fitLabel {
+  flex-shrink: 0;
+  width: 88px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.fitMetrics {
+  display: flex;
+  gap: 24px;
+}
+
+.fitMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fitMetricLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.fitMetricValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.fitRecommendation {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.fitMuted {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 500;
+}
+
+// ── Sticky action footer ───────────────────────────────────────────────────────
+.actionFooter {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: 16px 24px;
+  background: var(--background-neutral-primary, #ffffff);
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 -4px 12px -6px rgba(14, 15, 17, 0.12);
+}
+
+.actionFooterTitle {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

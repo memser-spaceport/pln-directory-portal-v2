@@ -1,0 +1,21 @@
+// Stats: production KPI cards, with the alignment distribution recolored to the
+// shared traffic-light tier scale (matches the table alignment meter). Token+fallback
+// colors only — no raw hex, no green-drift.
+
+.segHigh,
+.segMed,
+.segLow {
+  height: 100%;
+}
+
+.segHigh {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+.segMed {
+  background: var(--foreground-warning-secondary, #d97706);
+}
+
+.segLow {
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}

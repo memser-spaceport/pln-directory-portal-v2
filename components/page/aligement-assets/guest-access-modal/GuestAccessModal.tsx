@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { AUTH_RETURN_HASH_KEY } from '@/components/core/login/utils/authReturnHash';
 
 interface GuestAccessModalProps {
   isOpen: boolean;
@@ -18,12 +19,17 @@ export function GuestAccessModal({ isOpen, onClose }: GuestAccessModalProps) {
 
   const handleSignIn = () => {
     onClose();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    const returnHash = window.location.hash;
+    if (returnHash && returnHash !== '#login') {
+      sessionStorage.setItem(AUTH_RETURN_HASH_KEY, returnHash);
+    }
+    // Assign hash directly so hashchange fires; router.push alone can miss it when replacing an existing hash.
+    window.location.hash = 'login';
   };
 
   const handleSignUp = () => {
     onClose();
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
     router.push(`/sign-up?returnTo=${returnTo}`);
   };
 

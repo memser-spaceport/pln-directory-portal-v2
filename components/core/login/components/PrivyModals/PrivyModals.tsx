@@ -157,7 +157,12 @@ export function PrivyModals() {
 
       const returnHash = consumeAuthReturnHash();
       if (returnHash) {
-        window.location.href = `${window.location.pathname}${window.location.search}${returnHash}`;
+        triggerLoader(false);
+        const returnUrl = `${window.location.pathname}${window.location.search}${returnHash}`;
+        // Hash-only navigation on the same page does not remount React, so reload to reset
+        // client state (e.g. the global loader left on from initDirectoryLogin).
+        window.location.replace(returnUrl);
+        setTimeout(() => window.location.reload(), 300);
         return;
       }
 

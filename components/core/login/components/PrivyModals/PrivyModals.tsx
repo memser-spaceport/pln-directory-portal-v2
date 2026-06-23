@@ -16,6 +16,7 @@ import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../modals/LinkAccountModal';
 import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
+import { consumeAuthReturnHash } from '../../utils/authReturnHash';
 
 import './PrivyModals.scss';
 
@@ -152,6 +153,12 @@ export function PrivyModals() {
           window.location.href = decodedBacklink;
           return;
         }
+      }
+
+      const returnHash = consumeAuthReturnHash();
+      if (returnHash) {
+        window.location.href = `${window.location.pathname}${window.location.search}${returnHash}`;
+        return;
       }
 
       // Use router.refresh() instead of hard reload for better UX

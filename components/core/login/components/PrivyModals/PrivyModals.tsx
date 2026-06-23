@@ -16,6 +16,7 @@ import { getDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
 import { broadcastLogout } from '../BroadcastChannel';
 import { LinkAccountModal } from '../modals/LinkAccountModal';
 import { authStatus, authEvents, AuthErrorCode, LinkMethod, isDemoDayScopePage } from '../../utils';
+import { consumeAuthReturnHash } from '../../utils/authReturnHash';
 
 import './PrivyModals.scss';
 
@@ -152,6 +153,17 @@ export function PrivyModals() {
           window.location.href = decodedBacklink;
           return;
         }
+      }
+
+      const returnHash = consumeAuthReturnHash();
+      if (returnHash) {
+        triggerLoader(false);
+        const returnUrl = `${window.location.pathname}${window.location.search}${returnHash}`;
+        // Hash-only navigation on the same page does not remount React, so reload to reset
+        // client state (e.g. the global loader left on from initDirectoryLogin).
+        window.location.replace(returnUrl);
+        setTimeout(() => window.location.reload(), 300);
+        return;
       }
 
       // Use router.refresh() instead of hard reload for better UX

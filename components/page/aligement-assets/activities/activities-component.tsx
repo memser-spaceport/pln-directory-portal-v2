@@ -72,11 +72,21 @@ export default function ActivitiesComponent() {
     if (hash) {
       // Remove '#' prefix if present
       const activityId = hash.startsWith('#') ? hash.slice(1) : hash;
+
+      if (activityId === 'login') {
+        setIsModalOpen(false);
+        setSelectedActivity(null);
+        return;
+      }
+
       const activity = activitiesData.activities.find(a => a.id === activityId);
-      
+
       if (activity) {
         setSelectedActivity(activity);
         setIsModalOpen(true);
+      } else {
+        setIsModalOpen(false);
+        setSelectedActivity(null);
       }
     } else {
       // No hash, close modal if open

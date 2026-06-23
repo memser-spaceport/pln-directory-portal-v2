@@ -18,7 +18,7 @@ export const currentRoundData: CurrentRoundData = {
     roundId: 'round-17-jun-2026',
     roundNumber: 17,
     isCurrentRound: true,
-    lastUpdated: '2026-06-15T10:55:00'
+    lastUpdated: '2026-06-22T11:05:00'
   },
 
   // ============================================================================
@@ -129,13 +129,13 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI Pillar In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 725,
+    maxValue: 1175,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 0 },
+      { name: 'Knowledge', value: 150 },
       { name: 'Network Tooling', value: 0 },
       { name: 'People/Talent', value: 0 },
-      { name: 'Programs', value: 675 },
+      { name: 'Programs', value: 1175 },
       { name: 'Projects', value: 50 }
     ]
   },
@@ -144,15 +144,12 @@ export const currentRoundData: CurrentRoundData = {
   // Stats Section Data
   // ============================================================================
   stats: {
-    onboardedParticipants: 0,
+    onboardedParticipants: 60,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
       'Curate X Spaces',
       'Host Office Hours',
       'Create a Blog for the Network',
-      'Complete or Update Your PL Directory Profile',
-      'Design a Custom Incentive Experiment',
-      'Contribute Your Compensation Data',
       'Talent Referral Program',
       'Create an Incentivized Activity',
       'Network Introductions',
@@ -161,13 +158,12 @@ export const currentRoundData: CurrentRoundData = {
       'Alignment Asset Program Contributions',
       'Distinguished Network Contributions',
       'Help Organize an Event',
-      'Construct an Alignment Asset Case Study',
       'Respond to an IRL Gathering',
       'Contribute a High-Quality Response to the Forum',
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '725',
+    totalPointsCollected: '1,375',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

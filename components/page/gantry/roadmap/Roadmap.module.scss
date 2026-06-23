@@ -366,6 +366,11 @@
   &:active {
     cursor: grabbing;
   }
+
+  @include mobile-only {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .objectiveBadge {

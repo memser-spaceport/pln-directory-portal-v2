@@ -456,7 +456,6 @@ export function RoadmapView() {
                           key={item.uid}
                           {...sharedCardProps(item, index, stage)}
                           canDrag={canDragInColumn}
-                          isMobile
                           onMoveToStage={
                             canMoveStage ? (targetStage) => dnd.moveItemToStage(item.uid, targetStage) : undefined
                           }

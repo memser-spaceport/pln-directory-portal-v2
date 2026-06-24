@@ -84,6 +84,29 @@ export type InvestorEnrichment = {
   fetched_at: string | null;
 };
 
+export type AffinityPersonRef = {
+  name: string;
+  email?: string | null;
+  affinity_person_id?: number | null;
+  member_uid?: string | null;
+};
+
+export type AffinityInteractionRef = {
+  date: string;
+  method?: string | null;
+  subject?: string | null;
+  from?: AffinityPersonRef | null;
+};
+
+/** CRM fields from Affinity roster export (rawPayload.affinityData). */
+export type AffinityData = {
+  last_contact?: AffinityInteractionRef | null;
+  last_email?: AffinityInteractionRef | null;
+  source_of_introduction?: AffinityPersonRef | null;
+  key_contact?: AffinityPersonRef | null;
+  lp_stage?: string | null;
+};
+
 export type OutreachInvestor = {
   // Identity
   investor_id: string;
@@ -173,6 +196,8 @@ export type OutreachInvestor = {
    *  as a relative time ("last email ~3 weeks ago"). null/undefined until the
    *  backend sends it — the clause is omitted when absent. */
   last_email_date?: string | null;
+  /** Affinity CRM fields from roster export; null when absent. */
+  affinity_data?: AffinityData | null;
 };
 
 /** A "Network investor" is just an OutreachInvestor with a non-null
@@ -326,10 +351,10 @@ export type PathConnectorType = 'F' | 'VC' | 'JB' | 'PL' | 'O' | 'C';
 export type PathCaliber = 'A' | 'B';
 
 export type PathHopNode =
-  | { id: string; label: string; type: 'person'; member_uid: string }  // pl_member — in PL network
-  | { id: string; label: string; type: 'person'; member_uid?: never }  // external_person
-  | { id: string; label: string; type: 'org'; team_uid: string }       // portfolio_org — in PL network
-  | { id: string; label: string; type: 'org'; team_uid?: never };      // vc_org — external firm
+  | { id: string; label: string; type: 'person'; member_uid: string } // pl_member — in PL network
+  | { id: string; label: string; type: 'person'; member_uid?: never } // external_person
+  | { id: string; label: string; type: 'org'; team_uid: string } // portfolio_org — in PL network
+  | { id: string; label: string; type: 'org'; team_uid?: never }; // vc_org — external firm
 
 /** Person to reach when the direct contact is known (additive; from pathfinder v2 API). */
 export type PathContact = {

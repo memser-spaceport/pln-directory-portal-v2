@@ -18,7 +18,7 @@ export function RouteChip({ node, teamLogoUrl }: Props) {
       return (
         <Link href={`/members/${node.member_uid}`} className={s.chip} target="_blank" rel="noopener noreferrer">
           <span className={s.avatarWrap}>
-            <MemberAvatar name={node.label} memberUid={node.member_uid} />
+            <MemberAvatar name={node.label} />
           </span>
           <span className={s.chipLabel}>{node.label}</span>
         </Link>
@@ -46,7 +46,9 @@ export function RouteChip({ node, teamLogoUrl }: Props) {
           <OrgAvatar name={node.label} logoUrl={teamLogoUrl} />
         </span>
         <span className={s.chipLabel}>{node.label}</span>
-        <span className={s.unknownMark} aria-label="contact unknown">?</span>
+        <span className={s.unknownMark} aria-label="contact unknown">
+          ?
+        </span>
       </Link>
     );
   }
@@ -58,27 +60,17 @@ export function RouteChip({ node, teamLogoUrl }: Props) {
         <OrgAvatar name={node.label} logoUrl={undefined} />
       </span>
       <span className={s.chipLabel}>{node.label}</span>
-      <span className={s.unknownMark} aria-label="contact unknown">?</span>
+      <span className={s.unknownMark} aria-label="contact unknown">
+        ?
+      </span>
     </span>
   );
 }
 
-function MemberAvatar({ name, memberUid }: { name: string; memberUid: string }) {
+function MemberAvatar({ name }: { name: string }) {
   return (
     <span className={s.avatar}>
-      <Image
-        src={`/api/avatar/${memberUid}`}
-        alt={name}
-        width={20}
-        height={20}
-        className={s.avatarImg}
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).style.display = 'none';
-          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
-          if (fallback) fallback.style.display = 'flex';
-        }}
-      />
-      <span className={s.avatarInitials} style={{ display: 'none' }} aria-hidden>
+      <span className={s.avatarInitials} aria-hidden>
         {initials(name)}
       </span>
     </span>

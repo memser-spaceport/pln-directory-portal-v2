@@ -30,6 +30,21 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-filter-update/WarmIntrosFilterUpdatePrototype'),
   },
+  {
+    key: 'warm-intros-columns',
+    title: 'Warm intros — connection columns',
+    description:
+      'Investor spine with Proximity + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-columns/WarmIntrosColumnsPrototype'),
+  },
+  {
+    key: 'warm-path-states',
+    title: 'Warm path — states reference',
+    description: 'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

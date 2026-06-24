@@ -1,0 +1,17 @@
+@use 'styles/media';
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+  padding: 8px 0;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include media.tablet-landscape {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

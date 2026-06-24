@@ -1,9 +1,12 @@
 'use client';
-
 import { useState } from 'react';
+
 import { Button } from '@/components/common/Button/Button';
-import s from './AiAppsPage.module.scss';
+
+import { AiAppsGrid } from './components/AiAppsGrid';
 import { CreateAiAppModal } from './components/CreateAiAppModal';
+
+import s from './AiAppsPage.module.scss';
 
 export function AiAppsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +22,8 @@ export function AiAppsPage() {
           Create AI App
         </Button>
       </div>
+
+      <AiAppsGrid />
 
       <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>

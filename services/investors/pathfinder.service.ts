@@ -105,6 +105,37 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
   };
 }
 
+// ─── Best-path / best-connector resolution (pure, unit-tested) ──────────────────
+//
+// The summary graph and the rank-1 card both need "the best path". Resolve it
+// here, off `rank === 1`, NOT `paths[0]` — array order is not guaranteed to equal
+// rank order, and ranks can tie. Pure functions so they're testable in isolation
+// and the two surfaces stay in agreement.
+
+const pathScore = (p: PathfinderPath): number => (Number.isFinite(p.score) ? p.score : -Infinity);
+
+/** Best (rank-1) path for a target: prefer `rank === 1`, else highest score then
+ *  fewest hops. null for an empty list. Never mutates the input (the React Query
+ *  array is shared — sorting a copy). */
+export function resolveBestPath(paths: PathfinderPath[]): PathfinderPath | null {
+  if (!paths.length) return null;
+  return paths.find((p) => p.rank === 1) ?? [...paths].sort((a, b) => pathScore(b) - pathScore(a) || a.hops - b.hops)[0];
+}
+
+/** The connector shown inside the Protocol Labs node. Tagged union so the graph
+ *  renders off a clean discriminant and the "plain Protocol Labs" fallback is a
+ *  representable state, not an implicit null. */
+export type BestConnector =
+  | { kind: 'contact'; contact: PathContact }
+  | { kind: 'org'; org: PathOrgConnector }
+  | { kind: 'none' };
+
+export function resolveBestConnector(path: PathfinderPath | null): BestConnector {
+  if (path?.contact) return { kind: 'contact', contact: path.contact };
+  if (path?.org_connector) return { kind: 'org', org: path.org_connector };
+  return { kind: 'none' };
+}
+
 /** All ranked warm paths for a single target investor (best first). */
 export async function fetchPathsForTarget(investorId: string): Promise<PathsForTargetResponse> {
   const res = await customFetch(

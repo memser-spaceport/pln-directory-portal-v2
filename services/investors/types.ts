@@ -168,6 +168,11 @@ export type OutreachInvestor = {
 
   /** Aggregated background + sources ("who is this investor"); null until enriched. */
   enrichment?: InvestorEnrichment | null;
+
+  /** Affinity "Last Email Date" (ISO). Surfaced under the warm-path summary graph
+   *  as a relative time ("last email ~3 weeks ago"). null/undefined until the
+   *  backend sends it — the clause is omitted when absent. */
+  last_email_date?: string | null;
 };
 
 /** A "Network investor" is just an OutreachInvestor with a non-null

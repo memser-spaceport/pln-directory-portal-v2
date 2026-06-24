@@ -192,6 +192,10 @@ export type OutreachInvestor = {
   /** Aggregated background + sources ("who is this investor"); null until enriched. */
   enrichment?: InvestorEnrichment | null;
 
+  /** Affinity "Last Email Date" (ISO). Surfaced under the warm-path summary graph
+   *  as a relative time ("last email ~3 weeks ago"). null/undefined until the
+   *  backend sends it — the clause is omitted when absent. */
+  last_email_date?: string | null;
   /** Affinity CRM fields from roster export; null when absent. */
   affinity_data?: AffinityData | null;
 };
@@ -384,8 +388,31 @@ export type PathHopEdge = {
   evidence: string | null;
 };
 
+/** A richer path node from the v2 pathfinder API — replaces generic org/person
+ *  labels with actual named people and their contact details. */
+export type RouteNode = {
+  label: string;
+  role?: string;
+  email?: string;
+  variant: 'member' | 'external';
+  imageUrl?: string;
+  linkedin?: string;
+  memberUid?: string;
+  contacts?: Array<{
+    name: string;
+    role?: string;
+    email?: string;
+    source?: string;
+    imageUrl?: string;
+    linkedin?: string;
+    memberUid?: string;
+  }>;
+};
+
 export type PathHopChain = {
   nodes: PathHopNode[];
+  /** Rich per-hop contacts (v2 API). When present, prefer over `nodes` for display. */
+  routeNodes?: RouteNode[];
   edges: PathHopEdge[];
   /** Plain-English description of the path, surfaced in the expanded row. */
   explanation: string;
@@ -395,6 +422,8 @@ export type PathHopChain = {
 export type PathfinderPath = {
   id: number;
   target_investor_id: string;
+  /** Slug of the investor list this path was computed for (e.g. "neuro-fund-i"). */
+  target_set?: string;
   connector_type: PathConnectorType;
   /** Social distance: 1 = direct, 2 = one intermediary, 3 = hard ceiling. */
   hops: number;

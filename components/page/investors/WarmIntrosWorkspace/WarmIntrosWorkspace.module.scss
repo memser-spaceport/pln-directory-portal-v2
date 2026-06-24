@@ -184,6 +184,61 @@
   }
 }
 
+/* ── Add-to-list popover ─────────────────────────────────────── */
+
+.addListWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.addListTriggerInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.addListMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  max-width: 90vw;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+.addListHead {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+}
+
+.addListItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  color: #0a0c11;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
 .btnPrimary {
   @extend .btn;
   background: #1b4dff;
@@ -555,9 +610,30 @@
 }
 
 .checkboxCol {
-  width: 32px;
-  text-align: center;
+  width: 40px;
+  padding: 8px 6px 8px 16px;
+  background: #f8fafc;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+
+  @media (max-width: 1023px) {
+    position: static;
+  }
 }
+
+thead .checkboxCol {
+  top: 0;
+  z-index: 3;
+}
+
+tbody .checkboxCol {
+  background: #fff;
+}
+
+.row:hover .checkboxCol { background: #f8fafc; }
+.rowSelected .checkboxCol { background: #fff; }
+.rowSelected:hover .checkboxCol { background: #f8fafc; }
 
 .fitCol {
   width: 60px;
@@ -637,64 +713,110 @@
 }
 
 .tableWrap {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .table {
+  table-layout: fixed;
   width: 100%;
+  min-width: 1100px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
 }
 
-.table thead th {
-  padding: 9px 16px;
+/* ── Header ──────────────────────────────────────────────────── */
+
+.th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   text-align: left;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #6b7280;
-  background: #f9fafb;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
   white-space: nowrap;
+  background: var(--background-neutral-soft-surface, #f9fafb);
 }
 
-.table tbody td {
-  padding: 11px 16px;
-  border-bottom: 1px solid #f3f4f6;
-  vertical-align: top;
+/* ── Frozen columns ──────────────────────────────────────────── */
+
+.frozenName {
+  position: sticky;
+  z-index: 1;
+  background: #fff;
+  box-shadow: 2px 0 8px -2px rgba(0, 0, 0, 0.06);
+
+  @media (max-width: 1023px) {
+    position: static;
+    box-shadow: none;
+  }
 }
+
+.frozenNameNoCheckbox { left: 0; }
+.frozenNameWithCheckbox { left: 40px; }
+
+thead .frozenName {
+  top: 0;
+  z-index: 3;
+  background: #f8fafc;
+}
+
+.row:hover .frozenName { background: #f8fafc; }
+.rowSelected .frozenName { background: #fff; }
+.rowSelected:hover .frozenName { background: #f8fafc; }
+
+/* ── Rows ────────────────────────────────────────────────────── */
 
 .row {
   cursor: pointer;
   transition: background 0.08s;
-
-  &:hover {
-    background: #fafbfc;
-  }
+  background: #fff;
 }
+
+.row:hover { background: #f8fafc; }
+.rowSelected { background: #fff; }
+.rowSelected:hover { background: #f8fafc; }
+
+.td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ── Cells ───────────────────────────────────────────────────── */
 
 .nameCell {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.nameText {
   font-weight: 600;
-  color: #0a0c11;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
 }
 
 .subtle {
-  font-size: 11px;
-  color: #6b7280;
-  margin-top: 1px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .teamCell {
   font-weight: 500;
-  color: #0a0c11;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .proximityCell {
@@ -710,12 +832,6 @@
   gap: 6px;
 }
 
-.warmthPct {
-  font-size: 12px;
-  font-weight: 600;
-  color: #0a0c11;
-  font-variant-numeric: tabular-nums;
-}
 
 .miniRoute {
   display: flex;
@@ -734,65 +850,6 @@
 .miniArrow {
   font-size: 10px;
   color: #9ca3af;
-  flex-shrink: 0;
-}
-
-/* Flat inline chip for table route nodes (no border/pill) */
-.miniChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 12px;
-  color: #374151;
-  text-decoration: none;
-  white-space: nowrap;
-
-  &[href]:hover {
-    color: #1b4dff;
-  }
-}
-
-.miniChipLabel {
-  font-weight: 500;
-}
-
-/* Filled green dot for PL network members */
-.miniDotMember {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  flex-shrink: 0;
-}
-
-.miniPersonIcon {
-  color: #9ca3af;
-  flex-shrink: 0;
-}
-
-.miniOrgIcon {
-  color: #9ca3af;
-  flex-shrink: 0;
-}
-
-.miniExtIcon {
-  color: #9ca3af;
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.miniUnknown {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  color: #6b7280;
-  font-size: 9px;
-  font-weight: 700;
   flex-shrink: 0;
 }
 

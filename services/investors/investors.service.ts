@@ -186,6 +186,7 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     best_route_score: dto.bestRouteScore != null ? (dto.bestRouteScore as number) : undefined,
     path_count: dto.pathCount != null ? (dto.pathCount as number) : undefined,
     enrichment: dto.enrichment ? mapEnrichment(dto.enrichment) : null,
+    last_email_date: dto.lastEmailDate ?? null,
     affinity_data: dto.affinityData ? mapAffinityData(dto.affinityData) : null,
   };
 }

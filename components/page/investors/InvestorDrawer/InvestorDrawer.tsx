@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { Fragment } from 'react';
+import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
@@ -11,9 +11,7 @@ import type { InvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
-import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
-import { getProfileFromURL } from '@/utils/common.utils';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
@@ -63,9 +61,44 @@ export function InvestorDrawer({ access }: Props) {
           <div className={s.header}>
             <div className={s.headerTop}>
               <div className={s.headerWho}>
-                <h2 className={s.name}>
-                  {investor.first_name} {investor.last_name}
-                </h2>
+                <div className={s.nameRow}>
+                  <h2 className={s.name}>
+                    {investor.first_name} {investor.last_name}
+                  </h2>
+                  <div className={s.contactIcons}>
+                    {investor.linkedin_url && (
+                      <a
+                        href={investor.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.contactIcon}
+                        title="LinkedIn"
+                      >
+                        <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
+                      </a>
+                    )}
+                    {investor.firm_domain && (
+                      <a
+                        href={`https://${investor.firm_domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.contactIcon}
+                        title={investor.firm_domain}
+                      >
+                        <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
+                      </a>
+                    )}
+                    {investor.email && (
+                      <>
+                        <a href={`mailto:${investor.email}`} className={s.contactIcon} title={investor.email}>
+                          <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
+                        </a>
+                        <CopyButton text={investor.email} className={s.contactIconCopy} />
+                      </>
+                    )}
+                    {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
+                  </div>
+                </div>
                 <div className={s.meta}>
                   {investor.title || '—'}{' '}
                   {investor.firm && (
@@ -100,10 +133,9 @@ export function InvestorDrawer({ access }: Props) {
               </button>
             </div>
             <div className={s.pillRow}>
-              <EngagementTierBadge tier={investor.engagement_tier} />
+              {investor.engagement_tier && <EngagementTierBadge tier={investor.engagement_tier} />}
               <EmailStatusPill status={investor.email_status} />
               <span className={s.sourcePill}>Source: {investor.source}</span>
-              {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
             </div>
           </div>
 
@@ -118,59 +150,6 @@ export function InvestorDrawer({ access }: Props) {
               )}
             </div>
           )}
-
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>Contact</h3>
-            <div className={s.channelsBox}>
-              {[
-                investor.email && (
-                  <ProfileSocialLink
-                    key="email"
-                    type="email"
-                    handle={investor.email}
-                    profile={getProfileFromURL(investor.email, 'email') || investor.email}
-                    logo={getContactLogoByProvider('email')}
-                    height={20}
-                    width={20}
-                    callback={() => {}}
-                    suffix={<CopyButton text={investor.email} className={s.copyEmail} />}
-                  />
-                ),
-                investor.linkedin_url && (
-                  <ProfileSocialLink
-                    key="linkedin"
-                    type="linkedin"
-                    handle={investor.linkedin_url}
-                    profile={getProfileFromURL(investor.linkedin_url, 'linkedin') || investor.linkedin_url}
-                    logo={getContactLogoByProvider('linkedin')}
-                    height={20}
-                    width={20}
-                    callback={() => {}}
-                    linkedinProfileKind="member"
-                  />
-                ),
-                investor.firm_domain && (
-                  <ProfileSocialLink
-                    key="website"
-                    type="website"
-                    handle={investor.firm_domain}
-                    profile={investor.firm_domain}
-                    logo={getContactLogoByProvider('website')}
-                    height={20}
-                    width={20}
-                    callback={() => {}}
-                  />
-                ),
-              ]
-                .filter(Boolean)
-                .map((el, i) => (
-                  <Fragment key={i}>
-                    {i > 0 && <span className={s.channelDivider} aria-hidden />}
-                    {el}
-                  </Fragment>
-                ))}
-            </div>
-          </div>
 
           <div className={s.section}>
             <h3 className={s.sectionTitle}>Investor profile</h3>
@@ -262,6 +241,8 @@ export function InvestorDrawer({ access }: Props) {
                 investorId={investor.investor_id}
                 bestProximityCode={investor.best_proximity_code}
                 canEdit={access.canEdit}
+                investorName={`${investor.first_name} ${investor.last_name}`.trim()}
+                lastEmailAt={investor.last_email_date}
               />
             </div>
           )}

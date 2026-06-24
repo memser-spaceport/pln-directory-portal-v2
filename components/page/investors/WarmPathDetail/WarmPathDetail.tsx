@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useGetPathsForTarget } from '@/services/investors/hooks/useGetPathsForTarget';
 import { useSubmitCorrection } from '@/services/investors/hooks/useSubmitCorrection';
+import { resolveBestPath } from '@/services/investors/pathfinder.service';
+import { PathSummaryGraph } from '../PathSummaryGraph/PathSummaryGraph';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import { PATH_CONNECTOR_LABEL } from '@/services/investors/constants';
 import type {
@@ -23,6 +25,10 @@ interface Props {
   investorId: string;
   bestProximityCode?: string | null;
   canEdit: boolean;
+  /** Investor display name — shown as the destination node in the summary graph. */
+  investorName?: string;
+  /** Affinity last-email date (ISO) — shown under the summary graph as a relative time. */
+  lastEmailAt?: string | null;
 }
 
 type CorrectionReason = 'caliber_too_high' | 'caliber_too_low' | 'wrong_connector' | 'path_invalid' | 'other';
@@ -87,12 +93,13 @@ function formatDate(iso: string): string {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString();
 }
 
-export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props) {
+export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investorName, lastEmailAt }: Props) {
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
   const { trackPathsViewed, trackCorrectionSubmitted } = useInvestorsAnalytics();
   const submitCorrection = useSubmitCorrection(investorId);
 
-  const paths = data?.paths ?? [];
+  const paths = useMemo(() => data?.paths ?? [], [data]);
+  const bestPath = useMemo(() => resolveBestPath(paths), [paths]);
   const [showAll, setShowAll] = useState(false);
 
   const viewedRef = useRef(false);
@@ -145,6 +152,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit }: Props
 
   return (
     <div className={s.root}>
+      <PathSummaryGraph bestPath={bestPath} investorName={investorName ?? ''} lastEmailAt={lastEmailAt} />
       <ol className={s.pathList}>
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;

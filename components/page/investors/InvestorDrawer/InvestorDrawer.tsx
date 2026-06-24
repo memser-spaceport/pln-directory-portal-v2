@@ -262,6 +262,8 @@ export function InvestorDrawer({ access }: Props) {
                 investorId={investor.investor_id}
                 bestProximityCode={investor.best_proximity_code}
                 canEdit={access.canEdit}
+                investorName={`${investor.first_name} ${investor.last_name}`.trim()}
+                lastEmailAt={investor.last_email_date}
               />
             </div>
           )}

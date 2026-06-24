@@ -6,6 +6,7 @@ import { useGetPathsForTarget } from '@/services/investors/hooks/useGetPathsForT
 import { useSubmitCorrection } from '@/services/investors/hooks/useSubmitCorrection';
 import { resolveBestPath } from '@/services/investors/pathfinder.service';
 import { PathSummaryGraph } from '../PathSummaryGraph/PathSummaryGraph';
+import { ChevronDownIcon, PencilSimpleLineIcon } from '@/components/icons';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import { PATH_CONNECTOR_LABEL } from '@/services/investors/constants';
 import type {
@@ -110,6 +111,17 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
     }
   }, [data, investorId, bestProximityCode, trackPathsViewed]);
 
+  // Contact details are collapsed by default to reduce card density; tracked per
+  // path id so multiple expanded cards toggle independently. Reset for free on
+  // investor switch via the key={investor_id} remount in InvestorDrawer.
+  const [openContactIds, setOpenContactIds] = useState<Set<number>>(new Set());
+  const toggleContacts = (pathId: number) =>
+    setOpenContactIds((prev) => {
+      const next = new Set(prev); // new ref — mutating in place would not re-render
+      next.has(pathId) ? next.delete(pathId) : next.add(pathId);
+      return next;
+    });
+
   const [openPathId, setOpenPathId] = useState<number | null>(null);
   const [reason, setReason] = useState<CorrectionReason>('caliber_too_high');
   const [note, setNote] = useState('');
@@ -158,6 +170,19 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
           const formOpen = openPathId === p.id;
           return (
             <li key={p.id} className={s.pathItem}>
+              {/* Correction trigger — corner icon opening the same inline form */}
+              {canEdit && (
+                <button
+                  type="button"
+                  className={s.correctionIcon}
+                  aria-label="Suggest a correction"
+                  aria-expanded={formOpen}
+                  onClick={() => (formOpen ? setOpenPathId(null) : openFormFor(p.id))}
+                >
+                  <PencilSimpleLineIcon width={14} height={14} />
+                </button>
+              )}
+
               {/* Header: proximity badge + warmth label */}
               <div className={s.pathMeta}>
                 <ProximityCodeBadge code={p.proximity_code} confidence={p.caliber_confidence} />
@@ -170,7 +195,14 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
               {p.hop_chain.explanation && <div className={s.explanation}>{p.hop_chain.explanation}</div>}
 
               {/* Who to contact */}
-              {p.contact && <ContactBlock contact={p.contact} org={p.org_connector} />}
+              {p.contact && (
+                <ContactBlock
+                  contact={p.contact}
+                  org={p.org_connector}
+                  expanded={openContactIds.has(p.id)}
+                  onToggle={() => toggleContacts(p.id)}
+                />
+              )}
               {!p.contact && p.org_connector && <OrgBlock org={p.org_connector} />}
 
               {/* Route chain (secondary, shown below contact) */}
@@ -201,60 +233,53 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
                 </ul>
               )}
 
-              {canEdit && (
+              {canEdit && formOpen && (
                 <div className={s.correction}>
-                  {!formOpen && (
-                    <button type="button" className={s.linkBtn} onClick={() => openFormFor(p.id)}>
-                      Suggest a correction
-                    </button>
-                  )}
-                  {formOpen && (
-                    <div className={s.form}>
+                  <div className={s.form}>
+                    <select
+                      className={s.select}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value as CorrectionReason)}
+                    >
+                      {REASON_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {reason === 'wrong_connector' && (
                       <select
                         className={s.select}
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value as CorrectionReason)}
+                        value={newConnector}
+                        onChange={(e) => setNewConnector(e.target.value as PathConnectorType | '')}
+                        aria-label="Correct connector"
                       >
-                        {REASON_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
+                        <option value="">Correct connector…</option>
+                        {CONNECTOR_CHOICES.filter((c) => c !== p.connector_type).map((c) => (
+                          <option key={c} value={c}>
+                            {PATH_CONNECTOR_LABEL[c]}
                           </option>
                         ))}
                       </select>
-                      {reason === 'wrong_connector' && (
-                        <select
-                          className={s.select}
-                          value={newConnector}
-                          onChange={(e) => setNewConnector(e.target.value as PathConnectorType | '')}
-                          aria-label="Correct connector"
-                        >
-                          <option value="">Correct connector…</option>
-                          {CONNECTOR_CHOICES.filter((c) => c !== p.connector_type).map((c) => (
-                            <option key={c} value={c}>
-                              {PATH_CONNECTOR_LABEL[c]}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <input
-                        className={s.input}
-                        placeholder="Add a note (optional)"
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className={s.btnPrimary}
-                        onClick={() => onSubmit(p)}
-                        disabled={submitCorrection.isPending || (reason === 'wrong_connector' && !newConnector)}
-                      >
-                        {submitCorrection.isPending ? 'Saving…' : 'Submit'}
-                      </button>
-                      <button type="button" className={s.linkBtn} onClick={() => setOpenPathId(null)}>
-                        Cancel
-                      </button>
-                    </div>
-                  )}
+                    )}
+                    <input
+                      className={s.input}
+                      placeholder="Add a note (optional)"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={s.btnPrimary}
+                      onClick={() => onSubmit(p)}
+                      disabled={submitCorrection.isPending || (reason === 'wrong_connector' && !newConnector)}
+                    >
+                      {submitCorrection.isPending ? 'Saving…' : 'Submit'}
+                    </button>
+                    <button type="button" className={s.linkBtn} onClick={() => setOpenPathId(null)}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </li>
@@ -276,7 +301,18 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
   );
 }
 
-function ContactBlock({ contact, org }: { contact: PathContact; org?: PathOrgConnector }) {
+function ContactBlock({
+  contact,
+  org,
+  expanded,
+  onToggle,
+}: {
+  contact: PathContact;
+  org?: PathOrgConnector;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const hasChannels = !!(contact.email || contact.linkedin_url || contact.telegram);
   const initials = contact.name
     .split(' ')
     .slice(0, 2)
@@ -327,7 +363,13 @@ function ContactBlock({ contact, org }: { contact: PathContact; org?: PathOrgCon
           )}
         </div>
       </div>
-      {(contact.email || contact.linkedin_url || contact.telegram) && (
+      {hasChannels && (
+        <button type="button" className={s.contactToggle} onClick={onToggle} aria-expanded={expanded}>
+          <ChevronDownIcon width={14} height={14} />
+          {expanded ? 'Hide contact' : 'Show contact'}
+        </button>
+      )}
+      {hasChannels && expanded && (
         <div className={s.contactSocials}>
           {contact.email && (
             <>
@@ -371,18 +413,19 @@ function ContactBlock({ contact, org }: { contact: PathContact; org?: PathOrgCon
 }
 
 function OrgBlock({ org }: { org: PathOrgConnector }) {
-  const nameEl = org.website_url || org.team_uid ? (
-    <a
-      href={org.team_uid ? `/teams/${org.team_uid}` : org.website_url}
-      className={s.contactName}
-      target={org.team_uid ? '_self' : '_blank'}
-      rel="noopener noreferrer"
-    >
-      {org.name}
-    </a>
-  ) : (
-    <span className={s.contactName}>{org.name}</span>
-  );
+  const nameEl =
+    org.website_url || org.team_uid ? (
+      <a
+        href={org.team_uid ? `/teams/${org.team_uid}` : org.website_url}
+        className={s.contactName}
+        target={org.team_uid ? '_self' : '_blank'}
+        rel="noopener noreferrer"
+      >
+        {org.name}
+      </a>
+    ) : (
+      <span className={s.contactName}>{org.name}</span>
+    );
 
   return (
     <div className={s.contactBlock}>
@@ -390,7 +433,11 @@ function OrgBlock({ org }: { org: PathOrgConnector }) {
         {nameEl}
         <span className={s.contactRole}>Contact unknown</span>
       </div>
-      {org.domain && <div className={s.contactLinks}><span className={s.contactMeta}>{org.domain}</span></div>}
+      {org.domain && (
+        <div className={s.contactLinks}>
+          <span className={s.contactMeta}>{org.domain}</span>
+        </div>
+      )}
     </div>
   );
 }

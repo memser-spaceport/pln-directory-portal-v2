@@ -23,10 +23,64 @@
 }
 
 .pathItem {
+  position: relative;
   padding: 10px 12px;
   background: #f9fafb;
   border: 1px solid #eef0f3;
   border-radius: 8px;
+}
+
+.correctionIcon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+    color: #455468;
+  }
+
+  &[aria-expanded='true'] {
+    background: rgba(27, 77, 255, 0.08);
+    color: #1b4dff;
+  }
+}
+
+.contactToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1b4dff;
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  &[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .pathHead {
@@ -221,6 +275,7 @@
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 6px;
+  padding-right: 30px; // reserve room for the corner correction icon
 }
 
 .contactBlock {
@@ -239,8 +294,8 @@
 
 .contactAvatar {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #dde1ea;
   overflow: hidden;

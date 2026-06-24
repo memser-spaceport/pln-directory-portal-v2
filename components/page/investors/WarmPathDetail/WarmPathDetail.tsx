@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useQueryStates } from 'nuqs';
+import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import { useGetPathsForTarget } from '@/services/investors/hooks/useGetPathsForTarget';
 import { useSubmitCorrection } from '@/services/investors/hooks/useSubmitCorrection';
 import { resolveBestPath } from '@/services/investors/pathfinder.service';
@@ -16,6 +18,7 @@ import type {
   PathCorrection,
   PathOrgConnector,
   PathfinderPath,
+  RouteNode,
 } from '@/services/investors/types';
 import { ProximityCodeBadge } from '../ProximityCodeBadge/ProximityCodeBadge';
 import { RouteChip } from '../RouteChip/RouteChip';
@@ -43,6 +46,11 @@ const REASON_OPTIONS: { value: CorrectionReason; label: string }[] = [
 ];
 
 const CONNECTOR_CHOICES = (Object.keys(PATH_CONNECTOR_LABEL) as PathConnectorType[]).filter((c) => c !== 'C');
+
+const LIST_ID_TO_TARGET_SET: Record<string, string> = {
+  'neuro-lp': 'neuro-fund-i',
+  'gold-coinvestors': 'gold-co-investors',
+};
 
 export function buildCorrection(
   path: PathfinderPath,
@@ -95,11 +103,18 @@ function formatDate(iso: string): string {
 }
 
 export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investorName, lastEmailAt }: Props) {
+  const [filters] = useQueryStates(investorsFilterParsers, { history: 'replace', shallow: true });
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
   const { trackPathsViewed, trackCorrectionSubmitted } = useInvestorsAnalytics();
   const submitCorrection = useSubmitCorrection(investorId);
 
-  const paths = useMemo(() => data?.paths ?? [], [data]);
+  const paths = useMemo(() => {
+    const all = data?.paths ?? [];
+    const targetSet = filters.wi_list_id ? LIST_ID_TO_TARGET_SET[filters.wi_list_id] : null;
+    if (!targetSet) return all;
+    const filtered = all.filter((p) => p.target_set === targetSet);
+    return filtered.length > 0 ? filtered : all;
+  }, [data, filters.wi_list_id]);
   const bestPath = useMemo(() => resolveBestPath(paths), [paths]);
   const [showAll, setShowAll] = useState(false);
 
@@ -168,6 +183,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
       <ol className={s.pathList}>
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;
+
           return (
             <li key={p.id} className={s.pathItem}>
               {/* Correction trigger — corner icon opening the same inline form */}
@@ -195,15 +211,22 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
               {p.hop_chain.explanation && <div className={s.explanation}>{p.hop_chain.explanation}</div>}
 
               {/* Route chain + trailing details toggle */}
-              {p.hop_chain.nodes.length > 0 && (
+              {(p.hop_chain.routeNodes?.length || p.hop_chain.nodes.length > 0) && (
                 <div className={s.chainRow}>
                   <div className={s.chain}>
-                    {p.hop_chain.nodes.map((n, i) => (
-                      <span key={`${p.id}-${n.id}-${i}`} className={s.node}>
-                        {i > 0 && <span className={s.arrow}>→</span>}
-                        <RouteChip node={n} />
-                      </span>
-                    ))}
+                    {p.hop_chain.routeNodes
+                      ? p.hop_chain.routeNodes.map((n, i) => (
+                          <span key={`${p.id}-rn-${i}`} className={s.node}>
+                            {i > 0 && <span className={s.arrow}>→</span>}
+                            <RouteNodeChip node={n} />
+                          </span>
+                        ))
+                      : p.hop_chain.nodes.map((n, i) => (
+                          <span key={`${p.id}-${n.id}-${i}`} className={s.node}>
+                            {i > 0 && <span className={s.arrow}>→</span>}
+                            <RouteChip node={n} />
+                          </span>
+                        ))}
                   </div>
                   {(p.contact || p.org_connector) && (
                     <button
@@ -220,12 +243,8 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
               )}
 
               {/* Expanded detail card */}
-              {openContactIds.has(p.id) && p.contact && (
-                <ContactCard contact={p.contact} org={p.org_connector} />
-              )}
-              {openContactIds.has(p.id) && !p.contact && p.org_connector && (
-                <OrgCard org={p.org_connector} />
-              )}
+              {openContactIds.has(p.id) && p.contact && <ContactCard contact={p.contact} org={p.org_connector} />}
+              {openContactIds.has(p.id) && !p.contact && p.org_connector && <OrgCard org={p.org_connector} />}
 
               {p.corrections.length > 0 && (
                 <ul className={s.pendingList}>
@@ -309,6 +328,36 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
       )}
     </div>
   );
+}
+
+function RouteNodeChip({ node }: { node: RouteNode }) {
+  const initials = node.label
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+
+  const inner = (
+    <>
+      <span className={s.rnAvatarWrap}>
+        {node.imageUrl ? (
+          <img src={node.imageUrl} alt={node.label} className={s.rnAvatarImg} />
+        ) : (
+          <span className={s.rnAvatarInitials}>{initials}</span>
+        )}
+      </span>
+      <span className={s.rnLabel}>{node.label}</span>
+    </>
+  );
+
+  if (node.memberUid) {
+    return (
+      <Link href={`/members/${node.memberUid}`} className={s.rnChip} target="_blank" rel="noopener noreferrer">
+        {inner}
+      </Link>
+    );
+  }
+  return <span className={s.rnChip}>{inner}</span>;
 }
 
 function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConnector }) {
@@ -406,24 +455,32 @@ function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConn
 }
 
 function OrgCard({ org }: { org: PathOrgConnector }) {
-  const nameEl =
-    org.team_uid ? (
-      <Link href={`/teams/${org.team_uid}`} className={s.contactName} target="_blank" rel="noopener noreferrer">
-        {org.name}
-      </Link>
-    ) : org.website_url ? (
-      <a href={org.website_url} className={s.contactName} target="_blank" rel="noopener noreferrer">
-        {org.name}
-      </a>
-    ) : (
-      <span className={s.contactName}>{org.name}</span>
-    );
+  const nameEl = org.team_uid ? (
+    <Link href={`/teams/${org.team_uid}`} className={s.contactName} target="_blank" rel="noopener noreferrer">
+      {org.name}
+    </Link>
+  ) : org.website_url ? (
+    <a href={org.website_url} className={s.contactName} target="_blank" rel="noopener noreferrer">
+      {org.name}
+    </a>
+  ) : (
+    <span className={s.contactName}>{org.name}</span>
+  );
 
   return (
     <div className={s.contactBlock}>
       <div className={s.contactHeader}>
         <div className={s.orgIcon} aria-hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <rect x="2" y="7" width="20" height="14" rx="2" />
             <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
             <line x1="12" y1="12" x2="12" y2="12" />

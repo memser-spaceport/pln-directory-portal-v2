@@ -9,6 +9,7 @@ import type {
   PathOrgConnector,
   PathfinderPath,
   PathsForTargetResponse,
+  RouteNode,
 } from './types';
 
 // PL Path Finder read + corrections API. Reuses the Investor DB permissions
@@ -62,8 +63,30 @@ function mapOrgConnector(dto: AnyDto): PathOrgConnector {
   };
 }
 
+function mapRouteNode(dto: AnyDto): RouteNode {
+  return {
+    label: (dto.label ?? '') as string,
+    role: dto.role as string | undefined,
+    email: dto.email as string | undefined,
+    variant: (dto.variant ?? 'external') as 'member' | 'external',
+    imageUrl: (dto.imageUrl ?? dto.image_url) as string | undefined,
+    linkedin: dto.linkedin as string | undefined,
+    memberUid: (dto.memberUid ?? dto.member_uid) as string | undefined,
+    contacts: (dto.contacts as AnyDto[] | undefined)?.map((c) => ({
+      name: (c.name ?? '') as string,
+      role: c.role as string | undefined,
+      email: c.email as string | undefined,
+      source: c.source as string | undefined,
+      imageUrl: (c.imageUrl ?? c.image_url) as string | undefined,
+      linkedin: c.linkedin as string | undefined,
+      memberUid: (c.memberUid ?? c.member_uid) as string | undefined,
+    })),
+  };
+}
+
 function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
   const nodes = ((dto?.nodes ?? []) as AnyDto[]).map(mapHopNode);
+  const routeNodes = dto?.routeNodes ? ((dto.routeNodes as AnyDto[]).map(mapRouteNode)) : undefined;
   const edges = ((dto?.edges ?? []) as AnyDto[]).map((e) => ({
     from: e.from as string,
     to: e.to as string,
@@ -71,7 +94,7 @@ function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
     probability: (e.probability ?? 0) as number,
     evidence: (e.evidence ?? null) as string | null,
   }));
-  return { nodes, edges, explanation: (dto?.explanation ?? '') as string };
+  return { nodes, routeNodes, edges, explanation: (dto?.explanation ?? '') as string };
 }
 
 function mapCorrection(dto: AnyDto): PathCorrection {
@@ -90,6 +113,7 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
   return {
     id: dto.id as number,
     target_investor_id: dto.targetInvestorId as string,
+    target_set: dto.targetSet as string | undefined,
     connector_type: (dto.connectorType ?? 'C') as PathConnectorType,
     hops: (dto.hops ?? 0) as number,
     caliber: (dto.caliber ?? null) as PathCaliber | null,
@@ -119,7 +143,9 @@ const pathScore = (p: PathfinderPath): number => (Number.isFinite(p.score) ? p.s
  *  array is shared — sorting a copy). */
 export function resolveBestPath(paths: PathfinderPath[]): PathfinderPath | null {
   if (!paths.length) return null;
-  return paths.find((p) => p.rank === 1) ?? [...paths].sort((a, b) => pathScore(b) - pathScore(a) || a.hops - b.hops)[0];
+  return (
+    paths.find((p) => p.rank === 1) ?? [...paths].sort((a, b) => pathScore(b) - pathScore(a) || a.hops - b.hops)[0]
+  );
 }
 
 /** The connector shown inside the Protocol Labs node. Tagged union so the graph

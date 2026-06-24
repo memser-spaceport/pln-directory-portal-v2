@@ -326,10 +326,10 @@ export type PathConnectorType = 'F' | 'VC' | 'JB' | 'PL' | 'O' | 'C';
 export type PathCaliber = 'A' | 'B';
 
 export type PathHopNode =
-  | { id: string; label: string; type: 'person'; member_uid: string }  // pl_member — in PL network
-  | { id: string; label: string; type: 'person'; member_uid?: never }  // external_person
-  | { id: string; label: string; type: 'org'; team_uid: string }       // portfolio_org — in PL network
-  | { id: string; label: string; type: 'org'; team_uid?: never };      // vc_org — external firm
+  | { id: string; label: string; type: 'person'; member_uid: string } // pl_member — in PL network
+  | { id: string; label: string; type: 'person'; member_uid?: never } // external_person
+  | { id: string; label: string; type: 'org'; team_uid: string } // portfolio_org — in PL network
+  | { id: string; label: string; type: 'org'; team_uid?: never }; // vc_org — external firm
 
 /** Person to reach when the direct contact is known (additive; from pathfinder v2 API). */
 export type PathContact = {
@@ -363,8 +363,31 @@ export type PathHopEdge = {
   evidence: string | null;
 };
 
+/** A richer path node from the v2 pathfinder API — replaces generic org/person
+ *  labels with actual named people and their contact details. */
+export type RouteNode = {
+  label: string;
+  role?: string;
+  email?: string;
+  variant: 'member' | 'external';
+  imageUrl?: string;
+  linkedin?: string;
+  memberUid?: string;
+  contacts?: Array<{
+    name: string;
+    role?: string;
+    email?: string;
+    source?: string;
+    imageUrl?: string;
+    linkedin?: string;
+    memberUid?: string;
+  }>;
+};
+
 export type PathHopChain = {
   nodes: PathHopNode[];
+  /** Rich per-hop contacts (v2 API). When present, prefer over `nodes` for display. */
+  routeNodes?: RouteNode[];
   edges: PathHopEdge[];
   /** Plain-English description of the path, surfaced in the expanded row. */
   explanation: string;
@@ -374,6 +397,8 @@ export type PathHopChain = {
 export type PathfinderPath = {
   id: number;
   target_investor_id: string;
+  /** Slug of the investor list this path was computed for (e.g. "neuro-fund-i"). */
+  target_set?: string;
   connector_type: PathConnectorType;
   /** Social distance: 1 = direct, 2 = one intermediary, 3 = hard ceiling. */
   hops: number;

@@ -194,27 +194,37 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
               {/* Explanation */}
               {p.hop_chain.explanation && <div className={s.explanation}>{p.hop_chain.explanation}</div>}
 
-              {/* Who to contact */}
-              {p.contact && (
-                <ContactBlock
-                  contact={p.contact}
-                  org={p.org_connector}
-                  expanded={openContactIds.has(p.id)}
-                  onToggle={() => toggleContacts(p.id)}
-                />
-              )}
-              {!p.contact && p.org_connector && <OrgBlock org={p.org_connector} />}
-
-              {/* Route chain (secondary, shown below contact) */}
+              {/* Route chain + trailing details toggle */}
               {p.hop_chain.nodes.length > 0 && (
-                <div className={s.chain}>
-                  {p.hop_chain.nodes.map((n, i) => (
-                    <span key={`${p.id}-${n.id}-${i}`} className={s.node}>
-                      {i > 0 && <span className={s.arrow}>→</span>}
-                      <RouteChip node={n} />
-                    </span>
-                  ))}
+                <div className={s.chainRow}>
+                  <div className={s.chain}>
+                    {p.hop_chain.nodes.map((n, i) => (
+                      <span key={`${p.id}-${n.id}-${i}`} className={s.node}>
+                        {i > 0 && <span className={s.arrow}>→</span>}
+                        <RouteChip node={n} />
+                      </span>
+                    ))}
+                  </div>
+                  {(p.contact || p.org_connector) && (
+                    <button
+                      type="button"
+                      className={s.detailsBtn}
+                      onClick={() => toggleContacts(p.id)}
+                      aria-expanded={openContactIds.has(p.id)}
+                    >
+                      {p.contact ? 'Contact details' : 'Organization details'}
+                      <ChevronDownIcon width={14} height={14} />
+                    </button>
+                  )}
                 </div>
+              )}
+
+              {/* Expanded detail card */}
+              {openContactIds.has(p.id) && p.contact && (
+                <ContactCard contact={p.contact} org={p.org_connector} />
+              )}
+              {openContactIds.has(p.id) && !p.contact && p.org_connector && (
+                <OrgCard org={p.org_connector} />
               )}
 
               {p.corrections.length > 0 && (
@@ -301,18 +311,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
   );
 }
 
-function ContactBlock({
-  contact,
-  org,
-  expanded,
-  onToggle,
-}: {
-  contact: PathContact;
-  org?: PathOrgConnector;
-  expanded: boolean;
-  onToggle: () => void;
-}) {
-  const hasChannels = !!(contact.email || contact.linkedin_url || contact.telegram);
+function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConnector }) {
   const initials = contact.name
     .split(' ')
     .slice(0, 2)
@@ -322,7 +321,7 @@ function ContactBlock({
 
   const nameEl = contact.member_uid ? (
     <Link href={`/members/${contact.member_uid}`} className={s.contactName} target="_blank" rel="noopener noreferrer">
-      {contact.name}
+      {contact.name} ↗
     </Link>
   ) : (
     <span className={s.contactName}>{contact.name}</span>
@@ -331,11 +330,11 @@ function ContactBlock({
   const orgEl = org ? (
     org.team_uid ? (
       <Link href={`/teams/${org.team_uid}`} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
-        {org.name}
+        {org.name} ↗
       </Link>
     ) : org.website_url ? (
       <a href={org.website_url} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
-        {org.name}
+        {org.name} ↗
       </a>
     ) : (
       <span className={s.contactOrgText}>{org.name}</span>
@@ -363,23 +362,8 @@ function ContactBlock({
           )}
         </div>
       </div>
-      {hasChannels && (
-        <button type="button" className={s.contactToggle} onClick={onToggle} aria-expanded={expanded}>
-          <ChevronDownIcon width={14} height={14} />
-          {expanded ? 'Hide contact' : 'Show contact'}
-        </button>
-      )}
-      {hasChannels && expanded && (
+      {(contact.email || contact.linkedin_url || contact.telegram) && (
         <div className={s.contactSocials}>
-          {contact.email && (
-            <>
-              <a href={`mailto:${contact.email}`} className={s.socialEmail}>
-                <span className={s.socialCircle}>@</span>
-                {contact.email}
-              </a>
-              <CopyButton text={contact.email} />
-            </>
-          )}
           {contact.linkedin_url && (
             <a
               href={contact.linkedin_url}
@@ -406,21 +390,29 @@ function ContactBlock({
               </svg>
             </a>
           )}
+          {contact.email && (
+            <>
+              <a href={`mailto:${contact.email}`} className={s.socialEmail}>
+                <span className={s.socialCircle}>@</span>
+                {contact.email}
+              </a>
+              <CopyButton text={contact.email} />
+            </>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function OrgBlock({ org }: { org: PathOrgConnector }) {
+function OrgCard({ org }: { org: PathOrgConnector }) {
   const nameEl =
-    org.website_url || org.team_uid ? (
-      <a
-        href={org.team_uid ? `/teams/${org.team_uid}` : org.website_url}
-        className={s.contactName}
-        target={org.team_uid ? '_self' : '_blank'}
-        rel="noopener noreferrer"
-      >
+    org.team_uid ? (
+      <Link href={`/teams/${org.team_uid}`} className={s.contactName} target="_blank" rel="noopener noreferrer">
+        {org.name}
+      </Link>
+    ) : org.website_url ? (
+      <a href={org.website_url} className={s.contactName} target="_blank" rel="noopener noreferrer">
         {org.name}
       </a>
     ) : (
@@ -429,15 +421,22 @@ function OrgBlock({ org }: { org: PathOrgConnector }) {
 
   return (
     <div className={s.contactBlock}>
-      <div className={s.contactRow}>
-        {nameEl}
-        <span className={s.contactRole}>Contact unknown</span>
-      </div>
-      {org.domain && (
-        <div className={s.contactLinks}>
-          <span className={s.contactMeta}>{org.domain}</span>
+      <div className={s.contactHeader}>
+        <div className={s.orgIcon} aria-hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+            <line x1="12" y1="12" x2="12" y2="12" />
+          </svg>
         </div>
-      )}
+        <div className={s.contactInfo}>
+          <div className={s.orgNameRow}>
+            {nameEl}
+            <span className={s.unknownPill}>Connection unknown</span>
+          </div>
+          <p className={s.orgHint}>This team can route the intro — reach out and ask for the right person.</p>
+        </div>
+      </div>
     </div>
   );
 }

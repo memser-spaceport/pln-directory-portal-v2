@@ -164,7 +164,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
 
   return (
     <div className={s.root}>
-      <PathSummaryGraph bestPath={bestPath} investorName={investorName ?? ''} lastEmailAt={lastEmailAt} />
+      {/*<PathSummaryGraph bestPath={bestPath} investorName={investorName ?? ''} lastEmailAt={lastEmailAt} />*/}
       <ol className={s.pathList}>
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;

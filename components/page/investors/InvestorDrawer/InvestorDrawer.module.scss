@@ -27,13 +27,57 @@
   min-width: 0;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
 .name {
-  margin: 0 0 4px;
+  margin: 0;
   font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.3px;
   color: #0a0c11;
+  width: fit-content;
+}
+
+.contactIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contactIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  opacity: 0.8;
+  transition: opacity 0.1s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.contactIconCopy {
+  color: #9ca3af;
+  padding: 2px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 .meta {

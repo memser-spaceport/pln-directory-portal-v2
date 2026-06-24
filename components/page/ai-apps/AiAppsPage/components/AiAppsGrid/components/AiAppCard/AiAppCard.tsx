@@ -9,7 +9,9 @@ interface Props {
   app: AiApp;
 }
 
-export function AiAppCard({ app }: Props) {
+export function AiAppCard(props: Props) {
+  const { app } = props;
+
   return (
     <Link href={`/pl-infra/ai-apps/${app.uid}`} className={s.root}>
       <h3 className={s.name}>{app.name}</h3>

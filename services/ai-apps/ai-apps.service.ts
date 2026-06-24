@@ -32,3 +32,13 @@ export async function fetchAiApps(): Promise<AiApp[]> {
 
   return response.json();
 }
+
+export async function fetchAiApp(uid: string): Promise<AiApp | null> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${uid}`, { method: 'GET' }, true);
+
+  if (!response || !response.ok) {
+    return null;
+  }
+
+  return response.json();
+}

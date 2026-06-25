@@ -45,6 +45,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
+  {
+    key: 'members',
+    title: 'Members — listing page',
+    description:
+      'Production members listing recreated with mocked data: filters rail, toolbar (search, sort, grid/list toggle), and the real member cards. Cards link through to the Affinity profile prototype.',
+    category: 'Members',
+    load: () => import('./entries/members/MembersPrototype'),
+  },
+  {
+    key: 'member-affinity-profile',
+    title: 'Member profile — Affinity relationship',
+    description:
+      'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months.',
+    category: 'Members',
+    load: () => import('./entries/member-affinity-profile/MemberAffinityProfilePrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

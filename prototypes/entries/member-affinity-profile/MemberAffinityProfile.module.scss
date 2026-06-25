@@ -1,0 +1,381 @@
+@use 'styles/media';
+
+/* A thin wrapper so the prototype gets the grey page backdrop like the real
+   member detail page, even though the host renders it standalone. */
+.pageBackdrop {
+  background-color: #f1f5f9;
+  min-height: 100vh;
+}
+
+/* Segmented control to flip between an active vs neglected relationship,
+   so the "quick read" value of the section is visible at a glance. */
+.demoSwitch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 12px 0;
+}
+
+.demoSwitchLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12px;
+}
+
+.demoSwitchRow {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  width: fit-content;
+}
+
+.demoSwitchBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &.active {
+    background: var(--Neutral-White, #fff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+    box-shadow:
+      0 0 1px 0 rgba(15, 23, 42, 0.12),
+      0 4px 4px 0 rgba(15, 23, 42, 0.04);
+  }
+}
+
+/* ---- Right rail (desktop) ---- */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  @include media.tablet-landscape {
+    width: 300px;
+    flex-shrink: 0;
+  }
+}
+
+/* Inline Affinity copy shown only below tablet-landscape (where the rail is hidden). */
+.affinityMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* ---- Profile header (mirrors MemberDetailHeader composition) ---- */
+.bio {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.bioLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  margin-bottom: 8px;
+}
+
+.founderTag {
+  display: flex;
+  padding: 2px 8px;
+  align-items: center;
+  border-radius: 9999px;
+  background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  color: var(--foreground-brand-secondary_inverted, #4174ff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+/* ---- Affinity / relationship section ---- */
+.sourceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.sourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Icon-on-the-left variant of a filled block */
+.blockWithIcon {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.blockBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Keeps the original 8px caption→content gap (used by Interaction frequency). */
+.blockBodyLoose {
+  gap: 8px;
+}
+
+.circleIcon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.06));
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.circleIconMuted {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.blockLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* Relationship owner */
+.owner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ownerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ownerMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ownerName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.ownerRole {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+/* Last contact */
+.contact {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.contactIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.channelIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.06));
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.contactBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.contactWhen {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contactWhenPrimary {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.contactDate {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.contactSummary {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+}
+
+/* Interaction frequency */
+.freqHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.freqCount {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 72px;
+  padding-top: 4px;
+}
+
+.barCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  height: 100%;
+}
+
+.barTrack {
+  flex: 1;
+  width: 100%;
+  max-width: 36px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.barFill {
+  width: 100%;
+  border-radius: 6px;
+  min-height: 3px;
+  background: var(--foreground-brand-primary, #1b4dff);
+
+  &.empty {
+    background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    opacity: 0.5;
+  }
+
+  &.recent {
+    background: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.barLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+}
+
+.hint {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}

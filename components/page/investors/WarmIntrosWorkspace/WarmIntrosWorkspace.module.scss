@@ -616,6 +616,7 @@
   position: sticky;
   left: 0;
   z-index: 2;
+  text-align: left;
 
   @media (max-width: 1023px) {
     position: static;
@@ -830,6 +831,13 @@ thead .frozenName {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.pathCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 

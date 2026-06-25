@@ -208,21 +208,27 @@ describe('WarmPathDetail contact details toggle', () => {
       path({
         id: 10,
         rank: 1,
+        hop_chain: {
+          nodes: [],
+          edges: [],
+          explanation: '',
+          routeNodes: [{ label: 'Alice', variant: 'member' }],
+        },
         contact: { name: 'Alicia Mer', member_uid: 'alicia-mer', email: 'alicia@modularglobe.xyz' },
       }),
     ]);
     render(<WarmPathDetail investorId="inv-1" canEdit />);
 
     expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Show contact/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
     expect(screen.getByText('alicia@modularglobe.xyz')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Hide contact/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
     expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
   });
 
-  it('does not render the toggle when the contact has no channels', () => {
+  it('does not render the toggle when the route chain is empty', () => {
     mockPaths.mockReturnValue([path({ id: 11, rank: 1, contact: { name: 'No Channels' } })]);
     render(<WarmPathDetail investorId="inv-1" canEdit />);
-    expect(screen.queryByRole('button', { name: /Show contact/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Contact details/i })).not.toBeInTheDocument();
   });
 });

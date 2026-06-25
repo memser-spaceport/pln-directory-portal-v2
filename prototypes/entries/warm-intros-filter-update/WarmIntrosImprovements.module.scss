@@ -108,11 +108,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   border-radius: 8px;
   background: #fff;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 14px !important;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);
 
   &::placeholder {
+    font-size: 14px;
     color: var(--foreground-neutral-tertiary, #8897ae);
   }
 
@@ -2650,11 +2651,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 14px !important;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);
 
   &::placeholder {
+    font-size: 14px;
     color: var(--foreground-neutral-tertiary, #8897ae);
   }
 
@@ -2858,4 +2860,76 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   width: 1px;
   height: 20px;
   background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// ── FounderRow — roomier dropdown row with the founder's company on a grey 2nd
+//    line + a top-aligned checkbox. Self-contained so default FdRows are unaffected.
+.founderRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.founderRowOn {
+  background: #eef2ff;
+  color: #1b4dff;
+  font-weight: 500;
+
+  &:hover {
+    background: #e0e7ff;
+  }
+}
+
+.founderCheckbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  margin-top: 2px; // align with the founder name (first line)
+  flex: none;
+  accent-color: #1b4dff;
+  pointer-events: none;
+}
+
+.founderText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.founderName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.founderCompany {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.founderCount {
+  align-self: center;
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }

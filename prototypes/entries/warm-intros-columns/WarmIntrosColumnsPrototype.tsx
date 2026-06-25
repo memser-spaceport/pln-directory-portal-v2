@@ -196,6 +196,20 @@ function matchesPathVia(inv: MockInvestor, selected: Set<string>): boolean {
   return [...selected].some((t) => matchesToken(inv, t));
 }
 
+// Keyword search: the investor's own fields, PLUS any founder connector's name or
+// their company — so searching a founder / portfolio company surfaces the
+// investors that founder can reach (preserving the old connector-lens behaviour).
+function matchesSearch(inv: MockInvestor, q: string): boolean {
+  if (`${inv.first_name} ${inv.last_name} ${inv.firm} ${inv.email}`.toLowerCase().includes(q)) return true;
+  return inv.paths.some(
+    (p) =>
+      p.connector_type === 'F' &&
+      p.contact != null &&
+      (p.contact.name.toLowerCase().includes(q) ||
+        (p.contact.teams ?? []).some((t) => t.name.toLowerCase().includes(q))),
+  );
+}
+
 // A uniform "normal filter" dropdown: a button showing the filter name (turning a
 // calm blue when active) + an optional count badge, opening a checklist that
 // filters live. The body is a render-prop so each filter supplies its own rows.
@@ -261,13 +275,41 @@ function FilterDropdown({
   );
 }
 
-// One option row inside a FilterDropdown menu.
+// One option row inside a FilterDropdown menu (default size, single line).
 function FdRow({ label, count, selected, onClick }: { label: string; count?: number; selected: boolean; onClick: () => void }) {
   return (
     <button type="button" className={clsx(x.fdRow, selected && x.fdRowOn)} onClick={onClick}>
       <input type="checkbox" className={x.fdCheckbox} checked={selected} readOnly tabIndex={-1} aria-hidden />
       <span className={x.fdRowLabel}>{label}</span>
       {count != null && <span className={x.fdRowCount}>{count}</span>}
+    </button>
+  );
+}
+
+// FounderRow — a copy of FdRow that also shows the founder's company on a second
+// grey line. Roomier, with a top-aligned checkbox; its own styles so the default
+// FdRow (used by every other dropdown) is unaffected.
+function FounderRow({
+  name,
+  company,
+  count,
+  selected,
+  onClick,
+}: {
+  name: string;
+  company?: string;
+  count?: number;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className={clsx(x.founderRow, selected && x.founderRowOn)} onClick={onClick}>
+      <input type="checkbox" className={x.founderCheckbox} checked={selected} readOnly tabIndex={-1} aria-hidden />
+      <span className={x.founderText}>
+        <span className={x.founderName}>{name}</span>
+        {company && <span className={x.founderCompany}>{company}</span>}
+      </span>
+      {count != null && <span className={x.founderCount}>{count}</span>}
     </button>
   );
 }
@@ -353,11 +395,7 @@ export default function WarmIntrosColumnsPrototype() {
   const visible = useMemo(() => {
     let rows = onList;
     const q = query.trim().toLowerCase();
-    if (q) {
-      rows = rows.filter((m) =>
-        `${m.first_name} ${m.last_name} ${m.firm} ${m.email}`.toLowerCase().includes(q),
-      );
-    }
+    if (q) rows = rows.filter((m) => matchesSearch(m, q));
     if (stage) rows = rows.filter((m) => m.stage_focus === (stage as StageFocus));
     if (check) rows = rows.filter((m) => m.check_size_range === (check as CheckSizeRange));
     if (sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => sectors.includes(t)));
@@ -513,7 +551,7 @@ export default function WarmIntrosColumnsPrototype() {
               </svg>
               <input
                 className={x.searchInput}
-                placeholder="Search investor or fund"
+                placeholder="Search investor, fund, or founder"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -540,20 +578,23 @@ export default function WarmIntrosColumnsPrototype() {
               }}
             </FilterDropdown>
 
-            <FilterDropdown label="Founder" count={founderCount} searchable placeholder="Search founders…">
+            <FilterDropdown label="Founder" count={founderCount} searchable placeholder="Search founder or company…">
               {({ query: q0 }) => {
                 const q = q0.trim().toLowerCase();
                 return (
                   <>
-                    {(!q || 'any founder'.includes(q)) && (
-                      <FdRow label="Any founder" selected={pathSel.has('founder')} onClick={() => togglePathToken('founder')} />
-                    )}
                     {founderChips
-                      .filter((f) => !q || f.name.toLowerCase().includes(q))
+                      .filter(
+                        (f) =>
+                          !q ||
+                          f.name.toLowerCase().includes(q) ||
+                          (f.teams ?? []).some((t) => t.name.toLowerCase().includes(q)),
+                      )
                       .map((f) => (
-                        <FdRow
+                        <FounderRow
                           key={f.memberUid}
-                          label={f.name}
+                          name={f.name}
+                          company={(f.teams ?? []).map((t) => t.name).join(' · ') || undefined}
                           count={f.investors.length}
                           selected={pathSel.has(`f:${f.memberUid}`)}
                           onClick={() => togglePathToken(`f:${f.memberUid}`)}
@@ -567,13 +608,12 @@ export default function WarmIntrosColumnsPrototype() {
             <FilterDropdown label={stage ? STAGE_FOCUS_LABEL[stage as StageFocus] : 'Stage'} active={!!stage}>
               {({ close }) => (
                 <>
-                  <FdRow label="Any stage" selected={!stage} onClick={() => { setStage(''); close(); }} />
                   {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
                     <FdRow
                       key={st}
                       label={STAGE_FOCUS_LABEL[st]}
                       selected={stage === st}
-                      onClick={() => { setStage(st); close(); }}
+                      onClick={() => { setStage(stage === st ? '' : st); close(); }}
                     />
                   ))}
                 </>
@@ -583,9 +623,8 @@ export default function WarmIntrosColumnsPrototype() {
             <FilterDropdown label={check || 'Check size'} active={!!check}>
               {({ close }) => (
                 <>
-                  <FdRow label="Any check size" selected={!check} onClick={() => { setCheck(''); close(); }} />
                   {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                    <FdRow key={c} label={c} selected={check === c} onClick={() => { setCheck(c); close(); }} />
+                    <FdRow key={c} label={c} selected={check === c} onClick={() => { setCheck(check === c ? '' : c); close(); }} />
                   ))}
                 </>
               )}

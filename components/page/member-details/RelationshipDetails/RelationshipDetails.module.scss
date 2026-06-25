@@ -1,0 +1,84 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.iconWrap {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.summary {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 2px 0 0;
+  overflow-wrap: break-word;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.badgeHigh {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.badgeNeglected {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.touchpoints {
+  font-size: 13px;
+  color: #475569;
+  margin-top: 4px;
+}
+
+.header {
+  margin-bottom: 0;
+}

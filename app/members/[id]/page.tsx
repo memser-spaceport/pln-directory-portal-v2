@@ -33,6 +33,8 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
+import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -98,6 +100,8 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const isAvailableToConnect = isMemberAvailableToConnect(member);
   const showOtherConnectOptions =
     !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
+  const { hasAccess: hasAffinityAccess } = useAffinityAccess();
+  const showSidebar = showOtherConnectOptions || hasAffinityAccess;
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
@@ -196,7 +200,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
       <div className={styles?.memberDetail}>
         <div
           className={clsx(styles.container, {
-            [styles.singleColumn]: isAvailableToConnect || !isLoggedIn || isOwner || !showOtherConnectOptions,
+            [styles.singleColumn]: !showSidebar,
           })}
         >
           <div className={styles.content}>
@@ -209,12 +213,13 @@ const MemberDetails = (props: { params: Promise<any> }) => {
               {renderPageContent()}
             </div>
           </div>
-          {showOtherConnectOptions && (
+          {showSidebar && (
             <div className={styles.desktopOnly}>
               <div style={{ visibility: 'hidden' }}>
                 <BackButton to={`/members`} />
               </div>
-              <BookWithOther count={availableToConnectCount} member={member} />
+              {hasAffinityAccess && <RelationshipDetails memberUid={memberId} />}
+              {showOtherConnectOptions && <BookWithOther count={availableToConnectCount} member={member} />}
             </div>
           )}
         </div>

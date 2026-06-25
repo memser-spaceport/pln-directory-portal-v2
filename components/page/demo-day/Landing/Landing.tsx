@@ -7,7 +7,7 @@ import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isDemodaySignUpSource } from '@/utils/member.utils';
 import { useGetDemoDayState } from '@/services/demo-day/hooks/useGetDemoDayState';
-import LoginBtn from '@/components/core/navbar/login-btn';
+import { LoginBtn } from '@/components/core/navbar/components/LoginBtn';
 import { LandingBase } from '@/components/page/demo-day/LandingBase';
 import { useDemoDayPageViewAnalytics } from '@/hooks/usePageViewAnalytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';

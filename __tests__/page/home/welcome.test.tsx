@@ -5,10 +5,10 @@ import { Welcome } from '@/components/page/home/Welcome/Welcome';
 
 const mockOnLoginBtnClicked = jest.fn();
 
-jest.mock('@/components/core/navbar/login-btn', () => {
+jest.mock('@/components/core/navbar/components/LoginBtn', () => {
   return {
     __esModule: true,
-    default: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    LoginBtn: ({ children, className }: { children: React.ReactNode; className?: string }) => (
       <button type="button" className={className} onClick={() => mockOnLoginBtnClicked()}>
         {children}
       </button>

@@ -1,4 +1,5 @@
 'use client';
+import { PropsWithChildren } from 'react';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
@@ -8,15 +9,15 @@ import { toast } from '@/components/core/ToastContainer';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useCurrentUserStore } from '@/services/auth/store';
 
+import { isDemoDayScopePage } from '../../../login/utils';
+
 import s from './LoginButton.module.scss';
-import { PropsWithChildren } from 'react';
-import { isDemoDayScopePage } from '../login/utils';
 
 interface Props {
   className?: string;
 }
 
-const LoginBtn = (props: PropsWithChildren<Props>) => {
+export const LoginBtn = (props: PropsWithChildren<Props>) => {
   const { className, children } = props;
 
   const authAnalytics = useAuthAnalytics();
@@ -73,5 +74,3 @@ const LoginBtn = (props: PropsWithChildren<Props>) => {
     </>
   );
 };
-
-export default LoginBtn;

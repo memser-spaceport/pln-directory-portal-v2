@@ -1,84 +1,108 @@
-.rows {
+.blocks {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 8px;
 }
 
-.row {
+.block {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
-.iconWrap {
+.blockWithIcon {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.blockBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.blockBodyLoose {
+  gap: 8px;
+}
+
+.circleIcon {
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-  color: #64748b;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--transparent-brand-4, rgba(27, 77, 255, 0.06));
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
-.rowContent {
+.blockLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.ownerName {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.contactBody {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: #94a3b8;
-  text-transform: uppercase;
-}
-
-.value {
+.contactWhenPrimary {
+  color: var(--foreground-neutral-primary, #0a0c11);
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
-  line-height: 1.4;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 }
 
-.summary {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.5;
-  margin: 2px 0 0;
-  overflow-wrap: break-word;
+.contactSummary {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
 }
 
-.badge {
-  display: inline-flex;
+.freqHeader {
+  display: flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  width: fit-content;
-  margin-top: 2px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.badgeHigh {
-  background-color: #dcfce7;
-  color: #15803d;
-}
+.freqCount {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
 
-.badgeNeglected {
-  background-color: #fef9c3;
-  color: #a16207;
-}
-
-.touchpoints {
-  font-size: 13px;
-  color: #475569;
-  margin-top: 4px;
-}
-
-.header {
-  margin-bottom: 0;
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
 }

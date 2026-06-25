@@ -30,6 +30,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-filter-update/WarmIntrosFilterUpdatePrototype'),
   },
+  {
+    key: 'teams',
+    title: 'Teams — listing page',
+    description:
+      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile.',
+    category: 'Teams',
+    load: () => import('./entries/teams/TeamsPrototype'),
+  },
+  {
+    key: 'team-profile',
+    title: 'Team profile',
+    description:
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components.',
+    category: 'Teams',
+    load: () => import('./entries/team-profile/TeamProfilePrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

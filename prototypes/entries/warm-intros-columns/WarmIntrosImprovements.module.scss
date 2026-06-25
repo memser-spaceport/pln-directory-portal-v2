@@ -2514,6 +2514,48 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+// ── Column widths — shrink Investor so Team/Stage aren't squeezed ─────────────
+.colInvestor {
+  width: 210px;
+  max-width: 210px;
+}
+
+.colTeam {
+  min-width: 150px;
+}
+
+.nameCellMain {
+  min-width: 0;
+}
+
+// Truncate a long email so it doesn't force the Investor column wide.
+.investorEmail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+// Team + "+N more" overflow chip.
+.teamCellRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.teamMore {
+  padding: 1px 7px;
+  border-radius: 12px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+  cursor: default;
+}
+
 // Investor's other teams under the role — inline links + "+N more" (drawer style).
 .teamAffil {
   display: flex;

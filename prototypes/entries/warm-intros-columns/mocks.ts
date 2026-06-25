@@ -640,24 +640,6 @@ const BASE_MEMBERS: MockInvestor[] = [
         },
       },
       {
-        // Org-led: we know the firm can route an intro, but not WHO yet.
-        id: 104,
-        rank: 4,
-        proximity_code: 'VC+1B',
-        caliber_confidence: 0.6,
-        score: 0.62,
-        connector_type: 'VC',
-        explanation: 'We don’t know which partner at Pico Ventures can connect yet — they co-invested in two Catalyst Bio rounds, so reach out to the team and ask.',
-        chain: [PL, org('Pico Ventures', `${LOGOS}/Multicoin.svg`), org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
-        orgConnector: {
-          name: 'Pico Ventures',
-          description: 'Reach out to the firm and ask to be routed to the partner who covers Catalyst Bio co-investments.',
-          tags: ['Org connection', 'Person unknown'],
-          email: 'intros@picoventures.com',
-          website: 'picoventures.com',
-        },
-      },
-      {
         id: 103,
         rank: 5,
         proximity_code: 'PL+2B',
@@ -1417,6 +1399,10 @@ function seedContacts(inv: MockInvestor, i: number): MockInvestor {
   return { ...inv, emails, teams, lp_stage, last_contact, relationship_owner, lab_os_profile };
 }
 
+// Rows where the org-unknown (Pico Ventures) broker is suppressed — keeps the top
+// of the table clean (the org-unknown state is still demoed on lower rows).
+const NO_ORG_ROWS = new Set(['inv-wei']);
+
 // Generic (non-showcase) rows are rebuilt so Feature 1 has real data: a named PL
 // teammate as the first node. Founder paths are added separately by
 // `augmentFounders` (below) for ALL rows. Showcase rows keep their authored paths.
@@ -1424,8 +1410,11 @@ function decorateGeneric(m: MockInvestor, i: number): MockInvestor {
   const pl = PL_CONNECTORS[i % PL_CONNECTORS.length];
   const isOrgLead = ORG_LEAD_ROWS.has(m.investor_id);
   // Keep the factory's org-unknown / member-unknown states; drop its uniform
-  // Alicia founder path — founder coverage is supplied by augmentFounders.
-  const factory = fourCasePaths(m.first_name, m.firm, isOrgLead).filter((p) => p.connector_type !== 'F');
+  // Alicia founder path (founder coverage comes from augmentFounders), and drop
+  // the org-unknown broker on NO_ORG_ROWS.
+  const factory = fourCasePaths(m.first_name, m.firm, isOrgLead).filter(
+    (p) => p.connector_type !== 'F' && !(NO_ORG_ROWS.has(m.investor_id) && p.orgConnector),
+  );
   // Org-lead rows keep org-unknown as the visible best path (that's their demo);
   // every other generic row leads with its named PL teammate.
   const ordered = isOrgLead ? [...factory, plConnectorPath(pl, m)] : [plConnectorPath(pl, m), ...factory];

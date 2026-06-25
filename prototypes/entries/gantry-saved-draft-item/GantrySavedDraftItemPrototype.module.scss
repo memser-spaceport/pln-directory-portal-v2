@@ -15,6 +15,27 @@
   margin-top: 12px;
 }
 
+// Mobile Filters trigger — copied from the shared MobileFilterWrapper .filtersButton so gantry's
+// mobile filter entry point matches Members / Teams / Jobs: white pill, soft shadow, ⊕ plus icon.
+.mobileFiltersButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 /* --- Draft banner above the board (single saved draft) --- */
 
 .draftBanner {
@@ -182,6 +203,117 @@
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
+}
+
+/* --- Mobile stage switcher — underline tabs (replaces the filled status-chip tabs) --- */
+
+// A hairline under the whole strip so the active tab's brand underline reads as an indicator.
+.stageNav {
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.stageNavTrack {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.stageNavTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  // 12px block padding + 20px line = 44px touch target.
+  padding: 12px 8px;
+  margin-bottom: -1px; // overlap .stageNav's hairline so the active underline replaces it
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.stageNavTabActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  border-bottom-color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 600;
+}
+
+.stageNavLabel {
+  flex-shrink: 0;
+}
+
+// Per-stage item count — neutral by default, brand-tinted on the active tab.
+.stageNavCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stageNavTabActive .stageNavCount {
+  background: rgba(27, 77, 255, 0.1);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageNavTab {
+    transition: none;
+  }
+}
+
+/* --- Mobile filter drawer footer (matches the shared MobileFilterWrapper pattern) --- */
+
+// Sticky Clear / Apply actions pinned to the bottom of the filter sheet, replacing gantry's header
+// "Clear all" link so the mobile filter reads the same as Members / Teams / Jobs. Doubled class
+// (0-2-0) beats MobileDrawer's `.content > div` margin-bottom so the bar can sit flush.
+.mobileFilterFooter.mobileFilterFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  // Cancel MobileDrawer .content's 12px side + 8px bottom padding so the bar spans full width and
+  // sits flush with the sheet's bottom edge.
+  margin: 8px -12px -8px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+}
+
+.mobileFilterFooterBtn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* --- Create / resume modal — reuses production SubmitIdeaModal / SubmitDealModal styles --- */

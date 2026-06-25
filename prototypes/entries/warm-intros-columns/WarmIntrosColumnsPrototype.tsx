@@ -14,6 +14,7 @@ import {
 import type { CheckSizeRange, InvestorList, SectorTag, StageFocus, WarmIntroTier } from '@/services/investors/types';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { EngagementTierBadge } from '@/components/page/investors/EngagementTierBadge/EngagementTierBadge';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { Tag } from '@/components/ui/Tag/Tag';
 import { ListPicker } from '@/components/page/investors/WarmIntrosWorkspace/ListPicker';
 import { GlossaryModal } from '@/components/page/investors/WarmIntrosWorkspace/GlossaryModal';
@@ -26,17 +27,58 @@ import {
   MOCK_INVESTOR_LISTS,
   MOCK_LISTS,
   MOCK_MEMBERS,
+  directConnector,
   firstNodeConnectors,
+  hopConnectors,
   matchesFirstNode,
   pathChainNodes,
+  type ConnCell,
   type MockInvestor,
 } from './mocks';
-import { PeopleChain } from './PeopleChain';
+import { PeopleChain, OrgGlyph } from './PeopleChain';
+import { ProtocolLabsMark } from './ProtocolLabsMark';
 import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import { WorkspaceSearch } from './WorkspaceSearch';
 import { InvestorDrawerMock, InLabOsPill, TeamInline } from './InvestorDrawerMock';
 import { AddToListButton } from './AddToListButton';
 import x from './WarmIntrosImprovements.module.scss';
+
+// One connector rendered as a small badge in the Direct / 1-hop column: PL mark
+// (teammate) or avatar (founder) + name, with the path's proximity below. The
+// badge is clickable to filter the spine by that connector.
+function ConnectorCell({
+  cell,
+  pl,
+  active,
+  onClick,
+}: {
+  cell: ConnCell | null;
+  pl?: boolean;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  if (!cell) return <span className={s.muted}>—</span>;
+  return (
+    <button
+      type="button"
+      className={clsx(x.connColBadge, active && x.connColBadgeActive)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      title={`Filter to investors via ${cell.person.name}`}
+    >
+      {pl ? (
+        <span className={x.connColPlMark} aria-hidden>
+          <ProtocolLabsMark />
+        </span>
+      ) : (
+        <img className={x.connColAvatar} src={getDefaultAvatar(cell.person.name)} alt="" width={16} height={16} />
+      )}
+      <span className={x.connColName}>{cell.person.name}</span>
+    </button>
+  );
+}
 
 const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'co_invested', label: 'Co-invested' },
@@ -142,7 +184,7 @@ function matchesConnector(inv: MockInvestor, label: string): boolean {
 
 type Draft = { stage: string; sectors: SectorTag[]; check: string };
 
-export default function WarmIntrosFilterUpdatePrototype() {
+export default function WarmIntrosColumnsPrototype() {
   // Reuse interactive, client-only widgets — gate render on mount so SSR === first
   // client render (avoids hydration mismatches).
   const [mounted, setMounted] = useState(false);
@@ -174,6 +216,8 @@ export default function WarmIntrosFilterUpdatePrototype() {
   // Feature 1: quick multi-select of PL teammates (first-node). Applies live (no
   // Apply step) so it feels like the relationship chips — pick several at once.
   const [teammates, setTeammates] = useState<Set<string>>(new Set());
+  // Quick filter: only investors PL can reach directly (a direct teammate route).
+  const [directOnly, setDirectOnly] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
@@ -196,6 +240,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setSelectedIds(new Set());
     setConnectorLabel(null);
     setTeammates(new Set());
+    setDirectOnly(false);
   };
 
   const applyFilters = () => setApplied(draft);
@@ -204,6 +249,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setApplied({ stage: '', sectors: [], check: '' });
     setConnectorLabel(null);
     setTeammates(new Set());
+    setDirectOnly(false);
     setSelectedIds(new Set());
   };
 
@@ -241,10 +287,11 @@ export default function WarmIntrosFilterUpdatePrototype() {
     // Multi-select teammates: keep investors reachable via ANY selected teammate.
     if (teammates.size) rows = rows.filter((m) => [...teammates].some((name) => matchesFirstNode(m, name)));
     if (connectorLabel) rows = rows.filter((m) => matchesConnector(m, connectorLabel));
+    if (directOnly) rows = rows.filter((m) => !!directConnector(m));
     return rows
       .slice()
       .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [onList, applied, relFilter, connectorLabel, teammates]);
+  }, [onList, applied, relFilter, connectorLabel, teammates, directOnly]);
 
   // Connector pivots are derived from the live membership of the current list.
   const teamChips = useMemo(() => firstNodeConnectors(members, currentListId), [members, currentListId]);
@@ -259,6 +306,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     !!applied.check ||
     applied.sectors.length > 0 ||
     teammates.size > 0 ||
+    directOnly ||
     !!connectorLabel;
 
   const totalOnList = members.filter((m) => m.list_ids.includes(currentListId)).length;
@@ -500,6 +548,15 @@ export default function WarmIntrosFilterUpdatePrototype() {
               proximity (warmest first)
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
+              {/* Quick filter: only investors with a direct teammate route. */}
+              <Tag
+                value="Direct only"
+                keyValue="direct-only"
+                variant="secondary"
+                selected={directOnly}
+                className={x.relChip}
+                callback={() => setDirectOnly((v) => !v)}
+              />
               <div className={s.relChips}>
                 {REL_FILTERS.map(({ tier, label }) => (
                   <Tag
@@ -530,20 +587,22 @@ export default function WarmIntrosFilterUpdatePrototype() {
               <thead>
                 <tr>
                   <th className={s.checkboxCol}></th>
-                  <th>Investor</th>
-                  <th>Team</th>
+                  <th className={x.colInvestor}>Investor</th>
+                  <th className={x.colTeam}>Team</th>
                   <th>{INDUSTRY_SECTOR_LABEL}</th>
                   <th>Stage</th>
                   <th>Type</th>
                   <th>Relationship</th>
                   <th>Proximity</th>
+                  <th>Direct</th>
+                  <th>1 hop</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((inv) => {
                   const rel = relationshipMeta(inv.relationship);
-                  const bestPath = inv.paths[0];
-                  const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
+                  const direct = directConnector(inv);
+                  const hops = hopConnectors(inv);
                   return (
                     <tr
                       key={inv.investor_id}
@@ -558,16 +617,16 @@ export default function WarmIntrosFilterUpdatePrototype() {
                             onChange={() => toggleSelected(inv.investor_id)}
                           />
                         </td>
-                        <td>
+                        <td className={x.colInvestor}>
                           <div className={x.nameCellRow}>
-                            <div>
+                            <div className={x.nameCellMain}>
                               <div className={x.nameWithBadge}>
                                 <span className={s.nameCell}>
                                   {inv.first_name} {inv.last_name}
                                 </span>
                                 <InLabOsPill profile={inv.lab_os_profile ?? null} />
                               </div>
-                              <div className={s.subtle}>{inv.email}</div>
+                              <div className={clsx(s.subtle, x.investorEmail)}>{inv.email}</div>
                             </div>
                             <span className={x.rowArrow} aria-hidden>
                               <ArrowUpRightIcon />
@@ -597,35 +656,57 @@ export default function WarmIntrosFilterUpdatePrototype() {
                           </div>
                         </td>
                         <td>
-                          <div className={x.bestPathCell}>
-                            {/* People-first: the warmest connector node + the proximity badge. */}
-                            <div className={x.pathRow}>
-                              {hasProximity ? (
-                                <ProximityCodeBadge
-                                  code={inv.best_proximity_code}
-                                  cold={inv.has_path === false}
-                                  confidence={bestPath?.caliber_confidence}
-                                />
-                              ) : (
-                                <span className={s.muted}>—</span>
-                              )}
-                              {bestPath && pathChainNodes(bestPath, inv).length > 0 && (
-                                <PeopleChain nodes={pathChainNodes(bestPath, inv)} />
-                              )}
+                          {inv.best_proximity_code || inv.has_path === false ? (
+                            <ProximityCodeBadge code={inv.best_proximity_code} cold={inv.has_path === false} />
+                          ) : (
+                            <span className={s.muted}>—</span>
+                          )}
+                        </td>
+                        <td>
+                          <ConnectorCell
+                            cell={directConnector(inv)}
+                            pl
+                            active={!!direct && teammates.has(direct.person.name)}
+                            onClick={() => direct && toggleTeammate(direct.person.name)}
+                          />
+                        </td>
+                        <td>
+                          {hops.length === 0 ? (
+                            <span className={s.muted}>—</span>
+                          ) : (
+                            <div className={x.hopBadges}>
+                              {hops.map((h) => {
+                                const on = connectorLabel === h.name;
+                                const isOrg = h.kind === 'org';
+                                return (
+                                  <button
+                                    key={isOrg ? `org:${h.name}` : (h.memberUid ?? h.name)}
+                                    type="button"
+                                    className={clsx(x.connColBadge, isOrg && x.connColBadgeOrg, on && x.connColBadgeActive)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setConnectorLabel((cur) => (cur === h.name ? null : h.name));
+                                    }}
+                                    title={isOrg ? `${h.name} can route the intro — ask who` : `Filter to investors via ${h.name}`}
+                                  >
+                                    {isOrg ? (
+                                      <span className={x.connColOrgGlyph} aria-hidden>
+                                        <OrgGlyph />
+                                      </span>
+                                    ) : (
+                                      <img className={x.connColAvatar} src={getDefaultAvatar(h.name)} alt="" width={16} height={16} />
+                                    )}
+                                    <span className={x.connColName}>{h.name}</span>
+                                    {isOrg && (
+                                      <span className={x.connColUnknown} aria-hidden title="Person unknown">
+                                        ?
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
                             </div>
-                            {inv.paths.length > 0 && (
-                              <button
-                                type="button"
-                                className={s.expandBtn}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDrawerId(inv.investor_id);
-                                }}
-                              >
-                                {inv.paths.length > 1 ? `View all (${inv.paths.length})` : 'View path'}
-                              </button>
-                            )}
-                          </div>
+                          )}
                         </td>
                     </tr>
                   );

@@ -1,7 +1,12 @@
-# Dev handoff — warm-intros-filter-update
+# Dev handoff — warm-intros-columns
 
-People-first redesign of the Warm Intros workspace (table + investor drawer). Every path is
-described by **who you reach**, not a company hop-chain. Mocked data only; no API/store/auth.
+**Connection-columns variant** of `warm-intros-filter-update`. Instead of a single best-path
+column, the investor table ends in **Proximity · Direct · 1-hop** columns: Proximity = overall
+warmth; Direct = a PL teammate who reaches the investor with no intermediary; 1-hop = every
+single-intermediary broker (founders + co-investors as avatar+name, and org/person-unknown as a
+dashed building glyph + "?"). Connector badges filter the spine; a "Direct only" quick filter
+isolates investors with a direct line. Selectors `directConnector` / `hopConnectors` in `mocks.ts`.
+People-first; mocked data only; no API/store/auth.
 
 **Imported** = production component used as-is. **SCSS-only** = data layer not reusable
 (react-query/store/closed API) so we import the `.module.scss` and feed mock data. **Copied** =
@@ -19,6 +24,7 @@ markup replicated because the source isn't exported. **New** = prototype-only, n
 | `InvestorDrawerMock.tsx` | Investor detail drawer (sticky header + sections) |
 | `AddToListButton.tsx` | Add/remove-to-list popover (bulk + drawer) |
 | `WorkspaceSearch.tsx` | Connector/investor typeahead (lens filter) |
+| `FounderCoveragePanel.tsx` | **New** — Feature 2 founders **directory**: a long, searchable, mostly-flat list (≈1 founder per investor); each row shows the founder + the investor(s) they reach; "See in table" lenses the spine, an investor chip opens its drawer |
 | `ArrowUpRightIcon.tsx` | ↗ glyph copied from prod `OutreachInvestorTable` |
 | `mocks.ts` | **The data model** — read this first (types + factory) |
 | `WarmIntrosImprovements.module.scss` | All net-new styles |

@@ -1,11 +1,11 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
+import { Switch } from '@base-ui-components/react/switch';
 import {
   CHECK_SIZE_RANGES,
   INDUSTRY_SECTOR_LABEL,
-  INVESTOR_TYPE_LABEL,
   SECTOR_TAGS,
   SECTOR_TAG_LABEL,
   STAGE_FOCUSES,
@@ -27,8 +27,10 @@ import {
   MOCK_LISTS,
   MOCK_MEMBERS,
   firstNodeConnectors,
+  founderCoverage,
   matchesFirstNode,
   pathChainNodes,
+  resolveRoute,
   type MockInvestor,
 } from './mocks';
 import { PeopleChain } from './PeopleChain';
@@ -41,7 +43,6 @@ import x from './WarmIntrosImprovements.module.scss';
 const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'co_invested', label: 'Co-invested' },
   { tier: 'engaged', label: 'Engaged' },
-  { tier: 'cold_match', label: 'Cold' },
 ];
 
 const VISUAL_TABS = [
@@ -127,20 +128,99 @@ function proximityRank(inv: MockInvestor): number {
   return calRank * 10 + hops;
 }
 
-// Does any path for this investor route through the searched node?
-function matchesConnector(inv: MockInvestor, label: string): boolean {
-  const full = `${inv.first_name} ${inv.last_name}`;
-  if (full === label) return true;
-  return inv.paths.some(
-    (p) =>
-      p.contact?.name === label ||
-      p.orgConnector?.name === label ||
-      p.team?.name === label ||
-      p.chain.some((c) => c.label === label),
+type Draft = { stage: string; sectors: SectorTag[]; check: string };
+
+// ── Updated faceted filter bar pieces (ported from warm-intros-columns) ───────
+// "Path via" connector tokens (PL member / founder); an investor matches a token
+// if ANY of their paths goes through it.
+function matchesToken(inv: MockInvestor, token: string): boolean {
+  if (token === 'direct') return inv.paths.some((p) => !resolveRoute(p).mediator);
+  if (token === 'founder') return inv.paths.some((p) => p.connector_type === 'F');
+  if (token.startsWith('t:')) return matchesFirstNode(inv, token.slice(2));
+  if (token.startsWith('f:')) {
+    const uid = token.slice(2);
+    return inv.paths.some((p) => p.connector_type === 'F' && p.contact?.memberUid === uid);
+  }
+  return true;
+}
+function matchesPathVia(inv: MockInvestor, selected: Set<string>): boolean {
+  if (selected.size === 0) return true;
+  return [...selected].some((t) => matchesToken(inv, t));
+}
+
+// Uniform "normal filter" dropdown — label (blue when active) + count badge,
+// opening a live checklist. Body is a render-prop so each filter supplies rows.
+function FilterDropdown({
+  label,
+  count = 0,
+  active,
+  searchable,
+  placeholder,
+  children,
+}: {
+  label: string;
+  count?: number;
+  active?: boolean;
+  searchable?: boolean;
+  placeholder?: string;
+  children: (ctx: { close: () => void; query: string }) => ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = active ?? count > 0;
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+  return (
+    <div className={x.fdWrap} ref={ref}>
+      <button
+        type="button"
+        className={clsx(x.fdTrigger, (open || isActive) && x.fdTriggerActive)}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span>{label}</span>
+        {count > 0 && <span className={x.fdCount}>{count}</span>}
+        <svg className={clsx(x.fdCaret, open && x.fdCaretOpen)} viewBox="0 0 16 16" fill="none" aria-hidden>
+          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className={x.fdMenu}>
+          {searchable && (
+            <input
+              className={x.fdSearch}
+              placeholder={placeholder}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+            />
+          )}
+          <div className={x.fdList}>{children({ close: () => setOpen(false), query })}</div>
+        </div>
+      )}
+    </div>
   );
 }
 
-type Draft = { stage: string; sectors: SectorTag[]; check: string };
+function FdRow({ label, count, selected, onClick }: { label: string; count?: number; selected: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className={clsx(x.fdRow, selected && x.fdRowOn)} onClick={onClick}>
+      <input type="checkbox" className={x.fdCheckbox} checked={selected} readOnly tabIndex={-1} aria-hidden />
+      <span className={x.fdRowLabel}>{label}</span>
+      {count != null && <span className={x.fdRowCount}>{count}</span>}
+    </button>
+  );
+}
 
 export default function WarmIntrosFilterUpdatePrototype() {
   // Reuse interactive, client-only widgets — gate render on mount so SSR === first
@@ -171,12 +251,40 @@ export default function WarmIntrosFilterUpdatePrototype() {
     cold_match: true,
   });
   const [connectorLabel, setConnectorLabel] = useState<string | null>(null);
+  // Quick filter: keep only investors PL can reach directly (a teammate first node).
+  const [directOnly, setDirectOnly] = useState(false);
   // Feature 1: quick multi-select of PL teammates (first-node). Applies live (no
   // Apply step) so it feels like the relationship chips — pick several at once.
   const [teammates, setTeammates] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
+
+  // ── Updated faceted filter bar (ported from warm-intros-columns). The old
+  //    filter controls below are hidden behind this flag — flip to show them. ──
+  const SHOW_OLD_FILTERS: boolean = false;
+  const [stage, setStage] = useState('');
+  const [check, setCheck] = useState('');
+  const [sectors, setSectors] = useState<SectorTag[]>([]);
+  const [query, setQuery] = useState('');
+  const [pathSel, setPathSel] = useState<Set<string>>(new Set());
+
+  const togglePathToken = (token: string) =>
+    setPathSel((prev) => {
+      const next = new Set(prev);
+      next.has(token) ? next.delete(token) : next.add(token);
+      return next;
+    });
+  const toggleSector = (sec: SectorTag) =>
+    setSectors((prev) => (prev.includes(sec) ? prev.filter((y) => y !== sec) : [...prev, sec]));
+  const clearAll = () => {
+    setStage('');
+    setCheck('');
+    setSectors([]);
+    setQuery('');
+    setRelFilter({ co_invested: true, engaged: true, cold_match: true });
+    setPathSel(new Set());
+  };
 
   // Sectors collapse into a count-badge popover to keep the filter bar to one row.
   const [sectorOpen, setSectorOpen] = useState(false);
@@ -196,6 +304,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setSelectedIds(new Set());
     setConnectorLabel(null);
     setTeammates(new Set());
+    setDirectOnly(false);
   };
 
   const applyFilters = () => setApplied(draft);
@@ -205,6 +314,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setConnectorLabel(null);
     setTeammates(new Set());
     setSelectedIds(new Set());
+    setDirectOnly(false);
   };
 
   const toggleTeammate = (name: string) =>
@@ -234,20 +344,54 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
   const visible = useMemo(() => {
     let rows = onList;
-    if (applied.stage) rows = rows.filter((m) => m.stage_focus === (applied.stage as StageFocus));
-    if (applied.check) rows = rows.filter((m) => m.check_size_range === (applied.check as CheckSizeRange));
-    if (applied.sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => applied.sectors.includes(t)));
+    const q = query.trim().toLowerCase();
+    if (q) {
+      rows = rows.filter((m) =>
+        `${m.first_name} ${m.last_name} ${m.firm} ${m.email}`.toLowerCase().includes(q),
+      );
+    }
+    if (stage) rows = rows.filter((m) => m.stage_focus === (stage as StageFocus));
+    if (check) rows = rows.filter((m) => m.check_size_range === (check as CheckSizeRange));
+    if (sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => sectors.includes(t)));
     rows = rows.filter((m) => relFilter[m.relationship]);
-    // Multi-select teammates: keep investors reachable via ANY selected teammate.
-    if (teammates.size) rows = rows.filter((m) => [...teammates].some((name) => matchesFirstNode(m, name)));
-    if (connectorLabel) rows = rows.filter((m) => matchesConnector(m, connectorLabel));
+    if (pathSel.size) rows = rows.filter((m) => matchesPathVia(m, pathSel));
     return rows
       .slice()
       .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [onList, applied, relFilter, connectorLabel, teammates]);
+  }, [onList, query, stage, check, sectors, relFilter, pathSel]);
 
-  // Connector pivots are derived from the live membership of the current list.
+  // Connector pivots — teammates (direct) and founders (the broker).
   const teamChips = useMemo(() => firstNodeConnectors(members, currentListId), [members, currentListId]);
+  const founderChips = useMemo(() => founderCoverage(members, currentListId), [members, currentListId]);
+  // 'direct' is its own toggle in the relationship row — not part of PL member.
+  const plMemberCount = [...pathSel].filter((t) => t.startsWith('t:')).length;
+  const founderCount = [...pathSel].filter((t) => t === 'founder' || t.startsWith('f:')).length;
+  const tokenLabel = (t: string): string =>
+    t === 'direct'
+      ? 'Direct'
+      : t === 'founder'
+        ? 'Any founder'
+        : t.startsWith('t:')
+          ? t.slice(2)
+          : (founderChips.find((f) => `f:${f.memberUid}` === t)?.name ?? 'Founder');
+
+  // Active-filter chips below the bar — each removes just its own filter.
+  const activeChips: { key: string; name: string; value: string; remove: () => void }[] = [];
+  if (stage) activeChips.push({ key: 'stage', name: 'Stage', value: STAGE_FOCUS_LABEL[stage as StageFocus], remove: () => setStage('') });
+  if (check) activeChips.push({ key: 'check', name: 'Check', value: check, remove: () => setCheck('') });
+  sectors.forEach((sec) =>
+    activeChips.push({ key: `sec:${sec}`, name: INDUSTRY_SECTOR_LABEL, value: SECTOR_TAG_LABEL[sec], remove: () => toggleSector(sec) }),
+  );
+  [...pathSel]
+    .filter((t) => t !== 'direct') // 'direct' shows as a toggle, not a chip
+    .forEach((t) =>
+      activeChips.push({
+        key: `pv:${t}`,
+        name: t === 'founder' || t.startsWith('f:') ? 'Founder' : 'PL member',
+        value: tokenLabel(t),
+        remove: () => togglePathToken(t),
+      }),
+    );
 
   // Clear only does something when a filter is actually set (draft, applied, or
   // an active connector lens) — disable it otherwise so it's not dead UI.
@@ -259,6 +403,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     !!applied.check ||
     applied.sectors.length > 0 ||
     teammates.size > 0 ||
+    directOnly ||
     !!connectorLabel;
 
   const totalOnList = members.filter((m) => m.list_ids.includes(currentListId)).length;
@@ -338,7 +483,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
       {/* ── Workspace (faithful copy of WarmIntrosWorkspace) ─────────────────── */}
       <div className={s.root}>
-        <section className={s.builder}>
+        <section className={clsx(s.builder, x.builderFill)}>
           <header className={s.builderH}>
             <div className={s.builderTitleRow}>
               <h2 className={s.title}>Find warm investor intros</h2>
@@ -354,7 +499,132 @@ export default function WarmIntrosFilterUpdatePrototype() {
             <p className={s.desc}>Pick a list, then search or filter it down to see the warmest paths PL can reach.</p>
           </header>
 
-          {/* ── Compact filter bar: list · search · stage · check · sectors · actions ── */}
+          {/* ── Updated faceted filter bar (live) — ported from warm-intros-columns ── */}
+          <div className={clsx(x.filterBar, x.builderRowResp)}>
+            <div className={x.listField}>
+              <span className={x.inlineLabel}>List</span>
+              <div className={x.listPickerWrap}>
+                <ListPicker lists={liveLists} selectedId={currentListId} onSelect={switchList} />
+              </div>
+            </div>
+
+            <div className={x.searchField}>
+              <svg className={x.searchIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input
+                className={x.searchInput}
+                placeholder="Search investor or fund"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+
+            <FilterDropdown label="PL member" count={plMemberCount} searchable placeholder="Search teammates…">
+              {({ query: q0 }) => {
+                const q = q0.trim().toLowerCase();
+                return (
+                  <>
+                    {teamChips
+                      .filter((c) => !q || c.name.toLowerCase().includes(q))
+                      .map((c) => (
+                        <FdRow
+                          key={c.name}
+                          label={c.name}
+                          count={c.count}
+                          selected={pathSel.has(`t:${c.name}`)}
+                          onClick={() => togglePathToken(`t:${c.name}`)}
+                        />
+                      ))}
+                  </>
+                );
+              }}
+            </FilterDropdown>
+
+            <FilterDropdown label="Founder" count={founderCount} searchable placeholder="Search founders…">
+              {({ query: q0 }) => {
+                const q = q0.trim().toLowerCase();
+                return (
+                  <>
+                    {(!q || 'any founder'.includes(q)) && (
+                      <FdRow label="Any founder" selected={pathSel.has('founder')} onClick={() => togglePathToken('founder')} />
+                    )}
+                    {founderChips
+                      .filter((f) => !q || f.name.toLowerCase().includes(q))
+                      .map((f) => (
+                        <FdRow
+                          key={f.memberUid}
+                          label={f.name}
+                          count={f.investors.length}
+                          selected={pathSel.has(`f:${f.memberUid}`)}
+                          onClick={() => togglePathToken(`f:${f.memberUid}`)}
+                        />
+                      ))}
+                  </>
+                );
+              }}
+            </FilterDropdown>
+
+            <FilterDropdown label={stage ? STAGE_FOCUS_LABEL[stage as StageFocus] : 'Stage'} active={!!stage}>
+              {({ close }) => (
+                <>
+                  <FdRow label="Any stage" selected={!stage} onClick={() => { setStage(''); close(); }} />
+                  {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
+                    <FdRow
+                      key={st}
+                      label={STAGE_FOCUS_LABEL[st]}
+                      selected={stage === st}
+                      onClick={() => { setStage(st); close(); }}
+                    />
+                  ))}
+                </>
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown label={check || 'Check size'} active={!!check}>
+              {({ close }) => (
+                <>
+                  <FdRow label="Any check size" selected={!check} onClick={() => { setCheck(''); close(); }} />
+                  {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
+                    <FdRow key={c} label={c} selected={check === c} onClick={() => { setCheck(c); close(); }} />
+                  ))}
+                </>
+              )}
+            </FilterDropdown>
+
+            <FilterDropdown label={INDUSTRY_SECTOR_LABEL} count={sectors.length}>
+              {() =>
+                SECTOR_TAGS.map((sec) => (
+                  <FdRow
+                    key={sec}
+                    label={SECTOR_TAG_LABEL[sec]}
+                    selected={sectors.includes(sec)}
+                    onClick={() => toggleSector(sec)}
+                  />
+                ))
+              }
+            </FilterDropdown>
+          </div>
+
+          {activeChips.length > 0 && (
+            <div className={x.chipRow}>
+              {activeChips.map((c) => (
+                <button key={c.key} type="button" className={x.activeChip} onClick={c.remove}>
+                  <span className={x.activeChipName}>{c.name}:</span> <strong>{c.value}</strong>
+                  <span className={x.activeChipX} aria-hidden>
+                    &times;
+                  </span>
+                </button>
+              ))}
+              <button type="button" className={x.clearAllBtn} onClick={clearAll}>
+                Clear All
+              </button>
+            </div>
+          )}
+
+          {/* ── OLD filter controls — hidden behind SHOW_OLD_FILTERS, kept for later ── */}
+          {SHOW_OLD_FILTERS && (
           <div className={clsx(x.filterBar, x.builderRowResp)}>
             <div className={x.listField}>
               <span className={x.inlineLabel}>List</span>
@@ -444,10 +714,10 @@ export default function WarmIntrosFilterUpdatePrototype() {
               </button>
             </div>
           </div>
+          )}
 
-          {/* Feature 1 — quick multi-select of PL teammates (first node of a path).
-              Toggle several at once; filters live, no Apply needed. */}
-          {teamChips.length > 0 && (
+          {/* Feature 1 — quick multi-select of PL teammates (first node of a path). */}
+          {SHOW_OLD_FILTERS && teamChips.length > 0 && (
             <div className={x.teammateFilter}>
               <span className={x.inlineLabel}>Teammate</span>
               <div className={x.teammateChips}>
@@ -472,7 +742,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
           )}
 
-          {connectorLabel && (
+          {SHOW_OLD_FILTERS && connectorLabel && (
             <div className={clsx(s.lensBar, x.lensBarMt)}>
               <span className={s.lensLabel}>Lens:</span>
               <span className={x.savedView}>
@@ -501,6 +771,29 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
               <div className={s.relChips}>
+                {/* Binary-lens zone: Direct-only DS toggle, then the relationship pills. */}
+                <label className={x.directToggle}>
+                  Direct only
+                  <Switch.Root
+                    className={x.directSwitch}
+                    checked={pathSel.has('direct')}
+                    onCheckedChange={() => togglePathToken('direct')}
+                  >
+                    <Switch.Thumb className={x.directThumb} />
+                  </Switch.Root>
+                </label>
+                <span className={x.filterDivider} aria-hidden />
+                {/* Quick filter: only investors with a direct PL teammate route. */}
+                {SHOW_OLD_FILTERS && (
+                  <Tag
+                    value="Direct only"
+                    keyValue="direct-only"
+                    variant="secondary"
+                    selected={directOnly}
+                    className={x.relChip}
+                    callback={() => setDirectOnly((v) => !v)}
+                  />
+                )}
                 {REL_FILTERS.map(({ tier, label }) => (
                   <Tag
                     key={tier}
@@ -533,10 +826,9 @@ export default function WarmIntrosFilterUpdatePrototype() {
                   <th>Investor</th>
                   <th>Team</th>
                   <th>{INDUSTRY_SECTOR_LABEL}</th>
-                  <th>Stage</th>
-                  <th>Type</th>
                   <th>Relationship</th>
                   <th>Proximity</th>
+                  <th className={x.colPath}>Path</th>
                 </tr>
               </thead>
               <tbody>
@@ -581,14 +873,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
                           <MetaChips items={inv.sector_tags} max={3} />
                         </td>
                         <td>
-                          {inv.stage_focus !== 'unknown' ? (
-                            STAGE_FOCUS_LABEL[inv.stage_focus]
-                          ) : (
-                            <span className={s.muted}>—</span>
-                          )}
-                        </td>
-                        <td>{INVESTOR_TYPE_LABEL[inv.investor_type] ?? <span className={s.muted}>—</span>}</td>
-                        <td>
                           <div className={s.relCell}>
                             <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>
                             {inv.relationship === 'engaged' && inv.engagement_tier !== 'T4_cold' && (
@@ -597,22 +881,26 @@ export default function WarmIntrosFilterUpdatePrototype() {
                           </div>
                         </td>
                         <td>
+                          {hasProximity ? (
+                            <ProximityCodeBadge
+                              code={inv.best_proximity_code}
+                              cold={inv.has_path === false}
+                              confidence={bestPath?.caliber_confidence}
+                            />
+                          ) : (
+                            <span className={s.muted}>—</span>
+                          )}
+                        </td>
+                        <td>
                           <div className={x.bestPathCell}>
-                            {/* People-first: the warmest connector node + the proximity badge. */}
-                            <div className={x.pathRow}>
-                              {hasProximity ? (
-                                <ProximityCodeBadge
-                                  code={inv.best_proximity_code}
-                                  cold={inv.has_path === false}
-                                  confidence={bestPath?.caliber_confidence}
-                                />
-                              ) : (
-                                <span className={s.muted}>—</span>
-                              )}
-                              {bestPath && pathChainNodes(bestPath, inv).length > 0 && (
+                            {/* People-first: the warmest connector node chain. */}
+                            {bestPath && pathChainNodes(bestPath, inv).length > 0 ? (
+                              <div className={x.pathRow}>
                                 <PeopleChain nodes={pathChainNodes(bestPath, inv)} />
-                              )}
-                            </div>
+                              </div>
+                            ) : (
+                              <span className={s.muted}>—</span>
+                            )}
                             {inv.paths.length > 0 && (
                               <button
                                 type="button"

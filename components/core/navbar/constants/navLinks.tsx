@@ -11,7 +11,7 @@ import {
   DemoDayIcon,
   AnalyticsIcon,
   JobsIcon,
-  CPUIcons,
+  StarFourIcon,
 } from '../components/icons';
 
 export const INVESTOR_DB_LINK: ISubItem = {
@@ -113,7 +113,7 @@ export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
 };
 
 export const AI_APPS_LINK: ISubItem = {
-  icon: <CPUIcons />,
+  icon: <StarFourIcon />,
   href: '/pl-infra/ai-apps',
   title: 'AI Apps',
   description: 'AI Apps dashboard',

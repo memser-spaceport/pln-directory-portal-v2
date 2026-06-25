@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StarFourIcon } from '@/components/core/navbar/components/icons';
+import { CPUIcons } from '@/components/core/navbar/components/icons';
 import { NavItemWithMenu } from '@/components/core/navbar/components/NavItemWithMenu';
 
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
@@ -22,7 +22,7 @@ export function PLInfraNavItems(props: Props) {
     <NavItemWithMenu
       items={items}
       label="PL Infra"
-      icon={<StarFourIcon />}
+      icon={<CPUIcons />}
       onNavItemClickHandler={onNavItemClickHandler}
     />
   );

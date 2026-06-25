@@ -616,6 +616,7 @@
   position: sticky;
   left: 0;
   z-index: 2;
+  text-align: left;
 
   @media (max-width: 1023px) {
     position: static;

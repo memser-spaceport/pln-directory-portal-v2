@@ -86,7 +86,7 @@ function mapRouteNode(dto: AnyDto): RouteNode {
 
 function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
   const nodes = ((dto?.nodes ?? []) as AnyDto[]).map(mapHopNode);
-  const routeNodes = dto?.routeNodes ? ((dto.routeNodes as AnyDto[]).map(mapRouteNode)) : undefined;
+  const routeNodes = dto?.routeNodes ? (dto.routeNodes as AnyDto[]).map(mapRouteNode) : undefined;
   const edges = ((dto?.edges ?? []) as AnyDto[]).map((e) => ({
     from: e.from as string,
     to: e.to as string,
@@ -124,8 +124,8 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
     rank: (dto.rank ?? 0) as number,
     computed_at: dto.computedAt ?? undefined,
     corrections: ((dto.corrections ?? []) as AnyDto[]).map(mapCorrection),
-    contact: dto.contact ? mapContact(dto.contact as AnyDto) : undefined,
-    org_connector: dto.orgConnector ? mapOrgConnector(dto.orgConnector as AnyDto) : undefined,
+    contact: dto.hopChain?.contact ? mapContact(dto.hopChain.contact as AnyDto) : undefined,
+    org_connector: dto.hopChain?.orgConnector ? mapOrgConnector(dto.hopChain.orgConnector as AnyDto) : undefined,
   };
 }
 

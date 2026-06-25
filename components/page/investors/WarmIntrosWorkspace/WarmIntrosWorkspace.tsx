@@ -365,12 +365,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       //   cell: ({ row }) => INVESTOR_TYPE_LABEL[row.original.investor_type] ?? <span className={s.muted}>—</span>,
       //   size: 110,
       // },
-      {
-        id: 'relationship',
-        header: 'Relationship',
-        cell: ({ row }) => <RelationshipCell investor={row.original} />,
-        size: 130,
-      },
+      // {
+      //   id: 'relationship',
+      //   header: 'Relationship',
+      //   cell: ({ row }) => <RelationshipCell investor={row.original} />,
+      //   size: 130,
+      // },
       {
         id: 'proximity',
         header: 'Proximity',

@@ -31,9 +31,7 @@ import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
 
-async function Page(
-  props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }
-) {
+async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
   const searchParams = await props.searchParams;
   const params = await props.params;
   const teamId: string = params?.id;
@@ -124,7 +122,7 @@ async function Page(
     return (
       <div className={layoutStyles.layout}>
         <div className={`${styles?.teamDetail} ${layoutStyles.mainCol}`}>{teamDetailContent}</div>
-        <TeamNewsRail teamUid={teamId} teamName={team.name} initialData={teamNews} />
+        <TeamNewsRail teamUid={teamId} teamName={team.name ?? teamNews.teamName} initialData={teamNews} />
       </div>
     );
   }

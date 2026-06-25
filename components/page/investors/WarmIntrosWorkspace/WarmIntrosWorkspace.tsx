@@ -51,8 +51,13 @@ interface Props {
 const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'co_invested', label: 'Co-invested' },
   { tier: 'engaged', label: 'Engaged' },
-  { tier: 'cold_match', label: 'Cold' },
 ];
+
+function isDirectPath(inv: OutreachInvestor): boolean {
+  if (!inv.best_proximity_code) return false;
+  const m = inv.best_proximity_code.match(/\+(\d)/);
+  return m ? Number(m[1]) <= 1 : false;
+}
 
 const PAGE_LIMIT = 200;
 
@@ -174,13 +179,11 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   // ── Relationship lens (client chips, server filter) ─────────────────────────
   const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
-    co_invested: true,
-    engaged: true,
-    // Show cold by default: an LP pipeline is mostly prospects with NO co-invest
-    // or engagement relationship yet (their value is the warm PATH, not an existing
-    // relationship). Hiding cold emptied the whole table for the real neuro list.
-    cold_match: true,
+    co_invested: false,
+    engaged: false,
+    cold_match: false,
   });
+  const [directOnly, setDirectOnly] = useState(false);
 
   const enabled = access.canView && !!filters.wi_list_id;
 
@@ -239,9 +242,14 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   // Members already arrive connector-filtered from the server (task 04); the
   // relationship chips refine the loaded set further, client-side.
   const visible = useMemo(() => {
-    const rows = members.filter((m) => relFilter[relationshipTier(m)]);
+    const anyRelActive = relFilter.co_invested || relFilter.engaged;
+    const rows = members.filter((m) => {
+      if (anyRelActive && !relFilter[relationshipTier(m)]) return false;
+      if (directOnly && !isDirectPath(m)) return false;
+      return true;
+    });
     return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [members, relFilter]);
+  }, [members, relFilter, directOnly]);
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
@@ -345,18 +353,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         cell: ({ row }) => <SectorTagsList tags={row.original.sector_tags} max={3} />,
         size: 200,
       },
-      {
-        id: 'stage',
-        header: 'Stage',
-        cell: ({ row }) => STAGE_FOCUS_LABEL[row.original.stage_focus] ?? <span className={s.muted}>—</span>,
-        size: 110,
-      },
-      {
-        id: 'type',
-        header: 'Type',
-        cell: ({ row }) => INVESTOR_TYPE_LABEL[row.original.investor_type] ?? <span className={s.muted}>—</span>,
-        size: 110,
-      },
+      // {
+      //   id: 'stage',
+      //   header: 'Stage',
+      //   cell: ({ row }) => STAGE_FOCUS_LABEL[row.original.stage_focus] ?? <span className={s.muted}>—</span>,
+      //   size: 110,
+      // },
+      // {
+      //   id: 'type',
+      //   header: 'Type',
+      //   cell: ({ row }) => INVESTOR_TYPE_LABEL[row.original.investor_type] ?? <span className={s.muted}>—</span>,
+      //   size: 110,
+      // },
       {
         id: 'relationship',
         header: 'Relationship',
@@ -368,17 +376,25 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         header: 'Proximity',
         cell: ({ row }) => {
           const inv = row.original;
-          const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
-          if (!hasProximity) return <span className={s.muted}>—</span>;
+          if (!inv.best_proximity_code && inv.has_path !== false) return <span className={s.muted}>—</span>;
           return (
-            <div className={s.proximityCell}>
-              <div className={s.proximityTop}>
-                <ProximityCodeBadge
-                  code={inv.best_proximity_code}
-                  cold={inv.has_path === false}
-                  confidence={inv.best_route_score ?? undefined}
-                />
-              </div>
+            <ProximityCodeBadge
+              code={inv.best_proximity_code}
+              cold={inv.has_path === false}
+              confidence={inv.best_route_score ?? undefined}
+            />
+          );
+        },
+        size: 120,
+      },
+      {
+        id: 'path',
+        header: 'Path',
+        cell: ({ row }) => {
+          const inv = row.original;
+          if (!inv.best_route_nodes?.length && !inv.has_path) return <span className={s.muted}>—</span>;
+          return (
+            <div className={s.pathCell}>
               {inv.best_route_nodes && inv.best_route_nodes.length > 0 && (
                 <div className={s.miniRoute}>
                   {inv.best_route_nodes.map((n, i) => (
@@ -402,7 +418,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
           );
         },
-        size: 300,
+        size: 260,
       },
     ],
     [setFilters],
@@ -575,6 +591,13 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
             <div className={s.resultsActions}>
               <div className={s.relChips}>
+                <button
+                  type="button"
+                  className={clsx(s.relChip, directOnly && s.relChipOn)}
+                  onClick={() => setDirectOnly((v) => !v)}
+                >
+                  Direct only
+                </button>
                 {REL_FILTERS.map(({ tier, label }) => (
                   <button
                     key={tier}

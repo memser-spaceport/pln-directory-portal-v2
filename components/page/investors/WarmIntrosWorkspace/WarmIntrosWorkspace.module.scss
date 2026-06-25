@@ -832,6 +832,13 @@ thead .frozenName {
   gap: 6px;
 }
 
+.pathCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 
 .miniRoute {
   display: flex;

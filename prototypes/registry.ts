@@ -39,6 +39,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/warm-intros-filter-update/WarmIntrosFilterUpdatePrototype'),
   },
   {
+    key: 'teams',
+    title: 'Teams — listing page',
+    description:
+      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile.',
+    category: 'Teams',
+    load: () => import('./entries/teams/TeamsPrototype'),
+  },
+  {
+    key: 'team-profile',
+    title: 'Team profile',
+    description:
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components.',
+    category: 'Teams',
+    load: () => import('./entries/team-profile/TeamProfilePrototype'),
+  },
+  {
     key: 'warm-intros-columns',
     title: 'Warm intros — connection columns',
     description:

@@ -1,0 +1,292 @@
+@use 'styles/media';
+
+.page {
+  width: 100%;
+}
+
+/* Prototype-only demo switcher bar. */
+.demoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 1264px;
+  margin: 0 auto;
+  padding: 12px 16px;
+}
+
+.demoLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12px;
+}
+
+.demoSwitch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.demoBtn {
+  border: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.demoBtnActive {
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+}
+
+/* Two-column layout: team profile (main) + news rail (right) on desktop;
+   stacks vertically below tablet-landscape. */
+.layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px; /* match the gap between team sections (.teamDetail__container) */
+  width: 100%;
+  padding-bottom: 24px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 24px;
+    padding-bottom: 0;
+  }
+}
+
+/* The production .teamDetail uses width:100% + margin:0 auto, which as a flex
+   child eats all free space and pushes the rail far right. Neutralize it so the
+   layout gap (24px) is the real spacing, matching the member-profile rail. */
+.mainCol {
+  /* Mobile: news stacks right under Projects, so drop the page-bottom padding. */
+  padding-bottom: 0;
+
+  /* The production .teamDetail uses `margin: 0 auto; width: 100%`. In a flex row
+     those auto-margins eat the free space and shove the news rail to the far
+     right. Override wins via !important (CSS bundle order isn't guaranteed). */
+  @include media.tablet-landscape {
+    margin: 0 !important;
+    width: auto !important;
+    flex-shrink: 0;
+    padding-bottom: 40px;
+  }
+}
+
+.rail {
+  width: 100%;
+  max-width: 900px;
+
+  @include media.tablet-landscape {
+    width: 340px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 16px;
+  }
+}
+
+/* Desktop only: nudges the news panel down to the first team section's line.
+   On mobile the rail stacks under the profile, so no spacer is needed. */
+.railSpacer {
+  height: 0;
+
+  /* Desktop: align the news card's top with the first team section. */
+  @include media.tablet-landscape {
+    height: 64px;
+  }
+}
+
+/* Transparent panel: just the "News" header + the homepage news cards, with no
+   filled card wrapping them. */
+.newsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* Filled card, matching the team section cards. */
+  background: var(--Neutral-White, #fff);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  /* Matches the team-detail section-title style (16px/600), darker than the
+     default DetailsSectionHeader. */
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    color: var(--foreground-neutral-primary, #0f172a);
+  }
+}
+
+/* Fixed-height, internally scrolling news list so the rail never grows past the
+   viewport. A little right padding keeps the scrollbar off the cards. */
+/* Outlined card — used in the modal grid. */
+.cardOutline {
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.16));
+}
+
+/* Flat row with a divider — used in the rail list. */
+.flatNews {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  padding: 16px 0;
+
+  &:hover {
+    box-shadow: none;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:not(:first-child) {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+.newsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  /* In a flex column the cards would shrink and clip their headline/meta;
+     keep their natural height. */
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+/* Full-feed modal — bounded height, header pinned, body scrolls. Cards keep the
+   exact same NewsCard styling as the rail. */
+.newsModal {
+  display: flex;
+  flex-direction: column;
+  width: 920px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  background: var(--Neutral-White, #fff);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Wraps the production SearchInput; spacing above (header) and below (cards). */
+.modalSearchWrap {
+  margin: 16px 20px 20px;
+  flex-shrink: 0;
+}
+
+.modalEmpty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+}
+
+/* Modal-only: single column on mobile, two cards per row once there's room. */
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @include media.tablet-portrait {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  color: var(--foreground-neutral-primary, #0f172a);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.modalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.modalBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+.viewAll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--Neutral-White, #fff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* Plain "Discuss" link replacing the store-bound StartConversationButton. */
+.discuss {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}

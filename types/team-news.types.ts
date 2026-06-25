@@ -74,6 +74,15 @@ export interface ITeamNewsListResponse {
   items: ITeamNewsItem[];
 }
 
+export interface ITeamNewsByTeamResponse {
+  teamUid: string;
+  teamName: string;
+  page: number;
+  limit: number;
+  total: number;
+  items: ITeamNewsItem[];
+}
+
 export interface ITeamNewsFiltersResponse {
   eventType: Array<{ value: string; count: number }>;
   focus: Array<{ value: string; count: number }>;

@@ -24,6 +24,12 @@ import { TeamInvestorDetails } from '@/components/page/team-details/TeamInvestor
 import { TeamMembershipSource, TeamCommunitiesSection } from '@/components/page/team-details/TeamsTagsListSection';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { TeamFocusAreas } from '@/components/page/team-details/TeamFocusAreas';
+import { TeamNewsRail } from '@/components/page/team-details/TeamNews';
+import { fetchTeamNewsByTeam } from '@/services/team-news/team-news.service';
+import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
+import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
+import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
+import layoutStyles from './TeamProfileLayout.module.scss';
 
 async function Page(
   props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }
@@ -44,6 +50,7 @@ async function Page(
     isError,
     isNotFound,
     hasEditAsksAccess,
+    teamNews,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -68,55 +75,67 @@ async function Page(
     !!team?.dataEnrichment?.isAIGenerated &&
     team?.dataEnrichment?.status !== 'Reviewed';
 
-  return (
+  const showNewsRail = hasTeamNewsItems(teamNews);
+
+  const teamDetailContent = (
     <>
-      <div className={styles?.teamDetail}>
-        <BackButton to={backTo} />
-        <div className={styles?.teamDetail__container}>
-          {/* Details */}
-          <div className={styles?.teamDetail__Container__details}>
-            {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-            <TeamDetails team={team} />
-          </div>
-
-          {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
-
-          {/* contact */}
-          <div className={styles?.teamDetail__container__contact}>
-            <TeamContactInfo team={team} />
-          </div>
-
-          <TeamMembershipSource team={team} />
-          <TeamCommunitiesSection team={team} />
-
-          {/* Irl Contribuions */}
-          {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
-            <div className={styles?.teamDetail__irlContributions}>
-              <TeamIrlContributions team={team} members={members} teamId={teamId} />
-            </div>
-          )}
-          {/* Member */}
-          <div className={styles?.teamDetail__container__member}>
-            <TeamMembers team={team} members={members} />
-          </div>
-
-          <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
-
-          <TeamProjects
-            isLoggedIn={isLoggedIn}
-            projects={teamProjectList}
-            team={team}
-            hasProjectsEditAccess={hasProjectsEditAccess}
-          />
+      <BackButton to={backTo} />
+      <div className={styles?.teamDetail__container}>
+        {/* Details */}
+        <div className={styles?.teamDetail__Container__details}>
+          {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
+          <TeamDetails team={team} />
         </div>
+
+        {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
+
+        {/* contact */}
+        <div className={styles?.teamDetail__container__contact}>
+          <TeamContactInfo team={team} />
+        </div>
+
+        <TeamMembershipSource team={team} />
+        <TeamCommunitiesSection team={team} />
+
+        {/* Irl Contribuions */}
+        {(team.eventGuests?.length > 0 || team.associations?.length > 0) && (
+          <div className={styles?.teamDetail__irlContributions}>
+            <TeamIrlContributions team={team} members={members} teamId={teamId} />
+          </div>
+        )}
+        {/* Member */}
+        <div className={styles?.teamDetail__container__member}>
+          <TeamMembers team={team} members={members} />
+        </div>
+
+        <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
+
+        <TeamProjects
+          isLoggedIn={isLoggedIn}
+          projects={teamProjectList}
+          team={team}
+          hasProjectsEditAccess={hasProjectsEditAccess}
+        />
       </div>
     </>
   );
+
+  if (showNewsRail && teamNews) {
+    return (
+      <div className={layoutStyles.layout}>
+        <div className={`${styles?.teamDetail} ${layoutStyles.mainCol}`}>{teamDetailContent}</div>
+        <TeamNewsRail teamUid={teamId} teamName={team.name} initialData={teamNews} />
+      </div>
+    );
+  }
+
+  return <div className={styles?.teamDetail}>{teamDetailContent}</div>;
 }
 
 export default Page;
 
 async function getPageData(teamId: string) {
+  let teamNews: ITeamNewsByTeamResponse | null = null;
   const { userInfo, authToken, isLoggedIn } = await getCookiesFromHeaders();
 
   let team: ITeam = {
@@ -161,7 +180,7 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse, focusAreaResponse] = await Promise.all([
+    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse] = await Promise.all([
       getTeam(
         teamId,
         {
@@ -183,7 +202,9 @@ async function getPageData(teamId: string) {
         isLoggedIn,
       ),
       getFocusAreas('Team', {}),
+      fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
     ]);
+    teamNews = teamNewsResponse;
 
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
@@ -256,6 +277,7 @@ async function getPageData(teamId: string) {
       teamProjectList,
       hasProjectsEditAccess,
       hasEditAsksAccess,
+      teamNews,
     };
   } catch (error: any) {
     console.error(error);

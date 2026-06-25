@@ -34,6 +34,7 @@ import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMem
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
+import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
 
 const shouldShowInvestorProfileForThirdParty = (
@@ -101,7 +102,9 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const showOtherConnectOptions =
     !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
   const { hasAccess: hasAffinityAccess } = useAffinityAccess();
-  const showSidebar = showOtherConnectOptions || hasAffinityAccess;
+  const { data: affinityData, isLoading: affinityLoading } = useAffinityMember(memberId, hasAffinityAccess);
+  const hasAffinityContent = hasAffinityAccess && (affinityLoading || (!!affinityData && !affinityData.relationship.empty));
+  const showSidebar = showOtherConnectOptions || hasAffinityContent;
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 

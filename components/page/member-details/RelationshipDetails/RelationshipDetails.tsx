@@ -50,7 +50,7 @@ export function RelationshipDetails({ memberUid }: Props) {
   const { owner, last_contact, frequency_tier, touchpoints_6m, window_months } = data.relationship;
 
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: s.root }}>
       <DetailsSectionHeader title="Relationship" />
 
       <div className={s.blocks}>

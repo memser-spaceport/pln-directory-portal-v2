@@ -10,7 +10,7 @@ import { getUserInfoFromLocal } from '@/utils/common.utils';
 import styles from './rights-tokens-dashboard.module.css';
 
 /* ==========================================================================
-   Rights & Tokens Dashboard
+   Token Visibility Module (Rights & Tokens Dashboard)
    ========================================================================== */
 
 function getWelcomeDisplayName(user: IUserInfo | null): string {
@@ -28,13 +28,15 @@ function getWelcomeDisplayName(user: IUserInfo | null): string {
 }
 
 const TOOLTIP_CONTENT = {
-  total: 'Combined Rights & Tokens available to bid in Buyback Auctions.',
-  rights: 'Combined Rights & Tokens available to bid in Buyback Auctions.',
-  tokens: 'Alignment Asset Tokens currently available in your account.',
-  sold: 'Total Tokens sold through completed Buyback Auction events.',
+  total: 'Combined Rights & Tokens Available to Bid in Buyback Auctions',
+  rights: 'Rights to Tokens Available to Bid in Buyback Auctions',
+  tokens: 'Tokens Available to Bid in Buyback Auctions',
+  sold: 'Cumulative Tokens Sold During Buybacks',
 } as const;
 
 function formatLastUpdated(dateString: string): string {
+  if (!dateString) return '';
+
   try {
     const date = new Date(dateString);
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -57,7 +59,7 @@ function formatLastUpdated(dateString: string): string {
     const minute = get('minute');
     const dayPeriod = get('dayPeriod').toUpperCase();
 
-    return `LAST UPDATED ${month} ${day}, ${year} • ${hour}:${minute} ${dayPeriod} MT`;
+    return `BALANCES LAST UPDATED ON ${month} ${day}, ${year} • ${hour}:${minute} ${dayPeriod} MT`;
   } catch {
     return '';
   }
@@ -108,10 +110,10 @@ function StatCard({ icon, label, value, tooltip }: StatCardProps) {
 export default function RightsTokensDashboard() {
   const [isExpanded, setIsExpanded] = useState(true);
   const currentUser = useCurrentUserStore((state) => state.currentUser);
-  const { data, isLoading, error } = useRightsTokensBalance();
+  const { data, isLoading } = useRightsTokensBalance();
 
   if (isLoading) return null;
-  if (!data || error) return null;
+  if (!data) return null;
 
   const displayName = getWelcomeDisplayName(currentUser);
   const lastUpdatedLabel = formatLastUpdated(data.lastUpdated);
@@ -198,7 +200,7 @@ export default function RightsTokensDashboard() {
               <Image src="/icons/rounds/info-gray.svg" alt="" width={16} height={16} />
             </span>
             <p className={styles['rights-tokens-dashboard__notice-text']}>
-              Rights and token balances displayed here are determined by Surus.
+              Token balances displayed here are determined by the Trust (not Polaris or PLCS).
             </p>
           </div>
         </div>

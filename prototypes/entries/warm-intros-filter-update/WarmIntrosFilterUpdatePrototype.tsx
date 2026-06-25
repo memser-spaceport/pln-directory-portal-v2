@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import {
   CHECK_SIZE_RANGES,
@@ -14,7 +14,6 @@ import {
 import type { CheckSizeRange, InvestorList, SectorTag, StageFocus, WarmIntroTier } from '@/services/investors/types';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { EngagementTierBadge } from '@/components/page/investors/EngagementTierBadge/EngagementTierBadge';
-import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { Tag } from '@/components/ui/Tag/Tag';
 import { ListPicker } from '@/components/page/investors/WarmIntrosWorkspace/ListPicker';
 import { GlossaryModal } from '@/components/page/investors/WarmIntrosWorkspace/GlossaryModal';
@@ -22,11 +21,20 @@ import { Drawer } from '@/components/common/Drawer/Drawer';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 // Reuse the production workspace styling so the prototype tracks production 1:1.
 import s from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
-import { DEFAULT_LIST_ID, MOCK_INVESTOR_LISTS, MOCK_LISTS, MOCK_MEMBERS, pathChainNodes, type MockInvestor } from './mocks';
+import {
+  DEFAULT_LIST_ID,
+  MOCK_INVESTOR_LISTS,
+  MOCK_LISTS,
+  MOCK_MEMBERS,
+  firstNodeConnectors,
+  matchesFirstNode,
+  pathChainNodes,
+  type MockInvestor,
+} from './mocks';
 import { PeopleChain } from './PeopleChain';
-import { ArrowUpRightIcon } from '@/components/icons';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import { WorkspaceSearch } from './WorkspaceSearch';
-import { InvestorDrawerMock } from './InvestorDrawerMock';
+import { InvestorDrawerMock, InLabOsPill, TeamInline } from './InvestorDrawerMock';
 import { AddToListButton } from './AddToListButton';
 import x from './WarmIntrosImprovements.module.scss';
 
@@ -41,10 +49,71 @@ const VISUAL_TABS = [
   { value: 'warm-intros', label: 'Warm Intros' },
 ];
 
+// Relationship keeps its color coding — it's a meaningful signal.
 function relationshipMeta(rel: WarmIntroTier): { label: string; cls: string } {
   if (rel === 'co_invested') return { label: 'Co-invested', cls: s.relCo };
   if (rel === 'engaged') return { label: 'Engaged', cls: s.relEngaged };
   return { label: 'Cold', cls: s.relCold };
+}
+
+// Team cell: firm + role, then the investor's other teams via the SAME "+N more"
+// expander used in the drawer (TeamInline links + teamMoreBtn), placed after the role.
+function TeamCell({ investor }: { investor: MockInvestor }) {
+  const teams = investor.teams ?? [];
+  const [expanded, setExpanded] = useState(false);
+  const extra = teams.length - 1;
+  return (
+    <>
+      <div className={s.teamCell}>{investor.firm || <span className={s.muted}>—</span>}</div>
+      {investor.title && <div className={s.subtle}>{investor.title}</div>}
+      {extra > 0 && (
+        <div className={x.teamAffil}>
+          {expanded &&
+            teams.slice(1).map((t, i) => (
+              <Fragment key={t.teamUid ?? t.name}>
+                {i > 0 && (
+                  <span className={x.teamDivider} aria-hidden>
+                    ·
+                  </span>
+                )}
+                <TeamInline team={t} />
+              </Fragment>
+            ))}
+          <button
+            type="button"
+            className={x.teamMoreBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? 'Show less' : `+${extra} more`}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Neutral, unified chip for low-priority meta (industry/sector, source).
+export function MetaChips({ items, max = 3 }: { items: readonly string[]; max?: number }) {
+  if (!items || items.length === 0) return <span className={s.muted}>—</span>;
+  const visible = items.slice(0, max);
+  const overflow = items.length - visible.length;
+  return (
+    <span className={x.metaChips}>
+      {visible.map((t) => (
+        <span key={t} className={x.metaChip}>
+          {t}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className={x.metaChip} title={items.slice(max).join(', ')}>
+          +{overflow}
+        </span>
+      )}
+    </span>
+  );
 }
 
 // Warmer first: caliber A < B < none, then fewer hops; cold (no path) last.
@@ -94,7 +163,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const [currentListId, setCurrentListId] = useState(DEFAULT_LIST_ID);
   const [drawerId, setDrawerId] = useState<string | null>(null);
 
-  const [draft, setDraft] = useState<Draft>({ stage: '', sectors: [], check: '' });
+  const [draft, setDraft] = useState<Draft>({ stage: '', sectors: [] , check: '' });
   const [applied, setApplied] = useState<Draft>({ stage: '', sectors: [], check: '' });
   const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
     co_invested: true,
@@ -102,6 +171,9 @@ export default function WarmIntrosFilterUpdatePrototype() {
     cold_match: true,
   });
   const [connectorLabel, setConnectorLabel] = useState<string | null>(null);
+  // Feature 1: quick multi-select of PL teammates (first-node). Applies live (no
+  // Apply step) so it feels like the relationship chips — pick several at once.
+  const [teammates, setTeammates] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
@@ -123,6 +195,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setDrawerId(null);
     setSelectedIds(new Set());
     setConnectorLabel(null);
+    setTeammates(new Set());
   };
 
   const applyFilters = () => setApplied(draft);
@@ -130,8 +203,16 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setDraft({ stage: '', sectors: [], check: '' });
     setApplied({ stage: '', sectors: [], check: '' });
     setConnectorLabel(null);
+    setTeammates(new Set());
     setSelectedIds(new Set());
   };
+
+  const toggleTeammate = (name: string) =>
+    setTeammates((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
 
   const toggleDraftSector = (sec: SectorTag) =>
     setDraft((d) => ({
@@ -157,11 +238,16 @@ export default function WarmIntrosFilterUpdatePrototype() {
     if (applied.check) rows = rows.filter((m) => m.check_size_range === (applied.check as CheckSizeRange));
     if (applied.sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => applied.sectors.includes(t)));
     rows = rows.filter((m) => relFilter[m.relationship]);
+    // Multi-select teammates: keep investors reachable via ANY selected teammate.
+    if (teammates.size) rows = rows.filter((m) => [...teammates].some((name) => matchesFirstNode(m, name)));
     if (connectorLabel) rows = rows.filter((m) => matchesConnector(m, connectorLabel));
     return rows
       .slice()
       .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [onList, applied, relFilter, connectorLabel]);
+  }, [onList, applied, relFilter, connectorLabel, teammates]);
+
+  // Connector pivots are derived from the live membership of the current list.
+  const teamChips = useMemo(() => firstNodeConnectors(members, currentListId), [members, currentListId]);
 
   // Clear only does something when a filter is actually set (draft, applied, or
   // an active connector lens) — disable it otherwise so it's not dead UI.
@@ -172,6 +258,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     !!applied.stage ||
     !!applied.check ||
     applied.sectors.length > 0 ||
+    teammates.size > 0 ||
     !!connectorLabel;
 
   const totalOnList = members.filter((m) => m.list_ids.includes(currentListId)).length;
@@ -358,9 +445,36 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
           </div>
 
+          {/* Feature 1 — quick multi-select of PL teammates (first node of a path).
+              Toggle several at once; filters live, no Apply needed. */}
+          {teamChips.length > 0 && (
+            <div className={x.teammateFilter}>
+              <span className={x.inlineLabel}>Teammate</span>
+              <div className={x.teammateChips}>
+                {/* Production Tag (same as the relationship chips); count folded into the label. */}
+                {teamChips.map((c) => (
+                  <Tag
+                    key={c.name}
+                    value={`${c.name} · ${c.count}`}
+                    keyValue={c.name}
+                    variant="secondary"
+                    selected={teammates.has(c.name)}
+                    className={x.relChip}
+                    callback={() => toggleTeammate(c.name)}
+                  />
+                ))}
+                {teammates.size > 0 && (
+                  <button type="button" className={x.teammateClear} onClick={() => setTeammates(new Set())}>
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {connectorLabel && (
             <div className={clsx(s.lensBar, x.lensBarMt)}>
-              <span className={s.lensLabel}>Connector lens:</span>
+              <span className={s.lensLabel}>Lens:</span>
               <span className={x.savedView}>
                 <span className={x.lensChipText}>
                   paths through <strong>{connectorLabel}</strong>
@@ -447,8 +561,11 @@ export default function WarmIntrosFilterUpdatePrototype() {
                         <td>
                           <div className={x.nameCellRow}>
                             <div>
-                              <div className={s.nameCell}>
-                                {inv.first_name} {inv.last_name}
+                              <div className={x.nameWithBadge}>
+                                <span className={s.nameCell}>
+                                  {inv.first_name} {inv.last_name}
+                                </span>
+                                <InLabOsPill profile={inv.lab_os_profile ?? null} />
                               </div>
                               <div className={s.subtle}>{inv.email}</div>
                             </div>
@@ -458,11 +575,10 @@ export default function WarmIntrosFilterUpdatePrototype() {
                           </div>
                         </td>
                         <td>
-                          <div className={s.teamCell}>{inv.firm || <span className={s.muted}>—</span>}</div>
-                          {inv.title && <div className={s.subtle}>{inv.title}</div>}
+                          <TeamCell investor={inv} />
                         </td>
                         <td>
-                          <SectorTagsList tags={inv.sector_tags} max={3} />
+                          <MetaChips items={inv.sector_tags} max={3} />
                         </td>
                         <td>
                           {inv.stage_focus !== 'unknown' ? (
@@ -482,8 +598,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                         </td>
                         <td>
                           <div className={x.bestPathCell}>
-                            {/* People-first: the warmest connector node (investor node
-                                dropped since the row is them) + the proximity badge. */}
+                            {/* People-first: the warmest connector node + the proximity badge. */}
                             <div className={x.pathRow}>
                               {hasProximity ? (
                                 <ProximityCodeBadge
@@ -552,7 +667,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                     <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>
                     <span className={x.mCardFirm}>{inv.firm || '—'}</span>
                   </div>
-                  <SectorTagsList tags={inv.sector_tags} max={4} />
+                  <MetaChips items={inv.sector_tags} max={4} />
                   {bestPath && pathChainNodes(bestPath, inv).length > 0 && <PeopleChain nodes={pathChainNodes(bestPath, inv)} />}
                 </div>
               );

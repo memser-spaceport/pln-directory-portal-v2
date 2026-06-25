@@ -17,15 +17,14 @@ import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitBut
 import { RoadmapCardContent } from './RoadmapCardStatic';
 import { PrototypeRoadmapFilters } from './PrototypeRoadmapFilters';
 import type { RoadmapColumnStage } from '@/components/page/gantry/roadmap/RoadmapFilters';
-import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
 import FilterCount from '@/components/ui/filter-count';
 import { useIsNarrow } from '@/hooks/useIsNarrow';
 import { useRoadmapMobileNav } from '@/components/page/gantry/roadmap/hooks/useRoadmapMobileNav';
 import type { SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { hasRichTextContent } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
-import { CheckIcon, CloseIcon } from '@/components/icons';
-import { DEFAULT_ROADMAP_VISIBLE_COLUMNS, sortRoadmapColumnStages } from '@/services/gantry/constants';
+import { CheckIcon, CloseIcon, PlusIcon } from '@/components/icons';
+import { DEFAULT_ROADMAP_VISIBLE_COLUMNS, GANTRY_STAGE_LABELS, sortRoadmapColumnStages } from '@/services/gantry/constants';
 import type { GantryItem, GantryItemType, GantryStage } from '@/services/gantry/types';
 
 // Production roadmap + submit-button styles — reused so the prototype chrome matches 1:1.
@@ -34,6 +33,9 @@ import ideas from '@/components/page/gantry/ideas/Ideas.module.scss';
 // Real submit-modal chrome, reused (read-only) exactly as production SubmitIdeaModal composes it.
 import submitIdea from '@/components/page/gantry/ideas/SubmitIdeaModal/SubmitIdeaModal.module.scss';
 import dealModal from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
+// Reused stage-color dots (same source the filter's Stages section uses) so the mobile stage
+// switcher stays consistent with the rest of the gantry chrome.
+import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.scss';
 import {
   mockBoardItems,
   mockCurrentUser,
@@ -197,15 +199,6 @@ function ResumeIcon(props?: SVGProps<SVGSVGElement>) {
   );
 }
 
-// Mirrors the production mobile "Filters" button icon.
-function FiltersIcon() {
-  return (
-    <svg className={roadmap.filtersButtonIcon} viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M2 4h12M4.5 8h7M7 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export default function GantrySavedDraftItemPrototype() {
   const [items, setItems] = useState<GantryItem[]>(mockBoardItems);
   const [draft, setDraft] = useState<MockSavedGantryDraft | null>(mockSavedGantryDraft);
@@ -319,6 +312,10 @@ export default function GantrySavedDraftItemPrototype() {
     selectedTags.length + selectedTypes.length + (selectedObjective ? 1 : 0) + (searchText.trim() ? 1 : 0);
 
   const draftTitle = draft?.form.title.trim() || 'Untitled Gantry request';
+
+  // Saved-draft banner/chip hidden for now (per request) — the draft is still reachable via the
+  // header's "Resume draft" button. Flip to re-enable the above-board banner + mobile chip.
+  const showDraftBanner = false;
 
   // Save badge inside the form: short, precise, from the design system — not an alert.
   const saveBadge =
@@ -496,7 +493,7 @@ export default function GantrySavedDraftItemPrototype() {
           </div>
         </div>
 
-        {draftBanner}
+        {showDraftBanner && draftBanner}
 
         <div className={roadmap.boardScroll}>
           <div
@@ -533,10 +530,13 @@ export default function GantrySavedDraftItemPrototype() {
                 {boostStatusIndicator}
               </div>
               <div className={clsx(roadmap.mobileActionsRow, s.mobileActionsSpacing)}>
-                <button type="button" className={roadmap.filtersButton} onClick={() => setFiltersOpen(true)}>
-                  <FiltersIcon />
+                {/* Match the shared mobile Filters trigger (MobileFilterWrapper): white pill +
+                    soft shadow, ⊕ plus icon, inline "(N)" count — not gantry's bordered
+                    filter-lines button. */}
+                <button type="button" className={s.mobileFiltersButton} onClick={() => setFiltersOpen(true)}>
+                  <PlusIcon color="#455468" />
                   Filters
-                  {appliedFiltersCount > 0 && <span className={roadmap.filtersButtonBadge}>{appliedFiltersCount}</span>}
+                  {appliedFiltersCount > 0 && <span>&nbsp;({appliedFiltersCount})</span>}
                 </button>
                 {createButton}
               </div>
@@ -547,19 +547,39 @@ export default function GantrySavedDraftItemPrototype() {
           </div>
         </div>
 
-        {draftChip}
+        {showDraftBanner && draftChip}
 
         {visibleColumns.length === 0 ? (
           <p className={roadmap.empty}>Select at least one column to view the roadmap.</p>
         ) : (
           <>
-            <div ref={tabsWrapperRef} className={roadmap.mobileTabs}>
-              <Tabs
-                tabs={visibleColumns.map((stage) => ({ value: stage, label: <StageBadge stage={stage} /> }))}
-                value={effectiveActiveColumn ?? visibleColumns[0]}
-                onValueChange={(v) => handleTabChange(v as RoadmapColumnStage)}
-                classes={{ tab: roadmap.mobileTab }}
-              />
+            {/* Mobile stage switcher: clean underline tabs (stage-color dot + label + count)
+                instead of a row of filled status-chips — chips read as status/filters, not nav.
+                Keeps the hook's DOM contract: the scroll track is firstElementChild and each tab
+                is role="tab". */}
+            <div ref={tabsWrapperRef} className={clsx(roadmap.mobileTabs, s.stageNav)}>
+              <div className={s.stageNavTrack} role="tablist" aria-label="Roadmap stages">
+                {visibleColumns.map((stage) => {
+                  const isActive = (effectiveActiveColumn ?? visibleColumns[0]) === stage;
+                  return (
+                    <button
+                      key={stage}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={clsx(s.stageNavTab, isActive && s.stageNavTabActive)}
+                      onClick={() => handleTabChange(stage)}
+                    >
+                      <span
+                        className={clsx(filterStyles.stageFilterDot, filterStyles[`stageFilterDot_${stage}`])}
+                        aria-hidden
+                      />
+                      <span className={s.stageNavLabel}>{GANTRY_STAGE_LABELS[stage]}</span>
+                      <span className={s.stageNavCount}>{itemsByStage[stage]?.length ?? 0}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div ref={scrollContainerRef} className={roadmap.mobileScrollContainer}>
               {visibleColumns.map((stage) => (
@@ -596,11 +616,6 @@ export default function GantrySavedDraftItemPrototype() {
               {appliedFiltersCount > 0 && <FilterCount count={appliedFiltersCount} />}
             </>
           }
-          headerAction={
-            <button type="button" className={roadmap.drawerClearAllBtn} onClick={clearFilters}>
-              Clear all
-            </button>
-          }
         >
           <PrototypeRoadmapFilters
             visibleColumns={visibleColumns}
@@ -615,6 +630,17 @@ export default function GantrySavedDraftItemPrototype() {
             selectedObjective={selectedObjective}
             onSelectedObjectiveChange={setSelectedObjective}
           />
+          {/* Common mobile-filter footer — sticky Clear + Apply actions, matching the shared
+              MobileFilterWrapper used by Members / Teams / Jobs (gantry was the outlier with a
+              header "Clear all" link and no Apply button). */}
+          <div className={s.mobileFilterFooter}>
+            <Button style="border" variant="neutral" className={s.mobileFilterFooterBtn} onClick={clearFilters}>
+              Clear filters
+            </Button>
+            <Button className={s.mobileFilterFooterBtn} onClick={() => setFiltersOpen(false)}>
+              Apply filters
+            </Button>
+          </div>
         </MobileDrawer>
       )}
 

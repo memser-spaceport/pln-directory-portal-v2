@@ -1,0 +1,116 @@
+@use 'styles/media';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--app-header-height));
+  width: 100%;
+  padding: 24px 16px 40px;
+
+  @include media.tablet-landscape {
+    padding: 32px 40px 40px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include media.tablet-landscape {
+    font-size: 32px;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+  }
+}
+
+.description {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.author {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: #64748b;
+
+  span {
+    font-weight: 500;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.actions {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.openButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: #156ff7;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #0f5fd4;
+  }
+}
+
+.iframeContainer {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}

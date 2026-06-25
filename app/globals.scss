@@ -142,7 +142,8 @@ button {
   font-family: inherit;
 }
 
-::backdrop {
+/* Exclude Playwright codegen overlay (x-pw-glass) from backdrop blur */
+*:not(x-pw-glass)::backdrop {
   display: flex;
   align-items: center;
   -webkit-backdrop-filter: blur(15px);

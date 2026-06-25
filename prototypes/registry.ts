@@ -23,6 +23,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/gantry-saved-draft-item/GantrySavedDraftItemPrototype'),
   },
   {
+    key: 'founder-db',
+    title: 'Founder DB — ranking improvements',
+    description:
+      'Alignment as its own tier-colored column (segmented meter + %), a "Strong fit · top 10" band, rank numbers, default Sort by Alignment, row checkboxes with bulk approve/export, and a drawer with a top fit-summary and sticky Approve footer.',
+    category: 'Founder DB',
+    load: () => import('./entries/founder-db/FounderDbPrototype'),
+  },
+  {
     key: 'warm-intros-filter-update',
     title: 'Warm intros update',
     description:
@@ -45,6 +53,21 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
+  },
+  {
+    key: 'warm-intros-columns',
+    title: 'Warm intros — connection columns',
+    description:
+      'Investor spine with Proximity + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-columns/WarmIntrosColumnsPrototype'),
+  },
+  {
+    key: 'warm-path-states',
+    title: 'Warm path — states reference',
+    description: 'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

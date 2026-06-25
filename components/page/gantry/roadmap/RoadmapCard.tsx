@@ -36,6 +36,7 @@ interface CardContentProps {
   readonly item: GantryItem;
   readonly position?: number;
   readonly dragHandleProps?: SyntheticListenerMap;
+  readonly dragHandleRef?: (el: HTMLButtonElement | null) => void;
   readonly showDragIndicator?: boolean;
   readonly canPin: boolean;
   readonly onPinToggle: (uid: string, next: boolean, el: HTMLButtonElement) => void;
@@ -51,8 +52,9 @@ function RoadmapCardContent({
   item,
   position,
   dragHandleProps,
+  dragHandleRef,
   showDragIndicator,
-  canPin,
+  canPin: _canPin,
   onPinToggle,
   isPinDisabled,
   canCurate,
@@ -69,8 +71,10 @@ function RoadmapCardContent({
         <div className={s.cardPositionBadge}>
           {dragHandleProps ? (
             <button
+              ref={dragHandleRef}
               type="button"
               className={s.dragHandle}
+              style={{ touchAction: 'none' }}
               {...dragHandleProps}
               onClick={(e) => e.stopPropagation()}
               aria-label="Drag to move"
@@ -165,15 +169,13 @@ function RoadmapCardContent({
 interface Props extends CardContentProps {
   readonly isAdminOrdering: boolean;
   readonly canDrag: boolean;
-  readonly isMobile?: boolean;
 }
 
 export function RoadmapCard({
   item,
   position,
-  isAdminOrdering,
+  isAdminOrdering: _isAdminOrdering,
   canDrag,
-  isMobile,
   canPin,
   onPinToggle,
   isPinDisabled,
@@ -184,7 +186,7 @@ export function RoadmapCard({
   isTransitionPending,
 }: Props) {
   const cardNavigate = useGantryCardNavigate(item.uid);
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: item.uid,
     data: { stage: item.stage },
     disabled: !canDrag,
@@ -194,9 +196,6 @@ export function RoadmapCard({
     transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.35 : 1,
-    // Required for dnd-kit TouchSensor: without this the browser's scroll handler
-    // claims the touch gesture before the 300ms delay can complete.
-    ...(isMobile && canDrag ? { touchAction: 'none' as const } : {}),
   };
 
   return (
@@ -205,9 +204,6 @@ export function RoadmapCard({
       className={clsx(s.card, canDrag && s.cardOrdering)}
       style={style}
       {...attributes}
-      // On mobile: listeners on the card container so long-press anywhere activates drag.
-      // On desktop: listeners go to the drag handle button via dragHandleProps.
-      {...(isMobile && canDrag ? listeners : {})}
       {...cardNavigate}
       onClick={(e) => {
         if (isDragging) return;
@@ -217,8 +213,9 @@ export function RoadmapCard({
       <RoadmapCardContent
         item={item}
         position={position}
-        dragHandleProps={!isMobile && canDrag ? listeners : undefined}
-        showDragIndicator={isMobile && canDrag}
+        dragHandleProps={canDrag ? listeners : undefined}
+        dragHandleRef={canDrag ? setActivatorNodeRef : undefined}
+        showDragIndicator={false}
         canPin={canPin}
         onPinToggle={onPinToggle}
         isPinDisabled={isPinDisabled}

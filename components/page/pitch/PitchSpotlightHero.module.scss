@@ -36,6 +36,14 @@
   width: 100%;
 }
 
+.prepLabel {
+  margin: 0 auto 4px;
+  font-size: 24px;
+  color: #798391;
+  font-weight: 600;
+  text-align: center;
+}
+
 .title {
   margin: 0;
   margin-bottom: 12px;
@@ -69,22 +77,18 @@
   }
 }
 
-.description {
+.description,
+.spotlightLine,
+.body,
+.footer {
   width: 100%;
-  text-align: left;
+  text-align: center;
 
   :is(ul, ol) {
     text-align: left;
     display: inline-block;
     list-style-position: outside;
   }
-}
-
-.spotlightLine,
-.body,
-.footer {
-  width: 100%;
-  text-align: left;
 }
 
 .body,

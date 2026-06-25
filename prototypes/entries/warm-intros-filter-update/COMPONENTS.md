@@ -35,6 +35,12 @@ markup replicated because the source isn't exported. **New** = prototype-only, n
 - `MockPath` — one route. `contact?` (person) **or** `orgConnector` (org). `chain` is kept only for the connector-lens search.
 - `RouteNode` / `connectorNode(path)` / `investorNode(inv)` / `pathChainNodes(path, inv)` — build the chain shown in the table (`[connector, investor]`).
 - `fourCasePaths(firstName, firm)` + the `MOCK_MEMBERS` map — **demo scaffolding**: every path-having investor is given the standard case set so all states are visible. Real data will have organic per-investor paths; drop this factory when wiring real data.
+- `decorateGeneric()` — gives non-showcase rows a named PL teammate as the first node (`PL_CONNECTORS`). `augmentFounders()` then appends founder-led paths to ALL rows from a large `FOUNDERS` roster (`foundersForInvestor` spreads hubs + a long tail) so the founders directory has a realistic coverage gradient. Drop both with the factory when wiring real data.
+
+## Two new pivots (Feature 1 + 2) — selectors a dev wires to real queries
+- **Feature 1 — filter by team member.** A "Via {teammate}" `<select>` lives in the filter bar alongside stage/check/sectors (part of the draft → Apply flow). Options come from `firstNodeConnectors(members, listId)` → `{ name, count }[]` of PL teammates that are the FIRST (PL-side) node of any path; `matchesFirstNode(inv, name)` filters the spine. Driven by `route.pl.known` — the real impl reads the pathfinder's PL-side node.
+- **Feature 2 — founders directory.** `founderCoverage(members, listId)` → per-founder `{ name, teams, investors[] }` grouping all `connector_type === 'F'` paths. Opened from a "Founders who can connect (N)" button in the results toolbar. Realistic shape: ~1 founder per investor (rarely 2–3) across a large roster, so the directory is search-first and mostly flat. An investor chip opens that investor's drawer; "See in table" lenses the spine (`connectorLabel` + `matchesConnector`). No bulk "Request intros" in v0.
+- **`warm-intros-founders-view/`** is a sibling prototype: the same workspace but with an **Investors ⇄ Founders view switcher** that swaps the investor table for a founders table, instead of a directory panel.
 
 ## The node states (how a connector renders)
 

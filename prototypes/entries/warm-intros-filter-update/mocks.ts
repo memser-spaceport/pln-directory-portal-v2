@@ -83,6 +83,26 @@ export type ChainNode = {
   logo?: string;
 };
 
+/** Explicit node-state description of a route — the full picture the client
+ *  asked for: `Protocol Labs → [Mediator] → Investor`, where the PL node and
+ *  the (optional) Mediator are each KNOWN (a named person) or UNKNOWN. When a
+ *  path carries `route` it drives both the chain and the drawer; otherwise the
+ *  route is derived from the legacy `contact` / `orgConnector` fields so every
+ *  row renders the same shape. */
+export type RoutePl =
+  | { known: false }
+  | (ContactPerson & {
+      known: true;
+      /** 0–1 strength of this PL person's tie to the next node. */
+      tie?: number;
+      /** Recency of last contact, e.g. "~8 months ago". */
+      lastContact?: string;
+    });
+export type RouteMediator =
+  | { known: false; team: TeamLink }
+  | (ContactPerson & { known: true; team?: TeamLink });
+export type PathRoute = { pl: RoutePl; mediator?: RouteMediator };
+
 export type MockPath = {
   id: number;
   rank: number;
@@ -103,6 +123,9 @@ export type MockPath = {
   orgConnector?: OrgConnector;
   /** Present when the path goes through a PL portfolio team. */
   team?: ConnectorTeam;
+  /** Explicit node-state route (PL → [Mediator] → Investor). When set it drives
+   *  the chain + drawer; otherwise the route is derived from the fields above. */
+  route?: PathRoute;
 };
 
 /** A single node in the people-first route visual. Built from a path's
@@ -117,6 +140,17 @@ export type RouteNode = {
   /** member = network person (avatar), external = known non-network person
    *  (grey icon), org = company we can route through but person unknown. */
   variant: 'member' | 'external' | 'org';
+  /** This node is the Protocol Labs side of the route. On a known PL person it
+   *  renders the "PL" marker; combined with `plUnknown` it's the generic node. */
+  pl?: boolean;
+  /** PL node where we DON'T know the specific person → "Protocol Labs ?". */
+  plUnknown?: boolean;
+  /** Relationship-quality stat on a known PL node: tie strength + last contact. */
+  tie?: number;
+  lastContact?: string;
+  /** For an `org` node used as a pass-through intermediary on a hop path: skip
+   *  the "person unknown" (?) badge — we're routing THROUGH it, not asking who. */
+  hideUnknown?: boolean;
 };
 
 /** A PL portfolio team's profile, shown in-app when a path's team is tapped. */
@@ -137,7 +171,11 @@ export type MockInvestor = {
   first_name: string;
   last_name: string;
   email: string;
+  /** Additional emails — the primary shows inline, the rest behind "+N more". */
+  emails?: string[];
   firm: string;
+  /** Teams the investor belongs to (mirrors the founder inline-team pattern). */
+  teams?: TeamLink[];
   title: string;
   sector_tags: SectorTag[];
   stage_focus: StageFocus;
@@ -154,6 +192,14 @@ export type MockInvestor = {
   // ── Extra fields rendered only in the detail drawer (issue: same drawer on tap) ──
   email_status: EmailStatus;
   source: InvestorSource;
+  /** Affinity: LP funnel stage (e.g. "Target / Enriched", "2+ Meetings Held") —
+   *  shown as a status pill in the header pill row. */
+  lp_stage?: string;
+  /** Affinity: last contact / last email date — shown in the outreach date row. */
+  last_contact?: string;
+  /** Affinity: Key Contact / Relationship owner — the internal PL person who owns
+   *  this relationship. Shown as a row in the Investor profile section. */
+  relationship_owner?: { name: string; memberUid?: string };
   linkedin_url?: string;
   firm_domain?: string;
   geo_focus?: string;
@@ -259,31 +305,54 @@ export function investorNode(inv: MockInvestor): RouteNode {
   };
 }
 
-/** The connector node for a path: a network person (avatar), a known non-network
- *  person (grey icon), or an org we can route through but person-unknown. */
-export function connectorNode(path: MockPath): RouteNode | null {
-  if (path.orgConnector)
-    return {
-      label: path.orgConnector.name,
-      variant: 'org',
-      teamUid: path.orgConnector.teamUid,
-      logo: path.orgConnector.logo,
-    };
+/** A path's node-state route — explicit when authored, otherwise derived from
+ *  the legacy connector fields so every row renders the same
+ *  `Protocol Labs → [Mediator] → Investor` shape. A PL-rolodex connector IS the
+ *  PL node; any other connector is the mediator, with the PL person unknown. */
+export function resolveRoute(path: MockPath): PathRoute {
+  if (path.route) return path.route;
+  if (path.connector_type === 'PL' && path.contact) {
+    return { pl: { known: true, ...path.contact } };
+  }
+  let mediator: RouteMediator | undefined;
   if (path.contact) {
-    return {
-      label: path.contact.name,
-      memberUid: path.contact.memberUid,
-      variant: path.contact.memberUid ? 'member' : 'external',
+    mediator = { known: true, ...path.contact, team: path.contact.teams?.[0] };
+  } else if (path.orgConnector) {
+    mediator = {
+      known: false,
+      team: { name: path.orgConnector.name, teamUid: path.orgConnector.teamUid, logo: path.orgConnector.logo },
     };
   }
-  return null;
+  return { pl: { known: false }, mediator };
 }
 
-/** The 2-step chain for a path: the closest connector → the target investor.
- *  Both shown so the row reads "reach X, who connects to {investor}". */
+function personRouteNode(p: ContactPerson, extra?: Partial<RouteNode>): RouteNode {
+  return { label: p.name, memberUid: p.memberUid, variant: p.memberUid ? 'member' : 'external', ...extra };
+}
+function teamRouteNode(t: TeamLink): RouteNode {
+  return { label: t.name, teamUid: t.teamUid, logo: t.logo, variant: 'org' };
+}
+function plRouteNode(pl: RoutePl): RouteNode {
+  if (pl.known) return personRouteNode(pl, { pl: true, tie: pl.tie, lastContact: pl.lastContact });
+  return { label: 'Protocol Labs', variant: 'org', pl: true, plUnknown: true, logo: PL.logo };
+}
+
+/** The full people-first route: `PL → [Mediator] → Investor`. Two nodes when
+ *  direct, three when a mediator bridges the connection. */
 export function pathChainNodes(path: MockPath, inv: MockInvestor): RouteNode[] {
-  const connector = connectorNode(path);
-  return connector ? [connector, investorNode(inv)] : [];
+  const route = resolveRoute(path);
+  const nodes: RouteNode[] = [plRouteNode(route.pl)];
+  if (route.mediator) nodes.push(route.mediator.known ? personRouteNode(route.mediator) : teamRouteNode(route.mediator.team));
+  nodes.push(investorNode(inv));
+  return nodes;
+}
+
+/** Directness is the node count made plain: a mediator in the middle = one party
+ *  in between, no mediator = a direct PL → investor tie. Derived from the route
+ *  so the word can never disagree with the chain. */
+export function pathDirectness(path: MockPath): 'Direct' | '' {
+  // Only flag the special "direct" case; the chain itself conveys the hop.
+  return resolveRoute(path).mediator ? '' : 'Direct';
 }
 
 // ── Connector-case path factory ─────────────────────────────────────────────
@@ -326,7 +395,7 @@ function fourCasePaths(firstName: string, firm: string, leadWithOrg = false): Mo
     caliber_confidence: 0.55,
     score: 0.5,
     connector_type: 'VC',
-    explanation: `Pico Ventures co-invests with ${firm}; someone there can broker an intro — we haven't identified who yet.`,
+    explanation: `We don't know who at Pico Ventures can connect yet — they co-invest with ${firm}, so reach out to the team and ask for the right partner.`,
     chain: [PL, org('Pico Ventures', `${LOGOS}/Multicoin.svg`), firmOrg],
     orgConnector: {
       name: 'Pico Ventures',
@@ -362,12 +431,94 @@ function fourCasePaths(firstName: string, firm: string, leadWithOrg = false): Mo
   return ordered.map((p, i) => ({ ...p, id: nextPathId(), rank: i + 1 }));
 }
 
+// ── Feature 1 data: PL team members who can personally route an intro ─────────
+// "Quick filter by team member" pivots on the PL-side (FIRST) node of a path.
+// These are the people the chips in `ConnectorRail` filter by; a generic row is
+// given a direct PL→investor path led by one of them so the dimension is real.
+const PL_CONNECTORS: ContactPerson[] = [
+  { name: 'Brad Holden', role: 'Investment Partner · Protocol Labs', email: 'brad@protocol.ai', linkedin: 'brad-holden', memberUid: 'brad-holden' },
+  { name: 'Marc Johnson', role: 'Partner · Protocol Labs', email: 'marc@protocol.ai', linkedin: 'marc-johnson', memberUid: 'marc-johnson' },
+  { name: 'Lacey Wisdom', role: 'Partnerships Lead · Protocol Labs', email: 'lacey@protocol.ai', linkedin: 'lacey-wisdom', memberUid: 'lacey-wisdom' },
+  { name: 'Charlotte Kapoor', role: 'Investor Relations · Protocol Labs', email: 'charlotte@protocol.ai', linkedin: 'charlotte-kapoor', memberUid: 'charlotte-kapoor' },
+];
+
+// A direct `PL → investor` path whose FIRST node is a named PL teammate. The
+// `route.pl.known` person is what Feature 1's `matchesFirstNode` filters on.
+function plConnectorPath(pl: ContactPerson, inv: MockInvestor): MockPath {
+  return {
+    id: nextPathId(),
+    rank: 0,
+    proximity_code: 'PL+1A',
+    caliber_confidence: 0.92,
+    score: 0.9,
+    connector_type: 'PL',
+    explanation: `${pl.name} on the PL investment team is in direct contact with ${inv.first_name} — ask them to make the intro.`,
+    chain: [PL, org(inv.firm, `${LOGOS}/Framework.svg`)],
+    route: { pl: { known: true, ...pl, tie: 0.6, lastContact: '~2 weeks ago' } },
+    contact: pl,
+  };
+}
+
+// ── Feature 2 data: portfolio founders who can broker intros ──────────────────
+// A deliberately LARGE roster — the founders directory is meant to scale to "lots
+// of them". `foundersForInvestor` spreads them so a couple of hubs cover many
+// investors and a long tail covers one or two (a realistic coverage gradient).
+const MG = { name: 'Modular Globe', teamUid: 'modular-globe', logo: '/icons/technology/filecoin.svg' };
+const HR = { name: 'Helios Robotics', teamUid: 'helios-robotics' };
+const TE = { name: 'Tidal Energy', teamUid: 'tidal-energy' };
+const FOUNDERS: ContactPerson[] = [
+  { name: 'Alicia Mer', role: 'CEO & Co-founder · Modular Globe', email: 'alicia@modularglobe.xyz', linkedin: 'alicia-mer', telegram: 'aliciamer', memberUid: 'alicia-mer', teams: [MG] },
+  { name: 'Devon Okoye', role: 'CEO & Founder · Helios Robotics', email: 'devon@heliosrobotics.io', linkedin: 'devon-okoye', telegram: 'devonokoye', memberUid: 'devon-okoye', teams: [HR] },
+  { name: 'Priya Anand', role: 'CEO & Founder · Tidal Energy', email: 'priya@tidalenergy.co', memberUid: 'priya-anand', teams: [TE] },
+  { name: 'Maya Chen', role: 'CEO & Co-founder · Modular Globe', email: 'maya@modularglobe.xyz', linkedin: 'maya-chen', memberUid: 'maya-chen', teams: [MG] },
+  { name: 'Arjun Patel', role: 'CTO & Co-founder · Modular Globe', email: 'arjun@modularglobe.xyz', linkedin: 'arjun-patel', memberUid: 'arjun-patel', teams: [MG] },
+  { name: 'Sofia Marchetti', role: 'COO · Helios Robotics', email: 'sofia@heliosrobotics.io', memberUid: 'sofia-marchetti', teams: [HR] },
+  { name: 'Liam Novak', role: 'CEO & Founder · Aether Compute', email: 'liam@aethercompute.ai', linkedin: 'liam-novak', memberUid: 'liam-novak', teams: [{ name: 'Aether Compute', teamUid: 'aether-compute' }] },
+  { name: 'Hana Park', role: 'CEO & Co-founder · Aether Compute', email: 'hana@aethercompute.ai', memberUid: 'hana-park', teams: [{ name: 'Aether Compute', teamUid: 'aether-compute' }] },
+  { name: 'Mateo Rossi', role: 'CEO & Founder · Verdant Bio', email: 'mateo@verdantbio.com', linkedin: 'mateo-rossi', memberUid: 'mateo-rossi', teams: [{ name: 'Verdant Bio', teamUid: 'verdant-bio' }] },
+  { name: 'Zoe Bennett', role: 'CSO & Co-founder · Verdant Bio', email: 'zoe@verdantbio.com', memberUid: 'zoe-bennett', teams: [{ name: 'Verdant Bio', teamUid: 'verdant-bio' }] },
+  { name: 'Omar Haddad', role: 'CEO & Founder · Northwind Robotics', email: 'omar@northwind.io', linkedin: 'omar-haddad', memberUid: 'omar-haddad', teams: [{ name: 'Northwind Robotics', teamUid: 'northwind-robotics' }] },
+  { name: 'Ingrid Sól', role: 'CEO & Founder · Glacier Grid', email: 'ingrid@glaciergrid.energy', memberUid: 'ingrid-sol', teams: [{ name: 'Glacier Grid', teamUid: 'glacier-grid' }] },
+  { name: 'Kenji Watanabe', role: 'CEO & Co-founder · Lumen Photonics', email: 'kenji@lumenphotonics.com', linkedin: 'kenji-watanabe', memberUid: 'kenji-watanabe', teams: [{ name: 'Lumen Photonics', teamUid: 'lumen-photonics' }] },
+  { name: 'Fatima Al-Rashid', role: 'CTO & Co-founder · Lumen Photonics', email: 'fatima@lumenphotonics.com', memberUid: 'fatima-al-rashid', teams: [{ name: 'Lumen Photonics', teamUid: 'lumen-photonics' }] },
+];
+
+// Realistic shape: in the real graph it's MOSTLY one founder per investor — a
+// founder typically knows one of your targets — rarely two or three, across a
+// roster of hundreds. So each investor gets one distinct founder; a few get 2,
+// one gets 3. Coverage per founder stays near 1 (the directory is long + flat,
+// not a hub gradient).
+function foundersForInvestor(i: number): ContactPerson[] {
+  const F = FOUNDERS;
+  const out = [F[i % F.length]];
+  if (i === 7) out.push(F[11], F[12]); // the rare investor reachable via 3 founders
+  else if (i % 4 === 0) out.push(F[(i + 7) % F.length]); // a few reachable via 2
+  return out;
+}
+
+// A founder-brokered `PL → team → investor` path. Coverage groups these by founder.
+function founderPath(f: ContactPerson, inv: MockInvestor): MockPath {
+  const t = f.teams?.[0];
+  return {
+    id: nextPathId(),
+    rank: 0,
+    proximity_code: 'F+1A',
+    caliber_confidence: 0.88,
+    score: 0.72,
+    connector_type: 'F',
+    explanation: `${f.name} (${t?.name ?? 'PL portfolio'}) knows ${inv.first_name} and can broker a warm intro.`,
+    chain: [PL, ...(t?.teamUid ? [team(t.name, t.teamUid, t.logo)] : []), org(inv.firm, `${LOGOS}/Framework.svg`)],
+    contact: f,
+  };
+}
+
 const BASE_MEMBERS: MockInvestor[] = [
   {
     investor_id: 'inv-lena',
     first_name: 'Lena',
     last_name: 'Hoffmann',
     email: 'lena@catalystbio.vc',
+    emails: ['lena@catalystbio.vc', 'l.hoffmann@catalyst.bio', 'lena.hoffmann@gmail.com'],
     email_status: 'verified',
     source: 'W26',
     linkedin_url: 'https://www.linkedin.com/in/lena-hoffmann',
@@ -385,6 +536,11 @@ const BASE_MEMBERS: MockInvestor[] = [
       last_sent_date: '2026-03-14',
     },
     firm: 'Catalyst Bio',
+    teams: [
+      { name: 'Catalyst Bio', teamUid: 'catalyst-bio' },
+      { name: 'BioDAO', teamUid: 'biodao' },
+      { name: 'Longevity Fund' },
+    ],
     title: 'Partner',
     sector_tags: ['neurotech', 'biotech'],
     stage_focus: 'seed',
@@ -392,19 +548,75 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'fund',
     engagement_tier: 'T2_clicked',
     relationship: 'co_invested',
-    best_proximity_code: 'F+1A',
+    best_proximity_code: 'PL+1A',
     has_path: true,
     list_ids: ['neuro-lp', 'gold'],
     paths: [
       {
-        id: 101,
+        // DIRECT path: the connector is a Protocol Labs INSIDER (Brad Holden)
+        // who knows Lena first-hand. Renders "Brad Holden ᴾᴸ → Lena" with a PL
+        // marker; the `PL+1A` code (1 hop) drives the "Direct" label.
+        id: 100,
         rank: 1,
+        proximity_code: 'PL+1A',
+        caliber_confidence: 0.95,
+        score: 0.95,
+        connector_type: 'PL',
+        explanation:
+          'Brad Holden on the PL partnerships team has been in direct contact with Lena — ask him to make the intro. Direct PL tie, no mediator needed.',
+        chain: [PL, org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
+        // CASE D1 — PL known → Investor (direct). We know the name (Daniel) but
+        // he has no LabOS profile, so the chip is name-only. Carries the tie stat.
+        route: {
+          pl: {
+            known: true,
+            name: 'Brad Holden',
+            role: 'Partner · Protocol Labs',
+            email: 'brad@protocol.ai',
+            linkedin: 'brad-holden',
+            tie: 0.62,
+            lastContact: '~3 weeks ago',
+          },
+        },
+        contact: {
+          name: 'Brad Holden',
+          role: 'Partner · Protocol Labs',
+          email: 'brad@protocol.ai',
+          linkedin: 'brad-holden',
+        },
+      },
+      {
+        // HOP path (2 hops): you contact James, who routes through QuickNode (a
+        // company he and Catalyst Bio both backed) to reach Lena. Renders THREE
+        // nodes — "James Whitfield → QuickNode → Lena" — and the `VC+2B` code
+        // drives the "1 in between" label. Kept at rank 2 so the drawer shows a
+        // Direct and a Hop side by side.
+        id: 102,
+        rank: 2,
+        proximity_code: 'VC+2B',
+        caliber_confidence: 0.61,
+        score: 0.8,
+        connector_type: 'VC',
+        explanation:
+          'James Whitfield (Electric Capital) co-invested with Catalyst Bio in QuickNode — that shared deal is the bridge to Lena. He is not in the PL network, so reach out to him directly.',
+        chain: [PL, org('Electric Capital', `${LOGOS}/ElectricCapital.svg`), org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
+        contact: {
+          name: 'James Whitfield',
+          role: 'Partner',
+          email: 'james@electriccapital.com',
+          linkedin: 'james-whitfield',
+          teams: [{ name: 'Electric Capital', teamUid: 'electric-capital' }],
+        },
+      },
+      {
+        id: 101,
+        rank: 3,
         proximity_code: 'F+1A',
         caliber_confidence: 0.92,
-        score: 0.88,
+        score: 0.72,
         connector_type: 'F',
         explanation:
-          'Alicia Mer co-founded Modular Globe (PL portfolio) and works closely with Mei Chen, who knows Lena well — a two-person founder route is the warmest path.',
+          'Alicia Mer co-founded Modular Globe (PL portfolio) and knows Lena well — a direct portfolio-founder intro.',
         chain: [PL, team('Modular Globe', 'modular-globe', '/icons/technology/filecoin.svg'), org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
         contact: {
           name: 'Alicia Mer',
@@ -430,12 +642,12 @@ const BASE_MEMBERS: MockInvestor[] = [
       {
         // Org-led: we know the firm can route an intro, but not WHO yet.
         id: 104,
-        rank: 2,
+        rank: 4,
         proximity_code: 'VC+1B',
         caliber_confidence: 0.6,
         score: 0.62,
         connector_type: 'VC',
-        explanation: 'Pico Ventures co-invested in two Catalyst Bio rounds, so someone there can broker an intro to Lena — we just haven’t identified the specific partner yet.',
+        explanation: 'We don’t know which partner at Pico Ventures can connect yet — they co-invested in two Catalyst Bio rounds, so reach out to the team and ask.',
         chain: [PL, org('Pico Ventures', `${LOGOS}/Multicoin.svg`), org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
         orgConnector: {
           name: 'Pico Ventures',
@@ -446,37 +658,20 @@ const BASE_MEMBERS: MockInvestor[] = [
         },
       },
       {
-        id: 102,
-        rank: 3,
-        proximity_code: 'VC+2B',
-        caliber_confidence: 0.61,
-        score: 0.54,
-        connector_type: 'VC',
-        explanation: 'James Whitfield at Electric Capital has co-invested alongside Catalyst Bio and can broker an intro. He is not in the PL network, so reach out directly.',
-        chain: [PL, org('Electric Capital', `${LOGOS}/ElectricCapital.svg`), org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
-        contact: {
-          name: 'James Whitfield',
-          role: 'Partner',
-          email: 'james@electriccapital.com',
-          linkedin: 'james-whitfield',
-          teams: [{ name: 'Electric Capital', teamUid: 'electric-capital' }],
-        },
-      },
-      {
         id: 103,
-        rank: 3,
+        rank: 5,
         proximity_code: 'PL+2B',
         caliber_confidence: 0.4,
         score: 0.38,
         connector_type: 'PL',
-        explanation: 'Rina Calabrese on the PL partnerships team has a second-degree relationship she can warm up.',
+        explanation: 'Lacey Wisdom on the PL partnerships team has a second-degree relationship she can warm up.',
         chain: [PL, org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
         contact: {
-          name: 'Rina Calabrese',
+          name: 'Lacey Wisdom',
           role: 'Partnerships Lead · Protocol Labs',
-          email: 'rina@protocol.ai',
-          linkedin: 'rina-calabrese',
-          memberUid: 'rina-calabrese',
+          email: 'lacey@protocol.ai',
+          linkedin: 'lacey-wisdom',
+          memberUid: 'lacey-wisdom',
         },
       },
     ],
@@ -510,20 +705,23 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'fund',
     engagement_tier: 'T3_opened',
     relationship: 'co_invested',
-    best_proximity_code: 'F+1A',
+    best_proximity_code: 'VC+1B',
     has_path: true,
     list_ids: ['neuro-lp', 'gold'],
     paths: [
       {
         id: 201,
         rank: 1,
-        proximity_code: 'F+1A',
+        proximity_code: 'VC+1B',
         caliber_confidence: 0.9,
         score: 0.85,
-        connector_type: 'F',
+        connector_type: 'VC',
         explanation:
-          'Devon Okoye founded Helios Robotics (PL portfolio). Vertex Frontier led the Helios seed, so Devon can intro Marcus directly.',
-        chain: [PL, team('Helios Robotics', 'helios-robotics', '/icons/technology/ipfs.svg'), org('Vertex Frontier', `${LOGOS}/BlueYard.svg`)],
+          'PL co-invested with Vertex Frontier, so someone at PL has a direct line to Marcus — we just haven’t identified who yet.',
+        chain: [PL, org('Vertex Frontier', `${LOGOS}/BlueYard.svg`)],
+        // CASE D2 — PL unknown → Investor (direct). We know PL can reach Marcus
+        // directly, but not which teammate → "Protocol Labs ?" with no mediator.
+        route: { pl: { known: false } },
         contact: {
           name: 'Devon Okoye',
           role: 'CEO & Founder',
@@ -589,7 +787,7 @@ const BASE_MEMBERS: MockInvestor[] = [
     geo_focus: 'EU',
     fund_thesis: 'Series A climate and frontier-tech with hardware depth.',
     aum_range: '1B+',
-    lab_os_profile: null,
+    lab_os_profile: { type: 'member', uid: 'soren-vibe', slug: 'soren-vibe', name: 'Soren Vibe' },
     outreach: {
       touches: 2,
       opened: 2,
@@ -606,19 +804,41 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'fund',
     engagement_tier: 'T2_clicked',
     relationship: 'engaged',
-    best_proximity_code: 'VC+1A',
+    best_proximity_code: 'VC+2A',
     has_path: true,
     list_ids: ['neuro-lp'],
     paths: [
       {
         id: 301,
         rank: 1,
-        proximity_code: 'VC+1A',
+        proximity_code: 'VC+2A',
         caliber_confidence: 0.84,
         score: 0.79,
         connector_type: 'VC',
-        explanation: 'Northlight co-led a round with Polychain Capital, a close PL co-investor — a strong VC intro.',
+        explanation:
+          'Charlotte Kapoor at PL co-invested alongside Talia Rosen (Polychain Capital), who can broker the intro to Soren.',
         chain: [PL, org('Polychain Capital', `${LOGOS}/PolychainCapital.svg`), org('Northlight Capital', `${LOGOS}/Framework.svg`)],
+        // CASE I1 — PL known → Mediator known → Investor. Both middle people named;
+        // the PL node carries a weak/stale tie stat (amber).
+        route: {
+          pl: {
+            known: true,
+            name: 'Charlotte Kapoor',
+            role: 'Investments · Protocol Labs',
+            email: 'charlotte@protocol.ai',
+            tie: 0.4,
+            lastContact: '~8 months ago',
+          },
+          mediator: {
+            known: true,
+            name: 'Talia Rosen',
+            role: 'Partner · Polychain Capital',
+            email: 'talia@polychain.capital',
+            linkedin: 'talia-rosen',
+            memberUid: 'talia-rosen',
+            team: { name: 'Polychain Capital', teamUid: 'polychain-capital' },
+          },
+        },
         contact: {
           name: 'Talia Rosen',
           role: 'Partner',
@@ -696,9 +916,29 @@ const BASE_MEMBERS: MockInvestor[] = [
         caliber_confidence: 0.48,
         score: 0.42,
         connector_type: 'JB',
-        explanation: 'Sana Iqbal co-chairs a DeSci working group at Hashed with Priya and can make a soft intro.',
+        explanation:
+          'We don’t know who at Hashed can connect yet — Lacey Wisdom (PL) can route through Hashed (it co-invests with Priya), so reach out to the team and ask.',
         chain: [PL, org('Hashed', `${LOGOS}/Hashed.svg`), org('Angel', `${LOGOS}/SVAngel.svg`)],
-        contact: { name: 'Sana Iqbal', role: 'DeSci Lead', email: 'sana@hashed.com', linkedin: 'sana-iqbal', memberUid: 'sana-iqbal', teams: [{ name: 'Hashed', teamUid: 'hashed' }] },
+        // CASE I4 — PL known → Mediator UNKNOWN → Investor. We know the PL person
+        // (Rina) but only the mediator's team (Hashed), not who there.
+        route: {
+          pl: {
+            known: true,
+            name: 'Lacey Wisdom',
+            role: 'Partnerships · Protocol Labs',
+            email: 'lacey@protocol.ai',
+            tie: 0.55,
+            lastContact: '~2 months ago',
+          },
+          mediator: { known: false, team: { name: 'Hashed', teamUid: 'hashed', logo: `${LOGOS}/Hashed.svg` } },
+        },
+        orgConnector: {
+          name: 'Hashed',
+          description: 'Reach out to Hashed and ask for the partner who covers the DeSci mandate.',
+          tags: ['Org connection', 'Person unknown'],
+          email: 'intros@hashed.com',
+          website: 'hashed.com',
+        },
       },
       {
         id: 402,
@@ -749,16 +989,17 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'family_office',
     engagement_tier: 'T3_opened',
     relationship: 'engaged',
-    best_proximity_code: 'O+1B',
+    best_proximity_code: 'O+2B',
     has_path: true,
     list_ids: ['neuro-lp'],
     paths: [
       {
-        // Org-led best path: we know the advisory firm can route an intro to the
-        // Berg family office, but not which person — surfaces an org node in the table.
+        // CASE I3 — PL unknown → Mediator unknown → Investor (derived). We only
+        // know the advisory firm can route to the Berg office; neither the PL
+        // person nor the Stonebridge person is identified.
         id: 501,
         rank: 1,
-        proximity_code: 'O+1B',
+        proximity_code: 'O+2B',
         caliber_confidence: 0.5,
         score: 0.5,
         connector_type: 'O',
@@ -779,9 +1020,9 @@ const BASE_MEMBERS: MockInvestor[] = [
         caliber_confidence: 0.36,
         score: 0.34,
         connector_type: 'PL',
-        explanation: 'Rina Calabrese (PL partnerships) also has a second-degree line to the Berg office.',
+        explanation: 'Lacey Wisdom (PL partnerships) also has a second-degree line to the Berg office.',
         chain: [PL, org('Berg Family Office', `${LOGOS}/Eniac.svg`)],
-        contact: { name: 'Rina Calabrese', role: 'Partnerships Lead', email: 'rina@protocol.ai', linkedin: 'rina-calabrese', memberUid: 'rina-calabrese' },
+        contact: { name: 'Lacey Wisdom', role: 'Partnerships Lead', email: 'lacey@protocol.ai', linkedin: 'lacey-wisdom', memberUid: 'lacey-wisdom' },
       },
     ],
   },
@@ -1024,7 +1265,8 @@ const BASE_MEMBERS: MockInvestor[] = [
         caliber_confidence: 0.5,
         score: 0.46,
         connector_type: 'VC',
-        explanation: 'Two hops out via a shared LP that co-invests with Jump — a softer VC route.',
+        explanation:
+          'Elena Fischer routes through Galaxy Digital — a shared LP that co-invests with Jump — to reach Dmitri. Two hops out, a softer VC route.',
         chain: [PL, org('Jump Crypto', `${LOGOS}/Jump.svg`), org('Jump Crypto', `${LOGOS}/Jump.svg`)],
         contact: {
           name: 'Elena Fischer',
@@ -1114,9 +1356,203 @@ const BASE_MEMBERS: MockInvestor[] = [
 // These rows lead with the org-unknown node (so it surfaces in the table) — they
 // land at the 2nd (Brandt) and 4th (Hoffmann) rows once proximity ties and the
 // table sorts by last name.
-const ORG_LEAD_ROWS = new Set(['inv-lukas', 'inv-lena']);
-export const MOCK_MEMBERS: MockInvestor[] = BASE_MEMBERS.map((m) =>
-  m.has_path
-    ? { ...m, best_proximity_code: 'F+1A', paths: fourCasePaths(m.first_name, m.firm, ORG_LEAD_ROWS.has(m.investor_id)) }
-    : m,
-);
+const ORG_LEAD_ROWS = new Set(['inv-lukas']);
+// These investors carry hand-authored routes that demonstrate the six PL/mediator
+// states — they must KEEP their own paths, not get the generic factory ones.
+const SHOWCASE_ROWS = new Set(['inv-lena', 'inv-marcus', 'inv-soren', 'inv-priya', 'inv-hannah', 'inv-dmitri']);
+// Demo-only: give every investor multiple emails + teams so the "+N more" pattern
+// is visible on any drawer (real data would come from the API). Derived from the
+// investor's own name/firm, with a varied extra affiliation per investor. Any
+// investor that already declares `emails`/`teams` (e.g. Lena) keeps its own.
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+const EXTRA_AFFILIATIONS: TeamLink[] = [
+  { name: 'Crypto Founders Circle', teamUid: 'crypto-founders-circle' },
+  { name: 'Web3 Capital Collective', teamUid: 'web3-capital-collective' },
+  { name: 'Frontier LP Syndicate', teamUid: 'frontier-lp-syndicate' },
+  { name: 'Deep Tech Angels', teamUid: 'deep-tech-angels' },
+  { name: 'Longevity Fund' },
+];
+
+// Affinity LP funnel stages + last-contact dates, assigned deterministically per
+// investor so the demo shows a spread.
+const LP_STAGES = ['Target / Enriched', 'Contacted', '2+ Meetings Held', 'Diligence', 'Committed'];
+const LAST_CONTACTS = ['2026-05-28', '2026-05-12', '2026-04-30', '2026-06-10', '2026-03-22'];
+
+// Internal PL relationship owners (Key Contact) — some link to a member profile.
+const RELATIONSHIP_OWNERS: { name: string; memberUid?: string }[] = [
+  { name: 'Maya Lindqvist', memberUid: 'maya-lindqvist' },
+  { name: 'Brad Holden', memberUid: 'brad-holden' },
+  { name: 'Priya Anand', memberUid: 'priya-anand' },
+  { name: 'Tomas Reyes' },
+  { name: 'Wei Chen', memberUid: 'wei-chen' },
+];
+
+function seedContacts(inv: MockInvestor, i: number): MockInvestor {
+  const first = inv.first_name.toLowerCase();
+  const last = inv.last_name.toLowerCase();
+  const emails =
+    inv.emails ??
+    [
+      inv.email,
+      inv.firm_domain ? `${first}.${last}@${inv.firm_domain}` : `${first}.${last}@gmail.com`,
+      `${first}${last}@proton.me`,
+    ].filter((e, idx, arr) => arr.indexOf(e) === idx);
+  const isAngel = !inv.firm || inv.firm.toLowerCase() === 'angel';
+  const teams =
+    inv.teams ??
+    (isAngel
+      ? [EXTRA_AFFILIATIONS[i % EXTRA_AFFILIATIONS.length]]
+      : [{ name: inv.firm, teamUid: slugify(inv.firm) }, EXTRA_AFFILIATIONS[i % EXTRA_AFFILIATIONS.length]]);
+  const lp_stage = inv.lp_stage ?? LP_STAGES[i % LP_STAGES.length];
+  const last_contact = inv.last_contact ?? LAST_CONTACTS[i % LAST_CONTACTS.length];
+  const relationship_owner = inv.relationship_owner ?? RELATIONSHIP_OWNERS[i % RELATIONSHIP_OWNERS.length];
+  // "In LabOS" is a rare signal — only investors authored with a member profile
+  // (Lena, Soren) keep it. Everyone else is null → no pill anywhere.
+  const lab_os_profile = inv.lab_os_profile ?? null;
+  return { ...inv, emails, teams, lp_stage, last_contact, relationship_owner, lab_os_profile };
+}
+
+// Generic (non-showcase) rows are rebuilt so Feature 1 has real data: a named PL
+// teammate as the first node. Founder paths are added separately by
+// `augmentFounders` (below) for ALL rows. Showcase rows keep their authored paths.
+function decorateGeneric(m: MockInvestor, i: number): MockInvestor {
+  const pl = PL_CONNECTORS[i % PL_CONNECTORS.length];
+  const isOrgLead = ORG_LEAD_ROWS.has(m.investor_id);
+  // Keep the factory's org-unknown / member-unknown states; drop its uniform
+  // Alicia founder path — founder coverage is supplied by augmentFounders.
+  const factory = fourCasePaths(m.first_name, m.firm, isOrgLead).filter((p) => p.connector_type !== 'F');
+  // Org-lead rows keep org-unknown as the visible best path (that's their demo);
+  // every other generic row leads with its named PL teammate.
+  const ordered = isOrgLead ? [...factory, plConnectorPath(pl, m)] : [plConnectorPath(pl, m), ...factory];
+  const paths = ordered.map((p, idx) => ({ ...p, rank: idx + 1 }));
+  return { ...m, best_proximity_code: paths[0].proximity_code, paths };
+}
+
+// Gives founder-led paths to investors that don't already have one (so the 1:1
+// shape holds: showcase rows keep their single authored founder; generic rows get
+// the assigned set). Appended after the best/visible path so the table is unchanged.
+function augmentFounders(m: MockInvestor, i: number): MockInvestor {
+  const hasFounder = m.paths.some((p) => p.connector_type === 'F' && p.contact?.memberUid);
+  if (hasFounder) return m;
+  const add = foundersForInvestor(i).map((f) => founderPath(f, m));
+  const paths = [...m.paths, ...add].map((p, idx) => ({ ...p, rank: idx + 1 }));
+  return { ...m, paths };
+}
+
+export const MOCK_MEMBERS: MockInvestor[] = BASE_MEMBERS.map((m, i) => {
+  const decorated = m.has_path && !SHOWCASE_ROWS.has(m.investor_id) ? decorateGeneric(m, i) : m;
+  const withFounders = m.has_path ? augmentFounders(decorated, i) : decorated;
+  return seedContacts(withFounders, i);
+});
+
+// ── Selectors for the two new pivots (pure derivations over the spine) ────────
+
+/** Feature 1 — distinct PL teammates that appear as the FIRST (PL-side) node of
+ *  any path for an investor on the list, with how many investors each can reach. */
+export type FirstNodeChip = { name: string; memberUid?: string; role?: string; count: number };
+export function firstNodeConnectors(members: MockInvestor[], listId: string): FirstNodeChip[] {
+  const map = new Map<string, FirstNodeChip>();
+  members
+    .filter((m) => m.list_ids.includes(listId))
+    .forEach((m) => {
+      const names = new Set<string>();
+      m.paths.forEach((p) => {
+        const pl = resolveRoute(p).pl;
+        if (pl.known) names.add(pl.name);
+      });
+      names.forEach((name) => {
+        const sample = m.paths.map((p) => resolveRoute(p).pl).find((pl) => pl.known && pl.name === name);
+        const entry = map.get(name) ?? {
+          name,
+          memberUid: sample && sample.known ? sample.memberUid : undefined,
+          role: sample && sample.known ? sample.role : undefined,
+          count: 0,
+        };
+        entry.count += 1;
+        map.set(name, entry);
+      });
+    });
+  return [...map.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/** Does any of this investor's paths route through `name` as its FIRST node? */
+export function matchesFirstNode(inv: MockInvestor, name: string): boolean {
+  return inv.paths.some((p) => {
+    const pl = resolveRoute(p).pl;
+    return pl.known && pl.name === name;
+  });
+}
+
+/** A connector surfaced as an investor-row column. */
+export type ConnCell = { person: ContactPerson; proximity: string };
+
+/** DIRECT column — a PL teammate who reaches the investor with NO intermediary
+ *  (their known PL node connects straight to the investor, not via a founder). */
+export function directConnector(inv: MockInvestor): ConnCell | null {
+  for (const p of inv.paths) {
+    if (p.connector_type === 'F') continue;
+    const route = resolveRoute(p);
+    if (route.pl.known && !route.mediator) return { person: route.pl, proximity: p.proximity_code };
+  }
+  return null;
+}
+
+/** 1-hop column — ALL one-intermediary brokers (any connector type), deduped,
+ *  warmest first. A broker is either a known PERSON (founder, co-investor) or an
+ *  ORG whose specific person is unknown ("reach the firm and ask who"). */
+export type HopBroker =
+  | { kind: 'person'; name: string; memberUid?: string; proximity: string }
+  | { kind: 'org'; name: string; teamUid?: string; logo?: string; proximity: string };
+
+export function hopConnectors(inv: MockInvestor): HopBroker[] {
+  const out: HopBroker[] = [];
+  const seen = new Set<string>();
+  for (const p of inv.paths) {
+    const med = resolveRoute(p).mediator;
+    if (!med) continue; // no intermediary → that's the Direct column
+    if (med.known) {
+      if (seen.has(med.name)) continue;
+      seen.add(med.name);
+      out.push({ kind: 'person', name: med.name, memberUid: med.memberUid, proximity: p.proximity_code });
+    } else {
+      const key = `org:${med.team.name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ kind: 'org', name: med.team.name, teamUid: med.team.teamUid, logo: med.team.logo, proximity: p.proximity_code });
+    }
+  }
+  return out;
+}
+
+/** Feature 2 — group founder-led paths by founder so we can show "X can warm-
+ *  intro N of M targets" and lens the spine to that founder's reachable set. */
+export type FounderCoverageRow = {
+  memberUid: string;
+  name: string;
+  role: string;
+  teams?: TeamLink[];
+  investors: { id: string; name: string; firm: string; proximity: string }[];
+};
+export function founderCoverage(members: MockInvestor[], listId: string): FounderCoverageRow[] {
+  const map = new Map<string, FounderCoverageRow>();
+  members
+    .filter((m) => m.list_ids.includes(listId))
+    .forEach((m) => {
+      const seen = new Set<string>();
+      m.paths.forEach((p) => {
+        const c = p.contact;
+        if (p.connector_type !== 'F' || !c?.memberUid || seen.has(c.memberUid)) return;
+        seen.add(c.memberUid);
+        const row =
+          map.get(c.memberUid) ?? { memberUid: c.memberUid, name: c.name, role: c.role, teams: c.teams, investors: [] };
+        row.investors.push({ id: m.investor_id, name: `${m.first_name} ${m.last_name}`, firm: m.firm, proximity: p.proximity_code });
+        map.set(c.memberUid, row);
+      });
+    });
+  return [...map.values()].sort((a, b) => b.investors.length - a.investors.length || a.name.localeCompare(b.name));
+}

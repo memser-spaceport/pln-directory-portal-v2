@@ -1,5 +1,7 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import { mapHopNode } from './pathfinder.service';
 import type {
+  AffinityData,
   AumRange,
   CheckSizeRange,
   EngagementTier,
@@ -107,6 +109,37 @@ function mapEnrichment(dto: AnyDto): InvestorEnrichment {
   };
 }
 
+function mapAffinityPersonRef(dto: AnyDto | null | undefined): AffinityData['source_of_introduction'] {
+  if (!dto) return null;
+  return {
+    name: dto.name as string,
+    email: dto.email ?? null,
+    affinity_person_id: dto.affinityPersonId ?? null,
+    member_uid: dto.memberUid ?? null,
+  };
+}
+
+function mapAffinityInteractionRef(dto: AnyDto | null | undefined): AffinityData['last_contact'] {
+  if (!dto) return null;
+  return {
+    date: dto.date as string,
+    method: dto.method ?? null,
+    subject: dto.subject ?? null,
+    from: dto.from ? mapAffinityPersonRef(dto.from) : null,
+  };
+}
+
+function mapAffinityData(dto: AnyDto | null | undefined): AffinityData | null {
+  if (!dto) return null;
+  return {
+    last_contact: mapAffinityInteractionRef(dto.lastContact),
+    last_email: mapAffinityInteractionRef(dto.lastEmail),
+    source_of_introduction: mapAffinityPersonRef(dto.sourceOfIntroduction),
+    key_contact: mapAffinityPersonRef(dto.keyContact),
+    lp_stage: dto.lpStage ?? null,
+  };
+}
+
 export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
   return {
     investor_id: dto.investorId as string,
@@ -147,7 +180,14 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     co_invested_team_ids: (dto.coInvestedTeamIds ?? []) as string[],
     best_proximity_code: dto.bestProximityCode ?? null,
     has_path: dto.hasPath ?? false,
+    best_route_nodes: dto.bestRouteNodes
+      ? (dto.bestRouteNodes as Record<string, unknown>[]).map(mapHopNode)
+      : undefined,
+    best_route_score: dto.bestRouteScore != null ? (dto.bestRouteScore as number) : undefined,
+    path_count: dto.pathCount != null ? (dto.pathCount as number) : undefined,
     enrichment: dto.enrichment ? mapEnrichment(dto.enrichment) : null,
+    last_email_date: dto.lastEmailDate ?? null,
+    affinity_data: dto.affinityData ? mapAffinityData(dto.affinityData) : null,
   };
 }
 

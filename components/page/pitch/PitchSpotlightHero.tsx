@@ -23,7 +23,9 @@ export type PitchSpotlightHeroVariant =
   | 'restricted'
   | 'closed'
   | 'closedLoggedOut'
-  | 'open';
+  | 'open'
+  | 'draftPreview'
+  | 'closedPreview';
 
 type Props = {
   variant: PitchSpotlightHeroVariant;
@@ -132,10 +134,44 @@ export const PitchSpotlightHero = ({
   const profileSetupPhrase = isProfileComplete
     ? 'keep your investor profile up to date'
     : 'set up your investor profile';
-  const openProfileSetupPhrase = isProfileComplete
-    ? 'Keep your investor profile up to date'
-    : 'Set up your investor profile';
   const profileClosedPhrase = isProfileComplete ? 'update your investor profile' : 'set up your investor profile';
+
+  const renderDraftWhitelistFooter = () => (
+    <p className={s.footer}>
+      In the meantime,{' '}
+      <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
+        {profileSetupPhrase}
+      </InvestorProfileInlineLink>{' '}
+      so we can match you with the right teams, and{' '}
+      <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
+        get in touch
+      </button>{' '}
+      if you have questions or feedback.
+    </p>
+  );
+
+  const renderProfileIntroFooter = (onContact: () => void, contactLabel: string) => (
+    <p className={s.footer}>
+      Your investor profile helps us match you with the right teams and make introductions.{' '}
+      {isProfileComplete ? (
+        <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
+          Keep yours up to date
+        </InvestorProfileInlineLink>
+      ) : (
+        <>
+          Take a minute to{' '}
+          <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
+            set it up
+          </InvestorProfileInlineLink>
+        </>
+      )}{' '}
+      and{' '}
+      <button type="button" className={s.inlineLink} onClick={onContact}>
+        {contactLabel}
+      </button>{' '}
+      with any questions or feedback.
+    </p>
+  );
 
   const renderTeamLine = () => (
     <p className={s.spotlightLine}>
@@ -176,17 +212,7 @@ export const PitchSpotlightHero = ({
               <> </>hasn&apos;t opened their spotlight to investors yet. You&apos;re on the invite list — we&apos;ll
               notify you when their materials go live.
             </p>
-            <p className={s.footer}>
-              In the meantime,{' '}
-              <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
-                {profileSetupPhrase}
-              </InvestorProfileInlineLink>{' '}
-              so we can match you with the right teams, and{' '}
-              <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
-                get in touch
-              </button>{' '}
-              if you have questions or feedback.
-            </p>
+            {renderDraftWhitelistFooter()}
           </>
         );
       case 'restricted':
@@ -210,17 +236,7 @@ export const PitchSpotlightHero = ({
               )}
               .
             </p>
-            <p className={s.footer}>
-              In the meantime,{' '}
-              <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
-                {profileSetupPhrase}
-              </InvestorProfileInlineLink>{' '}
-              so we can match you with the right teams, and{' '}
-              <button type="button" className={s.inlineLink} onClick={handleContactSupport}>
-                Contact support
-              </button>{' '}
-              if you believe this is a mistake.
-            </p>
+            {renderProfileIntroFooter(handleContactSupport, 'Contact support')}
           </>
         );
       case 'closed':
@@ -249,18 +265,9 @@ export const PitchSpotlightHero = ({
       case 'closedLoggedOut':
         return <p className={s.body}>This spotlight has closed and its materials are no longer available.</p>;
       case 'open':
-        return (
-          <p className={s.footer}>
-            <InvestorProfileInlineLink onClick={openProfileDrawer} className={s.inlineLink}>
-              {openProfileSetupPhrase}
-            </InvestorProfileInlineLink>{' '}
-            so we can match you with the right teams, and{' '}
-            <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
-              get in touch
-            </button>{' '}
-            if you have questions or feedback.
-          </p>
-        );
+      case 'draftPreview':
+      case 'closedPreview':
+        return renderProfileIntroFooter(handleGetInTouch, 'get in touch');
       default:
         return null;
     }
@@ -268,17 +275,15 @@ export const PitchSpotlightHero = ({
 
   const showLoginCta = variant === 'notLoggedIn' || variant === 'closedLoggedOut';
 
-  const showTeamLine = variant !== 'closed';
-
   return (
     <div className={s.card}>
       <div className={s.headline}>
         <div className={s.headlineText}>
+          {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft]</p>}
+          {variant === 'closedPreview' && <p className={s.prepLabel}>[Closed]</p>}
           <h1 className={s.title}>{title}</h1>
-          {description && (
-            <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />
-          )}
-          {showTeamLine && renderTeamLine()}
+          {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
+          {renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
         </div>
@@ -292,7 +297,7 @@ export const PitchSpotlightHero = ({
         )}
       </div>
 
-      {variant === 'open' && (
+      {(variant === 'open' || variant === 'draftPreview' || variant === 'closedPreview') && (
         <Alert>
           <p>
             Confidentiality notice: Materials presented here are confidential and are provided exclusively for your

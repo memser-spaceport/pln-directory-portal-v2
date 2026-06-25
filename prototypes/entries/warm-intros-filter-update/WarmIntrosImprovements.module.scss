@@ -420,9 +420,92 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   background: var(--background-base-white, #fff);
 }
 
+// The drawer's inner scroll container — owns the scroll (instead of the production
+// Drawer .container) so we can reserve a stable scrollbar gutter. Without this, the
+// scrollbar appearing when content grows (e.g. opening Contact details) narrows the
+// content and shifts it sideways on Windows.
+.drawerScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+}
+
 // 12px between the explanation above and the profile below.
 .contactBlock {
   margin-top: 12px;
+}
+
+// ── Contact channels next to the name (drawer header + founder card) ──────────
+// Name + its channels on one row in the drawer header.
+.nameLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// Compact channel row — icon-only links, no dividers, sat tight together.
+.nameChannels {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// Founder card: icons even tighter together.
+.nameChannelsDense {
+  gap: 0;
+}
+
+// Founder card: a light divider between the identity and the contact channels.
+.cardChannels {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.06));
+}
+
+// Email icon + its copy button kept tight together.
+.emailIconGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+// "+N" extra-emails popover, anchored to the count button next to the name.
+.emailPopWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.emailPop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  max-width: 90vw;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+.emailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emailAddr {
+  font-size: 12px;
+  line-height: 16px;
+  color: $text-2;
 }
 
 // Override the production pd.correction's dashed top border → solid (prod uses
@@ -538,9 +621,10 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   transition: opacity 0.1s ease;
 }
 
+// Compact 28px avatar for the revealed contact card.
 .memberAvatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   flex-shrink: 0;
   background: #fff;
@@ -550,14 +634,16 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 .memberText {
   display: flex;
   flex-direction: column;
-  flex: 1; // fill the fixed identity column so every row's name block is equal width
+  flex: 1;
   min-width: 0;
 }
 
 .memberName {
-  font-size: 14px;
+  // 12px name with a tight line-height — the smaller line box also pulls the role
+  // line ~4px closer to the name.
+  font-size: 12px;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 16px;
   color: $text;
   transition: color 0.12s ease;
   white-space: nowrap;
@@ -607,6 +693,15 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   padding-bottom: 3px !important;
 }
 
+// Drawer chain: no brand highlight on hover — the founder (and other) nodes stay
+// neutral, matching the production node's resting look (higher specificity than the
+// base .nodeChip:hover so it wins).
+.chainBig .nodeChip:hover {
+  border-color: $border;
+  background: #fff;
+  color: $text;
+}
+
 // Round icon badge for teams (square mark) + the investor (generated avatar).
 .chainIcon {
   width: 14px;
@@ -649,6 +744,249 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 }
 
 // ── People-first node states ────────────────────────────────────────────────
+// Directness word shown next to the proximity badge: "Direct" (the connector
+// knows the investor first-hand) vs "N in between" (someone bridges them).
+// Carries the hop info in plain English so it isn't buried in the code.
+.directness {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  color: $text-2;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// Small neutral "PL" marker on the PL-side chip — just identifies which node is
+// Protocol Labs; no color emphasis.
+.chainPlTag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 1px;
+  padding: 0 4px;
+  height: 14px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $muted;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+}
+
+// PL-side chips are plain neutral nodes (no brand tint) — they read as PL from
+// the "PL" tag / "Protocol Labs" label, not from color.
+.chainNodePl {
+  color: $text-2;
+}
+
+.chainNodePlUnknown {
+  color: $text-2;
+}
+
+// Tie-strength + recency stat next to a known PL node — quiet muted text.
+.tieStat {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 2px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: $muted;
+}
+
+// Kept as a hook but no longer color-coded (simplified — fewer colors).
+.tieStatWeak {
+  color: $muted;
+}
+
+// Drawer card: the PL tie/recency stat on its own line, tucked just under the
+// node chain (the chain's 10px bottom margin is pulled back so this sits close).
+.chainTieStat {
+  margin: -4px 0 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: $muted;
+}
+
+// Protocol Labs logomark inside a PL chain node — monochrome near-black so the
+// brand mark reads without adding color.
+.chainPlMark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+// Neutral, unified meta chips for low-priority info (industry/sector, source).
+.metaChips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Warm Path card fill — the cooler grey used by the member/Teams "Contact details"
+// card (#f8fafc), overriding production pd.pathItem's #f9fafb. Equal-specificity
+// override of the imported module class, so !important.
+.pathCardFill {
+  background: #f8fafc !important;
+  // 4px less bottom padding than production pd.pathItem's 10px.
+  padding-bottom: 6px !important;
+}
+
+// Drawer: the node chain under each path's description. 12px gap above (4px more
+// than before, per request).
+.drawerChain {
+  margin: 12px 0 10px;
+}
+
+// Drawer: enlarge the node chain so the PEOPLE (the unique, scannable part of
+// each path) are the card's visual hero. Scoped to .chainBig so the compact
+// inline table preview keeps production's small nodes. Higher specificity than
+// the base .chainNode rules (two classes vs one) so it wins even over their
+// !important font/padding declarations.
+.chainBig {
+  row-gap: 6px !important;
+}
+
+// Sized so a node's height matches the inline "Contact details" button (12px text
+// + 5px top/bottom padding + border ≈ 28px), with a 16px icon.
+.chainBig .chainNode {
+  font-size: 12px !important;
+  gap: 5px;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  // Roomier left/right so the nodes breathe (two-class specificity beats the
+  // base .chainNode / production pd.nodeLabel side padding).
+  padding-left: 8px;
+  padding-right: 10px;
+}
+
+.chainBig .chainIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.chainBig .chainPlMark svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chainBig .chainPersonIcon,
+.chainBig .chainOrgIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.chainBig .chainPersonIcon svg,
+.chainBig .chainOrgIcon svg,
+.chainBig .chainUnknownBadge svg {
+  width: 13px;
+  height: 13px;
+}
+
+// ── Contact-details inline button ─────────────────────────────────────────────
+// A secondary button that sits as the last item INSIDE the node chain row, in
+// line with the nodes (no arrow before it). Sized to align with the big chain
+// pills; reveals the connector card below when toggled.
+.contactInlineBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  // Push to the far right of the chain row, away from the nodes.
+  margin-left: auto;
+  padding: 5px 10px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text-2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: $brand;
+    color: $brand;
+    background: var(--background-brand-subtle, #eef2ff);
+
+    .contactInlineChevron {
+      color: $brand;
+    }
+  }
+}
+
+.contactInlineChevron {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: $muted;
+  transition: transform 0.15s ease, color 0.12s ease;
+}
+
+.contactInlineChevronOpen {
+  transform: rotate(180deg);
+}
+
+// The connector card revealed below the chain by the inline button.
+.contactReveal {
+  margin-top: 12px;
+
+  // RouteBlocks carries its own top margin for the standalone layout; the reveal
+  // wrapper already provides the spacing.
+  .contactBlock {
+    margin-top: 0;
+  }
+}
+
+// White contact/profile card with a light solid border (lighter than the org's
+// dashed muted stroke). Holds the identity with the channels underneath.
+.contactCardBox {
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.08));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+  padding: 16px;
+  gap: 8px;
+}
+
+// Drawer: muted note where the PL person (or mediator) isn't yet identified.
+.unknownNote {
+  display: flex;
+  align-items: center;
+}
+
+.unknownNoteText {
+  font-size: 13px;
+  font-style: italic;
+  color: $muted;
+}
+
 // Known person NOT in the PL network: grey person icon, no link/hover arrow.
 .chainNodeExternal {
   color: $text-2;
@@ -663,8 +1001,8 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  // No circle background — a bare glyph so it matches the org glyph's weight/size
+  // (the filled circle made the person icon read bigger).
   color: $muted;
 
   svg {
@@ -704,8 +1042,8 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 .connectorCard {
   display: flex;
   flex-direction: column;
-  // 4px between the profile and the contacts row.
-  gap: 4px;
+  // 8px between the profile and the contacts row.
+  gap: 8px;
 }
 
 .connectorTop {
@@ -745,6 +1083,20 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   }
 }
 
+// In LabOS (= in the PL network): blue name + an always-visible blue arrow. The
+// :hover variant keeps the name blue (overrides the base hover that greys it).
+.memberNameLabOs {
+  .memberName,
+  &:hover .memberName {
+    color: $brand;
+  }
+
+  .memberArrow {
+    opacity: 1;
+    color: $brand;
+  }
+}
+
 // Role line that carries the team(s) inline as links — wraps rather than clips.
 .memberRoleLine {
   font-size: 12px;
@@ -772,10 +1124,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   }
 }
 
+// Arrow inherits the link color so the company name + ↗ read as one link
+// (secondary by default, brand on hover).
 .teamInlineArrow {
   display: inline-flex;
   align-items: center;
-  color: $muted;
+  color: inherit;
 }
 
 // Middot divider between inline team links.
@@ -784,21 +1138,21 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   color: $muted;
 }
 
-// 32px grey circle holding the person silhouette (non-network connector).
+// 40px grey circle holding the person silhouette (non-network connector).
 .memberAvatarExternal {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
   color: $muted;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
   }
 }
 
@@ -915,23 +1269,23 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 8px;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
   color: $text-2;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 }
 
 // Real logo for a PL-network org (clickable to its team profile).
 .orgLogo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 8px;
   background: #fff;
@@ -945,6 +1299,13 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+// Shrink the DS Badge a touch for the org tags (keeps the variant colors/border).
+.orgBadge {
+  font-size: 12px !important;
+  line-height: 16px !important;
+  padding: 1px 8px !important;
 }
 
 // Signal chip ("Org connection", "Person unknown") — dashed to read as a
@@ -1007,10 +1368,40 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   color: $text-2;
 }
 
+// Quiet "suggest a correction" icon button in the path header — visible but
+// low-attention (replaces the per-card text link). Pushed to the far right of
+// the header; brand-tinted active state when its form is open.
+.correctionIcon {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: $muted;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+
+  &:hover {
+    color: $text-2;
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &[aria-expanded='true'] {
+    color: $brand;
+    background: var(--background-brand-subtle, #eef2ff);
+  }
+}
+
 // "Suggest a correction" link — pin to 13px (overrides the production Button
 // size="s" type). Equal-specificity override of an imported module class.
 .correctionLink {
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 
 // Path-card labels (Best path / Alternative #N, warmth N%) bumped from
@@ -1417,4 +1808,717 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   padding: 0 12px !important;
   font-size: 12px !important;
   line-height: 1 !important;
+}
+
+// ── Connector quick-filter strip (Feature 1 + 2) ─────────────────────────────
+// Sits between the filter bar and the results header. One mechanism, two facets:
+// "By team member" (first-node lens) and "By founder" (connector lens + rollup).
+.connectorStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: var(--background-neutral-subtle, #f8fafc);
+  font-family: 'Inter', sans-serif;
+}
+
+.connectorHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.connectorLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+// Segmented facet toggle.
+.connectorFacets {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.facetBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text-2;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+.facetBtnActive {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $text;
+  font-weight: 600;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+// "View coverage →" — pushes to the right edge of the head row.
+.connMore {
+  margin-left: auto;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $brand;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.connectorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// A single quick-filter chip: avatar + name + count.
+.connChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid $border;
+  border-radius: 24px;
+  background: #fff;
+  font: inherit;
+  line-height: 16px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.connChipActive {
+  border-color: $brand;
+  background: var(--background-brand-subtle, #eef2ff);
+  box-shadow: inset 0 0 0 1px $brand;
+
+  .connChipName,
+  .connCount {
+    color: $brand;
+  }
+}
+
+.connChipName {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text;
+}
+
+// Count as plain inline text inside the chip (no circular badge).
+.connCount {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $muted;
+}
+
+.connEmpty {
+  font-size: 13px;
+  color: $muted;
+  padding: 4px 0;
+}
+
+// ── Founder-coverage rollup panel (Feature 2) ────────────────────────────────
+.coverPanel {
+  padding: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.coverHead {
+  margin-bottom: 16px;
+}
+
+.coverTitle {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  color: $text;
+}
+
+.coverSub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: $text-2;
+
+  strong {
+    color: $text;
+    font-weight: 600;
+  }
+}
+
+.coverEmpty {
+  padding: 24px 0;
+  font-size: 13px;
+  color: $muted;
+}
+
+.coverList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coverRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.coverRowActive {
+  border-color: $brand;
+  box-shadow: inset 0 0 0 1px $brand;
+}
+
+.coverRowTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.coverFounder {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+
+  &:hover .coverFounderName {
+    color: $brand;
+  }
+}
+
+.coverAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.coverFounderMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.coverFounderName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: $text;
+}
+
+.coverFounderRole {
+  font-size: 12px;
+  line-height: 16px;
+  color: $muted;
+}
+
+.coverCountPill {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-radius: 24px;
+  background: var(--background-success-subtle, #e6f6ee);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-success-primary, #0a9952);
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.coverInvestors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coverInvChip {
+  appearance: none;
+  border: 1px solid transparent;
+  padding: 3px 9px;
+  border-radius: 16px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: $text-2;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: $text;
+  }
+}
+
+.coverFilterBtn {
+  align-self: flex-start;
+  appearance: none;
+  padding: 6px 14px;
+  border: 1px solid $brand;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $brand;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: var(--background-brand-subtle, #eef2ff);
+  }
+}
+
+.coverFilterBtnActive {
+  background: $brand;
+  color: #fff;
+
+  &:hover {
+    background: $brand;
+  }
+}
+
+// ── Founders button on the connector rail ────────────────────────────────────
+.foundersBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid $brand;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $brand;
+  cursor: pointer;
+  transition: background 0.12s ease, opacity 0.12s ease;
+
+  &:hover {
+    background: var(--background-brand-subtle, #eef2ff);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background: #fff;
+  }
+}
+
+.foundersBtnIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.foundersBtnCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: $brand;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+// ── Founders directory controls (search + sort + meta) ───────────────────────
+.coverControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.coverSearch {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: $text;
+
+  &::placeholder {
+    color: $muted;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $brand;
+  }
+}
+
+.coverSort {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.coverSortBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text-2;
+  cursor: pointer;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+.coverSortBtnActive {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $text;
+  font-weight: 600;
+}
+
+.coverMeta {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: $muted;
+}
+
+// ── Founder row — expandable ─────────────────────────────────────────────────
+// The avatar + name area is the expand toggle; chevron mirrors its state.
+.coverExpand {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover .coverFounderName {
+    color: $brand;
+  }
+}
+
+.coverChevron {
+  flex: 0 0 auto;
+  font-size: 14px;
+  line-height: 1;
+  color: $muted;
+  transition: transform 0.15s ease;
+}
+
+.coverChevronOpen {
+  transform: rotate(180deg);
+}
+
+// Collapsed peek of who the founder can reach.
+.coverPeek {
+  font-size: 12px;
+  line-height: 18px;
+  color: $text-2;
+}
+
+.coverPeekMore {
+  color: $muted;
+}
+
+// The "can intro <investor(s)>" line under each founder — always visible since
+// it's usually just one investor.
+.coverReach {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coverReachLabel {
+  font-size: 12px;
+  line-height: 16px;
+  color: $muted;
+}
+
+// Inline "See in table →" link at the end of the reach line.
+.coverFilterLink {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0 2px;
+  margin-left: 2px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $brand;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.coverFilterLinkActive {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// ── Quick teammate multi-select row (Feature 1) — sits under the filter bar ───
+// Reuses the .connChip / .connChipActive chip styling; just the row wrapper here.
+.teammateFilter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.teammateChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.teammateClear {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $brand;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Direct / 1-hop connector columns (investor spine) ────────────────────────
+.connCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+// Connector badge — clickable to filter the spine by that teammate / founder.
+.connColBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 9px 3px 4px;
+  border: 1px solid $border;
+  border-radius: 24px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.connColBadgeActive {
+  border-color: $brand;
+  background: var(--background-brand-subtle, #eef2ff);
+  box-shadow: inset 0 0 0 1px $brand;
+
+  .connColName {
+    color: $brand;
+  }
+}
+
+.connColAvatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+// PL mark badge for the direct (teammate) connector.
+.connColPlMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.connColName {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Sort toggle (Warmest | By founder) in the results header ─────────────────
+.sortToggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.sortToggleBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: $text-2;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+.sortToggleBtnActive {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  color: $text;
+  font-weight: 600;
+}
+
+// Investor name + "In LabOS" pill inline in the table cell.
+.nameWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// All founders for an investor wrap in the Founders column (usually 1, rarely 2–3).
+.hopBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// Org broker (person unknown) in the 1-hop column — dashed chip + building glyph + "?".
+.connColBadgeOrg {
+  border-style: dashed;
+}
+
+.connColOrgGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.connColUnknown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.06));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Investor's other teams under the role — inline links + "+N more" (drawer style).
+.teamAffil {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
 }

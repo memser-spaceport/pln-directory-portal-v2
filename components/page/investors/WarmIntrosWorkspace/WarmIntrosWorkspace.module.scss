@@ -184,6 +184,61 @@
   }
 }
 
+/* ── Add-to-list popover ─────────────────────────────────────── */
+
+.addListWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.addListTriggerInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.addListMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  max-width: 90vw;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+.addListHead {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+}
+
+.addListItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  color: #0a0c11;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
 .btnPrimary {
   @extend .btn;
   background: #1b4dff;
@@ -555,9 +610,30 @@
 }
 
 .checkboxCol {
-  width: 32px;
-  text-align: center;
+  width: 40px;
+  padding: 8px 6px 8px 16px;
+  background: #f8fafc;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+
+  @media (max-width: 1023px) {
+    position: static;
+  }
 }
+
+thead .checkboxCol {
+  top: 0;
+  z-index: 3;
+}
+
+tbody .checkboxCol {
+  background: #fff;
+}
+
+.row:hover .checkboxCol { background: #f8fafc; }
+.rowSelected .checkboxCol { background: #fff; }
+.rowSelected:hover .checkboxCol { background: #f8fafc; }
 
 .fitCol {
   width: 60px;
@@ -637,70 +713,161 @@
 }
 
 .tableWrap {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .table {
+  table-layout: fixed;
   width: 100%;
+  min-width: 1100px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
 }
 
-.table thead th {
-  padding: 9px 16px;
+/* ── Header ──────────────────────────────────────────────────── */
+
+.th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   text-align: left;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #6b7280;
-  background: #f9fafb;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
   white-space: nowrap;
+  background: var(--background-neutral-soft-surface, #f9fafb);
 }
 
-.table tbody td {
-  padding: 11px 16px;
-  border-bottom: 1px solid #f3f4f6;
-  vertical-align: top;
+/* ── Frozen columns ──────────────────────────────────────────── */
+
+.frozenName {
+  position: sticky;
+  z-index: 1;
+  background: #fff;
+  box-shadow: 2px 0 8px -2px rgba(0, 0, 0, 0.06);
+
+  @media (max-width: 1023px) {
+    position: static;
+    box-shadow: none;
+  }
 }
+
+.frozenNameNoCheckbox { left: 0; }
+.frozenNameWithCheckbox { left: 40px; }
+
+thead .frozenName {
+  top: 0;
+  z-index: 3;
+  background: #f8fafc;
+}
+
+.row:hover .frozenName { background: #f8fafc; }
+.rowSelected .frozenName { background: #fff; }
+.rowSelected:hover .frozenName { background: #f8fafc; }
+
+/* ── Rows ────────────────────────────────────────────────────── */
 
 .row {
   cursor: pointer;
   transition: background 0.08s;
-
-  &:hover {
-    background: #fafbfc;
-  }
+  background: #fff;
 }
+
+.row:hover { background: #f8fafc; }
+.rowSelected { background: #fff; }
+.rowSelected:hover { background: #f8fafc; }
+
+.td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ── Cells ───────────────────────────────────────────────────── */
 
 .nameCell {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.nameText {
   font-weight: 600;
-  color: #0a0c11;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.4;
 }
 
 .subtle {
-  font-size: 11px;
-  color: #6b7280;
-  margin-top: 1px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .teamCell {
   font-weight: 500;
-  color: #0a0c11;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .proximityCell {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.proximityTop {
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+
+
+.miniRoute {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  row-gap: 2px;
+}
+
+.miniRouteNode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.miniArrow {
+  font-size: 10px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.viewAllLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: #1a3fd9;
+  }
 }
 
 .relCell {
@@ -731,6 +898,196 @@
 .relCold {
   background: #f3f4f6;
   color: #6b7280;
+}
+
+/* ── Compact filter bar (Phase 2, updated to match design) ─────────────────── */
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filterBarItem {
+  flex: 0 0 auto;
+}
+
+.filterBarSearch {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.filterBarActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* LIST label + picker group */
+.filterBarListGroup {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  gap: 0;
+}
+
+.filterBarListLabel {
+  padding: 0 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  border-right: 1px solid #e5e7eb;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Search icon wrapper */
+.searchWrap {
+  position: relative;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Sector popover trigger — same height/style as the stage/check selects */
+.sectorWrap {
+  position: relative;
+}
+
+.sectorTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  height: 100%;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: #0a0c11;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.sectorTriggerText {
+  /* truncate if needed */
+}
+
+.sectorTriggerActive {
+  border-color: #1b4dff;
+  color: #1b4dff;
+  background: #eef2ff;
+}
+
+.sectorBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #1b4dff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sectorCaret {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.sectorPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  min-width: 260px;
+  max-width: 360px;
+}
+
+.sectorPopoverChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Apply / Clear buttons */
+.btnApply {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  background: #1b4dff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btnClear {
+  padding: 8px 6px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  background: none;
+  color: #6b7280;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    color: #0a0c11;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .sentinel {

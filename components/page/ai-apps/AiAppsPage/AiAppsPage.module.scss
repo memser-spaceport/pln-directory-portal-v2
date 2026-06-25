@@ -1,0 +1,53 @@
+@use 'styles/media';
+
+.root {
+  width: 100%;
+  padding: 24px 16px 40px;
+
+  @include media.tablet-landscape {
+    padding: 32px 40px 40px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.tablet-landscape {
+    font-size: 32px;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+  }
+}
+
+.description {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #455468;
+}
+

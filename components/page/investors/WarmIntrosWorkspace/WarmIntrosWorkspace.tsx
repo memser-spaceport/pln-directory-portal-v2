@@ -1,7 +1,9 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useQueryStates } from 'nuqs';
+import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
@@ -32,9 +34,10 @@ import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { SectorTagsList } from '../SectorTagsList/SectorTagsList';
 import { ProximityCodeBadge } from '../ProximityCodeBadge/ProximityCodeBadge';
-import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
+import { RouteChip } from '../RouteChip/RouteChip';
 import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPanel';
 import { exportInvestorsCsv } from '../utils/exportCsv';
+import { AddToListButton } from './AddToListButton';
 import { GlossaryModal } from './GlossaryModal';
 import { ListPicker } from './ListPicker';
 import { CLEAR_CONNECTOR_LENS, selectionToConnectorFilter } from './connectorLensFilters';
@@ -111,7 +114,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const onPickList = (list: InvestorList) => {
     setFilters({ wi_list_id: list.id, ...CLEAR_CONNECTOR_LENS });
-    setExpandedIds(new Set());
     setSelectedIds(new Set());
     analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
   };
@@ -162,14 +164,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_check_size: draft.check || null,
     });
     setSelectedIds(new Set());
-    setExpandedIds(new Set());
   };
 
   const clear = () => {
     setDraft({ stage: '', sectors: [], check: '' });
     setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, ...CLEAR_CONNECTOR_LENS });
     setSelectedIds(new Set());
-    setExpandedIds(new Set());
   };
 
   // ── Relationship lens (client chips, server filter) ─────────────────────────
@@ -209,7 +209,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const lensLoading = !!connectorLabel && isFetching && !isFetchingNextPage;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [addListOpen, setAddListOpen] = useState(false);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [crosswalkOpen, setCrosswalkOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -253,15 +253,17 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     analytics.trackConnectorLensApplied({ nodeLabel: sel.displayLabel, kind: sel.kind });
   };
 
-  const toggleExpanded = (id: string, bestProximityCode?: string | null) => {
-    const isExpanding = !expandedIds.has(id);
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      isExpanding ? next.add(id) : next.delete(id);
-      return next;
-    });
-    if (isExpanding) analytics.trackPathExpanded({ investorId: id, bestProximityCode });
-  };
+  const [sectorPopoverOpen, setSectorPopoverOpen] = useState(false);
+  const sectorPopoverRef = useRef<HTMLDivElement>(null);
+  useOnClickOutside([sectorPopoverRef], () => setSectorPopoverOpen(false));
+
+  const hasAnyFilter =
+    !!draft.stage ||
+    draft.sectors.length > 0 ||
+    !!draft.check ||
+    !!filters.wi_connector ||
+    filters.wi_connector_labels.length > 0 ||
+    filters.wi_connector_contains.length > 0;
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
@@ -290,7 +292,123 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   };
 
   const canSelect = access.canEdit;
-  const colCount = (canSelect ? 1 : 0) + 7;
+
+  const allChecked = visible.length > 0 && visible.every((i) => selectedIds.has(i.investor_id));
+  const someChecked = !allChecked && visible.some((i) => selectedIds.has(i.investor_id));
+  const toggleAll = () => {
+    if (allChecked) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visible.forEach((i) => next.delete(i.investor_id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visible.forEach((i) => next.add(i.investor_id));
+        return next;
+      });
+    }
+  };
+
+  const columns = useMemo<ColumnDef<OutreachInvestor>[]>(
+    () => [
+      {
+        id: 'investor',
+        header: 'Investor',
+        cell: ({ row }) => (
+          <>
+            <div className={s.nameCell}>
+              <span className={s.nameText}>
+                {row.original.first_name} {row.original.last_name}
+              </span>
+              <LabOsBadge profile={row.original.lab_os_profile} variant="icon" />
+            </div>
+            {row.original.email && <div className={s.subtle}>{row.original.email}</div>}
+          </>
+        ),
+      },
+      {
+        id: 'team',
+        header: 'Team',
+        cell: ({ row }) => (
+          <>
+            <div className={s.teamCell}>{row.original.firm || <span className={s.muted}>—</span>}</div>
+            {row.original.title && <div className={s.subtle}>{row.original.title}</div>}
+          </>
+        ),
+        size: 200,
+      },
+      {
+        id: 'sector',
+        header: INDUSTRY_SECTOR_LABEL,
+        cell: ({ row }) => <SectorTagsList tags={row.original.sector_tags} max={3} />,
+        size: 200,
+      },
+      {
+        id: 'stage',
+        header: 'Stage',
+        cell: ({ row }) => STAGE_FOCUS_LABEL[row.original.stage_focus] ?? <span className={s.muted}>—</span>,
+        size: 110,
+      },
+      {
+        id: 'type',
+        header: 'Type',
+        cell: ({ row }) => INVESTOR_TYPE_LABEL[row.original.investor_type] ?? <span className={s.muted}>—</span>,
+        size: 110,
+      },
+      {
+        id: 'relationship',
+        header: 'Relationship',
+        cell: ({ row }) => <RelationshipCell investor={row.original} />,
+        size: 130,
+      },
+      {
+        id: 'proximity',
+        header: 'Proximity',
+        cell: ({ row }) => {
+          const inv = row.original;
+          const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
+          if (!hasProximity) return <span className={s.muted}>—</span>;
+          return (
+            <div className={s.proximityCell}>
+              <div className={s.proximityTop}>
+                <ProximityCodeBadge
+                  code={inv.best_proximity_code}
+                  cold={inv.has_path === false}
+                  confidence={inv.best_route_score ?? undefined}
+                />
+              </div>
+              {inv.best_route_nodes && inv.best_route_nodes.length > 0 && (
+                <div className={s.miniRoute}>
+                  {inv.best_route_nodes.map((n, i) => (
+                    <span key={`${inv.investor_id}-${n.id}-${i}`} className={s.miniRouteNode}>
+                      {i > 0 && <span className={s.miniArrow}>→</span>}
+                      <RouteChip node={n} />
+                    </span>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                className={s.viewAllLink}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFilters({ investorId: inv.investor_id });
+                }}
+              >
+                View all{inv.path_count != null ? ` (${inv.path_count})` : ''}
+              </button>
+            </div>
+          );
+        },
+        size: 300,
+      },
+    ],
+    [setFilters],
+  );
+
+  const table = useReactTable({ data: visible, columns, getCoreRowModel: getCoreRowModel() });
 
   return (
     <div className={s.root}>
@@ -316,14 +434,101 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </p>
         </header>
 
-        <div className={clsx(s.field, s.fieldMb)}>
-          <label className={s.label}>Target list</label>
-          <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
-        </div>
+        {/* Compact single-row filter bar */}
+        <div className={s.filterBar}>
+          {/* LIST label + picker grouped */}
+          <div className={clsx(s.filterBarItem, s.filterBarListGroup)}>
+            <span className={s.filterBarListLabel}>LIST</span>
+            <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
+          </div>
 
-        <div className={clsx(s.field, s.fieldMb)}>
-          <label className={s.label}>Search investors, funds, founders or teams</label>
-          <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
+          {/* Search with magnifier icon */}
+          <div className={clsx(s.filterBarItem, s.filterBarSearch)}>
+            <div className={s.searchWrap}>
+              <span className={s.searchIcon} aria-hidden>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="9" cy="9" r="6" />
+                  <path d="M15 15l-3.5-3.5" strokeLinecap="round" />
+                </svg>
+              </span>
+              <UnifiedSearchSelect teams={teams} onSelect={onUnifiedSelect} />
+            </div>
+          </div>
+
+          <div className={s.filterBarItem}>
+            <select
+              className={s.select}
+              value={draft.stage}
+              aria-label="Stage focus"
+              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
+            >
+              <option value="">Any stage</option>
+              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
+                <option key={st} value={st}>
+                  {STAGE_FOCUS_LABEL[st]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={s.filterBarItem}>
+            <select
+              className={s.select}
+              value={draft.check}
+              aria-label="Check size"
+              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
+            >
+              <option value="">Any check size</option>
+              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sector popover — styled to match stage/check selects */}
+          <div className={clsx(s.filterBarItem, s.sectorWrap)} ref={sectorPopoverRef}>
+            <button
+              type="button"
+              className={clsx(s.sectorTrigger, draft.sectors.length > 0 && s.sectorTriggerActive)}
+              onClick={() => setSectorPopoverOpen((o) => !o)}
+              aria-expanded={sectorPopoverOpen}
+            >
+              <span className={s.sectorTriggerText}>
+                {draft.sectors.length > 0
+                  ? `${INDUSTRY_SECTOR_LABEL} (${draft.sectors.length})`
+                  : INDUSTRY_SECTOR_LABEL}
+              </span>
+              <span className={s.sectorCaret} aria-hidden>
+                ▾
+              </span>
+            </button>
+            {sectorPopoverOpen && (
+              <div className={s.sectorPopover} role="dialog" aria-label="Sector filters">
+                <div className={s.sectorPopoverChips}>
+                  {SECTOR_TAGS.map((sec) => (
+                    <button
+                      key={sec}
+                      className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
+                      onClick={() => toggleDraftSector(sec)}
+                    >
+                      {SECTOR_TAG_LABEL[sec]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={s.filterBarActions}>
+            <button className={s.btnApply} onClick={apply}>
+              Apply
+            </button>
+            <button className={s.btnClear} onClick={clear} disabled={!hasAnyFilter}>
+              Clear
+            </button>
+          </div>
         </div>
 
         {connectorLabel && (
@@ -342,64 +547,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </span>
           </div>
         )}
-
-        <div className={s.builderRow}>
-          <div className={s.field}>
-            <label className={s.label}>Stage focus</label>
-            <select
-              className={s.select}
-              value={draft.stage}
-              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
-            >
-              <option value="">Any</option>
-              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
-                <option key={st} value={st}>
-                  {STAGE_FOCUS_LABEL[st]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={s.field}>
-            <label className={s.label}>Check size</label>
-            <select
-              className={s.select}
-              value={draft.check}
-              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
-            >
-              <option value="">Any</option>
-              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={s.actions}>
-            <button className={s.btnPrimary} onClick={apply}>
-              Apply
-            </button>
-            <button className={s.btn} onClick={clear}>
-              Clear
-            </button>
-          </div>
-        </div>
-
-        <div className={clsx(s.field, s.fieldMt)}>
-          <label className={s.label}>{INDUSTRY_SECTOR_LABEL}</label>
-          <div className={s.sectorChips}>
-            {SECTOR_TAGS.map((sec) => (
-              <button
-                key={sec}
-                className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
-                onClick={() => toggleDraftSector(sec)}
-              >
-                {SECTOR_TAG_LABEL[sec]}
-              </button>
-            ))}
-          </div>
-        </div>
       </section>
 
       {!enabled && (
@@ -440,9 +587,17 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                 ))}
               </div>
               {access.canEdit && (
-                <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
-                  ⤓ Export CSV ({selectedIds.size})
-                </button>
+                <>
+                  <AddToListButton
+                    lists={lists ?? []}
+                    investorIds={[...selectedIds]}
+                    open={addListOpen}
+                    onOpenChange={setAddListOpen}
+                  />
+                  <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
+                    ⤓ Export CSV ({selectedIds.size})
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -451,88 +606,77 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <table className={s.table}>
               <thead>
                 <tr>
-                  {canSelect && <th className={s.checkboxCol}></th>}
-                  <th>Investor</th>
-                  <th>Team</th>
-                  <th>{INDUSTRY_SECTOR_LABEL}</th>
-                  <th>Stage</th>
-                  <th>Type</th>
-                  <th>Relationship</th>
-                  <th>Proximity</th>
+                  {canSelect && (
+                    <th className={s.checkboxCol}>
+                      <input
+                        type="checkbox"
+                        checked={allChecked}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someChecked;
+                        }}
+                        onChange={toggleAll}
+                      />
+                    </th>
+                  )}
+                  {table.getHeaderGroups()[0]?.headers.map((h) => (
+                    <th
+                      key={h.id}
+                      className={clsx(
+                        s.th,
+                        h.id === 'investor' && s.frozenName,
+                        h.id === 'investor' && (canSelect ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox),
+                      )}
+                      style={
+                        h.column.columnDef.size !== undefined
+                          ? { width: h.column.getSize(), maxWidth: h.column.getSize() }
+                          : undefined
+                      }
+                    >
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {visible.map((inv) => {
-                  const isExpanded = expandedIds.has(inv.investor_id);
-                  const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
-                  return (
-                    <Fragment key={inv.investor_id}>
-                      <tr className={s.row} onClick={() => setFilters({ investorId: inv.investor_id })}>
-                        {canSelect && (
-                          <td className={s.checkboxCol}>
-                            <input
-                              type="checkbox"
-                              checked={selectedIds.has(inv.investor_id)}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={() => toggleSelected(inv.investor_id)}
-                            />
-                          </td>
+                {table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={clsx(s.row, selectedIds.has(row.original.investor_id) && s.rowSelected)}
+                    onClick={(e) => {
+                      const t = e.target as HTMLElement;
+                      if (t.closest('input[type="checkbox"]') || t.closest('a') || t.closest('button')) return;
+                      setFilters({ investorId: row.original.investor_id });
+                    }}
+                  >
+                    {canSelect && (
+                      <td className={s.checkboxCol}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(row.original.investor_id)}
+                          onChange={() => toggleSelected(row.original.investor_id)}
+                        />
+                      </td>
+                    )}
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={clsx(
+                          s.td,
+                          cell.column.id === 'investor' && s.frozenName,
+                          cell.column.id === 'investor' &&
+                            (canSelect ? s.frozenNameWithCheckbox : s.frozenNameNoCheckbox),
                         )}
-                        <td>
-                          <div className={s.nameCell}>
-                            {inv.first_name} {inv.last_name}
-                            <LabOsBadge profile={inv.lab_os_profile} variant="icon" />
-                          </div>
-                          <div className={s.subtle}>{inv.email}</div>
-                        </td>
-                        <td>
-                          <div className={s.teamCell}>{inv.firm || <span className={s.muted}>—</span>}</div>
-                          {inv.title && <div className={s.subtle}>{inv.title}</div>}
-                        </td>
-                        <td>
-                          <SectorTagsList tags={inv.sector_tags} max={3} />
-                        </td>
-                        <td>{STAGE_FOCUS_LABEL[inv.stage_focus] ?? <span className={s.muted}>—</span>}</td>
-                        <td>{INVESTOR_TYPE_LABEL[inv.investor_type] ?? <span className={s.muted}>—</span>}</td>
-                        <td>
-                          <RelationshipCell investor={inv} />
-                        </td>
-                        <td>
-                          <div className={s.proximityCell}>
-                            {hasProximity ? (
-                              <ProximityCodeBadge code={inv.best_proximity_code} cold={inv.has_path === false} />
-                            ) : (
-                              <span className={s.muted}>—</span>
-                            )}
-                            <button
-                              type="button"
-                              className={s.expandBtn}
-                              aria-expanded={isExpanded}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleExpanded(inv.investor_id, inv.best_proximity_code);
-                              }}
-                            >
-                              {isExpanded ? 'Hide' : 'View paths'}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      {isExpanded && (
-                        <tr className={s.detailRow}>
-                          <td colSpan={colCount} onClick={(e) => e.stopPropagation()}>
-                            <WarmPathDetail
-                              key={inv.investor_id}
-                              investorId={inv.investor_id}
-                              bestProximityCode={inv.best_proximity_code}
-                              canEdit={access.canEdit}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
-                  );
-                })}
+                        style={
+                          cell.column.columnDef.size !== undefined
+                            ? { width: cell.column.getSize(), maxWidth: cell.column.getSize() }
+                            : undefined
+                        }
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

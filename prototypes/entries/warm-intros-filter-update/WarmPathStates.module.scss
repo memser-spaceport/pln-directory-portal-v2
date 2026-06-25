@@ -1,0 +1,88 @@
+// Layout for the warm-path states reference gallery. Colours use the prototype
+// token+fallback pattern (see prototypes/CLAUDE.md). The components themselves
+// carry their own styling — these are just the page scaffold.
+
+$text: var(--foreground-neutral-primary, #0a0c11);
+$text-2: var(--foreground-neutral-secondary, #455468);
+$muted: var(--foreground-neutral-tertiary, #8897ae);
+$border: var(--border-neutral-subtle, #e5e7eb);
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  font-family: 'Inter', sans-serif;
+}
+
+.head {
+  margin-bottom: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 30px;
+  letter-spacing: -0.4px;
+  color: $text;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: $text-2;
+  max-width: 60ch;
+}
+
+.section {
+  margin-top: 36px;
+}
+
+.sectionTitle {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
+}
+
+// Node / chain states sit in a responsive grid; full cards stack full-width.
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.case {
+  padding: 14px;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+}
+
+.caseLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: $text;
+}
+
+.caseNote {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 17px;
+  color: $muted;
+}
+
+// The full card sits a touch below its note.
+.cardWrap {
+  margin-top: 10px;
+}

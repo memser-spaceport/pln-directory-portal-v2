@@ -1,4 +1,4 @@
-// Mocked data for the member-affinity-profile prototype.
+// Mocked data for the member-profile prototype.
 // No production services / network — everything the screen needs lives here.
 // The shapes mirror the fields the production member-detail components read so
 // we can feed them straight into the real components.

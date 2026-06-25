@@ -20,8 +20,8 @@ import grid from '@/components/page/members/MemberInfiniteList/MemberInfiniteLis
 import s from './MembersPrototype.module.scss';
 import { MOCK_MEMBERS, FILTER_GROUPS, SORT_OPTIONS } from './mocks';
 
-// Where a member card links to — the Affinity profile prototype (flat key).
-const PROFILE_PATH = '/prototypes/member-affinity-profile';
+// Where a member card links to — the member profile prototype (flat key).
+const PROFILE_PATH = '/prototypes/member-profile';
 
 type ViewType = 'grid' | 'list';
 

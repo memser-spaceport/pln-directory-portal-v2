@@ -54,12 +54,12 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/members/MembersPrototype'),
   },
   {
-    key: 'member-affinity-profile',
+    key: 'member-profile',
     title: 'Member profile — Affinity relationship',
     description:
       'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months.',
     category: 'Members',
-    load: () => import('./entries/member-affinity-profile/MemberAffinityProfilePrototype'),
+    load: () => import('./entries/member-profile/MemberProfilePrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

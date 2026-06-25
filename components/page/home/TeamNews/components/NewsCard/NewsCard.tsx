@@ -15,6 +15,7 @@ interface NewsCardProps {
   position?: number;
   onClick?: (item: ITeamNewsItem) => void;
   hideTeamLink?: boolean;
+  variant?: 'default' | 'flat' | 'outline';
   className?: string;
 }
 
@@ -36,7 +37,14 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
   OTHER: s.dotOther,
 };
 
-export const NewsCard = ({ item, position = 0, onClick, hideTeamLink = false, className }: NewsCardProps) => {
+export const NewsCard = ({
+  item,
+  position = 0,
+  onClick,
+  hideTeamLink = false,
+  variant = 'default',
+  className,
+}: NewsCardProps) => {
   const handleClick = () => {
     onClick?.(item);
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
@@ -53,7 +61,7 @@ export const NewsCard = ({ item, position = 0, onClick, hideTeamLink = false, cl
     <div
       role="link"
       tabIndex={0}
-      className={clsx(s.card, className)}
+      className={clsx(variant === 'flat' ? s.cardFlat : s.card, variant === 'outline' && s.cardOutline, className)}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >

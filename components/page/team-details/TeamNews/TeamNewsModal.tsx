@@ -25,12 +25,13 @@ interface TeamNewsModalProps {
 export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fullscreen = false }: TeamNewsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
+  const effectiveQuery = searchQuery === '' ? '' : debouncedQuery;
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { onTeamNewsCardClicked } = useTeamNewsAnalytics();
 
   const { items, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTeamNewsByTeamInfinite({
     teamUid,
-    q: debouncedQuery,
+    q: effectiveQuery,
     enabled: isOpen,
   });
 
@@ -99,7 +100,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
     </>
   ) : (
     <div className={fullscreen ? s.newsPageEmpty : s.modalEmpty}>
-      {debouncedQuery ? `No news matches “${searchQuery}”.` : 'No news found.'}
+      {debouncedQuery ? `No news matches “${effectiveQuery}”.` : 'No news found.'}
     </div>
   );
 

@@ -55,6 +55,8 @@ export const investorsFilterParsers = {
   wi_connector_labels: parseAsArrayOf(parseAsString, '|').withDefault([]),
   /** Substring hop-chain node labels (team names embedded in longer labels). */
   wi_connector_contains: parseAsArrayOf(parseAsString, '|').withDefault([]),
+  /** Client-side filter: null = Any, true = PL members only (lab_os_profile !== null). */
+  wi_pl_member: parseAsBoolean,
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

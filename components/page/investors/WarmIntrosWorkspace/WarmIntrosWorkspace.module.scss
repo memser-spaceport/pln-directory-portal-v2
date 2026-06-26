@@ -48,56 +48,6 @@
   }
 }
 
-.lensBar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.lensLabel {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #455468;
-}
-
-.lensChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px 4px 10px;
-  background: #eef2ff;
-  border: 1px solid #1b4dff;
-  border-radius: 999px;
-  font-size: 12px;
-  color: #1b4dff;
-
-  strong {
-    font-weight: 600;
-  }
-}
-
-.lensClear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: none;
-  background: rgba(27, 77, 255, 0.16);
-  border-radius: 50%;
-  cursor: pointer;
-  color: #1b4dff;
-  font-size: 12px;
-  line-height: 1;
-  padding: 0;
-
-  &:hover {
-    background: rgba(27, 77, 255, 0.28);
-  }
-}
 
 .title {
   margin: 0 0 4px;
@@ -145,19 +95,6 @@
   color: #455468;
 }
 
-.select {
-  padding: 8px 10px;
-  font-size: 13px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
-  outline: none;
-
-  &:focus {
-    border-color: #1b4dff;
-    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
-  }
-}
 
 .actions {
   display: flex;
@@ -250,28 +187,6 @@
   }
 }
 
-.sectorChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  padding: 4px 10px;
-  font-size: 12px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  cursor: pointer;
-  color: #455468;
-}
-
-.chipOn {
-  background: #1b4dff;
-  color: #fff;
-  border-color: #1b4dff;
-  font-weight: 500;
-}
 
 .summary {
   margin-top: 12px;
@@ -927,13 +842,6 @@ thead .frozenName {
   min-width: 200px;
 }
 
-.filterBarActions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
 
 /* LIST label + picker group */
 .filterBarListGroup {
@@ -979,122 +887,74 @@ thead .frozenName {
   z-index: 1;
 }
 
-/* Sector popover trigger — same height/style as the stage/check selects */
-.sectorWrap {
-  position: relative;
+
+
+/* ── Applied filter pills ────────────────────────────────────── */
+
+.filterPills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
 }
 
-.sectorTrigger {
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 10px;
-  height: 100%;
-  font-size: 13px;
-  font-family: 'Inter', sans-serif;
-  color: #0a0c11;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
+  gap: 3px;
+  padding: 4px 8px 4px 10px;
+  background: #eef2ff;
+  border: 1px solid #1b4dff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #1b4dff;
   white-space: nowrap;
 
-  &:hover {
-    background: #f9fafb;
+  strong {
+    color: #1b4dff;
+    font-weight: 700;
+    margin-left: 1px;
   }
 }
 
-.sectorTriggerText {
-  /* truncate if needed */
-}
-
-.sectorTriggerActive {
-  border-color: #1b4dff;
-  color: #1b4dff;
-  background: #eef2ff;
-}
-
-.sectorBadge {
+.pillRemove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: #1b4dff;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.sectorCaret {
-  font-size: 10px;
-  color: #6b7280;
-}
-
-.sectorPopover {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 50;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  min-width: 260px;
-  max-width: 360px;
-}
-
-.sectorPopoverChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* Apply / Clear buttons */
-.btnApply {
-  padding: 8px 18px;
-  font-size: 13px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  background: #1b4dff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: #1a3fd9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.btnClear {
-  padding: 8px 6px;
-  font-size: 13px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
   background: none;
-  color: #6b7280;
   border: none;
   cursor: pointer;
+  color: #1b4dff;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  border-radius: 50%;
+
+  &:hover {
+    background: rgba(27, 77, 255, 0.1);
+  }
+}
+
+.clearAll {
+  background: none;
+  border: none;
+  padding: 4px 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   white-space: nowrap;
 
-  &:hover:not(:disabled) {
+  &:hover {
     color: #0a0c11;
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 }
 

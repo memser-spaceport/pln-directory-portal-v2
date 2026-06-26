@@ -20,7 +20,7 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
     <Modal isOpen={isOpen} onClose={onClose} className={s.modalWide}>
       <div className={s.content}>
         <div className={s.header}>
-          <h2 className={s.modalTitle}>Create AI App</h2>
+          <h2 className={s.modalTitle}>Add your AI App</h2>
           <button type="button" className={s.modalClose} onClick={onClose} aria-label="Close">
             <CloseIcon width={20} height={20} />
           </button>

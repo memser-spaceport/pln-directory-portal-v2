@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 
 import s from './AiAppDetailPage.module.scss';
@@ -12,6 +15,14 @@ export function AiAppDetailPage(props: Props) {
   const { uid } = props;
 
   const { app, isLoading, isError } = useAiApp(uid);
+  const analytics = useAiAppsAnalytics();
+  const trackedAppUid = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!app || trackedAppUid.current === app.uid) return;
+    trackedAppUid.current = app.uid;
+    analytics.onDetailPageViewed(app.uid, app.name);
+  }, [app, analytics]);
 
   if (isLoading) {
     return <div className={s.state}>Loading app…</div>;

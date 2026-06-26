@@ -2239,3 +2239,15 @@ export const DEMO_DAY_ANALYTICS = {
   ON_DEMO_DAY_ANALYTICS_PAGE_LEFT: 'demo-day-analytics-page-left',
   ON_DEMO_DAY_ANALYTICS_TIME_ON_PAGE: 'demo-day-analytics-time-on-page',
 };
+
+export const AI_APPS_ANALYTICS = {
+  PAGE_VIEWED: 'ai_apps_page_viewed',
+  CREATE_MODAL_OPENED: 'ai_apps_create_modal_opened',
+  CREATE_MODAL_CLOSED: 'ai_apps_create_modal_closed',
+  STARTER_KIT_DOWNLOADED: 'ai_apps_starter_kit_downloaded',
+  STARTER_KIT_DOWNLOAD_FAILED: 'ai_apps_starter_kit_download_failed',
+  CARD_CLICKED: 'ai_apps_card_clicked',
+  AUTHOR_CLICKED: 'ai_apps_author_clicked',
+  DETAIL_PAGE_VIEWED: 'ai_apps_detail_page_viewed',
+  OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_open_in_new_tab_clicked',
+};

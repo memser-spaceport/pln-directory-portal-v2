@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
@@ -19,6 +20,7 @@ interface TeamNewsRailProps {
 
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { onTeamNewsCardClicked } = useTeamNewsAnalytics();
 
   const total = initialData.total;
@@ -63,6 +65,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         teamUid={teamUid}
         teamName={teamName}
         total={total}
+        fullscreen={isMobile}
       />
     </>
   );

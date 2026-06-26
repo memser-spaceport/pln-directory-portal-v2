@@ -11,5 +11,5 @@ interface TeamNewsCardProps {
 }
 
 export function TeamNewsCard({ item, position = 0, variant = 'outline', onClick }: TeamNewsCardProps) {
-  return <NewsCard item={item} position={position} hideTeamLink variant={variant} onClick={onClick} />;
+  return <NewsCard item={item} position={position} hideTeam variant={variant} onClick={onClick} />;
 }

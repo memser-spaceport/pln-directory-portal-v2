@@ -15,6 +15,7 @@ interface NewsCardProps {
   position?: number;
   onClick?: (item: ITeamNewsItem) => void;
   hideTeamLink?: boolean;
+  hideTeam?: boolean;
   variant?: 'default' | 'flat' | 'outline';
   className?: string;
 }
@@ -42,6 +43,7 @@ export const NewsCard = ({
   position = 0,
   onClick,
   hideTeamLink = false,
+  hideTeam = false,
   variant = 'default',
   className,
 }: NewsCardProps) => {
@@ -65,26 +67,28 @@ export const NewsCard = ({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      <div className={s.head}>
-        {item.teamLogoUrl ? (
-          <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-        ) : (
-          <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-        )}
-        {hideTeamLink ? (
-          <span className={s.teamName}>{item.teamName}</span>
-        ) : (
-          <a
-            href={`/teams/${item.teamUid}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.teamName}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {item.teamName}
-          </a>
-        )}
-      </div>
+      {!hideTeam && (
+        <div className={s.head}>
+          {item.teamLogoUrl ? (
+            <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+          ) : (
+            <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+          )}
+          {hideTeamLink ? (
+            <span className={s.teamName}>{item.teamName}</span>
+          ) : (
+            <a
+              href={`/teams/${item.teamUid}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.teamName}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.teamName}
+            </a>
+          )}
+        </div>
+      )}
       <h3 className={s.headline}>{item.title}</h3>
 
       <div className={s.metaLine}>

@@ -3,28 +3,33 @@ import type { Option } from '@/components/form/FormSelect/types';
 
 const container = (base: CSSObjectWithLabel) => ({ ...base, width: '100%' });
 
-const control = (base: CSSObjectWithLabel, state: { isFocused: boolean; menuIsOpen: boolean }) => ({
+const control = (base: CSSObjectWithLabel, state: { isFocused: boolean; menuIsOpen: boolean; hasValue: boolean }) => ({
   ...base,
   borderRadius: '8px',
-  border: `1px solid ${state.isFocused || state.menuIsOpen ? '#5E718D' : 'rgba(203, 213, 225, 0.50)'}`,
+  border: `1px solid ${state.hasValue ? '#1b4dff' : state.isFocused || state.menuIsOpen ? '#5E718D' : 'rgba(203, 213, 225, 0.50)'}`,
   boxShadow: state.isFocused || state.menuIsOpen ? '0 0 0 4px rgba(27, 56, 96, 0.12)' : 'none',
+  background: state.hasValue ? '#eef2ff' : '#fff',
   fontSize: '14px',
   color: '#455468',
   minHeight: '40px',
   cursor: 'pointer',
   '&:hover': {
-    borderColor: '#5E718D',
+    borderColor: state.hasValue ? '#1a3fd9' : '#5E718D',
     boxShadow: '0 0 0 4px rgba(27, 56, 96, 0.12)',
   },
 });
 
 const placeholder = (base: CSSObjectWithLabel) => ({ ...base, color: '#cbd5e1', fontWeight: 300 });
 
-const singleValue = (base: CSSObjectWithLabel) => ({ ...base, color: '#455468', fontWeight: 300 });
+const singleValue = (base: CSSObjectWithLabel) => ({ ...base, color: '#1b4dff', fontWeight: 400 });
 
 const indicatorSeparator = () => ({ display: 'none' });
 
-const dropdownIndicator = (base: CSSObjectWithLabel) => ({ ...base, color: '#455468', padding: '0 8px' });
+const dropdownIndicator = (base: CSSObjectWithLabel, state: { hasValue: boolean }) => ({
+  ...base,
+  color: state.hasValue ? '#1b4dff' : '#455468',
+  padding: '0 8px',
+});
 
 const clearIndicator = (base: CSSObjectWithLabel) => ({ ...base, color: '#8897ae', padding: '0 4px' });
 

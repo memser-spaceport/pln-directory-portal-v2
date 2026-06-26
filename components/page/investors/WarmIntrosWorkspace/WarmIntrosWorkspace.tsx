@@ -6,6 +6,7 @@ import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
+import { useGetListFacets } from '@/services/investors/hooks/useGetListFacets';
 import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
@@ -24,6 +25,8 @@ import {
 
 import type {
   CheckSizeRange,
+  FacetFounder,
+  FacetPlMember,
   InvestorList,
   OutreachInvestor,
   SectorTag,
@@ -65,14 +68,6 @@ const CHECK_SIZE_OPTIONS: Option[] = CHECK_SIZE_RANGES.filter((c) => c !== 'unkn
 }));
 
 const SECTOR_OPTIONS: Option[] = SECTOR_TAGS.map((s) => ({ value: s, label: SECTOR_TAG_LABEL[s] }));
-
-const PL_MEMBER_OPTIONS: Option[] = [{ value: 'pl_only', label: 'PL members only' }];
-
-function isDirectPath(inv: OutreachInvestor): boolean {
-  if (!inv.best_proximity_code) return false;
-  const m = inv.best_proximity_code.match(/\+(\d)/);
-  return m ? Number(m[1]) <= 1 : false;
-}
 
 const PAGE_LIMIT = 200;
 
@@ -125,7 +120,14 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   }, [filters.wi_list_id, lists, setFilters]);
 
   const onPickList = (list: InvestorList) => {
-    setFilters({ wi_list_id: list.id, wi_pl_member: null, ...CLEAR_CONNECTOR_LENS });
+    setFilters({
+      wi_list_id: list.id,
+      wi_pl_members: null,
+      wi_any_founder: null,
+      wi_founder_uids: null,
+      wi_direct_only: null,
+      ...CLEAR_CONNECTOR_LENS,
+    });
     setSelectedIds(new Set());
     analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
   };
@@ -136,9 +138,20 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     engaged: false,
     cold_match: false,
   });
-  const [directOnly, setDirectOnly] = useState(false);
 
   const enabled = access.canView && !!filters.wi_list_id;
+
+  const { data: facets } = useGetListFacets(filters.wi_list_id, enabled);
+
+  const plMemberOptions = useMemo<{ value: string; label: string }[]>(
+    () => (facets?.plMembers ?? []).filter((m): m is FacetPlMember => !!m.memberUid).map((m) => ({ value: m.memberUid, label: `${m.name} (${m.count})` })),
+    [facets],
+  );
+
+  const founderOptions = useMemo<{ value: string; label: string }[]>(
+    () => (facets?.founders ?? []).filter((f): f is FacetFounder => !!f.memberUid).map((f) => ({ value: f.memberUid, label: f.name })),
+    [facets],
+  );
 
   // Connector lens (task 04): filtered SERVER-SIDE so it spans the whole list, not
   // just the loaded page. The chosen connector's labels flow to the members
@@ -156,6 +169,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       check_size_range: filters.wi_check_size ? [filters.wi_check_size as CheckSizeRange] : undefined,
       connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
       connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
+      pl_member_uids: filters.wi_pl_members.length ? filters.wi_pl_members : undefined,
+      founder_uids: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
+      any_founder: filters.wi_any_founder ?? undefined,
+      direct_only: filters.wi_direct_only ?? undefined,
       limit: PAGE_LIMIT,
     },
     enabled,
@@ -192,18 +209,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     return () => observer.disconnect();
   }, [handleLoadMore]);
 
-  // Members already arrive connector-filtered from the server (task 04); the
-  // relationship chips and PL member filter refine the loaded set further, client-side.
+  // Members arrive server-filtered (connector, PL member, founder, direct-only, sector,
+  // stage, check); relationship chips refine the loaded set further, client-side.
   const visible = useMemo(() => {
     const anyRelActive = relFilter.co_invested || relFilter.engaged;
     const rows = members.filter((m) => {
       if (anyRelActive && !relFilter[relationshipTier(m)]) return false;
-      if (directOnly && !isDirectPath(m)) return false;
-      if (filters.wi_pl_member && !m.lab_os_profile) return false;
       return true;
     });
     return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [members, relFilter, directOnly, filters.wi_pl_member]);
+  }, [members, relFilter]);
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
@@ -219,7 +234,9 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     !!filters.wi_stage ||
     filters.wi_sectors.length > 0 ||
     !!filters.wi_check_size ||
-    !!filters.wi_pl_member ||
+    filters.wi_pl_members.length > 0 ||
+    !!filters.wi_any_founder ||
+    filters.wi_founder_uids.length > 0 ||
     !!filters.wi_connector ||
     filters.wi_connector_labels.length > 0 ||
     filters.wi_connector_contains.length > 0;
@@ -255,12 +272,32 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         },
       });
     }
-    if (filters.wi_pl_member) {
+    for (const uid of filters.wi_pl_members) {
+      const uidCopy = uid;
+      const name = facets?.plMembers.find((m) => m.memberUid === uid)?.name ?? uid;
       pills.push({
-        key: 'pl_member',
+        key: `plm-${uid}`,
         label: 'PL member',
-        value: 'On',
-        onRemove: () => setFilters({ wi_pl_member: null }),
+        value: name,
+        onRemove: () => setFilters({ wi_pl_members: filters.wi_pl_members.filter((x) => x !== uidCopy) }),
+      });
+    }
+    if (filters.wi_any_founder) {
+      pills.push({
+        key: 'any_founder',
+        label: 'Founder',
+        value: 'Any',
+        onRemove: () => setFilters({ wi_any_founder: null }),
+      });
+    }
+    for (const uid of filters.wi_founder_uids) {
+      const uidCopy = uid;
+      const name = facets?.founders.find((f) => f.memberUid === uid)?.name ?? uid;
+      pills.push({
+        key: `founder-${uid}`,
+        label: 'Founder',
+        value: name,
+        onRemove: () => setFilters({ wi_founder_uids: filters.wi_founder_uids.filter((x) => x !== uidCopy) }),
       });
     }
     if (filters.wi_connector) {
@@ -272,14 +309,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       });
     }
     return pills;
-  }, [filters.wi_stage, filters.wi_check_size, filters.wi_sectors, filters.wi_pl_member, filters.wi_connector, setFilters]);
+  }, [filters.wi_stage, filters.wi_check_size, filters.wi_sectors, filters.wi_pl_members, filters.wi_any_founder, filters.wi_founder_uids, filters.wi_connector, facets, setFilters]);
 
   const clear = () => {
     setFilters({
       wi_stage: null,
       wi_sectors: null,
       wi_check_size: null,
-      wi_pl_member: null,
+      wi_pl_members: null,
+      wi_any_founder: null,
+      wi_founder_uids: null,
       ...CLEAR_CONNECTOR_LENS,
     });
     setSelectedIds(new Set());
@@ -334,7 +373,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   // ── Derived filter values for controlled selects ────────────────────────────
   const stageValue = STAGE_OPTIONS.find((o) => o.value === filters.wi_stage) ?? null;
   const checkSizeValue = CHECK_SIZE_OPTIONS.find((o) => o.value === filters.wi_check_size) ?? null;
-  const plMemberValue = filters.wi_pl_member ? PL_MEMBER_OPTIONS[0] : null;
 
   const columns = useMemo<ColumnDef<OutreachInvestor>[]>(
     () => [
@@ -467,31 +505,44 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
           </div>
 
-          {/* PL member filter */}
+          {/* PL member filter — multi-select from facets */}
           <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <FilterSelect
-              options={PL_MEMBER_OPTIONS}
-              value={plMemberValue}
+            <CheckboxDropdown
+              options={plMemberOptions}
+              value={filters.wi_pl_members}
               placeholder="Any PL member"
-              isClearable
               aria-label="PL member"
-              onChange={(opt) => {
-                setFilters({ wi_pl_member: opt ? true : null });
+              onChange={(vals) => {
+                setFilters({ wi_pl_members: vals.length ? vals : null });
                 setSelectedIds(new Set());
               }}
             />
           </div>
 
-          {/* Founder filter — stub until backend ships is_founder field */}
-          <div className={s.filterBarItem} style={{ minWidth: 130 }}>
-            <FilterSelect
-              options={[]}
-              value={null}
-              placeholder="Founder"
-              isDisabled
-              aria-label="Founder"
-              title="Coming soon — requires a new backend field"
-              onChange={() => {}}
+          {/* Founder filter — any-founder toggle + specific-founder multi-select */}
+          <div className={s.filterBarItem}>
+            <button
+              type="button"
+              className={clsx(s.toggleBtn, filters.wi_any_founder && s.toggleBtnActive)}
+              onClick={() => {
+                setFilters({ wi_any_founder: filters.wi_any_founder ? null : true, wi_founder_uids: null });
+                setSelectedIds(new Set());
+              }}
+            >
+              Any founder
+            </button>
+          </div>
+          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
+            <CheckboxDropdown
+              options={founderOptions}
+              value={filters.wi_founder_uids}
+              placeholder="Specific founder"
+              aria-label="Specific founder"
+              disabled={!!filters.wi_any_founder}
+              onChange={(vals) => {
+                setFilters({ wi_founder_uids: vals.length ? vals : null });
+                setSelectedIds(new Set());
+              }}
             />
           </div>
 
@@ -584,13 +635,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
             <div className={s.resultsActions}>
               <div className={s.relChips}>
-                <button
-                  type="button"
-                  className={clsx(s.relChip, directOnly && s.relChipOn)}
-                  onClick={() => setDirectOnly((v) => !v)}
-                >
+                <label className={s.directOnlyToggle}>
                   Direct only
-                </button>
+                  <span className={s.toggleTrack} aria-hidden>
+                    <input
+                      type="checkbox"
+                      className={s.toggleInput}
+                      checked={!!filters.wi_direct_only}
+                      onChange={() => setFilters({ wi_direct_only: filters.wi_direct_only ? null : true })}
+                    />
+                    <span className={s.toggleThumb} />
+                  </span>
+                </label>
                 {REL_FILTERS.map(({ tier, label }) => (
                   <button
                     key={tier}
@@ -713,9 +769,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           )}
           {!isLoading && members.length > 0 && visible.length === 0 && (
             <div className={s.empty}>
-              {filters.wi_pl_member
-                ? 'No PL members in the current set — clear the PL member filter to see all results.'
-                : `${members.length} member${members.length === 1 ? '' : 's'} hidden by the current filters — adjust the relationship chips${connectorLabel ? ' or clear the connector lens' : ''}.`}
+              {`${members.length} member${members.length === 1 ? '' : 's'} hidden by the relationship filter — adjust the relationship chips above.`}
             </div>
           )}
         </section>

@@ -11,7 +11,9 @@ interface Props {
   readonly placeholder?: string;
   readonly isClearable?: boolean;
   readonly isSearchable?: boolean;
+  readonly isDisabled?: boolean;
   readonly 'aria-label'?: string;
+  readonly title?: string;
 }
 
 export function FilterSelect({
@@ -21,21 +23,26 @@ export function FilterSelect({
   placeholder = 'Select…',
   isClearable = false,
   isSearchable = false,
+  isDisabled = false,
   'aria-label': ariaLabel,
+  title,
 }: Props) {
   return (
-    <Select
-      inputId={ariaLabel ? undefined : 'filter-select'}
-      aria-label={ariaLabel}
-      options={options}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      isClearable={isClearable}
-      isSearchable={isSearchable}
-      styles={filterSelectStyles}
-      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-      menuPosition="fixed"
-    />
+    <div title={title}>
+      <Select
+        inputId={ariaLabel ? undefined : 'filter-select'}
+        aria-label={ariaLabel}
+        options={options}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        isClearable={isClearable}
+        isSearchable={isSearchable}
+        isDisabled={isDisabled}
+        styles={filterSelectStyles}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        menuPosition="fixed"
+      />
+    </div>
   );
 }

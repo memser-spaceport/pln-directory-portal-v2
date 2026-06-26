@@ -6,6 +6,7 @@ import type {
   CrosswalkReviewResponse,
   InvestorList,
   InvestorListResponse,
+  ListFacetsResponse,
   ListMembersParams,
   OutreachInvestor,
   SectorTag,
@@ -33,6 +34,10 @@ function toListMembersApiParams(p: ListMembersParams): Record<string, unknown> {
     relationship: p.relationship,
     connectorLabels: p.connector_labels,
     connectorLabelsContains: p.connector_labels_contains,
+    plMembers: p.pl_member_uids,
+    founderUids: p.founder_uids,
+    anyFounder: p.any_founder,
+    directOnly: p.direct_only,
     page: p.page,
     limit: p.limit,
   };
@@ -111,6 +116,17 @@ export async function fetchListMembers(
   if (!res || !res.ok) return { page: 1, limit: 0, total: 0, items: [] };
   const json = await res.json();
   return { ...json, items: ((json.items ?? []) as AnyDto[]).map(mapInvestorDto) };
+}
+
+/** Per-list facets: PL members and founders available in this list (for filter dropdowns). */
+export async function fetchListFacets(listId: string): Promise<ListFacetsResponse> {
+  const res = await customFetch(
+    `${LISTS_API_URL}/${encodeURIComponent(listId)}/warm-intro-facets`,
+    { method: 'GET' },
+    true,
+  );
+  if (!res || !res.ok) return { plMembers: [], founders: [] };
+  return res.json();
 }
 
 /** Add an investor to a list. Gated server-side on investor_db.edit. */

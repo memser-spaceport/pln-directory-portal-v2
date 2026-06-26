@@ -127,7 +127,6 @@ export default function RightsTokensDashboard() {
               <Image src="/icons/token-icon.svg" alt="" width={16} height={16} />
             </span>
             <h2 className={styles['rights-tokens-dashboard__title']}>PLAA Dashboard</h2>
-            <InfoTooltip content={TOOLTIP_CONTENT.total} label="PLAA Dashboard info" />
           </div>
           <p className={styles['rights-tokens-dashboard__subtitle']}>
             Welcome back {displayName} - here are your updated PLAA balances

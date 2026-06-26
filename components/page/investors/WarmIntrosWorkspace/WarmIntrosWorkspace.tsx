@@ -3,18 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useQueryStates } from 'nuqs';
-import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 import clsx from 'clsx';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
+import { useGetListFacets } from '@/services/investors/hooks/useGetListFacets';
 import { useGetListMembers } from '@/services/investors/hooks/useGetListMembers';
 import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+import { FilterSelect } from '@/components/common/filters/FilterSelect/FilterSelect';
+import type { Option } from '@/components/form/FormSelect/types';
+import { CheckboxDropdown } from './CheckboxDropdown';
 
 import {
   CHECK_SIZE_RANGES,
   INDUSTRY_SECTOR_LABEL,
-  INVESTOR_TYPE_LABEL,
   SECTOR_TAGS,
   SECTOR_TAG_LABEL,
   STAGE_FOCUSES,
@@ -23,6 +25,7 @@ import {
 
 import type {
   CheckSizeRange,
+  FacetFounder,
   InvestorList,
   OutreachInvestor,
   SectorTag,
@@ -39,7 +42,6 @@ import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPan
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import { AddToListButton } from './AddToListButton';
 import { GlossaryModal } from './GlossaryModal';
-import { ListPicker } from './ListPicker';
 import { CLEAR_CONNECTOR_LENS, selectionToConnectorFilter } from './connectorLensFilters';
 import { UnifiedSearchSelect, type UnifiedSelection } from './UnifiedSearchSelect';
 import s from './WarmIntrosWorkspace.module.scss';
@@ -53,11 +55,17 @@ const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
   { tier: 'engaged', label: 'Engaged' },
 ];
 
-function isDirectPath(inv: OutreachInvestor): boolean {
-  if (!inv.best_proximity_code) return false;
-  const m = inv.best_proximity_code.match(/\+(\d)/);
-  return m ? Number(m[1]) <= 1 : false;
-}
+const STAGE_OPTIONS: Option[] = STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => ({
+  value: st,
+  label: STAGE_FOCUS_LABEL[st],
+}));
+
+const CHECK_SIZE_OPTIONS: Option[] = CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => ({
+  value: c,
+  label: c,
+}));
+
+const SECTOR_OPTIONS: Option[] = SECTOR_TAGS.map((s) => ({ value: s, label: SECTOR_TAG_LABEL[s] }));
 
 const PAGE_LIMIT = 200;
 
@@ -79,12 +87,6 @@ function proximityRank(inv: OutreachInvestor): number {
   const hops = hopMatch ? Number(hopMatch[1]) : 9;
   return calRank * 10 + hops;
 }
-
-type Draft = {
-  stage: string;
-  sectors: SectorTag[];
-  check: string;
-};
 
 export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const access = useInvestorsAccess();
@@ -108,9 +110,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   useEffect(() => {
     if (!filters.wi_list_id && lists && lists.length > 0) {
       // Default to the primary LP pipeline (neuro-lp) when present, else the first
-      // GRAPHED list (proximity is meaningful), else the first list. Now that Gold
-      // is also graphed, a bare find(is_graphed) would pick Gold (sorts first by
-      // name), so prefer the flagship neuro list explicitly.
+      // GRAPHED list (proximity is meaningful), else the first list.
       const def =
         lists.find((l) => l.slug === 'neuro-lp' && l.is_graphed) ?? lists.find((l) => l.is_graphed) ?? lists[0];
       setFilters({ wi_list_id: def.id });
@@ -118,63 +118,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   }, [filters.wi_list_id, lists, setFilters]);
 
   const onPickList = (list: InvestorList) => {
-    setFilters({ wi_list_id: list.id, ...CLEAR_CONNECTOR_LENS });
+    setFilters({
+      wi_list_id: list.id,
+      wi_pl_members: null,
+      wi_any_founder: null,
+      wi_founder_uids: null,
+      wi_direct_only: null,
+      ...CLEAR_CONNECTOR_LENS,
+    });
     setSelectedIds(new Set());
     analytics.trackListSelected({ listId: list.id, listName: list.name, isGraphed: list.is_graphed });
-  };
-
-  // ── In-list refinement: draft (form) vs applied (URL) ───────────────────────
-  const [draft, setDraft] = useState<Draft>(() => ({
-    stage: filters.wi_stage,
-    sectors: filters.wi_sectors as SectorTag[],
-    check: filters.wi_check_size,
-  }));
-
-  // Keep draft in sync when URL params change externally (browser back/forward,
-  // deep-link navigation). Skip the first mount since useState already captured
-  // the initial values.
-  const isMounted = useRef(false);
-  useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
-    }
-
-    setDraft({
-      stage: filters.wi_stage,
-      sectors: filters.wi_sectors as SectorTag[],
-      check: filters.wi_check_size,
-    });
-  }, [filters.wi_stage, filters.wi_sectors, filters.wi_check_size]);
-
-  const applied = useMemo(
-    () => ({
-      stage: filters.wi_stage as StageFocus | '',
-      sectors: filters.wi_sectors as SectorTag[],
-      check: filters.wi_check_size as CheckSizeRange | '',
-    }),
-    [filters.wi_stage, filters.wi_sectors, filters.wi_check_size],
-  );
-
-  const toggleDraftSector = (sec: SectorTag) =>
-    setDraft((d) => ({
-      ...d,
-      sectors: d.sectors.includes(sec) ? d.sectors.filter((x) => x !== sec) : [...d.sectors, sec],
-    }));
-
-  const apply = () => {
-    setFilters({
-      wi_stage: draft.stage || null,
-      wi_sectors: draft.sectors.length ? draft.sectors : null,
-      wi_check_size: draft.check || null,
-    });
-    setSelectedIds(new Set());
-  };
-
-  const clear = () => {
-    setDraft({ stage: '', sectors: [], check: '' });
-    setFilters({ wi_stage: null, wi_sectors: null, wi_check_size: null, ...CLEAR_CONNECTOR_LENS });
-    setSelectedIds(new Set());
   };
 
   // ── Relationship lens (client chips, server filter) ─────────────────────────
@@ -183,9 +136,24 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     engaged: false,
     cold_match: false,
   });
-  const [directOnly, setDirectOnly] = useState(false);
 
   const enabled = access.canView && !!filters.wi_list_id;
+
+  const { data: facets } = useGetListFacets(filters.wi_list_id, enabled);
+
+  const plMemberOptions = useMemo<{ value: string; label: string }[]>(
+    () =>
+      (facets?.plMembers ?? []).map((m) => ({ value: m.memberUid ?? m.name, label: `${m.name} (${m.count})` })),
+    [facets],
+  );
+
+  const founderOptions = useMemo<{ value: string; label: string }[]>(
+    () =>
+      (facets?.founders ?? [])
+        .filter((f): f is FacetFounder => !!f.memberUid)
+        .map((f) => ({ value: f.memberUid, label: f.name })),
+    [facets],
+  );
 
   // Connector lens (task 04): filtered SERVER-SIDE so it spans the whole list, not
   // just the loaded page. The chosen connector's labels flow to the members
@@ -198,11 +166,15 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
     filters.wi_list_id,
     {
-      stage_focus: applied.stage ? [applied.stage] : undefined,
-      sector_tags: applied.sectors.length ? applied.sectors : undefined,
-      check_size_range: applied.check ? [applied.check] : undefined,
+      stage_focus: filters.wi_stage ? [filters.wi_stage as StageFocus] : undefined,
+      sector_tags: filters.wi_sectors.length ? (filters.wi_sectors as SectorTag[]) : undefined,
+      check_size_range: filters.wi_check_size ? [filters.wi_check_size as CheckSizeRange] : undefined,
       connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
       connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
+      pl_member_uids: filters.wi_pl_members.length ? filters.wi_pl_members : undefined,
+      founder_uids: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
+      any_founder: filters.wi_any_founder ?? undefined,
+      direct_only: filters.wi_direct_only ?? undefined,
       limit: PAGE_LIMIT,
     },
     enabled,
@@ -239,17 +211,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     return () => observer.disconnect();
   }, [handleLoadMore]);
 
-  // Members already arrive connector-filtered from the server (task 04); the
-  // relationship chips refine the loaded set further, client-side.
+  // Members arrive server-filtered (connector, PL member, founder, direct-only, sector,
+  // stage, check); relationship chips refine the loaded set further, client-side.
   const visible = useMemo(() => {
     const anyRelActive = relFilter.co_invested || relFilter.engaged;
     const rows = members.filter((m) => {
       if (anyRelActive && !relFilter[relationshipTier(m)]) return false;
-      if (directOnly && !isDirectPath(m)) return false;
       return true;
     });
     return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [members, relFilter, directOnly]);
+  }, [members, relFilter]);
 
   // Report the total list size (not the filtered subset) to the tab badge.
   useEffect(() => {
@@ -261,17 +232,109 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     analytics.trackConnectorLensApplied({ nodeLabel: sel.displayLabel, kind: sel.kind });
   };
 
-  const [sectorPopoverOpen, setSectorPopoverOpen] = useState(false);
-  const sectorPopoverRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside([sectorPopoverRef], () => setSectorPopoverOpen(false));
-
   const hasAnyFilter =
-    !!draft.stage ||
-    draft.sectors.length > 0 ||
-    !!draft.check ||
+    !!filters.wi_stage ||
+    filters.wi_sectors.length > 0 ||
+    !!filters.wi_check_size ||
+    filters.wi_pl_members.length > 0 ||
+    !!filters.wi_any_founder ||
+    filters.wi_founder_uids.length > 0 ||
     !!filters.wi_connector ||
     filters.wi_connector_labels.length > 0 ||
     filters.wi_connector_contains.length > 0;
+
+  const filterPills = useMemo(() => {
+    const pills: { key: string; label: string; value: string; onRemove: () => void }[] = [];
+
+    if (filters.wi_stage) {
+      pills.push({
+        key: 'stage',
+        label: 'Stage',
+        value: STAGE_FOCUS_LABEL[filters.wi_stage as StageFocus] ?? filters.wi_stage,
+        onRemove: () => setFilters({ wi_stage: null }),
+      });
+    }
+    if (filters.wi_check_size) {
+      pills.push({
+        key: 'check',
+        label: 'Check',
+        value: filters.wi_check_size,
+        onRemove: () => setFilters({ wi_check_size: null }),
+      });
+    }
+    for (const sec of filters.wi_sectors) {
+      const secCopy = sec;
+      pills.push({
+        key: `sector-${sec}`,
+        label: 'Industry / Sector',
+        value: SECTOR_TAG_LABEL[sec as SectorTag] ?? sec,
+        onRemove: () => {
+          const next = (filters.wi_sectors as SectorTag[]).filter((x) => x !== secCopy);
+          setFilters({ wi_sectors: next.length ? next : null });
+        },
+      });
+    }
+    for (const uid of filters.wi_pl_members) {
+      const uidCopy = uid;
+      const name = facets?.plMembers.find((m) => m.memberUid === uid)?.name ?? uid;
+      pills.push({
+        key: `plm-${uid}`,
+        label: 'PL member',
+        value: name,
+        onRemove: () => setFilters({ wi_pl_members: filters.wi_pl_members.filter((x) => x !== uidCopy) }),
+      });
+    }
+    if (filters.wi_any_founder) {
+      pills.push({
+        key: 'any_founder',
+        label: 'Founder',
+        value: 'Any',
+        onRemove: () => setFilters({ wi_any_founder: null }),
+      });
+    }
+    for (const uid of filters.wi_founder_uids) {
+      const uidCopy = uid;
+      const name = facets?.founders.find((f) => f.memberUid === uid)?.name ?? uid;
+      pills.push({
+        key: `founder-${uid}`,
+        label: 'Founder',
+        value: name,
+        onRemove: () => setFilters({ wi_founder_uids: filters.wi_founder_uids.filter((x) => x !== uidCopy) }),
+      });
+    }
+    if (filters.wi_connector) {
+      pills.push({
+        key: 'connector',
+        label: 'Connector',
+        value: filters.wi_connector,
+        onRemove: () => setFilters(CLEAR_CONNECTOR_LENS),
+      });
+    }
+    return pills;
+  }, [
+    filters.wi_stage,
+    filters.wi_check_size,
+    filters.wi_sectors,
+    filters.wi_pl_members,
+    filters.wi_any_founder,
+    filters.wi_founder_uids,
+    filters.wi_connector,
+    facets,
+    setFilters,
+  ]);
+
+  const clear = () => {
+    setFilters({
+      wi_stage: null,
+      wi_sectors: null,
+      wi_check_size: null,
+      wi_pl_members: null,
+      wi_any_founder: null,
+      wi_founder_uids: null,
+      ...CLEAR_CONNECTOR_LENS,
+    });
+    setSelectedIds(new Set());
+  };
 
   const toggleSelected = (id: string) => {
     setSelectedIds((prev) => {
@@ -319,6 +382,20 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     }
   };
 
+  // ── Derived filter values for controlled selects ────────────────────────────
+  const listOptions = useMemo<Option[]>(
+    () =>
+      (lists ?? []).map((l) => ({
+        value: l.id,
+        label: `${l.name} · ${l.member_count.toLocaleString()} ${l.member_count === 1 ? 'member' : 'members'}${l.is_graphed ? '' : ' · not graphed'}`,
+      })),
+    [lists],
+  );
+  const listValue = listOptions.find((o) => o.value === filters.wi_list_id) ?? null;
+
+  const stageValue = STAGE_OPTIONS.find((o) => o.value === filters.wi_stage) ?? null;
+  const checkSizeValue = CHECK_SIZE_OPTIONS.find((o) => o.value === filters.wi_check_size) ?? null;
+
   const columns = useMemo<ColumnDef<OutreachInvestor>[]>(
     () => [
       {
@@ -353,24 +430,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         cell: ({ row }) => <SectorTagsList tags={row.original.sector_tags} max={3} />,
         size: 200,
       },
-      // {
-      //   id: 'stage',
-      //   header: 'Stage',
-      //   cell: ({ row }) => STAGE_FOCUS_LABEL[row.original.stage_focus] ?? <span className={s.muted}>—</span>,
-      //   size: 110,
-      // },
-      // {
-      //   id: 'type',
-      //   header: 'Type',
-      //   cell: ({ row }) => INVESTOR_TYPE_LABEL[row.original.investor_type] ?? <span className={s.muted}>—</span>,
-      //   size: 110,
-      // },
-      // {
-      //   id: 'relationship',
-      //   header: 'Relationship',
-      //   cell: ({ row }) => <RelationshipCell investor={row.original} />,
-      //   size: 130,
-      // },
       {
         id: 'proximity',
         header: 'Proximity',
@@ -444,18 +503,23 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               </button>
             </div>
           </div>
-          <p className={s.desc}>
-            Pick a target list, then search for an investor or fund — or filter the list down — to see the warmest paths
-            PL can use to reach them.
-          </p>
+          <p className={s.desc}>Pick a list, then search or filter it down to see the warmest paths PL can reach.</p>
         </header>
 
         {/* Compact single-row filter bar */}
         <div className={s.filterBar}>
-          {/* LIST label + picker grouped */}
-          <div className={clsx(s.filterBarItem, s.filterBarListGroup)}>
-            <span className={s.filterBarListLabel}>LIST</span>
-            <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
+          {/* List picker */}
+          <div className={s.filterBarItem} style={{ minWidth: 220 }}>
+            <FilterSelect
+              options={listOptions}
+              value={listValue}
+              placeholder="Select list…"
+              aria-label="Target list"
+              onChange={(opt) => {
+                const next = (lists ?? []).find((l) => l.id === opt?.value);
+                if (next) onPickList(next);
+              }}
+            />
           </div>
 
           {/* Search with magnifier icon */}
@@ -471,96 +535,98 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
           </div>
 
-          <div className={s.filterBarItem}>
-            <select
-              className={s.select}
-              value={draft.stage}
+          {/* PL member filter — multi-select from facets */}
+          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
+            <CheckboxDropdown
+              options={plMemberOptions}
+              value={filters.wi_pl_members}
+              placeholder="PL member"
+              aria-label="PL member"
+              onChange={(vals) => {
+                setFilters({ wi_pl_members: vals.length ? vals : null });
+                setSelectedIds(new Set());
+              }}
+            />
+          </div>
+
+          {/* Founder filter — specific-founder multi-select */}
+          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
+            <CheckboxDropdown
+              options={founderOptions}
+              value={filters.wi_founder_uids}
+              placeholder="Founder"
+              aria-label="Specific founder"
+              disabled={!!filters.wi_any_founder}
+              onChange={(vals) => {
+                setFilters({ wi_founder_uids: vals.length ? vals : null });
+                setSelectedIds(new Set());
+              }}
+            />
+          </div>
+
+          {/* Stage filter */}
+          <div className={s.filterBarItem} style={{ minWidth: 150 }}>
+            <FilterSelect
+              options={STAGE_OPTIONS}
+              value={stageValue}
+              placeholder="Stage"
+              isClearable
               aria-label="Stage focus"
-              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
-            >
-              <option value="">Any stage</option>
-              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
-                <option key={st} value={st}>
-                  {STAGE_FOCUS_LABEL[st]}
-                </option>
-              ))}
-            </select>
+              onChange={(opt) => {
+                setFilters({ wi_stage: opt?.value || null });
+                setSelectedIds(new Set());
+              }}
+            />
           </div>
 
-          <div className={s.filterBarItem}>
-            <select
-              className={s.select}
-              value={draft.check}
+          {/* Check size filter */}
+          <div className={s.filterBarItem} style={{ minWidth: 150 }}>
+            <FilterSelect
+              options={CHECK_SIZE_OPTIONS}
+              value={checkSizeValue}
+              placeholder="Check size"
+              isClearable
               aria-label="Check size"
-              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
-            >
-              <option value="">Any check size</option>
-              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              onChange={(opt) => {
+                setFilters({ wi_check_size: opt?.value || null });
+                setSelectedIds(new Set());
+              }}
+            />
           </div>
 
-          {/* Sector popover — styled to match stage/check selects */}
-          <div className={clsx(s.filterBarItem, s.sectorWrap)} ref={sectorPopoverRef}>
-            <button
-              type="button"
-              className={clsx(s.sectorTrigger, draft.sectors.length > 0 && s.sectorTriggerActive)}
-              onClick={() => setSectorPopoverOpen((o) => !o)}
-              aria-expanded={sectorPopoverOpen}
-            >
-              <span className={s.sectorTriggerText}>
-                {draft.sectors.length > 0
-                  ? `${INDUSTRY_SECTOR_LABEL} (${draft.sectors.length})`
-                  : INDUSTRY_SECTOR_LABEL}
-              </span>
-              <span className={s.sectorCaret} aria-hidden>
-                ▾
-              </span>
-            </button>
-            {sectorPopoverOpen && (
-              <div className={s.sectorPopover} role="dialog" aria-label="Sector filters">
-                <div className={s.sectorPopoverChips}>
-                  {SECTOR_TAGS.map((sec) => (
-                    <button
-                      key={sec}
-                      className={clsx(s.chip, draft.sectors.includes(sec) && s.chipOn)}
-                      onClick={() => toggleDraftSector(sec)}
-                    >
-                      {SECTOR_TAG_LABEL[sec]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className={s.filterBarActions}>
-            <button className={s.btnApply} onClick={apply}>
-              Apply
-            </button>
-            <button className={s.btnClear} onClick={clear} disabled={!hasAnyFilter}>
-              Clear
-            </button>
+          {/* Industry / Sector multi-select */}
+          <div className={s.filterBarItem} style={{ minWidth: 180 }}>
+            <CheckboxDropdown
+              options={SECTOR_OPTIONS}
+              value={filters.wi_sectors}
+              placeholder={INDUSTRY_SECTOR_LABEL}
+              aria-label="Industry / Sector"
+              onChange={(vals) => {
+                setFilters({ wi_sectors: vals.length ? (vals as SectorTag[]) : null });
+                setSelectedIds(new Set());
+              }}
+            />
           </div>
         </div>
 
-        {connectorLabel && (
-          <div className={s.lensBar}>
-            <span className={s.lensLabel}>Connector lens:</span>
-            <span className={s.lensChip}>
-              paths through <strong>{connectorLabel}</strong>
-              <button
-                type="button"
-                className={s.lensClear}
-                onClick={() => setFilters(CLEAR_CONNECTOR_LENS)}
-                aria-label="Clear connector lens"
-              >
-                &times;
-              </button>
-            </span>
+        {filterPills.length > 0 && (
+          <div className={s.filterPills}>
+            {filterPills.map((pill) => (
+              <span key={pill.key} className={s.pill}>
+                {pill.label}: <strong>{pill.value}</strong>
+                <button
+                  type="button"
+                  className={s.pillRemove}
+                  onClick={pill.onRemove}
+                  aria-label={`Remove ${pill.label} filter`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <button type="button" className={s.clearAll} onClick={clear}>
+              Clear All
+            </button>
           </div>
         )}
       </section>
@@ -591,13 +657,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </div>
             <div className={s.resultsActions}>
               <div className={s.relChips}>
-                <button
-                  type="button"
-                  className={clsx(s.relChip, directOnly && s.relChipOn)}
-                  onClick={() => setDirectOnly((v) => !v)}
-                >
+                <label className={s.directOnlyToggle}>
                   Direct only
-                </button>
+                  <span className={s.toggleTrack} aria-hidden>
+                    <input
+                      type="checkbox"
+                      className={s.toggleInput}
+                      checked={!!filters.wi_direct_only}
+                      onChange={() => setFilters({ wi_direct_only: filters.wi_direct_only ? null : true })}
+                    />
+                    <span className={s.toggleThumb} />
+                  </span>
+                </label>
                 {REL_FILTERS.map(({ tier, label }) => (
                   <button
                     key={tier}
@@ -720,8 +791,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           )}
           {!isLoading && members.length > 0 && visible.length === 0 && (
             <div className={s.empty}>
-              {members.length} member{members.length === 1 ? '' : 's'} hidden by the current filters — adjust the
-              relationship chips{connectorLabel ? ' or clear the connector lens' : ''}.
+              {`${members.length} member${members.length === 1 ? '' : 's'} hidden by the relationship filter — adjust the relationship chips above.`}
             </div>
           )}
         </section>

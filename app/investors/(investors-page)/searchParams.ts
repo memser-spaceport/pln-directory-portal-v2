@@ -55,6 +55,14 @@ export const investorsFilterParsers = {
   wi_connector_labels: parseAsArrayOf(parseAsString, '|').withDefault([]),
   /** Substring hop-chain node labels (team names embedded in longer labels). */
   wi_connector_contains: parseAsArrayOf(parseAsString, '|').withDefault([]),
+  /** PL member UIDs to filter by (from facets). Empty = no filter. */
+  wi_pl_members: parseAsArrayOf(parseAsString, ',').withDefault([]),
+  /** null = off, true = show any founder. */
+  wi_any_founder: parseAsBoolean,
+  /** Specific founder member UIDs (from facets). Empty = no filter. */
+  wi_founder_uids: parseAsArrayOf(parseAsString, ',').withDefault([]),
+  /** null = off, true = direct-path only (no intermediary hops). */
+  wi_direct_only: parseAsBoolean,
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

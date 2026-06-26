@@ -24,6 +24,7 @@ export enum InvestorsQueryKeys {
   // Lists IA
   INVESTOR_LISTS = 'investors-lists',
   LIST_MEMBERS = 'investors-list-members',
+  LIST_FACETS = 'investors-list-facets',
   // Crosswalk review queue
   CROSSWALK_REVIEW = 'investors-crosswalk-review',
 }

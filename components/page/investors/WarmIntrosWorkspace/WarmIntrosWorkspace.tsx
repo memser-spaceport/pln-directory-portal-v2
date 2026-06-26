@@ -26,7 +26,6 @@ import {
 import type {
   CheckSizeRange,
   FacetFounder,
-  FacetPlMember,
   InvestorList,
   OutreachInvestor,
   SectorTag,
@@ -43,7 +42,6 @@ import { CrosswalkReviewPanel } from '../CrosswalkReviewPanel/CrosswalkReviewPan
 import { exportInvestorsCsv } from '../utils/exportCsv';
 import { AddToListButton } from './AddToListButton';
 import { GlossaryModal } from './GlossaryModal';
-import { ListPicker } from './ListPicker';
 import { CLEAR_CONNECTOR_LENS, selectionToConnectorFilter } from './connectorLensFilters';
 import { UnifiedSearchSelect, type UnifiedSelection } from './UnifiedSearchSelect';
 import s from './WarmIntrosWorkspace.module.scss';
@@ -145,9 +143,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const plMemberOptions = useMemo<{ value: string; label: string }[]>(
     () =>
-      (facets?.plMembers ?? [])
-        .filter((m): m is FacetPlMember => !!m.memberUid)
-        .map((m) => ({ value: m.memberUid, label: `${m.name} (${m.count})` })),
+      (facets?.plMembers ?? []).map((m) => ({ value: m.memberUid ?? m.name, label: `${m.name} (${m.count})` })),
     [facets],
   );
 
@@ -387,6 +383,16 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   };
 
   // ── Derived filter values for controlled selects ────────────────────────────
+  const listOptions = useMemo<Option[]>(
+    () =>
+      (lists ?? []).map((l) => ({
+        value: l.id,
+        label: `${l.name} · ${l.member_count.toLocaleString()} ${l.member_count === 1 ? 'member' : 'members'}${l.is_graphed ? '' : ' · not graphed'}`,
+      })),
+    [lists],
+  );
+  const listValue = listOptions.find((o) => o.value === filters.wi_list_id) ?? null;
+
   const stageValue = STAGE_OPTIONS.find((o) => o.value === filters.wi_stage) ?? null;
   const checkSizeValue = CHECK_SIZE_OPTIONS.find((o) => o.value === filters.wi_check_size) ?? null;
 
@@ -502,10 +508,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
         {/* Compact single-row filter bar */}
         <div className={s.filterBar}>
-          {/* LIST label + picker grouped */}
-          <div className={clsx(s.filterBarItem, s.filterBarListGroup)}>
-            <span className={s.filterBarListLabel}>LIST</span>
-            <ListPicker lists={lists} selectedId={filters.wi_list_id} onSelect={onPickList} />
+          {/* List picker */}
+          <div className={s.filterBarItem} style={{ minWidth: 220 }}>
+            <FilterSelect
+              options={listOptions}
+              value={listValue}
+              placeholder="Select list…"
+              aria-label="Target list"
+              onChange={(opt) => {
+                const next = (lists ?? []).find((l) => l.id === opt?.value);
+                if (next) onPickList(next);
+              }}
+            />
           </div>
 
           {/* Search with magnifier icon */}

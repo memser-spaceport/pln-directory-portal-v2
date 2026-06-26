@@ -843,31 +843,6 @@ thead .frozenName {
 }
 
 
-/* LIST label + picker group */
-.filterBarListGroup {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
-  overflow: hidden;
-  gap: 0;
-}
-
-.filterBarListLabel {
-  padding: 0 10px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #6b7280;
-  border-right: 1px solid #e5e7eb;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
 
 /* Search icon wrapper */
 .searchWrap {

@@ -19,7 +19,7 @@ export function AiAppsPage() {
           <p className={s.description}>Build your app, share with PL Infra teams</p>
         </div>
         <Button size="s" onClick={() => setIsModalOpen(true)}>
-          Create AI App
+          Add your AI App
         </Button>
       </div>
 

@@ -5,7 +5,7 @@
 
 import type { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 
-export type FrequencyTier = 'high' | 'steady' | 'cooling' | 'neglected';
+export type FrequencyTier = 'high' | 'neglected';
 
 export interface MonthlyInteraction {
   label: string;
@@ -33,29 +33,16 @@ export interface AffinityRelationship {
   months: MonthlyInteraction[];
 }
 
-export const TIER_META: Record<
-  FrequencyTier,
-  { label: string; variant: 'success' | 'brand' | 'warning' | 'error'; hint: string }
-> = {
+export const TIER_META: Record<FrequencyTier, { label: string; variant: 'success' | 'error'; hint: string }> = {
   high: {
     label: 'High touch',
     variant: 'success',
     hint: 'Engaged frequently and recently — this relationship is warm.',
   },
-  steady: {
-    label: 'Steady',
-    variant: 'brand',
-    hint: 'Regular, predictable contact over the window.',
-  },
-  cooling: {
-    label: 'Cooling off',
-    variant: 'warning',
-    hint: 'Contact has slowed in recent months — worth a nudge.',
-  },
   neglected: {
     label: 'Neglected',
     variant: 'error',
-    hint: 'Little to no contact lately — at risk of going cold.',
+    hint: 'Not enough recent contact — at risk of going cold.',
   },
 };
 

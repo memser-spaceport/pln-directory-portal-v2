@@ -1,9 +1,9 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   height: 100%;
-  padding: 24px 20px 20px;
+  padding: 24px;
   background-color: #fff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
@@ -12,7 +12,7 @@
     0px 0px 1px 0px rgba(15, 23, 42, 0.12);
   cursor: pointer;
   font: inherit;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   transition: box-shadow 0.2s;
 
@@ -21,12 +21,12 @@
   }
 }
 
-.top {
+.body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .name {
@@ -56,25 +56,19 @@
   text-overflow: ellipsis;
 }
 
-.meta {
+.footer {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   margin-top: auto;
 }
 
-.creator {
+.author {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.creatorTitle {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
-  color: #94a3b8;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
 }
 
 .avatar {
@@ -84,12 +78,29 @@
   object-fit: cover;
   flex-shrink: 0;
   border: 1px solid rgba(14, 15, 17, 0.08);
+  margin-top: 2px;
+}
+
+.authorText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.authorLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.creatorTitle {
+  font-weight: 400;
+  color: #94a3b8;
 }
 
 .creatorLink {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
+  font-weight: 600;
   color: #0f172a;
   text-decoration: none;
 
@@ -105,4 +116,36 @@
   font-weight: 400;
   line-height: 18px;
   color: #94a3b8;
+}
+
+.openButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: #cbd5e1;
+    color: #475569;
+    background: #f8fafc;
+  }
+}
+
+.openButtonIcon {
+  flex-shrink: 0;
 }

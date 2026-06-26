@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 
-import Link from 'next/link';
-
 import { AddAiAppCard } from '@/components/page/ai-apps/AiAppsPage/components/AddAiAppCard';
 import { CreateAiAppModal } from '@/components/page/ai-apps/AiAppsPage/components/CreateAiAppModal';
 import { AiAppCard } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsGrid/components/AiAppCard';
@@ -15,40 +13,10 @@ import detail from '@/components/page/ai-apps/AiAppDetailPage/AiAppDetailPage.mo
 
 import { mockAiApps, mockAppPreviews, mockPageCopy } from './mocks';
 
-function AiAppDetail({ app, onBack }: { app: AiApp; onBack: () => void }) {
+function AiAppDetail({ app }: { app: AiApp }) {
   return (
     <div className={detail.root}>
-      <div className={detail.header}>
-        <div className={detail.titleBlock}>
-          <button type="button" className={detail.backButton} onClick={onBack}>
-            ← All AI Apps
-          </button>
-          <h1 className={detail.name}>{app.name}</h1>
-          {app.description && <p className={detail.description}>{app.description}</p>}
-          <p className={detail.author}>
-            By{' '}
-            <Link href={`/members/${app.member.uid}`} className={detail.authorLink}>
-              {app.member.name}
-            </Link>
-          </p>
-        </div>
-        <div className={detail.actions}>
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              alert('Prototype: would open the deployed app in a new tab.');
-            }}
-            className={detail.openButton}
-          >
-            Open in New Tab ↗
-          </a>
-        </div>
-      </div>
-
-      <div className={detail.iframeContainer}>
-        <iframe className={detail.iframe} srcDoc={mockAppPreviews[app.uid]} title={app.name} allow="fullscreen" />
-      </div>
+      <iframe className={detail.iframe} srcDoc={mockAppPreviews[app.uid]} title={app.name} allow="fullscreen" />
     </div>
   );
 }
@@ -61,7 +29,7 @@ export default function AiAppsPrototype() {
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
 
   if (selected) {
-    return <AiAppDetail app={selected} onBack={() => setSelectedUid(null)} />;
+    return <AiAppDetail app={selected} />;
   }
 
   return (

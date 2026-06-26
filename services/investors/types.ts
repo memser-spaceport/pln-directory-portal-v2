@@ -276,7 +276,7 @@ export type ListMembersParams = {
   limit?: number;
 };
 
-export type FacetPlMember = { memberUid: string; name: string; count: number };
+export type FacetPlMember = { memberUid?: string; name: string; count: number };
 export type FacetFounder = { memberUid: string; name: string; role?: string; teams?: string[]; count: number };
 export type ListFacetsResponse = {
   plMembers: FacetPlMember[];

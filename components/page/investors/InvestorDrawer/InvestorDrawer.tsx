@@ -52,6 +52,16 @@ export function InvestorDrawer({ access }: Props) {
   const coInvestedTeams =
     investor && teamLookup ? investor.co_invested_team_ids.map((id) => teamLookup.get(id)).filter((t) => !!t) : [];
 
+  const hasOutreachHistory =
+    investor &&
+    (investor.outreach_touches > 0 ||
+      investor.opened > 0 ||
+      investor.clicked > 0 ||
+      investor.registered > 0 ||
+      !!investor.first_sent_date ||
+      !!investor.last_sent_date ||
+      !!investor.outreach_campaigns);
+
   return (
     <Drawer isOpen={isOpen} onClose={onClose} width={720}>
       {isLoading && <div className={s.loading}>Loading…</div>}
@@ -211,20 +221,6 @@ export function InvestorDrawer({ access }: Props) {
                   : investor.fund_thesis}
               </p>
             )}
-            {investor.enrichment && investor.enrichment.sources.length > 0 && (
-              <div className={s.sources}>
-                <div className={s.sourcesLabel}>Sources</div>
-                <ol className={s.sourcesList}>
-                  {investor.enrichment.sources.map((u, i) => (
-                    <li key={i}>
-                      <a href={u} target="_blank" rel="noopener noreferrer" className={s.link}>
-                        {u} ↗
-                      </a>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
             {investor.enrichment?.enriched_via && (
               <div className={s.enrichFooter}>
                 enriched via {investor.enrichment.enriched_via}
@@ -247,44 +243,46 @@ export function InvestorDrawer({ access }: Props) {
             </div>
           )}
 
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>Outreach history</h3>
-            <div className={s.statRow}>
-              <div className={s.stat}>
-                <div className={s.statN}>{investor.outreach_touches}</div>
-                <div className={s.statL}>Touches</div>
+          {hasOutreachHistory && (
+            <div className={s.section}>
+              <h3 className={s.sectionTitle}>Outreach history</h3>
+              <div className={s.statRow}>
+                <div className={s.stat}>
+                  <div className={s.statN}>{investor.outreach_touches}</div>
+                  <div className={s.statL}>Touches</div>
+                </div>
+                <div className={s.stat}>
+                  <div className={s.statN}>{investor.opened}</div>
+                  <div className={s.statL}>Opened</div>
+                </div>
+                <div className={s.stat}>
+                  <div className={s.statN}>{investor.clicked}</div>
+                  <div className={s.statL}>Clicked</div>
+                </div>
+                <div className={s.stat}>
+                  <div className={s.statN}>{investor.registered}</div>
+                  <div className={s.statL}>Registered</div>
+                </div>
               </div>
-              <div className={s.stat}>
-                <div className={s.statN}>{investor.opened}</div>
-                <div className={s.statL}>Opened</div>
+              <div className={s.dateRow}>
+                <span>
+                  First sent: <strong>{investor.first_sent_date || '—'}</strong>
+                </span>
+                <span>
+                  Last sent: <strong>{investor.last_sent_date || '—'}</strong>
+                </span>
               </div>
-              <div className={s.stat}>
-                <div className={s.statN}>{investor.clicked}</div>
-                <div className={s.statL}>Clicked</div>
-              </div>
-              <div className={s.stat}>
-                <div className={s.statN}>{investor.registered}</div>
-                <div className={s.statL}>Registered</div>
-              </div>
+              {investor.outreach_campaigns && (
+                <div className={s.campaigns}>
+                  {investor.outreach_campaigns.split(',').map((c) => (
+                    <span key={c} className={s.campaign}>
+                      {c.trim()}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className={s.dateRow}>
-              <span>
-                First sent: <strong>{investor.first_sent_date || '—'}</strong>
-              </span>
-              <span>
-                Last sent: <strong>{investor.last_sent_date || '—'}</strong>
-              </span>
-            </div>
-            {investor.outreach_campaigns && (
-              <div className={s.campaigns}>
-                {investor.outreach_campaigns.split(',').map((c) => (
-                  <span key={c} className={s.campaign}>
-                    {c.trim()}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
 
           {coInvestedTeams.length > 0 && (
             <div className={s.section}>

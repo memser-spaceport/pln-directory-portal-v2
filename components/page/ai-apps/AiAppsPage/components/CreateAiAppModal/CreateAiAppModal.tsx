@@ -2,8 +2,9 @@
 
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
+import { CloseIcon } from '@/components/icons';
 
-import { STEPS } from './constants';
+import { MODAL_INTRO, SECURITY_NOTE, STEPS } from './constants';
 
 import { handleDownloadKit } from './utils/handleDownloadKit';
 
@@ -16,18 +17,20 @@ interface Props {
 
 export function CreateAiAppModal({ isOpen, onClose }: Props) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} className={s.modalWide}>
       <div className={s.content}>
         <div className={s.header}>
-          <h2 className={s.title}>Add your AI App</h2>
+          <h2 className={s.modalTitle}>Create AI App</h2>
+          <button type="button" className={s.modalClose} onClick={onClose} aria-label="Close">
+            <CloseIcon width={20} height={20} />
+          </button>
         </div>
 
         <div className={s.body}>
-          <p className={s.subtitle}>Step-by-Step Guide</p>
-          <p className={s.intro}>
-            The starter kit works whether you are building a new app or bringing one you have already built into LabOS
-            infrastructure.
-          </p>
+          <div className={s.guideHeader}>
+            <p className={s.stepsHeading}>Step-by-Step Guide</p>
+            <p className={s.intro}>{MODAL_INTRO}</p>
+          </div>
           <ol className={s.steps}>
             {STEPS.map((step, i) => (
               <li key={i}>
@@ -38,12 +41,18 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
         </div>
 
         <div className={s.footer}>
-          <Button size="s" style="border" variant="neutral" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button size="s" onClick={handleDownloadKit}>
-            Download Starter Kit
-          </Button>
+          <div className={s.securityNote}>
+            <img className={s.securityNoteIcon} src="/icons/lock-grey.svg" alt="" />
+            <p className={s.securityNoteText}>{SECURITY_NOTE}</p>
+          </div>
+          <div className={s.footerActions}>
+            <Button size="s" style="border" variant="neutral" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button size="s" onClick={handleDownloadKit}>
+              Download Starter Kit
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

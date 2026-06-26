@@ -22,3 +22,9 @@ export const STEPS: { title: string; description: ReactNode }[] = [
     description: 'Ask your agent to deploy when ready (for example, "Deploy this to labs").',
   },
 ];
+
+export const MODAL_INTRO =
+  'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
+
+export const SECURITY_NOTE =
+  'This download is tied to your LabOS account and acts on your behalf. Do not share it with others — anyone with it could deploy apps under your name.';

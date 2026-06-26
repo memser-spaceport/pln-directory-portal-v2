@@ -33,6 +33,36 @@
   min-width: 0;
 }
 
+.backButton {
+  align-self: flex-start;
+  margin-bottom: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    color: #0f3cd9;
+  }
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100dvh - var(--app-header-height));
+  padding: 24px 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  text-align: center;
+}
+
 .name {
   margin: 0;
   font-size: 24px;
@@ -67,9 +97,19 @@
   line-height: 18px;
   color: #64748b;
 
-  span {
+  span,
+  .authorLink {
     font-weight: 500;
     color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.authorLink {
+  text-decoration: none;
+
+  &:hover {
+    color: #1b4dff;
+    text-decoration: underline;
   }
 }
 

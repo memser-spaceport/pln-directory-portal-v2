@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 
 import s from './AiAppDetailPage.module.scss';
@@ -11,24 +13,34 @@ interface Props {
 export function AiAppDetailPage(props: Props) {
   const { uid } = props;
 
-  const { app, isLoading } = useAiApp(uid);
+  const { app, isLoading, isError } = useAiApp(uid);
 
   if (isLoading) {
-    return null;
+    return <div className={s.state}>Loading app…</div>;
+  }
+
+  if (isError) {
+    return <div className={s.state}>Unable to load this app. Please try again later.</div>;
   }
 
   if (!app) {
-    return null;
+    return <div className={s.state}>App not found.</div>;
   }
 
   return (
     <div className={s.root}>
       <div className={s.header}>
         <div className={s.titleBlock}>
+          <Link href="/pl-infra/ai-apps" className={s.backButton}>
+            ← All AI Apps
+          </Link>
           <h1 className={s.name}>{app.name}</h1>
           {app.description && <p className={s.description}>{app.description}</p>}
           <p className={s.author}>
-            By <span>{app.member.name}</span>
+            By{' '}
+            <Link href={`/members/${app.member.uid}`} className={s.authorLink}>
+              {app.member.name}
+            </Link>
           </p>
         </div>
         <div className={s.actions}>

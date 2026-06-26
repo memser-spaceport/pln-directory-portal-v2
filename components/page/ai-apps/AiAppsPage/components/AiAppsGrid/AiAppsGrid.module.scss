@@ -14,4 +14,16 @@
   @include media.tablet-landscape {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  @media (min-width: 1920px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.state {
+  padding: 24px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  text-align: center;
 }

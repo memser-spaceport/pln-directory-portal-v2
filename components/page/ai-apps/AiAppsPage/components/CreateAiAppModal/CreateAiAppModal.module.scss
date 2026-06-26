@@ -1,3 +1,9 @@
+@use 'styles/media';
+
+.modalWide {
+  max-width: 720px !important;
+}
+
 .content {
   background: #fff;
   border-radius: 16px;
@@ -6,6 +12,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @include media.mobile-only {
+    height: 90dvh;
+  }
 }
 
 .header {
@@ -14,15 +24,33 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid rgba(14, 15, 17, 0.06);
+  flex-shrink: 0;
 }
 
-.title {
+.modalTitle {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 28px;
-  letter-spacing: -0.3px;
-  color: #0a0c11;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.modalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
 }
 
 .body {
@@ -30,15 +58,34 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.subtitle {
+.guideHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.stepsHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.intro {
   margin: 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 20px;
   letter-spacing: -0.2px;
-  color: #0a0c11;
+  color: #455468;
 }
 
 .steps {
@@ -58,11 +105,44 @@
 }
 
 .footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
+  flex-shrink: 0;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(14, 15, 17, 0.06);
+}
+
+.securityNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.securityNoteIcon {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.securityNoteText {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.footerActions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-
-  padding: 16px 24px;
-  border-top: 1px solid rgba(14, 15, 17, 0.06);
+  gap: 12px;
 }

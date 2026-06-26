@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Modal } from '@/components/common/Modal/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput/SearchInput';
+import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
@@ -18,9 +19,10 @@ interface TeamNewsModalProps {
   teamUid: string;
   teamName: string;
   total: number;
+  fullscreen?: boolean;
 }
 
-export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total }: TeamNewsModalProps) {
+export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fullscreen = false }: TeamNewsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -51,6 +53,16 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total }: Tea
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen || !fullscreen) return;
+
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [fullscreen, isOpen]);
+
+  useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel || !isOpen) return;
 
@@ -67,6 +79,62 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total }: Tea
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage, isOpen, items.length, debouncedQuery]);
 
+  const feedContent = isLoading ? (
+    <div className={s.modalLoading}>Loading news…</div>
+  ) : items.length > 0 ? (
+    <>
+      <div className={fullscreen ? s.newsPageList : s.modalGrid}>
+        {items.map((item, index) => (
+          <TeamNewsCard
+            key={item.uid}
+            item={item}
+            position={index}
+            variant="outline"
+            onClick={(clicked) => handleCardClick(clicked, index)}
+          />
+        ))}
+      </div>
+      <div ref={sentinelRef} className={s.modalSentinel} aria-hidden="true" />
+      {isFetchingNextPage && <div className={s.modalLoading}>Loading more…</div>}
+    </>
+  ) : (
+    <div className={fullscreen ? s.newsPageEmpty : s.modalEmpty}>
+      {debouncedQuery ? `No news matches “${searchQuery}”.` : 'No news found.'}
+    </div>
+  );
+
+  if (fullscreen) {
+    if (!isOpen) return null;
+
+    return (
+      <div className={s.newsPage}>
+        <div className={s.newsPageHeader}>
+          <div className={s.newsPageTitleRow}>
+            <h2 className={s.newsPageTitle}>{teamName} News</h2>
+            {total > 0 && (
+              <div className={s.newsPageBadge}>
+                <span className={s.newsPageBadgeText}>{total}</span>
+              </div>
+            )}
+          </div>
+          <button type="button" className={s.newsPageClose} onClick={handleClose} aria-label="Close">
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className={s.newsPageSearch}>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search news by keyword or type"
+          />
+        </div>
+
+        {feedContent}
+      </div>
+    );
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} className={s.newsModal}>
       <div className={s.modalHeader}>
@@ -74,7 +142,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total }: Tea
           {teamName} News ({total})
         </span>
         <button type="button" className={s.modalClose} onClick={handleClose} aria-label="Close">
-          <CloseIcon />
+          <ModalCloseIcon />
         </button>
       </div>
       <div className={s.modalSearchWrap}>
@@ -84,36 +152,12 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total }: Tea
           placeholder="Search news by keyword or type"
         />
       </div>
-      <div className={s.modalBody}>
-        {isLoading ? (
-          <div className={s.modalLoading}>Loading news…</div>
-        ) : items.length > 0 ? (
-          <>
-            <div className={s.modalGrid}>
-              {items.map((item, index) => (
-                <TeamNewsCard
-                  key={item.uid}
-                  item={item}
-                  position={index}
-                  variant="outline"
-                  onClick={(clicked) => handleCardClick(clicked, index)}
-                />
-              ))}
-            </div>
-            <div ref={sentinelRef} className={s.modalSentinel} aria-hidden="true" />
-            {isFetchingNextPage && <div className={s.modalLoading}>Loading more…</div>}
-          </>
-        ) : (
-          <div className={s.modalEmpty}>
-            {debouncedQuery ? `No news matches “${searchQuery}”.` : 'No news found.'}
-          </div>
-        )}
-      </div>
+      <div className={s.modalBody}>{feedContent}</div>
     </Modal>
   );
 }
 
-const CloseIcon = () => (
+const ModalCloseIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M15 5L5 15M5 5l10 10"

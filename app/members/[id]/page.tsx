@@ -99,11 +99,12 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   });
   const { currentUser } = useCurrentUserStore();
   const isAvailableToConnect = isMemberAvailableToConnect(member);
-  const showOtherConnectOptions =
-    !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
   const { hasAccess: hasAffinityAccess } = useAffinityAccess();
   const { data: affinityData, isLoading: affinityLoading } = useAffinityMember(memberId, hasAffinityAccess);
-  const hasAffinityContent = hasAffinityAccess && (affinityLoading || (!!affinityData && !affinityData.relationship.empty));
+  const hasAffinityContent =
+    hasAffinityAccess && (affinityLoading || (!!affinityData && !affinityData.relationship.empty));
+  const showOtherConnectOptions =
+    !hasAffinityContent && !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
   const showSidebar = showOtherConnectOptions || hasAffinityContent;
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);

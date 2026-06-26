@@ -14,6 +14,7 @@ import {
 import { TagsList } from '@/components/common/profile/TagsList';
 import { Modal } from '@/components/common/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Import-safe production view + hook (no store / service / analytics).
 import { TeamFocusAreasView } from '@/components/page/team-details/TeamFocusAreas/components/TeamFocusAreasView';
@@ -28,6 +29,7 @@ import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
+import { NewsFullPageView } from './NewsFullPageView';
 import local from './TeamProfile.module.scss';
 import {
   MOCK_TEAM,
@@ -46,6 +48,7 @@ export default function TeamProfilePrototype() {
   // Several reused leaf components are base-ui / client-only (Tooltip, Tag
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [newsQuery, setNewsQuery] = useState('');
   // Demo-only: toggle how many news items exist, to preview edge cases.
@@ -168,7 +171,7 @@ export default function TeamProfilePrototype() {
           <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
           <div className={local.newsList}>
             {previewNews.map((item) => (
-              <NewsCardView key={item.uid} item={item} flat />
+              <NewsCardView key={item.uid} item={item} flat hideTeam />
             ))}
           </div>
           {hasMore && (
@@ -179,8 +182,19 @@ export default function TeamProfilePrototype() {
         </div>
       </aside>
 
-      {/* Full feed — modal with its own scroll, same news cards as the rail. */}
-      <Modal isOpen={newsModalOpen} onClose={closeNewsModal} className={local.newsModal}>
+      {/* Full feed. On mobile it opens as a full-screen page (Notifications-style);
+          on desktop it stays a modal with its own scroll. */}
+      {newsModalOpen && isMobile ? (
+        <NewsFullPageView
+          title={`${team.name} News`}
+          count={displayNews.length}
+          items={filteredNews}
+          query={newsQuery}
+          onQueryChange={setNewsQuery}
+          onClose={closeNewsModal}
+        />
+      ) : (
+      <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
         <div className={local.modalHeader}>
           <span className={local.modalTitle}>{team.name} News ({displayNews.length})</span>
           <button type="button" className={local.modalClose} onClick={closeNewsModal} aria-label="Close">
@@ -198,7 +212,7 @@ export default function TeamProfilePrototype() {
           {filteredNews.length > 0 ? (
             <div className={local.modalGrid}>
               {filteredNews.map((item) => (
-                <NewsCardView key={item.uid} item={item} />
+                <NewsCardView key={item.uid} item={item} hideTeam />
               ))}
             </div>
           ) : (
@@ -206,6 +220,7 @@ export default function TeamProfilePrototype() {
           )}
         </div>
         </Modal>
+      )}
       </div>
     </div>
   );

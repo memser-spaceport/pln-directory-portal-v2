@@ -124,15 +124,6 @@
   box-shadow:
     0 0 1px 0 rgba(15, 23, 42, 0.12),
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
-
-  /* Matches the team-detail section-title style (16px/600), darker than the
-     default DetailsSectionHeader. */
-  h2 {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-    color: var(--foreground-neutral-primary, #0f172a);
-  }
 }
 
 /* Fixed-height, internally scrolling news list so the rail never grows past the
@@ -210,6 +201,11 @@
   @include media.tablet-portrait {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
+  h3 {
+    -webkit-line-clamp: 3;
+  }
 }
 
 .modalHeader {
@@ -272,6 +268,119 @@
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
+}
+
+/* Mobile full-screen "All news" page — copies the production Notifications
+   mobile page layout (full-height white page, sticky header, full-width rows
+   with dividers + hover), listing news instead of notifications. Desktop keeps
+   the .newsModal above. */
+.newsPage {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--Neutral-White, #fff);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Header / count pill / close button copied from the production UpdatesPanel
+   (the "Updates" mobile page) so this reads as the same surface. */
+.newsPageHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  background: var(--Neutral-White, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.newsPageTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.newsPageTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Blue outlined count pill — matches UpdatesPanel's "Unread N" badge. */
+.newsPageBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: rgba(27, 77, 255, 0.02);
+  border: 1px solid #aebfff;
+  border-radius: 9999px;
+}
+
+.newsPageBadgeText {
+  padding: 0 2px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #4174ff;
+}
+
+.newsPageClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.06);
+  }
+}
+
+.newsPageSearch {
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+/* Stacked outlined (stroked) news cards, matching the homepage mobile news
+   grid (single column, 12px gap). */
+.newsPageList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 24px;
+
+  /* Production NewsCard clamps the headline (<h3>) to 2 lines; on the mobile
+     full page allow 3. */
+  h3 {
+    -webkit-line-clamp: 3;
+  }
+}
+
+.newsPageEmpty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
 }
 
 /* Plain "Discuss" link replacing the store-bound StartConversationButton. */

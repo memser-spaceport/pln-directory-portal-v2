@@ -32,19 +32,23 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
   OTHER: n.dotOther,
 };
 
-export function NewsCardView({ item, flat }: { item: ITeamNewsItem; flat?: boolean }) {
+export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; flat?: boolean; hideTeam?: boolean }) {
   const open = () => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
 
   return (
     <div role="link" tabIndex={0} className={`${n.card} ${flat ? s.flatNews : s.cardOutline}`} onClick={open}>
-      <div className={n.head}>
-        {item.teamLogoUrl ? (
-          <img className={n.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-        ) : (
-          <div className={n.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-        )}
-        <span className={n.teamName}>{item.teamName}</span>
-      </div>
+      {/* On the team's own profile the news is all from this team, so the team
+          row is redundant — hide it. The modal / full feed keeps it. */}
+      {!hideTeam && (
+        <div className={n.head}>
+          {item.teamLogoUrl ? (
+            <img className={n.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+          ) : (
+            <div className={n.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+          )}
+          <span className={n.teamName}>{item.teamName}</span>
+        </div>
+      )}
 
       <h3 className={n.headline}>{item.title}</h3>
 

@@ -1,13 +1,13 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 
-export async function handleDownloadKit() {
+export async function handleDownloadKit(): Promise<boolean> {
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/ai-apps/starter-kit/download`,
     { method: 'GET' },
-    true
+    true,
   );
 
-  if (!response || !response.ok) return;
+  if (!response || !response.ok) return false;
 
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
@@ -18,4 +18,5 @@ export async function handleDownloadKit() {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  return true;
 }

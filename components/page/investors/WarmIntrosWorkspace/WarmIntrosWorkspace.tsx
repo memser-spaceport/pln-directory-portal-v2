@@ -25,7 +25,6 @@ import {
 
 import type {
   CheckSizeRange,
-  FacetFounder,
   InvestorList,
   OutreachInvestor,
   SectorTag,
@@ -149,9 +148,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   const founderOptions = useMemo<{ value: string; label: string }[]>(
     () =>
-      (facets?.founders ?? [])
-        .filter((f): f is FacetFounder => !!f.memberUid)
-        .map((f) => ({ value: f.memberUid, label: f.name })),
+      (facets?.founders ?? []).map((f) => ({
+        value: f.name,
+        label: `${f.name} (${f.count})`,
+      })),
     [facets],
   );
 
@@ -172,7 +172,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
       connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
       pl_member_uids: filters.wi_pl_members.length ? filters.wi_pl_members : undefined,
-      founder_uids: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
+      founder_names: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
       any_founder: filters.wi_any_founder ?? undefined,
       direct_only: filters.wi_direct_only ?? undefined,
       limit: PAGE_LIMIT,
@@ -292,14 +292,13 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         onRemove: () => setFilters({ wi_any_founder: null }),
       });
     }
-    for (const uid of filters.wi_founder_uids) {
-      const uidCopy = uid;
-      const name = facets?.founders.find((f) => f.memberUid === uid)?.name ?? uid;
+    for (const name of filters.wi_founder_uids) {
+      const nameCopy = name;
       pills.push({
-        key: `founder-${uid}`,
+        key: `founder-${name}`,
         label: 'Founder',
         value: name,
-        onRemove: () => setFilters({ wi_founder_uids: filters.wi_founder_uids.filter((x) => x !== uidCopy) }),
+        onRemove: () => setFilters({ wi_founder_uids: filters.wi_founder_uids.filter((x) => x !== nameCopy) }),
       });
     }
     if (filters.wi_connector) {

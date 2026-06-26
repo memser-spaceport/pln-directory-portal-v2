@@ -1,6 +1,8 @@
 'use client';
+import { type MouseEvent } from 'react';
 import Link from 'next/link';
 
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // import { ArrowUpRightIcon } from '@/components/icons';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
@@ -14,6 +16,16 @@ interface Props {
 
 export function AiAppCard(props: Props) {
   const { app, onSelect } = props;
+  const analytics = useAiAppsAnalytics();
+
+  const handleAuthorClick = (e: MouseEvent) => {
+    if (onSelect) e.stopPropagation();
+    analytics.onAuthorClicked(app.uid, app.member.uid, app.member.name);
+  };
+
+  const handleCardClick = () => {
+    analytics.onCardClicked(app.uid, app.name);
+  };
 
   const body = (
     <>
@@ -34,7 +46,7 @@ export function AiAppCard(props: Props) {
               className={s.creatorLink}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={onSelect ? (e) => e.stopPropagation() : undefined}
+              onClick={handleAuthorClick}
             >
               {app.member.name}
             </Link>
@@ -50,6 +62,7 @@ export function AiAppCard(props: Props) {
         className={s.openButton}
         onClick={(e) => {
           e.stopPropagation();
+          analytics.onOpenInNewTabClicked(app.uid, app.name, app.url);
           if (onSelect) {
             e.preventDefault();
             alert('Prototype: would open the deployed app in a new tab.');
@@ -64,7 +77,14 @@ export function AiAppCard(props: Props) {
 
   if (onSelect) {
     return (
-      <button type="button" className={s.root} onClick={onSelect}>
+      <button
+        type="button"
+        className={s.root}
+        onClick={() => {
+          handleCardClick();
+          onSelect();
+        }}
+      >
         <div className={s.body}>{body}</div>
         {footer}
       </button>
@@ -73,7 +93,7 @@ export function AiAppCard(props: Props) {
 
   return (
     <article className={s.root}>
-      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={s.body}>
+      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={s.body} onClick={handleCardClick}>
         {body}
       </Link>
       {footer}

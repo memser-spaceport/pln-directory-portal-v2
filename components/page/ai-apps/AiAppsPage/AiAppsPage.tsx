@@ -1,5 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
 import { AiAppsGrid } from './components/AiAppsGrid';
 import { CreateAiAppModal } from './components/CreateAiAppModal';
@@ -8,6 +10,24 @@ import s from './AiAppsPage.module.scss';
 
 export function AiAppsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const analytics = useAiAppsAnalytics();
+  const hasTrackedPageView = useRef(false);
+
+  useEffect(() => {
+    if (hasTrackedPageView.current) return;
+    hasTrackedPageView.current = true;
+    analytics.onPageViewed();
+  }, [analytics]);
+
+  const handleOpenCreateModal = () => {
+    analytics.onCreateModalOpened();
+    setIsModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    analytics.onCreateModalClosed();
+    setIsModalOpen(false);
+  };
 
   return (
     <div className={s.pageFrame}>
@@ -19,9 +39,9 @@ export function AiAppsPage() {
           </div>
         </div>
 
-        <AiAppsGrid onOpenCreateModal={() => setIsModalOpen(true)} />
+        <AiAppsGrid onOpenCreateModal={handleOpenCreateModal} />
 
-        <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
       </div>
     </div>
   );

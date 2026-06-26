@@ -20,7 +20,6 @@ import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesV
 import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
 import { AddToListMenu } from '../AddToListMenu/AddToListMenu';
 import { CopyButton } from '@/components/ui/CopyButton';
-import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import s from './InvestorDrawer.module.scss';
 
 interface Props {
@@ -68,54 +67,32 @@ export function InvestorDrawer({ access }: Props) {
                   </h2>
                   <div className={s.contactIcons}>
                     {investor.linkedin_url && (
-                      <CustomTooltip
-                        forceTooltip
-                        side="bottom"
-                        sideOffset={6}
-                        content={linkedinHandle(investor.linkedin_url)}
-                        trigger={
-                          <a
-                            href={investor.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={s.contactIcon}
-                          >
-                            <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
-                          </a>
-                        }
-                      />
+                      <a
+                        href={investor.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.contactIcon}
+                        title="LinkedIn"
+                      >
+                        <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
+                      </a>
                     )}
                     {investor.firm_domain && (
-                      <CustomTooltip
-                        forceTooltip
-                        side="bottom"
-                        sideOffset={6}
-                        content={investor.firm_domain}
-                        trigger={
-                          <a
-                            href={`https://${investor.firm_domain}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={s.contactIcon}
-                          >
-                            <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
-                          </a>
-                        }
-                      />
+                      <a
+                        href={`https://${investor.firm_domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={s.contactIcon}
+                        title={investor.firm_domain}
+                      >
+                        <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
+                      </a>
                     )}
                     {investor.email && (
                       <>
-                        <CustomTooltip
-                          forceTooltip
-                          side="bottom"
-                          sideOffset={6}
-                          content={investor.email}
-                          trigger={
-                            <a href={`mailto:${investor.email}`} className={s.contactIcon}>
-                              <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
-                            </a>
-                          }
-                        />
+                        <a href={`mailto:${investor.email}`} className={s.contactIcon} title={investor.email}>
+                          <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
+                        </a>
                         <CopyButton text={investor.email} className={s.contactIconCopy} />
                       </>
                     )}
@@ -234,20 +211,20 @@ export function InvestorDrawer({ access }: Props) {
                   : investor.fund_thesis}
               </p>
             )}
-            {/*{investor.enrichment && investor.enrichment.sources.length > 0 && (*/}
-            {/*  <div className={s.sources}>*/}
-            {/*    <div className={s.sourcesLabel}>Sources</div>*/}
-            {/*    <ol className={s.sourcesList}>*/}
-            {/*      {investor.enrichment.sources.map((u, i) => (*/}
-            {/*        <li key={i}>*/}
-            {/*          <a href={u} target="_blank" rel="noopener noreferrer" className={s.link}>*/}
-            {/*            {u} ↗*/}
-            {/*          </a>*/}
-            {/*        </li>*/}
-            {/*      ))}*/}
-            {/*    </ol>*/}
-            {/*  </div>*/}
-            {/*)}*/}
+            {investor.enrichment && investor.enrichment.sources.length > 0 && (
+              <div className={s.sources}>
+                <div className={s.sourcesLabel}>Sources</div>
+                <ol className={s.sourcesList}>
+                  {investor.enrichment.sources.map((u, i) => (
+                    <li key={i}>
+                      <a href={u} target="_blank" rel="noopener noreferrer" className={s.link}>
+                        {u} ↗
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
             {investor.enrichment?.enriched_via && (
               <div className={s.enrichFooter}>
                 enriched via {investor.enrichment.enriched_via}
@@ -270,55 +247,44 @@ export function InvestorDrawer({ access }: Props) {
             </div>
           )}
 
-          {!!(
-            investor.outreach_touches ||
-            investor.first_sent_date ||
-            investor.last_sent_date ||
-            investor.last_email_date ||
-            investor.outreach_campaigns
-          ) && (
-            <div className={s.section}>
-              <h3 className={s.sectionTitle}>Outreach history</h3>
-              <div className={s.statRow}>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.outreach_touches}</div>
-                  <div className={s.statL}>Touches</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.opened}</div>
-                  <div className={s.statL}>Opened</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.clicked}</div>
-                  <div className={s.statL}>Clicked</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.registered}</div>
-                  <div className={s.statL}>Registered</div>
-                </div>
+          <div className={s.section}>
+            <h3 className={s.sectionTitle}>Outreach history</h3>
+            <div className={s.statRow}>
+              <div className={s.stat}>
+                <div className={s.statN}>{investor.outreach_touches}</div>
+                <div className={s.statL}>Touches</div>
               </div>
-              <div className={s.dateRow}>
-                <span>
-                  First sent: <strong>{investor.first_sent_date || '—'}</strong>
-                </span>
-                <span>
-                  Last sent: <strong>{investor.last_sent_date || '—'}</strong>
-                </span>
-                <span>
-                  Last contact: <strong>{investor.last_email_date || '—'}</strong>
-                </span>
+              <div className={s.stat}>
+                <div className={s.statN}>{investor.opened}</div>
+                <div className={s.statL}>Opened</div>
               </div>
-              {investor.outreach_campaigns && (
-                <div className={s.campaigns}>
-                  {investor.outreach_campaigns.split(',').map((c) => (
-                    <span key={c} className={s.campaign}>
-                      {c.trim()}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div className={s.stat}>
+                <div className={s.statN}>{investor.clicked}</div>
+                <div className={s.statL}>Clicked</div>
+              </div>
+              <div className={s.stat}>
+                <div className={s.statN}>{investor.registered}</div>
+                <div className={s.statL}>Registered</div>
+              </div>
             </div>
-          )}
+            <div className={s.dateRow}>
+              <span>
+                First sent: <strong>{investor.first_sent_date || '—'}</strong>
+              </span>
+              <span>
+                Last sent: <strong>{investor.last_sent_date || '—'}</strong>
+              </span>
+            </div>
+            {investor.outreach_campaigns && (
+              <div className={s.campaigns}>
+                {investor.outreach_campaigns.split(',').map((c) => (
+                  <span key={c} className={s.campaign}>
+                    {c.trim()}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
           {coInvestedTeams.length > 0 && (
             <div className={s.section}>
@@ -388,11 +354,6 @@ export function InvestorDrawer({ access }: Props) {
       )}
     </Drawer>
   );
-}
-
-function linkedinHandle(url: string): string {
-  const m = url.match(/linkedin\.com\/in\/([^/?#]+)/i);
-  return m ? m[1] : url;
 }
 
 /** Render text with [1], [2]… markers turned into clickable source superscripts. */

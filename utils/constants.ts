@@ -754,6 +754,18 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.18 - Team Profile News',
+    tag: 'New Feature',
+    date: '26, Jun 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Team profile pages now show a news panel with recent headlines for that team; open the full feed to search and browse every item (full-screen on mobile, modal on desktop).</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.17 - Team Spotlights & Network News',
     tag: 'New Feature',
     date: '19, Jun 2026',
@@ -2226,4 +2238,16 @@ export const DEMO_DAY_ANALYTICS = {
   ON_DEMO_DAY_ANALYTICS_PAGE_OPENED: 'demo-day-analytics-page-opened',
   ON_DEMO_DAY_ANALYTICS_PAGE_LEFT: 'demo-day-analytics-page-left',
   ON_DEMO_DAY_ANALYTICS_TIME_ON_PAGE: 'demo-day-analytics-time-on-page',
+};
+
+export const AI_APPS_ANALYTICS = {
+  PAGE_VIEWED: 'ai_apps_page_viewed',
+  CREATE_MODAL_OPENED: 'ai_apps_create_modal_opened',
+  CREATE_MODAL_CLOSED: 'ai_apps_create_modal_closed',
+  STARTER_KIT_DOWNLOADED: 'ai_apps_starter_kit_downloaded',
+  STARTER_KIT_DOWNLOAD_FAILED: 'ai_apps_starter_kit_download_failed',
+  CARD_CLICKED: 'ai_apps_card_clicked',
+  AUTHOR_CLICKED: 'ai_apps_author_clicked',
+  DETAIL_PAGE_VIEWED: 'ai_apps_detail_page_viewed',
+  OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_open_in_new_tab_clicked',
 };

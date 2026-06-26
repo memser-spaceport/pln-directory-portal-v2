@@ -36,6 +36,7 @@ function toListMembersApiParams(p: ListMembersParams): Record<string, unknown> {
     connectorLabelsContains: p.connector_labels_contains,
     plMembers: p.pl_member_uids,
     founderUids: p.founder_uids,
+    founderNames: p.founder_names,
     anyFounder: p.any_founder,
     directOnly: p.direct_only,
     page: p.page,

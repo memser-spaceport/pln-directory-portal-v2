@@ -3,6 +3,7 @@
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
 import { MODAL_INTRO, SECURITY_NOTE, STEPS } from './constants';
 
@@ -16,6 +17,17 @@ interface Props {
 }
 
 export function CreateAiAppModal({ isOpen, onClose }: Props) {
+  const analytics = useAiAppsAnalytics();
+
+  const handleDownload = async () => {
+    const success = await handleDownloadKit();
+    if (success) {
+      analytics.onStarterKitDownloaded();
+    } else {
+      analytics.onStarterKitDownloadFailed();
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className={s.modalWide}>
       <div className={s.content}>
@@ -49,7 +61,7 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
             <Button size="s" style="border" variant="neutral" onClick={onClose}>
               Cancel
             </Button>
-            <Button size="s" onClick={handleDownloadKit}>
+            <Button size="s" onClick={handleDownload}>
               Download Starter Kit
             </Button>
           </div>

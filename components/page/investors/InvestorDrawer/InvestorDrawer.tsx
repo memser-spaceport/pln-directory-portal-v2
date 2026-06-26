@@ -251,6 +251,7 @@ export function InvestorDrawer({ access }: Props) {
             investor.outreach_touches ||
             investor.first_sent_date ||
             investor.last_sent_date ||
+            investor.last_email_date ||
             investor.outreach_campaigns
           ) && (
             <div className={s.section}>
@@ -279,6 +280,9 @@ export function InvestorDrawer({ access }: Props) {
                 </span>
                 <span>
                   Last sent: <strong>{investor.last_sent_date || '—'}</strong>
+                </span>
+                <span>
+                  Last contact: <strong>{investor.last_email_date || '—'}</strong>
                 </span>
               </div>
               {investor.outreach_campaigns && (

@@ -145,8 +145,14 @@
     transition: transform 0.15s ease;
   }
 
-  &[aria-expanded='true'] svg {
-    transform: rotate(180deg);
+  &[aria-expanded='true'] {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+
+    svg {
+      transform: rotate(180deg);
+    }
   }
 
   &:hover {

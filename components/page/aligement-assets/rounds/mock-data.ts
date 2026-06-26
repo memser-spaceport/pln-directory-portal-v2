@@ -186,7 +186,7 @@ export const tipSectionContent = {
 };
 
 // Disclaimer content - exact from Figma
-export const disclaimerContent = `The Alignment Asset is still in private beta, and we're actively experimenting. The points program may evolve at any time as we learn and improve. While the alignment asset trust ultimately controls token distributions, and we cannot guarantee the conversion of points to tokens, your participation now puts you at the forefront of this exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax advice. Please read our <a href="https://docs.google.com/document/d/1St-tNjvgTTyHy0Ta5XUBUJkP4d3me4MJU2Dotx6046U/edit?tab=t.0">disclosure</a>.`;
+export const disclaimerContent = `The Alignment Asset is still in private beta, and we're actively experimenting. The program may evolve at any time as we learn and improve. While the alignment asset Trust ultimately controls distributions, and we cannot guarantee the conversion of points to tokens/rights, your participation now puts you at the forefront of this exciting initiative. This is for informational purposes only, and is not legal, financial, investment, or tax advice. Please read our <a href="https://docs.google.com/document/d/1St-tNjvgTTyHy0Ta5XUBUJkP4d3me4MJU2Dotx6046U/edit?tab=t.0">disclosure</a>.`;
 
 // Learn more content - exact from Figma
 export const learnMoreContent = "Read the FAQ for details on batch auctions, clearing price calculation, and how bids are selected.";

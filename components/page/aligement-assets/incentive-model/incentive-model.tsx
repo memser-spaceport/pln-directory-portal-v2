@@ -177,10 +177,10 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
   17: [
     { category: 'Projects', points: 50, tokens: 0 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 675, tokens: 0 },
+    { category: 'Programs', points: 1175, tokens: 0 },
     { category: 'Network Tooling', points: 0, tokens: 0 },
     { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 0, tokens: 0 },
+    { category: 'Knowledge', points: 150, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };

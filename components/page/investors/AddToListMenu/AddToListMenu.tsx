@@ -49,10 +49,11 @@ export function AddToListMenu({ investorId, canEdit, className }: Props) {
 
   return (
     <Popover.Root>
-      <Popover.Trigger className={className ?? s.trigger}>＋ Add to list</Popover.Trigger>
+      <Popover.Trigger className={className ?? s.trigger}>+ Add to list</Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner className={s.positioner} align="end" sideOffset={4}>
           <Popover.Popup className={s.popup}>
+            <div className={s.header}>Add to list</div>
             {isLoading ? (
               <div className={s.empty}>Loading lists…</div>
             ) : !lists || lists.length === 0 ? (
@@ -74,11 +75,11 @@ export function AddToListMenu({ investorId, canEdit, className }: Props) {
                       <span className={s.pending}>…</span>
                     ) : inList ? (
                       <span className={s.inListBadge} title="Click to remove">
-                        <span className={s.check}>✓</span>
-                        <span className={s.removeHint}>−</span>
+                        <span className={s.inListLabel}>✓ In list</span>
+                        <span className={s.removeHint}>− Remove</span>
                       </span>
                     ) : (
-                      <span className={s.plus}>＋</span>
+                      <span className={s.plus}>+</span>
                     )}
                   </button>
                 );

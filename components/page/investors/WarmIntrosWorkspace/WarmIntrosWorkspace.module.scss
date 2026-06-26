@@ -1,3 +1,5 @@
+@use "styles/media";
+
 .root {
   display: flex;
   flex-direction: column;
@@ -246,6 +248,12 @@
   align-items: flex-start;
   gap: 8px;
   padding: 0 12px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .resultsCount {
@@ -262,6 +270,12 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+
+  @include media.tablet-landscape {
+    align-items: center;
+    flex-direction: row;
+    gap: 12px;
+  }
 }
 
 .resultsActionsRow {

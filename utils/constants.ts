@@ -754,6 +754,18 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.18 - Team Profile News',
+    tag: 'New Feature',
+    date: '26, Jun 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Team profile pages now show a news panel with recent headlines for that team; open the full feed to search and browse every item (full-screen on mobile, modal on desktop).</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.17 - Team Spotlights & Network News',
     tag: 'New Feature',
     date: '19, Jun 2026',

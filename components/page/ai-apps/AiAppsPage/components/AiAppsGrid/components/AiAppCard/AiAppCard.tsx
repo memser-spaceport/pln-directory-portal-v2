@@ -2,7 +2,7 @@
 import Link from 'next/link';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { ArrowUpRightIcon } from '@/components/icons';
+// import { ArrowUpRightIcon } from '@/components/icons';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
 
 import s from './AiAppCard.module.scss';
@@ -43,7 +43,7 @@ export function AiAppCard(props: Props) {
         </div>
       </div>
 
-      <a
+      {/* <a
         href={app.url}
         target="_blank"
         rel="noopener noreferrer"
@@ -58,7 +58,7 @@ export function AiAppCard(props: Props) {
       >
         Open in new tab
         <ArrowUpRightIcon className={s.openButtonIcon} width={14} height={14} />
-      </a>
+      </a> */}
     </div>
   );
 

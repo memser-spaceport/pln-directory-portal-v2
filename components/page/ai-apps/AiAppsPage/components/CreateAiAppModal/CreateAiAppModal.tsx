@@ -19,11 +19,15 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className={s.content}>
         <div className={s.header}>
-          <h2 className={s.title}>Create AI App</h2>
+          <h2 className={s.title}>Add your AI App</h2>
         </div>
 
         <div className={s.body}>
           <p className={s.subtitle}>Step-by-Step Guide</p>
+          <p className={s.intro}>
+            The starter kit works whether you are building a new app or bringing one you have already built into LabOS
+            infrastructure.
+          </p>
           <ol className={s.steps}>
             {STEPS.map((step, i) => (
               <li key={i}>

@@ -7,6 +7,10 @@
 }
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -23,13 +27,57 @@
   min-width: 0;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
 .name {
-  margin: 0 0 4px;
+  margin: 0;
   font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.3px;
   color: #0a0c11;
+  width: fit-content;
+}
+
+.contactIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contactIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  opacity: 0.8;
+  transition: opacity 0.1s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.contactIconCopy {
+  color: #9ca3af;
+  padding: 2px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
 }
 
 .meta {
@@ -170,6 +218,49 @@
   }
 }
 
+.firmLink {
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ── Contact channels (mirrors InvestorDrawerMock prototype) ─────────────── */
+.channelsBox {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #eef0f3;
+}
+
+.channelDivider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 16px;
+  margin: 0 4px;
+  background: #e2e8f0;
+}
+
+.copyEmail {
+  color: #9ca3af;
+  padding: 2px;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: #1b4dff;
+  }
+}
+
 .linkBtn {
   background: none;
   border: none;
@@ -273,35 +364,53 @@
   position: sticky;
   bottom: 0;
   background: #fff;
-  padding: 16px 24px;
+  padding: 14px 24px;
   border-top: 1px solid #e5e7eb;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: auto;
 }
 
 .btn {
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
   background: #fff;
-  color: #455468;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  line-height: 1;
 
   &:hover:not(:disabled) {
     background: #f9fafb;
+    border-color: #9ca3af;
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+.btnPrimary {
+  background: #1b4dff;
+  color: #fff;
+  border-color: #1b4dff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+    border-color: #1a3fd9;
   }
 }
 

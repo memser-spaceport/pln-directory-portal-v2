@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
@@ -13,6 +14,10 @@ interface NewsCardProps {
   item: ITeamNewsItem;
   position?: number;
   onClick?: (item: ITeamNewsItem) => void;
+  hideTeamLink?: boolean;
+  hideTeam?: boolean;
+  variant?: 'default' | 'flat' | 'outline';
+  className?: string;
 }
 
 const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
@@ -33,7 +38,15 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
   OTHER: s.dotOther,
 };
 
-export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
+export const NewsCard = ({
+  item,
+  position = 0,
+  onClick,
+  hideTeamLink = false,
+  hideTeam = false,
+  variant = 'default',
+  className,
+}: NewsCardProps) => {
   const handleClick = () => {
     onClick?.(item);
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
@@ -47,23 +60,35 @@ export const NewsCard = ({ item, position = 0, onClick }: NewsCardProps) => {
   };
 
   return (
-    <div role="link" tabIndex={0} className={s.card} onClick={handleClick} onKeyDown={handleKeyDown}>
-      <div className={s.head}>
-        {item.teamLogoUrl ? (
-          <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-        ) : (
-          <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-        )}
-        <a
-          href={`/teams/${item.teamUid}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={s.teamName}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {item.teamName}
-        </a>
-      </div>
+    <div
+      role="link"
+      tabIndex={0}
+      className={clsx(variant === 'flat' ? s.cardFlat : s.card, variant === 'outline' && s.cardOutline, className)}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
+      {!hideTeam && (
+        <div className={s.head}>
+          {item.teamLogoUrl ? (
+            <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+          ) : (
+            <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+          )}
+          {hideTeamLink ? (
+            <span className={s.teamName}>{item.teamName}</span>
+          ) : (
+            <a
+              href={`/teams/${item.teamUid}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={s.teamName}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.teamName}
+            </a>
+          )}
+        </div>
+      )}
       <h3 className={s.headline}>{item.title}</h3>
 
       <div className={s.metaLine}>

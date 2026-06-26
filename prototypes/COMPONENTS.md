@@ -49,6 +49,10 @@ All icon exports (`CheckIcon`, `CloseIcon`, `PlusIcon`, `SpinnerIcon`, …) are 
 | `VideoPlayer` | watch-progress hooks + analytics |
 | `DemoDayCard`, `LogosGrid` | demo-day analytics hooks |
 | `FilterTagInput` | borderline — check before importing |
+| `FounderTable`, `FoundersTableSection`, `FoundersFilterRail`, `FounderColumnChooser` | react-query (`useGetFounders`/`useGetFounderFilters`) + column store + analytics — copy JSX, import the matching `.module.scss` (see `founder-db`) |
+| `FounderDrawer`, `ReviewActionsPanel` | `useGetFounderById` + review mutations + analytics |
+
+> Import-safe within Founder DB (used directly by the `founder-db` clone and the `founder-db-reach-out` shortlist): `KpiSummaryStrip`, `FounderReviewStateBadge`, `exportFoundersCsv`, `DashboardPagesLayout`, `LabOsBadge`, and the `FUND_LABEL`/`getFundTag` helpers from `@/services/founders/constants` & `types`. The `tagRow`/`fundTag` classes from `FounderTable.module.scss` are also import-safe for fund chips.
 
 For these: copy the component's `.tsx` + `.module.scss` into your entry folder, strip the hooks, and replace data with `mocks.ts`.
 

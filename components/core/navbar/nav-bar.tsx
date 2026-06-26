@@ -4,7 +4,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getAnalyticsUserInfo } from '@/utils/common.utils';
 import { usePathname } from 'next/navigation';
 import React, { memo, useState } from 'react';
-import LoginBtn from './login-btn';
+import { LoginBtn } from './components/LoginBtn';
 import { ApplicationSearch } from '@/components/core/application-search';
 import { AccountMenu } from '@/components/core/navbar/components/AccountMenu/AccountMenu';
 import { NotificationsMenu } from '@/components/core/navbar/components/NotificationsMenu';
@@ -15,28 +15,15 @@ import { Signup } from './components/Signup';
 import { NavigationMenu } from '@base-ui-components/react';
 import { useContactSupportStore } from '@/services/contact-support/store';
 
-import {
-  DIRECTORY_LINKS,
-  EVENT_LINKS,
-  DEALS_LINK,
-  FOUNDER_GUIDES_LINK,
-  DEMO_DAY_LINK,
-  DEMO_DAY_ANALYTICS_LINK,
-  JOBS_LINK,
-  INVESTOR_DB_LINK,
-  FOUNDER_DB_LINK,
-  GANTRY_LINK,
-} from './constants/navLinks';
-import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
-import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
-import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
-import { useFoundersAccess } from '@/services/rbac/hooks/useFoundersAccess';
-import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
-import { ISubItem } from './type';
+import { DIRECTORY_LINKS, EVENT_LINKS, DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK } from './constants/navLinks';
 
-import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon } from './components/icons';
+import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
+
 import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
+import { MoreNavItems } from './components/navItems/MoreNavItems';
+import { PLInfraNavItems } from './components/navItems/PLInfraNavItems';
+import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon } from './components/icons';
 
 import s from './NavBar.module.scss';
 
@@ -99,20 +86,7 @@ function Navbar(props: Readonly<INavbar>) {
 
   const { data: profileStatus } = useMemberProfileStatus(userInfo?.uid);
 
-  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
-  const { canView: hasInvestorDbAccess } = useInvestorsAccess();
-  const { canView: hasFounderDbAccess } = useFoundersAccess();
-  const { canView: hasGantryAccess } = useGantryAccess();
-
-  const moreLinks: ISubItem[] = [
-    DEALS_LINK,
-    ...(hasFounderGuidesAccess ? [FOUNDER_GUIDES_LINK] : []),
-    ...(hasGantryAccess ? [GANTRY_LINK] : []),
-    JOBS_LINK,
-    ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
-    ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
-  ];
 
   return (
     <NavigationMenu.Root className={s.Root}>
@@ -158,14 +132,9 @@ function Navbar(props: Readonly<INavbar>) {
             </NavLink>
           </NavigationMenu.Item>
         )}
-        {moreLinks.length > 0 && (
-          <NavItemWithMenu
-            icon={<MoreIcon />}
-            label="More"
-            items={moreLinks}
-            onNavItemClickHandler={onNavItemClickHandler}
-          />
-        )}
+
+        <MoreNavItems onNavItemClickHandler={onNavItemClickHandler} />
+        <PLInfraNavItems onNavItemClickHandler={onNavItemClickHandler} />
 
         <div className={s.right}>
           <NotificationsMenu

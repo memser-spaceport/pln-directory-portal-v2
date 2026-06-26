@@ -6,20 +6,20 @@
 }
 
 .select {
-  min-width: 320px;
+  min-width: 220px;
   max-width: 100%;
   padding: 8px 10px;
   font-size: 13px;
   font-family: 'Inter', sans-serif;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   outline: none;
   color: #0a0c11;
 
   &:focus {
-    border-color: #1b4dff;
-    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+    outline: none;
+    box-shadow: none;
   }
 }
 

@@ -1,0 +1,49 @@
+// "More" overflow menu extras (icon-only trigger, column section label, divider,
+// export item). Token+fallback colors only.
+
+// Icon-only ⋯ trigger — compact, square-ish, sits next to the Sort dropdown.
+.iconTrigger {
+  gap: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sectionLabel {
+  padding: 4px 12px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.divider {
+  height: 1px;
+  margin: 6px 0;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.exportItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

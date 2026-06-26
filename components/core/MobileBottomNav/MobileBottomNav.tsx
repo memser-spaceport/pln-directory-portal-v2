@@ -6,22 +6,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import {
-  DIRECTORY_LINKS,
   EVENT_LINKS,
   DEMO_DAY_LINK,
+  DIRECTORY_LINKS,
   DEMO_DAY_ANALYTICS_LINK,
-  JOBS_LINK,
-  GANTRY_LINK,
-  INVESTOR_DB_LINK,
-  FOUNDER_DB_LINK,
 } from '@/components/core/navbar/constants/navLinks';
-import { DealsIcon, FounderGuidesIcon, MoreIcon } from '@/components/core/navbar/components/icons';
+import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
-import { useFounderGuidesAccess } from '@/services/rbac/hooks/useFounderGuidesAccess';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
-import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
-import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
-import { useFoundersAccess } from '@/services/rbac/hooks/useFoundersAccess';
+import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
+import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -35,23 +29,10 @@ import s from './MobileBottomNav.module.scss';
 export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
-  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
-  const { canView: hasGantryAccess } = useGantryAccess();
-  const { canView: hasInvestorDbAccess } = useInvestorsAccess();
-  const { canView: hasFounderDbAccess } = useFoundersAccess();
 
-  const moreItems: ISubItem[] = [
-    { href: '/forum', title: 'Forum', icon: <ForumIcon /> },
-    { href: '/deals', title: 'Deals', icon: <DealsIcon /> },
-    ...(hasFounderGuidesAccess
-      ? [{ href: '/founder-guides', title: 'Founder Guides', icon: <FounderGuidesIcon /> }]
-      : []),
-    ...(hasGantryAccess ? [GANTRY_LINK] : []),
-    ...(hasInvestorDbAccess ? [INVESTOR_DB_LINK] : []),
-    ...(hasFounderDbAccess ? [FOUNDER_DB_LINK] : []),
-    JOBS_LINK,
-  ];
+  const moreItems: ISubItem[] = useMoreNavItems();
+  const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
 
   return (
     <div
@@ -86,6 +67,7 @@ export function MobileBottomNav() {
           )}
 
           <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />
+          <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

@@ -78,3 +78,48 @@ jest.mock('@tanstack/react-query', () => ({
     mutateAsync: jest.fn(),
   }),
 }));
+
+jest.mock('nuqs/server', () => {
+  function createParser(defaultValue) {
+    const parser = {
+      withDefault: (value) => createParser(value !== undefined ? value : defaultValue),
+      withOptions: () => parser,
+    };
+    parser.defaultValue = defaultValue;
+    return parser;
+  }
+  return {
+    createSearchParamsCache: () => ({
+      parse: jest.fn(() => ({})),
+    }),
+    parseAsString: createParser(''),
+    parseAsInteger: createParser(0),
+    parseAsBoolean: createParser(false),
+    parseAsArrayOf: () => createParser([]),
+    parseAsStringLiteral: () => createParser(''),
+  };
+});
+
+jest.mock('nuqs', () => {
+  function createParser(defaultValue) {
+    const parser = {
+      withDefault: (value) => createParser(value !== undefined ? value : defaultValue),
+      withOptions: () => parser,
+    };
+    parser.defaultValue = defaultValue;
+    return parser;
+  }
+  return {
+    useQueryStates: () => [{}, jest.fn()],
+    useQueryState: (_key, parser) => [parser?.defaultValue ?? null, jest.fn()],
+    parseAsString: createParser(''),
+    parseAsInteger: createParser(0),
+    parseAsBoolean: createParser(false),
+    parseAsArrayOf: () => createParser([]),
+    parseAsStringLiteral: () => createParser(''),
+  };
+});
+
+jest.mock('nuqs/adapters/next/app', () => ({
+  NuqsAdapter: ({ children }) => children,
+}));

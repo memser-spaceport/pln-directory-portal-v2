@@ -1,0 +1,1 @@
+export { RelationshipDetails } from './RelationshipDetails';

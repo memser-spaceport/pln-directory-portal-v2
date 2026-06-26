@@ -3,10 +3,13 @@ import type {
   CorrectionInput,
   PathCaliber,
   PathConnectorType,
+  PathContact,
   PathCorrection,
   PathHopChain,
+  PathOrgConnector,
   PathfinderPath,
   PathsForTargetResponse,
+  RouteNode,
 } from './types';
 
 // PL Path Finder read + corrections API. Reuses the Investor DB permissions
@@ -17,12 +20,73 @@ const PATHFINDER_API_URL = `${process.env.DIRECTORY_API_URL}/v1/pathfinder`;
 
 type AnyDto = Record<string, any>;
 
+export function mapHopNode(n: AnyDto): PathHopChain['nodes'][number] {
+  const type = (n.type ?? 'person') as 'person' | 'org';
+  // Coerce empty-string → undefined so discriminated union arms are satisfied.
+  const memberUid = ((n.memberUid || n.member_uid) as string | undefined) || undefined;
+  const teamUid = ((n.teamUid || n.team_uid) as string | undefined) || undefined;
+  const id = n.id as string;
+  const label = n.label as string;
+  if (type === 'person' && memberUid) {
+    return { id, label, type: 'person', member_uid: memberUid };
+  }
+  if (type === 'org' && teamUid) {
+    return { id, label, type: 'org', team_uid: teamUid };
+  }
+  if (type === 'org') {
+    return { id, label, type: 'org' };
+  }
+  return { id, label, type: 'person' };
+}
+
+function mapContact(dto: AnyDto): PathContact {
+  return {
+    id: dto.id as string | undefined,
+    name: (dto.name ?? '') as string,
+    role: dto.role as string | undefined,
+    email: dto.email as string | undefined,
+    image_url: (dto.imageUrl ?? dto.image_url) as string | undefined,
+    linkedin_url: (dto.linkedinUrl ?? dto.linkedin_url) as string | undefined,
+    telegram: dto.telegram as string | undefined,
+    member_uid: (dto.memberUid ?? dto.member_uid) as string | undefined,
+  };
+}
+
+function mapOrgConnector(dto: AnyDto): PathOrgConnector {
+  return {
+    id: dto.id as string | undefined,
+    name: (dto.name ?? '') as string,
+    domain: dto.domain as string | undefined,
+    website_url: (dto.websiteUrl ?? dto.website_url) as string | undefined,
+    logo_url: (dto.logoUrl ?? dto.logo_url) as string | undefined,
+    team_uid: (dto.teamUid ?? dto.team_uid) as string | undefined,
+  };
+}
+
+function mapRouteNode(dto: AnyDto): RouteNode {
+  return {
+    label: (dto.label ?? '') as string,
+    role: dto.role as string | undefined,
+    email: dto.email as string | undefined,
+    variant: (dto.variant ?? 'external') as 'member' | 'external',
+    imageUrl: (dto.imageUrl ?? dto.image_url) as string | undefined,
+    linkedin: dto.linkedin as string | undefined,
+    memberUid: (dto.memberUid ?? dto.member_uid) as string | undefined,
+    contacts: (dto.contacts as AnyDto[] | undefined)?.map((c) => ({
+      name: (c.name ?? '') as string,
+      role: c.role as string | undefined,
+      email: c.email as string | undefined,
+      source: c.source as string | undefined,
+      imageUrl: (c.imageUrl ?? c.image_url) as string | undefined,
+      linkedin: c.linkedin as string | undefined,
+      memberUid: (c.memberUid ?? c.member_uid) as string | undefined,
+    })),
+  };
+}
+
 function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
-  const nodes = ((dto?.nodes ?? []) as AnyDto[]).map((n) => ({
-    id: n.id as string,
-    label: n.label as string,
-    type: (n.type ?? 'person') as 'person' | 'org',
-  }));
+  const nodes = ((dto?.nodes ?? []) as AnyDto[]).map(mapHopNode);
+  const routeNodes = dto?.routeNodes ? (dto.routeNodes as AnyDto[]).map(mapRouteNode) : undefined;
   const edges = ((dto?.edges ?? []) as AnyDto[]).map((e) => ({
     from: e.from as string,
     to: e.to as string,
@@ -30,7 +94,7 @@ function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
     probability: (e.probability ?? 0) as number,
     evidence: (e.evidence ?? null) as string | null,
   }));
-  return { nodes, edges, explanation: (dto?.explanation ?? '') as string };
+  return { nodes, routeNodes, edges, explanation: (dto?.explanation ?? '') as string };
 }
 
 function mapCorrection(dto: AnyDto): PathCorrection {
@@ -49,6 +113,7 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
   return {
     id: dto.id as number,
     target_investor_id: dto.targetInvestorId as string,
+    target_set: dto.targetSet as string | undefined,
     connector_type: (dto.connectorType ?? 'C') as PathConnectorType,
     hops: (dto.hops ?? 0) as number,
     caliber: (dto.caliber ?? null) as PathCaliber | null,
@@ -59,7 +124,42 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
     rank: (dto.rank ?? 0) as number,
     computed_at: dto.computedAt ?? undefined,
     corrections: ((dto.corrections ?? []) as AnyDto[]).map(mapCorrection),
+    contact: dto.hopChain?.contact ? mapContact(dto.hopChain.contact as AnyDto) : undefined,
+    org_connector: dto.hopChain?.orgConnector ? mapOrgConnector(dto.hopChain.orgConnector as AnyDto) : undefined,
   };
+}
+
+// ─── Best-path / best-connector resolution (pure, unit-tested) ──────────────────
+//
+// The summary graph and the rank-1 card both need "the best path". Resolve it
+// here, off `rank === 1`, NOT `paths[0]` — array order is not guaranteed to equal
+// rank order, and ranks can tie. Pure functions so they're testable in isolation
+// and the two surfaces stay in agreement.
+
+const pathScore = (p: PathfinderPath): number => (Number.isFinite(p.score) ? p.score : -Infinity);
+
+/** Best (rank-1) path for a target: prefer `rank === 1`, else highest score then
+ *  fewest hops. null for an empty list. Never mutates the input (the React Query
+ *  array is shared — sorting a copy). */
+export function resolveBestPath(paths: PathfinderPath[]): PathfinderPath | null {
+  if (!paths.length) return null;
+  return (
+    paths.find((p) => p.rank === 1) ?? [...paths].sort((a, b) => pathScore(b) - pathScore(a) || a.hops - b.hops)[0]
+  );
+}
+
+/** The connector shown inside the Protocol Labs node. Tagged union so the graph
+ *  renders off a clean discriminant and the "plain Protocol Labs" fallback is a
+ *  representable state, not an implicit null. */
+export type BestConnector =
+  | { kind: 'contact'; contact: PathContact }
+  | { kind: 'org'; org: PathOrgConnector }
+  | { kind: 'none' };
+
+export function resolveBestConnector(path: PathfinderPath | null): BestConnector {
+  if (path?.contact) return { kind: 'contact', contact: path.contact };
+  if (path?.org_connector) return { kind: 'org', org: path.org_connector };
+  return { kind: 'none' };
 }
 
 /** All ranked warm paths for a single target investor (best first). */

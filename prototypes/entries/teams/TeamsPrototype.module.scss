@@ -1,0 +1,255 @@
+@import '../../../styles/media';
+
+.page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  padding: 24px 16px 64px;
+}
+
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @include breakpoint-1024 {
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+  }
+}
+
+/* ── Filters rail ───────────────────────────────────────────── */
+.filters {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  align-self: start;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow:
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+
+  @include breakpoint-1024 {
+    display: flex;
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.filtersHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.filtersTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.clearAll {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkLabel {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.checkLabelActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+/* ── Content column ─────────────────────────────────────────── */
+.content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+
+  @include tablet-portrait {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.titleContainer {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.count {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
+}
+
+.searchIcon {
+  opacity: 0.6;
+}
+
+.searchInput {
+  border: none;
+  width: 160px;
+  background-color: #fff;
+  color: #0f172a;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.clearBtn {
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.viewToggle {
+  display: flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.viewBtnActive {
+  background: rgba(21, 111, 247, 0.1);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ── Card grid ──────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 167.5px);
+  justify-content: center;
+  row-gap: 24px;
+  column-gap: 16px;
+
+  @include tablet-portrait {
+    justify-content: flex-start;
+  }
+
+  @include breakpoint-1024 {
+    grid-template-columns: repeat(auto-fill, 289px);
+    justify-content: flex-start;
+  }
+}
+
+/* List view: single column of cards stretched to full width */
+.gridList {
+  grid-template-columns: 1fr;
+  justify-content: stretch;
+
+  .cardLink {
+    width: 100%;
+  }
+}
+
+.cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.empty {
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}

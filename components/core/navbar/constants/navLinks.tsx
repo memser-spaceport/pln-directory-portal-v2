@@ -1,5 +1,6 @@
 import { ISubItem } from '@/components/core/navbar/type';
 import { CalendarBlankIcon, ContributorIcon, UsersThreeIcon } from '@/components/icons';
+
 import {
   MembersIcon,
   TeamsIcon,
@@ -10,6 +11,7 @@ import {
   DemoDayIcon,
   AnalyticsIcon,
   JobsIcon,
+  StarFourIcon,
 } from '../components/icons';
 
 export const INVESTOR_DB_LINK: ISubItem = {
@@ -108,4 +110,11 @@ export const DEMO_DAY_ANALYTICS_LINK: ISubItem = {
   href: '/demo-day-analytics',
   title: 'Demo Day Analytics',
   description: 'Track Demo Day activity across teams, events, and interactions',
+};
+
+export const AI_APPS_LINK: ISubItem = {
+  icon: <StarFourIcon />,
+  href: '/pl-infra/ai-apps',
+  title: 'AI Apps',
+  description: 'AI Apps dashboard',
 };

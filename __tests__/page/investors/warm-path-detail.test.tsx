@@ -121,12 +121,14 @@ describe('WarmPathDetail per-path corrections', () => {
 
   it('renders a correction affordance per path, not one per investor', () => {
     render(<WarmPathDetail investorId="inv-1" canEdit />);
-    expect(screen.getAllByText('Suggest a correction')).toHaveLength(2);
+    fireEvent.click(screen.getByText(/Show .* more/));
+    expect(screen.getAllByRole('button', { name: 'Suggest a correction' })).toHaveLength(2);
   });
 
   it('submits the correction against the clicked path, not the best path', async () => {
     render(<WarmPathDetail investorId="inv-1" canEdit />);
-    fireEvent.click(screen.getAllByText('Suggest a correction')[1]);
+    fireEvent.click(screen.getByText(/Show .* more/));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Suggest a correction' })[1]);
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledTimes(1));
@@ -138,7 +140,7 @@ describe('WarmPathDetail per-path corrections', () => {
 
   it('requires a replacement connector before submitting wrong_connector', async () => {
     render(<WarmPathDetail investorId="inv-1" canEdit />);
-    fireEvent.click(screen.getAllByText('Suggest a correction')[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Suggest a correction' })[0]);
     fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'wrong_connector' } });
 
     expect(screen.getByText('Submit')).toBeDisabled();
@@ -155,7 +157,7 @@ describe('WarmPathDetail per-path corrections', () => {
 
   it('hides correction affordances without edit permission', () => {
     render(<WarmPathDetail investorId="inv-1" canEdit={false} />);
-    expect(screen.queryByText('Suggest a correction')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suggest a correction' })).not.toBeInTheDocument();
   });
 });
 
@@ -185,7 +187,7 @@ describe('pending corrections display', () => {
   it('shows pending corrections to viewers without edit permission', () => {
     render(<WarmPathDetail investorId="inv-1" canEdit={false} />);
     expect(screen.getAllByText('Pending correction')).toHaveLength(2);
-    expect(screen.queryByText('Suggest a correction')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suggest a correction' })).not.toBeInTheDocument();
   });
 
   it('summarizes connector corrections with human labels', () => {
@@ -193,5 +195,40 @@ describe('pending corrections display', () => {
       'Connector Portfolio founder → JB rolodex',
     );
     expect(correctionSummary(correction({ field: 'note', note: 'x' }))).toBe('Note');
+  });
+});
+
+describe('WarmPathDetail contact details toggle', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('hides contact channels behind a toggle and reveals them on click', () => {
+    mockPaths.mockReturnValue([
+      path({
+        id: 10,
+        rank: 1,
+        hop_chain: {
+          nodes: [],
+          edges: [],
+          explanation: '',
+          routeNodes: [{ label: 'Alice', variant: 'member' }],
+        },
+        contact: { name: 'Alicia Mer', member_uid: 'alicia-mer', email: 'alicia@modularglobe.xyz' },
+      }),
+    ]);
+    render(<WarmPathDetail investorId="inv-1" canEdit />);
+
+    expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
+    expect(screen.getByText('alicia@modularglobe.xyz')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
+    expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
+  });
+
+  it('does not render the toggle when the route chain is empty', () => {
+    mockPaths.mockReturnValue([path({ id: 11, rank: 1, contact: { name: 'No Channels' } })]);
+    render(<WarmPathDetail investorId="inv-1" canEdit />);
+    expect(screen.queryByRole('button', { name: /Contact details/i })).not.toBeInTheDocument();
   });
 });

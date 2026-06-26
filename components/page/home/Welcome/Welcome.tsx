@@ -1,4 +1,5 @@
-import LoginBtn from '@/components/core/navbar/login-btn';
+import { LoginBtn } from '@/components/core/navbar/components/LoginBtn';
+
 import s from './Welcome.module.scss';
 
 export const Welcome = () => {

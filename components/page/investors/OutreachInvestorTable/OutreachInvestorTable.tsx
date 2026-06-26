@@ -182,18 +182,18 @@ export function OutreachInvestorTable(props: Props) {
         cell: ({ getValue }) =>
           getValue<string>() ? <span>{getValue<string>()}</span> : <span className={s.muted}>—</span>,
       },
-      {
-        id: 'investor_type',
-        header: 'Type',
-        accessorKey: 'investor_type',
-        cell: ({ getValue }) => INVESTOR_TYPE_LABEL[getValue<keyof typeof INVESTOR_TYPE_LABEL>()] ?? '—',
-      },
-      {
-        id: 'stage_focus',
-        header: 'Stage',
-        accessorKey: 'stage_focus',
-        cell: ({ getValue }) => STAGE_FOCUS_LABEL[getValue<keyof typeof STAGE_FOCUS_LABEL>()] ?? '—',
-      },
+      // {
+      //   id: 'investor_type',
+      //   header: 'Type',
+      //   accessorKey: 'investor_type',
+      //   cell: ({ getValue }) => INVESTOR_TYPE_LABEL[getValue<keyof typeof INVESTOR_TYPE_LABEL>()] ?? '—',
+      // },
+      // {
+      //   id: 'stage_focus',
+      //   header: 'Stage',
+      //   accessorKey: 'stage_focus',
+      //   cell: ({ getValue }) => STAGE_FOCUS_LABEL[getValue<keyof typeof STAGE_FOCUS_LABEL>()] ?? '—',
+      // },
       {
         id: 'sector_tags',
         header: 'Industry / Sector',

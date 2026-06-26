@@ -267,9 +267,10 @@ export type ListMembersParams = {
    *  filter to members reachable through that connector across the whole list. */
   connector_labels?: string[];
   connector_labels_contains?: string[];
-  /** Facets-based filters (task 05): PL member UIDs, founder UIDs, flags. */
+  /** Facets-based filters: PL member names/uids, founder names/uids, flags. */
   pl_member_uids?: string[];
   founder_uids?: string[];
+  founder_names?: string[];
   any_founder?: boolean;
   direct_only?: boolean;
   page?: number;
@@ -277,7 +278,7 @@ export type ListMembersParams = {
 };
 
 export type FacetPlMember = { memberUid?: string; name: string; count: number };
-export type FacetFounder = { memberUid: string; name: string; role?: string; teams?: string[]; count: number };
+export type FacetFounder = { memberUid?: string; name: string; role?: string; teams?: string[]; count: number };
 export type ListFacetsResponse = {
   plMembers: FacetPlMember[];
   founders: FacetFounder[];

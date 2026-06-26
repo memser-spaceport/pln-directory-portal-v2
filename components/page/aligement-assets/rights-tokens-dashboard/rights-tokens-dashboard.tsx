@@ -28,10 +28,10 @@ function getWelcomeDisplayName(user: IUserInfo | null): string {
 }
 
 const TOOLTIP_CONTENT = {
-  total: 'Combined Rights & Tokens Available to Bid in Buyback Auctions',
-  rights: 'Rights to Tokens Available to Bid in Buyback Auctions',
+  total: 'PLAA Available to Bid in Buyback Auctions',
+  collected: 'Combined Value of PLAA Owned + PLAA Sold',
   tokens: 'Tokens Available to Bid in Buyback Auctions',
-  sold: 'Cumulative Tokens Sold During Buybacks',
+  sold: 'Total PLAA Sold in Buyback Auctions',
 } as const;
 
 function formatLastUpdated(dateString: string): string {
@@ -59,7 +59,7 @@ function formatLastUpdated(dateString: string): string {
     const minute = get('minute');
     const dayPeriod = get('dayPeriod').toUpperCase();
 
-    return `BALANCES LAST UPDATED ON ${month} ${day}, ${year} • ${hour}:${minute} ${dayPeriod} MT`;
+    return `LAST UPDATED ON ${month} ${day}, ${year} • ${hour}:${minute} ${dayPeriod} MT`;
   } catch {
     return '';
   }
@@ -122,9 +122,15 @@ export default function RightsTokensDashboard() {
     <section className={styles['rights-tokens-dashboard']}>
       <div className={styles['rights-tokens-dashboard__header']}>
         <div className={styles['rights-tokens-dashboard__header-text']}>
-          <h2 className={styles['rights-tokens-dashboard__title']}>Rights &amp; Token Dashboard</h2>
+          <div className={styles['rights-tokens-dashboard__title-row']}>
+            <span className={styles['rights-tokens-dashboard__title-icon']}>
+              <Image src="/icons/token-icon.svg" alt="" width={16} height={16} />
+            </span>
+            <h2 className={styles['rights-tokens-dashboard__title']}>PLAA Dashboard</h2>
+            <InfoTooltip content={TOOLTIP_CONTENT.total} label="PLAA Dashboard info" />
+          </div>
           <p className={styles['rights-tokens-dashboard__subtitle']}>
-            Welcome back {displayName} - here are your updated rights &amp; token balances.
+            Welcome back {displayName} - here are your updated PLAA balances
           </p>
         </div>
         <button
@@ -158,7 +164,7 @@ export default function RightsTokensDashboard() {
           <div className={styles['rights-tokens-dashboard__panel']}>
             <div className={styles['rights-tokens-dashboard__panel-top']}>
               <div className={styles['rights-tokens-dashboard__primary-label-row']}>
-                <span className={styles['rights-tokens-dashboard__primary-label']}>MY RIGHTS/TOKENS</span>
+                <span className={styles['rights-tokens-dashboard__primary-label']}>PLAA OWNED</span>
                 <InfoTooltip content={TOOLTIP_CONTENT.total} label="My rights and tokens info" />
               </div>
               {lastUpdatedLabel && (
@@ -170,25 +176,19 @@ export default function RightsTokensDashboard() {
               <span className={styles['rights-tokens-dashboard__primary-value']}>
                 {data.totalRightsAndTokens.toLocaleString()}
               </span>
-              <span className={styles['rights-tokens-dashboard__primary-unit']}>RIGHTS + TOKENS</span>
+              <span className={styles['rights-tokens-dashboard__primary-unit']}>PLAA</span>
             </div>
 
             <div className={styles['rights-tokens-dashboard__stats']}>
               <StatCard
                 icon="/icons/rights-icon.svg"
-                label="RIGHTS"
-                value={data.rights}
-                tooltip={TOOLTIP_CONTENT.rights}
-              />
-              <StatCard
-                icon="/icons/token-icon.svg"
-                label="TOKENS"
-                value={data.tokens}
-                tooltip={TOOLTIP_CONTENT.tokens}
+                label="PLAA COLLECTED"
+                value={data.rights + data.tokens + data.tokensSold}
+                tooltip={TOOLTIP_CONTENT.collected}
               />
               <StatCard
                 icon="/icons/sold-icon.svg"
-                label="SOLD"
+                label="PLAA SOLD"
                 value={data.tokensSold}
                 tooltip={TOOLTIP_CONTENT.sold}
               />
@@ -200,7 +200,7 @@ export default function RightsTokensDashboard() {
               <Image src="/icons/rounds/info-gray.svg" alt="" width={16} height={16} />
             </span>
             <p className={styles['rights-tokens-dashboard__notice-text']}>
-              Token balances displayed here are determined by the Trust (not Polaris or PLCS).
+              PLAA balances displayed here are determined by Surus.
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 
 import { Button } from '@/components/common/Button/Button';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -28,23 +28,49 @@ import {
 import local from './AiAppsPrototype.module.scss';
 
 // --- Card (copy & simplified from production AiAppCard: swap the <Link> to a route
-// for an onSelect handler so navigation stays inside the prototype) ---
+// for an onSelect handler so navigation stays inside the prototype). Rendered as a
+// clickable <div> (not <button>) so it can hold a real action button. Left-aligned
+// layout: meta (creator + deployed) on the left, "Open in new tab" on the right. ---
 function AiAppCard({ app, onSelect }: { app: AiApp; onSelect: () => void }) {
+  const stop = (e: MouseEvent) => e.stopPropagation();
+
   return (
-    <button type="button" className={local.appCard} onClick={onSelect}>
+    <div className={`${local.appCard} ${local.appCardLeft}`} onClick={onSelect} role="button" tabIndex={0}>
       <div className={local.appCardTop}>
         <h3 className={local.appCardName}>{app.name}</h3>
         <p className={local.appCardDesc}>{app.description}</p>
       </div>
-      <div className={local.appCardMeta}>
-        <div className={local.appCardCreator}>
-          <img className={local.appCardAvatar} src={getDefaultAvatar(app.member.name)} alt="" width={20} height={20} />
-          <span className={local.appCardCreatorTitle}>by</span>
-          <span className={local.appCardCreatorName}>{app.member.name}</span>
+
+      <div className={local.appCardFooterRow}>
+        <div className={local.appCardMeta}>
+          <div className={local.appCardCreator}>
+            <img
+              className={local.appCardAvatar}
+              src={getDefaultAvatar(app.member.name)}
+              alt=""
+              width={20}
+              height={20}
+            />
+            <span className={local.appCardCreatorTitle}>by</span>
+            <span className={local.appCardCreatorName}>{app.member.name}</span>
+          </div>
+          <p className={local.appCardDeployed}>Deployed {new Date(app.createdAt).toLocaleDateString()}</p>
         </div>
-        <p className={local.appCardDeployed}>Deployed {new Date(app.createdAt).toLocaleDateString()}</p>
+        <div className={local.appCardOpenBtn}>
+          <Button
+            size="xs"
+            style="border"
+            variant="neutral"
+            onClick={(e) => {
+              stop(e);
+              alert('Prototype: would open the deployed app in a new tab.');
+            }}
+          >
+            Open in new tab ↗
+          </Button>
+        </div>
       </div>
-    </button>
+    </div>
   );
 }
 

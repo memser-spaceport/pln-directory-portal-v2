@@ -184,8 +184,6 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;
 
-          console.log({ p });
-
           return (
             <li key={p.id} className={s.pathItem}>
               {/* Correction trigger — corner icon opening the same inline form */}

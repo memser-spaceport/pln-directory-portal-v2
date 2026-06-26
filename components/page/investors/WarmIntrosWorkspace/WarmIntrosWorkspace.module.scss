@@ -640,6 +640,10 @@ tbody .checkboxCol {
   overflow: auto;
   border-radius: 10px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @media (max-width: 639px) {
+    display: none;
+  }
 }
 
 .table {
@@ -1036,6 +1040,73 @@ thead .frozenName {
   &:hover {
     color: #0a0c11;
   }
+}
+
+/* ── Mobile card list ────────────────────────────────────────── */
+
+.mobileCards {
+  display: none;
+  padding: 0 12px;
+
+  @media (max-width: 639px) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.mobileCard {
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+
+  &:active {
+    background: #f9fafb;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a0c11;
+}
+
+.cardEmail {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: -4px;
+}
+
+.cardRelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cardFirm {
+  font-size: 12px;
+  color: #455468;
+}
+
+.cardPath {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  row-gap: 2px;
 }
 
 .sentinel {

@@ -775,6 +775,50 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             </table>
           </div>
 
+          <div className={s.mobileCards}>
+            {visible.map((inv) => {
+              const tier = relationshipTier(inv);
+              const relLabel = tier === 'co_invested' ? 'Co-invested' : tier === 'engaged' ? 'Engaged' : 'Cold';
+              const relCls = tier === 'co_invested' ? s.relCo : tier === 'engaged' ? s.relEngaged : s.relCold;
+              return (
+                <div
+                  key={inv.investor_id}
+                  className={s.mobileCard}
+                  onClick={() => setFilters({ investorId: inv.investor_id })}
+                >
+                  <div className={s.cardHeader}>
+                    <span className={s.cardName}>
+                      {inv.first_name} {inv.last_name}
+                    </span>
+                    {(inv.best_proximity_code || inv.has_path === false) && (
+                      <ProximityCodeBadge
+                        code={inv.best_proximity_code}
+                        cold={inv.has_path === false}
+                        confidence={inv.best_route_score ?? undefined}
+                      />
+                    )}
+                  </div>
+                  {inv.email && <div className={s.cardEmail}>{inv.email}</div>}
+                  <div className={s.cardRelRow}>
+                    <span className={clsx(s.relPill, relCls)}>{relLabel}</span>
+                    {inv.firm && <span className={s.cardFirm}>{inv.firm}</span>}
+                  </div>
+                  {inv.sector_tags?.length > 0 && <SectorTagsList tags={inv.sector_tags} max={4} />}
+                  {inv.best_route_nodes && inv.best_route_nodes.length > 0 && (
+                    <div className={s.cardPath}>
+                      {inv.best_route_nodes.map((n, i) => (
+                        <span key={`${inv.investor_id}-${n.id}-${i}`} className={s.miniRouteNode}>
+                          {i > 0 && <span className={s.miniArrow}>→</span>}
+                          <RouteChip node={n} />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
           <div ref={sentinelRef} className={s.sentinel} />
           {isFetchingNextPage && <div className={s.sentinelLoader}>Loading more…</div>}
 

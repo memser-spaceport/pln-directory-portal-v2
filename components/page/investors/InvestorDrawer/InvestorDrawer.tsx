@@ -20,6 +20,7 @@ import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesV
 import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
 import { AddToListMenu } from '../AddToListMenu/AddToListMenu';
 import { CopyButton } from '@/components/ui/CopyButton';
+import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import s from './InvestorDrawer.module.scss';
 
 interface Props {
@@ -67,32 +68,54 @@ export function InvestorDrawer({ access }: Props) {
                   </h2>
                   <div className={s.contactIcons}>
                     {investor.linkedin_url && (
-                      <a
-                        href={investor.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={s.contactIcon}
-                        title="LinkedIn"
-                      >
-                        <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
-                      </a>
+                      <CustomTooltip
+                        forceTooltip
+                        side="bottom"
+                        sideOffset={6}
+                        content={linkedinHandle(investor.linkedin_url)}
+                        trigger={
+                          <a
+                            href={investor.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={s.contactIcon}
+                          >
+                            <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
+                          </a>
+                        }
+                      />
                     )}
                     {investor.firm_domain && (
-                      <a
-                        href={`https://${investor.firm_domain}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={s.contactIcon}
-                        title={investor.firm_domain}
-                      >
-                        <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
-                      </a>
+                      <CustomTooltip
+                        forceTooltip
+                        side="bottom"
+                        sideOffset={6}
+                        content={investor.firm_domain}
+                        trigger={
+                          <a
+                            href={`https://${investor.firm_domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={s.contactIcon}
+                          >
+                            <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
+                          </a>
+                        }
+                      />
                     )}
                     {investor.email && (
                       <>
-                        <a href={`mailto:${investor.email}`} className={s.contactIcon} title={investor.email}>
-                          <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
-                        </a>
+                        <CustomTooltip
+                          forceTooltip
+                          side="bottom"
+                          sideOffset={6}
+                          content={investor.email}
+                          trigger={
+                            <a href={`mailto:${investor.email}`} className={s.contactIcon}>
+                              <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
+                            </a>
+                          }
+                        />
                         <CopyButton text={investor.email} className={s.contactIconCopy} />
                       </>
                     )}
@@ -365,6 +388,11 @@ export function InvestorDrawer({ access }: Props) {
       )}
     </Drawer>
   );
+}
+
+function linkedinHandle(url: string): string {
+  const m = url.match(/linkedin\.com\/in\/([^/?#]+)/i);
+  return m ? m[1] : url;
 }
 
 /** Render text with [1], [2]… markers turned into clickable source superscripts. */

@@ -85,6 +85,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'Members',
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
   },
+  {
+    key: 'ai-apps',
+    title: 'AI Apps',
+    description:
+      'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview — composed from the real page components and SCSS.',
+    category: 'AI Apps',
+    load: () => import('./entries/ai-apps/AiAppsPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

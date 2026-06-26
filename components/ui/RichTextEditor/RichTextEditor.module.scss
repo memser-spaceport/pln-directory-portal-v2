@@ -83,9 +83,23 @@
   }
 
   // Prevent link tooltip from overflowing container edges
-  :global(.ql-tooltip) {
+  :global(.ql-tooltip:not(.ql-hidden)) {
     left: 0 !important;
     max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+
+    // Let the URL shrink so Edit/Remove are always visible
+    a.ql-preview {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
   }
 
   // Mention button tooltip

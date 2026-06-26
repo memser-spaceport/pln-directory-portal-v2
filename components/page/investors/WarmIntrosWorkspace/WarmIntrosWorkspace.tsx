@@ -681,7 +681,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                 ))}
               </div>
               {access.canEdit && (
-                <>
+                <div className={s.resultsActionsRow}>
                   <AddToListButton
                     lists={lists ?? []}
                     investorIds={[...selectedIds]}
@@ -691,7 +691,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                   <button className={s.btnPrimary} onClick={exportSelectedCsv} disabled={selectedIds.size === 0}>
                     ⤓ Export CSV ({selectedIds.size})
                   </button>
-                </>
+                </div>
               )}
             </div>
           </div>

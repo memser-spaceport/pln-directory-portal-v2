@@ -123,9 +123,6 @@ export default function RightsTokensDashboard() {
       <div className={styles['rights-tokens-dashboard__header']}>
         <div className={styles['rights-tokens-dashboard__header-text']}>
           <div className={styles['rights-tokens-dashboard__title-row']}>
-            <span className={styles['rights-tokens-dashboard__title-icon']}>
-              <Image src="/icons/token-icon.svg" alt="" width={16} height={16} />
-            </span>
             <h2 className={styles['rights-tokens-dashboard__title']}>PLAA Dashboard</h2>
           </div>
           <p className={styles['rights-tokens-dashboard__subtitle']}>
@@ -163,6 +160,9 @@ export default function RightsTokensDashboard() {
           <div className={styles['rights-tokens-dashboard__panel']}>
             <div className={styles['rights-tokens-dashboard__panel-top']}>
               <div className={styles['rights-tokens-dashboard__primary-label-row']}>
+                <span className={styles['rights-tokens-dashboard__title-icon']}>
+                  <Image src="/icons/token-icon.svg" alt="" width={16} height={16} />
+                </span>
                 <span className={styles['rights-tokens-dashboard__primary-label']}>PLAA OWNED</span>
                 <InfoTooltip content={TOOLTIP_CONTENT.total} label="My rights and tokens info" />
               </div>

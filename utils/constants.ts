@@ -16,7 +16,7 @@ export const PAGE_ROUTES = {
 
 export const NAV_OPTIONS = [
   // {
-  //   name: 'Home',
+  //   name: 'Home', 
   //   url: PAGE_ROUTES.HOME,
   //   selectedLogo: '/icons/home.svg',
   //   unSelectedLogo: '/icons/home-deselected.svg',

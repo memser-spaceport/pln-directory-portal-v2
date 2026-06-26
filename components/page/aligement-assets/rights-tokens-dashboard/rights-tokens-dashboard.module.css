@@ -30,6 +30,20 @@
   min-width: 0;
 }
 
+.rights-tokens-dashboard__title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rights-tokens-dashboard__title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
 .rights-tokens-dashboard__title {
   font-size: 18px;
   font-weight: 700;

@@ -144,12 +144,18 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const { data: facets } = useGetListFacets(filters.wi_list_id, enabled);
 
   const plMemberOptions = useMemo<{ value: string; label: string }[]>(
-    () => (facets?.plMembers ?? []).filter((m): m is FacetPlMember => !!m.memberUid).map((m) => ({ value: m.memberUid, label: `${m.name} (${m.count})` })),
+    () =>
+      (facets?.plMembers ?? [])
+        .filter((m): m is FacetPlMember => !!m.memberUid)
+        .map((m) => ({ value: m.memberUid, label: `${m.name} (${m.count})` })),
     [facets],
   );
 
   const founderOptions = useMemo<{ value: string; label: string }[]>(
-    () => (facets?.founders ?? []).filter((f): f is FacetFounder => !!f.memberUid).map((f) => ({ value: f.memberUid, label: f.name })),
+    () =>
+      (facets?.founders ?? [])
+        .filter((f): f is FacetFounder => !!f.memberUid)
+        .map((f) => ({ value: f.memberUid, label: f.name })),
     [facets],
   );
 
@@ -309,7 +315,17 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       });
     }
     return pills;
-  }, [filters.wi_stage, filters.wi_check_size, filters.wi_sectors, filters.wi_pl_members, filters.wi_any_founder, filters.wi_founder_uids, filters.wi_connector, facets, setFilters]);
+  }, [
+    filters.wi_stage,
+    filters.wi_check_size,
+    filters.wi_sectors,
+    filters.wi_pl_members,
+    filters.wi_any_founder,
+    filters.wi_founder_uids,
+    filters.wi_connector,
+    facets,
+    setFilters,
+  ]);
 
   const clear = () => {
     setFilters({
@@ -510,7 +526,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <CheckboxDropdown
               options={plMemberOptions}
               value={filters.wi_pl_members}
-              placeholder="Any PL member"
+              placeholder="PL member"
               aria-label="PL member"
               onChange={(vals) => {
                 setFilters({ wi_pl_members: vals.length ? vals : null });
@@ -519,24 +535,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             />
           </div>
 
-          {/* Founder filter — any-founder toggle + specific-founder multi-select */}
-          <div className={s.filterBarItem}>
-            <button
-              type="button"
-              className={clsx(s.toggleBtn, filters.wi_any_founder && s.toggleBtnActive)}
-              onClick={() => {
-                setFilters({ wi_any_founder: filters.wi_any_founder ? null : true, wi_founder_uids: null });
-                setSelectedIds(new Set());
-              }}
-            >
-              Any founder
-            </button>
-          </div>
+          {/* Founder filter — specific-founder multi-select */}
           <div className={s.filterBarItem} style={{ minWidth: 160 }}>
             <CheckboxDropdown
               options={founderOptions}
               value={filters.wi_founder_uids}
-              placeholder="Specific founder"
+              placeholder="Founder"
               aria-label="Specific founder"
               disabled={!!filters.wi_any_founder}
               onChange={(vals) => {
@@ -551,7 +555,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <FilterSelect
               options={STAGE_OPTIONS}
               value={stageValue}
-              placeholder="Any stage"
+              placeholder="Stage"
               isClearable
               aria-label="Stage focus"
               onChange={(opt) => {
@@ -566,7 +570,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <FilterSelect
               options={CHECK_SIZE_OPTIONS}
               value={checkSizeValue}
-              placeholder="Any check size"
+              placeholder="Check size"
               isClearable
               aria-label="Check size"
               onChange={(opt) => {
@@ -589,7 +593,6 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               }}
             />
           </div>
-
         </div>
 
         {filterPills.length > 0 && (
@@ -597,7 +600,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             {filterPills.map((pill) => (
               <span key={pill.key} className={s.pill}>
                 {pill.label}: <strong>{pill.value}</strong>
-                <button type="button" className={s.pillRemove} onClick={pill.onRemove} aria-label={`Remove ${pill.label} filter`}>
+                <button
+                  type="button"
+                  className={s.pillRemove}
+                  onClick={pill.onRemove}
+                  aria-label={`Remove ${pill.label} filter`}
+                >
                   ×
                 </button>
               </span>

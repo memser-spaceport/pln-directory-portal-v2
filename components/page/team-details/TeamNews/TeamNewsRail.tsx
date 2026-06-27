@@ -21,7 +21,7 @@ interface TeamNewsRailProps {
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { onTeamNewsCardClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked } = useTeamNewsAnalytics();
 
   const total = initialData.total;
   const previewItems = initialData.items.slice(0, TEAM_NEWS_PREVIEW_LIMIT);
@@ -29,7 +29,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
 
   const handleCardClick = useCallback(
     (item: ITeamNewsItem, position: number) => {
-      onTeamNewsCardClicked(item, position);
+      onTeamNewsCardClicked(item, position, 'team-profile-rail');
     },
     [onTeamNewsCardClicked],
   );
@@ -47,12 +47,20 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
                 item={item}
                 position={index}
                 variant="flat"
+                analyticsSource="team-profile-rail"
                 onClick={(clicked) => handleCardClick(clicked, index)}
               />
             ))}
           </div>
           {hasMore && (
-            <button type="button" className={s.viewAll} onClick={() => setModalOpen(true)}>
+            <button
+              type="button"
+              className={s.viewAll}
+              onClick={() => {
+                onTeamNewsViewAllClicked(teamUid, teamName, total);
+                setModalOpen(true);
+              }}
+            >
               View all news ({total})
             </button>
           )}

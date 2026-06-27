@@ -99,7 +99,7 @@ describe('StartConversationButton', () => {
       render(<StartConversationButton item={baseItem} position={4} />);
       fireEvent.click(screen.getByRole('button', { name: /Start a conversation/i }));
       expect(mockOnStartConversationClicked).toHaveBeenCalledTimes(1);
-      expect(mockOnStartConversationClicked).toHaveBeenCalledWith(baseItem, 4, false);
+      expect(mockOnStartConversationClicked).toHaveBeenCalledWith(baseItem, 4, false, 'home');
       expect(mockOnJoinDiscussionClicked).not.toHaveBeenCalled();
     });
 
@@ -135,7 +135,7 @@ describe('StartConversationButton', () => {
       it('reports wasAnonymous=true on the analytics event', () => {
         render(<StartConversationButton item={baseItem} position={6} />);
         fireEvent.click(screen.getByRole('button', { name: /Start a conversation/i }));
-        expect(mockOnStartConversationClicked).toHaveBeenCalledWith(baseItem, 6, true);
+        expect(mockOnStartConversationClicked).toHaveBeenCalledWith(baseItem, 6, true, 'home');
       });
     });
   });
@@ -158,7 +158,7 @@ describe('StartConversationButton', () => {
       render(<StartConversationButton item={itemWithThread} position={5} />);
       fireEvent.click(screen.getByRole('button', { name: /Join the existing forum discussion/i }));
       expect(mockOnJoinDiscussionClicked).toHaveBeenCalledTimes(1);
-      expect(mockOnJoinDiscussionClicked).toHaveBeenCalledWith(itemWithThread, 5, false);
+      expect(mockOnJoinDiscussionClicked).toHaveBeenCalledWith(itemWithThread, 5, false, 'home');
       expect(mockOnStartConversationClicked).not.toHaveBeenCalled();
     });
 
@@ -206,7 +206,7 @@ describe('StartConversationButton', () => {
       it('reports wasAnonymous=true on the analytics event', () => {
         render(<StartConversationButton item={itemWithThread} position={7} />);
         fireEvent.click(screen.getByRole('button', { name: /Join the existing forum discussion/i }));
-        expect(mockOnJoinDiscussionClicked).toHaveBeenCalledWith(itemWithThread, 7, true);
+        expect(mockOnJoinDiscussionClicked).toHaveBeenCalledWith(itemWithThread, 7, true, 'home');
       });
     });
   });

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { buildForumNewPostUrl } from './utils/buildForumNewPostUrl';
@@ -18,6 +18,7 @@ import s from './StartConversationButton.module.scss';
 interface StartConversationButtonProps {
   item: ITeamNewsItem;
   position: number;
+  analyticsSource?: TeamNewsAnalyticsSource;
 }
 
 const START_LABEL = 'Discuss';
@@ -25,7 +26,7 @@ const JOIN_LABEL = 'Join discussion';
 const START_A11Y = 'Start a conversation on the forum';
 const JOIN_A11Y = 'Join the existing forum discussion about this article';
 
-export const StartConversationButton = ({ item, position }: StartConversationButtonProps) => {
+export const StartConversationButton = ({ item, position, analyticsSource = 'home' }: StartConversationButtonProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { hasAccess, canWrite, isLoading } = useForumAccess();
@@ -60,7 +61,7 @@ export const StartConversationButton = ({ item, position }: StartConversationBut
         return;
       }
 
-      analytics.onTeamNewsJoinDiscussionClicked(item, position, wasAnonymous);
+      analytics.onTeamNewsJoinDiscussionClicked(item, position, wasAnonymous, analyticsSource);
       if (wasAnonymous) {
         stashPendingTargetAndLogin(router, target);
         return;
@@ -68,7 +69,7 @@ export const StartConversationButton = ({ item, position }: StartConversationBut
       router.push(target);
     } else {
       const target = buildForumNewPostUrl(item);
-      analytics.onTeamNewsStartConversationClicked(item, position, wasAnonymous);
+      analytics.onTeamNewsStartConversationClicked(item, position, wasAnonymous, analyticsSource);
       if (wasAnonymous) {
         stashPendingTargetAndLogin(router, target);
         return;

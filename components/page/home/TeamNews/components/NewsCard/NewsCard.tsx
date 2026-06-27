@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
@@ -18,6 +19,7 @@ interface NewsCardProps {
   hideTeam?: boolean;
   variant?: 'default' | 'flat' | 'outline';
   className?: string;
+  analyticsSource?: TeamNewsAnalyticsSource;
 }
 
 const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
@@ -46,6 +48,7 @@ export const NewsCard = ({
   hideTeam = false,
   variant = 'default',
   className,
+  analyticsSource = 'home',
 }: NewsCardProps) => {
   const handleClick = () => {
     onClick?.(item);
@@ -106,7 +109,7 @@ export const NewsCard = ({
           <span className={s.sep} aria-hidden="true" />
           <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
-        <StartConversationButton item={item} position={position} />
+        <StartConversationButton item={item} position={position} analyticsSource={analyticsSource} />
       </div>
     </div>
   );

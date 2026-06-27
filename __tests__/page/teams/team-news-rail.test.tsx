@@ -5,9 +5,13 @@ import { TeamNewsRail } from '@/components/page/team-details/TeamNews/TeamNewsRa
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { ITeamNewsDiscussion, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
+const mockOnCardClicked = jest.fn();
+const mockOnViewAllClicked = jest.fn();
+
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
-    onTeamNewsCardClicked: jest.fn(),
+    onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
+    onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
   }),
 }));
 
@@ -51,6 +55,8 @@ const makeItem = (uid: string): ITeamNewsItem => ({
 });
 
 describe('TeamNewsRail', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   it('renders preview items and header count', () => {
     render(
       <TeamNewsRail
@@ -111,6 +117,7 @@ describe('TeamNewsRail', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'View all news (4)' }));
+    expect(mockOnViewAllClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 4);
     expect(screen.getByTestId('team-news-modal')).toBeInTheDocument();
   });
 
@@ -133,6 +140,7 @@ describe('TeamNewsRail', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'View all news (4)' }));
+    expect(mockOnViewAllClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 4);
     expect(screen.getByTestId('team-news-fullpage')).toBeInTheDocument();
   });
 });

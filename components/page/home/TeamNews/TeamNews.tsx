@@ -101,13 +101,16 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   };
 
   const handleToggleAll = () => {
-    analytics.onTeamNewsLoadMoreClicked(visibleItems.length, filteredItems.length, activeTab, String(activeCategory));
+    analytics.onTeamNewsLoadMoreClicked(visibleItems.length, filteredItems.length, 'home', {
+      currentTab: activeTab,
+      currentCategory: String(activeCategory),
+    });
     setExpanded((v) => !v);
   };
 
   const handleCardClick = (item: ITeamNewsItem) => {
     const position = visibleItems.findIndex((v) => v.uid === item.uid);
-    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0);
+    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
   };
 
   if (isEmpty(allItems)) {

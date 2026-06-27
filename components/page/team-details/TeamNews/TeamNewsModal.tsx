@@ -27,7 +27,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
   const debouncedQuery = useDebounce(searchQuery, 300);
   const effectiveQuery = searchQuery === '' ? '' : debouncedQuery;
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { onTeamNewsCardClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsCardClicked, onTeamNewsLoadMoreClicked } = useTeamNewsAnalytics();
 
   const { items, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTeamNewsByTeamInfinite({
     teamUid,
@@ -42,7 +42,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
 
   const handleCardClick = useCallback(
     (item: ITeamNewsItem, position: number) => {
-      onTeamNewsCardClicked(item, position);
+      onTeamNewsCardClicked(item, position, 'team-profile-modal');
     },
     [onTeamNewsCardClicked],
   );
@@ -70,6 +70,10 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          onTeamNewsLoadMoreClicked(items.length, total, 'team-profile-modal', {
+            teamUid,
+            searchQuery: effectiveQuery,
+          });
           fetchNextPage();
         }
       },
@@ -78,7 +82,17 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isOpen, items.length, debouncedQuery]);
+  }, [
+    effectiveQuery,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isOpen,
+    items.length,
+    onTeamNewsLoadMoreClicked,
+    teamUid,
+    total,
+  ]);
 
   const feedContent = isLoading ? (
     <div className={s.modalLoading}>Loading news…</div>
@@ -91,6 +105,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
             item={item}
             position={index}
             variant="outline"
+            analyticsSource="team-profile-modal"
             onClick={(clicked) => handleCardClick(clicked, index)}
           />
         ))}
@@ -124,11 +139,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
         </div>
 
         <div className={s.newsPageSearch}>
-          <SearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search news by keyword or type"
-          />
+          <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search news by keyword or type" />
         </div>
 
         {feedContent}
@@ -147,11 +158,7 @@ export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fulls
         </button>
       </div>
       <div className={s.modalSearchWrap}>
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search news by keyword or type"
-        />
+        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search news by keyword or type" />
       </div>
       <div className={s.modalBody}>{feedContent}</div>
     </Modal>

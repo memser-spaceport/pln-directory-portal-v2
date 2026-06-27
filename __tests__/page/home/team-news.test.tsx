@@ -119,7 +119,10 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
-    expect(mockOnLoadMoreClicked).toHaveBeenCalledWith(2, 5, 'All', 'all');
+    expect(mockOnLoadMoreClicked).toHaveBeenCalledWith(2, 5, 'home', {
+      currentTab: 'All',
+      currentCategory: 'all',
+    });
     expect(screen.getByText(/Headline ai-3/)).toBeInTheDocument();
     expect(screen.getByText(/Headline dhr-2/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Show Less/i })).toBeInTheDocument();
@@ -176,9 +179,10 @@ describe('TeamNews', () => {
     expect(card).toBeInTheDocument();
     fireEvent.click(within(card! as HTMLElement).getByText(/Headline ai-1/));
     expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
-    const [item, position] = mockOnCardClicked.mock.calls[0];
+    const [item, position, source] = mockOnCardClicked.mock.calls[0];
     expect(item.uid).toBe('ai-1');
     expect(typeof position).toBe('number');
+    expect(source).toBe('home');
   });
 
   describe('Active Discussions', () => {

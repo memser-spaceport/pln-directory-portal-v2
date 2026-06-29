@@ -170,6 +170,7 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     registered: dto.registered ?? 0,
     first_sent_date: dto.firstSentDate ?? '',
     last_sent_date: dto.lastSentDate ?? '',
+    last_contact: dto.lastContact ?? '',
     engagement_tier: dto.engagementTier as EngagementTier,
     enrichment_status: dto.enrichmentStatus as EnrichmentStatus,
     enrichment_date: dto.enrichmentDate ?? '',

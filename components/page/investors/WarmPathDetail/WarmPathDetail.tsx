@@ -378,13 +378,20 @@ function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConn
     <span className={s.contactName}>{contact.name}</span>
   );
 
+  console.log({ org });
+
   const orgEl = org ? (
     org.team_uid ? (
       <Link href={`/teams/${org.team_uid}`} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
         {org.name} ↗
       </Link>
     ) : org.website_url ? (
-      <a href={org.website_url} className={s.contactOrgLink} target="_blank" rel="noopener noreferrer">
+      <a
+        href={org.website_url?.startsWith('http') ? org.website_url : `https://${org.website_url}`}
+        className={s.contactOrgLink}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {org.name} ↗
       </a>
     ) : (

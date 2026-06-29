@@ -49,10 +49,7 @@ interface Props {
   onCountChange?: (count: number) => void;
 }
 
-const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
-  { tier: 'co_invested', label: 'Co-invested' },
-  { tier: 'engaged', label: 'Engaged' },
-];
+const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [];
 
 const STAGE_OPTIONS: Option[] = STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => ({
   value: st,
@@ -141,8 +138,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const { data: facets } = useGetListFacets(filters.wi_list_id, enabled);
 
   const plMemberOptions = useMemo<{ value: string; label: string }[]>(
-    () =>
-      (facets?.plMembers ?? []).map((m) => ({ value: m.memberUid ?? m.name, label: `${m.name} (${m.count})` })),
+    () => (facets?.plMembers ?? []).map((m) => ({ value: m.memberUid ?? m.name, label: `${m.name} (${m.count})` })),
     [facets],
   );
 
@@ -415,12 +411,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       {
         id: 'team',
         header: 'Team',
-        cell: ({ row }) => (
-          <>
-            <div className={s.teamCell}>{row.original.firm || <span className={s.muted}>—</span>}</div>
-            {row.original.title && <div className={s.subtle}>{row.original.title}</div>}
-          </>
-        ),
+        cell: ({ row }) => <TeamCell investor={row.original} />,
         size: 200,
       },
       {
@@ -549,19 +540,21 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </div>
 
           {/* Founder filter — specific-founder multi-select */}
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <CheckboxDropdown
-              options={founderOptions}
-              value={filters.wi_founder_uids}
-              placeholder="Founder"
-              aria-label="Specific founder"
-              disabled={!!filters.wi_any_founder}
-              onChange={(vals) => {
-                setFilters({ wi_founder_uids: vals.length ? vals : null });
-                setSelectedIds(new Set());
-              }}
-            />
-          </div>
+          {!!founderOptions.length && (
+            <div className={s.filterBarItem} style={{ minWidth: 160 }}>
+              <CheckboxDropdown
+                options={founderOptions}
+                value={filters.wi_founder_uids}
+                placeholder="Founder"
+                aria-label="Specific founder"
+                disabled={!!filters.wi_any_founder}
+                onChange={(vals) => {
+                  setFilters({ wi_founder_uids: vals.length ? vals : null });
+                  setSelectedIds(new Set());
+                }}
+              />
+            </div>
+          )}
 
           {/* Stage filter */}
           <div className={s.filterBarItem} style={{ minWidth: 150 }}>
@@ -828,7 +821,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               ) : connectorLabel ? (
                 <>No warm path exists for {connectorLabel} on this list.</>
               ) : (
-                <>This list has no matching members. Try widening the sectors or removing the check-size constraint.</>
+                <>No members match the current filters -- adjust the relationship chips.</>
               )}
             </div>
           )}
@@ -843,6 +836,51 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       <GlossaryModal open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       <CrosswalkReviewPanel open={crosswalkOpen} onClose={() => setCrosswalkOpen(false)} canEdit={access.canEdit} />
     </div>
+  );
+}
+
+function TeamCell({ investor }: { investor: OutreachInvestor }) {
+  const [expanded, setExpanded] = useState(false);
+  const extra = investor.affiliations?.length ?? 0;
+  const shown = expanded ? (investor.affiliations ?? []) : [];
+
+  return (
+    <>
+      <div className={s.teamCell}>{investor.firm || <span className={s.muted}>—</span>}</div>
+      {investor.title && <div className={s.subtle}>{investor.title}</div>}
+      {extra > 0 && (
+        <div className={s.affiliationsList}>
+          {shown.map((a) =>
+            a.firm_domain ? (
+              <a
+                key={a.firm}
+                href={`https://${a.firm_domain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.affiliationLink}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {a.firm} ↗
+              </a>
+            ) : (
+              <span key={a.firm} className={s.affiliationName}>
+                {a.firm}
+              </span>
+            ),
+          )}
+          <button
+            type="button"
+            className={s.affiliationToggle}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? 'Show less' : `+${extra} more`}
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -19,11 +19,22 @@
   color: #455468;
   cursor: pointer;
   white-space: nowrap;
+  outline: none;
 
   &:hover {
     border-color: #5e718d;
     box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
   }
+
+  &:focus-visible {
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.triggerOpen {
+  border-color: #5e718d;
+  box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
 }
 
 .triggerActive {
@@ -35,6 +46,11 @@
     border-color: #1a3fd9;
     box-shadow: 0 0 0 4px rgba(27, 77, 255, 0.12);
   }
+}
+
+.triggerActive.triggerOpen {
+  border-color: #1b4dff;
+  box-shadow: 0 0 0 4px rgba(27, 77, 255, 0.12);
 }
 
 .triggerDisabled {
@@ -60,8 +76,19 @@
 }
 
 .triggerCaret {
-  font-size: 10px;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.triggerCaretOpen {
+  transform: rotate(180deg);
 }
 
 .menu {

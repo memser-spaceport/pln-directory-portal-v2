@@ -761,6 +761,48 @@ thead .frozenName {
   white-space: nowrap;
 }
 
+.affiliationsList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+  margin-top: 3px;
+}
+
+.affiliationLink {
+  font-size: 12px;
+  color: #1b4dff;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.affiliationName {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.affiliationToggle {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: #374151;
+    text-decoration: underline;
+  }
+}
+
 .proximityCell {
   display: flex;
   flex-direction: column;

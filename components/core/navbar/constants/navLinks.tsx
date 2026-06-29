@@ -22,12 +22,13 @@ export const INVESTOR_DB_LINK: ISubItem = {
   description: 'PL internal — investor database for sourcing, outreach and intros',
 };
 
-export const FOUNDER_DB_LINK: ISubItem = {
-  icon: <AnalyticsIcon />,
-  href: '/founders',
-  title: 'Founder DB',
-  description: 'PL internal — founder sourcing database',
-};
+// Temporarily hidden
+// export const FOUNDER_DB_LINK: ISubItem = {
+//   icon: <AnalyticsIcon />,
+//   href: '/founders',
+//   title: 'Founder DB',
+//   description: 'PL internal — founder sourcing database',
+// };
 
 export const DIRECTORY_LINKS: ISubItem[] = [
   {

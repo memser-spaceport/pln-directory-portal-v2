@@ -1,6 +1,7 @@
 import type { FundTag, FounderStatus, ReviewChannel } from './types';
 
-export const FOUNDER_DB_ENABLED = true;
+// Temporarily hidden — set back to true to re-enable the Founder DB page and nav
+export const FOUNDER_DB_ENABLED = false;
 
 export enum FoundersQueryKeys {
   FOUNDERS_LIST = 'founders-list',

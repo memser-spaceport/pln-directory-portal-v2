@@ -49,10 +49,7 @@ interface Props {
   onCountChange?: (count: number) => void;
 }
 
-const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
-  { tier: 'co_invested', label: 'Co-invested' },
-  { tier: 'engaged', label: 'Engaged' },
-];
+const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [];
 
 const STAGE_OPTIONS: Option[] = STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => ({
   value: st,
@@ -131,8 +128,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
 
   // ── Relationship lens (client chips, server filter) ─────────────────────────
   const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
-    co_invested: true,
-    engaged: true,
+    co_invested: false,
+    engaged: false,
     cold_match: false,
   });
 

@@ -8,6 +8,7 @@ import SupportSection from '@/components/page/aligement-assets/rounds/sections/s
 import DisclaimerSection from '@/components/page/aligement-assets/rounds/sections/disclaimer-section';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
+import { DISCLOSURE_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 export interface FAQItem {
   question: string;
@@ -458,6 +459,128 @@ const faqCategories: FAQCategoryData[] = [
       },
     ],
   },
+  {
+    id: 'simultaneous-settlement',
+    title: 'Simultaneous Settlement',
+    icon: '/icons/coin-icon.png',
+    items: [
+      {
+        question: 'What is the Simultaneous Token Settlement Program?',
+        answer: (
+          <p>
+            The Simultaneous Token Settlement Program (STSP) is a new program developed by PLAA1 Trust to facilitate the
+            settlement of Rights through Tokens. Under the STSP, participants continue to participate in buyback auctions
+            using their Rights, but Tokens are no longer issued and distributed on a monthly basis. Instead, Tokens are
+            issued only in connection with a successful bid in a buyback auction and are thereafter immediately settled
+            for cash (or other consideration).
+          </p>
+        ),
+      },
+      {
+        question: 'At an Auction Event:',
+        answer: (
+          <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
+            <li style={{ marginBottom: '8px' }}>
+              Participants submit bids using their Rights (in lieu of Tokens).
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              To the extent a participant has a successful bid, Tokens corresponding to the Rights accepted in the
+              auction are automatically &quot;issued&quot; to the participant.
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Immediately thereafter, the Trust purchases the Tokens at the applicable auction price and burns them.
+            </li>
+            <li>
+              The participant receives cash (or other consideration) from the Trust in exchange for the Tokens.
+            </li>
+          </ul>
+        ),
+      },
+      {
+        question: 'How is the Simultaneous Token Settlement Program different from the previous program?',
+        answer:
+          'The only change relates to the mechanism by which Tokens are issued and settled. The auction process, pricing, and economic outcomes are otherwise unchanged. Participants should expect the program to operate in substantially the same manner as before.',
+      },
+      {
+        question: 'Why was the Simultaneous Token Settlement Program created?',
+        answer: (
+          <div>
+            <p style={{ marginBottom: '12px' }}>The program was designed to:</p>
+            <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
+              <li style={{ marginBottom: '8px' }}>Seek to align income recognition with liquidity events.</li>
+              <li>Provide a consistent and simplified experience across all participants.</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        question: 'Who is eligible for the Simultaneous Token Settlement Program?',
+        answer:
+          'All PLAA stakeholders are automatically enrolled into the Simultaneous Token Settlement Program. There is no election required. All participants follow the same settlement mechanics under the program.',
+      },
+      {
+        question: 'How does this work for PL Infra Members who are not PLCS employees?',
+        answer:
+          'For PL Infra members who are not employees of PLCS, there is no tax withholding, as individual members are responsible for their own tax remittances.',
+      },
+      {
+        question: 'What if I am a PLCS employee?',
+        answer:
+          'PLCS employees have additional withholding mechanics. The following applies even if you cease providing service as a PLCS employer. For PL Infra members who are employees of PLCS, applicable tax withholding may apply at the time of settlement.',
+      },
+      {
+        question: 'How are PLAA Tokens taxed?',
+        answer: (
+          <div>
+            <p style={{ marginBottom: '12px' }}>
+              PLAA Tokens are generally subject to ordinary income tax based on the value of the tokens when settled,
+              which can be found in your end of year transaction report from the Surus Trust Company. If you have
+              questions about withholding:
+            </p>
+            <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
+              <li style={{ marginBottom: '8px' }}>
+                For PLCS employees, required tax withholding may apply at the time of settlement.
+              </li>
+              <li>
+                For PL Infra Members who are not PLCS employees, there is no tax withholding as individuals are
+                responsible for their own tax remittances.
+              </li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        question: 'I already hold PLAA Tokens distributed under the previous program. Are they still usable?',
+        answer: (
+          <p>
+            Yes, Tokens issued before the Simultaneous Token Settlement Program went into effect remain valid and may be
+            used in future buyback auctions. No action is required from existing holders, and no migration or re-issuance
+            is needed. Existing tokens will continue to participate in future buyback auctions on the same terms and
+            conditions as before. In addition, Rights eligible for settlement under the STSP as described above may be
+            used to participate in future auctions. We expect that existing Tokens will be used first in auction events
+            and once these are exhausted, Rights will be used on a go-forward basis as described above. Any pending
+            Tokens not issued before October 1, 2025 will automatically be issued as Rights instead.
+          </p>
+        ),
+      },
+      {
+        question: 'I have questions about the Simultaneous Token Settlement Program. Who should I contact?',
+        answer: (
+          <p>
+            Please contact{' '}
+            <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: '#156ff7', textDecoration: 'underline' }}>
+              {SUPPORT_EMAIL}
+            </a>
+            . Please note that the PLAA working group has dedicated significant time to making this experience as
+            comprehensive as possible. Given our limited resources, response times to inquiries may take longer than
+            expected, potentially up to one to two weeks. To enhance transparency, we will aim to publish answers to
+            frequently asked questions approximately every two weeks for everyone&apos;s benefit. We appreciate your
+            patience.
+          </p>
+        ),
+      },
+    ],
+  },
 ];
 
 export default function FAQsPage() {
@@ -639,7 +762,7 @@ export default function FAQsPage() {
         <div className="faqs__header">
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
           <p className="faqs__header__header__date">
-            <em>Last Updated: June 8, 2026</em>
+            <em>Last Updated: June 29, 2026</em>
           </p>
         </div>
 
@@ -732,6 +855,16 @@ export default function FAQsPage() {
                 {category.id === 'buyback-auctions' && (
                   <div className="faqs__container__category__disclaimer">
                     <strong>Disclaimer:</strong> Nothing in these materials constitutes investment, financial, or legal advice. The clearing price established in any auction reflects the supply and demand among participating rightsholders and should not be construed as an appraisal, or fair market value determination of Alignment Asset tokens. Rightsholders should consult with their own financial, tax, and legal advisors before deciding whether to participate.
+                  </div>
+                )}
+
+                {category.id === 'simultaneous-settlement' && (
+                  <div className="faqs__container__category__disclaimer">
+                    <strong>Disclaimer:</strong> The information provided regarding the Simultaneous Token Settlement Program (STSP) is for general information purposes only and does not constitute legal, financial, investment, or tax advice. Tax consequences may vary based on individual circumstances, including but not limited to jurisdiction, employment status, and one&apos;s personal tax situation. Surus, Polaris, PLCS, and their affiliates do not provide, and nothing stated herein constitutes, tax advice and make no representations regarding the tax treatment of any election or award. You are solely responsible for understanding and complying with your applicable tax obligations. You are strongly encouraged to consult your own tax advisor, accountant, or legal counsel regarding any potential tax treatment under the new Simultaneous Token Settlement Program (STSP). Surus, Polaris, PLCS, and its affiliates are not responsible for any tax liabilities, penalties, or consequences resulting from your election or participation in the program. The Alignment Asset is still in private beta, and we&apos;re actively experimenting. The program may evolve from time to time as we learn and improve. Please read our{' '}
+                    <a href={DISCLOSURE_URL} style={{ color: '#156ff7', textDecoration: 'underline' }}>
+                      disclosure
+                    </a>
+                    .
                   </div>
                 )}
 

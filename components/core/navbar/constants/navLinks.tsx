@@ -12,6 +12,7 @@ import {
   AnalyticsIcon,
   JobsIcon,
   StarFourIcon,
+  ForumIcon,
 } from '../components/icons';
 
 export const INVESTOR_DB_LINK: ISubItem = {
@@ -76,6 +77,13 @@ export const EVENT_LINKS: ISubItem[] = [
     description: 'Hosts, speakers, and sponsors',
   },
 ] as const;
+
+export const FORUM_LINK: ISubItem = {
+  icon: <ForumIcon />,
+  href: '/forum',
+  title: 'Forum',
+  description: 'Community discussions across the network',
+};
 
 export const DEALS_LINK: ISubItem = {
   icon: <DealsIcon />,

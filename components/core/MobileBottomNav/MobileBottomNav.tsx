@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -10,10 +10,12 @@ import {
   DEMO_DAY_LINK,
   DIRECTORY_LINKS,
   DEMO_DAY_ANALYTICS_LINK,
+  FORUM_LINK,
 } from '@/components/core/navbar/constants/navLinks';
 import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
+import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 
@@ -22,7 +24,7 @@ import { NavigationMenu } from '@base-ui-components/react';
 import { useScrollDirection } from './useScrollDirection';
 
 import { MobileNavItemWithMenu } from './components/MobileMenuItem';
-import { DemoDayIcon, DirectoryIcon, EventsIcon, ForumIcon } from './components/icons';
+import { DemoDayIcon, DirectoryIcon, EventsIcon } from './components/icons';
 
 import s from './MobileBottomNav.module.scss';
 
@@ -30,8 +32,13 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
+  const { hasAccess: hasForumAccess } = useForumAccess();
 
-  const moreItems: ISubItem[] = useMoreNavItems();
+  const baseMoreItems = useMoreNavItems();
+  const moreItems = useMemo(
+    () => [...(hasForumAccess ? [FORUM_LINK] : []), ...baseMoreItems],
+    [hasForumAccess, baseMoreItems],
+  );
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
 
   return (
@@ -66,8 +73,10 @@ export function MobileBottomNav() {
             </NavigationMenu.Item>
           )}
 
-          <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />
-          <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
+          {moreItems.length > 0 && <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />}
+          {plInfraItems.length > 0 && (
+            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
+          )}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

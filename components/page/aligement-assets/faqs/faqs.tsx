@@ -467,33 +467,31 @@ const faqCategories: FAQCategoryData[] = [
       {
         question: 'What is the Simultaneous Token Settlement Program?',
         answer: (
-          <p>
-            The Simultaneous Token Settlement Program (STSP) is a new program developed by PLAA1 Trust to facilitate the
-            settlement of Rights through Tokens. Under the STSP, participants continue to participate in buyback auctions
-            using their Rights, but Tokens are no longer issued and distributed on a monthly basis. Instead, Tokens are
-            issued only in connection with a successful bid in a buyback auction and are thereafter immediately settled
-            for cash (or other consideration).
-          </p>
-        ),
-      },
-      {
-        question: 'At an Auction Event:',
-        answer: (
-          <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
-            <li style={{ marginBottom: '8px' }}>
-              Participants submit bids using their Rights (in lieu of Tokens).
-            </li>
-            <li style={{ marginBottom: '8px' }}>
-              To the extent a participant has a successful bid, Tokens corresponding to the Rights accepted in the
-              auction are automatically &quot;issued&quot; to the participant.
-            </li>
-            <li style={{ marginBottom: '8px' }}>
-              Immediately thereafter, the Trust purchases the Tokens at the applicable auction price and burns them.
-            </li>
-            <li>
-              The participant receives cash (or other consideration) from the Trust in exchange for the Tokens.
-            </li>
-          </ul>
+          <div>
+            <p style={{ marginBottom: '16px' }}>
+              The Simultaneous Token Settlement Program (STSP) is a new program developed by PLAA1 Trust to facilitate the
+              settlement of Rights through Tokens. Under the STSP, participants continue to participate in buyback auctions
+              using their Rights, but Tokens are no longer issued and distributed on a monthly basis. Instead, Tokens are
+              issued only in connection with a successful bid in a buyback auction and are thereafter immediately settled
+              for cash (or other consideration).
+            </p>
+            <p style={{ fontWeight: 600, marginBottom: '8px' }}>At an Auction Event:</p>
+            <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
+              <li style={{ marginBottom: '8px' }}>
+                Participants submit bids using their Rights (in lieu of Tokens).
+              </li>
+              <li style={{ marginBottom: '8px' }}>
+                To the extent a participant has a successful bid, Tokens corresponding to the Rights accepted in the
+                auction are automatically &quot;issued&quot; to the participant.
+              </li>
+              <li style={{ marginBottom: '8px' }}>
+                Immediately thereafter, the Trust purchases the Tokens at the applicable auction price and burns them.
+              </li>
+              <li>
+                The participant receives cash (or other consideration) from the Trust in exchange for the Tokens.
+              </li>
+            </ul>
+          </div>
         ),
       },
       {

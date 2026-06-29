@@ -822,7 +822,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
               ) : connectorLabel ? (
                 <>No warm path exists for {connectorLabel} on this list.</>
               ) : (
-                <>This list has no matching members. Try widening the sectors or removing the check-size constraint.</>
+                <>No members match the current filters -- adjust the relationship chips.</>
               )}
             </div>
           )}

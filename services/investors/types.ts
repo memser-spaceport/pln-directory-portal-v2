@@ -118,6 +118,12 @@ export type OutreachInvestor = {
   first_name: string;
   last_name: string;
   email: string;
+  /** Additional emails beyond the primary. When present, a "+N emails" picker
+   *  appears next to the primary email icon in the drawer. */
+  additional_emails?: string[];
+  /** Secondary firm affiliations beyond the primary `firm`. Each entry renders
+   *  as an external link in the Team column with a show/hide toggle. */
+  affiliations?: Array<{ firm: string; firm_domain?: string }>;
   linkedin_url: string;
   // Email quality
   email_status: EmailStatus;

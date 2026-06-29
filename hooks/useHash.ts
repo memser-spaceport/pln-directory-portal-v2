@@ -18,21 +18,8 @@ const useHash = () => {
 
     window.addEventListener('hashchange', updateHash);
 
-    const { pushState, replaceState } = window.history;
-    const wrapHistoryMethod = (original: typeof pushState) =>
-      function (this: History, ...args: Parameters<typeof pushState>) {
-        const result = original.apply(this, args);
-        updateHash();
-        return result;
-      };
-
-    window.history.pushState = wrapHistoryMethod(pushState);
-    window.history.replaceState = wrapHistoryMethod(replaceState);
-
     return () => {
       window.removeEventListener('hashchange', updateHash);
-      window.history.pushState = pushState;
-      window.history.replaceState = replaceState;
     };
   }, [params]);
 

@@ -177,7 +177,7 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
       <input
         className={s.input}
         type="search"
-        placeholder="Search an investor, fund, founder, team or PL member…"
+        placeholder="Search investor, fund, or founder"
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);

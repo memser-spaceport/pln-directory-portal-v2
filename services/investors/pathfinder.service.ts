@@ -57,7 +57,7 @@ function mapOrgConnector(dto: AnyDto): PathOrgConnector {
     id: dto.id as string | undefined,
     name: (dto.name ?? '') as string,
     domain: dto.domain as string | undefined,
-    website_url: (dto.websiteUrl ?? dto.website_url) as string | undefined,
+    website_url: (dto.websiteUrl ?? dto.website_url ?? dto.website) as string | undefined,
     logo_url: (dto.logoUrl ?? dto.logo_url) as string | undefined,
     team_uid: (dto.teamUid ?? dto.team_uid) as string | undefined,
   };

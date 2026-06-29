@@ -140,10 +140,7 @@ export function InvestorDrawer({ access }: Props) {
                       </a>
                     )}
                     {investor.email && (
-                      <EmailPicker
-                        email={investor.email}
-                        additionalEmails={investor.additional_emails ?? [investor.email]}
-                      />
+                      <EmailPicker email={investor.email} additionalEmails={investor.additional_emails ?? []} />
                     )}
                     {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
                   </div>

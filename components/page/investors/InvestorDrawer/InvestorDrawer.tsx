@@ -310,6 +310,9 @@ export function InvestorDrawer({ access }: Props) {
                 <span>
                   Last sent: <strong>{investor.last_sent_date || '—'}</strong>
                 </span>
+                <span>
+                  Last contact: <strong>{investor.last_contact || '—'}</strong>
+                </span>
               </div>
               {investor.outreach_campaigns && (
                 <div className={s.campaigns}>

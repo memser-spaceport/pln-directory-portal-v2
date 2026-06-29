@@ -148,6 +148,7 @@ export type OutreachInvestor = {
   registered: number;
   first_sent_date: string;
   last_sent_date: string;
+  last_contact: string;
   engagement_tier: EngagementTier;
   // Pipeline meta
   enrichment_status: EnrichmentStatus;

@@ -71,9 +71,7 @@ export function AddToListMenu({ investorId, canEdit, className }: Props) {
                     onClick={() => onToggle(list)}
                   >
                     <span className={s.optName}>{list.name}</span>
-                    {rowPending ? (
-                      <span className={s.pending}>…</span>
-                    ) : inList ? (
+                    {inList ? (
                       <span className={s.inListBadge} title="Click to remove">
                         <span className={s.inListLabel}>✓ In list</span>
                         <span className={s.removeHint}>− Remove</span>

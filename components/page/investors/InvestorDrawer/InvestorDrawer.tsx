@@ -372,6 +372,9 @@ export function InvestorDrawer({ access }: Props) {
               <dt>Dedupe key</dt>
               <dd className={s.mono}>{investor.dedupe_key}</dd>
             </dl>
+          </div>
+
+          <div className={s.section}>
             <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>Enrichment notes</h3>
             <EnrichmentNotesViewer notes={investor.enrichment_notes} />
           </div>

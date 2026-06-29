@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
@@ -24,6 +25,46 @@ import s from './InvestorDrawer.module.scss';
 
 interface Props {
   access: InvestorsAccess;
+}
+
+function EmailPicker({ email, additionalEmails }: { email: string; additionalEmails: string[] }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  return (
+    <>
+      <a href={`mailto:${email}`} className={s.contactIcon} title={email}>
+        <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
+      </a>
+      <CopyButton text={email} className={s.contactIconCopy} />
+      {additionalEmails.length > 0 && (
+        <span className={s.emailPopWrap} ref={wrapRef}>
+          <button type="button" className={s.emailMoreBtn} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+            {`+${additionalEmails.length} email${additionalEmails.length === 1 ? '' : 's'}`}
+          </button>
+          {open && (
+            <div className={s.emailPop}>
+              {additionalEmails.map((em) => (
+                <span key={em} className={s.emailRow}>
+                  <span className={s.emailAddr}>{em}</span>
+                  <CopyButton text={em} className={s.contactIconCopy} />
+                </span>
+              ))}
+            </div>
+          )}
+        </span>
+      )}
+    </>
+  );
 }
 
 export function InvestorDrawer({ access }: Props) {
@@ -99,12 +140,10 @@ export function InvestorDrawer({ access }: Props) {
                       </a>
                     )}
                     {investor.email && (
-                      <>
-                        <a href={`mailto:${investor.email}`} className={s.contactIcon} title={investor.email}>
-                          <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
-                        </a>
-                        <CopyButton text={investor.email} className={s.contactIconCopy} />
-                      </>
+                      <EmailPicker
+                        email={investor.email}
+                        additionalEmails={investor.additional_emails ?? [investor.email]}
+                      />
                     )}
                     {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
                   </div>

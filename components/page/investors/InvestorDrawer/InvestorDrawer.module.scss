@@ -80,6 +80,61 @@
   }
 }
 
+.emailPopWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.emailMoreBtn {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #6b7280;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: #374151;
+    text-decoration: underline;
+  }
+}
+
+.emailPop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  max-width: 90vw;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+}
+
+.emailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emailAddr {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  color: #455468;
+  word-break: break-all;
+}
+
 .meta {
   font-family: 'Inter', sans-serif;
   font-size: 13px;

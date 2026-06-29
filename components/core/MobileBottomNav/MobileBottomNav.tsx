@@ -15,7 +15,6 @@ import {
 import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
-import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
 
@@ -32,13 +31,9 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const scrollDirection = useScrollDirection();
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
-  const { hasAccess: hasForumAccess } = useForumAccess();
 
   const baseMoreItems = useMoreNavItems();
-  const moreItems = useMemo(
-    () => [...(hasForumAccess ? [FORUM_LINK] : []), ...baseMoreItems],
-    [hasForumAccess, baseMoreItems],
-  );
+  const moreItems = useMemo(() => [FORUM_LINK, ...baseMoreItems], [baseMoreItems]);
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
 
   return (

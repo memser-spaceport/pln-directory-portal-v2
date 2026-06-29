@@ -21,6 +21,7 @@ import { EnrichmentNotesViewer } from '../EnrichmentNotesViewer/EnrichmentNotesV
 import { WarmPathDetail } from '../WarmPathDetail/WarmPathDetail';
 import { AddToListMenu } from '../AddToListMenu/AddToListMenu';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import s from './InvestorDrawer.module.scss';
 
 interface Props {
@@ -118,26 +119,36 @@ export function InvestorDrawer({ access }: Props) {
                   </h2>
                   <div className={s.contactIcons}>
                     {investor.linkedin_url && (
-                      <a
-                        href={investor.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={s.contactIcon}
-                        title="LinkedIn"
-                      >
-                        <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
-                      </a>
+                      <Tooltip
+                        asChild
+                        trigger={
+                          <a
+                            href={investor.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={s.contactIcon}
+                          >
+                            <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
+                          </a>
+                        }
+                        content="LinkedIn"
+                      />
                     )}
                     {investor.firm_domain && (
-                      <a
-                        href={`https://${investor.firm_domain}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={s.contactIcon}
-                        title={investor.firm_domain}
-                      >
-                        <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
-                      </a>
+                      <Tooltip
+                        asChild
+                        trigger={
+                          <a
+                            href={`https://${investor.firm_domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={s.contactIcon}
+                          >
+                            <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
+                          </a>
+                        }
+                        content={investor.firm_domain}
+                      />
                     )}
                     {investor.email && (
                       <EmailPicker

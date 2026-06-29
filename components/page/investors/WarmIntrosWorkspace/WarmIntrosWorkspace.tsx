@@ -543,19 +543,21 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
           </div>
 
           {/* Founder filter — specific-founder multi-select */}
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <CheckboxDropdown
-              options={founderOptions}
-              value={filters.wi_founder_uids}
-              placeholder="Founder"
-              aria-label="Specific founder"
-              disabled={!!filters.wi_any_founder}
-              onChange={(vals) => {
-                setFilters({ wi_founder_uids: vals.length ? vals : null });
-                setSelectedIds(new Set());
-              }}
-            />
-          </div>
+          {!!founderOptions.length && (
+            <div className={s.filterBarItem} style={{ minWidth: 160 }}>
+              <CheckboxDropdown
+                options={founderOptions}
+                value={filters.wi_founder_uids}
+                placeholder="Founder"
+                aria-label="Specific founder"
+                disabled={!!filters.wi_any_founder}
+                onChange={(vals) => {
+                  setFilters({ wi_founder_uids: vals.length ? vals : null });
+                  setSelectedIds(new Set());
+                }}
+              />
+            </div>
+          )}
 
           {/* Stage filter */}
           <div className={s.filterBarItem} style={{ minWidth: 150 }}>

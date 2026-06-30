@@ -61,14 +61,14 @@ export const formatRelativeDays = (iso: string): string => {
   const diffMs = Date.now() - then;
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (days <= 0) return 'today';
-  if (days === 1) return '1d';
-  if (days < 14) return `${days}d`;
+  if (days === 1) return '1d ago';
+  if (days < 14) return `${days}d ago`;
   const weeks = Math.floor(days / 7);
-  if (weeks < 8) return `${weeks}w`;
+  if (weeks < 8) return `${weeks}w ago`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo`;
+  if (months < 12) return `${months}mo ago`;
   const years = Math.floor(days / 365);
-  return `${years}y`;
+  return `${years}y ago`;
 };
 
 export const isNew = (iso: string, maxDays = 7): boolean => {

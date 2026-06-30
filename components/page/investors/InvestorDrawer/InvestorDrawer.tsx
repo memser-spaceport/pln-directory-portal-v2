@@ -2,9 +2,10 @@
 
 import clsx from 'clsx';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
+import { Popover } from '@base-ui-components/react/popover';
 import { useGetInvestorById } from '@/services/investors/hooks/useGetInvestorById';
 import { useGetCoInvestorTeams } from '@/services/investors/hooks/useGetCoInvestorTeams';
 import { useInvestorMutationOverlay, applyOverlayToInvestor } from '@/services/investors/store';
@@ -13,6 +14,7 @@ import { Drawer } from '@/components/common/Drawer/Drawer';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
 import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
+import { isSafeUrl } from '@/utils/url';
 import { LabOsBadge } from '../LabOsBadge/LabOsBadge';
 import { EngagementTierBadge } from '../EngagementTierBadge/EngagementTierBadge';
 import { EmailStatusPill } from '../EmailStatusPill/EmailStatusPill';
@@ -28,41 +30,43 @@ interface Props {
   access: InvestorsAccess;
 }
 
-function EmailPicker({ email, additionalEmails }: { email: string; additionalEmails: string[] }) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [open]);
-
+function EmailPicker({
+  email,
+  additionalEmails,
+  hideIcon = false,
+}: {
+  email: string;
+  additionalEmails: string[];
+  hideIcon?: boolean;
+}) {
   return (
     <>
-      <a href={`mailto:${email}`} className={s.contactIcon} title={email}>
-        <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
-      </a>
-      <CopyButton text={email} className={s.contactIconCopy} />
+      {!hideIcon && (
+        <>
+          <a href={`mailto:${email}`} className={s.contactIcon} title={email}>
+            <Image src={getContactLogoByProvider('email')} alt="Email" width={20} height={20} />
+          </a>
+          <CopyButton text={email} className={s.contactIconCopy} />
+        </>
+      )}
       {additionalEmails.length > 0 && (
-        <span className={s.emailPopWrap} ref={wrapRef}>
-          <button type="button" className={s.emailMoreBtn} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <Popover.Root>
+          <Popover.Trigger type="button" className={s.emailMoreBtn}>
             {`+${additionalEmails.length} email${additionalEmails.length === 1 ? '' : 's'}`}
-          </button>
-          {open && (
-            <div className={s.emailPop}>
-              {additionalEmails.map((em) => (
-                <span key={em} className={s.emailRow}>
-                  <span className={s.emailAddr}>{em}</span>
-                  <CopyButton text={em} className={s.contactIconCopy} />
-                </span>
-              ))}
-            </div>
-          )}
-        </span>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner align="start" sideOffset={4}>
+              <Popover.Popup className={s.emailPop}>
+                {additionalEmails.map((em) => (
+                  <span key={em} className={s.emailRow}>
+                    <span className={s.emailAddr}>{em}</span>
+                    <CopyButton text={em} className={s.contactIconCopy} />
+                  </span>
+                ))}
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
       )}
     </>
   );
@@ -83,16 +87,31 @@ export function InvestorDrawer({ access }: Props) {
   const { data: rawInvestor, isLoading } = useGetInvestorById(investorId);
   const { data: teams } = useGetCoInvestorTeams(!!investorId);
 
-  // Hydrate with mutation overlay (tags etc.)
   const overrides = useInvestorMutationOverlay((s) => s.overrides);
   const investor = rawInvestor ? applyOverlayToInvestor(rawInvestor, overrides) : null;
 
   const onClose = () => setFilters({ investorId: null });
   const isOpen = !!investorId;
 
-  const teamLookup = teams ? new Map(teams.map((t) => [t.team_id, t])) : null;
-  const coInvestedTeams =
-    investor && teamLookup ? investor.co_invested_team_ids.map((id) => teamLookup.get(id)).filter((t) => !!t) : [];
+  const teamLookup = useMemo(
+    () => (teams ? new Map(teams.map((t) => [t.team_id, t])) : null),
+    [teams]
+  );
+
+  const coInvestedTeams = useMemo(
+    () =>
+      investor && teamLookup
+        ? investor.co_invested_team_ids
+            .map((id) => teamLookup.get(id))
+            .filter((t): t is NonNullable<typeof t> => t !== undefined)
+        : [],
+    [investor, teamLookup]
+  );
+
+  const campaigns = useMemo(
+    () => investor?.outreach_campaigns?.split(',').map((c) => c.trim()) ?? [],
+    [investor?.outreach_campaigns]
+  );
 
   const hasOutreachHistory =
     investor &&
@@ -104,283 +123,322 @@ export function InvestorDrawer({ access }: Props) {
       !!investor.last_sent_date ||
       !!investor.outreach_campaigns);
 
+  const hasSocialLinks = !!(investor?.email || investor?.linkedin_url || investor?.firm_domain);
+
   return (
     <Drawer isOpen={isOpen} onClose={onClose} width={720}>
-      {isLoading && <div className={s.loading}>Loading…</div>}
+      {isLoading && (
+        <div className={s.loading} role="status">
+          Loading…
+        </div>
+      )}
       {!isLoading && !investor && investorId && <div className={s.loading}>Investor not found.</div>}
       {investor && (
         <>
           <div className={s.header}>
-            <div className={s.headerTop}>
-              <div className={s.headerWho}>
-                <div className={s.nameRow}>
-                  <h2 className={s.name}>
-                    {investor.first_name} {investor.last_name}
-                  </h2>
-                  <div className={s.contactIcons}>
-                    {investor.linkedin_url && (
-                      <Tooltip
-                        asChild
-                        trigger={
-                          <a
-                            href={investor.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={s.contactIcon}
-                          >
-                            <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
-                          </a>
-                        }
-                        content="LinkedIn"
-                      />
-                    )}
-                    {investor.firm_domain && (
-                      <Tooltip
-                        asChild
-                        trigger={
+            <button type="button" className={s.backBtn} onClick={onClose} aria-label="Close">
+              ← Back
+            </button>
+          </div>
+
+          <div className={s.content}>
+            {/* Profile card */}
+            <div className={s.section}>
+              <div className={s.headerTop}>
+                <div className={s.headerWho}>
+                  <div className={s.nameRow}>
+                    <h2 id="investor-drawer-title" className={s.name}>
+                      {investor.first_name} {investor.last_name}
+                    </h2>
+                    {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
+                  </div>
+                  <div className={s.meta}>
+                    {investor.firm && (
+                      <>
+                        {investor.firm_domain && isSafeUrl(`https://${investor.firm_domain}`) ? (
                           <a
                             href={`https://${investor.firm_domain}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={s.contactIcon}
+                            className={s.firmLink}
                           >
-                            <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
+                            {investor.firm} ↗
                           </a>
-                        }
-                        content={investor.firm_domain}
-                      />
+                        ) : (
+                          <span>{investor.firm}</span>
+                        )}
+                        <span className={s.metaVDivider} aria-hidden="true" />
+                      </>
                     )}
-                    {investor.email && (
-                      <EmailPicker email={investor.email} additionalEmails={investor.additional_emails ?? []} />
+                    <span>{investor.title || '—'}</span>
+                  </div>
+                  <div className={s.metaSub}>
+                    {investor.investor_id}
+                    {/* canonical_id == investor_id is the DB-wide convention for "is canonical",
+                        not a duplicate — only a differing canonical id marks a merged record. */}
+                    {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
+                      <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>
                     )}
-                    {investor.lab_os_profile && <LabOsBadge profile={investor.lab_os_profile} variant="chip" />}
+                  </div>
+                  <div className={s.pillRow}>
+                    {investor.engagement_tier && <EngagementTierBadge tier={investor.engagement_tier} />}
+                    <EmailStatusPill status={investor.email_status} />
+                    <span className={s.sourcePill}>Source: {investor.source}</span>
                   </div>
                 </div>
-                <div className={s.meta}>
-                  {investor.title || '—'}{' '}
-                  {investor.firm && (
-                    <>
-                      ·{' '}
-                      {investor.firm_domain ? (
+                <button type="button" className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
+                  ✕
+                </button>
+              </div>
+
+              {hasSocialLinks && (
+                <div className={s.channelsBox}>
+                  {investor.email && (
+                    <div className={s.socialEmailGroup}>
+                      <Image
+                        src={getContactLogoByProvider('email')}
+                        alt=""
+                        aria-hidden="true"
+                        width={20}
+                        height={20}
+                      />
+                      <a href={`mailto:${investor.email}`} className={s.socialEmailAddr}>
+                        {investor.email}
+                      </a>
+                      <CopyButton text={investor.email} className={s.contactIconCopy} />
+                      {(investor.additional_emails ?? []).length > 0 && (
+                        <EmailPicker
+                          email={investor.email}
+                          additionalEmails={investor.additional_emails ?? []}
+                          hideIcon
+                        />
+                      )}
+                    </div>
+                  )}
+                  {(investor.linkedin_url || investor.firm_domain) && investor.email && (
+                    <span className={s.channelDivider} />
+                  )}
+                  {investor.linkedin_url && isSafeUrl(investor.linkedin_url) && (
+                    <Tooltip
+                      asChild
+                      trigger={
+                        <a
+                          href={investor.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={s.contactIcon}
+                        >
+                          <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
+                        </a>
+                      }
+                      content="LinkedIn"
+                    />
+                  )}
+                  {investor.firm_domain && isSafeUrl(`https://${investor.firm_domain}`) && (
+                    <Tooltip
+                      asChild
+                      trigger={
                         <a
                           href={`https://${investor.firm_domain}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={s.firmLink}
+                          className={s.contactIcon}
                         >
-                          {investor.firm} ↗
+                          <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
                         </a>
-                      ) : (
-                        investor.firm
-                      )}
-                    </>
+                      }
+                      content={investor.firm_domain}
+                    />
                   )}
                 </div>
-                <div className={s.metaSub}>
-                  {investor.investor_id}
-                  {/* canonical_id == investor_id is the DB-wide convention for "is canonical",
-                      not a duplicate — only a differing canonical id marks a merged record. */}
-                  {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
-                    <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>
+              )}
+            </div>
+
+            {investor.lab_os_profile && (
+              <div className={s.section}>
+                <h3 className={s.sectionTitle}>LabOS profile</h3>
+                <LabOsBadge profile={investor.lab_os_profile} variant="full" />
+                {investor.lab_os_profile.last_active_at && (
+                  <div className={clsx(s.metaSub, s.metaSubSpaced)}>
+                    Last active: {investor.lab_os_profile.last_active_at}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className={s.section}>
+              <h3 className={s.sectionTitle}>Investor profile</h3>
+              {investor.enrichment?.bio && (
+                <p className={s.enrichBio}>{renderCited(investor.enrichment.bio, investor.enrichment.sources)}</p>
+              )}
+              <dl className={s.kv}>
+                <dt>Type</dt>
+                <dd>{INVESTOR_TYPE_LABEL[investor.investor_type]}</dd>
+                <dt>Stage focus</dt>
+                <dd>{STAGE_FOCUS_LABEL[investor.stage_focus]}</dd>
+                <dt>Industry / Sector</dt>
+                <dd>
+                  <SectorTagsList tags={investor.sector_tags} max={20} />
+                </dd>
+                {investor.enrichment?.fund_focus && (
+                  <>
+                    <dt>Fund focus</dt>
+                    <dd>{renderCited(investor.enrichment.fund_focus, investor.enrichment.sources)}</dd>
+                  </>
+                )}
+                <dt>Check size</dt>
+                <dd>
+                  {investor.check_size_range !== 'unknown' ? (
+                    investor.check_size_range
+                  ) : (
+                    <span className={s.muted}>unknown</span>
                   )}
-                </div>
-              </div>
-              <button className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
-                ✕
-              </button>
-            </div>
-            <div className={s.pillRow}>
-              {investor.engagement_tier && <EngagementTierBadge tier={investor.engagement_tier} />}
-              <EmailStatusPill status={investor.email_status} />
-              <span className={s.sourcePill}>Source: {investor.source}</span>
-            </div>
-          </div>
-
-          {investor.lab_os_profile && (
-            <div className={s.section}>
-              <h3 className={s.sectionTitle}>LabOS profile</h3>
-              <LabOsBadge profile={investor.lab_os_profile} variant="full" />
-              {investor.lab_os_profile.last_active_at && (
-                <div className={clsx(s.metaSub, s.metaSubSpaced)}>
-                  Last active: {investor.lab_os_profile.last_active_at}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>Investor profile</h3>
-            {investor.enrichment?.bio && (
-              <p className={s.enrichBio}>{renderCited(investor.enrichment.bio, investor.enrichment.sources)}</p>
-            )}
-            <dl className={s.kv}>
-              <dt>Type</dt>
-              <dd>{INVESTOR_TYPE_LABEL[investor.investor_type]}</dd>
-              <dt>Stage focus</dt>
-              <dd>{STAGE_FOCUS_LABEL[investor.stage_focus]}</dd>
-              <dt>Industry / Sector</dt>
-              <dd>
-                <SectorTagsList tags={investor.sector_tags} max={20} />
-              </dd>
-              {investor.enrichment?.fund_focus && (
-                <>
-                  <dt>Fund focus</dt>
-                  <dd>{renderCited(investor.enrichment.fund_focus, investor.enrichment.sources)}</dd>
-                </>
-              )}
-              <dt>Check size</dt>
-              <dd>
-                {investor.check_size_range !== 'unknown' ? (
-                  investor.check_size_range
+                </dd>
+                <dt>AUM</dt>
+                <dd>
+                  {investor.enrichment?.aum ? (
+                    investor.enrichment.aum
+                  ) : investor.aum_range !== 'unknown' ? (
+                    investor.aum_range
+                  ) : (
+                    <span className={s.muted}>unknown</span>
+                  )}
+                </dd>
+                <dt>Geo focus</dt>
+                <dd>{investor.geo_focus || <span className={s.muted}>—</span>}</dd>
+                {investor.enrichment && investor.enrichment.notable_investments.length > 0 ? (
+                  <>
+                    <dt>Notable investments</dt>
+                    <dd>{investor.enrichment.notable_investments.join(', ')}</dd>
+                  </>
                 ) : (
-                  <span className={s.muted}>unknown</span>
+                  <>
+                    <dt>Recent deals</dt>
+                    <dd>{investor.recent_deals || <span className={s.muted}>—</span>}</dd>
+                  </>
                 )}
-              </dd>
-              <dt>AUM</dt>
-              <dd>
-                {investor.enrichment?.aum ? (
-                  investor.enrichment.aum
-                ) : investor.aum_range !== 'unknown' ? (
-                  investor.aum_range
-                ) : (
-                  <span className={s.muted}>unknown</span>
-                )}
-              </dd>
-              <dt>Geo focus</dt>
-              <dd>{investor.geo_focus || <span className={s.muted}>—</span>}</dd>
-              {investor.enrichment && investor.enrichment.notable_investments.length > 0 ? (
-                <>
-                  <dt>Notable investments</dt>
-                  <dd>{investor.enrichment.notable_investments.join(', ')}</dd>
-                </>
-              ) : (
-                <>
-                  <dt>Recent deals</dt>
-                  <dd>{investor.recent_deals || <span className={s.muted}>—</span>}</dd>
-                </>
+              </dl>
+              {(investor.enrichment?.thesis || investor.fund_thesis) && (
+                <p className={s.thesis}>
+                  <strong>Thesis:</strong>{' '}
+                  {investor.enrichment?.thesis
+                    ? renderCited(investor.enrichment.thesis, investor.enrichment.sources)
+                    : investor.fund_thesis}
+                </p>
               )}
-            </dl>
-            {(investor.enrichment?.thesis || investor.fund_thesis) && (
-              <p className={s.thesis}>
-                <strong>Thesis:</strong>{' '}
-                {investor.enrichment?.thesis
-                  ? renderCited(investor.enrichment.thesis, investor.enrichment.sources)
-                  : investor.fund_thesis}
-              </p>
-            )}
-            {investor.enrichment?.enriched_via && (
-              <div className={s.enrichFooter}>
-                enriched via {investor.enrichment.enriched_via}
-                {investor.enrichment.fetched_at ? ` · ${investor.enrichment.fetched_at}` : ''}
-              </div>
-            )}
-          </div>
-
-          {(investor.has_path || investor.best_proximity_code) && (
-            <div className={s.section}>
-              <h3 className={s.sectionTitle}>Warm paths</h3>
-              <WarmPathDetail
-                key={investor.investor_id} // key to remount the component which resets viewedRef and allows trackPathsViewed to fire for each investor
-                investorId={investor.investor_id}
-                bestProximityCode={investor.best_proximity_code}
-                canEdit={access.canEdit}
-                investorName={`${investor.first_name} ${investor.last_name}`.trim()}
-                lastEmailAt={investor.last_email_date}
-              />
-            </div>
-          )}
-
-          {hasOutreachHistory && (
-            <div className={s.section}>
-              <h3 className={s.sectionTitle}>Outreach history</h3>
-              <div className={s.statRow}>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.outreach_touches}</div>
-                  <div className={s.statL}>Touches</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.opened}</div>
-                  <div className={s.statL}>Opened</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.clicked}</div>
-                  <div className={s.statL}>Clicked</div>
-                </div>
-                <div className={s.stat}>
-                  <div className={s.statN}>{investor.registered}</div>
-                  <div className={s.statL}>Registered</div>
-                </div>
-              </div>
-              <div className={s.dateRow}>
-                <span>
-                  First sent: <strong>{investor.first_sent_date || '—'}</strong>
-                </span>
-                <span>
-                  Last sent: <strong>{investor.last_sent_date || '—'}</strong>
-                </span>
-                <span>
-                  Last contact: <strong>{investor.last_contact || '—'}</strong>
-                </span>
-              </div>
-              {investor.outreach_campaigns && (
-                <div className={s.campaigns}>
-                  {investor.outreach_campaigns.split(',').map((c) => (
-                    <span key={c} className={s.campaign}>
-                      {c.trim()}
-                    </span>
-                  ))}
+              {investor.enrichment?.enriched_via && (
+                <div className={s.enrichFooter}>
+                  enriched via {investor.enrichment.enriched_via}
+                  {investor.enrichment.fetched_at ? ` · ${investor.enrichment.fetched_at}` : ''}
                 </div>
               )}
             </div>
-          )}
 
-          {coInvestedTeams.length > 0 && (
+            {(investor.has_path || investor.best_proximity_code) && (
+              <div className={s.section}>
+                <h3 className={s.sectionTitle}>Warm paths</h3>
+                <WarmPathDetail
+                  key={investor.investor_id} // remount per investor to reset viewedRef and re-fire trackPathsViewed
+                  investorId={investor.investor_id}
+                  bestProximityCode={investor.best_proximity_code}
+                  canEdit={access.canEdit}
+                  investorName={`${investor.first_name} ${investor.last_name}`.trim()}
+                  lastEmailAt={investor.last_email_date}
+                />
+              </div>
+            )}
+
+            {hasOutreachHistory && (
+              <div className={clsx(s.section, s.sectionOutreach)}>
+                <h3 className={s.sectionTitle}>Outreach history</h3>
+                <div className={s.statRow}>
+                  <div className={s.stat}>
+                    <div className={s.statN}>{investor.outreach_touches}</div>
+                    <div className={s.statL}>Touches</div>
+                  </div>
+                  <div className={s.stat}>
+                    <div className={s.statN}>{investor.opened}</div>
+                    <div className={s.statL}>Opened</div>
+                  </div>
+                  <div className={s.stat}>
+                    <div className={s.statN}>{investor.clicked}</div>
+                    <div className={s.statL}>Clicked</div>
+                  </div>
+                  <div className={s.stat}>
+                    <div className={s.statN}>{investor.registered}</div>
+                    <div className={s.statL}>Registered</div>
+                  </div>
+                </div>
+                <div className={s.dateRow}>
+                  <span>
+                    First sent: <strong>{investor.first_sent_date || '—'}</strong>
+                  </span>
+                  <span>
+                    Last sent: <strong>{investor.last_sent_date || '—'}</strong>
+                  </span>
+                  <span>
+                    Last contact: <strong>{investor.last_contact || '—'}</strong>
+                  </span>
+                </div>
+                {campaigns.length > 0 && (
+                  <div className={s.campaigns}>
+                    {campaigns.map((c) => (
+                      <span key={c} className={s.campaign}>
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {coInvestedTeams.length > 0 && (
+              <div className={s.section}>
+                <h3 className={s.sectionTitle}>
+                  Co-invested with PL <span className={s.count}>{coInvestedTeams.length}</span>
+                </h3>
+                <ul className={s.coTeams}>
+                  {coInvestedTeams.map((t) => {
+                    const edge = t.co_investors.find((c) => c.investor_id === investor.investor_id);
+                    return (
+                      <li key={t.team_id}>
+                        <div className={s.teamName}>{t.team_name}</div>
+                        <div className={s.teamMeta}>
+                          PL invested {t.pl_invested_at} ({STAGE_FOCUS_LABEL[t.pl_invested_stage]})
+                          {edge?.deal_date && ` · this investor: ${edge.deal_date}`}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <div className={s.section}>
-              <h3 className={s.sectionTitle}>
-                Co-invested with PL <span className={s.count}>{coInvestedTeams.length}</span>
-              </h3>
-              <ul className={s.coTeams}>
-                {coInvestedTeams.map((t) => {
-                  if (!t) return null;
-                  const edge = t.co_investors.find((c) => c.investor_id === investor.investor_id);
-                  return (
-                    <li key={t.team_id}>
-                      <div className={s.teamName}>{t.team_name}</div>
-                      <div className={s.teamMeta}>
-                        PL invested {t.pl_invested_at} ({STAGE_FOCUS_LABEL[t.pl_invested_stage]})
-                        {edge?.deal_date && ` · this investor: ${edge.deal_date}`}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              <h3 className={s.sectionTitle}>Pipeline meta</h3>
+              <dl className={s.kv}>
+                <dt>Enrichment status</dt>
+                <dd>
+                  {investor.enrichment_status}
+                  {investor.enrichment_date && ` · ${investor.enrichment_date}`}
+                </dd>
+                <dt>Last attempt</dt>
+                <dd>{investor.last_enrichment_attempt || <span className={s.muted}>—</span>}</dd>
+                <dt>Source</dt>
+                <dd>{investor.source}</dd>
+                <dt>Dedupe key</dt>
+                <dd className={s.mono}>{investor.dedupe_key}</dd>
+              </dl>
             </div>
-          )}
 
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>Pipeline meta</h3>
-            <dl className={s.kv}>
-              <dt>Enrichment status</dt>
-              <dd>
-                {investor.enrichment_status}
-                {investor.enrichment_date && ` · ${investor.enrichment_date}`}
-              </dd>
-              <dt>Last attempt</dt>
-              <dd>{investor.last_enrichment_attempt || <span className={s.muted}>—</span>}</dd>
-              <dt>Source</dt>
-              <dd>{investor.source}</dd>
-              <dt>Dedupe key</dt>
-              <dd className={s.mono}>{investor.dedupe_key}</dd>
-            </dl>
-          </div>
-
-          <div className={s.section}>
-            <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>Enrichment notes</h3>
-            <EnrichmentNotesViewer notes={investor.enrichment_notes} />
+            <div className={s.section}>
+              <h3 className={clsx(s.sectionTitle, s.sectionTitleSpaced)}>Enrichment notes</h3>
+              <EnrichmentNotesViewer notes={investor.enrichment_notes} />
+            </div>
           </div>
 
           <div className={s.footer}>
-            {investor.firm_domain && (
+            {investor.firm_domain && isSafeUrl(`https://${investor.firm_domain}`) && (
               <a
                 className={clsx(s.btn, s.btnPrimary)}
                 href={`https://app.affinity.co/companies/?search=${encodeURIComponent(investor.firm_domain)}`}
@@ -391,7 +449,7 @@ export function InvestorDrawer({ access }: Props) {
               </a>
             )}
             <AddToListMenu investorId={investor.investor_id} canEdit={access.canEdit} className={s.btn} />
-            <CopyButton text={investor.email} label="Copy email" className={s.btn} />
+            {investor.email && <CopyButton text={investor.email} label="Copy email" className={s.btn} />}
             {investor.lab_os_profile && (
               <a
                 className={s.btn}
@@ -413,7 +471,7 @@ function renderCited(text: string, sources: string[]) {
     const m = part.match(/^\[(\d+)\]$/);
     if (m) {
       const url = sources[parseInt(m[1], 10) - 1];
-      if (url) {
+      if (url && isSafeUrl(url)) {
         return (
           <sup key={i} className={s.cite}>
             <a href={url} target="_blank" rel="noopener noreferrer">

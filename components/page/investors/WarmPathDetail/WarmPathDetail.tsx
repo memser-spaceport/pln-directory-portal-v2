@@ -184,8 +184,6 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;
 
-          console.log({ p });
-
           return (
             <li key={p.id} className={s.pathItem}>
               {/* Correction trigger — corner icon opening the same inline form */}
@@ -377,8 +375,6 @@ function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConn
   ) : (
     <span className={s.contactName}>{contact.name}</span>
   );
-
-  console.log({ org });
 
   const orgEl = org ? (
     org.team_uid ? (

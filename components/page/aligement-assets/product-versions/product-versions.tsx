@@ -24,11 +24,21 @@ const productVersions: VersionData[] = [
     version: 'v0.5',
     dateRange: 'January 2026 - present',
     added: [
-      'Launched the Alignment Asset website',
-      'Launched monthly Alignment Asset newsletter',
+      {
+        text: 'New Activities:',
+        subItems: [
+          'Help Organize an Event',
+          'Respond to an IRL Event',
+          'Contribute a High-Quality Response to the Forum',
+          'Share a Reusable AI Resource or Tool',
+          'Rank Among the Network\'s Most Supportive Members',
+        ],
+      },
+      'Points and Activities Dashboard',
+      'Activity Assistant Bot',
     ],
     changed: [
-      'Expanded onboarded participants from 48 to 59',
+      'Expanded onboarded participants from 48 to 61',
     ],
   },
   {

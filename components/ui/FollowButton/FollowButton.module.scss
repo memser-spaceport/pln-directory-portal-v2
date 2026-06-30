@@ -1,28 +1,33 @@
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
   white-space: nowrap;
-  height: auto;
-  min-height: 0;
-  padding: 3px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.following {
-  color: var(--foreground-neutral-secondary);
+  transition: opacity 0.1s ease;
 
   &:hover {
-    color: var(--foreground-neutral-primary);
-    background: var(--transparent-dark-4);
+    opacity: 0.75;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 }
 
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--foreground-neutral-tertiary);
+.follow {
+  color: #455468;
+}
+
+.following {
+  color: #1b4dff;
 }

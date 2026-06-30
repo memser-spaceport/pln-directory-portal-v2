@@ -110,7 +110,7 @@ export const NewsCard = ({
             </a>
           )}
           {isHydrated && onFollowToggle && (
-            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} size="xs" />
+            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} />
           )}
         </div>
       )}

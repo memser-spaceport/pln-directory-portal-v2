@@ -29,9 +29,9 @@ function getWelcomeDisplayName(user: IUserInfo | null): string {
 
 const TOOLTIP_CONTENT = {
   total: 'PLAA Available to Bid in Buyback Auctions',
-  collected: 'Combined Value of PLAA Owned + PLAA Sold',
+  collected: 'Combined Value of PLAA Owned + PLAA Redeemed',
   tokens: 'Tokens Available to Bid in Buyback Auctions',
-  sold: 'Total PLAA Sold in Buyback Auctions',
+  sold: 'TotalPLAA Redeemed in Buyback Auctions',
 } as const;
 
 function formatLastUpdated(dateString: string): string {
@@ -191,7 +191,7 @@ export default function RightsTokensDashboard() {
               />
               <StatCard
                 icon="/icons/sold-icon.svg"
-                label="PLAA SOLD"
+                label="PLAA Redeemed"
                 value={data.tokensSold}
                 tooltip={TOOLTIP_CONTENT.sold}
               />

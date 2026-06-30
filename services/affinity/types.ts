@@ -33,3 +33,15 @@ export interface AffinityMemberResponse {
   organizations?: Record<string, unknown>[];
   relationship: AffinityRelationship;
 }
+
+export interface AffinityRetriggerResponse {
+  success: true;
+  member_uid: string;
+  affinity_person_id: string;
+  run_id: string;
+  ingest: {
+    ingested: { companies: number; persons: number };
+    linked: { companiesToTeam: number; personsToMember: number; personsToCompany: number };
+    failed: number;
+  };
+}

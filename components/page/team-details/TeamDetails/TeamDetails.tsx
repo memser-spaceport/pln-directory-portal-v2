@@ -30,6 +30,7 @@ import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
+import { TeamFollowBlock } from '../TeamFollowBlock/TeamFollowBlock';
 
 import s from './TeamDetails.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -38,10 +39,14 @@ import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   team: ITeam;
+  initialIsFollowed?: boolean;
+  initialFollowerCount?: number;
+  isTeamMember?: boolean;
 }
 
 export const TeamDetails = (props: Props) => {
   const team = props?.team;
+  const { initialIsFollowed = false, initialFollowerCount = 0, isTeamMember = false } = props;
 
   const teamName = team?.name ?? '';
   const { currentUser } = useCurrentUserStore();
@@ -228,6 +233,13 @@ export const TeamDetails = (props: Props) => {
         onConfirm={handleDeleteConfirm}
         confirmTitle="Delete"
         disabled={isDeleting}
+      />
+
+      <TeamFollowBlock
+        team={team}
+        initialIsFollowed={initialIsFollowed}
+        initialFollowerCount={initialFollowerCount}
+        isTeamMember={isTeamMember}
       />
 
       {/* About */}

@@ -1,0 +1,58 @@
+.wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary);
+}
+
+.captionSpacer {
+  height: 16px;
+}
+
+.subStack {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4);
+  }
+}
+
+.subStackHidden {
+  visibility: hidden;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+}
+
+.subAvatars {
+  display: inline-flex;
+}
+
+.subCount {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary);
+    font-variant-numeric: tabular-nums;
+  }
+}

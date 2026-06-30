@@ -5,7 +5,7 @@ import { AiAppsAccessGuard } from '@/components/page/ai-apps/AiAppsPage/componen
 
 export const metadata: Metadata = {
   title: 'AI Apps | Protocol Labs Directory',
-  description: 'Build your app, share with PL Infra teams.',
+  description: 'A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building',
   openGraph: {
     type: 'website',
     url: process.env.APPLICATION_BASE_URL,

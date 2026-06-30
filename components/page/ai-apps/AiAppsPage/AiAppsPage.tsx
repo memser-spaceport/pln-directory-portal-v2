@@ -35,7 +35,9 @@ export function AiAppsPage() {
         <div className={s.header}>
           <div className={s.titleBlock}>
             <h1 className={s.title}>AI Apps</h1>
-            <p className={s.description}>Build your app, share with PL Infra teams</p>
+            <p className={s.description}>
+              A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.
+            </p>
           </div>
         </div>
 

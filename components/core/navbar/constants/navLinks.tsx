@@ -125,5 +125,5 @@ export const AI_APPS_LINK: ISubItem = {
   icon: <StarFourIcon />,
   href: '/pl-infra/ai-apps',
   title: 'AI Apps',
-  description: 'AI Apps dashboard',
+  description: 'Deploy AI apps to LabOS and explore builds from other PL Infra members',
 };

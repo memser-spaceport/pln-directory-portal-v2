@@ -123,7 +123,7 @@ export const mockAppPreviews: Record<string, string> = {
 
 export const mockPageCopy = {
   title: 'AI Apps',
-  description: 'Build your app, share with PL Infra teams',
+  description: 'A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.',
 };
 
 // Create-modal copy (prototype-local; overrides the production STEPS constant).

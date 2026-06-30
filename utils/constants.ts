@@ -580,6 +580,11 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
 };
 
+export const FOLLOW_ANALYTICS_EVENTS = {
+  TEAM_FOLLOWED: 'team-news-team-followed',
+  TEAM_UNFOLLOWED: 'team-news-team-unfollowed',
+};
+
 export const TEAM_PITCH_ANALYTICS = {
   ON_PAGE_OPENED: 'team-pitch-page-opened',
   ON_TIME_ON_PAGE: 'team-pitch-time-on-page',

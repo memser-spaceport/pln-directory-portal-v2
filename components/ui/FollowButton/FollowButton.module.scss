@@ -1,0 +1,28 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  height: auto;
+  min-height: 0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.following {
+  color: var(--foreground-neutral-secondary);
+
+  &:hover {
+    color: var(--foreground-neutral-primary);
+    background: var(--transparent-dark-4);
+  }
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground-neutral-tertiary);
+}

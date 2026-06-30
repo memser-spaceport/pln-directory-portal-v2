@@ -71,6 +71,7 @@ function InfoTooltip({ content, label }: { content: string; label: string }) {
       asChild
       side="top"
       align="center"
+      variant="highlight"
       trigger={
         <span className={styles['rights-tokens-dashboard__info-trigger']} aria-label={label}>
           <Image src="/icons/rounds/info-gray.svg" alt="" width={16} height={16} />

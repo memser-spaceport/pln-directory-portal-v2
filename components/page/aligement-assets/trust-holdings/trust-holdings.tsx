@@ -127,9 +127,9 @@ function NavChart({ data }: { data: NavPoint[] }) {
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
           <YAxis yAxisId="perPlaa" hide domain={[0, 30]} />
-          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={56} />
-          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={56} />
-          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={56} radius={[4, 4, 0, 0]}>
+          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={92} />
+          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={92} />
+          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={92} radius={[4, 4, 0, 0]}>
             <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
           </Bar>
           <Line
@@ -437,7 +437,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           margin: 0;
           font-size: 32px;
           font-weight: 700;
-          line-height: 1.25;
+          line-height: 45px;
           color: #0f172a;
         }
 
@@ -467,7 +467,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         .th-nav-summary {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 14px;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
           padding: 16px 20px;
@@ -478,26 +478,30 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         .th-nav-summary__label {
           font-size: 12px;
           font-weight: 600;
+          line-height: 17px;
+          letter-spacing: 0.6px;
           color: #156ff7;
         }
 
         .th-nav-summary__value {
           font-size: 42px;
           font-weight: 700;
-          line-height: 1.1;
+          line-height: 59px;
           color: #0f172a;
         }
 
         .th-nav-summary__caption {
           font-size: 16px;
           font-weight: 500;
+          line-height: 22px;
           color: #94a3b8;
         }
 
         .th-card__eyebrow {
-          margin: 0 0 8px;
+          margin: 0 0 20px;
           font-size: 11px;
           font-weight: 500;
+          line-height: 15px;
           color: #94a3b8;
         }
 
@@ -509,6 +513,8 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         }
 
         .th-card__note {
+          display: block;
+          margin-top: 4px;
           font-weight: 400;
           color: #94a3b8;
         }
@@ -579,7 +585,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         .th-key__marker {
           width: 12px;
           height: 12px;
-          border-radius: 50%;
+          border-radius: 4px;
         }
 
         .th-key__marker--line {

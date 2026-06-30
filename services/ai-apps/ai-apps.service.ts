@@ -72,7 +72,7 @@ export async function fetchConnectSession(sessionId: string): Promise<ConnectSes
 export async function approveConnectSession(sessionId: string): Promise<{ status: ConnectStatus } | null> {
   const response = await customFetch(
     `${AI_APPS_API_URL}/connect/${encodeURIComponent(sessionId)}/approve`,
-    { method: 'POST' },
+    { method: 'POST', headers: { 'Content-Type': 'application/json' } },
     true,
   );
 

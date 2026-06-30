@@ -116,6 +116,9 @@ export default function RightsTokensDashboard() {
   if (isLoading) return null;
   if (!data) return null;
 
+  const hasNoBalances = !data.rights && !data.tokens && !data.tokensSold;
+  if (hasNoBalances) return null;
+
   const displayName = getWelcomeDisplayName(currentUser);
   const lastUpdatedLabel = formatLastUpdated(data.lastUpdated);
 

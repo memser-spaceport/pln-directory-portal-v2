@@ -9,6 +9,7 @@ import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import BuybackSimulationSection from "./sections/buyback-simulation-section";
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
+import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
 import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -40,6 +41,7 @@ export default function PastRoundComponent({ pastRoundData, leaderboardResponse 
     <>
       <div className="past-round">
         <HeroSection data={data.hero} />
+        {isLoggedIn && <RightsTokensDashboard />}
         {isLoggedIn && <PointsDashboard
           currentRound={currentRoundData.meta.roundNumber}
           pageRound={data.meta.roundNumber}

@@ -15,6 +15,21 @@
   cursor: default;
 }
 
+.tp--highlight {
+  max-width: 280px;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  background-color: #1b4dff;
+  box-shadow: 0 10px 24px rgba(27, 77, 255, 0.28);
+}
+
+.tp__arrow--highlight {
+  fill: #1b4dff;
+}
+
 .tooltip__trigger__mob {
   display: flex;
 }

@@ -14,6 +14,7 @@ interface ITooptip {
   sideOffset?: number;
   align?: 'start' | 'center' | 'end';
   className?: string;
+  variant?: 'default' | 'highlight';
 }
 
 export function Tooltip(props: ITooptip) {
@@ -26,7 +27,11 @@ export function Tooltip(props: ITooptip) {
     sideOffset = 8,
     align = 'start',
     className,
+    variant = 'default',
   } = props;
+
+  const isHighlight = variant === 'highlight';
+  const contentClassName = clsx(styles?.tp, isHighlight && styles['tp--highlight']);
 
   const [isOpen, setIsOpen] = useState(false);
   const tooltipRef = useRef(null);
@@ -60,10 +65,11 @@ export function Tooltip(props: ITooptip) {
                 side={side}
                 align={align}
                 sideOffset={sideOffset}
-                className={styles?.tp}
+                className={contentClassName}
                 avoidCollisions
               >
                 {content}
+                {isHighlight && <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />}
               </TooltipPrimitive.Content>
             )}
           </TooltipPrimitive.Root>
@@ -81,10 +87,11 @@ export function Tooltip(props: ITooptip) {
                 side={side}
                 align={align}
                 sideOffset={sideOffset}
-                className={styles?.tp}
+                className={contentClassName}
                 avoidCollisions
               >
                 {content}
+                {isHighlight && <TooltipPrimitive.Arrow className={styles['tp__arrow--highlight']} width={14} height={7} />}
               </TooltipPrimitive.Content>
             )}
           </TooltipPrimitive.Root>

@@ -8,10 +8,13 @@ import {
   DetailsSectionGreyContentContainer,
 } from '@/components/common/profile/DetailsSection';
 import { Badge } from '@/components/common/Badge';
+import { Button } from '@/components/common/Button';
 import { UsersThreeIcon } from '@/components/icons/UsersThreeIcon';
 import { CalendarBlankIcon } from '@/components/icons/CalendarBlankIcon';
+import { SpinnerIcon } from '@/components/icons/SpinnerIcon';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
+import { useRetriggerAffinityEnrichment } from '@/services/affinity/hooks/useRetriggerAffinityEnrichment';
 import s from './RelationshipDetails.module.scss';
 
 interface Props {
@@ -44,6 +47,7 @@ function truncate(text: string, max: number): string {
 export function RelationshipDetails({ memberUid }: Props) {
   const { hasAccess } = useAffinityAccess();
   const { data, isLoading } = useAffinityMember(memberUid, hasAccess);
+  const { mutate: retrigger, isPending: isRetriggering } = useRetriggerAffinityEnrichment(memberUid);
 
   if (!hasAccess || isLoading || !data || data.relationship.empty) return null;
 
@@ -100,6 +104,28 @@ export function RelationshipDetails({ memberUid }: Props) {
             </div>
           </div>
         </DetailsSectionGreyContentContainer>
+      </div>
+
+      <div className={s.footer}>
+        <Button
+          type="button"
+          size="xs"
+          variant="secondary"
+          style="border"
+          className={s.updateButton}
+          onClick={() => retrigger()}
+          disabled={isRetriggering}
+          aria-label="Update relationship data"
+        >
+          {isRetriggering ? (
+            <span className={s.updateButtonContent}>
+              <SpinnerIcon className={s.updateButtonSpinner} />
+              Refreshing…
+            </span>
+          ) : (
+            'Refresh relationship data'
+          )}
+        </Button>
       </div>
     </DetailsSection>
   );

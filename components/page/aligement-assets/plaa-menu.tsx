@@ -12,7 +12,7 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'faqs' | 'disclosure' | 'feedback';
+export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'trust-holdings' | 'faqs' | 'disclosure' | 'feedback';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -27,6 +27,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
+  { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
   { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },

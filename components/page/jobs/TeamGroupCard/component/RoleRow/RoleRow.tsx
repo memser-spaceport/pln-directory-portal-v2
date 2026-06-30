@@ -52,7 +52,7 @@ export function RoleRow(props: RoleRowProps) {
         {relative && (
           <span className={s.relative}>
             <ClockIcon />
-            {relative} ago
+            {relative}
           </span>
         )}
         <ArrowIcon />

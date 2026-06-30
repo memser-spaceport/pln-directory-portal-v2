@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 import type { ITag, ITeam } from '@/types/teams.types';
 
@@ -15,9 +15,14 @@ import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 // Reuse the production TeamDetails styling 1:1.
 import s from '@/components/page/team-details/TeamDetails/TeamDetails.module.scss';
+import local from './TeamProfile.module.scss';
 
 interface Props {
   team: ITeam;
+  /** Follow cluster rendered top-right of the team name row. */
+  headerAction?: ReactNode;
+  /** Hide the stage / fund / industry badges row (test the no-badges team). */
+  hideBadges?: boolean;
 }
 
 /**
@@ -28,7 +33,7 @@ interface Props {
  * plain logged-in/approved read view with mock data, importing the production
  * `.module.scss` and all leaf presentational components.
  */
-export function TeamDetailsView({ team }: Props) {
+export function TeamDetailsView({ team, headerAction, hideBadges }: Props) {
   const teamName = team?.name ?? '';
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
@@ -40,8 +45,8 @@ export function TeamDetailsView({ team }: Props) {
 
   return (
     <DetailsSection>
-      <div className={s.profile}>
-        <div className={s.logoTagsContainer}>
+      <div className={`${s.profile} ${local.profileRow}`}>
+        <div className={`${s.logoTagsContainer} ${local.logoTagsGrow}`}>
           <Image
             alt="profile"
             loading="eager"
@@ -56,29 +61,34 @@ export function TeamDetailsView({ team }: Props) {
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
             </div>
-            <div className={s.tagsContainer}>
-              <div className={s.tags2}>
-                {team?.fundingStage?.title && (
-                  <>
-                    <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
-                    <Divider />
-                  </>
-                )}
-                {team?.isFund && (
-                  <>
-                    <Tag value="Investment Fund" className={s.iTag} />
-                    <Divider />
-                  </>
-                )}
-                {!!tags?.length && <TagsList tags={tags} />}
+            {!hideBadges && (
+              <div className={s.tagsContainer}>
+                <div className={s.tags2}>
+                  {team?.fundingStage?.title && (
+                    <>
+                      <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
+                      <Divider />
+                    </>
+                  )}
+                  {team?.isFund && (
+                    <>
+                      <Tag value="Investment Fund" className={s.iTag} />
+                      <Divider />
+                    </>
+                  )}
+                  {!!tags?.length && <TagsList tags={tags} />}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Follow cluster aligned with the whole header block (logo + name + tags). */}
+        {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
       </div>
 
       {hasAbout && (
-        <div className={s.aboutContainer}>
+        <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
           <div className={s.aboutTitle}>About</div>
           <ExpandableDescription>
             <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />

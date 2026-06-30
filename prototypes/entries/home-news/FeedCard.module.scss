@@ -1,0 +1,178 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 2px 10px rgba(14, 15, 17, 0.05);
+  }
+}
+
+// Followed cards get a faint brand wash so the "shows first" zone reads as
+// distinct without shouting — the subtle marker, not a banner.
+.cardFollowed {
+  background: linear-gradient(180deg, var(--background-brand-subtle, rgba(27, 77, 255, 0.05)) 0%, #fff 64px);
+  border-color: var(--border-brand-subtle, rgba(27, 77, 255, 0.18));
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.avatarTeam {
+  border-radius: 9px;
+}
+
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.08));
+}
+
+.headText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+.sourceName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.verb {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.time {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.followingPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 3px 9px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.08));
+  border-radius: 999px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-wrap: pretty;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.kindTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.kindDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+// Three on-palette accents so the kinds are distinguishable without color alone
+// (the label text carries the meaning too).
+.kind_news {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+.kind_forum {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+.kind_event {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  svg {
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .card:hover & svg {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .action svg {
+    transition: none;
+  }
+}

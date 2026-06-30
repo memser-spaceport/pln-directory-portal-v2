@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 
 import { MOCK_TEAMS, MOCK_FILTER_GROUPS } from './mocks';
 import { TeamCardView } from './TeamCardView';
+import { FollowToast } from '../follow-shared/FollowToast';
 import s from './TeamsPrototype.module.scss';
 
 const SORT_OPTIONS = [
@@ -28,6 +29,29 @@ export default function TeamsPrototype() {
   const [sort, setSort] = useState('default');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set());
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const [toastName, setToastName] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const toggleFollow = (id: string, name: string) => {
+    setFollowed((prev) => {
+      const next = new Set(prev);
+      const willFollow = !next.has(id);
+      next.has(id) ? next.delete(id) : next.add(id);
+      if (willFollow) {
+        setToastName(name);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setToastName(null), 4000);
+      }
+      return next;
+    });
+  };
 
   const toggleFilter = (key: string) =>
     setSelectedFilters((prev) => {
@@ -149,7 +173,11 @@ export default function TeamsPrototype() {
                   prefetch={false}
                   className={s.cardLink}
                 >
-                  <TeamCardView team={team} />
+                  <TeamCardView
+                    team={team}
+                    following={followed.has(team.id)}
+                    onToggleFollow={() => toggleFollow(team.id, team.name ?? 'team')}
+                  />
                 </Link>
               ))}
             </div>
@@ -158,6 +186,12 @@ export default function TeamsPrototype() {
           )}
         </main>
       </div>
+
+      {toastName && (
+        <FollowToast>
+          You&apos;re following <strong>{toastName}</strong> — you&apos;ll get its updates in your feed.
+        </FollowToast>
+      )}
     </div>
   );
 }

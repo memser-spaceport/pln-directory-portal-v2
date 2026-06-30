@@ -30,6 +30,7 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
+import { TeamFollowBlock } from './TeamFollowBlock';
 import local from './TeamProfile.module.scss';
 import {
   MOCK_TEAM,
@@ -38,6 +39,8 @@ import {
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
   MOCK_NEWS,
+  MOCK_SUBSCRIBERS,
+  TEAM_SUBSCRIBER_COUNT,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -51,14 +54,14 @@ export default function TeamProfilePrototype() {
   const isMobile = useIsMobile();
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [newsQuery, setNewsQuery] = useState('');
-  // Demo-only: toggle how many news items exist, to preview edge cases.
-  const [newsScenario, setNewsScenario] = useState<'all' | 'single'>('all');
+  const [following, setFollowing] = useState(false);
+  // Demo-only: public vs team view (team view exposes subscriber info).
+  const [view, setView] = useState<'public' | 'team'>('team');
   useEffect(() => setMounted(true), []);
 
-  const sortedNews = [...MOCK_NEWS].sort(
+  const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
   );
-  const displayNews = newsScenario === 'single' ? sortedNews.slice(0, 1) : sortedNews;
 
   // Rail previews a few; "View all" opens the full feed in a modal.
   const previewNews = displayNews.slice(0, NEWS_PREVIEW_COUNT);
@@ -85,35 +88,50 @@ export default function TeamProfilePrototype() {
     return <div className={shell.teamDetail} />;
   }
 
+  const followCount = TEAM_SUBSCRIBER_COUNT + (following ? 1 : 0);
+
   return (
     <div className={local.page}>
       <div className={local.demoBar}>
-        <span className={local.demoLabel}>Demo — news count</span>
+        <span className={local.demoLabel}>View</span>
         <div className={local.demoSwitch}>
           <button
             type="button"
-            className={`${local.demoBtn} ${newsScenario === 'all' ? local.demoBtnActive : ''}`}
-            onClick={() => setNewsScenario('all')}
+            className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('public')}
           >
-            Many ({sortedNews.length})
+            Public
           </button>
           <button
             type="button"
-            className={`${local.demoBtn} ${newsScenario === 'single' ? local.demoBtnActive : ''}`}
-            onClick={() => setNewsScenario('single')}
+            className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('team')}
           >
-            Single (1)
+            Team
           </button>
         </div>
+
       </div>
 
       <div className={local.layout}>
         <div className={`${shell.teamDetail} ${local.mainCol}`}>
         <BackButton to="/prototypes/teams" />
         <div className={shell.teamDetail__container}>
-        {/* Details */}
+        {/* Details — the follow block sits before the About section. */}
         <div className={shell.teamDetail__Container__details}>
-          <TeamDetailsView team={team} />
+          <TeamDetailsView
+            team={team}
+            headerAction={
+              <TeamFollowBlock
+                name={team.name ?? 'this team'}
+                following={following}
+                count={followCount}
+                onToggle={() => setFollowing((v) => !v)}
+                view={view}
+                subscribers={MOCK_SUBSCRIBERS}
+              />
+            }
+          />
         </div>
 
         {/* Fund details (team.isFund) */}
@@ -164,9 +182,11 @@ export default function TeamProfilePrototype() {
 
       {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
       <aside className={local.rail}>
-        {/* Spacer — nudges the news panel up so its cards line up with the
-            first team section. */}
-        <div className={local.railSpacer} aria-hidden="true" />
+        {/* Reserve the Back button's height so the news panel lines up with the
+            team card top (the main column has a Back button above it). */}
+        <div className={local.railBackSpacer} aria-hidden="true">
+          <BackButton to="/prototypes/teams" />
+        </div>
         <div className={local.newsPanel}>
           <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
           <div className={local.newsList}>

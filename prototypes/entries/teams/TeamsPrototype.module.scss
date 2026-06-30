@@ -244,6 +244,20 @@
   color: inherit;
 }
 
+/* Let the card grow to fit the in-card Follow button (production sets a fixed
+   168px height). Double class beats the production .grid height. */
+.teamCard.teamCard {
+  height: auto;
+  padding-bottom: 2px;
+}
+
+/* Full-width follow button placed in-card, after the tags. */
+.followRow {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+}
+
 .empty {
   padding: 40px 20px;
   text-align: center;

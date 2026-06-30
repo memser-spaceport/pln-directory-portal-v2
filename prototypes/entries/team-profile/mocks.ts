@@ -60,6 +60,28 @@ export const MOCK_TEAM = {
   asks: [],
 } satisfies Partial<ITeam>;
 
+/* ---------------- Subscribers (team view: who follows this team) ---------------- */
+export interface TeamSubscriber {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+}
+
+export const MOCK_SUBSCRIBERS: TeamSubscriber[] = [
+  { id: 'molly', name: 'Molly Mackinlay', role: 'Project Lead, IPFS', avatar: 'https://i.pravatar.cc/96?img=32' },
+  { id: 'juan', name: 'Juan Benet', role: 'Founder & CEO · Protocol Labs', avatar: 'https://i.pravatar.cc/96?img=12' },
+  { id: 'david', name: 'David Dias', role: 'Research Engineer · libp2p', avatar: 'https://i.pravatar.cc/96?img=15' },
+  { id: 'maya', name: 'Maya Okonkwo', role: 'Co-founder & CEO · Lattice Compute', avatar: 'https://i.pravatar.cc/96?img=47' },
+  { id: 'steven', name: 'Steven Allen', role: 'Systems Engineer', avatar: 'https://i.pravatar.cc/96?img=8' },
+  { id: 'sarah', name: 'Sarah Kim', role: 'Partner · Acme Capital', avatar: 'https://i.pravatar.cc/96?img=44' },
+  { id: 'devon', name: 'Devon Park', role: 'Protocol Engineer', avatar: 'https://i.pravatar.cc/96?img=53' },
+  { id: 'lina', name: 'Lina Suarez', role: 'Developer Advocate', avatar: 'https://i.pravatar.cc/96?img=20' },
+];
+
+// Followers count = the number of subscribers we actually list.
+export const TEAM_SUBSCRIBER_COUNT = MOCK_SUBSCRIBERS.length;
+
 export const MOCK_MEMBERS = [
   {
     id: 'mem-1',

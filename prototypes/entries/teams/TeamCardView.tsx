@@ -5,11 +5,15 @@ import { ITag } from '@/types/teams.types';
 import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 
 import type { MockTeamCard } from './mocks';
+import { FollowButton } from '../follow-shared/FollowButton';
 // Reuse the production card styling so the prototype tracks production 1:1.
 import s from '@/components/page/teams/TeamList/components/TeamGridView/TeamGridView.module.scss';
+import local from './TeamsPrototype.module.scss';
 
 interface Props {
   team: MockTeamCard;
+  following: boolean;
+  onToggleFollow: () => void;
 }
 
 /**
@@ -19,11 +23,11 @@ interface Props {
  * exist (always empty here) so it's dropped; analytics is stripped. The static
  * presentational markup + production `.module.scss` are kept verbatim.
  */
-export function TeamCardView({ team }: Props) {
+export function TeamCardView({ team, following, onToggleFollow }: Props) {
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
 
   return (
-    <div className={s.grid}>
+    <div className={`${s.grid} ${local.teamCard}`}>
       <div className={s.profileContainer}>
         <Image
           alt="profile"
@@ -48,6 +52,17 @@ export function TeamCardView({ team }: Props) {
         <div className={s.tagsMob}>
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
+
+        {/* Follow button — in-card, after the tags. Stops the card's link navigation. */}
+        <span
+          className={local.followRow}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block glossy />
+        </span>
       </div>
     </div>
   );

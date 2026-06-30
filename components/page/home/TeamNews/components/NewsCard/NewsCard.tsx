@@ -1,9 +1,12 @@
 'use client';
 
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { useCurrentUserStore } from '@/services/auth/store';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
 
 import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
 
@@ -20,6 +23,8 @@ interface NewsCardProps {
   variant?: 'default' | 'flat' | 'outline';
   className?: string;
   analyticsSource?: TeamNewsAnalyticsSource;
+  isFollowing?: boolean;
+  onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
 const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
@@ -49,7 +54,21 @@ export const NewsCard = ({
   variant = 'default',
   className,
   analyticsSource = 'home',
+  isFollowing = false,
+  onFollowToggle,
 }: NewsCardProps) => {
+  const router = useRouter();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+      return;
+    }
+    onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
+  };
+
   const handleClick = () => {
     onClick?.(item);
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
@@ -89,6 +108,9 @@ export const NewsCard = ({
             >
               {item.teamName}
             </a>
+          )}
+          {isHydrated && onFollowToggle && (
+            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} />
           )}
         </div>
       )}

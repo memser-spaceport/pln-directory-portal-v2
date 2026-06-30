@@ -6,6 +6,8 @@ import isEmpty from 'lodash/isEmpty';
 import { useMemo, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { useFollowAnalytics } from '@/analytics/follow.analytics';
+import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
@@ -41,8 +43,14 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
+  const followAnalytics = useFollowAnalytics();
+  const { mutate: followMutate } = useFollowTeam();
 
   const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
+
+  const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
+    () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
+  );
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
@@ -77,7 +85,13 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
     return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
   }, [activeCategory, itemsForActiveTab]);
 
-  const visibleItems = expanded ? filteredItems : filteredItems.slice(0, pageSize);
+  const sortedItems = useMemo(() => {
+    const followed = filteredItems.filter((i) => followedTeamUids.has(i.teamUid));
+    const unfollowed = filteredItems.filter((i) => !followedTeamUids.has(i.teamUid));
+    return [...followed, ...unfollowed];
+  }, [filteredItems, followedTeamUids]);
+
+  const visibleItems = expanded ? sortedItems : sortedItems.slice(0, pageSize);
   const newCount = allItems.length;
 
   const handleTab = (id: string) => {
@@ -111,6 +125,34 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const handleCardClick = (item: ITeamNewsItem) => {
     const position = visibleItems.findIndex((v) => v.uid === item.uid);
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
+  };
+
+  const handleFollowToggle = (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => {
+    const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
+    setFollowedTeamUids((prev) => {
+      const next = new Set(prev);
+      isCurrentlyFollowing ? next.delete(teamUid) : next.add(teamUid);
+      return next;
+    });
+    followMutate(
+      { teamUid, action },
+      {
+        onError: () => {
+          setFollowedTeamUids((prev) => {
+            const next = new Set(prev);
+            isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
+            return next;
+          });
+        },
+        onSuccess: () => {
+          if (action === 'follow') {
+            followAnalytics.onTeamFollowed({ teamUid, teamName, source: 'news-feed' });
+          } else {
+            followAnalytics.onTeamUnfollowed({ teamUid, teamName, source: 'news-feed' });
+          }
+        },
+      },
+    );
   };
 
   if (isEmpty(allItems)) {
@@ -150,7 +192,14 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
         <>
           <div className={s.grid}>
             {visibleItems.map((item, index) => (
-              <NewsCard key={item.uid} item={item} position={index} onClick={handleCardClick} />
+              <NewsCard
+                key={item.uid}
+                item={item}
+                position={index}
+                onClick={handleCardClick}
+                isFollowing={followedTeamUids.has(item.teamUid)}
+                onFollowToggle={handleFollowToggle}
+              />
             ))}
           </div>
           {filteredItems.length > pageSize && (

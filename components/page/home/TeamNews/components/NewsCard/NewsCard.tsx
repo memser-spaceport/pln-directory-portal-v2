@@ -109,9 +109,9 @@ export const NewsCard = ({
               {item.teamName}
             </a>
           )}
-          {isHydrated && onFollowToggle && (
-            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} />
-          )}
+          {/*{isHydrated && onFollowToggle && (*/}
+          {/*  <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} />*/}
+          {/*)}*/}
         </div>
       )}
       <h3 className={s.headline}>{item.title}</h3>

@@ -8,6 +8,7 @@
 
 .logoTagsContainer {
   display: flex;
+  align-items: flex-start;
   gap: 8px;
   width: 100%;
 
@@ -42,10 +43,17 @@
   }
 }
 
+.headerActionSlot {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 .nameAndActions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 .teamName {

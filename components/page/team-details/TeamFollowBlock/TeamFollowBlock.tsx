@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { ITeam } from '@/types/teams.types';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import { useTeamFollowers } from '@/services/follow/hooks/useTeamFollowers';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { Button } from '@/components/common/Button';
 
 import { TeamFollowersModal } from './TeamFollowersModal';
 import s from './TeamFollowBlock.module.scss';
@@ -27,8 +28,13 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
 
   const { currentUser } = useCurrentUserStore();
   const router = useRouter();
-  const { mutate } = useFollowTeam();
+  const { mutate, isPending } = useFollowTeam();
   const { onTeamFollowed, onTeamUnfollowed } = useFollowAnalytics();
+
+  const showFollowers = isTeamMember && followerCount > 0;
+
+  const { data: followersData } = useTeamFollowers(team.id, { enabled: showFollowers });
+  const previewAvatars = followersData?.items.slice(0, 3) ?? [];
 
   const handleToggle = () => {
     if (!currentUser) {
@@ -64,11 +70,27 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
     );
   };
 
-  const showFollowers = isTeamMember && followerCount > 0;
-
   return (
     <div className={s.wrapper}>
-      <FollowButton following={isFollowing} onClick={handleToggle} name={team.name ?? ''} />
+      <Button
+        style={isFollowing ? 'border' : 'fill'}
+        variant="primary"
+        size="l"
+        disabled={isPending}
+        onClick={handleToggle}
+      >
+        {isFollowing ? (
+          <>
+            <CheckIcon />
+            Following
+          </>
+        ) : (
+          <>
+            <PlusIcon />
+            Follow
+          </>
+        )}
+      </Button>
 
       {!isFollowing && <p className={s.caption}>Subscribe for updates</p>}
       {isFollowing && <div className={s.captionSpacer} aria-hidden="true" />}
@@ -81,6 +103,21 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
           aria-hidden={!showFollowers}
           tabIndex={showFollowers ? 0 : -1}
         >
+          <span className={s.subAvatars} aria-hidden="true">
+            {previewAvatars.length > 0
+              ? previewAvatars.map((f) =>
+                  f.image ? (
+                    <img key={f.uid} className={s.subAvatar} src={f.image} alt="" loading="lazy" />
+                  ) : (
+                    <span key={f.uid} className={s.subAvatarFallback}>
+                      {f.name.charAt(0).toUpperCase()}
+                    </span>
+                  ),
+                )
+              : Array.from({ length: Math.min(followerCount, 3) }).map((_, i) => (
+                  <span key={i} className={s.subAvatarPlaceholder} />
+                ))}
+          </span>
           <span className={s.subCount}>
             <strong>{followerCount.toLocaleString()}</strong> {followerCount === 1 ? 'follower' : 'followers'}
           </span>
@@ -96,3 +133,15 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
     </div>
   );
 }
+
+const PlusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M8 3.333v9.334M3.333 8h9.334" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

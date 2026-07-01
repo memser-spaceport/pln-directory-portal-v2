@@ -23,10 +23,7 @@ export const MOCK_TEAMS: MockTeamCard[] = [
     id: 'filecoin-foundation',
     name: 'Filecoin Foundation',
     shortDescription: 'Facilitating governance of the Filecoin network and funding research into decentralized storage.',
-    industryTags: [
-      { uid: 't2', title: 'Web3' },
-      { uid: 't3', title: 'Storage' },
-    ],
+    industryTags: [],
   },
   {
     id: 'libp2p',

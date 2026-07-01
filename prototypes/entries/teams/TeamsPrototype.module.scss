@@ -109,10 +109,52 @@
   }
 }
 
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .titleContainer {
   display: flex;
   gap: 8px;
   align-items: baseline;
+}
+
+/* All / Following segmented toggle — a personal view lens near the title. */
+.scopeTabs {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16);
+}
+
+.scopeTab {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.scopeTabActive {
+  background: rgba(21, 111, 247, 0.1);
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
 
 .title {

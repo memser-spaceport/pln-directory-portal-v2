@@ -28,6 +28,7 @@ export default function TeamsPrototype() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('default');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [scope, setScope] = useState<'all' | 'following'>('all');
   const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set());
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [toastName, setToastName] = useState<string | null>(null);
@@ -62,6 +63,7 @@ export default function TeamsPrototype() {
 
   const visibleTeams = useMemo(() => {
     let rows = MOCK_TEAMS.slice();
+    if (scope === 'following') rows = rows.filter((t) => followed.has(t.id));
     const q = search.trim().toLowerCase();
     if (q) {
       rows = rows.filter(
@@ -72,7 +74,7 @@ export default function TeamsPrototype() {
     if (sort === 'asc') rows.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
     if (sort === 'desc') rows.sort((a, b) => (b.name ?? '').localeCompare(a.name ?? ''));
     return rows;
-  }, [search, sort]);
+  }, [search, sort, scope, followed]);
 
   if (!mounted) {
     return <div className={s.page} />;
@@ -112,9 +114,33 @@ export default function TeamsPrototype() {
         <main className={s.content}>
           {/* Toolbar: title (N), search, sort, grid/list toggle */}
           <div className={s.toolbar}>
-            <div className={s.titleContainer}>
-              <h1 className={s.title}>Teams</h1>
-              <p className={s.count}>({visibleTeams.length})</p>
+            <div className={s.toolbarLeft}>
+              <div className={s.titleContainer}>
+                <h1 className={s.title}>Teams</h1>
+                <p className={s.count}>({visibleTeams.length})</p>
+              </div>
+
+              {/* Personal view lens: All vs teams you follow. */}
+              <div className={s.scopeTabs} role="tablist" aria-label="Team scope">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={scope === 'all'}
+                  className={clsx(s.scopeTab, scope === 'all' && s.scopeTabActive)}
+                  onClick={() => setScope('all')}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={scope === 'following'}
+                  className={clsx(s.scopeTab, scope === 'following' && s.scopeTabActive)}
+                  onClick={() => setScope('following')}
+                >
+                  Following{followed.size > 0 ? ` (${followed.size})` : ''}
+                </button>
+              </div>
             </div>
 
             <div className={s.toolbarRight}>
@@ -181,6 +207,8 @@ export default function TeamsPrototype() {
                 </Link>
               ))}
             </div>
+          ) : scope === 'following' && followed.size === 0 ? (
+            <div className={s.empty}>You&apos;re not following any teams yet. Follow a team to see it here.</div>
           ) : (
             <div className={s.empty}>No teams match “{search}”. Try a different search.</div>
           )}

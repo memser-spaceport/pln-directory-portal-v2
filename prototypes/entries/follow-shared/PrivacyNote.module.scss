@@ -1,0 +1,33 @@
+// Muted "who can see this" bar — mirrors the gantry boost note footer.
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 9px 14px 10px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+// Header variant: no bar, centered under the count. Just a quiet caption.
+.compact {
+  padding: 0;
+  border-top: none;
+  background: transparent;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    margin-top: 1px;
+  }
+}

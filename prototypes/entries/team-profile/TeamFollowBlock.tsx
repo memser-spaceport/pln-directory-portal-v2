@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Modal } from '@/components/common/Modal';
+import { CloseIcon, InfoCircleIcon } from '@/components/icons';
+import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { FollowToast } from '../follow-shared/FollowToast';
+import { PrivacyNote } from '../follow-shared/PrivacyNote';
 import type { TeamSubscriber } from './mocks';
 import local from './TeamProfile.module.scss';
 
@@ -16,6 +19,8 @@ interface Props {
   onToggle: () => void;
   view: 'public' | 'team';
   subscribers: TeamSubscriber[];
+  /** Inline layout: Follow button + followers on a single row (no caption). */
+  inline?: boolean;
 }
 
 /**
@@ -23,8 +28,11 @@ interface Props {
  * "why subscribe". In team view it also surfaces the subscriber avatar stack +
  * count, which opens a modal with the full subscriber list. Public view hides
  * all subscriber info.
+ *
+ * `inline` lays the button and followers side by side on one row (used by the
+ * "Team (inline)" variant that sits above the About section).
  */
-export function TeamFollowBlock({ name, following, count, onToggle, view, subscribers }: Props) {
+export function TeamFollowBlock({ name, following, count, onToggle, view, subscribers, inline }: Props) {
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,17 +54,9 @@ export function TeamFollowBlock({ name, following, count, onToggle, view, subscr
     }
   };
 
-  return (
-    <div className={local.followHeader}>
-      {/* Button on top so it never jumps when the caption/followers below change. */}
-      <FollowButton following={following} onClick={handleFollow} name={name} size="s" bell block glossy />
-      {/* Not following: caption between button and followers. Following: caption
-          gone so the followers sit right under the button — a bottom spacer
-          (below) reserves its height so the About section never jumps. */}
-      {!following && <p className={local.followCaption}>Subscribe for updates</p>}
-
-      {/* Always rendered (hidden in public) so its height is reserved and the
-          About section below sits in the same place across public/team views. */}
+  // Followers avatar stack + count + team-only eye — shared by both layouts.
+  const followersRow = (
+    <div className={local.subStackRow}>
       <button
         type="button"
         className={`${local.subStack} ${view === 'team' ? '' : local.subStackHidden}`}
@@ -74,9 +74,24 @@ export function TeamFollowBlock({ name, following, count, onToggle, view, subscr
         </span>
       </button>
 
-      {/* Reserves the caption's height once following so About stays in place. */}
-      {following && <div className={local.captionSpacer} aria-hidden="true" />}
+      {/* The count itself is team-only — the eye tells you why, note on hover. */}
+      {view === 'team' && (
+        <CustomTooltip
+          forceTooltip
+          content={<span className={local.subPrivacyTip}>Followers are only visible to your team.</span>}
+          trigger={
+            <span className={local.subPrivacyIcon} aria-label="Followers are only visible to your team.">
+              <InfoCircleIcon width={15} height={15} />
+            </span>
+          }
+        />
+      )}
+    </div>
+  );
 
+  // Toast + subscriber modal — identical across layouts.
+  const overlays = (
+    <>
       {toast && (
         <FollowToast>
           You&apos;re following <strong>{name}</strong> — you&apos;ll get its updates in your feed.
@@ -91,7 +106,7 @@ export function TeamFollowBlock({ name, following, count, onToggle, view, subscr
               <span className={local.subModalCount}>{count.toLocaleString()}</span>
             </span>
             <button type="button" className={local.subModalClose} onClick={() => setOpen(false)} aria-label="Close">
-              <CloseIcon />
+              <CloseIcon width={20} height={20} />
             </button>
           </div>
           <ul className={local.subList}>
@@ -105,14 +120,45 @@ export function TeamFollowBlock({ name, following, count, onToggle, view, subscr
               </li>
             ))}
           </ul>
+          <PrivacyNote>Followers are only visible to your team.</PrivacyNote>
         </Modal>
       )}
+    </>
+  );
+
+  // Inline: compact Follow button + followers on one row (above About).
+  if (inline) {
+    return (
+      <div className={local.followInline}>
+        {/* Button + caption stacked on the left; followers to the right. */}
+        <div className={local.inlineFollowCol}>
+          <span className={local.inlineFollowBtn}>
+            <FollowButton following={following} onClick={handleFollow} name={name} size="s" bell block glossy />
+          </span>
+          {!following && <p className={local.inlineCaption}>Subscribe for updates</p>}
+        </div>
+        {/* Public view hides all subscriber info — show only the button + caption.
+            Wrapped in a button-height box so followers center to the button, not
+            the taller button+caption column. */}
+        {view === 'team' && <div className={local.inlineFollowers}>{followersRow}</div>}
+        {overlays}
+      </div>
+    );
+  }
+
+  // Default: vertical cluster (button + caption stacked, followers beneath).
+  return (
+    <div className={local.followHeader}>
+      {/* Button + caption grouped so the button fills the caption's width. The
+          caption is always rendered (hidden once following) so the button width
+          stays constant across states. */}
+      <div className={local.followTop}>
+        <FollowButton following={following} onClick={handleFollow} name={name} size="s" bell block glossy />
+        <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>Subscribe for updates</p>
+      </div>
+
+      {followersRow}
+      {overlays}
     </div>
   );
 }
-
-const CloseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);

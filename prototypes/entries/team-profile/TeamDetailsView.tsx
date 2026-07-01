@@ -5,7 +5,6 @@ import { useMemo, type ReactNode } from 'react';
 
 import type { ITag, ITeam } from '@/types/teams.types';
 
-import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
@@ -21,6 +20,8 @@ interface Props {
   team: ITeam;
   /** Follow cluster rendered top-right of the team name row. */
   headerAction?: ReactNode;
+  /** Slot rendered on its own row just above the About section. */
+  beforeAbout?: ReactNode;
   /** Hide the stage / fund / industry badges row (test the no-badges team). */
   hideBadges?: boolean;
 }
@@ -33,18 +34,15 @@ interface Props {
  * plain logged-in/approved read view with mock data, importing the production
  * `.module.scss` and all leaf presentational components.
  */
-export function TeamDetailsView({ team, headerAction, hideBadges }: Props) {
+export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }: Props) {
   const teamName = team?.name ?? '';
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
   const tags = useMemo(() => (team?.industryTags ?? []) as ITag[], [team?.industryTags]);
 
-  const about = team?.longDescription ?? '';
-  const hasAbout = !!about && about.trim() !== '<p><br></p>';
-
   return (
-    <DetailsSection>
+    <DetailsSection classes={{ root: local.mainCardTight }}>
       <div className={`${s.profile} ${local.profileRow}`}>
         <div className={`${s.logoTagsContainer} ${local.logoTagsGrow}`}>
           <Image
@@ -87,14 +85,9 @@ export function TeamDetailsView({ team, headerAction, hideBadges }: Props) {
         {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
       </div>
 
-      {hasAbout && (
-        <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
-          <div className={s.aboutTitle}>About</div>
-          <ExpandableDescription>
-            <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
-          </ExpandableDescription>
-        </div>
-      )}
+      {/* Inline Follow variant sits on its own row below the header (About is
+          now its own section rendered after this card). */}
+      {beforeAbout && <div className={local.beforeAboutSlot}>{beforeAbout}</div>}
     </DetailsSection>
   );
 }

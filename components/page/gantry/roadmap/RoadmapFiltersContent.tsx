@@ -1,6 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
+import { Checkbox } from '@/components/common/Checkbox';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { CheckboxListItemRepresentation } from '@/components/common/filters/GenericCheckboxList/components/CheckboxListItemRepresentation';
 import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
@@ -81,19 +82,26 @@ export function RoadmapFiltersContent({
       {objectives.length > 0 && (
         <FilterSection title="Objective">
           <div>
-            {objectives.map((obj) => (
-              <CheckboxListItemRepresentation
-                key={obj.uid}
-                label={
-                  <span className={filterStyles.objectiveFilterLabel}>
-                    <span className={filterStyles.objectiveFilterCode}>O{obj.order}</span>
+            {objectives.map((obj) => {
+              const checked = selectedObjective === obj.uid;
+              return (
+                <div
+                  key={obj.uid}
+                  className={filterStyles.objectiveItem}
+                  onClick={() => onSelectedObjectiveChange(checked ? null : obj.uid)}
+                >
+                  <span className={filterStyles.objectiveFirstLineSlot}>
+                    <Checkbox checked={checked} classes={{ root: filterStyles.objectiveCheckbox }} />
+                  </span>
+                  <span className={filterStyles.objectiveLabel}>
+                    <span className={filterStyles.objectiveFirstLineSlot}>
+                      <span className={filterStyles.objectiveFilterCode}>O{obj.order}</span>
+                    </span>
                     <span className={filterStyles.objectiveFilterTitle}>{obj.title}</span>
                   </span>
-                }
-                checked={selectedObjective === obj.uid}
-                onClick={() => onSelectedObjectiveChange(selectedObjective === obj.uid ? null : obj.uid)}
-              />
-            ))}
+                </div>
+              );
+            })}
           </div>
         </FilterSection>
       )}

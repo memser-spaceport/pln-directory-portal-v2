@@ -42,12 +42,115 @@
 }
 
 // Vertical cluster: Follow button on top, caption, then followers beneath.
-// align-items:stretch makes the button match the caption width.
+// Centered so the compact (content-width) Follow button doesn't stretch to the
+// followers row — it stays a small CTA like the Public toggle.
 .followHeader {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+// Inline variant: Follow button + followers on a single row, above About.
+// Top-aligned so the followers box (button-height) centers to the button, not
+// the taller button+caption column. On mobile it stacks and the button goes
+// full width.
+.followInline {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  @include media.mobile-only {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+}
+
+// Followers sit in a box the height of the Follow button, centered within it.
+.inlineFollowers {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+
+  // Bump the followers component up a bit on mobile (bigger avatars + text).
+  @include media.mobile-only {
+    .subAvatar {
+      width: 26px;
+      height: 26px;
+
+      & + & {
+        margin-left: -9px;
+      }
+    }
+
+    .subCount {
+      font-size: 15px;
+      line-height: 22px;
+    }
+
+    .subPrivacyIcon svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Left group of the inline row: Follow button with its caption beneath. The
+// column is sized to the caption, so the full-width button covers exactly the
+// "Subscribe for updates" line.
+.inlineFollowCol {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+
+  @include media.mobile-only {
+    width: 100%;
+  }
+}
+
+.inlineCaption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-align: center;
+}
+
+// The button fills the caption-width column (block button = full width).
+.inlineFollowBtn {
+  display: block;
+
+  > div {
+    width: 100%;
+  }
+}
+
+// Button + caption group: sized to the caption (its widest child), so the
+// full-width Follow button stretches to exactly the caption's length.
+.followTop {
   display: inline-flex;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
+}
+
+// Trim the main (header) card's bottom padding now that About lives elsewhere.
+.mainCardTight {
+  padding-bottom: 8px;
+}
+
+// About: kill the ExpandableDescription's own box + reserved bottom so the text
+// sits tight inside the single grey container.
+.aboutDesc {
+  padding-bottom: 0;
+  background: transparent;
+
+  > div {
+    padding: 0;
+  }
 }
 
 .followCaption {
@@ -71,7 +174,13 @@
 
 /* Breathing room above the About section (header → About). */
 .aboutSpacing {
-  margin-top: 24px;
+  margin-top: 8px;
+}
+
+/* Inline Follow row sitting above About. */
+.beforeAboutSlot {
+  margin-top: 28px;
+  margin-bottom: 20px;
 }
 
 /* ---- follow toast ---- */
@@ -169,6 +278,39 @@
   }
 }
 
+// Row that keeps the count button + team-only eye icon on one centered line.
+.subStackRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+// Small "who can see this" eye sitting next to the count; note shows on hover.
+.subPrivacyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0; // kill inline baseline gap so the eye sits dead-center
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: default;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.subPrivacyTip {
+  display: block;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+}
+
 // Public view: keep the row's height but hide it, so About stays in place.
 .subStackHidden {
   visibility: hidden;
@@ -180,14 +322,14 @@
 }
 
 .subAvatar {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff;
+  border: 1.5px solid #fff;
 
   & + & {
-    margin-left: -10px;
+    margin-left: -7px;
   }
 }
 

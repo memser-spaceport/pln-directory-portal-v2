@@ -24,6 +24,7 @@ import { useGetFocusAreasToDisplay } from '@/components/page/team-details/TeamFo
 import shell from '@/app/teams/[id]/page.module.css';
 
 import { TeamDetailsView } from './TeamDetailsView';
+import { TeamAboutView } from './TeamAboutView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
@@ -56,7 +57,9 @@ export default function TeamProfilePrototype() {
   const [newsQuery, setNewsQuery] = useState('');
   const [following, setFollowing] = useState(false);
   // Demo-only: public vs team view (team view exposes subscriber info).
-  const [view, setView] = useState<'public' | 'team'>('team');
+  // '*-inline' variants move Follow above About; public-inline shows just the
+  // button + caption (no followers).
+  const [view, setView] = useState<'public' | 'team' | 'team-inline' | 'public-inline'>('team-inline');
   useEffect(() => setMounted(true), []);
 
   const displayNews = [...MOCK_NEWS].sort(
@@ -97,17 +100,17 @@ export default function TeamProfilePrototype() {
         <div className={local.demoSwitch}>
           <button
             type="button"
-            className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('public')}
+            className={`${local.demoBtn} ${view === 'team-inline' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('team-inline')}
           >
-            Public
+            Team
           </button>
           <button
             type="button"
-            className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('team')}
+            className={`${local.demoBtn} ${view === 'public-inline' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('public-inline')}
           >
-            Team
+            Public
           </button>
         </div>
 
@@ -122,17 +125,35 @@ export default function TeamProfilePrototype() {
           <TeamDetailsView
             team={team}
             headerAction={
-              <TeamFollowBlock
-                name={team.name ?? 'this team'}
-                following={following}
-                count={followCount}
-                onToggle={() => setFollowing((v) => !v)}
-                view={view}
-                subscribers={MOCK_SUBSCRIBERS}
-              />
+              view === 'team-inline' || view === 'public-inline' ? undefined : (
+                <TeamFollowBlock
+                  name={team.name ?? 'this team'}
+                  following={following}
+                  count={followCount}
+                  onToggle={() => setFollowing((v) => !v)}
+                  view={view === 'public' ? 'public' : 'team'}
+                  subscribers={MOCK_SUBSCRIBERS}
+                />
+              )
+            }
+            beforeAbout={
+              view === 'team-inline' || view === 'public-inline' ? (
+                <TeamFollowBlock
+                  inline
+                  name={team.name ?? 'this team'}
+                  following={following}
+                  count={followCount}
+                  onToggle={() => setFollowing((v) => !v)}
+                  view={view === 'public-inline' ? 'public' : 'team'}
+                  subscribers={MOCK_SUBSCRIBERS}
+                />
+              ) : undefined
             }
           />
         </div>
+
+        {/* About — its own titled section (like Fund Details). */}
+        <TeamAboutView team={team} />
 
         {/* Fund details (team.isFund) */}
         {team?.isFund && <TeamInvestorView team={team} />}

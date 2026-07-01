@@ -29,6 +29,8 @@ import { fetchTeamNewsByTeam } from '@/services/team-news/team-news.service';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
+import { getTeamFollowState } from '@/services/follow/follow.service';
+import type { ITeamFollowState } from '@/types/follow.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
@@ -49,6 +51,8 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     isNotFound,
     hasEditAsksAccess,
     teamNews,
+    followState,
+    isTeamMember,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -82,7 +86,12 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         {/* Details */}
         <div className={styles?.teamDetail__Container__details}>
           {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-          <TeamDetails team={team} />
+          <TeamDetails
+            team={team}
+            initialIsFollowed={followState?.following ?? false}
+            initialFollowerCount={followState?.followerCount ?? 0}
+            isTeamMember={isTeamMember ?? false}
+          />
         </div>
 
         {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
@@ -166,6 +175,8 @@ async function getPageData(teamId: string) {
   let isNotFound = false;
   let memberTeams: never[] = [];
   let hasEditAsksAccess: boolean = false;
+  let followState: ITeamFollowState | null = null;
+  let isTeamMember = false;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -178,31 +189,34 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse] = await Promise.all([
-      getTeam(
-        teamId,
-        {
-          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
-        },
-        authToken,
-      ),
-      getMembers(
-        {
-          'teamMemberRoles.team.uid': teamId,
-          isVerified: 'all',
-          select:
-            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
-          pagination: false,
-        },
-        teamId,
-        0,
-        0,
-        isLoggedIn,
-      ),
-      getFocusAreas('Team', {}),
-      fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
-    ]);
+    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse, followStateResponse] =
+      await Promise.all([
+        getTeam(
+          teamId,
+          {
+            with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+          },
+          authToken,
+        ),
+        getMembers(
+          {
+            'teamMemberRoles.team.uid': teamId,
+            isVerified: 'all',
+            select:
+              'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+            pagination: false,
+          },
+          teamId,
+          0,
+          0,
+          isLoggedIn,
+        ),
+        getFocusAreas('Team', {}),
+        fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
+        isLoggedIn ? getTeamFollowState(teamId, { authToken }) : Promise.resolve(null),
+      ]);
     teamNews = teamNewsResponse;
+    followState = followStateResponse;
 
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
@@ -234,6 +248,9 @@ async function getPageData(teamId: string) {
     hasEditAsksAccess =
       members.some((member: any) => member.id === userInfo.uid) ||
       (Array.isArray(userInfo?.roles) ? isAdminUser(userInfo) : false);
+    isTeamMember =
+      isLoggedIn &&
+      (members.some((member: any) => member.id === userInfo?.uid) || isAdminUser(userInfo));
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -276,6 +293,8 @@ async function getPageData(teamId: string) {
       hasProjectsEditAccess,
       hasEditAsksAccess,
       teamNews,
+      followState,
+      isTeamMember,
     };
   } catch (error: any) {
     console.error(error);

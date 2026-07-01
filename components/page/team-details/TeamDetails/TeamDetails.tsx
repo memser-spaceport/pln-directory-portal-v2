@@ -231,7 +231,7 @@ export const TeamDetails = (props: Props) => {
               team={team}
               initialIsFollowed={initialIsFollowed}
               initialFollowerCount={initialFollowerCount}
-              isTeamMember={isTeamMember}
+              isTeamMember={isTeamMember || isAdmin}
             />
           </div>
         </div>

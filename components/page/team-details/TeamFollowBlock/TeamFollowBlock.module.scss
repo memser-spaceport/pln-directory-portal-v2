@@ -12,6 +12,7 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
   text-align: center;
   align-self: center;
+  height: 36px;
 }
 
 .captionSpacer {
@@ -99,5 +100,27 @@
     font-weight: 600;
     color: var(--foreground-neutral-primary, #0a0c11);
     font-variant-numeric: tabular-nums;
+  }
+}
+
+.followBtn {
+  height: 38px;
+  min-width: 72px;
+  padding: 0 10px;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &.isFollowing.isFollowing {
+    color: #455468;
+    border-color: #0e0f1129;
+    box-shadow: 0 1px 2px #0e0f1114, inset 0 -2px 8px #0e0f1105;
+    background: #fff;
+
+    &:hover {
+      background: #f1f5f9;
+    }
   }
 }

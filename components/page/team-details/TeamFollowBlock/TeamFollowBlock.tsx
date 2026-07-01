@@ -12,6 +12,7 @@ import { Button } from '@/components/common/Button';
 
 import { TeamFollowersModal } from './TeamFollowersModal';
 import s from './TeamFollowBlock.module.scss';
+import { clsx } from 'clsx';
 
 interface TeamFollowBlockProps {
   team: ITeam;
@@ -73,11 +74,14 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
   return (
     <div className={s.wrapper}>
       <Button
-        style={isFollowing ? 'border' : 'fill'}
+        // style={isFollowing ? 'border' : 'fill'}
         variant="primary"
-        size="l"
+        size="m"
         disabled={isPending}
         onClick={handleToggle}
+        className={clsx(s.followBtn, {
+          [s.isFollowing]: isFollowing,
+        })}
       >
         {isFollowing ? (
           <>
@@ -93,9 +97,9 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
       </Button>
 
       {!isFollowing && <p className={s.caption}>Subscribe for updates</p>}
-      {isFollowing && <div className={s.captionSpacer} aria-hidden="true" />}
+      {/*{isFollowing && <div className={s.captionSpacer} aria-hidden="true" />}*/}
 
-      {isTeamMember && (
+      {isTeamMember && isFollowing && (
         <button
           type="button"
           className={showFollowers ? s.subStack : s.subStackHidden}
@@ -114,7 +118,7 @@ export function TeamFollowBlock({ team, initialIsFollowed, initialFollowerCount,
                     </span>
                   ),
                 )
-              : Array.from({ length: Math.min(followerCount, 3) }).map((_, i) => (
+              : Array.from({ length: Math.min(followerCount, 5) }).map((_, i) => (
                   <span key={i} className={s.subAvatarPlaceholder} />
                 ))}
           </span>
@@ -142,6 +146,12 @@ const PlusIcon = () => (
 
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M13.333 4L6 11.333 2.667 8"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );

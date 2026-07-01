@@ -93,10 +93,7 @@ export function InvestorDrawer({ access }: Props) {
   const onClose = () => setFilters({ investorId: null });
   const isOpen = !!investorId;
 
-  const teamLookup = useMemo(
-    () => (teams ? new Map(teams.map((t) => [t.team_id, t])) : null),
-    [teams]
-  );
+  const teamLookup = useMemo(() => (teams ? new Map(teams.map((t) => [t.team_id, t])) : null), [teams]);
 
   const coInvestedTeams = useMemo(
     () =>
@@ -105,12 +102,12 @@ export function InvestorDrawer({ access }: Props) {
             .map((id) => teamLookup.get(id))
             .filter((t): t is NonNullable<typeof t> => t !== undefined)
         : [],
-    [investor, teamLookup]
+    [investor, teamLookup],
   );
 
   const campaigns = useMemo(
     () => investor?.outreach_campaigns?.split(',').map((c) => c.trim()) ?? [],
-    [investor?.outreach_campaigns]
+    [investor?.outreach_campaigns],
   );
 
   const hasOutreachHistory =
@@ -182,8 +179,8 @@ export function InvestorDrawer({ access }: Props) {
                   </div>
                   <div className={s.pillRow}>
                     {investor.engagement_tier && <EngagementTierBadge tier={investor.engagement_tier} />}
-                    <EmailStatusPill status={investor.email_status} />
-                    <span className={s.sourcePill}>Source: {investor.source}</span>
+                    {/*<EmailStatusPill status={investor.email_status} />*/}
+                    {/*<span className={s.sourcePill}>Source: {investor.source}</span>*/}
                   </div>
                 </div>
                 <button type="button" className={s.closeBtn} onClick={onClose} aria-label="Close drawer">
@@ -195,13 +192,7 @@ export function InvestorDrawer({ access }: Props) {
                 <div className={s.channelsBox}>
                   {investor.email && (
                     <div className={s.socialEmailGroup}>
-                      <Image
-                        src={getContactLogoByProvider('email')}
-                        alt=""
-                        aria-hidden="true"
-                        width={20}
-                        height={20}
-                      />
+                      <Image src={getContactLogoByProvider('email')} alt="" aria-hidden="true" width={20} height={20} />
                       <a href={`mailto:${investor.email}`} className={s.socialEmailAddr}>
                         {investor.email}
                       </a>

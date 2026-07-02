@@ -1,282 +1,63 @@
 @import '../../../styles/media';
 
+// The prototype renders inside the global app layout. DashboardPagesLayout reads
+// these CSS vars for the sticky filter rail; provide sane fallbacks.
 .page {
+  --filter-width: 300px;
+  --app-header-height: 80px;
+
   min-height: 100vh;
   background: #f1f5f9;
-  padding: 24px 16px 64px;
 }
 
-.shell {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+.mountGate {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+/* All / Following tabs above the grid — text aligned to the "Teams" header
+   (mobile header inset 16px, desktop toolbar inset 40px). */
+.tabsRow {
+  display: flex;
+  justify-content: flex-start;
+  // Mobile: align tab label with the "Teams" title (12px inset + the tab's own
+  // padding), and hold a 20px gap to the cards below.
+  padding: 0 12px;
+  margin-bottom: 20px;
 
   @include breakpoint-1024 {
-    grid-template-columns: 260px 1fr;
-    gap: 24px;
+    padding: 0 40px;
+    // Sit closer to the "Teams" header above, and open up space before the grid.
+    margin-top: -10px;
+    margin-bottom: 20px;
   }
 }
 
-/* ── Filters rail ───────────────────────────────────────────── */
-.filters {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  align-self: start;
-  padding: 16px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow:
-    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
-    0px 0px 1px 0px rgba(15, 23, 42, 0.12);
+
+/* Mobile: tabs span the full row, each half stretched. Desktop: content-width,
+   left-aligned to the header (the -12px cancels the first tab's own padding). */
+.tabsRoot {
+  width: 100%;
 
   @include breakpoint-1024 {
-    display: flex;
-    position: sticky;
-    top: 16px;
+    width: auto;
   }
 }
 
-.filtersHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-}
-
-.filtersTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.clearAll {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--foreground-brand-primary, #1b4dff);
-}
-
-.checkList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.checkRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.checkLabel {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-.checkLabelActive {
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-weight: 500;
-}
-
-/* ── Content column ─────────────────────────────────────────── */
-.content {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-
-  @include tablet-portrait {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.toolbarLeft {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.titleContainer {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-
-/* All / Following segmented toggle — a personal view lens near the title. */
-.scopeTabs {
-  display: inline-flex;
-  padding: 2px;
-  gap: 2px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.16);
-}
-
-.scopeTab {
-  border: none;
-  background: transparent;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
-}
-
-.scopeTabActive {
-  background: rgba(21, 111, 247, 0.1);
-  color: var(--foreground-brand-primary, #1b4dff);
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-}
-
-.title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 40px;
-}
-
-.count {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-.toolbarRight {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.searchContainer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-}
-
-.searchIcon {
-  opacity: 0.6;
-}
-
-.searchInput {
-  border: none;
-  width: 160px;
-  background-color: #fff;
-  color: #0f172a;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-  }
-
-  &::placeholder {
-    color: #94a3b8;
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-.clearBtn {
-  border: none;
-  background: none;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.viewToggle {
-  display: flex;
-  padding: 2px;
-  gap: 2px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.16);
-}
-
-.viewBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  cursor: pointer;
-
-  &:hover {
-    color: var(--foreground-neutral-secondary, #455468);
-  }
-}
-
-.viewBtnActive {
-  background: rgba(21, 111, 247, 0.1);
-  color: var(--foreground-brand-primary, #1b4dff);
-}
-
-/* ── Card grid ──────────────────────────────────────────────── */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 167.5px);
-  justify-content: center;
-  row-gap: 24px;
-  column-gap: 16px;
-
-  @include tablet-portrait {
-    justify-content: flex-start;
-  }
+.tabsList {
+  width: 100%;
 
   @include breakpoint-1024 {
-    grid-template-columns: repeat(auto-fill, 289px);
-    justify-content: flex-start;
+    width: auto;
+    margin-left: -12px;
   }
 }
 
-/* List view: single column of cards stretched to full width */
-.gridList {
-  grid-template-columns: 1fr;
-  justify-content: stretch;
+.tabsTab {
+  flex: 1;
 
-  .cardLink {
-    width: 100%;
+  @include breakpoint-1024 {
+    flex: 0 0 auto;
   }
 }
 
@@ -286,11 +67,30 @@
   color: inherit;
 }
 
+/* Mobile: two equal columns filling the page width. Desktop: production's
+   289px auto-fit grid. Double class beats production's single-class .grid. */
+.gridFull.gridFull {
+  grid-template-columns: 1fr 1fr;
+  justify-content: stretch;
+  width: 100%;
+  padding: 0 16px;
+  column-gap: 12px;
+
+  @include breakpoint-1024 {
+    grid-template-columns: repeat(auto-fit, 289px);
+    justify-content: center;
+    width: auto;
+    padding: 0;
+    column-gap: 16px;
+  }
+}
+
 /* Let the card grow to fit the in-card Follow button (production sets a fixed
-   168px height). Double class beats the production .grid height. */
+   168px height) and fill its grid column. Double class beats production sizing. */
 .teamCard.teamCard {
   height: auto;
   padding-bottom: 2px;
+  width: 100%;
 }
 
 /* Full-width follow button placed in-card, after the tags. */
@@ -301,6 +101,7 @@
 }
 
 .empty {
+  margin: 16px;
   padding: 40px 20px;
   text-align: center;
   border-radius: 12px;
@@ -309,3 +110,4 @@
   font-size: 14px;
   line-height: 20px;
 }
+

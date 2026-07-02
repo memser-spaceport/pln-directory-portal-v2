@@ -2,7 +2,7 @@ import { FOLLOW_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
-export type FollowAnalyticsSource = 'news-feed' | 'team-profile';
+export type FollowAnalyticsSource = 'news-feed' | 'team-profile' | 'teams-directory';
 
 export const useFollowAnalytics = () => {
   const postHogProps = usePostHog();

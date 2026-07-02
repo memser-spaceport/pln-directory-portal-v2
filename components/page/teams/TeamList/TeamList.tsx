@@ -86,8 +86,13 @@ export function TeamList(props: TeamListProps) {
                   if (e.defaultPrevented) return;
                 }}
               >
-                <TeamGridView userInfo={userInfo} team={team} viewType={VIEW_TYPE_OPTIONS.GRID} />
-              {/* isLoggedIn/searchParams-driven follow button lands here in Phase 4 */}
+                <TeamGridView
+                  userInfo={userInfo}
+                  team={team}
+                  viewType={VIEW_TYPE_OPTIONS.GRID}
+                  isLoggedIn={isLoggedIn}
+                  searchParams={searchParams}
+                />
               </Link>
             </div>
           ))}

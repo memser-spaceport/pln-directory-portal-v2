@@ -126,8 +126,7 @@ export const getTeam = async (
   const requestOPtions: RequestInit = {
     method: 'GET',
     headers: getHeader(authToken || ''),
-    cache: 'default',
-    next: { tags: ['team-detail'] },
+    cache: 'no-store',
   };
   const response = await fetch(`${teamsAPI}/${id}?${new URLSearchParams(options)}`, requestOPtions);
   const result = await response?.json();
@@ -166,6 +165,7 @@ export const getTeam = async (
     blog: result?.blog,
     telegramHandler: result?.telegramHandler,
     communityAffiliations: result?.communityAffiliations,
+    isFollowed: result.isFollowed,
   };
   return { data: { formatedData } };
 };

@@ -149,6 +149,7 @@ export interface ITeam {
   };
   telegramHandler?: string | null;
   blog?: string | null;
+  isFollowed?: boolean;
 }
 
 export interface ITeamDetailParams {

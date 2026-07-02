@@ -354,6 +354,7 @@ function RouteNodeChip({ node }: { node: RouteNode }) {
     return (
       <Link href={`/members/${node.memberUid}`} className={s.rnChip} target="_blank" rel="noopener noreferrer">
         {inner}
+        <span className={s.rnArrow} aria-hidden>↗</span>
       </Link>
     );
   }

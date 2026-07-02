@@ -41,11 +41,15 @@ export default function TeamsContent(props: TeamsContentProps) {
     isFetchingNextPage,
     isLoading: isLoadingTeams,
     isError: isTeamsError,
+    isRefetching,
   } = useInfiniteTeamsList({ searchParams });
 
   // Lives in its own cache entry, decoupled from the active tab, so it stays accurate
   // whether the user is following/unfollowing from the All tab or the Following tab.
-  const liveFollowingTotal = useFollowingTeamsCount(followingTotal);
+  // Withhold the sync while a background refetch is in flight (e.g. right after switching to a
+  // tab whose cache was just invalidated) — otherwise the stale cached value gets briefly synced
+  // in before the fresh one arrives, flashing the wrong count.
+  const liveFollowingTotal = useFollowingTeamsCount(isRefetching ? undefined : followingTotal);
 
   const isLoading = isLoadingTeams || isLoadingFilters;
   const isError = isTeamsError || isFiltersError;

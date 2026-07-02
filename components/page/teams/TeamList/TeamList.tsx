@@ -12,6 +12,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { TeamAddCard } from './components/TeamAddCard';
 import { TeamGridView } from './components/TeamGridView';
 import { TeamsMobileFilters } from './components/TeamsMobileFilters';
+import { TeamsScopeTabs } from '@/components/page/teams/TeamsScopeTabs';
 
 import s from './TeamList.module.scss';
 
@@ -32,6 +33,7 @@ export function TeamList(props: TeamListProps) {
   const {
     teams: data,
     totalTeams,
+    followingTotal,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
@@ -56,6 +58,11 @@ export function TeamList(props: TeamListProps) {
       <div className={s.titleSec}>
         <h1 className={s.title}>Teams</h1>
         <div className={s.count}>({totalTeams})</div>
+        {isLoggedIn && (
+          <div className={s.scopeTabs}>
+            <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
+          </div>
+        )}
       </div>
       <TeamsMobileFilters userInfo={userInfo} searchParams={searchParams} filterValues={filterValues} />
       <InfiniteScroll

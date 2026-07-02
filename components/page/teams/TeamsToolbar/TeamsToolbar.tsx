@@ -10,6 +10,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
 import { useTeamFilterStore } from '@/services/teams';
+import { TeamsScopeTabs } from '@/components/page/teams/TeamsScopeTabs';
 import s from './TeamsToolbar.module.scss';
 
 const TEAMS_SORT_OPTIONS = [
@@ -33,7 +34,7 @@ interface IToolbar {
  * @param props - Contains search parameters, total number of teams, and user information.
  */
 export const TeamsToolbar = (props: IToolbar) => {
-  const { userInfo, totalTeams } = props;
+  const { userInfo, totalTeams, followingTotal, isLoggedIn } = props;
 
   const { setParam } = useTeamFilterStore();
   const searchParams = useGetTeamsFilterAsObjectFromStore();
@@ -128,6 +129,11 @@ export const TeamsToolbar = (props: IToolbar) => {
         <div className={s.titleContainer}>
           <h1 className={s.title}>Teams</h1>
           <p className={s.count}>({totalTeams})</p>
+          {isLoggedIn && (
+            <div className={s.scopeTabs}>
+              <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
+            </div>
+          )}
         </div>
         <div className={s.searchContainer}>
           <form className={s.searchForm} onSubmit={onSubmitHandler} data-testid="search-form">

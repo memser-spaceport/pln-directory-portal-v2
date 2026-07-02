@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { ITag } from '@/types/teams.types';
 import TeamsTagsList from '@/components/page/teams/teams-tags-list';
@@ -14,6 +15,8 @@ interface Props {
   team: MockTeamCard;
   following: boolean;
   onToggleFollow: () => void;
+  /** 'cta' = primary Follow button below the tags; 'top' = tertiary Follow at the card's top-right. */
+  variant?: 'cta' | 'top';
 }
 
 /**
@@ -23,11 +26,22 @@ interface Props {
  * exist (always empty here) so it's dropped; analytics is stripped. The static
  * presentational markup + production `.module.scss` are kept verbatim.
  */
-export function TeamCardView({ team, following, onToggleFollow }: Props) {
+export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' }: Props) {
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
+
+  const stopNav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <div className={`${s.grid} ${local.teamCard}`}>
+      {variant === 'top' && (
+        <span className={local.topFollow} onClick={stopNav}>
+          <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="xs" bell link />
+        </span>
+      )}
+
       <div className={s.profileContainer}>
         <Image
           alt="profile"
@@ -53,16 +67,12 @@ export function TeamCardView({ team, following, onToggleFollow }: Props) {
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
 
-        {/* Follow button — in-card, after the tags. Stops the card's link navigation. */}
-        <span
-          className={local.followRow}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block glossy />
-        </span>
+        {/* CTA variant: secondary (outlined) Follow button in-card, after the tags. */}
+        {variant === 'cta' && (
+          <span className={local.followRow} onClick={stopNav}>
+            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
+          </span>
+        )}
       </div>
     </div>
   );

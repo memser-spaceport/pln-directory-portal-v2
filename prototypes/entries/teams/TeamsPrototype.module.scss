@@ -91,6 +91,32 @@
   height: auto;
   padding-bottom: 2px;
   width: 100%;
+  position: relative;
+}
+
+/* 'top' variant: tertiary Follow pinned to the card's top-right corner. */
+.topFollow {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+/* Demo-only bar to switch the Follow-control card design. */
+.demoBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.demoLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 /* Full-width follow button placed in-card, after the tags. */

@@ -23,6 +23,8 @@ interface Props {
   bell?: boolean;
   /** Tertiary: a small no-fill text button (e.g. inline next to a name). */
   tertiary?: boolean;
+  /** Link: a pure DS grey text-link button (no fill/border). */
+  link?: boolean;
   /** Secondary: an outlined (bordered) button instead of the solid primary. */
   secondary?: boolean;
   /** Glossy: the "Schedule Meeting" treatment — inset highlights + brand glow. */
@@ -46,16 +48,22 @@ export function FollowButton({
   caret,
   bell,
   tertiary,
+  link,
   secondary,
   glossy,
   menuExpanded,
 }: Props) {
+  // link = pure DS grey text-link button; tertiary = the custom compact text
+  // button; secondary = DS blue outlined; else solid primary.
+  const btnStyle = tertiary || link ? 'link' : secondary || following ? 'border' : 'fill';
+  const btnVariant = link ? 'secondary' : following ? 'neutral' : tertiary ? 'neutral' : 'primary';
+
   return (
     <div className={clsx(s.root, { [s.block]: block })}>
       <Button
         size={size}
-        style={tertiary ? 'link' : secondary || following ? 'border' : 'fill'}
-        variant={following ? 'neutral' : secondary ? 'secondary' : tertiary ? 'neutral' : 'primary'}
+        style={btnStyle}
+        variant={btnVariant}
         underline={false}
         className={clsx(s.btn, { [s.blockBtn]: block, [s.tertiary]: tertiary, [s.glossy]: glossy && !following && !secondary })}
         onClick={onClick}

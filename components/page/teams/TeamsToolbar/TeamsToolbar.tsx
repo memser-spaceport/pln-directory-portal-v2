@@ -120,63 +120,66 @@ export const TeamsToolbar = (props: IToolbar) => {
   }, [searchParams]);
 
   return (
-    <div className={s.toolbar} data-testid="teams-toolbar">
-      <div className={s.left}>
-        <button className={s.filterBtn} onClick={onFilterClickHandler} data-testid="filter-button">
-          <Image loading="lazy" alt="filter" src="/icons/filter.svg" height={20} width={20}></Image>
-          {filterCount > 0 && <FilterCount count={filterCount} />}
-        </button>
-        <div className={s.titleContainer}>
-          <h1 className={s.title}>Teams</h1>
-          <p className={s.count}>({totalTeams})</p>
-          {isLoggedIn && (
-            <div className={s.scopeTabs}>
-              <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
-            </div>
-          )}
-        </div>
-        <div className={s.searchContainer}>
-          <form className={s.searchForm} onSubmit={onSubmitHandler} data-testid="search-form">
-            <input
-              ref={inputRef}
-              value={searchInput}
-              onChange={(e) => onInputChange(e)}
-              className={s.searchInput}
-              placeholder="Search for a team"
-              onFocus={(e) =>
-                e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
-              }
-              data-testid="search-input"
-            />
+    <div className={s.wrapper} data-testid="teams-toolbar">
+      <div className={s.toolbar}>
+        <div className={s.left}>
+          <button className={s.filterBtn} onClick={onFilterClickHandler} data-testid="filter-button">
+            <Image loading="lazy" alt="filter" src="/icons/filter.svg" height={20} width={20}></Image>
+            {filterCount > 0 && <FilterCount count={filterCount} />}
+          </button>
+          <div className={s.titleContainer}>
+            <h1 className={s.title}>Teams</h1>
+            <p className={s.count}>({totalTeams})</p>
+          </div>
+          <div className={s.searchContainer}>
+            <form className={s.searchForm} onSubmit={onSubmitHandler} data-testid="search-form">
+              <input
+                ref={inputRef}
+                value={searchInput}
+                onChange={(e) => onInputChange(e)}
+                className={s.searchInput}
+                placeholder="Search for a team"
+                onFocus={(e) =>
+                  e.currentTarget.setSelectionRange(e.currentTarget.value.length, e.currentTarget.value.length)
+                }
+                data-testid="search-input"
+              />
 
-            <div className={s.searchOptions}>
-              {searchInput && (
-                <button
-                  title="Clear"
-                  type="button"
-                  onClick={onClearSearchClicked}
-                  className={s.clearBtn}
-                  data-testid="clear-search-button"
-                >
-                  <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
+              <div className={s.searchOptions}>
+                {searchInput && (
+                  <button
+                    title="Clear"
+                    type="button"
+                    onClick={onClearSearchClicked}
+                    className={s.clearBtn}
+                    data-testid="clear-search-button"
+                  >
+                    <Image loading="lazy" alt="close" src="/icons/close-gray.svg" height={16} width={16} />
+                  </button>
+                )}
+                <button title="Search" className={s.searchBtn} type="submit" data-testid="search-button">
+                  <Image loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
                 </button>
-              )}
-              <button title="Search" className={s.searchBtn} type="submit" data-testid="search-button">
-                <Image loading="lazy" alt="search" src="/icons/search.svg" height={16} width={16} />
-              </button>
-            </div>
-          </form>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div className={s.right}>
+          <SortDropdown
+            sortByLabel="Sort by:"
+            options={TEAMS_SORT_OPTIONS}
+            currentSort={sortBy}
+            onSortChange={onSortChange}
+          />
         </div>
       </div>
 
-      <div className={s.right}>
-        <SortDropdown
-          sortByLabel="Sort by:"
-          options={TEAMS_SORT_OPTIONS}
-          currentSort={sortBy}
-          onSortChange={onSortChange}
-        />
-      </div>
+      {isLoggedIn && (
+        <div className={s.tabsRow}>
+          <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
+        </div>
+      )}
     </div>
   );
 };

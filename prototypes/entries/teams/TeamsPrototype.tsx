@@ -164,7 +164,7 @@ export default function TeamsPrototype() {
           onValueChange={(v) => setCardVariant(v as 'cta' | 'top')}
           tabs={[
             { label: 'Secondary CTA', value: 'cta' },
-            { label: 'Tertiary (top)', value: 'top' },
+            { label: 'Tertiary link', value: 'top' },
           ]}
         />
       </div>

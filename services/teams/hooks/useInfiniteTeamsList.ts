@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { toast } from '@/components/core/ToastContainer';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 import { ITEMS_PER_PAGE, TOAST_MESSAGES } from '@/utils/constants';
 import { TeamsListQueryParams } from '@/services/teams/types';
 import { TeamsQueryKeys } from '@/services/teams/constants';
@@ -25,25 +25,48 @@ async function infiniteFetcher(searchParams: TeamsListQueryParams['searchParams'
 
   const res = await getTeamList(query, page, ITEMS_PER_PAGE, authToken);
 
+  if (res.isError) {
+    throw new Error('Failed to fetch teams list');
+  }
+
   return {
-    items: res.data,
-    total: res.totalItems,
+    // getTeamList's formattedData is a deliberately trimmed subset of ITeam (pre-existing
+    // behavior); cast at this boundary rather than widening ITeam's required fields.
+    items: (res.data ?? []) as unknown as ITeam[],
+    total: res.totalItems ?? 0,
+    followingTotal: res.followingTotal ?? 0,
   };
 }
 
-type QueryData = {
-  total?: number;
-  items?: ITeam[];
+export type QueryData = {
+  total: number;
+  items: ITeam[];
+  followingTotal: number;
 };
+
+export interface UseInfiniteTeamsListResult {
+  data: ITeam[];
+  total: number;
+  followingTotal: number | undefined;
+  error: unknown;
+  isError: boolean;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+  status: 'pending' | 'error' | 'success';
+  refetch: () => void;
+  isRefetching: boolean;
+}
+
+const EMPTY_INITIAL_DATA: Partial<QueryData> = { items: [], total: 0 };
 
 export function useInfiniteTeamsList(
   queryParams: TeamsListQueryParams,
-  {
-    initialData,
-  }: {
-    initialData: QueryData;
-  },
-) {
+  { initialData }: { initialData?: Partial<QueryData> } = {},
+): UseInfiniteTeamsListResult {
+  const seed = initialData ?? EMPTY_INITIAL_DATA;
+
   const {
     isRefetching,
     data,
@@ -64,10 +87,12 @@ export function useInfiniteTeamsList(
     getNextPageParam: (data, allPages, lastPageParam) => {
       return data.items.length < ITEMS_PER_PAGE ? undefined : lastPageParam + 1;
     },
-    initialData: {
-      pages: [{ items: initialData.items, total: initialData.total }],
-      pageParams: [1],
-    },
+    initialData: seed.items?.length
+      ? ({
+          pages: [{ items: seed.items, total: seed.total ?? 0, followingTotal: seed.followingTotal ?? 0 }],
+          pageParams: [1],
+        } as InfiniteData<QueryData, number>)
+      : undefined,
     staleTime: 30000,
     refetchOnWindowFocus: false,
   });
@@ -78,11 +103,14 @@ export function useInfiniteTeamsList(
     }
   }, [error, isError]);
 
-  const items: ITeam[] = data?.pages?.flatMap((page) => page.items) ?? [];
+  const items = useMemo<ITeam[]>(() => data?.pages?.flatMap((page) => page.items) ?? [], [data]);
 
   return {
     data: items,
+    total: data?.pages?.[0]?.total ?? 0,
+    followingTotal: data?.pages?.[0]?.followingTotal,
     error,
+    isError,
     fetchNextPage,
     hasNextPage,
     isLoading,

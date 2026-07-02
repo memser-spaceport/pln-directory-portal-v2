@@ -23,7 +23,9 @@ const TEAMS_SORT_OPTIONS = [
  */
 interface IToolbar {
   totalTeams: number;
+  followingTotal?: number;
   userInfo: IUserInfo | undefined;
+  isLoggedIn?: boolean;
 }
 
 /**

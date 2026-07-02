@@ -36,7 +36,7 @@ export default function PrivacyPolicyPage() {
         <div className="privacy-policy__header">
           <h1 className="privacy-policy__header__title">Privacy Policy</h1>
           <p className="privacy-policy__header__date">
-            <em>Last Updated: June 3, 2026</em>
+            <em>Last Updated: July 2, 2026</em>
           </p>
         </div>
 
@@ -560,7 +560,7 @@ export default function PrivacyPolicyPage() {
                   changes.
                 </p>
                 <p className="privacy-policy__content__paragraph">
-                  This document is CC-BY-SA. It was last updated June 3, 2026.
+                  This document is CC-BY-SA. It was last updated July 2, 2026.
                 </p>
               </div>
             )}

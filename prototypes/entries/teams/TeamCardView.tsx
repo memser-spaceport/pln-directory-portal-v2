@@ -36,6 +36,7 @@ export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' 
 
   return (
     <div className={`${s.grid} ${local.teamCard}`}>
+      {/* 'top' variant, desktop: tertiary link pinned to the card's top-right. */}
       {variant === 'top' && (
         <span className={local.topFollow} onClick={stopNav}>
           <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="xs" bell link />
@@ -67,9 +68,16 @@ export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' 
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
 
-        {/* CTA variant: secondary (outlined) Follow button in-card, after the tags. */}
+        {/* Follow control below the tags: secondary (outlined) button for the
+            'cta' variant, tertiary text link (left-aligned) for the 'top' variant. */}
         {variant === 'cta' && (
           <span className={local.followRow} onClick={stopNav}>
+            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
+          </span>
+        )}
+        {/* 'top' variant, mobile: fall back to the secondary button (better tap target). */}
+        {variant === 'top' && (
+          <span className={`${local.followRow} ${local.followRowSecondaryMobile}`} onClick={stopNav}>
             <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
           </span>
         )}

@@ -94,12 +94,23 @@
   position: relative;
 }
 
-/* 'top' variant: tertiary Follow pinned to the card's top-right corner. */
+/* 'top' variant, desktop: tertiary Follow link pinned to the card's top-right.
+   Hidden on mobile, where the secondary button below takes over. */
 .topFollow {
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 2;
+
+  @media (max-width: 1023.98px) {
+    display: none;
+  }
+}
+
+.followRow.followRowSecondaryMobile {
+  @include breakpoint-1024 {
+    display: none;
+  }
 }
 
 /* Demo-only bar to switch the Follow-control card design. */

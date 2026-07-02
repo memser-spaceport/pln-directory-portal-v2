@@ -126,6 +126,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-news/HomeNewsPrototype'),
   },
   {
+    key: 'newsfeed-v0',
+    title: 'Newsfeed redesign — v0 quick wins',
+    description:
+      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a Current / V0 grid / V0 feed switch on the feed. The feed mode is a single centered column where every story in a team cluster has equal weight, newest first. V0 layers the quick wins: the AI summary the API already returns rendered on the card, a source chip with favicon, one card per team (lead picked by importance — event weight + discussion — with the other updates visible as compact rows), and a visible Join discussion / Start a conversation CTA.',
+    category: 'Newsfeed',
+    load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
+  },
+  {
     key: 'ai-apps',
     title: 'AI Apps',
     description:

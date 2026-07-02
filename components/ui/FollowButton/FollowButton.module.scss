@@ -1,34 +1,43 @@
 .btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  padding: 0;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #fff;
   cursor: pointer;
-  flex-shrink: 0;
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
   white-space: nowrap;
-  transition: opacity 0.1s ease;
-  margin-left: 8px;
-
-  &:hover {
-    opacity: 0.75;
-  }
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: default;
   }
 }
 
 .follow {
-  color: #455468;
+  border-color: #156ff7;
+  color: #156ff7;
+
+  &:hover:not(:disabled) {
+    background: #f0f6ff;
+  }
 }
 
 .following {
-  color: #1b4dff;
+  border-color: #e2e8f0;
+  color: #455468;
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+  }
 }

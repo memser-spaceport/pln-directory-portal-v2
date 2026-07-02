@@ -21,12 +21,12 @@ export async function unfollowTeam(teamUid: string): Promise<ITeamFollowState | 
   return (await response.json()) as ITeamFollowState;
 }
 
-export async function getTeamFollowState(
+export async function getTeamFollowers(
   teamUid: string,
   options?: { authToken?: string },
-): Promise<ITeamFollowState | null> {
+): Promise<ITeamFollowersResponse | null> {
   const response = await fetch(
-    `${process.env.DIRECTORY_API_URL}/v1/teams/${encodeURIComponent(teamUid)}/follow`,
+    `${process.env.DIRECTORY_API_URL}/v1/teams/${encodeURIComponent(teamUid)}/followers`,
     {
       method: 'GET',
       headers: options?.authToken ? { Authorization: `Bearer ${options.authToken}` } : {},
@@ -34,18 +34,5 @@ export async function getTeamFollowState(
     },
   );
   if (!response.ok) return null;
-  return (await response.json()) as ITeamFollowState;
-}
-
-export async function getTeamFollowers(
-  teamUid: string,
-  options?: { authToken?: string },
-): Promise<ITeamFollowersResponse | null> {
-  const response = await customFetch(
-    `${process.env.DIRECTORY_API_URL}/v1/teams/${encodeURIComponent(teamUid)}/followers`,
-    { method: 'GET', headers: options?.authToken ? { Authorization: `Bearer ${options.authToken}` } : {} },
-    true,
-  );
-  if (!response?.ok) return null;
   return (await response.json()) as ITeamFollowersResponse;
 }

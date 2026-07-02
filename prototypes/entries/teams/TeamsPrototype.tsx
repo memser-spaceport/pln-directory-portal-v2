@@ -49,6 +49,8 @@ export default function TeamsPrototype() {
 
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [toastName, setToastName] = useState<string | null>(null);
+  // Demo-only: how the Follow control is presented on each card.
+  const [cardVariant, setCardVariant] = useState<'cta' | 'top'>('cta');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -136,6 +138,7 @@ export default function TeamsPrototype() {
                     team={team}
                     following={followed.has(team.id)}
                     onToggleFollow={() => toggleFollow(team.id, team.name ?? 'team')}
+                    variant={cardVariant}
                   />
                 </Link>
               ))}
@@ -152,6 +155,20 @@ export default function TeamsPrototype() {
 
   return (
     <div className={s.page}>
+      {/* Demo-only switcher: compare the two Follow-control card designs. */}
+      <div className={s.demoBar}>
+        <span className={s.demoLabel}>Follow control</span>
+        <Tabs
+          variant="pill"
+          value={cardVariant}
+          onValueChange={(v) => setCardVariant(v as 'cta' | 'top')}
+          tabs={[
+            { label: 'Secondary CTA', value: 'cta' },
+            { label: 'Tertiary (top)', value: 'top' },
+          ]}
+        />
+      </div>
+
       <DashboardPagesLayout filters={<TeamsFilterView />} content={content} />
 
       {toastName && (

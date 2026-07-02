@@ -2,7 +2,7 @@
 
 .grid {
   width: 167.5px;
-  height: 168px;
+  min-height: 168px;
   background-color: #fff;
   border-radius: 12px;
   box-shadow:
@@ -100,6 +100,12 @@
 .tagsDesc {
   display: none;
   overflow: hidden;
+}
+
+.followRow {
+  margin-top: 4px;
+  //padding-top: 8px;
+  //border-top: 1px solid #e2e8f0;
 }
 
 .embla {
@@ -292,8 +298,12 @@
 
   .grid {
     width: 289px;
-    height: 267px;
+    min-height: 267px;
   }
+
+  //.followRow {
+  //  padding-top: 12px;
+  //}
 
   .teamName {
     font-size: 18px;

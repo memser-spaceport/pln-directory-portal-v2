@@ -597,6 +597,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         .th-chart {
           width: 100%;
           margin-top: 8px;
+          margin-bottom: 32px;
         }
 
         /* Table */
@@ -604,6 +605,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           width: 100%;
           overflow-x: auto;
           margin-top: 8px;
+          margin-bottom: 32px;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
         }

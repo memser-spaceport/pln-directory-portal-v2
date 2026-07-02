@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { followTeam, unfollowTeam } from '../follow.service';
 import type { ITeamFollowState } from '@/types/follow.types';
 
-type FollowAction = { teamUid: string; action: 'follow' | 'unfollow' };
+export type FollowAction = { teamUid: string; action: 'follow' | 'unfollow' };
 
 export function useFollowTeam() {
   return useMutation({

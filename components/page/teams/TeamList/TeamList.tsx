@@ -8,31 +8,43 @@ import { getAnalyticsTeamInfo, getAnalyticsUserInfo, triggerLoader } from '@/uti
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
 
 import { TeamAddCard } from './components/TeamAddCard';
 import { TeamGridView } from './components/TeamGridView';
 import { TeamsMobileFilters } from './components/TeamsMobileFilters';
+import { TeamsScopeTabs } from '@/components/page/teams/TeamsScopeTabs';
 
 import s from './TeamList.module.scss';
 
 interface TeamListProps {
   teams: ITeam[];
   totalTeams: number;
+  followingTotal?: number;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetchingNextPage: boolean;
   searchParams: ITeamsSearchParams;
   userInfo?: IUserInfo;
   filterValues?: ITeamFilterSelectedItems;
+  isLoggedIn?: boolean;
 }
 
 export function TeamList(props: TeamListProps) {
-  const { teams, totalTeams, searchParams, userInfo, filterValues } = props;
+  const {
+    teams: data,
+    totalTeams,
+    followingTotal,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    searchParams,
+    userInfo,
+    filterValues,
+    isLoggedIn,
+  } = props;
 
   const analytics = useTeamAnalytics();
-
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteTeamsList(
-    { searchParams },
-    { initialData: { items: teams, total: totalTeams } },
-  );
+  const isFollowingOnly = searchParams.followingOnly === 'true';
 
   const onTeamClickHandler = (e: React.MouseEvent, team: ITeam) => {
     if (!e.ctrlKey) {
@@ -46,6 +58,11 @@ export function TeamList(props: TeamListProps) {
       <div className={s.titleSec}>
         <h1 className={s.title}>Teams</h1>
         <div className={s.count}>({totalTeams})</div>
+        {isLoggedIn && (
+          <div className={s.scopeTabs}>
+            <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
+          </div>
+        )}
       </div>
       <TeamsMobileFilters userInfo={userInfo} searchParams={searchParams} filterValues={filterValues} />
       <InfiniteScroll
@@ -57,11 +74,11 @@ export function TeamList(props: TeamListProps) {
         style={{ overflow: 'unset' }}
       >
         <div className={s.grid}>
-          {userInfo && userInfo?.rbac?.status === 'APPROVED' && data?.length > 0 && (
+          {!isFollowingOnly && userInfo && userInfo?.rbac?.status === 'APPROVED' && data?.length > 0 && (
             <TeamAddCard userInfo={userInfo} viewType={VIEW_TYPE_OPTIONS.GRID} />
           )}
-          {data.map((team: ITeam, index: number) => (
-            <div key={`teamitem-${team.id}-${index}`} className={s.team} onClick={(e) => onTeamClickHandler(e, team)}>
+          {data.map((team: ITeam) => (
+            <div key={team.id} className={s.team} onClick={(e) => onTeamClickHandler(e, team)}>
               <Link
                 prefetch={false}
                 href={`${PAGE_ROUTES.TEAMS}/${team?.id}`}
@@ -69,7 +86,13 @@ export function TeamList(props: TeamListProps) {
                   if (e.defaultPrevented) return;
                 }}
               >
-                <TeamGridView userInfo={userInfo} team={team} viewType={VIEW_TYPE_OPTIONS.GRID} />
+                <TeamGridView
+                  userInfo={userInfo}
+                  team={team}
+                  viewType={VIEW_TYPE_OPTIONS.GRID}
+                  isLoggedIn={isLoggedIn}
+                  searchParams={searchParams}
+                />
               </Link>
             </div>
           ))}

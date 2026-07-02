@@ -149,6 +149,10 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     first_name: dto.firstName ?? '',
     last_name: dto.lastName ?? '',
     email: dto.email ?? '',
+    additional_emails:
+      Array.isArray(dto.additionalEmails) && dto.additionalEmails.length > 0
+        ? (dto.additionalEmails as string[])
+        : undefined,
     email_status: (dto.emailStatus ?? 'unknown') as EmailStatus,
     linkedin_url: dto.linkedinUrl ?? '',
     firm: dto.firm ?? '',

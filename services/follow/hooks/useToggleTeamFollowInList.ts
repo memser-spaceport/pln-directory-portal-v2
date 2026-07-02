@@ -96,6 +96,14 @@ export function useToggleTeamFollowInList({ team, searchParams }: UseToggleTeamF
           }
         },
         onError: revert,
+        onSettled: () => {
+          // The optimistic patch only flips/removes teams already present in a given cached
+          // tab's page — it can't know how a newly-followed team fits into a *different*,
+          // currently inactive tab's cache (e.g. following from All while Following is cached
+          // stale). Invalidate so any inactive tab variant refetches for real next time it's
+          // viewed, instead of silently serving stale data until a hard reload.
+          queryClient.invalidateQueries({ queryKey: [TeamsQueryKeys.GET_TEAMS_LIST] });
+        },
       },
     );
   };

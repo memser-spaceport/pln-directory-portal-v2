@@ -17,7 +17,6 @@ export interface NavPoint {
   eth: number;
   fil: number;
   plvh: number;
-  estimated: boolean;
 }
 
 export interface BuybackMetric {

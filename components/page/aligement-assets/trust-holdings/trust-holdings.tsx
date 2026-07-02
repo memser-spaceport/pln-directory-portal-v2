@@ -44,12 +44,11 @@ const formatCurrency = (value: number) => {
   const fractionDigits = Number.isInteger(value) ? 0 : 2;
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: fractionDigits, maximumFractionDigits: 2 })}`;
 };
-// Always two decimals — used for the BTC / ETH / FIL / PLVH asset columns
+// Whole rounded dollars — used for the BTC / ETH / FIL / PLVH asset columns
 const formatAsset = (value: number) =>
-  value ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
-// NAV per PLAA is stored with 2 decimals but displayed as whole dollars,
-// rounded to the nearest dollar, in the chart pills and table.
-const formatPerPlaa = (value: number) => `$${Math.round(value)}`;
+  value ? `$${Math.round(value).toLocaleString('en-US')}` : '—';
+// NAV per PLAA is shown with two decimals in the chart pills and table.
+const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
 
@@ -303,11 +302,6 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         {view === 'quarterly' ? <NavChart data={navData} /> : <NavTable data={navData} />}
 
-        <p className="th-card__footnote">
-          Q2 2025 – Q1 2026 reflect Treasuries, BTC, ETH, FIL and cash only. PLVH portfolio holdings (via SPV) are added
-          in Q2 2026. Illustrative internal marks; values may change. Past results do not guarantee future outcomes.
-        </p>
-
         {/* Buyback information */}
         <p className="th-section-eyebrow">BUYBACK INFORMATION</p>
         <div className="th-metrics">
@@ -321,13 +315,13 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         <a
           className="th-link"
-          href="https://app.notion.com/p/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5"
+          href="https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5"
           target="_blank"
           rel="noopener noreferrer"
           onClick={() =>
             onNavMenuClicked(
               'View past buyback results',
-              'https://app.notion.com/p/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5'
+              'https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5'
             )
           }
         >
@@ -363,7 +357,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
           <div className="th-legend">
             <p className="th-section-eyebrow">FOCUS AREA BREAKDOWN</p>
-            <p className="th-legend__sub">Share of PLVH exposure by focus area · 4 focus areas · as of Mar 31, 2026</p>
+            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of Jun 30, 2026</p>
             <ul className="th-legend__list">
               {data.focusAreas.map((slice) => (
                 <li key={slice.name} className="th-legend__row">
@@ -416,6 +410,18 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           ))}
         </ul>
       </section>
+
+      {/* PLAA definition callout */}
+      <aside className="th-note" role="note">
+        <span className="th-note__icon" aria-hidden="true">i</span>
+        <p className="th-note__text">
+          PLAA refers to both PLAA1 tokens and off-chain, contractual rights to those tokens. Both are redeemable when
+          you participate in a periodic reverse auction buyback. Buybacks provide PLAA holders with exposure to Protocol
+          Labs Network&rsquo;s portfolio of frontier technology investments, as well as cryptocurrencies and other
+          digital assets. Whether you hold PLAA1 tokens or contractual rights, the experience is the same, so we just
+          call it PLAA.
+        </p>
+      </aside>
 
       <style jsx global>{`
         .th {
@@ -519,12 +525,6 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           color: #94a3b8;
         }
 
-        .th-card__footnote {
-          margin: 16px 0 24px;
-          font-size: 13px;
-          line-height: 18px;
-          color: #94a3b8;
-        }
 
         /* Controls */
         .th-controls {
@@ -923,6 +923,42 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         .th-disclaimers__item::marker {
           color: #cbd5e1;
+        }
+
+        /* PLAA definition callout — subtle blue→green gradient border + fill */
+        .th-note {
+          display: flex;
+          gap: 16px;
+          align-items: flex-start;
+          border: 1px solid transparent;
+          border-radius: 16px;
+          padding: 20px 28px;
+          background: linear-gradient(90deg, #f4f8ff, #f3fbf7) padding-box,
+            linear-gradient(90deg, #156ff7, #30c593) border-box;
+        }
+
+        .th-note__icon {
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          margin-top: 1px;
+          border-radius: 50%;
+          background-color: #475569;
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 700;
+          font-style: normal;
+        }
+
+        .th-note__text {
+          margin: 0;
+          font-size: 15px;
+          font-style: italic;
+          line-height: 24px;
+          color: #475569;
         }
 
         @media (max-width: 768px) {

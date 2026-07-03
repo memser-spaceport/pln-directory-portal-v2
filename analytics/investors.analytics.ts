@@ -1,8 +1,6 @@
 import { usePostHog } from 'posthog-js/react';
 import { useCallback } from 'react';
 
-// Investor DB / PL Path Finder analytics. Kebab-case event names per the
-// team convention (see founder-guides.analytics.ts).
 const INVESTORS_ANALYTICS_EVENTS = {
   PATHFINDER_PATHS_VIEWED: 'pathfinder-paths-viewed',
   PATHFINDER_PATH_EXPANDED: 'pathfinder-path-expanded',
@@ -10,17 +8,28 @@ const INVESTORS_ANALYTICS_EVENTS = {
   PATHFINDER_EXPORT: 'pathfinder-export',
   PATHFINDER_CROSSWALK_CONFIRMED: 'pathfinder-crosswalk-confirmed',
   PATHFINDER_CROSSWALK_REJECTED: 'pathfinder-crosswalk-rejected',
-  // Lists IA
   LIST_SELECTED: 'investor-list-selected',
   CONNECTOR_LENS_APPLIED: 'investor-connector-lens-applied',
   ADDED_TO_LIST: 'investor-added-to-list',
   REMOVED_FROM_LIST: 'investor-removed-from-list',
+  WORKSPACE_TAB_CHANGED: 'investors-workspace-tab-changed',
+  DRAWER_OPENED: 'investor-drawer-opened',
+  DRAWER_CLOSED: 'investor-drawer-closed',
+  DRAWER_WARM_PATHS_VIEW_ALL_CLICKED: 'investor-drawer-warm-paths-view-all-clicked',
+  DRAWER_CHANNEL_CLICKED: 'investor-drawer-channel-clicked',
+  DRAWER_COPY_EMAIL_CLICKED: 'investor-drawer-copy-email-clicked',
+  DRAWER_OPEN_IN_AFFINITY_CLICKED: 'investor-drawer-open-in-affinity-clicked',
+  DRAWER_VIEW_IN_LABOS_CLICKED: 'investor-drawer-view-in-labos-clicked',
+  GLOSSARY_OPENED: 'warm-intros-glossary-opened',
+  CROSSWALK_OPENED: 'warm-intros-crosswalk-opened',
 } as const;
+
+export type InvestorDrawerSource = 'warm-intros-table' | 'all-investors-table';
+export type InvestorDrawerChannel = 'email' | 'linkedin' | 'website';
 
 export function useInvestorsAnalytics() {
   const posthog = usePostHog();
 
-  /** Fired once per target when its ranked path list first loads in the drawer/expand. */
   const trackPathsViewed = useCallback(
     (params: { investorId: string; pathCount: number; bestProximityCode?: string | null }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.PATHFINDER_PATHS_VIEWED, params);
@@ -28,7 +37,6 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
-  /** Fired when the user expands a candidate row to reveal its warm paths. */
   const trackPathExpanded = useCallback(
     (params: { investorId: string; bestProximityCode?: string | null }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.PATHFINDER_PATH_EXPANDED, params);
@@ -64,7 +72,6 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
-  /** Fired when the user picks a target list in the warm-intros workspace. */
   const trackListSelected = useCallback(
     (params: { listId: string; listName: string; isGraphed: boolean }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.LIST_SELECTED, params);
@@ -72,7 +79,6 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
-  /** Fired when a unified-search result applies the connector-lens filter. */
   const trackConnectorLensApplied = useCallback(
     (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' | 'pl_team' }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CONNECTOR_LENS_APPLIED, params);
@@ -94,6 +100,75 @@ export function useInvestorsAnalytics() {
     [posthog],
   );
 
+  const trackWorkspaceTabChanged = useCallback(
+    (params: { tab: 'warm-intros' | 'all'; previousTab: 'warm-intros' | 'all' }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.WORKSPACE_TAB_CHANGED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerOpened = useCallback(
+    (params: {
+      investorId: string;
+      source: InvestorDrawerSource;
+      hasPath?: boolean;
+      bestProximityCode?: string | null;
+    }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_OPENED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerClosed = useCallback(
+    (params: { investorId: string; timeOpenMs: number }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_CLOSED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerWarmPathsViewAllClicked = useCallback(
+    (params: { investorId: string; pathCount?: number | null }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_WARM_PATHS_VIEW_ALL_CLICKED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerChannelClicked = useCallback(
+    (params: { investorId: string; channel: InvestorDrawerChannel }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_CHANNEL_CLICKED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerCopyEmailClicked = useCallback(
+    (params: { investorId: string }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_COPY_EMAIL_CLICKED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerOpenInAffinityClicked = useCallback(
+    (params: { investorId: string }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_OPEN_IN_AFFINITY_CLICKED, params);
+    },
+    [posthog],
+  );
+
+  const trackDrawerViewInLabOsClicked = useCallback(
+    (params: { investorId: string; profileType: string }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.DRAWER_VIEW_IN_LABOS_CLICKED, params);
+    },
+    [posthog],
+  );
+
+  const trackGlossaryOpened = useCallback(() => {
+    posthog?.capture(INVESTORS_ANALYTICS_EVENTS.GLOSSARY_OPENED);
+  }, [posthog]);
+
+  const trackCrosswalkOpened = useCallback(() => {
+    posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CROSSWALK_OPENED);
+  }, [posthog]);
+
   return {
     trackPathsViewed,
     trackPathExpanded,
@@ -105,5 +180,15 @@ export function useInvestorsAnalytics() {
     trackConnectorLensApplied,
     trackAddedToList,
     trackRemovedFromList,
+    trackWorkspaceTabChanged,
+    trackDrawerOpened,
+    trackDrawerClosed,
+    trackDrawerWarmPathsViewAllClicked,
+    trackDrawerChannelClicked,
+    trackDrawerCopyEmailClicked,
+    trackDrawerOpenInAffinityClicked,
+    trackDrawerViewInLabOsClicked,
+    trackGlossaryOpened,
+    trackCrosswalkOpened,
   };
 }

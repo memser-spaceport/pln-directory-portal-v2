@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ITeam } from '@/types/teams.types';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
 import { useTeamFollowers } from '@/services/follow/hooks/useTeamFollowers';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 import { TeamFollowersModal } from './TeamFollowersModal';
@@ -18,6 +19,7 @@ interface TeamFollowBlockProps {
 
 export function TeamFollowBlock({ team, initialFollowers }: TeamFollowBlockProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const analytics = useTeamAnalytics();
 
   const { data: followersData } = useTeamFollowers(team.id, {
     enabled: true,
@@ -33,7 +35,14 @@ export function TeamFollowBlock({ team, initialFollowers }: TeamFollowBlockProps
 
   return (
     <div className={s.followersInfo}>
-      <button type="button" className={s.subStack} onClick={() => setModalOpen(true)}>
+      <button
+        type="button"
+        className={s.subStack}
+        onClick={() => {
+          analytics.onFollowersModalOpened({ teamUid: team.id, followerCount });
+          setModalOpen(true);
+        }}
+      >
         <span className={s.subAvatars} aria-hidden="true">
           {previewAvatars.length > 0
             ? previewAvatars.map((f) =>

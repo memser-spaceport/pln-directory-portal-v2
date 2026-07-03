@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
@@ -148,19 +148,7 @@ export const MembersFilter = (props: IMembersFilter) => {
 
       {hasAffinityAccess && (
         <FilterSection title="Portfolio">
-          <GenericFilterToggle
-            label="Show PortCo founders"
-            paramKey="isPortCoFounder"
-            filterStore={useFilterStore}
-            className={clsx(s.Label, s.toggle)}
-            onChange={(checked) => {
-              analytics.onMembersOHFilterToggled({
-                page: 'Members',
-                option: 'isPortCoFounder',
-                value: checked ? 'true' : 'false',
-              });
-            }}
-          />
+          <PortCoFounderFilterSection analytics={analytics} />
         </FilterSection>
       )}
 
@@ -202,3 +190,26 @@ export const MembersFilter = (props: IMembersFilter) => {
     </FiltersSidePanel>
   );
 };
+
+function PortCoFounderFilterSection({ analytics }: { analytics: ReturnType<typeof useMemberAnalytics> }) {
+  const visibleTracked = useRef(false);
+
+  useEffect(() => {
+    if (!visibleTracked.current) {
+      visibleTracked.current = true;
+      analytics.onPortCoFounderFilterVisible({ page: 'Members' });
+    }
+  }, [analytics]);
+
+  return (
+    <GenericFilterToggle
+      label="Show PortCo founders"
+      paramKey="isPortCoFounder"
+      filterStore={useFilterStore}
+      className={clsx(s.Label, s.toggle)}
+      onChange={(checked) => {
+        analytics.onPortCoFounderFilterToggled({ page: 'Members', value: checked });
+      }}
+    />
+  );
+}

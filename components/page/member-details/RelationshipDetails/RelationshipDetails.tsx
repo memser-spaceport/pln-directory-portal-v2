@@ -15,6 +15,7 @@ import { SpinnerIcon } from '@/components/icons/SpinnerIcon';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { useRetriggerAffinityEnrichment } from '@/services/affinity/hooks/useRetriggerAffinityEnrichment';
+import { useAffinityAnalytics } from '@/analytics/affinity.analytics';
 import s from './RelationshipDetails.module.scss';
 
 interface Props {
@@ -48,6 +49,7 @@ export function RelationshipDetails({ memberUid }: Props) {
   const { hasAccess } = useAffinityAccess();
   const { data, isLoading } = useAffinityMember(memberUid, hasAccess);
   const { mutate: retrigger, isPending: isRetriggering } = useRetriggerAffinityEnrichment(memberUid);
+  const { onRelationshipRefreshClicked } = useAffinityAnalytics();
 
   if (!hasAccess || isLoading || !data || data.relationship.empty) return null;
 
@@ -113,7 +115,14 @@ export function RelationshipDetails({ memberUid }: Props) {
           variant="secondary"
           style="border"
           className={s.updateButton}
-          onClick={() => retrigger()}
+          onClick={() => {
+            onRelationshipRefreshClicked({
+              memberUid,
+              frequencyTier: frequency_tier,
+              touchpoints6m: touchpoints_6m,
+            });
+            retrigger();
+          }}
           disabled={isRetriggering}
           aria-label="Update relationship data"
         >

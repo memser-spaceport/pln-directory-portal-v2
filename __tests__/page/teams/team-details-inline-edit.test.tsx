@@ -103,7 +103,7 @@ describe('TeamDetails inline edit', () => {
             teamFocusAreas: [],
           } as any
         }
-        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+        isCurrentUserTeamMember={true}
       />,
     );
 
@@ -138,7 +138,7 @@ describe('TeamDetails inline edit', () => {
             industryTags: [],
           } as any
         }
-        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+        isCurrentUserTeamMember={true}
       />,
     );
 
@@ -166,7 +166,7 @@ describe('TeamDetails inline edit', () => {
             industryTags: [],
           } as any
         }
-        userInfo={{ uid: 'user-1', leadingTeams: ['team-1'], roles: [] } as any}
+        isCurrentUserTeamMember={true}
       />,
     );
 

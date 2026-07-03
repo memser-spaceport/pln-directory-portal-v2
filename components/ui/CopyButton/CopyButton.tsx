@@ -7,6 +7,7 @@ interface Props {
   text: string;
   label?: string;
   className?: string;
+  onCopy?: () => void;
 }
 
 const CopyIcon = () => (
@@ -42,13 +43,14 @@ const CheckIcon = () => (
   </svg>
 );
 
-export function CopyButton({ text, label, className }: Props) {
+export function CopyButton({ text, label, className, onCopy }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (copied || !text) return;
     await navigator.clipboard.writeText(text);
+    onCopy?.();
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

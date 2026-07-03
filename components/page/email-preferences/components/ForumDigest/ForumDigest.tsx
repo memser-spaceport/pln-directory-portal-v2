@@ -75,10 +75,17 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
         forumDigestEnabled: false,
       };
 
-      mutate({
-        uid: userInfo.uid,
-        payload: _payload,
-      });
+      mutate(
+        {
+          uid: userInfo.uid,
+          payload: _payload,
+        },
+        {
+          onError: () => {
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'no_digest' });
+          },
+        },
+      );
 
       analytics.onForumDigestOptionSelect(_payload);
 
@@ -92,10 +99,17 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
         forumDigestFrequency: 1,
       };
 
-      mutate({
-        uid: userInfo.uid,
-        payload: _payload,
-      });
+      mutate(
+        {
+          uid: userInfo.uid,
+          payload: _payload,
+        },
+        {
+          onError: () => {
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'daily' });
+          },
+        },
+      );
 
       analytics.onForumDigestOptionSelect(_payload);
 
@@ -109,10 +123,17 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
         forumDigestFrequency: 7,
       };
 
-      mutate({
-        uid: userInfo.uid,
-        payload: _payload,
-      });
+      mutate(
+        {
+          uid: userInfo.uid,
+          payload: _payload,
+        },
+        {
+          onError: () => {
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly' });
+          },
+        },
+      );
 
       analytics.onForumDigestOptionSelect(_payload);
 

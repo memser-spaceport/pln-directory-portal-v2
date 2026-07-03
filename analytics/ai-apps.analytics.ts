@@ -26,5 +26,18 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.DETAIL_PAGE_VIEWED, { appUid, appName, path: `/pl-infra/ai-apps/${appUid}` }),
     onOpenInNewTabClicked: (appUid: string, appName: string, appUrl: string) =>
       capture(AI_APPS_ANALYTICS.OPEN_IN_NEW_TAB_CLICKED, { appUid, appName, appUrl }),
+    onConnectPageViewed: (params: { sessionId: string; view: string; clientName?: string | null }) =>
+      capture(AI_APPS_ANALYTICS.CONNECT_PAGE_VIEWED, params),
+    onConnectSignInClicked: (params: { sessionId: string; clientName?: string | null }) =>
+      capture(AI_APPS_ANALYTICS.CONNECT_SIGN_IN_CLICKED, params),
+    onConnectApproved: (params: { sessionId: string; clientName?: string | null }) =>
+      capture(AI_APPS_ANALYTICS.CONNECT_APPROVED, params),
+    onConnectDenied: (params: { sessionId: string }) => capture(AI_APPS_ANALYTICS.CONNECT_DENIED, params),
+    onConnectExpired: (params: { sessionId: string }) => capture(AI_APPS_ANALYTICS.CONNECT_EXPIRED, params),
+    onConnectError: (params: { sessionId: string }) => capture(AI_APPS_ANALYTICS.CONNECT_ERROR, params),
+    onAccessDenied: (path: string) => capture(AI_APPS_ANALYTICS.ACCESS_DENIED, { path }),
+    onIframeLoaded: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.IFRAME_LOADED, { appUid, appName }),
+    onIframeLoadFailed: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.IFRAME_LOAD_FAILED, { appUid, appName }),
   };
 }

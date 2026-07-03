@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useQueryStates } from 'nuqs';
 import { Popover } from '@base-ui-components/react/popover';
@@ -12,6 +12,7 @@ import { useInvestorMutationOverlay, applyOverlayToInvestor } from '@/services/i
 import type { InvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+import { useInvestorsAnalytics, type InvestorDrawerSource } from '@/analytics/investors.analytics';
 import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { isSafeUrl } from '@/utils/url';
@@ -75,6 +76,9 @@ function EmailPicker({
 export function InvestorDrawer({ access }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const analytics = useInvestorsAnalytics();
+  const openedAtRef = useRef<number | null>(null);
+  const trackedOpenIdRef = useRef<string | null>(null);
 
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -90,8 +94,33 @@ export function InvestorDrawer({ access }: Props) {
   const overrides = useInvestorMutationOverlay((s) => s.overrides);
   const investor = rawInvestor ? applyOverlayToInvestor(rawInvestor, overrides) : null;
 
-  const onClose = () => setFilters({ investorId: null });
+  const drawerSource: InvestorDrawerSource =
+    filters.mode === 'warm-intros' ? 'warm-intros-table' : 'all-investors-table';
+
+  const onClose = () => {
+    if (investorId && openedAtRef.current !== null) {
+      analytics.trackDrawerClosed({
+        investorId,
+        timeOpenMs: Date.now() - openedAtRef.current,
+      });
+    }
+    openedAtRef.current = null;
+    trackedOpenIdRef.current = null;
+    setFilters({ investorId: null });
+  };
   const isOpen = !!investorId;
+
+  useEffect(() => {
+    if (!investor || !investorId || trackedOpenIdRef.current === investorId) return;
+    trackedOpenIdRef.current = investorId;
+    openedAtRef.current = Date.now();
+    analytics.trackDrawerOpened({
+      investorId,
+      source: drawerSource,
+      hasPath: investor.has_path,
+      bestProximityCode: investor.best_proximity_code,
+    });
+  }, [investor, investorId, drawerSource, analytics]);
 
   const teamLookup = useMemo(() => (teams ? new Map(teams.map((t) => [t.team_id, t])) : null), [teams]);
 
@@ -190,10 +219,23 @@ export function InvestorDrawer({ access }: Props) {
                   {investor.email && (
                     <div className={s.socialEmailGroup}>
                       <Image src={getContactLogoByProvider('email')} alt="" aria-hidden="true" width={20} height={20} />
-                      <a href={`mailto:${investor.email}`} className={s.socialEmailAddr}>
+                      <a
+                        href={`mailto:${investor.email}`}
+                        className={s.socialEmailAddr}
+                        onClick={() =>
+                          analytics.trackDrawerChannelClicked({
+                            investorId: investor.investor_id,
+                            channel: 'email',
+                          })
+                        }
+                      >
                         {investor.email}
                       </a>
-                      <CopyButton text={investor.email} className={s.contactIconCopy} />
+                      <CopyButton
+                        text={investor.email}
+                        className={s.contactIconCopy}
+                        onCopy={() => analytics.trackDrawerCopyEmailClicked({ investorId: investor.investor_id })}
+                      />
                       {(investor.additional_emails ?? []).length > 0 && (
                         <EmailPicker
                           email={investor.email}
@@ -215,6 +257,12 @@ export function InvestorDrawer({ access }: Props) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={s.contactIcon}
+                          onClick={() =>
+                            analytics.trackDrawerChannelClicked({
+                              investorId: investor.investor_id,
+                              channel: 'linkedin',
+                            })
+                          }
                         >
                           <Image src={getContactLogoByProvider('linkedin')} alt="LinkedIn" width={20} height={20} />
                         </a>
@@ -231,6 +279,12 @@ export function InvestorDrawer({ access }: Props) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={s.contactIcon}
+                          onClick={() =>
+                            analytics.trackDrawerChannelClicked({
+                              investorId: investor.investor_id,
+                              channel: 'website',
+                            })
+                          }
                         >
                           <Image src={getContactLogoByProvider('website')} alt="Website" width={20} height={20} />
                         </a>
@@ -426,16 +480,30 @@ export function InvestorDrawer({ access }: Props) {
                 href={`https://app.affinity.co/companies/?search=${encodeURIComponent(investor.firm_domain)}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => analytics.trackDrawerOpenInAffinityClicked({ investorId: investor.investor_id })}
               >
                 Open in Affinity ↗
               </a>
             )}
             <AddToListMenu investorId={investor.investor_id} canEdit={access.canEdit} className={s.btn} />
-            {investor.email && <CopyButton text={investor.email} label="Copy email" className={s.btn} />}
+            {investor.email && (
+              <CopyButton
+                text={investor.email}
+                label="Copy email"
+                className={s.btn}
+                onCopy={() => analytics.trackDrawerCopyEmailClicked({ investorId: investor.investor_id })}
+              />
+            )}
             {investor.lab_os_profile && (
               <a
                 className={s.btn}
                 href={`${investor.lab_os_profile.type === 'member' ? `/members/${investor.lab_os_profile.uid}` : `/teams/${investor.lab_os_profile.uid}`}?backTo=${encodeURIComponent(backTo)}`}
+                onClick={() =>
+                  analytics.trackDrawerViewInLabOsClicked({
+                    investorId: investor.investor_id,
+                    profileType: investor.lab_os_profile!.type,
+                  })
+                }
               >
                 👤 View in LabOS
               </a>

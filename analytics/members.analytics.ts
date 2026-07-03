@@ -592,6 +592,14 @@ export const useMemberAnalytics = () => {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_ROLES_FILTER_SELECTED, params);
   }
 
+  function onPortCoFounderFilterToggled(params: { page: string; value: boolean }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_PORTCO_FOUNDER_FILTER_TOGGLED, params);
+  }
+
+  function onPortCoFounderFilterVisible(params: { page: string }) {
+    captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBERS_PORTCO_FOUNDER_FILTER_VISIBLE, params);
+  }
+
   function onClickBookWithOther(params: any) {
     captureEvent(MEMBER_ANALYTICS_EVENTS.MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER, params);
   }
@@ -724,6 +732,8 @@ export const useMemberAnalytics = () => {
     onMembersTopicsFilterSelected,
     onMembersRolesFilterSearched,
     onMembersRolesFilterSelected,
+    onPortCoFounderFilterToggled,
+    onPortCoFounderFilterVisible,
     onClickBookWithOther,
     onAddYourRoleClicked,
     onAddYourLocationClicked,

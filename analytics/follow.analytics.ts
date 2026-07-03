@@ -31,5 +31,14 @@ export const useFollowAnalytics = () => {
     captureEvent(FOLLOW_ANALYTICS_EVENTS.TEAM_UNFOLLOWED, params);
   };
 
-  return { onTeamFollowed, onTeamUnfollowed };
+  const onTeamFollowFailed = (params: {
+    teamUid: string;
+    teamName: string;
+    source: FollowAnalyticsSource;
+    action: 'follow' | 'unfollow';
+  }) => {
+    captureEvent(FOLLOW_ANALYTICS_EVENTS.TEAM_FOLLOW_FAILED, params);
+  };
+
+  return { onTeamFollowed, onTeamUnfollowed, onTeamFollowFailed };
 };

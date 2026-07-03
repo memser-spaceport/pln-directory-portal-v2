@@ -459,6 +459,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                 className={s.viewAllLink}
                 onClick={(e) => {
                   e.stopPropagation();
+                  analytics.trackDrawerWarmPathsViewAllClicked({
+                    investorId: inv.investor_id,
+                    pathCount: inv.path_count,
+                  });
                   setFilters({ investorId: inv.investor_id });
                 }}
               >
@@ -484,11 +488,25 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
             <h2 className={s.title}>Find warm investor intros</h2>
             <div className={s.titleActions}>
               {access.canEdit && (
-                <button type="button" className={s.howScoredLink} onClick={() => setCrosswalkOpen(true)}>
+                <button
+                  type="button"
+                  className={s.howScoredLink}
+                  onClick={() => {
+                    analytics.trackCrosswalkOpened();
+                    setCrosswalkOpen(true);
+                  }}
+                >
                   Crosswalk review
                 </button>
               )}
-              <button type="button" className={s.howScoredLink} onClick={() => setGlossaryOpen(true)}>
+              <button
+                type="button"
+                className={s.howScoredLink}
+                onClick={() => {
+                  analytics.trackGlossaryOpened();
+                  setGlossaryOpen(true);
+                }}
+              >
                 What do these terms mean?
               </button>
             </div>

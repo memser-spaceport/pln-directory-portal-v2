@@ -143,6 +143,12 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
             isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
             return next;
           });
+          followAnalytics.onTeamFollowFailed({
+            teamUid,
+            teamName,
+            source: 'news-feed',
+            action,
+          });
         },
         onSuccess: () => {
           if (action === 'follow') {

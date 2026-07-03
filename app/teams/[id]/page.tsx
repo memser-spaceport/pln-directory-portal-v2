@@ -77,6 +77,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     team?.dataEnrichment?.status !== 'Reviewed';
 
   const showNewsRail = hasTeamNewsItems(teamNews);
+  const isCurrentUserTeamMember = isLoggedIn && members?.some((m) => m.id === userInfo?.uid);
 
   const teamDetailContent = (
     <>
@@ -85,7 +86,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         {/* Details */}
         <div className={styles?.teamDetail__Container__details}>
           {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-          <TeamDetails team={team} initialFollowers={followers} />
+          <TeamDetails team={team} initialFollowers={followers} isCurrentUserTeamMember={isCurrentUserTeamMember} />
         </div>
 
         {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}

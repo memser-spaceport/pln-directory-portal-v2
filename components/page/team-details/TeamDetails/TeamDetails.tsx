@@ -47,11 +47,12 @@ import { useTeamFollowToggle } from '@/services/follow/hooks/useTeamFollowToggle
 interface Props {
   team: ITeam;
   initialFollowers?: ITeamFollowersResponse | null;
+  isCurrentUserTeamMember?: boolean;
 }
 
 export const TeamDetails = (props: Props) => {
   const team = props?.team;
-  const { initialFollowers = null } = props;
+  const { initialFollowers = null, isCurrentUserTeamMember = false } = props;
 
   const teamName = team?.name ?? '';
   const { currentUser } = useCurrentUserStore();
@@ -84,12 +85,18 @@ export const TeamDetails = (props: Props) => {
     handleToggle: onFollowToggle,
   } = useTeamFollowToggle(team, team.isFollowed ?? false);
 
-  const followContent = hasTeamEditAccess ? (
-    <TeamFollowBlock team={team} initialFollowers={initialFollowers} />
-  ) : (
+  const showFollowButton = !isCurrentUserTeamMember;
+  const showFollowers = isCurrentUserTeamMember || isAdmin;
+
+  const followContent = (
     <>
-      <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
-      {!isFollowing && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+      {showFollowButton && (
+        <>
+          <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
+          {!isFollowing && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+        </>
+      )}
+      {showFollowers && <TeamFollowBlock team={team} initialFollowers={initialFollowers} />}
     </>
   );
 

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Tabs } from '@/components/ui/tabs/Tabs';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useTeamFilterStore } from '@/services/teams';
 import { ITeamsSearchParams } from '@/types/teams.types';
 
@@ -16,6 +17,7 @@ interface TeamsScopeTabsProps {
 export function TeamsScopeTabs(props: TeamsScopeTabsProps) {
   const { searchParams, followingTotal } = props;
   const setParam = useTeamFilterStore((store) => store.setParam);
+  const analytics = useTeamAnalytics();
 
   const activeTab = searchParams.followingOnly === 'true' ? FOLLOWING_TAB : ALL_TAB;
 
@@ -26,6 +28,11 @@ export function TeamsScopeTabs(props: TeamsScopeTabsProps) {
 
   const onTabClick = (tab: string) => {
     if (tab === activeTab) return;
+    if (tab === FOLLOWING_TAB) {
+      analytics.onFollowingTabSelected({ followingTotal });
+    } else {
+      analytics.onAllTabSelected();
+    }
     setParam('followingOnly', tab === FOLLOWING_TAB ? 'true' : '');
   };
 

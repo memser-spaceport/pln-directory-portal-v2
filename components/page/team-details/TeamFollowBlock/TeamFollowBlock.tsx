@@ -4,13 +4,32 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 import { ITeam } from '@/types/teams.types';
-import type { ITeamFollowersResponse } from '@/types/follow.types';
+import type { ITeamFollowersResponse, ITeamFollower } from '@/types/follow.types';
 import { useTeamFollowers } from '@/services/follow/hooks/useTeamFollowers';
 import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import { TeamFollowersModal } from './TeamFollowersModal';
 import s from './TeamFollowBlock.module.scss';
+
+const FollowerAvatar = ({ follower, className }: { follower: ITeamFollower; className: string }) => {
+  const defaultAvatarImage = getDefaultAvatar(follower.name);
+
+  return (
+    <img
+      key={follower.uid}
+      className={className}
+      src={follower.image || defaultAvatarImage}
+      alt=""
+      loading="lazy"
+      onError={(e) => {
+        e.currentTarget.onerror = null;
+        e.currentTarget.src = defaultAvatarImage;
+      }}
+    />
+  );
+};
 
 interface TeamFollowBlockProps {
   team: ITeam;
@@ -45,15 +64,7 @@ export function TeamFollowBlock({ team, initialFollowers }: TeamFollowBlockProps
       >
         <span className={s.subAvatars} aria-hidden="true">
           {previewAvatars.length > 0
-            ? previewAvatars.map((f) =>
-                f.image ? (
-                  <img key={f.uid} className={s.subAvatar} src={f.image} alt="" loading="lazy" />
-                ) : (
-                  <span key={f.uid} className={s.subAvatarFallback}>
-                    {f.name.charAt(0).toUpperCase()}
-                  </span>
-                ),
-              )
+            ? previewAvatars.map((f) => <FollowerAvatar key={f.uid} follower={f} className={s.subAvatar} />)
             : Array.from({ length: Math.min(followerCount, 3) }).map((_, i) => (
                 <span key={i} className={s.subAvatarPlaceholder} />
               ))}

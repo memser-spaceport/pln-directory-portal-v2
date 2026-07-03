@@ -11,7 +11,7 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
-import { SUGGESTED_TEAMS, UPVOTES } from './mocks';
+import { MOCK_FOCUS_AREAS, SUGGESTED_TEAMS, UPVOTES } from './mocks';
 
 interface FeedRailProps {
   followedTeams: Set<string>;
@@ -50,6 +50,30 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
               size="xs"
               tertiary
             />
+          </div>
+        ))}
+      </div>
+
+      <div className={clsx(s.card, local.railCard)}>
+        <h3 className={local.railTitle}>Focus Areas</h3>
+        {MOCK_FOCUS_AREAS.map((area: any) => (
+          <div
+            key={area.title}
+            role="link"
+            tabIndex={0}
+            className={local.railStory}
+            onClick={() => window.open(`/teams?focusAreas=${area.title}`, '_blank')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                window.open(`/teams?focusAreas=${area.title}`, '_blank');
+              }
+            }}
+          >
+            <span className={local.railStoryTitle}>{area.title}</span>
+            <span className={local.railReason}>
+              {area.teamAncestorFocusAreas.length} teams · {area.projectAncestorFocusAreas.length} projects
+            </span>
           </div>
         ))}
       </div>

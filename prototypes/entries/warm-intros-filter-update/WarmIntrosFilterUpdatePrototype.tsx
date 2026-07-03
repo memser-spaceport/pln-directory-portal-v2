@@ -38,6 +38,7 @@ import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import { WorkspaceSearch } from './WorkspaceSearch';
 import { InvestorDrawerMock, InLabOsPill, TeamInline } from './InvestorDrawerMock';
 import { AddToListButton } from './AddToListButton';
+import { InvestedInPlBadge } from './InvestedInPlBadge';
 import x from './WarmIntrosImprovements.module.scss';
 
 const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
@@ -296,6 +297,8 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const [connectorLabel, setConnectorLabel] = useState<string | null>(null);
   // Quick filter: keep only investors PL can reach directly (a teammate first node).
   const [directOnly, setDirectOnly] = useState(false);
+  // Quick filter: only investors who have invested in Protocol Labs themselves.
+  const [plBackedOnly, setPlBackedOnly] = useState(false);
   // Feature 1: quick multi-select of PL teammates (first-node). Applies live (no
   // Apply step) so it feels like the relationship chips — pick several at once.
   const [teammates, setTeammates] = useState<Set<string>>(new Set());
@@ -326,6 +329,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setSectors([]);
     setQuery('');
     setRelFilter({ co_invested: true, engaged: true, cold_match: true });
+    setPlBackedOnly(false);
     setPathSel(new Set());
   };
 
@@ -358,6 +362,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setTeammates(new Set());
     setSelectedIds(new Set());
     setDirectOnly(false);
+    setPlBackedOnly(false);
   };
 
   const toggleTeammate = (name: string) =>
@@ -393,11 +398,12 @@ export default function WarmIntrosFilterUpdatePrototype() {
     if (check) rows = rows.filter((m) => m.check_size_range === (check as CheckSizeRange));
     if (sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => sectors.includes(t)));
     rows = rows.filter((m) => relFilter[m.relationship]);
+    if (plBackedOnly) rows = rows.filter((m) => !!m.invested_in_pl);
     if (pathSel.size) rows = rows.filter((m) => matchesPathVia(m, pathSel));
     return rows
       .slice()
       .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [onList, query, stage, check, sectors, relFilter, pathSel]);
+  }, [onList, query, stage, check, sectors, relFilter, plBackedOnly, pathSel]);
 
   // Connector pivots — teammates (direct) and founders (the broker).
   const teamChips = useMemo(() => firstNodeConnectors(members, currentListId), [members, currentListId]);
@@ -443,6 +449,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     applied.sectors.length > 0 ||
     teammates.size > 0 ||
     directOnly ||
+    plBackedOnly ||
     !!connectorLabel;
 
   const totalOnList = members.filter((m) => m.list_ids.includes(currentListId)).length;
@@ -834,6 +841,15 @@ export default function WarmIntrosFilterUpdatePrototype() {
                     callback={() => setDirectOnly((v) => !v)}
                   />
                 )}
+                {/* Restrict-to lens (default off): only investors who back PL themselves. */}
+                <Tag
+                  value="Invested in PL"
+                  keyValue="invested-in-pl"
+                  variant="secondary"
+                  selected={plBackedOnly}
+                  className={x.relChip}
+                  callback={() => setPlBackedOnly((v) => !v)}
+                />
                 {REL_FILTERS.map(({ tier, label }) => (
                   <Tag
                     key={tier}
@@ -915,6 +931,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                         <td>
                           <div className={s.relCell}>
                             <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>
+                            <InvestedInPlBadge investor={inv} />
                             {inv.relationship === 'engaged' && inv.engagement_tier !== 'T4_cold' && (
                               <EngagementTierBadge tier={inv.engagement_tier} compact />
                             )}
@@ -993,6 +1010,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                   </div>
                   <div className={x.mCardMeta}>
                     <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>
+                    <InvestedInPlBadge investor={inv} />
                     <span className={x.mCardFirm}>{inv.firm || '—'}</span>
                   </div>
                   <MetaChips items={inv.sector_tags} max={4} />

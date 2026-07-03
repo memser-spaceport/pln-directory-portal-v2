@@ -200,6 +200,11 @@ export type MockInvestor = {
   /** Affinity: Key Contact / Relationship owner — the internal PL person who owns
    *  this relationship. Shown as a row in the Investor profile section. */
   relationship_owner?: { name: string; memberUid?: string };
+  /** Set when the investor (or their firm) has invested in Protocol Labs itself —
+   *  the strongest relationship fact. Orthogonal to `relationship` (a PL backer
+   *  can also be co-invested). Drives the PL-mark badge in the table, the pill +
+   *  fact row in the drawer, and the "Invested in PL" quick filter. */
+  invested_in_pl?: { vehicle?: string; year?: number };
   linkedin_url?: string;
   firm_domain?: string;
   geo_focus?: string;
@@ -548,6 +553,9 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'fund',
     engagement_tier: 'T2_clicked',
     relationship: 'co_invested',
+    // Overlap case: co-invested AND a PL backer AND in LabOS — demos badge
+    // precedence in the table + the two-pill drawer header.
+    invested_in_pl: { vehicle: 'Fund II', year: 2021 },
     best_proximity_code: 'PL+1A',
     has_path: true,
     list_ids: ['neuro-lp', 'gold'],
@@ -989,6 +997,9 @@ const BASE_MEMBERS: MockInvestor[] = [
     investor_type: 'family_office',
     engagement_tier: 'T3_opened',
     relationship: 'engaged',
+    // PL backer who is NOT in LabOS and only "engaged" — the badge carries the
+    // signal alone here.
+    invested_in_pl: { vehicle: 'Fund I', year: 2019 },
     best_proximity_code: 'O+2B',
     has_path: true,
     list_ids: ['neuro-lp'],

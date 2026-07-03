@@ -318,9 +318,12 @@ export default function NewsfeedV0Prototype() {
         )}
         </div>
 
-        <div className={styles.home__cn__focusarea}>
-          <FocusAreaSectionMock />
-        </div>
+        {/* In feed mode the Focus Areas move into the right rail — no duplicate below. */}
+        {mode !== 'feed' && (
+          <div className={styles.home__cn__focusarea}>
+            <FocusAreaSectionMock />
+          </div>
+        )}
       </div>
 
       {toast && (

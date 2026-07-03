@@ -110,6 +110,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/following-popover/FollowingPopoverPrototype'),
   },
   {
+    key: 'teams-following',
+    title: 'Follow — teams you follow (manage page)',
+    description:
+      'LinkedIn-style "Pages you follow" list for the directory: one centered card with Teams/People tabs, search within the list, follower counts + follow recency per row, and a Following/Follow toggle that keeps unfollowed rows in place for easy undo.',
+    category: 'Ideation',
+    load: () => import('./entries/teams-following/TeamsFollowingPrototype'),
+  },
+  {
     key: 'news-feed',
     title: 'Follow — network news feed',
     description:

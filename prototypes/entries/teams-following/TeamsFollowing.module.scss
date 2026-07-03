@@ -1,0 +1,243 @@
+// "Following — manage list" page. LinkedIn-style: a grey page, one centered
+// card, tabs, search, and a flat row list with a follow action per row.
+
+.page {
+  min-height: 100vh;
+  padding: 40px 16px 64px;
+  background: var(--background-neutral-subtle, #f7f8fa);
+  font-family: Inter, sans-serif;
+}
+
+.card {
+  max-width: 680px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.head {
+  padding: 20px 24px 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.lede {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.privacy {
+  margin-top: 8px;
+}
+
+// ── Tabs (Teams / People), LinkedIn's Pages/People switch ────────────────────
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.tabActive {
+  color: var(--foreground-brand-primary, #1b4dff);
+  border-bottom-color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.tabCount {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// ── Search within the list ───────────────────────────────────────────────────
+.searchWrap {
+  padding: 16px 24px 8px;
+}
+
+.search {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+// ── Rows ─────────────────────────────────────────────────────────────────────
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.03));
+  }
+
+  & + & {
+    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.08));
+  }
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+// People get circular avatars (photo fills the circle).
+.logoPerson {
+  border-radius: 50%;
+  object-fit: cover;
+  padding: 0;
+}
+
+.logoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowName {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+.rowSub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowMeta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rowAction {
+  flex-shrink: 0;
+}
+
+// ── Empty state (no search matches / nothing followed) ──────────────────────
+.empty {
+  padding: 40px 24px 48px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.emptyLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 8px 48px;
+  }
+
+  .head {
+    padding: 16px 16px 0;
+  }
+
+  .searchWrap {
+    padding: 12px 16px 4px;
+  }
+
+  .row {
+    padding: 12px 8px;
+  }
+
+  // Keep name + button on the first line; the subtitle can truncate harder.
+  .rowSub {
+    max-width: 52vw;
+  }
+}

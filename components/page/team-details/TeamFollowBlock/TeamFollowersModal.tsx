@@ -1,7 +1,11 @@
 'use client';
 
+import Link from 'next/link';
+
 import { Modal } from '@/components/common/Modal';
 import { useTeamFollowers } from '@/services/follow/hooks/useTeamFollowers';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { PAGE_ROUTES } from '@/utils/constants';
 import s from './TeamFollowersModal.module.scss';
 
 interface TeamFollowersModalProps {
@@ -46,21 +50,30 @@ export function TeamFollowersModal({ teamUid, isOpen, onClose }: TeamFollowersMo
 
       {!isLoading && data && data.items.length > 0 && (
         <ul className={s.list}>
-          {data.items.map((follower) => (
-            <li key={follower.uid} className={s.row}>
-              {follower.image ? (
-                <img className={s.rowAvatar} src={follower.image} alt="" loading="lazy" />
-              ) : (
-                <div className={s.rowAvatarFallback} aria-hidden="true">
-                  {follower.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className={s.rowText}>
-                <span className={s.rowName}>{follower.name}</span>
-                {follower.role && <span className={s.rowRole}>{follower.role}</span>}
-              </div>
-            </li>
-          ))}
+          {data.items.map((follower) => {
+            const defaultAvatarImage = getDefaultAvatar(follower.name);
+
+            return (
+              <li key={follower.uid} className={s.row}>
+                <Link href={`${PAGE_ROUTES.MEMBERS}/${follower.uid}`} className={s.rowLink} onClick={onClose}>
+                  <img
+                    className={s.rowAvatar}
+                    src={follower.image || defaultAvatarImage}
+                    alt=""
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = defaultAvatarImage;
+                    }}
+                  />
+                  <div className={s.rowText}>
+                    <span className={s.rowName}>{follower.name}</span>
+                    {follower.role && <span className={s.rowRole}>{follower.role}</span>}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </Modal>

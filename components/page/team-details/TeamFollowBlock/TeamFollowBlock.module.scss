@@ -45,24 +45,6 @@
   }
 }
 
-.subAvatarFallback {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  & + & {
-    margin-left: -10px;
-  }
-}
-
 .subAvatarPlaceholder {
   width: 28px;
   height: 28px;

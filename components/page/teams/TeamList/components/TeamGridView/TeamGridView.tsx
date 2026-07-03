@@ -92,20 +92,20 @@ export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
         <div className={s.tagsMob}>
           <TeamsTagsList tags={tags} noOfTagsToShow={1} />
         </div>
-        {isLoggedIn && (
-          <div className={s.followRow}>
-            <FollowButton
-              following={Boolean(team.isFollowed)}
-              name={team.name ?? 'team'}
-              disabled={isTogglingFollow}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleFollow();
-              }}
-            />
-          </div>
-        )}
+        {/*{isLoggedIn && (*/}
+        {/*  <div className={s.followRow}>*/}
+        {/*    <FollowButton*/}
+        {/*      following={Boolean(team.isFollowed)}*/}
+        {/*      name={team.name ?? 'team'}*/}
+        {/*      disabled={isTogglingFollow}*/}
+        {/*      onClick={(e) => {*/}
+        {/*        e.preventDefault();*/}
+        {/*        e.stopPropagation();*/}
+        {/*        toggleFollow();*/}
+        {/*      }}*/}
+        {/*    />*/}
+        {/*  </div>*/}
+        {/*)}*/}
       </div>
       {carousel.length > 0 && (
         <div className={s.embla} onClick={handleClick}>

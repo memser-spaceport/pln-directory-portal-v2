@@ -175,11 +175,11 @@ export const TeamsToolbar = (props: IToolbar) => {
         </div>
       </div>
 
-      {isLoggedIn && (
-        <div className={s.tabsRow}>
-          <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />
-        </div>
-      )}
+      {/*{isLoggedIn && (*/}
+      {/*  <div className={s.tabsRow}>*/}
+      {/*    <TeamsScopeTabs searchParams={searchParams} followingTotal={followingTotal} />*/}
+      {/*  </div>*/}
+      {/*)}*/}
     </div>
   );
 };

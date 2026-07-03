@@ -10,6 +10,7 @@ import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { Divider } from '@/components/common/profile/Divider';
+import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 // Reuse the production TeamDetails styling 1:1.
@@ -40,6 +41,9 @@ export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }:
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
 
   const tags = useMemo(() => (team?.industryTags ?? []) as ITag[], [team?.industryTags]);
+
+  const about = team?.longDescription ?? '';
+  const hasAbout = !!about && about.trim() !== '<p><br></p>';
 
   return (
     <DetailsSection classes={{ root: local.mainCardTight }}>
@@ -85,9 +89,20 @@ export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }:
         {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
       </div>
 
-      {/* Inline Follow variant sits on its own row below the header (About is
-          now its own section rendered after this card). */}
+      {/* Inline Follow variant sits on its own row below the header. */}
       {beforeAbout && <div className={local.beforeAboutSlot}>{beforeAbout}</div>}
+
+      {/* About, back inside the header card (matches production's inline markup).
+          DetailsSection's own row gap is commented out in production, so this
+          needs its own top margin to breathe below the logo/name/tags block. */}
+      {hasAbout && (
+        <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
+          <div className={s.aboutTitle}>About</div>
+          <ExpandableDescription>
+            <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
+          </ExpandableDescription>
+        </div>
+      )}
     </DetailsSection>
   );
 }

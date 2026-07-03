@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { ITeam } from '@/types/teams.types';
 
@@ -24,7 +24,6 @@ import { useGetFocusAreasToDisplay } from '@/components/page/team-details/TeamFo
 import shell from '@/app/teams/[id]/page.module.css';
 
 import { TeamDetailsView } from './TeamDetailsView';
-import { TeamAboutView } from './TeamAboutView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
@@ -32,6 +31,9 @@ import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
+import { TeamAdminActions } from './TeamAdminActions';
+import { FollowPill } from '../follow-shared/FollowPill';
+import { FollowToast } from '../follow-shared/FollowToast';
 import local from './TeamProfile.module.scss';
 import {
   MOCK_TEAM,
@@ -40,8 +42,8 @@ import {
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
   MOCK_NEWS,
-  MOCK_SUBSCRIBERS,
-  TEAM_SUBSCRIBER_COUNT,
+  MOCK_FOLLOWERS,
+  TEAM_FOLLOWER_COUNT,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -56,11 +58,28 @@ export default function TeamProfilePrototype() {
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [newsQuery, setNewsQuery] = useState('');
   const [following, setFollowing] = useState(false);
-  // Demo-only: public vs team view (team view exposes subscriber info).
-  // '*-inline' variants move Follow above About; public-inline shows just the
-  // button + caption (no followers).
-  const [view, setView] = useState<'public' | 'team' | 'team-inline' | 'public-inline'>('team-inline');
+  const [followToast, setFollowToast] = useState(false);
+  const followToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Demo-only: public vs team view. Both put the follow cluster in the header
+  // card's top-right corner: public gets the Follow pill, team gets the
+  // follower avatar stack + count (opens the full-list modal).
+  const [view, setView] = useState<'public' | 'team'>('team');
   useEffect(() => setMounted(true), []);
+  useEffect(() => () => {
+    if (followToastTimer.current) clearTimeout(followToastTimer.current);
+  }, []);
+
+  const handleFollowToggle = () => {
+    setFollowing((prev) => {
+      const willFollow = !prev;
+      if (willFollow) {
+        setFollowToast(true);
+        if (followToastTimer.current) clearTimeout(followToastTimer.current);
+        followToastTimer.current = setTimeout(() => setFollowToast(false), 4000);
+      }
+      return willFollow;
+    });
+  };
 
   const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
@@ -91,7 +110,7 @@ export default function TeamProfilePrototype() {
     return <div className={shell.teamDetail} />;
   }
 
-  const followCount = TEAM_SUBSCRIBER_COUNT + (following ? 1 : 0);
+  const followCount = TEAM_FOLLOWER_COUNT;
 
   return (
     <div className={local.page}>
@@ -100,15 +119,15 @@ export default function TeamProfilePrototype() {
         <div className={local.demoSwitch}>
           <button
             type="button"
-            className={`${local.demoBtn} ${view === 'team-inline' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('team-inline')}
+            className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('team')}
           >
             Team
           </button>
           <button
             type="button"
-            className={`${local.demoBtn} ${view === 'public-inline' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('public-inline')}
+            className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('public')}
           >
             Public
           </button>
@@ -125,35 +144,26 @@ export default function TeamProfilePrototype() {
           <TeamDetailsView
             team={team}
             headerAction={
-              view === 'team-inline' || view === 'public-inline' ? undefined : (
-                <TeamFollowBlock
-                  name={team.name ?? 'this team'}
-                  following={following}
-                  count={followCount}
-                  onToggle={() => setFollowing((v) => !v)}
-                  view={view === 'public' ? 'public' : 'team'}
-                  subscribers={MOCK_SUBSCRIBERS}
-                />
+              view === 'public' ? (
+                <div className={local.followHeader}>
+                  <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
+                  {/* Reserve the caption's height once following so nothing below jumps. */}
+                  <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
+                    Get updates &amp; announcements
+                  </p>
+                </div>
+              ) : (
+                <div className={local.teamHeaderCluster}>
+                  {/* Admin actions row (Edit + Delete) — matches production's placement
+                      above the follow/followers cluster in the same corner slot.
+                      TeamFollowBlock wraps itself in its own followHeader below. */}
+                  <TeamAdminActions teamName={team.name ?? 'this team'} />
+                  <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
+                </div>
               )
-            }
-            beforeAbout={
-              view === 'team-inline' || view === 'public-inline' ? (
-                <TeamFollowBlock
-                  inline
-                  name={team.name ?? 'this team'}
-                  following={following}
-                  count={followCount}
-                  onToggle={() => setFollowing((v) => !v)}
-                  view={view === 'public-inline' ? 'public' : 'team'}
-                  subscribers={MOCK_SUBSCRIBERS}
-                />
-              ) : undefined
             }
           />
         </div>
-
-        {/* About — its own titled section (like Fund Details). */}
-        <TeamAboutView team={team} />
 
         {/* Fund details (team.isFund) */}
         {team?.isFund && <TeamInvestorView team={team} />}
@@ -263,6 +273,12 @@ export default function TeamProfilePrototype() {
         </Modal>
       )}
       </div>
+
+      {followToast && (
+        <FollowToast>
+          You&apos;re following <strong>{team.name}</strong> — you&apos;ll get its updates in your feed.
+        </FollowToast>
+      )}
     </div>
   );
 }

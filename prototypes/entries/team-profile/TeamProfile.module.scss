@@ -51,6 +51,15 @@
   gap: 8px;
 }
 
+/* Team view: admin actions row stacked above the (self-wrapping) follow block,
+   both right-aligned in the header card's corner slot. */
+.teamHeaderCluster {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 // Inline variant: Follow button + followers on a single row, above About.
 // Top-aligned so the followers box (button-height) centers to the button, not
 // the taller button+caption column. On mobile it stacks and the button goes
@@ -97,49 +106,16 @@
   }
 }
 
-// Left group of the inline row: Follow button with its caption beneath. The
-// column is sized to the caption, so the full-width button covers exactly the
-// "Subscribe for updates" line.
-.inlineFollowCol {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-
-  @include media.mobile-only {
-    width: 100%;
-  }
-}
-
-.inlineCaption {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  text-align: center;
-}
-
-// The button fills the caption-width column (block button = full width).
-.inlineFollowBtn {
-  display: block;
-
-  > div {
-    width: 100%;
-  }
-}
-
-// Button + caption group: sized to the caption (its widest child), so the
-// full-width Follow button stretches to exactly the caption's length.
-.followTop {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-// Trim the main (header) card's bottom padding now that About lives elsewhere.
+// Header card (name + tags + follow cluster): 16px top and bottom.
 .mainCardTight {
-  padding-bottom: 8px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+// Breathing room above About now that it lives back inside the header card
+// (DetailsSection's own row gap is commented out in production).
+.aboutSpacing {
+  margin-top: 24px;
 }
 
 // About: kill the ExpandableDescription's own box + reserved bottom so the text
@@ -234,33 +210,7 @@
   }
 }
 
-.followBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.followBlockRow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-/* Longer Follow button. */
-.followBtnWrap {
-  display: inline-flex;
-  width: 200px;
-}
-
-.whySubscribe {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
-/* Subscriber avatar stack + count (team view) — opens the subscribers modal. */
+/* Follower avatar stack + count (team view) — opens the followers modal. */
 .subStack {
   display: inline-flex;
   align-items: center;
@@ -345,7 +295,7 @@
   }
 }
 
-/* ---- subscribers modal ---- */
+/* ---- followers modal ---- */
 .subModal {
   width: min(440px, calc(100vw - 32px));
   padding: 0;

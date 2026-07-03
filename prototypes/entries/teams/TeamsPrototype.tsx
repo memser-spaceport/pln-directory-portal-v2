@@ -50,7 +50,7 @@ export default function TeamsPrototype() {
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [toastName, setToastName] = useState<string | null>(null);
   // Demo-only: how the Follow control is presented on each card.
-  const [cardVariant, setCardVariant] = useState<'cta' | 'top'>('cta');
+  const [cardVariant, setCardVariant] = useState<'cta' | 'top' | 'pill'>('pill');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -161,8 +161,9 @@ export default function TeamsPrototype() {
         <Tabs
           variant="pill"
           value={cardVariant}
-          onValueChange={(v) => setCardVariant(v as 'cta' | 'top')}
+          onValueChange={(v) => setCardVariant(v as 'cta' | 'top' | 'pill')}
           tabs={[
+            { label: 'Follow pill', value: 'pill' },
             { label: 'Secondary CTA', value: 'cta' },
             { label: 'Tertiary link', value: 'top' },
           ]}

@@ -7,6 +7,7 @@ import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 
 import type { MockTeamCard } from './mocks';
 import { FollowButton } from '../follow-shared/FollowButton';
+import { FollowPill } from '../follow-shared/FollowPill';
 // Reuse the production card styling so the prototype tracks production 1:1.
 import s from '@/components/page/teams/TeamList/components/TeamGridView/TeamGridView.module.scss';
 import local from './TeamsPrototype.module.scss';
@@ -15,8 +16,10 @@ interface Props {
   team: MockTeamCard;
   following: boolean;
   onToggleFollow: () => void;
-  /** 'cta' = primary Follow button below the tags; 'top' = tertiary Follow at the card's top-right. */
-  variant?: 'cta' | 'top';
+  /** 'cta' = primary Follow button below the tags; 'top' = tertiary Follow at the
+   *  card's top-right; 'pill' = Follow button (upvote-pill style, no count) at
+   *  the card's top-right. */
+  variant?: 'cta' | 'top' | 'pill';
 }
 
 /**
@@ -40,6 +43,14 @@ export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' 
       {variant === 'top' && (
         <span className={local.topFollow} onClick={stopNav}>
           <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="xs" bell link />
+        </span>
+      )}
+
+      {/* 'pill' variant: Follow button in the top-right corner, all viewports
+          (compact enough to keep on mobile — no secondary fallback needed). */}
+      {variant === 'pill' && (
+        <span className={local.cornerPill}>
+          <FollowPill following={following} onToggle={onToggleFollow} name={team?.name ?? 'team'} />
         </span>
       )}
 

@@ -20,7 +20,7 @@ const whyItems = [
     description: 'Your contributions become visible and valued across the ecosystem.',
   },
   {
-    title: 'Collect points that can convert to tokens for verified activities.',
+    title: 'Collect points that can convert to PLAA for verified activities.',
     description: 'Turn meaningful work into measurable outcomes.',
   },
   {
@@ -43,9 +43,9 @@ const whoRoles = [
 
 // Important details data
 const importantDetails = [
-  'Tokens are distributed based on verified contributions across the network.',
-  'Each category has a fixed token allocation.',
-  'All tokens are issued and managed by the trust.',
+  'PLAA are distributed based on verified contributions across the network.',
+  'Each category has a fixed PLAA allocation.',
+  'All PLAA is issued and managed by the trust.',
 ];
 
 // How section data
@@ -68,14 +68,14 @@ const howItems = [
     number: 3,
     title: 'Convert',
     description:
-      'Points may be converted into PLAA1 tokens issued by Surus Trust Company — providing tangible value tied to your contributions.',
+      'Points may be converted into PLAA issued by Surus Trust Company — providing tangible value tied to your contributions.',
     width: 'narrow',
   },
   {
     number: 4,
     title: 'Capitalize',
     description:
-      'Periodic token buyback auctions allow the Trust to purchase tokens, turning collective progress into value and rewarding participants over time.',
+      'Periodic buyback auctions allow the Trust to purchase PLAA, turning collective progress into value and rewarding participants over time.',
     width: 'wide',
   },
 ];
@@ -332,7 +332,7 @@ const Overview = () => {
               <span className="overview__content__how__learn-more__text">Learn more:</span>
               <p>
               Read the{' '}
-              <a href="/alignment-asset/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and tokens.
+              <a href="/alignment-asset/faqs" className="overview__content__text__link" onClick={handleFaqLinkClick}>FAQ</a> for details on contributions, points, and PLAA.
               </p>
             </div>
           </div>

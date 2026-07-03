@@ -532,7 +532,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__chart-header">
             <div className="incentive-model__chart-info">
               <h2 className="incentive-model__chart-title">
-                Total Alignment Asset Points &amp; PLAA Collected by Category
+                Total Alignment Asset Points &amp; PLAA Collected by category
               </h2>
               <p className="incentive-model__chart-subtitle">
                 Showing data for: {currentRoundInfo?.month || 'February 2025'}

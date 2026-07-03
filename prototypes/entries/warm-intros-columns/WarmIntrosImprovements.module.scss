@@ -740,9 +740,9 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 // neutral, matching the production node's resting look (higher specificity than the
 // base .nodeChip:hover so it wins).
 .chainBig .nodeChip:hover {
-  border-color: $brand;
-  background: var(--background-brand-subtle, #eef2ff);
-  color: $brand;
+  border-color: $border;
+  background: #fff;
+  color: $text;
 }
 
 // Round icon badge for teams (square mark) + the investor (generated avatar).

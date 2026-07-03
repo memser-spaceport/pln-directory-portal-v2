@@ -1,16 +1,8 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { ReactElement, ReactNode } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 
 import { TeamDetails } from '@/components/page/team-details/TeamDetails';
-
-// TeamDetails renders TeamFollowBlock, which calls the real useQueryClient() (only
-// useQuery/useMutation are globally mocked in jest.setup.js) — needs a real provider in the tree.
-function renderWithQueryClient(ui: ReactElement) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
-}
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'user-1', leadingTeams: ['team-1'], roles: [] } }),
@@ -59,13 +51,6 @@ jest.mock('@/components/page/member-details/BioDetails/components/BioInput', () 
   BioInput: () => <div>About Editor</div>,
 }));
 
-// jest.setup.js's global useQuery mock returns a fixed { memberInfo: {} } shape meant for a
-// different consumer — TeamFollowBlock's useTeamFollowers expects { items, total } and would
-// throw reading `.items` off that mismatched shape, so give it a matching mock directly.
-jest.mock('@/services/follow/hooks/useTeamFollowers', () => ({
-  useTeamFollowers: jest.fn(() => ({ data: { items: [], total: 0 } })),
-}));
-
 describe('TeamDetails inline edit', () => {
   beforeAll(() => {
     Object.defineProperty(window, 'matchMedia', {
@@ -84,7 +69,7 @@ describe('TeamDetails inline edit', () => {
   });
 
   it('switches to inline edit mode after clicking Edit', () => {
-    renderWithQueryClient(
+    render(
       <TeamDetails
         team={
           {
@@ -120,7 +105,7 @@ describe('TeamDetails inline edit', () => {
   });
 
   it('renders empty state tags for missing details', () => {
-    renderWithQueryClient(
+    render(
       <TeamDetails
         team={
           {
@@ -148,7 +133,7 @@ describe('TeamDetails inline edit', () => {
   });
 
   it('opens edit mode when clicking an empty state tag', () => {
-    renderWithQueryClient(
+    render(
       <TeamDetails
         team={
           {

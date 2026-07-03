@@ -71,7 +71,7 @@ const getPageData = async () => {
         getFocusAreas('Project', {}),
         getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
         getDiscoverData(),
-        getTeamNewsGroupedByFocusArea({}, authToken),
+        getTeamNewsGroupedByFocusArea(),
       ]);
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     if (

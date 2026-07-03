@@ -322,6 +322,7 @@ export function RoadmapView() {
             <button type="button" className={s.boostTipBtn} onClick={dismissBoostTip}>
               Got it
             </button>
+            <span className={s.boostTipMeta}>One-time tip</span>
           </div>
         </div>
       )}

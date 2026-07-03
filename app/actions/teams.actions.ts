@@ -8,60 +8,29 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 const teamsAPI = `${process.env.DIRECTORY_API_URL}/v1/teams`;
 const teamsSearchAPI = `${process.env.DIRECTORY_API_URL}/v1/teams-search`;
 
-interface TeamsSearchApiResponse {
-  teams?: ITeamResponse[];
-  total?: number;
-  followingTotal?: number;
-}
-
-interface FormattedTeamListItem {
-  id?: string;
-  name?: string | null;
-  logo?: string | null;
-  priority?: number;
-  shortDescription?: string | null;
-  industryTags: ITeamResponse['industryTags'];
-  asks: ITeamResponse['asks'];
-  isFollowed?: boolean;
-}
-
-// Anonymous requests must never reach the backend with followingOnly set, regardless of what a
-// caller (or a bookmarked URL) passed in — this is the single choke point every caller goes through.
-const sanitizeQuery = (query: string, hasAuthToken: boolean) => {
-  if (hasAuthToken) {
-    return query;
-  }
-  const params = new URLSearchParams(query);
-  params.delete('followingOnly');
-  return params.toString();
-};
-
 export const getTeamList = async (query: string, currentPage = 1, limit = ITEMS_PER_PAGE, authToken?: string) => {
-  const sanitizedQuery = sanitizeQuery(query, Boolean(authToken));
   const requestOptions: RequestInit = {
     method: 'GET',
     headers: getHeader(authToken ?? ''),
     next: { tags: ['team-list'] },
   };
-  const response = await fetch(
-    `${teamsSearchAPI}?page=${currentPage}&limit=${limit}&${sanitizedQuery}`,
-    requestOptions,
-  );
+  const response = await fetch(`${teamsSearchAPI}?page=${currentPage}&limit=${limit}&${query}`, requestOptions);
+  const result = await response.json();
   if (!response?.ok) {
     return { isError: true };
   }
-  const result = (await response.json()) as TeamsSearchApiResponse;
-  const formattedData: FormattedTeamListItem[] | undefined = result?.teams?.map((team) => ({
-    id: team?.uid,
-    name: team?.name,
-    logo: team?.logo?.url,
-    priority: team?.priority,
-    shortDescription: team?.shortDescription,
-    industryTags: team?.industryTags || [],
-    asks: team?.asks || [],
-    isFollowed: team?.isFollowed,
-  }));
-  return { data: formattedData, totalItems: result?.total, followingTotal: result?.followingTotal ?? 0 };
+  const formattedData = result?.teams?.map((team: ITeamResponse) => {
+    return {
+      id: team?.uid,
+      name: team?.name,
+      logo: team?.logo?.url,
+      priority: team?.priority,
+      shortDescription: team?.shortDescription,
+      industryTags: team?.industryTags || [],
+      asks: team?.asks || [],
+    };
+  });
+  return { data: formattedData, totalItems: result?.total };
 };
 
 export const revalidateTeamDetail = async () => {

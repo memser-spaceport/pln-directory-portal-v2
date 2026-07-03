@@ -17,8 +17,8 @@ import s from './page.module.scss';
 // Lists IA: Co-investors tab retired (now the relationship filter on All
 // Investors). IA = All Investors (universe) + Warm Intros (proximity workspace).
 const VISUAL_TABS = [
-  { value: 'warm-intros', label: 'Warm Intros' },
   { value: 'all', label: 'All Investors' },
+  { value: 'warm-intros', label: 'Warm Intros' },
 ];
 
 export default function InvestorsContent() {
@@ -70,7 +70,7 @@ export default function InvestorsContent() {
       setFilters({
         tab: 'all',
         page: 1,
-        mode: 'list',
+        mode: null,
         in_lab_os: null,
         is_co_investor: null,
         co_invested_team_id: null,

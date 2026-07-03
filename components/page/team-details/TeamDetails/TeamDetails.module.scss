@@ -8,7 +8,6 @@
 
 .logoTagsContainer {
   display: flex;
-  align-items: flex-start;
   gap: 8px;
   width: 100%;
 
@@ -43,17 +42,10 @@
   }
 }
 
-.headerActionSlot {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-}
-
 .nameAndActions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .teamName {
@@ -92,51 +84,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.tagsRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  width: 100%;
-}
-
-.followCaption {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: right;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.followSlotDesktop {
-  display: none;
-
-  @include media.tablet-portrait {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-  }
-}
-
-.followSlotMobile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: 12px;
-
-  .followCaption {
-    text-align: left;
-  }
-
-  @include media.tablet-portrait {
-    display: none;
-  }
 }
 
 .tags3 {
@@ -234,12 +181,6 @@
 .aboutContainer {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  margin-top: 16px;
-}
-
-.aboutBox {
-  width: 100%;
 }
 
 .aboutTitle {

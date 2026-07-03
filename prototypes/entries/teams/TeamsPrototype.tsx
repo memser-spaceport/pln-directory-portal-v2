@@ -1,182 +1,182 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import clsx from 'clsx';
 
-import { SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
-import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
-import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
-import { Tabs } from '@/components/common/Tabs/Tabs';
-import { TeamsMobileFiltersView } from './TeamsMobileFiltersView';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import { FilterSection } from '@/components/common/filters/FilterSection';
+import { Checkbox } from '@/components/common/Checkbox';
 
-// Reuse the production shell + content/grid styling 1:1.
-import contentCss from '@/app/teams/(teams-page)/@content/page.module.css';
-import listCss from '@/components/page/teams/TeamList/TeamList.module.scss';
-
-import { MOCK_TEAMS } from './mocks';
-import { useMockTeamFilterStore } from './mockTeamFilterStore';
-import { TeamsFilterView } from './TeamsFilterView';
-import { TeamsToolbarView } from './TeamsToolbarView';
+import { MOCK_TEAMS, MOCK_FILTER_GROUPS } from './mocks';
 import { TeamCardView } from './TeamCardView';
-import { FollowToast } from '../follow-shared/FollowToast';
 import s from './TeamsPrototype.module.scss';
 
-const COUNTED_PARAMS = [
-  'membershipSources',
-  'tags',
-  'fundingStage',
-  'isFund',
-  'minTypicalCheckSize',
-  'maxTypicalCheckSize',
-  'investmentFocus',
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Default' },
+  { value: 'asc', label: 'A-Z (Ascending)' },
+  { value: 'desc', label: 'Z-A (Descending)' },
 ];
 
-function decodeMulti(raw: string | null): string[] {
-  if (!raw) return [];
-  return raw
-    .split(URL_QUERY_VALUE_SEPARATOR)
-    .map((r) => r.trim().replaceAll(FILTER_VALUE_SEPARATOR_ENCODED, FILTER_VALUE_SEPARATOR))
-    .filter(Boolean);
-}
-
 export default function TeamsPrototype() {
-  // Reused filter components are base-ui / react-hook-form (client-only). Gate on
-  // mount so SSR === first client render (avoids hydration mismatch).
+  // SortDropdown + Checkbox are base-ui (client-only). Gate render on mount so
+  // SSR === first client render and we avoid a hydration mismatch.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { params, setParam } = useMockTeamFilterStore();
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('default');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set());
 
-  const [followed, setFollowed] = useState<Set<string>>(new Set());
-  const [toastName, setToastName] = useState<string | null>(null);
-  // Demo-only: how the Follow control is presented on each card.
-  const [cardVariant, setCardVariant] = useState<'cta' | 'top' | 'pill'>('pill');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-  }, []);
-
-  const toggleFollow = (id: string, name: string) => {
-    setFollowed((prev) => {
+  const toggleFilter = (key: string) =>
+    setSelectedFilters((prev) => {
       const next = new Set(prev);
-      const willFollow = !next.has(id);
-      next.has(id) ? next.delete(id) : next.add(id);
-      if (willFollow) {
-        setToastName(name);
-        if (toastTimer.current) clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToastName(null), 4000);
-      }
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
-  };
-
-  const filterCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
 
   const visibleTeams = useMemo(() => {
-    const selectedTags = decodeMulti(params.get('tags'));
-    const q = (params.get('searchBy') || '').trim().toLowerCase();
-    const sort = params.get('sort') || SORT_OPTIONS.DEFAULT;
-
     let rows = MOCK_TEAMS.slice();
-    if (params.get('following') === 'true') {
-      rows = rows.filter((t) => followed.has(t.id));
-    }
-    if (selectedTags.length) {
-      rows = rows.filter((t) => (t.industryTags ?? []).some((tag) => selectedTags.includes(tag.title ?? '')));
-    }
+    const q = search.trim().toLowerCase();
     if (q) {
       rows = rows.filter(
-        (t) => (t.name ?? '').toLowerCase().includes(q) || (t.shortDescription ?? '').toLowerCase().includes(q),
+        (t) =>
+          (t.name ?? '').toLowerCase().includes(q) || (t.shortDescription ?? '').toLowerCase().includes(q),
       );
     }
-    if (sort === SORT_OPTIONS.ASCENDING) rows.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
-    if (sort === SORT_OPTIONS.DESCENDING) rows.sort((a, b) => (b.name ?? '').localeCompare(a.name ?? ''));
+    if (sort === 'asc') rows.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+    if (sort === 'desc') rows.sort((a, b) => (b.name ?? '').localeCompare(a.name ?? ''));
     return rows;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, followed]);
+  }, [search, sort]);
 
   if (!mounted) {
-    return <div className={s.mountGate} />;
+    return <div className={s.page} />;
   }
-
-  const content = (
-    <div className={contentCss.team__right__content}>
-      {/* Desktop toolbar (hidden on mobile in production). */}
-      <div className={contentCss.team__right__toolbar}>
-        <TeamsToolbarView totalTeams={visibleTeams.length} filterCount={filterCount} onOpenFilters={() => {}} />
-      </div>
-
-      {/* Mobile-only "Teams (N)" header + the production "⊕ Filters" + sort bar. */}
-      <div className={listCss.titleSec}>
-        <span className={listCss.title}>Teams</span>
-        <span className={listCss.count}>({visibleTeams.length})</span>
-      </div>
-      <TeamsMobileFiltersView filterCount={filterCount} />
-
-      {/* All / Following tabs (shared Tabs component), left-aligned under the header. */}
-      <div className={s.tabsRow}>
-        <Tabs
-          variant="underline"
-          classes={{ root: s.tabsRoot, list: s.tabsList, tab: s.tabsTab }}
-          value={params.get('following') === 'true' ? 'following' : 'all'}
-          onValueChange={(v) => setParam('following', v === 'following' ? 'true' : undefined)}
-          tabs={[
-            { label: 'All', value: 'all' },
-            { label: 'Following', value: 'following', badge: followed.size || undefined },
-          ]}
-        />
-      </div>
-
-      <div className={contentCss.team__right__teamslist}>
-        <div className={listCss.root}>
-          {visibleTeams.length > 0 ? (
-            <div className={`${listCss.grid} ${s.gridFull}`}>
-              {visibleTeams.map((team) => (
-                <Link key={team.id} href="/prototypes/team-profile" prefetch={false} className={s.cardLink}>
-                  <TeamCardView
-                    team={team}
-                    following={followed.has(team.id)}
-                    onToggleFollow={() => toggleFollow(team.id, team.name ?? 'team')}
-                    variant={cardVariant}
-                  />
-                </Link>
-              ))}
-            </div>
-          ) : params.get('following') === 'true' && followed.size === 0 ? (
-            <div className={s.empty}>You&apos;re not following any teams yet. Follow a team to see it here.</div>
-          ) : (
-            <div className={s.empty}>No teams match your filters. Try clearing some.</div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className={s.page}>
-      {/* Demo-only switcher: compare the two Follow-control card designs. */}
-      <div className={s.demoBar}>
-        <span className={s.demoLabel}>Follow control</span>
-        <Tabs
-          variant="pill"
-          value={cardVariant}
-          onValueChange={(v) => setCardVariant(v as 'cta' | 'top' | 'pill')}
-          tabs={[
-            { label: 'Follow pill', value: 'pill' },
-            { label: 'Secondary CTA', value: 'cta' },
-            { label: 'Tertiary link', value: 'top' },
-          ]}
-        />
+      <div className={s.shell}>
+        {/* Left filters rail (real FilterSection + Checkbox, mocked groups) */}
+        <aside className={s.filters}>
+          <div className={s.filtersHead}>
+            <h2 className={s.filtersTitle}>Filters</h2>
+            {selectedFilters.size > 0 && (
+              <button type="button" className={s.clearAll} onClick={() => setSelectedFilters(new Set())}>
+                Clear all
+              </button>
+            )}
+          </div>
+          {MOCK_FILTER_GROUPS.map((group) => (
+            <FilterSection key={group.title} title={group.title}>
+              <div className={s.checkList}>
+                {group.options.map((option) => {
+                  const key = `${group.title}::${option}`;
+                  const checked = selectedFilters.has(key);
+                  return (
+                    <label key={key} className={s.checkRow}>
+                      <Checkbox checked={checked} onChange={() => toggleFilter(key)} />
+                      <span className={clsx(s.checkLabel, checked && s.checkLabelActive)}>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </FilterSection>
+          ))}
+        </aside>
+
+        <main className={s.content}>
+          {/* Toolbar: title (N), search, sort, grid/list toggle */}
+          <div className={s.toolbar}>
+            <div className={s.titleContainer}>
+              <h1 className={s.title}>Teams</h1>
+              <p className={s.count}>({visibleTeams.length})</p>
+            </div>
+
+            <div className={s.toolbarRight}>
+              <div className={s.searchContainer}>
+                <img src="/icons/search.svg" alt="search" height={16} width={16} className={s.searchIcon} />
+                <input
+                  className={s.searchInput}
+                  placeholder="Search for a team"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                {search && (
+                  <button type="button" className={s.clearBtn} onClick={() => setSearch('')} title="Clear">
+                    <img src="/icons/close-gray.svg" alt="close" height={14} width={14} />
+                  </button>
+                )}
+              </div>
+
+              <SortDropdown
+                sortByLabel="Sort by:"
+                options={SORT_OPTIONS}
+                currentSort={sort}
+                onSortChange={setSort}
+              />
+
+              <div className={s.viewToggle}>
+                <button
+                  type="button"
+                  className={clsx(s.viewBtn, view === 'grid' && s.viewBtnActive)}
+                  onClick={() => setView('grid')}
+                  aria-pressed={view === 'grid'}
+                  title="Grid view"
+                >
+                  <GridIcon />
+                </button>
+                <button
+                  type="button"
+                  className={clsx(s.viewBtn, view === 'list' && s.viewBtnActive)}
+                  onClick={() => setView('list')}
+                  aria-pressed={view === 'list'}
+                  title="List view"
+                >
+                  <ListIcon />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Responsive grid of real TeamGridView-styled cards */}
+          {visibleTeams.length > 0 ? (
+            <div className={clsx(s.grid, view === 'list' && s.gridList)}>
+              {visibleTeams.map((team) => (
+                <Link
+                  key={team.id}
+                  href="/prototypes/team-profile"
+                  prefetch={false}
+                  className={s.cardLink}
+                >
+                  <TeamCardView team={team} />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className={s.empty}>No teams match “{search}”. Try a different search.</div>
+          )}
+        </main>
       </div>
-
-      <DashboardPagesLayout filters={<TeamsFilterView />} content={content} />
-
-      {toastName && (
-        <FollowToast>
-          You&apos;re following <strong>{toastName}</strong> — you&apos;ll get its updates in your feed.
-        </FollowToast>
-      )}
     </div>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1.5" y="1.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="9.5" y="1.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="1.5" y="9.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
   );
 }

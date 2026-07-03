@@ -11,44 +11,8 @@
   top: 0;
   z-index: 5;
   background: #fff;
-  height: 56px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  //border-bottom: 1px solid #e2e8f0;
-  //box-shadow: 0 1px 4px 0 #e2e8f0;
-  flex-shrink: 0;
-  will-change: transform;
-}
-
-.backBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: #455468;
-  cursor: pointer;
-
-  &:hover {
-    background: #f9fafb;
-    color: #0a0c11;
-  }
-}
-
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px 20px 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .headerTop {
@@ -74,10 +38,9 @@
 .name {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
   color: #0a0c11;
   width: fit-content;
 }
@@ -141,6 +104,10 @@
 }
 
 .emailPop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -164,32 +131,14 @@
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   line-height: 16px;
-  letter-spacing: -0.2px;
   color: #455468;
   word-break: break-all;
 }
 
 .meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
+  font-size: 13px;
   color: #455468;
-  margin-top: 2px;
-}
-
-.metaVDivider {
-  display: inline-block;
-  width: 1px;
-  height: 14px;
-  background: rgba(14, 15, 17, 0.12);
-  flex-shrink: 0;
-  align-self: center;
 }
 
 .metaSub {
@@ -214,12 +163,10 @@
 .closeBtn {
   background: none;
   border: none;
-  font-size: 18px;
-  color: #9ca3af;
+  font-size: 20px;
+  color: #6b7280;
   cursor: pointer;
-  padding: 4px 6px;
-  line-height: 1;
-  flex-shrink: 0;
+  padding: 4px 8px;
 
   &:hover {
     color: #0a0c11;
@@ -230,7 +177,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .sourcePill {
@@ -246,15 +193,12 @@
 }
 
 .section {
-  background: #fff;
-  border: 1px solid rgba(27, 56, 96, 0.12);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px 0 rgba(14, 15, 17, 0.06);
-  padding: 20px;
-}
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
 
-.sectionOutreach {
-  border-color: #cdd2da;
+  &:last-of-type {
+    border-bottom: none;
+  }
 }
 
 .sectionTitle {
@@ -320,49 +264,34 @@
   color: #455468;
 }
 
-.firmLink {
+.link {
   color: #1b4dff;
   text-decoration: none;
-  letter-spacing: -0.2px;
 
   &:hover {
     text-decoration: underline;
   }
 }
 
-/* ── Contact channels ─────────────────────────────────────────────────────── */
+.firmLink {
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ── Contact channels (mirrors InvestorDrawerMock prototype) ─────────────── */
 .channelsBox {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 8px;
-  padding: 12px 16px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 8px;
   background: #f9fafb;
   border: 1px solid #eef0f3;
-  margin-top: 16px;
-}
-
-.socialEmailGroup {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.socialEmailAddr {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: #0f172a;
-  text-decoration: none;
-  white-space: nowrap;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .channelDivider {
@@ -490,30 +419,24 @@
   position: sticky;
   bottom: 0;
   background: #fff;
-  padding: 14px 20px;
-  border-top: 0.8px solid #e5e7eb;
+  padding: 14px 24px;
+  border-top: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: auto;
-  will-change: transform;
 }
 
 .btn.btn {
-  padding: 10px 16px;
+  padding: 8px 14px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
   background: #fff;
-  color: #455468;
-  border: 0.8px solid rgba(14, 15, 17, 0.16);
+  color: #374151;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  box-shadow:
-    0 1px 2px 0 rgba(14, 15, 17, 0.08),
-    inset 0 -2px 8px 0 rgba(14, 15, 17, 0.02);
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -523,6 +446,7 @@
 
   &:hover:not(:disabled) {
     background: #f9fafb;
+    border-color: #9ca3af;
   }
 
   &:disabled {
@@ -535,8 +459,9 @@
   background: #1b4dff;
   color: #fff;
   border-color: #1b4dff;
-  height: 42px;
-  box-shadow: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
 
   &:hover:not(:disabled) {
     background: #1a3fd9;

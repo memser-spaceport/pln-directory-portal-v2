@@ -1,1 +1,0 @@
-export { TeamsScopeTabs } from './TeamsScopeTabs';

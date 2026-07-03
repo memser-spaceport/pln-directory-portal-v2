@@ -517,9 +517,8 @@
   white-space: nowrap;
 
   &[href]:hover {
-    background: #eef2ff;
-    border-color: #1b4dff;
-    color: #1b4dff;
+    border-color: #9ca3af;
+    background: #f9fafb;
   }
 }
 
@@ -553,18 +552,6 @@
   font-weight: 500;
   color: #0a0c11;
   line-height: 1;
-}
-
-.rnArrow {
-  font-size: 11px;
-  color: #9ca3af;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: color 0.12s;
-
-  .rnChip[href]:hover & {
-    color: #1b4dff;
-  }
 }
 
 .showMore {

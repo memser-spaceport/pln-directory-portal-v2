@@ -1,30 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
 
 import type { ITag, ITeam } from '@/types/teams.types';
 
+import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { Divider } from '@/components/common/profile/Divider';
-import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 // Reuse the production TeamDetails styling 1:1.
 import s from '@/components/page/team-details/TeamDetails/TeamDetails.module.scss';
-import local from './TeamProfile.module.scss';
 
 interface Props {
   team: ITeam;
-  /** Follow cluster rendered top-right of the team name row. */
-  headerAction?: ReactNode;
-  /** Slot rendered on its own row just above the About section. */
-  beforeAbout?: ReactNode;
-  /** Hide the stage / fund / industry badges row (test the no-badges team). */
-  hideBadges?: boolean;
 }
 
 /**
@@ -35,7 +28,7 @@ interface Props {
  * plain logged-in/approved read view with mock data, importing the production
  * `.module.scss` and all leaf presentational components.
  */
-export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }: Props) {
+export function TeamDetailsView({ team }: Props) {
   const teamName = team?.name ?? '';
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
   const logo = team?.logo ?? defaultAvatarImage ?? '/icons/team-default-profile.svg';
@@ -46,9 +39,9 @@ export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }:
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
 
   return (
-    <DetailsSection classes={{ root: local.mainCardTight }}>
-      <div className={`${s.profile} ${local.profileRow}`}>
-        <div className={`${s.logoTagsContainer} ${local.logoTagsGrow}`}>
+    <DetailsSection>
+      <div className={s.profile}>
+        <div className={s.logoTagsContainer}>
           <Image
             alt="profile"
             loading="eager"
@@ -63,40 +56,29 @@ export function TeamDetailsView({ team, headerAction, beforeAbout, hideBadges }:
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
             </div>
-            {!hideBadges && (
-              <div className={s.tagsContainer}>
-                <div className={s.tags2}>
-                  {team?.fundingStage?.title && (
-                    <>
-                      <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
-                      <Divider />
-                    </>
-                  )}
-                  {team?.isFund && (
-                    <>
-                      <Tag value="Investment Fund" className={s.iTag} />
-                      <Divider />
-                    </>
-                  )}
-                  {!!tags?.length && <TagsList tags={tags} />}
-                </div>
+            <div className={s.tagsContainer}>
+              <div className={s.tags2}>
+                {team?.fundingStage?.title && (
+                  <>
+                    <div className={s.fundingStage}>Stage: {team.fundingStage.title}</div>
+                    <Divider />
+                  </>
+                )}
+                {team?.isFund && (
+                  <>
+                    <Tag value="Investment Fund" className={s.iTag} />
+                    <Divider />
+                  </>
+                )}
+                {!!tags?.length && <TagsList tags={tags} />}
               </div>
-            )}
+            </div>
           </div>
         </div>
-
-        {/* Follow cluster aligned with the whole header block (logo + name + tags). */}
-        {headerAction && <div className={local.headerActionSlot}>{headerAction}</div>}
       </div>
 
-      {/* Inline Follow variant sits on its own row below the header. */}
-      {beforeAbout && <div className={local.beforeAboutSlot}>{beforeAbout}</div>}
-
-      {/* About, back inside the header card (matches production's inline markup).
-          DetailsSection's own row gap is commented out in production, so this
-          needs its own top margin to breathe below the logo/name/tags block. */}
       {hasAbout && (
-        <div className={`${s.aboutContainer} ${local.aboutSpacing}`}>
+        <div className={s.aboutContainer}>
           <div className={s.aboutTitle}>About</div>
           <ExpandableDescription>
             <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />

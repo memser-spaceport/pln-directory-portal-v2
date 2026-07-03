@@ -85,8 +85,8 @@ export const TeamDetails = (props: Props) => {
     handleToggle: onFollowToggle,
   } = useTeamFollowToggle(team, team.isFollowed ?? false);
 
-  const showFollowButton = !isCurrentUserTeamMember;
   const showFollowers = isCurrentUserTeamMember || isAdmin;
+  const showFollowButton = !showFollowers;
 
   const followContent = (
     <>

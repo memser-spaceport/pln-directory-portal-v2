@@ -65,10 +65,6 @@
 }
 
 .row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
   border-radius: 8px;
 
   &:hover {
@@ -76,25 +72,20 @@
   }
 }
 
+.rowLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
 .rowAvatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
-}
-
-.rowAvatarFallback {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--border-neutral-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--foreground-neutral-secondary);
   flex-shrink: 0;
 }
 

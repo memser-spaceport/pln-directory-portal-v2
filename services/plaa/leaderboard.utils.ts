@@ -42,6 +42,14 @@ export const splitLeaderboardEntries = (entries: ApiLeaderboardEntry[]) => ({
   cumulativeData: mapEntries(entries.filter((e) => e.type === 'CUMULATIVE')),
 });
 
-/** Past rounds use PAST_ROUND; fall back to CURRENT_SNAPSHOT when present */
-export const getPastRoundLeaderboardEntries = (entries: ApiLeaderboardEntry[]): MappedLeaderboardEntry[] =>
-  mapEntries(entries.filter((e) => e.type === 'PAST_ROUND' || e.type === 'CURRENT_SNAPSHOT'));
+/**
+ * Past rounds use PAST_ROUND. Prefer it exclusively when present; only fall back
+ * to CURRENT_SNAPSHOT for older rounds that were never archived. (Merging both
+ * would surface stale CURRENT_SNAPSHOT rows left over from when the round was
+ * current — e.g. showing 650 instead of the archived 950.)
+ */
+export const getPastRoundLeaderboardEntries = (entries: ApiLeaderboardEntry[]): MappedLeaderboardEntry[] => {
+  const pastRound = entries.filter((e) => e.type === 'PAST_ROUND');
+  const source = pastRound.length ? pastRound : entries.filter((e) => e.type === 'CURRENT_SNAPSHOT');
+  return mapEntries(source);
+};

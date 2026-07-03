@@ -79,6 +79,17 @@
   }
 }
 
+/* ---- Follow control band (top-right of the profile header card) ---- */
+.followSlot {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+
+  @media (max-width: 600px) {
+    justify-content: flex-start;
+  }
+}
+
 /* ---- Profile header (mirrors MemberDetailHeader composition) ---- */
 .bio {
   color: var(--foreground-neutral-secondary, #455468);

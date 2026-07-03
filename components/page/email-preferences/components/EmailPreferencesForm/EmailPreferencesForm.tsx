@@ -16,6 +16,7 @@ import { DemoDaySubscriptionSettings } from '@/services/members/hooks/useGetDemo
 import { getMemberInfo } from '@/services/members.service';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 interface Props {
   uid: string;
@@ -32,6 +33,8 @@ interface Props {
 export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
   const { isInvestor: v2IsInvestor } = useInvestorAccess();
+  const { currentUser } = useCurrentUserStore();
+  const hasDigestAccess = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.read');
 
   useEffect(() => {
     triggerLoader(false);
@@ -54,12 +57,8 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      {!v2IsInvestor && (
-        <>
-          <ForumDigest userInfo={userInfo} initialData={initialData.settings} />
-          <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />
-        </>
-      )}
+      {hasDigestAccess && <ForumDigest userInfo={userInfo} initialData={initialData.settings} />}
+      {!v2IsInvestor && <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />}
       <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
       <InvestorCommunications
         userInfo={userInfo}

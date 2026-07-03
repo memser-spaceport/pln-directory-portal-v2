@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'team-profile',
     title: 'Team profile',
     description:
-      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components.',
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },
@@ -81,9 +81,57 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'member-profile',
     title: 'Member profile — Affinity relationship',
     description:
-      'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months.',
+      'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal.',
     category: 'Members',
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
+  },
+  {
+    key: 'follow-team',
+    title: 'Follow — team profile',
+    description:
+      'Duplicate of the team profile with the follow feature: two layout variants (button + "why" card, or inline-with-title grouped pill), notification settings, social proof, and a personalized news rail.',
+    category: 'Ideation',
+    load: () => import('./entries/follow-team/FollowTeamPrototype'),
+  },
+  {
+    key: 'profile-settings',
+    title: 'Profile settings',
+    description:
+      'Mocked recreation of the production settings shell (back bar, left preferences/admin menu, content) with a Profile edit form — basic info, team & skills, contact, and availability — plus a sticky save bar.',
+    category: 'Ideation',
+    load: () => import('./entries/profile-settings/ProfileSettingsPrototype'),
+  },
+  {
+    key: 'following-popover',
+    title: 'Follow — Following / Followers',
+    description:
+      'Manage who you follow from the profile avatar popover: Following (split into People / Teams, each row unfollowable) and Followers (with Follow-back and network proof).',
+    category: 'Ideation',
+    load: () => import('./entries/following-popover/FollowingPopoverPrototype'),
+  },
+  {
+    key: 'news-feed',
+    title: 'Follow — network news feed',
+    description:
+      'Faithful copy of the production homepage "News from the network" feed (focus-area tabs, category filters, card grid, Show All) with a small follow/following button next to each team name.',
+    category: 'Ideation',
+    load: () => import('./entries/news-feed/NewsFeedPrototype'),
+  },
+  {
+    key: 'home-news',
+    title: 'Follow — personalized feed',
+    description:
+      'The news feed silently personalized by who you follow: followed teams & people surface first under a subtle marker, with a SubscribeBanner empty state and one-tap follow suggestions. Switch between following none / a few / many to see it re-sort live.',
+    category: 'Ideation',
+    load: () => import('./entries/home-news/HomeNewsPrototype'),
+  },
+  {
+    key: 'newsfeed-v0',
+    title: 'Newsfeed redesign — v0 quick wins',
+    description:
+      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a Current / V0 grid / V0 feed switch on the feed. The feed mode is a single centered column where every story in a team cluster has equal weight, newest first. V0 layers the quick wins: the AI summary the API already returns rendered on the card, a source chip with favicon, one card per team (lead picked by importance — event weight + discussion — with the other updates visible as compact rows), and a visible Join discussion / Start a conversation CTA.',
+    category: 'Newsfeed',
+    load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
   {
     key: 'ai-apps',

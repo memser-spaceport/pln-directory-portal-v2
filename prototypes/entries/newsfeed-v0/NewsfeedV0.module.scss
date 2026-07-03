@@ -1,0 +1,532 @@
+@import 'styles/media.scss';
+
+/* Page sizing/padding comes from the production home shell (app/home/page.module.css);
+   this only supplies the backdrop. */
+.page {
+  min-height: 100%;
+  background: var(--background-neutral-subtle, #f7f8fa);
+}
+
+/* ---------- Prototype-only Current / V0 switcher ---------- */
+
+.switchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.switch {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.switchBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.switchBtnActive {
+  background: #ffffff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 2px 4px 0px rgba(15, 23, 42, 0.06);
+}
+
+.switchNote {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Clustered V0 cards vary in height, so a row-based grid leaves holes under
+   short cards. CSS columns pack each column top-down and auto-balance heights
+   — mirrors the production grid's column count and gaps. */
+.masonry {
+  column-count: 1;
+  column-gap: 16px;
+
+  > * {
+    break-inside: avoid;
+    margin-bottom: 12px;
+  }
+
+  @include tablet-portrait {
+    column-count: 2;
+
+    > * {
+      margin-bottom: 16px;
+    }
+  }
+}
+
+/* ---------- V0 feed mode: single column, equal-weight stories ---------- */
+
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* a beat more than the grid's 16px — separates cards in a vertical scroll */
+  flex: 1;
+  min-width: 0; /* let the column shrink instead of overflowing the row */
+}
+
+/* The card is a container here — the stories inside are the click targets, so
+   the container keeps its resting shadow instead of production's hover lift. */
+.feedCard.feedCard {
+  cursor: default;
+  padding: 24px;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.feedStory {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Full-width text (per designer call — line length runs ~100+ chars at the
+     widest breakpoint), with a third line since the feed is the reading view.
+     The shared class pulls itself up -6px (tuned to the grid card's 14px gap);
+     here the story's own 8px gap is right. */
+  .summary {
+    -webkit-line-clamp: 3;
+    margin-top: 0;
+  }
+}
+
+/* Hairline between stories (the card's own 14px gap provides the air). */
+.feedStory + .feedStory {
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding-top: 16px;
+}
+
+.feedTitle {
+  transition: color 0.12s ease;
+}
+
+/* Story hover highlights its title (the story's click target) — not while the
+   pointer is on the story's own upvote/comment buttons. */
+.feedStory:hover:not(:has(button:hover)) .feedTitle {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* ---------- Feed view: left rail (suggestions) + feed column ---------- */
+
+.feedLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: stretch;
+
+  @include tablet-landscape {
+    flex-direction: row;
+    gap: 24px;
+    align-items: flex-start;
+  }
+}
+
+.feedRail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include tablet-landscape {
+    width: 300px;
+    flex-shrink: 0;
+    position: sticky;
+    /* Clear the fixed app header (global var, 80px) plus breathing room. */
+    top: calc(var(--app-header-height, 80px) + 16px);
+  }
+}
+
+/* Rail modules reuse the news-card shell but aren't clickable as a whole. */
+.railCard.railCard {
+  cursor: default;
+  gap: 12px;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.railRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.railInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.railName {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.railReason {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.railStory {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+
+  &:hover .railStoryTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.railStoryTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.12s ease;
+}
+
+/* Stop the team-name link from growing (production sets flex:1) so the count
+   and follow button sit right next to it. Double class beats production. */
+.teamNameTight.teamNameTight {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* Bigger news headline. DELIBERATE off-scale size: the DS type scale jumps
+   20 (body-xl) → 24 (heading-sm) and 24 was judged too big for this card —
+   22 is a designer decision pending a DS-owner call (new token vs snap).
+   Assumes headline-style titles. Double class beats the production size. */
+.headlineLg.headlineLg {
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.5px;
+  transition: color 0.12s ease;
+}
+
+/* Card hover highlights the lead headline (it's the card's click target) —
+   but only while the pointer is over territory whose click opens the lead
+   article. Anywhere with its own destination or action (the rows region,
+   footer actions, Follow, the team-name link) suppresses it. */
+.cardRoot:hover:not(:has(.more:hover)):not(:has(.footerActions:hover)):not(:has(.headFollow:hover)):not(:has(a:hover))
+  .headlineLg {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Follow sits after the team name, always visible. The tertiary button carries
+   6px of its own horizontal padding — compensate so the visible text-to-text
+   gap matches the row's 12px rhythm. */
+.headFollow {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: -6px;
+}
+
+/* ---------- V0 card: summary ---------- */
+
+.summary {
+  margin: 0;
+  margin-top: -6px; /* bind to the headline (card gap is 14px) */
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- V0 card: event label inside the meta line ---------- */
+
+/* The card's single accent treatment — everything else is plain text in two grays. */
+.metaEvent {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Event text follows the production event-dot palette (NewsCard.module.scss). */
+.kFunding {
+  color: #027a48;
+}
+
+.kLaunch {
+  color: #1849a9;
+}
+
+.kPartnership {
+  color: #5925dc;
+}
+
+.kAnnouncement {
+  color: #475467;
+}
+
+.kMilestone {
+  color: #b54708;
+}
+
+/* ---------- V0 card: quiet footer (source · discussion) ---------- */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 6px;
+  row-gap: 12px; /* air above "Join discussion" when it wraps under the meta line */
+  flex-wrap: wrap;
+}
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.favicon {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Upvote + comment pair on the footer's right. */
+.footerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.discussLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Touch devices: same quiet look, but an invisible halo extends the tap
+     zone to ≥44px. */
+  @media (hover: none) {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -12px -10px;
+    }
+  }
+}
+
+/* ---------- V0 card: the team's other updates, always visible ---------- */
+
+.more {
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+/* Each row mirrors the lead's shape: headline, then the same quiet
+   "source · time" meta line underneath. */
+.moreRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  cursor: pointer;
+
+  &:not(:first-child) {
+    border-top: 1px solid var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  /* Row hover highlights its title (the row's click target) — but not while
+     the pointer is on the row's own upvote/comment buttons. */
+  &:hover:not(:has(button:hover)) .moreTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* DS body-md (16/24, 400) — a size step below the 22px lead without weight noise. */
+.moreTitle {
+  min-width: 0;
+  font-size: var(--type-body-md-default-font-size, 16px);
+  line-height: var(--type-body-md-default-line-height, 24px);
+  font-weight: 400;
+  letter-spacing: var(--type-body-md-default-letter-spacing, -0.3px);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.moreMeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.moreMetaText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Comment count inside a row's meta line — the chat glyph + bare count, same
+   icon vocabulary as the lead's "Join discussion" link. */
+.moreComments {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Touch devices: same quiet look, but an invisible halo extends the tap
+     zone to ≥44px. */
+  @media (hover: none) {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -14px -10px;
+    }
+  }
+}
+
+/* Voted state: color returns to announce "you did this" — the one place the
+   engagement layer earns brand blue at rest (double class beats the gray). */
+.rowVoted.rowVoted {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 700;
+}

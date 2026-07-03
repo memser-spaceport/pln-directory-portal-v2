@@ -29,6 +29,8 @@ import { fetchTeamNewsByTeam } from '@/services/team-news/team-news.service';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
+import { getTeamFollowers } from '@/services/follow/follow.service';
+import type { ITeamFollowersResponse } from '@/types/follow.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
@@ -49,6 +51,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     isNotFound,
     hasEditAsksAccess,
     teamNews,
+    followers,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -82,7 +85,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         {/* Details */}
         <div className={styles?.teamDetail__Container__details}>
           {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-          <TeamDetails team={team} />
+          <TeamDetails team={team} initialFollowers={followers} />
         </div>
 
         {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
@@ -166,6 +169,7 @@ async function getPageData(teamId: string) {
   let isNotFound = false;
   let memberTeams: never[] = [];
   let hasEditAsksAccess: boolean = false;
+  let followers: ITeamFollowersResponse | null = null;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -178,31 +182,34 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse] = await Promise.all([
-      getTeam(
-        teamId,
-        {
-          with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
-        },
-        authToken,
-      ),
-      getMembers(
-        {
-          'teamMemberRoles.team.uid': teamId,
-          isVerified: 'all',
-          select:
-            'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
-          pagination: false,
-        },
-        teamId,
-        0,
-        0,
-        isLoggedIn,
-      ),
-      getFocusAreas('Team', {}),
-      fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
-    ]);
+    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse, followersResponse] =
+      await Promise.all([
+        getTeam(
+          teamId,
+          {
+            with: 'logo,technologies,membershipSources,industryTags,fundingStage,teamMemberRoles.member,asks',
+          },
+          authToken,
+        ),
+        getMembers(
+          {
+            'teamMemberRoles.team.uid': teamId,
+            isVerified: 'all',
+            select:
+              'uid,name,isVerified,image.url,officeHours,ohStatus,skills.title,teamMemberRoles.team.uid,projectContributions,teamMemberRoles.team.name,teamMemberRoles.role,teamMemberRoles.teamLead,teamMemberRoles.mainTeam',
+            pagination: false,
+          },
+          teamId,
+          0,
+          0,
+          isLoggedIn,
+        ),
+        getFocusAreas('Team', {}),
+        fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
+        isLoggedIn ? getTeamFollowers(teamId, { authToken }) : Promise.resolve(null),
+      ]);
     teamNews = teamNewsResponse;
+    followers = followersResponse;
 
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
@@ -276,6 +283,7 @@ async function getPageData(teamId: string) {
       hasProjectsEditAccess,
       hasEditAsksAccess,
       teamNews,
+      followers,
     };
   } catch (error: any) {
     console.error(error);

@@ -736,13 +736,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   padding-bottom: 3px !important;
 }
 
-// Drawer chain: no brand highlight on hover — the founder (and other) nodes stay
-// neutral, matching the production node's resting look (higher specificity than the
-// base .nodeChip:hover so it wins).
+// Drawer chain: clickable nodes still get the brand-blue hover (they open the
+// person/team in LabOS). Higher specificity than base .nodeChip:hover.
 .chainBig .nodeChip:hover {
-  border-color: $border;
-  background: #fff;
-  color: $text;
+  border-color: $brand;
+  background: var(--background-brand-subtle, #eef2ff);
+  color: $brand;
 }
 
 // Round icon badge for teams (square mark) + the investor (generated avatar).
@@ -778,6 +777,58 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 
 // Inline ↗ INSIDE a person chip — always visible, signals the node opens that
 // person in the PL system. Grey for every chip (incl. team chips), even on hover.
+// Grey box holding the contact channels in the header (Figma drawer layout).
+.contactBox {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-radius: 12px;
+}
+
+// Grey card wrapper for the "Investment through fund(s)" definition list,
+// matching the Figma drawer layout.
+.fundCard {
+  width: 100%;
+  padding: 16px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-radius: 12px;
+}
+
+// Two columns of stacked label-on-top / value-below items.
+.fundGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fundCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fundItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fundLabel {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+.fundValue {
+  font-size: 13px;
+  line-height: 18px;
+  text-align: right;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
 .chainArrowInline {
   display: inline-flex;
   align-items: center;

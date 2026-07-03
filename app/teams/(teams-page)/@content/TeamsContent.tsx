@@ -1,45 +1,55 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { ITeamsSearchParams } from '@/types/teams.types';
 import { IUserInfo } from '@/types/shared.types';
 import EmptyResult from '../../../../components/core/empty-result';
 import Error from '../../../../components/core/error';
 import { TeamsToolbar } from '../../../../components/page/teams/TeamsToolbar';
 import { TeamList } from '@/components/page/teams/TeamList';
 import styles from './page.module.css';
-import { fetchTeamsList } from '../teamsApi';
 import { useEffect } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
 import { useTeamFilterStore } from '@/services/teams';
+import { useInfiniteTeamsList } from '@/services/teams/hooks/useInfiniteTeamsList';
+import { useFollowingTeamsCount } from '@/services/follow/hooks/useFollowingTeamsCount';
+import { FollowingEmptyState } from '@/components/page/teams/FollowingEmptyState';
 
 interface TeamsContentProps {
   userInfo: IUserInfo | undefined;
+  isLoggedIn: boolean;
 }
 
 export default function TeamsContent(props: TeamsContentProps) {
-  const { userInfo } = props;
+  const { userInfo, isLoggedIn } = props;
 
   const searchParams = useGetTeamsFilterAsObjectFromStore();
   const clearParams = useTeamFilterStore((s) => s.clearParams);
+  const isFollowingOnly = searchParams.followingOnly === 'true';
 
   // Use the shared hook for filters
   const { filterValues, isLoading: isLoadingFilters, isError: isFiltersError } = useTeamsFilters(searchParams);
 
-  // Fetch teams list
+  // Single source of truth for the grid, the toolbar's total count, and pagination.
   const {
-    data: teamsData,
+    data: teams,
+    total: totalTeams,
+    followingTotal,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading: isLoadingTeams,
     isError: isTeamsError,
-  } = useQuery({
-    queryKey: ['teams', 'list', searchParams],
-    queryFn: () => fetchTeamsList(searchParams),
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 60000, // Keep in cache for 60 seconds
-  });
+    isRefetching,
+  } = useInfiniteTeamsList({ searchParams });
+
+  // Lives in its own cache entry, decoupled from the active tab, so it stays accurate
+  // whether the user is following/unfollowing from the All tab or the Following tab.
+  // Withhold the sync while a background refetch is in flight (e.g. right after switching to a
+  // tab whose cache was just invalidated) — otherwise the stale cached value gets briefly synced
+  // in before the fresh one arrives, flashing the wrong count.
+  const liveFollowingTotal = useFollowingTeamsCount(isRefetching ? undefined : followingTotal);
 
   const isLoading = isLoadingTeams || isLoadingFilters;
   const isError = isTeamsError || isFiltersError;
@@ -61,23 +71,32 @@ export default function TeamsContent(props: TeamsContentProps) {
     return <ContentPanelSkeletonLoader />;
   }
 
-  const teams = teamsData?.teams || [];
-  const totalTeams = teamsData?.totalItems || 0;
-
   return (
     <div className={styles.team__right__content}>
       <div className={styles.team__right__toolbar}>
-        <TeamsToolbar totalTeams={totalTeams} userInfo={userInfo} />
+        <TeamsToolbar
+          totalTeams={totalTeams}
+          followingTotal={liveFollowingTotal}
+          userInfo={userInfo}
+          isLoggedIn={isLoggedIn}
+        />
       </div>
       <div className={styles.team__right__teamslist}>
         {teams.length > 0 ? (
           <TeamList
             teams={teams}
             totalTeams={totalTeams}
+            followingTotal={liveFollowingTotal}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+            isFetchingNextPage={isFetchingNextPage}
             searchParams={searchParams}
             userInfo={userInfo}
             filterValues={filterValues}
+            isLoggedIn={isLoggedIn}
           />
+        ) : isFollowingOnly ? (
+          <FollowingEmptyState />
         ) : (
           <EmptyResult onClearAll={clearParams} />
         )}

@@ -36,6 +36,8 @@ import contact from '@/components/page/member-details/contact-details/ContactDet
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 import book from '@/components/page/member-details/BookWithOther/BookWithOther.module.scss';
 
+import { FollowControl } from '../follow-shared/FollowControl';
+import { FollowWhyCard } from '../follow-shared/FollowWhyCard';
 import s from './MemberProfile.module.scss';
 import {
   MOCK_MEMBER,
@@ -45,6 +47,8 @@ import {
   totalInteractions,
   type AffinityRelationship,
 } from './mocks';
+
+const MEMBER_FOLLOWERS = 1283;
 
 // Cast the mock to the production prop types — the real components read only the
 // fields we populate, so this is safe for the prototype.
@@ -66,6 +70,7 @@ export default function MemberProfilePrototype() {
   // first client render and we avoid hydration drift.
   const [mounted, setMounted] = useState(false);
   const [scenarioKey, setScenarioKey] = useState(RELATIONSHIP_SCENARIOS[0].key);
+  const [following, setFollowing] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -98,9 +103,37 @@ export default function MemberProfilePrototype() {
           <div className={page.content}>
             <BackButton to="/members" />
             <div className={page.memberDetail__container}>
-              <ProfileHeaderCard />
+              <ProfileHeaderCard
+                following={following}
+                count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
+                onToggle={() => setFollowing((v) => !v)}
+              />
               {/* Inline copy — only shown below tablet-landscape, where the rail is hidden. */}
               <div className={s.affinityMobile}>
+                <FollowWhyCard
+                  name={MOCK_MEMBER.name}
+                  kind="member"
+                  following={following}
+                  count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
+                  onToggle={() => setFollowing((v) => !v)}
+                  socialProof={{ names: ['Juan Benet'], moreCount: 11 }}
+                  suggestions={[
+                    {
+                      id: 'molly',
+                      name: 'Molly Mackinlay',
+                      subtitle: 'Project Lead, IPFS',
+                      kind: 'member',
+                      image: 'https://i.pravatar.cc/96?img=32',
+                    },
+                    {
+                      id: 'david',
+                      name: 'David Dias',
+                      subtitle: 'Research Engineer',
+                      kind: 'member',
+                      image: 'https://i.pravatar.cc/96?img=15',
+                    },
+                  ]}
+                />
                 <AffinityCard relationship={scenario.relationship} empty={scenario.empty} />
               </div>
               <OfficeHoursCard />
@@ -118,6 +151,13 @@ export default function MemberProfilePrototype() {
               <BackButton to="/members" />
             </div>
             <div className={s.rail}>
+              <FollowWhyCard
+                name={MOCK_MEMBER.name}
+                kind="member"
+                following={following}
+                count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
+                onToggle={() => setFollowing((v) => !v)}
+              />
               <AffinityCard relationship={scenario.relationship} empty={scenario.empty} />
               <BookWithOtherCard />
             </div>
@@ -129,9 +169,21 @@ export default function MemberProfilePrototype() {
 }
 
 /* ---------- Profile header (mirrors ProfileDetails + MemberDetailHeader) ---------- */
-function ProfileHeaderCard() {
+function ProfileHeaderCard({
+  following,
+  count,
+  onToggle,
+}: {
+  following: boolean;
+  count: number;
+  onToggle: () => void;
+}) {
   return (
     <div className={profile.root}>
+      {/* Follow control — added top-right of the real header, nothing else changed. */}
+      <div className={s.followSlot}>
+        <FollowControl name={MOCK_MEMBER.name} kind="member" following={following} count={count} onToggle={onToggle} />
+      </div>
       <div className={h.header}>
         <div className={h.headerProfile}>
           <img className={h.headerProfileImg} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />

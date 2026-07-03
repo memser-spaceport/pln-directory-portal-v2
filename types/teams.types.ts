@@ -23,6 +23,7 @@ export interface ITeamsSearchParams {
   priorities?: string;
   tiers?: string;
   communityAffiliations?: string;
+  followingOnly?: 'true' | '';
 }
 
 export interface CheckboxFilterOption {
@@ -75,6 +76,7 @@ export interface ITeamResponse {
   linkedinHandle?: string | null;
   createdAt?: string;
   asks?: string[];
+  isFollowed?: boolean;
 }
 
 export interface ITag {
@@ -149,6 +151,7 @@ export interface ITeam {
   };
   telegramHandler?: string | null;
   blog?: string | null;
+  isFollowed?: boolean;
 }
 
 export interface ITeamDetailParams {

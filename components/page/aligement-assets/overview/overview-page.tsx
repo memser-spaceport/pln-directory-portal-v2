@@ -85,7 +85,7 @@ const workingGroupRows = [
     team: 'Surus',
     contributors: ['Patrick Murck', 'Tyler Whirty'],
     responsibilities:
-      'State-chartered PL Alignment Asset Trustee - maintains the PLAA1 Trust ("Trust") and is responsible for day-to-day Trust operations.',
+      'State-chartered PL Alignment Asset Trustee - maintains the PLAA Trust ("Trust") and is responsible for day-to-day Trust operations.',
   },
   {
     team: 'Polaris',

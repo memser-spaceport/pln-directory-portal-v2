@@ -1,34 +1,3 @@
-@use 'styles/media.scss';
-
-.wrapper {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: 12px;
-}
-
-.followRow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-
-  @include media.tablet-landscape {
-    flex-direction: row;
-    width: fit-content;
-  }
-}
-
-.caption {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
 .followersInfo {
   display: inline-flex;
   align-items: center;
@@ -115,31 +84,5 @@
     font-weight: 600;
     color: var(--foreground-neutral-primary, #0a0c11);
     font-variant-numeric: tabular-nums;
-  }
-}
-
-.followBtn {
-  height: 38px;
-  min-width: 72px;
-  padding: 0 10px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  &.isFollowing.isFollowing {
-    color: #455468;
-    border-color: #0e0f1129;
-    box-shadow: 0 1px 2px #0e0f1114, inset 0 -2px 8px #0e0f1105;
-    background: #fff;
-
-    &:hover {
-      background: #f1f5f9;
-    }
-  }
-
-  @include media.tablet-landscape {
-    width: 120px;
   }
 }

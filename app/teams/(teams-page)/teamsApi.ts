@@ -1,4 +1,5 @@
-import { ITeamsSearchParams } from '@/types/teams.types';
+import { ITeam, ITeamsSearchParams } from '@/types/teams.types';
+import qs from 'qs';
 
 /**
  * Client-side API functions for teams page
@@ -21,6 +22,11 @@ const getHeaders = (authToken?: string) => {
   }
   return headers;
 };
+
+export interface TeamListResponse {
+  teams: ITeam[];
+  totalItems: number;
+}
 
 export interface FilterDataResponse {
   tags: string[];
@@ -49,6 +55,49 @@ export interface OptionWithTeams {
 export interface TeamsCountResponse {
   data: OptionWithTeams[];
 }
+
+/**
+ * Fetch teams list from API
+ */
+const toPriorityValues = (val: string | undefined) =>
+  (val ?? '')
+    ?.split('|')
+    .filter(Boolean)
+    .map((v) => (v === '-1' ? '99' : v));
+
+function processSortingParams(searchParams: ITeamsSearchParams): ITeamsSearchParams {
+  const { sort } = searchParams;
+
+  if (!sort) {
+    return searchParams;
+  }
+
+  const [field, order] = sort.split(',');
+
+  return { ...searchParams, sort: `${field.toLowerCase()}:${order}` };
+}
+
+export const fetchTeamsList = async (searchParams: ITeamsSearchParams): Promise<TeamListResponse> => {
+  const authToken = getAuthToken();
+
+  const query = qs.stringify({
+    ...processSortingParams(searchParams),
+    investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
+    priorities: toPriorityValues(searchParams.priorities ?? searchParams.tiers),
+  });
+
+  const response = await fetch(`/api/teams/list?${query}`, {
+    headers: getHeaders(authToken),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch teams list');
+  }
+
+  const teams = await response.json();
+  return teams;
+};
 
 /**
  * Fetch filter data from API

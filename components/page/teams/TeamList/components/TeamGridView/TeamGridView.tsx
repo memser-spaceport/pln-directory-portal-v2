@@ -1,7 +1,6 @@
 'use client';
 
-import { memo } from 'react';
-import { ITag, ITeam, ITeamsSearchParams } from '@/types/teams.types';
+import { ITag, ITeam } from '@/types/teams.types';
 import TeamsTagsList from '../../../teams-tags-list';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
@@ -12,8 +11,6 @@ import { IUserInfo } from '@/types/shared.types';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
-import { useToggleTeamFollowInList } from '@/services/follow/hooks/useToggleTeamFollowInList';
 
 import s from './TeamGridView.module.scss';
 
@@ -21,19 +18,16 @@ interface ITeamGridView {
   userInfo?: IUserInfo;
   team: ITeam;
   viewType: string;
-  isLoggedIn?: boolean;
-  searchParams: ITeamsSearchParams;
 }
 
-export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
-  const { team, userInfo, isLoggedIn, searchParams } = props;
+export const TeamGridView = (props: ITeamGridView) => {
+  const { team, userInfo } = props;
 
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name;
   const description = team?.shortDescription;
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-  const { toggleFollow, isPending: isTogglingFollow } = useToggleTeamFollowInList({ team, searchParams });
   const carousel: any[] = [];
   const canSearch = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
   const canSeePriority = userInfo?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
@@ -92,20 +86,6 @@ export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
         <div className={s.tagsMob}>
           <TeamsTagsList tags={tags} noOfTagsToShow={1} />
         </div>
-        {/*{isLoggedIn && (*/}
-        {/*  <div className={s.followRow}>*/}
-        {/*    <FollowButton*/}
-        {/*      following={Boolean(team.isFollowed)}*/}
-        {/*      name={team.name ?? 'team'}*/}
-        {/*      disabled={isTogglingFollow}*/}
-        {/*      onClick={(e) => {*/}
-        {/*        e.preventDefault();*/}
-        {/*        e.stopPropagation();*/}
-        {/*        toggleFollow();*/}
-        {/*      }}*/}
-        {/*    />*/}
-        {/*  </div>*/}
-        {/*)}*/}
       </div>
       {carousel.length > 0 && (
         <div className={s.embla} onClick={handleClick}>
@@ -182,4 +162,4 @@ export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
       )}
     </div>
   );
-});
+};

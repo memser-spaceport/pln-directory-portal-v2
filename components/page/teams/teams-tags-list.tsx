@@ -61,6 +61,7 @@ const TeamsTagsList = (props: any) => {
         .tagsContainer {
           display: flex;
           gap: 8px;
+          height: 26px;
         }
 
         @media (min-width: 1024px) {

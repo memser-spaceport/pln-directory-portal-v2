@@ -28,7 +28,6 @@ export const useTeamFilterStore = createFilterStore({
     'isHost', // Host contribution filter
     'isSponsor', // Sponsor contribution filter
     'isFund', // Fund filter
-    'followingOnly', // Only show teams the current user follows
 
     // Multi-select filters
     'tags', // Team tags

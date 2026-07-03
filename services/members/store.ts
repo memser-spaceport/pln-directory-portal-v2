@@ -32,7 +32,6 @@ export const useFilterStore = createFilterStore({
     'maxTypicalCheckSize',
     'includeFriends',
     'searchRoles',
-    'isPortCoFounder',
   ],
   onFilterChange: (key, value, allParams) => {
     // Call legacy callback if set (for backward compatibility)

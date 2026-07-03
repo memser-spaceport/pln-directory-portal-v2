@@ -774,6 +774,22 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.19 - Follow Teams',
+    tag: 'New Feature',
+    date: '3, Jul 2026',
+    shortContent: `
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow teams</span> - Follow or unfollow from a team profile to get updates and announcements; their news is prioritized on the home feed.</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Following tab</span> - Filter the directory to only the teams you follow.</li>
+      </ul>
+      </div>`,
+  },
+  {
     title: 'Version 4.5.18 - Team Profile News',
     tag: 'New Feature',
     date: '26, Jun 2026',

@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'team-profile',
     title: 'Team profile',
     description:
-      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal.',
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },

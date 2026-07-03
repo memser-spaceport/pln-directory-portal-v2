@@ -107,6 +107,15 @@
   }
 }
 
+/* 'pill' variant: upvote-style pill pinned to the card's top-right on every
+   viewport — at 24px tall it fits the mobile card without a fallback. */
+.cornerPill {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
 .followRow.followRowSecondaryMobile {
   @include breakpoint-1024 {
     display: none;

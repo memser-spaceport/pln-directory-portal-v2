@@ -1,0 +1,8 @@
+// Production Button's own root has no flex/gap (see Button.module.scss) — the
+// sibling FollowButton adds this same pattern locally for its icon + label.
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}

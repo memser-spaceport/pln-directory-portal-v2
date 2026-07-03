@@ -27,7 +27,7 @@ export function useToggleTeamFollowInList({ team, searchParams }: UseToggleTeamF
   const currentUser = useCurrentUserStore((s) => s.currentUser);
   const isHydrated = useCurrentUserStore((s) => s.isHydrated);
   const { mutate, isPending } = useFollowTeam();
-  const { onTeamFollowed, onTeamUnfollowed } = useFollowAnalytics();
+  const { onTeamFollowed, onTeamUnfollowed, onTeamFollowFailed } = useFollowAnalytics();
 
   const isFollowingOnly = searchParams.followingOnly === 'true';
 
@@ -38,7 +38,9 @@ export function useToggleTeamFollowInList({ team, searchParams }: UseToggleTeamF
         ...old,
         pages: old.pages.map((page) => {
           if (!page.items.some((t) => t.id === teamUid)) return page;
-          const nextItems = page.items.map((t) => (t.id === teamUid ? updater(t) : t)).filter((t): t is ITeam => t !== null);
+          const nextItems = page.items
+            .map((t) => (t.id === teamUid ? updater(t) : t))
+            .filter((t): t is ITeam => t !== null);
           return { ...page, items: nextItems };
         }),
       };
@@ -95,7 +97,15 @@ export function useToggleTeamFollowInList({ team, searchParams }: UseToggleTeamF
             onTeamUnfollowed({ teamUid: team.id, teamName: team.name ?? '', source: 'teams-directory' });
           }
         },
-        onError: revert,
+        onError: () => {
+          revert();
+          onTeamFollowFailed({
+            teamUid: team.id,
+            teamName: team.name ?? '',
+            source: 'teams-directory',
+            action: willFollow ? 'follow' : 'unfollow',
+          });
+        },
         onSettled: () => {
           // The optimistic patch only flips/removes teams already present in a given cached
           // tab's page — it can't know how a newly-followed team fits into a *different*,

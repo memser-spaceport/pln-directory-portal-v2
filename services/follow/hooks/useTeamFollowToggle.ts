@@ -14,7 +14,7 @@ export function useTeamFollowToggle(team: ITeam, initialIsFollowed: boolean) {
   const { currentUser } = useCurrentUserStore();
   const router = useRouter();
   const { mutate, isPending } = useFollowTeam();
-  const { onTeamFollowed, onTeamUnfollowed } = useFollowAnalytics();
+  const { onTeamFollowed, onTeamUnfollowed, onTeamFollowFailed } = useFollowAnalytics();
 
   const handleToggle = () => {
     if (!currentUser) {
@@ -43,6 +43,12 @@ export function useTeamFollowToggle(team: ITeam, initialIsFollowed: boolean) {
         },
         onError: () => {
           setIsFollowing(prevIsFollowingRef.current);
+          onTeamFollowFailed({
+            teamUid: team.id,
+            teamName: team.name ?? '',
+            source: 'team-profile',
+            action: willFollow ? 'follow' : 'unfollow',
+          });
         },
       },
     );

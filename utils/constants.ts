@@ -216,6 +216,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
 
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
+  FORUM_DIGEST_SAVE_FAILED: 'settings-forum-digest-save-failed',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
@@ -391,6 +392,10 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAMS_FUNDING_STAGE_FILTER_SELECTED: 'team-funding-stage-filter-selected',
   TEAMS_TIERS_FILTER_SELECTED: 'team-tiers-filter-selected',
   TEAMS_PRIORITIES_FILTER_SELECTED: 'team-priorities-filter-selected',
+  TEAMS_FOLLOWING_TAB_SELECTED: 'teams-following-tab-selected',
+  TEAMS_ALL_TAB_SELECTED: 'teams-all-tab-selected',
+  TEAMS_FOLLOWING_EMPTY_BROWSE_ALL_CLICKED: 'teams-following-empty-browse-all-clicked',
+  TEAM_FOLLOWERS_MODAL_OPENED: 'team-followers-modal-opened',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -486,6 +491,8 @@ export const MEMBER_ANALYTICS_EVENTS = {
   MEMBERS_TOPICS_FILTER_SELECTED: 'member-topics-filter-selected',
   MEMBERS_ROLES_FILTER_SEARCHED: 'member-roles-filter-searched',
   MEMBERS_ROLES_FILTER_SELECTED: 'member-roles-filter-selected',
+  MEMBERS_PORTCO_FOUNDER_FILTER_TOGGLED: 'members-portco-founder-filter-toggled',
+  MEMBERS_PORTCO_FOUNDER_FILTER_VISIBLE: 'members-portco-founder-filter-visible',
 
   MEMBER_DETAILS_ON_CLICK_BOOK_WITH_OTHER: 'member-detail-members-open-to-connect-button-clicked',
 
@@ -583,6 +590,13 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
 export const FOLLOW_ANALYTICS_EVENTS = {
   TEAM_FOLLOWED: 'team-news-team-followed',
   TEAM_UNFOLLOWED: 'team-news-team-unfollowed',
+  TEAM_FOLLOW_FAILED: 'team-follow-failed',
+};
+
+export const AFFINITY_ANALYTICS_EVENTS = {
+  RELATIONSHIP_REFRESH_CLICKED: 'affinity-relationship-refresh-clicked',
+  RELATIONSHIP_REFRESH_SUCCEEDED: 'affinity-relationship-refresh-succeeded',
+  RELATIONSHIP_REFRESH_FAILED: 'affinity-relationship-refresh-failed',
 };
 
 export const TEAM_PITCH_ANALYTICS = {
@@ -2256,4 +2270,13 @@ export const AI_APPS_ANALYTICS = {
   AUTHOR_CLICKED: 'ai_apps_author_clicked',
   DETAIL_PAGE_VIEWED: 'ai_apps_detail_page_viewed',
   OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_open_in_new_tab_clicked',
+  CONNECT_PAGE_VIEWED: 'ai_apps_connect_page_viewed',
+  CONNECT_SIGN_IN_CLICKED: 'ai_apps_connect_sign_in_clicked',
+  CONNECT_APPROVED: 'ai_apps_connect_approved',
+  CONNECT_DENIED: 'ai_apps_connect_denied',
+  CONNECT_EXPIRED: 'ai_apps_connect_expired',
+  CONNECT_ERROR: 'ai_apps_connect_error',
+  ACCESS_DENIED: 'ai_apps_access_denied',
+  IFRAME_LOADED: 'ai_apps_iframe_loaded',
+  IFRAME_LOAD_FAILED: 'ai_apps_iframe_load_failed',
 };

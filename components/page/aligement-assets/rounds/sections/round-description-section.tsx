@@ -117,7 +117,7 @@ export default function RoundDescriptionSection({ data, tokensAllocated }: Round
               </div>
               {tokensAllocated && (
                 <p className="round-description__card-subtitle">
-                  {tokensAllocated} tokens allocated
+                  {tokensAllocated} PLAA allocated
                 </p>
               )}
             </div>

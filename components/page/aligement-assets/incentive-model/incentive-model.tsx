@@ -26,11 +26,12 @@ const allRounds = [
   { id: 15, month: 'April 2026' },
   { id: 16, month: 'May 2026' },
   { id: 17, month: 'June 2026' },
+  { id: 18, month: 'July 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 17;
-const TOTAL_ROUNDS = 17;
+const CURRENT_ROUND = 18;
+const TOTAL_ROUNDS = 18;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -166,21 +167,30 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   16: [
-    { category: 'Projects', points: 2150, tokens: 0 },
-    { category: 'Brand', points: 725, tokens: 0 },
-    { category: 'Programs', points: 900, tokens: 0 },
-    { category: 'Network Tooling', points: 850, tokens: 0 },
-    { category: 'People/Talent', points: 200, tokens: 0 },
-    { category: 'Knowledge', points: 2550, tokens: 0 },
+    { category: 'Projects', points: 2150, tokens: 1548 },
+    { category: 'Brand', points: 1325, tokens: 1643 },
+    { category: 'Programs', points: 900, tokens: 1701 },
+    { category: 'Network Tooling', points: 850, tokens: 1723 },
+    { category: 'People/Talent', points: 200, tokens: 1604 },
+    { category: 'Knowledge', points: 2550, tokens: 1768 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   17: [
-    { category: 'Projects', points: 400, tokens: 0 },
+    { category: 'Projects', points: 450, tokens: 0 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 1625, tokens: 0 },
-    { category: 'Network Tooling', points: 150, tokens: 0 },
+    { category: 'Programs', points: 2650, tokens: 0 },
+    { category: 'Network Tooling', points: 350, tokens: 0 },
+    { category: 'People/Talent', points: 300, tokens: 0 },
+    { category: 'Knowledge', points: 1500, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
+  18: [
+    { category: 'Projects', points: 0, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 0, tokens: 0 },
+    { category: 'Network Tooling', points: 0, tokens: 0 },
     { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 150, tokens: 0 },
+    { category: 'Knowledge', points: 0, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };
@@ -218,7 +228,7 @@ const CustomTooltip = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#156ff7' }} />
           <span style={{ fontSize: '14px', color: '#475569', lineHeight: '20px' }}>
-            {data.tokens.toLocaleString()} AA tokens
+            {data.tokens.toLocaleString()} PLAA
           </span>
         </div>
       </div>
@@ -497,21 +507,21 @@ export default function IncentiveModel() {
           <h1 className="incentive-model__title">Incentive Model</h1>
           <div className="incentive-model__description">
             <p>
-              Each snapshot period, a pool of 10,000 tokens is available to reward participants who complete verified{' '}
+              Each snapshot period, a pool of 10,000 PLAA is available to reward participants who complete verified{' '}
               <Link href="https://directory.plnetwork.io/alignment-asset/activities" className="incentive-model__link" onClick={handleActivitiesLinkClick}>
                 Incentivized Activities
               </Link>
               . Participants collect points for each verified activity they complete during the snapshot period.
             </p>
             <p>
-              Each category receives a fixed allocation of the token pool. At the end of the period, tokens are distributed proportionally based on each participant&apos;s share of the total points collected in a single category—with up to 10,000 tokens allocated among all qualifying contributors.
+              Each category receives a fixed allocation of the PLAA pool. At the end of the period, PLAA is distributed proportionally based on each participant&apos;s share of the total points collected in a single category—with up to 10,000 PLAA allocated among all qualifying contributors.
             </p>
             <p>
-              When more people contribute in the same category, the token pool is more widely distributed; when activity
-              is lower in a category, more tokens are available per contributor.
+              When more people contribute in the same category, the PLAA pool is more widely distributed; when activity
+              is lower in a category, more PLAA is available per contributor.
             </p>
             <p>
-              Available token amounts and allocations for completing incentivized activities may also shift between snapshot periods as the experiment adapts
+              Available PLAA amounts and allocations for completing incentivized activities may also shift between snapshot periods as the experiment adapts
               to network activity and evolving needs.
             </p>
           </div>
@@ -522,7 +532,7 @@ export default function IncentiveModel() {
           <div className="incentive-model__chart-header">
             <div className="incentive-model__chart-info">
               <h2 className="incentive-model__chart-title">
-                Total Alignment Asset Points &amp; Tokens Collected by Category
+                Total Alignment Asset Points &amp; PLAA Collected by Category
               </h2>
               <p className="incentive-model__chart-subtitle">
                 Showing data for: {currentRoundInfo?.month || 'February 2025'}
@@ -652,7 +662,7 @@ export default function IncentiveModel() {
               </div>
               <div className="incentive-model__legend-item">
                 <span className="incentive-model__legend-box incentive-model__legend-box--tokens" />
-                <span className="incentive-model__legend-text">Tokens</span>
+                <span className="incentive-model__legend-text">PLAA</span>
               </div>
           </div>
         {/* Chart and Legend Section */}
@@ -683,7 +693,7 @@ export default function IncentiveModel() {
                   dot={{ r: 4, fill: '#44d5bb', strokeWidth: 0 }}
                 />
                 <Radar
-                  name="Tokens"
+                  name="PLAA"
                   dataKey="tokens"
                   stroke="#156ff7"
                   fill="rgba(21, 111, 247, 0.1)"
@@ -699,15 +709,15 @@ export default function IncentiveModel() {
             {/* Explanation List */}
             <ol className="incentive-model__explanation">
               <li>
-                Each category shows the points collected and tokens distributed for the selected month&apos;s snapshot.
+                Each category shows the points collected and PLAA distributed for the selected month&apos;s snapshot.
               </li>
               <li>
-                More points collected in a category = fewer tokens allocated per contributor in that category. Lower
-                activity in a category = larger token amounts per contributor.
+                More points collected in a category = less PLAA allocated per contributor in that category. Lower
+                activity in a category = larger PLAA amounts per contributor.
               </li>
               <li>
                 Toggle between months (and rounds) to see how activity and allocations shift over time, and hover over
-                any point to view exact values. Green = points; blue = tokens.
+                any point to view exact values. Green = points; blue = PLAA.
               </li>
             </ol>
 
@@ -722,7 +732,7 @@ export default function IncentiveModel() {
                 <Link href="/alignment-asset" className="incentive-model__tip-link" onClick={handleTipViewLinkClick}>
                   View
                 </Link>{' '}
-                which categories offer the highest token potential today.
+                which categories offer the highest PLAA potential today.
               </p>
             </div>
           </div>
@@ -741,7 +751,7 @@ export default function IncentiveModel() {
                 >
                   Learn more
                 </Link>
-                <span className="incentive-model__learn-more-body"> about how points convert to tokens</span>
+                <span className="incentive-model__learn-more-body"> about how points convert to PLAA</span>
               </p>
             </div>
           </div>

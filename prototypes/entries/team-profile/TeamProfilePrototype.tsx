@@ -145,7 +145,7 @@ export default function TeamProfilePrototype() {
             team={team}
             headerAction={
               view === 'public' ? (
-                <div className={local.followHeader}>
+                <div className={`${local.followHeader} ${local.followClusterMobile}`}>
                   <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
                   {/* Reserve the caption's height once following so nothing below jumps. */}
                   <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
@@ -154,10 +154,14 @@ export default function TeamProfilePrototype() {
                 </div>
               ) : (
                 <div className={local.teamHeaderCluster}>
-                  {/* Admin actions row (Edit + Delete) — matches production's placement
-                      above the follow/followers cluster in the same corner slot.
-                      TeamFollowBlock wraps itself in its own followHeader below. */}
-                  <TeamAdminActions teamName={team.name ?? 'this team'} />
+                  {/* Admin actions row (Edit + Delete): pinned top-right, level with the
+                      team name, on every viewport — on mobile this escapes the
+                      full-width wrap below via absolute positioning so it doesn't
+                      end up stranded under the logo/tags. TeamFollowBlock (the
+                      follower stack) keeps wrapping below on mobile as before. */}
+                  <div className={local.adminActionsCorner}>
+                    <TeamAdminActions teamName={team.name ?? 'this team'} />
+                  </div>
                   <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
                 </div>
               )

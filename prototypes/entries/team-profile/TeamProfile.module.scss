@@ -51,6 +51,27 @@
   gap: 8px;
 }
 
+/* Public view's Follow pill + caption: once it wraps to its own full-width row
+   on mobile, right-aligned reads as floating detached from the logo/name above
+   it — left-align instead so it continues that reading flow. The pill itself
+   stays its natural compact width either way, just repositioned. */
+.followClusterMobile {
+  @include media.mobile-only {
+    align-items: flex-start;
+  }
+}
+
+/* Team view: Edit/Delete pinned top-right, level with the team name, instead
+   of wrapping into their own full-width row on mobile (DetailsSection's root
+   is already position:relative, so this positions relative to the card). */
+.adminActionsCorner {
+  @include media.mobile-only {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+}
+
 /* Team view: admin actions row stacked above the (self-wrapping) follow block,
    both right-aligned in the header card's corner slot. */
 .teamHeaderCluster {
@@ -115,8 +136,9 @@
 // Breathing room above About now that it lives back inside the header card
 // (DetailsSection's own row gap is commented out in production).
 .aboutSpacing {
-  margin-top: 24px;
+  margin-top: 40px;
 }
+
 
 // About: kill the ExpandableDescription's own box + reserved bottom so the text
 // sits tight inside the single grey container.
@@ -146,11 +168,6 @@
 // following (when the caption is removed so followers move under the button).
 .captionSpacer {
   height: 16px;
-}
-
-/* Breathing room above the About section (header → About). */
-.aboutSpacing {
-  margin-top: 8px;
 }
 
 /* Inline Follow row sitting above About. */

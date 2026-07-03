@@ -26,7 +26,7 @@ export const getLeaderboard = async (
         'Content-Type': 'application/json',
         ...(authHeader ? { Authorization: authHeader } : {}),
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 300, tags: ['plaa-leaderboard', `plaa-leaderboard-round-${roundNumber}`] },
     });
 
     if (!response.ok) {

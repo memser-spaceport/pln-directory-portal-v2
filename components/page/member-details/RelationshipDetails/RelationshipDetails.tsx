@@ -123,7 +123,7 @@ export function RelationshipDetails({ memberUid }: Props) {
               Refreshing…
             </span>
           ) : (
-            'Refresh relationship data'
+            'Refresh data'
           )}
         </Button>
       </div>

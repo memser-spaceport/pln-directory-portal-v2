@@ -169,14 +169,11 @@ export function InvestorDrawer({ access }: Props) {
                     )}
                     <span>{investor.title || '—'}</span>
                   </div>
-                  <div className={s.metaSub}>
-                    {investor.investor_id}
-                    {/* canonical_id == investor_id is the DB-wide convention for "is canonical",
-                        not a duplicate — only a differing canonical id marks a merged record. */}
-                    {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
-                      <span className={s.dupe}> · duplicate of {investor.canonical_id}</span>
-                    )}
-                  </div>
+                  {investor.canonical_id && investor.canonical_id !== investor.investor_id && (
+                    <div className={s.metaSub}>
+                      <span className={s.dupe}>Duplicate of {investor.canonical_id}</span>
+                    </div>
+                  )}
                   <div className={s.pillRow}>
                     {investor.engagement_tier && <EngagementTierBadge tier={investor.engagement_tier} />}
                     {/*<EmailStatusPill status={investor.email_status} />*/}
@@ -316,12 +313,6 @@ export function InvestorDrawer({ access }: Props) {
                     ? renderCited(investor.enrichment.thesis, investor.enrichment.sources)
                     : investor.fund_thesis}
                 </p>
-              )}
-              {investor.enrichment?.enriched_via && (
-                <div className={s.enrichFooter}>
-                  enriched via {investor.enrichment.enriched_via}
-                  {investor.enrichment.fetched_at ? ` · ${investor.enrichment.fetched_at}` : ''}
-                </div>
               )}
             </div>
 

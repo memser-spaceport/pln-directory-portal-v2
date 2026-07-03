@@ -37,7 +37,6 @@ export default function LeaderboardSection({
     return view === 'current' ? currentSnapshotData : cumulativeData;
   }, [view, currentSnapshotData, cumulativeData]);
 
-  // Current round shows the round-specific title; all-time is not round-scoped.
   const tableTitle = view === 'current' ? `Round ${roundNumber}: Top Contributors` : 'All-Time: Top Contributors';
   
   // Filter data based on search term

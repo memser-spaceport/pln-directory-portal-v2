@@ -22,7 +22,11 @@ import { ExpandableDescription } from '@/components/common/ExpandableDescription
 import { Tag } from '@/components/ui/Tag';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
-import { DetailsSection, HeaderActionBtn } from '@/components/common/profile/DetailsSection';
+import {
+  DetailsSection,
+  HeaderActionBtn,
+  DetailsSectionGreyContentContainer,
+} from '@/components/common/profile/DetailsSection';
 import { ConfirmDialog } from '@/components/core/ConfirmDialog/ConfirmDialog';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { Divider } from '@/components/common/profile/Divider';
@@ -32,21 +36,22 @@ import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
 import { TeamFollowBlock } from '../TeamFollowBlock/TeamFollowBlock';
+import { TeamFollowButton } from '../TeamFollowButton';
 
 import s from './TeamDetails.module.scss';
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import clsx from 'clsx';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useTeamFollowToggle } from '@/services/follow/hooks/useTeamFollowToggle';
 
 interface Props {
   team: ITeam;
   initialFollowers?: ITeamFollowersResponse | null;
-  isTeamMember?: boolean;
 }
 
 export const TeamDetails = (props: Props) => {
   const team = props?.team;
-  const { initialFollowers = null, isTeamMember = false } = props;
+  const { initialFollowers = null } = props;
 
   const teamName = team?.name ?? '';
   const { currentUser } = useCurrentUserStore();
@@ -72,6 +77,21 @@ export const TeamDetails = (props: Props) => {
   const about = team?.longDescription ?? '';
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
   const hasTeamEditAccess = isTeamLeaderOrAdmin(currentUser, team?.id);
+
+  const {
+    isFollowing,
+    isPending: isFollowPending,
+    handleToggle: onFollowToggle,
+  } = useTeamFollowToggle(team, team.isFollowed ?? false);
+
+  const followContent = hasTeamEditAccess ? (
+    <TeamFollowBlock team={team} initialFollowers={initialFollowers} />
+  ) : (
+    <>
+      <TeamFollowButton isFollowing={isFollowing} isPending={isFollowPending} onToggle={onFollowToggle} />
+      {!isFollowing && <p className={s.followCaption}>Get updates &amp; announcements</p>}
+    </>
+  );
 
   const [editView, setEditView] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -143,34 +163,34 @@ export const TeamDetails = (props: Props) => {
   }
 
   return (
-    <>
-      <DetailsSection>
-        {/* Name and about section */}
-        <div className={s.profile}>
-          <div className={s.logoTagsContainer}>
-            <Image
-              alt="profile"
-              loading="eager"
-              height={72}
-              width={72}
-              layout="intrinsic"
-              priority={true}
-              className={s.teamLogo}
-              src={logo ?? defaultAvatarImage}
-            />
-            <div className={s.nameTagContainer}>
-              <div className={s.nameAndActions}>
-                <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
-              </div>
-              <div className={s.tagsContainer}>
-                {hasTeamEditAccess && !team?.fundingStage?.title && (
-                  <div className={s.tags}>
-                    <button type="button" className={clsx(s.addPill, s.addPill1)} onClick={onEditTeamClickHandler}>
-                      <PlusIconCircle />
-                      <span>Add Company Stage</span>
-                    </button>
-                  </div>
-                )}
+    <DetailsSection>
+      {/* Name and about section */}
+      <div className={s.profile}>
+        <div className={s.logoTagsContainer}>
+          <Image
+            alt="profile"
+            loading="eager"
+            height={72}
+            width={72}
+            layout="intrinsic"
+            priority={true}
+            className={s.teamLogo}
+            src={logo ?? defaultAvatarImage}
+          />
+          <div className={s.nameTagContainer}>
+            <div className={s.nameAndActions}>
+              <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
+            </div>
+            <div className={s.tagsContainer}>
+              {hasTeamEditAccess && !team?.fundingStage?.title && (
+                <div className={s.tags}>
+                  <button type="button" className={clsx(s.addPill, s.addPill1)} onClick={onEditTeamClickHandler}>
+                    <PlusIconCircle />
+                    <span>Add Company Stage</span>
+                  </button>
+                </div>
+              )}
+              <div className={s.tagsRow}>
                 <div className={s.tags2}>
                   {team?.fundingStage?.title && (
                     <>
@@ -186,33 +206,35 @@ export const TeamDetails = (props: Props) => {
                   )}
                   {!!tags?.length && <TagsList tags={tags || []} />}{' '}
                 </div>
-                <div className={s.tags3}>
-                  {!team?.industryTags?.length && hasTeamEditAccess && (
-                    <>
-                      <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
-                        <PlusIconCircle />
-                        <span>Add Industry Tags</span>
-                      </button>
-                    </>
-                  )}
-                  {!hasAbout && hasTeamEditAccess && (
-                    <>
-                      {!team?.industryTags?.length && hasTeamEditAccess && <Divider />}
-                      <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
-                        <PlusIconCircle />
-                        <span>Add About Section</span>
-                      </button>
-                    </>
-                  )}
-                </div>
+              </div>
+              <div className={s.tags3}>
+                {!team?.industryTags?.length && hasTeamEditAccess && (
+                  <>
+                    <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
+                      <PlusIconCircle />
+                      <span>Add Industry Tags</span>
+                    </button>
+                  </>
+                )}
+                {!hasAbout && hasTeamEditAccess && (
+                  <>
+                    {!team?.industryTags?.length && hasTeamEditAccess && <Divider />}
+                    <button type="button" className={s.addPill} onClick={onEditTeamClickHandler}>
+                      <PlusIconCircle />
+                      <span>Add About Section</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Right column: admin actions */}
-            {(hasTeamEditAccess || isAdmin) && (
-              <div className={s.headerActionSlot}>
+          {/* Right column: admin actions or follow, with followers info stacked below */}
+          <div className={s.headerActionSlot}>
+            {hasTeamEditAccess ? (
+              <>
                 <div className={s.actions}>
-                  {hasTeamEditAccess && <EditButton onClick={onEditTeamClickHandler} />}
+                  <EditButton onClick={onEditTeamClickHandler} />
 
                   {isAdmin && (
                     <HeaderActionBtn onClick={onDeleteTeamClickHandler} disabled={isDeleting} className={s.delete}>
@@ -226,40 +248,38 @@ export const TeamDetails = (props: Props) => {
                     </HeaderActionBtn>
                   )}
                 </div>
-              </div>
+                <div className={s.followSlotDesktop}>{followContent}</div>
+              </>
+            ) : (
+              <div className={s.followSlotDesktop}>{followContent}</div>
             )}
           </div>
         </div>
+      </div>
 
-        <TeamFollowBlock
-          team={team}
-          initialIsFollowed={team.isFollowed ?? false}
-          initialFollowers={initialFollowers}
-          isTeamMember={isTeamMember || isAdmin}
-        />
+      <div className={s.followSlotMobile}>{followContent}</div>
 
-        <ConfirmDialog
-          isOpen={isDeleteModalOpen}
-          title="Confirm Delete"
-          desc={`Are you sure you want to delete the team ${teamName}?`}
-          onClose={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
-          confirmTitle="Delete"
-          disabled={isDeleting}
-        />
-      </DetailsSection>
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        title="Confirm Delete"
+        desc={`Are you sure you want to delete the team ${teamName}?`}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        confirmTitle="Delete"
+        disabled={isDeleting}
+      />
 
       {/* About */}
       {hasAbout && (
-        <DetailsSection>
-          <div className={s.aboutContainer}>
-            <div className={s.aboutTitle}>About</div>
+        <div className={s.aboutContainer}>
+          <div className={s.aboutTitle}>About</div>
+          <DetailsSectionGreyContentContainer className={s.aboutBox}>
             <ExpandableDescription>
               <div className={s.aboutContent} dangerouslySetInnerHTML={{ __html: about }} />
             </ExpandableDescription>
-          </div>
-        </DetailsSection>
+          </DetailsSectionGreyContentContainer>
+        </div>
       )}
-    </>
+    </DetailsSection>
   );
 };

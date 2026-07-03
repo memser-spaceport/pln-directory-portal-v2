@@ -52,7 +52,6 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     hasEditAsksAccess,
     teamNews,
     followers,
-    isTeamMember,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -86,7 +85,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         {/* Details */}
         <div className={styles?.teamDetail__Container__details}>
           {showAiGeneratedTeamProfileBanner && <AiGeneratedTeamProfileBanner team={team} />}
-          <TeamDetails team={team} initialFollowers={followers} isTeamMember={isTeamMember ?? false} />
+          <TeamDetails team={team} initialFollowers={followers} />
         </div>
 
         {isLoggedIn && team?.isFund && <TeamInvestorDetails team={team} isLoggedIn={isLoggedIn} />}
@@ -171,7 +170,6 @@ async function getPageData(teamId: string) {
   let memberTeams: never[] = [];
   let hasEditAsksAccess: boolean = false;
   let followers: ITeamFollowersResponse | null = null;
-  let isTeamMember = false;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -213,8 +211,6 @@ async function getPageData(teamId: string) {
     teamNews = teamNewsResponse;
     followers = followersResponse;
 
-    console.log({ followers });
-
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
         authToken,
@@ -245,7 +241,6 @@ async function getPageData(teamId: string) {
     hasEditAsksAccess =
       members.some((member: any) => member.id === userInfo.uid) ||
       (Array.isArray(userInfo?.roles) ? isAdminUser(userInfo) : false);
-    isTeamMember = isLoggedIn && (members.some((member: any) => member.id === userInfo?.uid) || isAdminUser(userInfo));
     focusAreas = focusAreaResponse.data;
     focusAreas = focusAreas.filter((data: IFocusArea) => !data.parentUid);
     const maintainingProjects = team?.maintainingProjects?.map((project: any) => {
@@ -289,7 +284,6 @@ async function getPageData(teamId: string) {
       hasEditAsksAccess,
       teamNews,
       followers,
-      isTeamMember,
     };
   } catch (error: any) {
     console.error(error);

@@ -194,6 +194,10 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_OPTION_SELECTED, params);
   }
 
+  function onForumDigestSaveFailed(params: { attemptedFrequency: string }) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_SAVE_FAILED, params);
+  }
+
   function onSubscribeToPlNewsletterChange(params: Record<any, boolean>) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
   }
@@ -231,6 +235,7 @@ export const useSettingsAnalytics = () => {
     onRecommendationsSettingsResetClicked,
     onRecommendationEmailFeedbackClicked,
     onForumDigestOptionSelect,
+    onForumDigestSaveFailed,
     onSubscribeToPlNewsletterChange,
     onSubscribeToDemoDayUpdatesChange,
     onDemoDayUpdatesNotificationToggleClicked,

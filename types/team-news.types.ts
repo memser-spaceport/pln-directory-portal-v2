@@ -27,6 +27,7 @@ export interface ITeamNewsItem {
   subFocusAreas: string[];
   createdAt: string;
   discussion: ITeamNewsDiscussion;
+  isFollowed?: boolean;
 }
 
 export interface ICreateTeamNewsDiscussionRequest {

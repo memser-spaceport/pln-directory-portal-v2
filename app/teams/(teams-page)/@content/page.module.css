@@ -5,7 +5,7 @@
 }
 
 .team__right__toolbar {
-  height: 72px;
+  /*height: 72px;*/
   /*position: sticky;*/
   z-index: 4;
   /*top: 80px;*/
@@ -28,7 +28,7 @@
 
   .team__right__toolbar {
     display: flex;
-    height: 60px;
+    min-height: 60px;
     padding: 10px 40px;
     border: none;
     background: #f1f5f9;

@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
-import { AiAppsAccessGuard } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsAccessGuard';
 
 export const metadata: Metadata = {
   title: 'AI Apps | Protocol Labs Directory',
@@ -25,6 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
+// The dashboard list/detail pages gate themselves with AiAppsAccessGuard. The
+// guard is intentionally not applied here so the `/connect` page (which a member
+// may reach before signing in, or without ai_apps access) can show its own
+// sign-in / no-permission states instead of being redirected away.
 export default function AiAppsLayout({ children }: { children: ReactNode }) {
-  return <AiAppsAccessGuard>{children}</AiAppsAccessGuard>;
+  return <>{children}</>;
 }

@@ -1,0 +1,167 @@
+.modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-neutral-subtle);
+}
+
+.titleWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+}
+
+.count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--foreground-neutral-tertiary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4);
+    color: var(--foreground-neutral-primary);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 8px 12px 16px;
+  list-style: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+
+  &:hover {
+    background: var(--transparent-dark-4);
+  }
+}
+
+.rowAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.rowAvatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--border-neutral-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary);
+  flex-shrink: 0;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary);
+}
+
+.rowRole {
+  font-size: 13px;
+  color: var(--foreground-neutral-tertiary);
+}
+
+.empty {
+  padding: 32px 24px;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--foreground-neutral-tertiary);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 12px 16px;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.skeletonAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--border-neutral-subtle);
+  flex-shrink: 0;
+}
+
+.skeletonText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.skeletonName {
+  height: 14px;
+  width: 120px;
+  border-radius: 4px;
+  background: var(--border-neutral-subtle);
+}
+
+.skeletonRole {
+  height: 12px;
+  width: 80px;
+  border-radius: 4px;
+  background: var(--border-neutral-subtle);
+}

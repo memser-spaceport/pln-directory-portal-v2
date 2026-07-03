@@ -149,11 +149,21 @@ export function mapInvestorDto(dto: AnyDto): OutreachInvestor {
     first_name: dto.firstName ?? '',
     last_name: dto.lastName ?? '',
     email: dto.email ?? '',
+    additional_emails:
+      Array.isArray(dto.additionalEmails) && dto.additionalEmails.length > 0
+        ? (dto.additionalEmails as string[])
+        : undefined,
     email_status: (dto.emailStatus ?? 'unknown') as EmailStatus,
     linkedin_url: dto.linkedinUrl ?? '',
     firm: dto.firm ?? '',
     firm_domain: dto.firmDomain ?? '',
     title: dto.title ?? '',
+    affiliations: Array.isArray(dto.affiliations)
+      ? (dto.affiliations as AnyDto[]).map((a) => ({
+          firm: a.firm as string,
+          firm_domain: (a.firmDomain ?? a.firm_domain) as string | undefined,
+        }))
+      : undefined,
     proximity_code: dto.proximityCode ?? null,
     investor_type: dto.investorType as InvestorType,
     fund_thesis: dto.fundThesis ?? '',

@@ -23,6 +23,7 @@ const TRACKED_PARAMS = [
   'activity',
   'program',
   'investorType',
+  'isPortCoFounder',
 ] as const;
 
 // Helper function to filter URLSearchParams to only include tracked parameters

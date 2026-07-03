@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 
 import { OFFICE_HOURS_FILTER_PARAM_KEY, TOPICS_FILTER_PARAM_KEY } from '@/app/constants/filters';
 
@@ -25,6 +26,8 @@ import { FilterSearch } from './FilterSearch';
 import { FilterSection } from '@/components/common/filters/FilterSection';
 import { FilterCheckboxListWithSearch } from './FilterCheckboxListWithSearch';
 import { GenericCheckboxList } from '@/components/common/filters/GenericCheckboxList';
+import { GenericFilterToggle } from '@/components/common/filters/GenericFilterToggle';
+import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 
 import s from './MembersFilter.module.scss';
 
@@ -40,6 +43,7 @@ export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
 
   const canSearch = userInfo.rbac?.effectivePermissions.some((p) => p.code === 'member.search.read');
+  const { hasAccess: hasAffinityAccess } = useAffinityAccess();
 
   const { setParam, clearParams, params } = useFilterStore();
   const appliedFiltersCount = useGetMembersFilterCount();
@@ -142,6 +146,12 @@ export const MembersFilter = (props: IMembersFilter) => {
         />
       </FilterSection>
 
+      {hasAffinityAccess && (
+        <FilterSection title="Portfolio">
+          <PortCoFounderFilterSection analytics={analytics} />
+        </FilterSection>
+      )}
+
       <FilterSection title="Investors">
         <InvestorFilterToggle label="Show all Investors" paramKey="isInvestor" />
 
@@ -180,3 +190,26 @@ export const MembersFilter = (props: IMembersFilter) => {
     </FiltersSidePanel>
   );
 };
+
+function PortCoFounderFilterSection({ analytics }: { analytics: ReturnType<typeof useMemberAnalytics> }) {
+  const visibleTracked = useRef(false);
+
+  useEffect(() => {
+    if (!visibleTracked.current) {
+      visibleTracked.current = true;
+      analytics.onPortCoFounderFilterVisible({ page: 'Members' });
+    }
+  }, [analytics]);
+
+  return (
+    <GenericFilterToggle
+      label="Show PortCo founders"
+      paramKey="isPortCoFounder"
+      filterStore={useFilterStore}
+      className={clsx(s.Label, s.toggle)}
+      onChange={(checked) => {
+        analytics.onPortCoFounderFilterToggled({ page: 'Members', value: checked });
+      }}
+    />
+  );
+}

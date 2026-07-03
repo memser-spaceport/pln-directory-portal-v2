@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { ITeam } from '@/types/teams.types';
 
@@ -30,6 +30,10 @@ import { TeamMembersView } from './TeamMembersView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
+import { TeamFollowBlock } from './TeamFollowBlock';
+import { TeamAdminActions } from './TeamAdminActions';
+import { FollowPill } from '../follow-shared/FollowPill';
+import { FollowToast } from '../follow-shared/FollowToast';
 import local from './TeamProfile.module.scss';
 import {
   MOCK_TEAM,
@@ -38,6 +42,8 @@ import {
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
   MOCK_NEWS,
+  MOCK_FOLLOWERS,
+  TEAM_FOLLOWER_COUNT,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -51,14 +57,33 @@ export default function TeamProfilePrototype() {
   const isMobile = useIsMobile();
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [newsQuery, setNewsQuery] = useState('');
-  // Demo-only: toggle how many news items exist, to preview edge cases.
-  const [newsScenario, setNewsScenario] = useState<'all' | 'single'>('all');
+  const [following, setFollowing] = useState(false);
+  const [followToast, setFollowToast] = useState(false);
+  const followToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Demo-only: public vs team view. Both put the follow cluster in the header
+  // card's top-right corner: public gets the Follow pill, team gets the
+  // follower avatar stack + count (opens the full-list modal).
+  const [view, setView] = useState<'public' | 'team'>('team');
   useEffect(() => setMounted(true), []);
+  useEffect(() => () => {
+    if (followToastTimer.current) clearTimeout(followToastTimer.current);
+  }, []);
 
-  const sortedNews = [...MOCK_NEWS].sort(
+  const handleFollowToggle = () => {
+    setFollowing((prev) => {
+      const willFollow = !prev;
+      if (willFollow) {
+        setFollowToast(true);
+        if (followToastTimer.current) clearTimeout(followToastTimer.current);
+        followToastTimer.current = setTimeout(() => setFollowToast(false), 4000);
+      }
+      return willFollow;
+    });
+  };
+
+  const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
   );
-  const displayNews = newsScenario === 'single' ? sortedNews.slice(0, 1) : sortedNews;
 
   // Rail previews a few; "View all" opens the full feed in a modal.
   const previewNews = displayNews.slice(0, NEWS_PREVIEW_COUNT);
@@ -85,35 +110,63 @@ export default function TeamProfilePrototype() {
     return <div className={shell.teamDetail} />;
   }
 
+  const followCount = TEAM_FOLLOWER_COUNT;
+
   return (
     <div className={local.page}>
       <div className={local.demoBar}>
-        <span className={local.demoLabel}>Demo — news count</span>
+        <span className={local.demoLabel}>View</span>
         <div className={local.demoSwitch}>
           <button
             type="button"
-            className={`${local.demoBtn} ${newsScenario === 'all' ? local.demoBtnActive : ''}`}
-            onClick={() => setNewsScenario('all')}
+            className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('team')}
           >
-            Many ({sortedNews.length})
+            Team
           </button>
           <button
             type="button"
-            className={`${local.demoBtn} ${newsScenario === 'single' ? local.demoBtnActive : ''}`}
-            onClick={() => setNewsScenario('single')}
+            className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
+            onClick={() => setView('public')}
           >
-            Single (1)
+            Public
           </button>
         </div>
+
       </div>
 
       <div className={local.layout}>
         <div className={`${shell.teamDetail} ${local.mainCol}`}>
         <BackButton to="/prototypes/teams" />
         <div className={shell.teamDetail__container}>
-        {/* Details */}
+        {/* Details — the follow block sits before the About section. */}
         <div className={shell.teamDetail__Container__details}>
-          <TeamDetailsView team={team} />
+          <TeamDetailsView
+            team={team}
+            headerAction={
+              view === 'public' ? (
+                <div className={`${local.followHeader} ${local.followClusterMobile}`}>
+                  <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
+                  {/* Reserve the caption's height once following so nothing below jumps. */}
+                  <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
+                    Get updates &amp; announcements
+                  </p>
+                </div>
+              ) : (
+                <div className={local.teamHeaderCluster}>
+                  {/* Admin actions row (Edit + Delete): pinned top-right, level with the
+                      team name, on every viewport — on mobile this escapes the
+                      full-width wrap below via absolute positioning so it doesn't
+                      end up stranded under the logo/tags. TeamFollowBlock (the
+                      follower stack) keeps wrapping below on mobile as before. */}
+                  <div className={local.adminActionsCorner}>
+                    <TeamAdminActions teamName={team.name ?? 'this team'} />
+                  </div>
+                  <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
+                </div>
+              )
+            }
+          />
         </div>
 
         {/* Fund details (team.isFund) */}
@@ -164,9 +217,11 @@ export default function TeamProfilePrototype() {
 
       {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
       <aside className={local.rail}>
-        {/* Spacer — nudges the news panel up so its cards line up with the
-            first team section. */}
-        <div className={local.railSpacer} aria-hidden="true" />
+        {/* Reserve the Back button's height so the news panel lines up with the
+            team card top (the main column has a Back button above it). */}
+        <div className={local.railBackSpacer} aria-hidden="true">
+          <BackButton to="/prototypes/teams" />
+        </div>
         <div className={local.newsPanel}>
           <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
           <div className={local.newsList}>
@@ -222,6 +277,12 @@ export default function TeamProfilePrototype() {
         </Modal>
       )}
       </div>
+
+      {followToast && (
+        <FollowToast>
+          You&apos;re following <strong>{team.name}</strong> — you&apos;ll get its updates in your feed.
+        </FollowToast>
+      )}
     </div>
   );
 }

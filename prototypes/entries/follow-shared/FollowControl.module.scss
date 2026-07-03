@@ -1,0 +1,301 @@
+.root {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.alignStart {
+  align-items: flex-start;
+}
+
+.block {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.buttonWrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.block .buttonWrap {
+  align-items: stretch;
+}
+
+/* ---- grouped pill: follower count + a filled action button in one container ---- */
+// Row holding the pill and (optionally) the info icon to its right.
+.groupRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  width: fit-content;
+  // Room for the count on the left; the action pill insets on the right.
+  padding: 0 4px 0 14px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 9999px;
+}
+
+.groupCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.groupCountNum {
+  font-variant-numeric: tabular-nums;
+}
+
+// Not following: solid blue Follow pill (matches the reference).
+.groupAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100px;
+  height: 32px;
+  padding: 0 12px;
+  appearance: none;
+  border: none;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease;
+
+  &:hover {
+    background: var(--foreground-brand-secondary, #1539b3);
+  }
+}
+
+// Following: quieter neutral pill with the brand check + caret.
+.groupFollowing .groupAction {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg:first-of-type {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    background: var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+  }
+}
+
+/* ---- Following ▾ menu ---- */
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 210px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(14, 15, 17, 0.16);
+  animation: menuIn 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.menuStart {
+  right: auto;
+  left: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.menuSep {
+  height: 1px;
+  margin: 5px 6px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.menuDanger {
+  color: var(--foreground-error-primary, #dd2c2c);
+
+  svg {
+    color: var(--foreground-error-primary, #dd2c2c);
+  }
+
+  &:hover {
+    background: var(--background-error-subtle, rgba(221, 44, 44, 0.06));
+  }
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- network social proof ---- */
+.proof {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.proofAvatars {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.proofAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #fff;
+
+  & + & {
+    margin-left: -7px;
+  }
+}
+
+/* ---- info tooltip trigger inside the grouped pill ---- */
+.infoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: help;
+
+  &:hover {
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.infoTip {
+  display: inline-block;
+  max-width: 220px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* ---- manage modal ---- */
+.modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 24px;
+}
+
+.modalHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.modalLede {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalFoot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.doneBtn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--foreground-brand-primary, #1b4dff);
+  border-radius: 8px;
+
+  &:hover {
+    background: var(--foreground-brand-secondary, #1539b3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .root {
+    align-items: flex-start;
+  }
+}

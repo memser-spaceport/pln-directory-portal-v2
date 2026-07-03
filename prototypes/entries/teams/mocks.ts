@@ -23,10 +23,7 @@ export const MOCK_TEAMS: MockTeamCard[] = [
     id: 'filecoin-foundation',
     name: 'Filecoin Foundation',
     shortDescription: 'Facilitating governance of the Filecoin network and funding research into decentralized storage.',
-    industryTags: [
-      { uid: 't2', title: 'Web3' },
-      { uid: 't3', title: 'Storage' },
-    ],
+    industryTags: [],
   },
   {
     id: 'libp2p',
@@ -120,22 +117,37 @@ export const MOCK_TEAMS: MockTeamCard[] = [
   },
 ];
 
-export type FilterGroup = {
-  title: string;
-  options: string[];
-};
+/**
+ * Filter option lists in the production `BaseFilterItem` shape
+ * ({ value, disabled, count? }) so they can feed the real `createFilterGetter`
+ * → `GenericCheckboxList` pipeline verbatim.
+ */
+export type MockFilterItem = { value: string; disabled: boolean; count?: number };
 
-export const MOCK_FILTER_GROUPS: FilterGroup[] = [
-  {
-    title: 'Industry Tags',
-    options: ['Infrastructure', 'Web3', 'Storage', 'Networking', 'Compute', 'AI'],
-  },
-  {
-    title: 'Membership Source',
-    options: ['Protocol Labs', 'Filecoin Foundation', 'IPFS Ecosystem'],
-  },
-  {
-    title: 'Company Stage',
-    options: ['Pre-Seed', 'Seed', 'Series A', 'Growth'],
-  },
+export const MOCK_TAGS: MockFilterItem[] = [
+  { value: 'Infrastructure', disabled: false, count: 3 },
+  { value: 'Web3', disabled: false, count: 3 },
+  { value: 'Storage', disabled: false, count: 4 },
+  { value: 'Networking', disabled: false, count: 2 },
+  { value: 'Compute', disabled: false, count: 2 },
+  { value: 'AI', disabled: false, count: 1 },
+  { value: 'Community', disabled: false, count: 1 },
+  { value: 'Developer Tools', disabled: false, count: 1 },
+  { value: 'Data & Analytics', disabled: false, count: 1 },
+  { value: 'CDN', disabled: false, count: 1 },
+  { value: 'Go', disabled: false, count: 1 },
+];
+
+export const MOCK_MEMBERSHIP_SOURCES: MockFilterItem[] = [
+  { value: 'Protocol Labs', disabled: false },
+  { value: 'Filecoin Foundation', disabled: false },
+  { value: 'IPFS Ecosystem', disabled: false },
+];
+
+export const MOCK_FUNDING_STAGES: MockFilterItem[] = [
+  { value: 'Pre-Seed', disabled: false },
+  { value: 'Seed', disabled: false },
+  { value: 'Series A', disabled: false },
+  { value: 'Series B', disabled: false },
+  { value: 'Growth', disabled: false },
 ];

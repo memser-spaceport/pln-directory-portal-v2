@@ -1,15 +1,25 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { ITag } from '@/types/teams.types';
 import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 
 import type { MockTeamCard } from './mocks';
+import { FollowButton } from '../follow-shared/FollowButton';
+import { FollowPill } from '../follow-shared/FollowPill';
 // Reuse the production card styling so the prototype tracks production 1:1.
 import s from '@/components/page/teams/TeamList/components/TeamGridView/TeamGridView.module.scss';
+import local from './TeamsPrototype.module.scss';
 
 interface Props {
   team: MockTeamCard;
+  following: boolean;
+  onToggleFollow: () => void;
+  /** 'cta' = primary Follow button below the tags; 'top' = tertiary Follow at the
+   *  card's top-right; 'pill' = Follow button (upvote-pill style, no count) at
+   *  the card's top-right. */
+  variant?: 'cta' | 'top' | 'pill';
 }
 
 /**
@@ -19,11 +29,31 @@ interface Props {
  * exist (always empty here) so it's dropped; analytics is stripped. The static
  * presentational markup + production `.module.scss` are kept verbatim.
  */
-export function TeamCardView({ team }: Props) {
+export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' }: Props) {
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
 
+  const stopNav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <div className={s.grid}>
+    <div className={`${s.grid} ${local.teamCard}`}>
+      {/* 'top' variant, desktop: tertiary link pinned to the card's top-right. */}
+      {variant === 'top' && (
+        <span className={local.topFollow} onClick={stopNav}>
+          <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="xs" bell link />
+        </span>
+      )}
+
+      {/* 'pill' variant: Follow button in the top-right corner, all viewports
+          (compact enough to keep on mobile — no secondary fallback needed). */}
+      {variant === 'pill' && (
+        <span className={local.cornerPill}>
+          <FollowPill following={following} onToggle={onToggleFollow} name={team?.name ?? 'team'} />
+        </span>
+      )}
+
       <div className={s.profileContainer}>
         <Image
           alt="profile"
@@ -48,6 +78,20 @@ export function TeamCardView({ team }: Props) {
         <div className={s.tagsMob}>
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
+
+        {/* Follow control below the tags: secondary (outlined) button for the
+            'cta' variant, tertiary text link (left-aligned) for the 'top' variant. */}
+        {variant === 'cta' && (
+          <span className={local.followRow} onClick={stopNav}>
+            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
+          </span>
+        )}
+        {/* 'top' variant, mobile: fall back to the secondary button (better tap target). */}
+        {variant === 'top' && (
+          <span className={`${local.followRow} ${local.followRowSecondaryMobile}`} onClick={stopNav}>
+            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
+          </span>
+        )}
       </div>
     </div>
   );

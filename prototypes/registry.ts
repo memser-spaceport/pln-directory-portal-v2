@@ -137,9 +137,17 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'newsfeed-v0',
     title: 'Newsfeed redesign — v0 quick wins',
     description:
-      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a Current / V0 grid / V0 feed switch on the feed. The feed mode is a single centered column where every story in a team cluster has equal weight, newest first. V0 layers the quick wins: the AI summary the API already returns rendered on the card, a source chip with favicon, one card per team (lead picked by importance — event weight + discussion — with the other updates visible as compact rows), and a visible Join discussion / Start a conversation CTA.',
+      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a V0 / V1 switch on the feed. Both are the same single-column layout (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates). V0 ships without the right rail or per-story upvotes; V1 adds the follow-suggestions / focus-areas / popular rail and upvoting back.',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
+  },
+  {
+    key: 'email-preferences',
+    title: 'Email Preferences — digest split',
+    description:
+      'Recreation of the Settings › Email Preferences tab (settings menu + all sections) from the real components. The one change: the old "Forum Digest" is renamed "Digest" (it actually carries forum activity + network news) and gains per-content toggles, so a member can keep the digest but switch Network news off independently.',
+    category: 'Newsfeed',
+    load: () => import('./entries/email-preferences/EmailPreferencesPrototype'),
   },
   {
     key: 'ai-apps',

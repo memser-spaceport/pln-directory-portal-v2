@@ -40,16 +40,18 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
               <div className={s.logoFallback}>{getTeamLogoFallback(team.name)}</div>
             )}
             <span className={local.railInfo}>
-              <span className={local.railName}>{team.name}</span>
+              <span className={local.railNameRow}>
+                <span className={local.railName}>{team.name}</span>
+                <FollowButton
+                  following={followedTeams.has(team.uid)}
+                  onClick={() => onToggleFollow(team.uid, team.name)}
+                  name={team.name}
+                  size="xs"
+                  tertiary
+                />
+              </span>
               <span className={local.railReason}>{team.reason}</span>
             </span>
-            <FollowButton
-              following={followedTeams.has(team.uid)}
-              onClick={() => onToggleFollow(team.uid, team.name)}
-              name={team.name}
-              size="xs"
-              tertiary
-            />
           </div>
         ))}
       </div>

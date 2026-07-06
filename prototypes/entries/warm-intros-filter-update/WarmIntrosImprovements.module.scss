@@ -456,11 +456,36 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 // scrolling drawer so it stays visible while reading the lower sections.
 // Production .header already has padding + bottom border; we add the sticky
 // behaviour + an opaque background so content doesn't bleed through.
-.stickyHeader {
+// Proximity badge: bump the confidence "%" suffix up from its 10px default so it
+// reads a bit stronger in the column. It's the 2nd span inside the badge root
+// (the `.code` span comes first), so `span + span` targets only the % — never
+// the code — and never the "Cold" badge (which has no child spans).
+.proxBadge span + span {
+  font-size: 12px;
+}
+
+// Extra breathing room between the two quick-lens toggles (Direct only / PL
+// investors only) — adds to the 6px flex gap on their .relChips container.
+.lensGap {
+  margin-left: 12px;
+}
+
+// Scoped under .drawerScroll so this override out-specifies the production
+// `.header` rule (both are single-class otherwise, and production wins on bundle
+// order). Production `.header` was reworked into a slim 56px `align-items: center`
+// back-button bar; this mock keeps the full identity block inside the header (so it
+// stays pinned while scrolling), so we must undo that fixed height — otherwise the
+// tall name row overflows and gets clipped above the box.
+.drawerScroll .stickyHeader {
   position: sticky;
   top: 0;
   z-index: 5;
   background: var(--background-base-white, #fff);
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 // The drawer's inner scroll container — owns the scroll (instead of the production

@@ -27,6 +27,7 @@ import { clusterByTeam } from './utils/clusterByTeam';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
+import { NewsRail } from './components/NewsRail';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 
 import s from './TeamNews.module.scss';
@@ -194,36 +195,41 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
         })}
       </div>
 
-      {filteredItems.length === 0 ? (
-        <div className={s.empty}>No network news in this filter.</div>
-      ) : (
-        <>
-          <div className={s.feed}>
-            {visibleClusters.map((cluster) => (
-              // Composite key intentionally forces a remount on every tab/category
-              // change so each card's local `expanded` resets — see rationale in
-              // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
-              // NOTE: any future CSS transition on .storyRow/.expander will not
-              // animate across a filter change, since this replaces the DOM node
-              // rather than updating it in place.
-              <NewsGroupCard
-                key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
-                cluster={cluster}
-                onStoryClick={handleCardClick}
-                isFollowing={followedTeamUids.has(cluster.teamUid)}
-                onFollowToggle={handleFollowToggle}
-              />
-            ))}
-          </div>
-          {clusters.length > pageSize && (
-            <div className={s.showAll}>
-              <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
-                {expanded ? 'Show Less' : 'Show All'}
-              </Button>
-            </div>
+      <div className={s.layout}>
+        <div className={s.main}>
+          {filteredItems.length === 0 ? (
+            <div className={s.empty}>No network news in this filter.</div>
+          ) : (
+            <>
+              <div className={s.feed}>
+                {visibleClusters.map((cluster) => (
+                  // Composite key intentionally forces a remount on every tab/category
+                  // change so each card's local `expanded` resets — see rationale in
+                  // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
+                  // NOTE: any future CSS transition on .storyRow/.expander will not
+                  // animate across a filter change, since this replaces the DOM node
+                  // rather than updating it in place.
+                  <NewsGroupCard
+                    key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
+                    cluster={cluster}
+                    onStoryClick={handleCardClick}
+                    isFollowing={followedTeamUids.has(cluster.teamUid)}
+                    onFollowToggle={handleFollowToggle}
+                  />
+                ))}
+              </div>
+              {clusters.length > pageSize && (
+                <div className={s.showAll}>
+                  <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
+                    {expanded ? 'Show Less' : 'Show All'}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+        <NewsRail />
+      </div>
     </NewsBase>
   );
 };

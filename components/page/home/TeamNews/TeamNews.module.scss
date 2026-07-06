@@ -1,3 +1,5 @@
+@import 'styles/media.scss';
+
 .unreadBadge {
   display: inline-flex;
   align-items: center;
@@ -11,7 +13,6 @@
   color: #1b4dff;
   letter-spacing: -0.1px;
 }
-
 
 .catRow {
   display: flex;
@@ -56,6 +57,21 @@
   &:hover:not(:disabled) {
     color: #ffffff;
   }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+
+  @include desktop {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+.main {
+  min-width: 0;
 }
 
 .feed {

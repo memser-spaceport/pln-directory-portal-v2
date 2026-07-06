@@ -1,13 +1,10 @@
 'use client';
-'use client';
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useMemo, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
-import { useFollowAnalytics } from '@/analytics/follow.analytics';
-import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
@@ -24,8 +21,9 @@ import {
 import { hasExistingDiscussion } from './components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
+import { clusterByTeam } from './utils/clusterByTeam';
 
-import { NewsCard } from './components/NewsCard';
+import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 
@@ -43,12 +41,12 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
-  const followAnalytics = useFollowAnalytics();
-  const { mutate: followMutate } = useFollowTeam();
 
   const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
 
-  const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
+  // No follow-toggle affordance in v0 (see docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md),
+  // so this is seeded once from server data and never mutated client-side.
+  const [followedTeamUids] = useState<Set<string>>(
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
   );
 
@@ -85,13 +83,15 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
     return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
   }, [activeCategory, itemsForActiveTab]);
 
-  const sortedItems = useMemo(() => {
-    const followed = filteredItems.filter((i) => followedTeamUids.has(i.teamUid));
-    const unfollowed = filteredItems.filter((i) => !followedTeamUids.has(i.teamUid));
-    return [...followed, ...unfollowed];
-  }, [filteredItems, followedTeamUids]);
+  const clusters = useMemo(() => clusterByTeam(filteredItems), [filteredItems]);
 
-  const visibleItems = expanded ? sortedItems : sortedItems.slice(0, pageSize);
+  const sortedClusters = useMemo(() => {
+    const followed = clusters.filter((c) => followedTeamUids.has(c.teamUid));
+    const unfollowed = clusters.filter((c) => !followedTeamUids.has(c.teamUid));
+    return [...followed, ...unfollowed];
+  }, [clusters, followedTeamUids]);
+
+  const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
 
   const handleTab = (id: string) => {
@@ -115,7 +115,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   };
 
   const handleToggleAll = () => {
-    analytics.onTeamNewsLoadMoreClicked(visibleItems.length, filteredItems.length, 'home', {
+    analytics.onTeamNewsLoadMoreClicked(visibleClusters.length, clusters.length, 'home', {
       currentTab: activeTab,
       currentCategory: String(activeCategory),
     });
@@ -123,42 +123,8 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   };
 
   const handleCardClick = (item: ITeamNewsItem) => {
-    const position = visibleItems.findIndex((v) => v.uid === item.uid);
+    const position = visibleClusters.findIndex((c) => c.teamUid === item.teamUid);
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
-  };
-
-  const handleFollowToggle = (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => {
-    const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
-    setFollowedTeamUids((prev) => {
-      const next = new Set(prev);
-      isCurrentlyFollowing ? next.delete(teamUid) : next.add(teamUid);
-      return next;
-    });
-    followMutate(
-      { teamUid, action },
-      {
-        onError: () => {
-          setFollowedTeamUids((prev) => {
-            const next = new Set(prev);
-            isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
-            return next;
-          });
-          followAnalytics.onTeamFollowFailed({
-            teamUid,
-            teamName,
-            source: 'news-feed',
-            action,
-          });
-        },
-        onSuccess: () => {
-          if (action === 'follow') {
-            followAnalytics.onTeamFollowed({ teamUid, teamName, source: 'news-feed' });
-          } else {
-            followAnalytics.onTeamUnfollowed({ teamUid, teamName, source: 'news-feed' });
-          }
-        },
-      },
-    );
   };
 
   if (isEmpty(allItems)) {
@@ -196,19 +162,22 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
         <div className={s.empty}>No network news in this filter.</div>
       ) : (
         <>
-          <div className={s.grid}>
-            {visibleItems.map((item, index) => (
-              <NewsCard
-                key={item.uid}
-                item={item}
-                position={index}
-                onClick={handleCardClick}
-                isFollowing={followedTeamUids.has(item.teamUid)}
-                onFollowToggle={handleFollowToggle}
+          <div className={s.feed}>
+            {visibleClusters.map((cluster) => (
+              // Composite key intentionally forces a remount on every tab/category
+              // change so each card's local `expanded` resets — see rationale in
+              // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
+              // NOTE: any future CSS transition on .storyRow/.expander will not
+              // animate across a filter change, since this replaces the DOM node
+              // rather than updating it in place.
+              <NewsGroupCard
+                key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
+                cluster={cluster}
+                onStoryClick={handleCardClick}
               />
             ))}
           </div>
-          {filteredItems.length > pageSize && (
+          {clusters.length > pageSize && (
             <div className={s.showAll}>
               <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
                 {expanded ? 'Show Less' : 'Show All'}

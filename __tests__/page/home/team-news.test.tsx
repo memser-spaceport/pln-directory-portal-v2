@@ -235,4 +235,89 @@ describe('TeamNews', () => {
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
     });
   });
+
+  describe('grouped by team', () => {
+    const ACME_UID = 'team-acme';
+    const withTeam = (item: ITeamNewsItem, teamUid: string, teamName: string): ITeamNewsItem => ({
+      ...item,
+      teamUid,
+      teamName,
+    });
+
+    // 5 Acme stories under AI & Robotics, plus one unrelated single-story team.
+    const acmeAiItems = [
+      makeItem('acme-0', 'FUNDING', ['AI & Robotics']),
+      makeItem('acme-1', 'LAUNCH', ['AI & Robotics']),
+      makeItem('acme-2', 'PARTNERSHIP', ['AI & Robotics']),
+      makeItem('acme-3', 'MILESTONE', ['AI & Robotics']),
+      makeItem('acme-4', 'ANNOUNCEMENT', ['AI & Robotics']),
+    ].map((item) => withTeam(item, ACME_UID, 'Acme'));
+    const soloItem = makeItem('solo-1', 'LAUNCH', ['AI & Robotics']);
+
+    // The same team also has a story filed under a different focus area.
+    const acmeDhrItem = withTeam(makeItem('acme-dhr', 'MILESTONE', ['Digital Human Rights']), ACME_UID, 'Acme');
+
+    const groupsWithSharedTeam: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: 6, items: [...acmeAiItems, soloItem] },
+      { focusArea: FA_DHR, total: 1, items: [acmeDhrItem] },
+    ];
+
+    it('renders one card per team, collapsing a team with more than 3 stories behind an expander', () => {
+      render(<TeamNews groups={groupsWithSharedTeam} />);
+      // On the default "All" tab, Acme's cluster merges all 6 of its stories (5 AI + 1 DHR).
+      expect(screen.getAllByRole('link', { name: 'Acme' })).toHaveLength(1);
+      expect(screen.getByRole('button', { name: 'View all 6 updates from Acme' })).toBeInTheDocument();
+    });
+
+    it('Show All/Show Less counts team cards, not stories', () => {
+      render(<TeamNews groups={groupsWithSharedTeam} pageSize={1} />);
+      // 2 team cards total (Acme, solo team) on the All tab — pageSize=1 shows only the first.
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+      expect(screen.queryByText(/Headline solo-1/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
+      expect(mockOnLoadMoreClicked).toHaveBeenCalledWith(1, 2, 'home', {
+        currentTab: 'All',
+        currentCategory: 'all',
+      });
+      expect(screen.getByText(/Headline solo-1/)).toBeInTheDocument();
+    });
+
+    it('a category chip can show a higher count than the number of rendered team cards', () => {
+      render(<TeamNews groups={groupsWithSharedTeam} />);
+      // 5 Acme stories are FUNDING/LAUNCH/PARTNERSHIP/MILESTONE/ANNOUNCEMENT — only "Funding" narrows to Acme's single funding story.
+      fireEvent.click(screen.getByRole('button', { name: /^Funding/ }));
+      expect(screen.getAllByRole('link', { name: 'Acme' })).toHaveLength(1);
+      expect(screen.getByText(/Headline acme-0/)).toBeInTheDocument();
+      expect(screen.queryByText(/Headline acme-1/)).not.toBeInTheDocument();
+    });
+
+    it('does not carry stale per-card expansion when switching tabs for a team present in multiple focus areas', () => {
+      render(<TeamNews groups={groupsWithSharedTeam} />);
+      // On "All", Acme has 6 stories (5 AI + 1 DHR) — expand to "Show less".
+      fireEvent.click(screen.getByRole('button', { name: 'View all 6 updates from Acme' }));
+      expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument();
+
+      // Switching to the AI & Robotics tab narrows Acme to 5 stories — the card
+      // must reset to collapsed, not keep showing a stale "Show less" for a
+      // story list that belonged to the previous filter.
+      fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
+      expect(screen.getByRole('button', { name: 'View all 5 updates from Acme' })).toBeInTheDocument();
+    });
+
+    it('sorts followed teams first, computed from clusters not individual stories', () => {
+      const followedItem = {
+        ...withTeam(makeItem('followed-1', 'FUNDING', ['AI & Robotics']), 'team-zeta', 'Zeta'),
+        isFollowed: true,
+      };
+      const groupsWithFollowed: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, followedItem] },
+      ];
+      render(<TeamNews groups={groupsWithFollowed} />);
+      const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
+      // Zeta is followed and should render first despite being last in insertion order.
+      expect(teamLinks[0]).toHaveTextContent('Zeta');
+    });
+  });
 });

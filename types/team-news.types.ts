@@ -1,10 +1,4 @@
-export type TeamNewsEventType =
-  | 'FUNDING'
-  | 'LAUNCH'
-  | 'PARTNERSHIP'
-  | 'ANNOUNCEMENT'
-  | 'MILESTONE'
-  | 'OTHER';
+export type TeamNewsEventType = 'FUNDING' | 'LAUNCH' | 'PARTNERSHIP' | 'ANNOUNCEMENT' | 'MILESTONE' | 'OTHER';
 
 export interface ITeamNewsDiscussion {
   count: number;
@@ -66,6 +60,13 @@ export interface ITeamNewsGroupedResponse {
   windowDays: number;
   generatedAt: string;
   groups: ITeamNewsGroup[];
+}
+
+export interface TeamCluster {
+  teamUid: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  items: ITeamNewsItem[]; // this team's matching stories, any order — NewsGroupCard sorts before rendering
 }
 
 export interface ITeamNewsListResponse {

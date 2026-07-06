@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
-import { getTeamLogoFallback } from '@/components/page/home/TeamNews/components/NewsCard/utils/getTeamLogoFallback';
+import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 

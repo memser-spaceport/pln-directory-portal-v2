@@ -7,7 +7,7 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
-import { getTeamLogoFallback } from '@/components/page/home/TeamNews/components/NewsCard/utils/getTeamLogoFallback';
+import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
 import { ArrowRight } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/components/Icons';
 

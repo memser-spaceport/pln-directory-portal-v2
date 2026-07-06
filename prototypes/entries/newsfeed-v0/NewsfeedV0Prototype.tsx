@@ -33,6 +33,7 @@ import { FeedRail } from './FeedRail';
 import { DigestBanner } from './DigestBanner';
 import { WhyFollowBanner } from './WhyFollowBanner';
 import { QuickActionsMock } from './QuickActionsMock';
+import { HeaderSearch } from './HeaderSearch';
 import { FocusAreaSectionMock } from './FocusAreaSectionMock';
 import { FollowToast } from '../follow-shared/FollowToast';
 import { MOCK_GROUPS } from './mocks';
@@ -117,6 +118,7 @@ export default function NewsfeedV0Prototype() {
   const [mode, setMode] = useState<Mode>('v0');
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
+  const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [followedTeams, setFollowedTeams] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
@@ -181,7 +183,21 @@ export default function NewsfeedV0Prototype() {
     return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
   }, [activeCategory, itemsForActiveTab]);
 
-  const clusters = useMemo(() => clusterByTeam(filteredItems), [filteredItems]);
+  // Free-text search narrows the current tab/category slice by team name, story
+  // headline, summary, or tag.
+  const searchedItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return filteredItems;
+    return filteredItems.filter(
+      (i) =>
+        i.teamName.toLowerCase().includes(q) ||
+        i.title.toLowerCase().includes(q) ||
+        (i.summary?.toLowerCase().includes(q) ?? false) ||
+        i.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [filteredItems, query]);
+
+  const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
   const visibleClusters = expanded ? clusters : clusters.slice(0, PAGE_SIZE);
   const newCount = allItems.length;
@@ -202,6 +218,11 @@ export default function NewsfeedV0Prototype() {
 
   const handleCategory = (id: TeamNewsCategoryId) => {
     setActiveCategory(id);
+    setExpanded(false);
+  };
+
+  const handleSearch = (value: string) => {
+    setQuery(value);
     setExpanded(false);
   };
 
@@ -254,7 +275,14 @@ export default function NewsfeedV0Prototype() {
             <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
           </NewsBase>
         ) : (
-          <NewsBase headerDetails={newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}>
+          <NewsBase
+            headerDetails={
+              <div className={clsx(local.headerActions, mode === 'banner' && local.headerActionsBanner)}>
+                {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+                <HeaderSearch value={query} onChange={handleSearch} />
+              </div>
+            }
+          >
             {/* Constrain the tabs' underline to end at the news-card's right edge
                 (reserve the rail column), instead of spanning the full width. */}
             <div className={clsx(local.tabsConstrain, mode === 'banner' && local.tabsConstrainBanner)}>
@@ -280,8 +308,10 @@ export default function NewsfeedV0Prototype() {
               })}
             </div>
 
-            {filteredItems.length === 0 ? (
-              <div className={s.empty}>No network news in this filter.</div>
+            {searchedItems.length === 0 ? (
+              <div className={s.empty}>
+                {query.trim() ? `No network news matches “${query.trim()}”.` : 'No network news in this filter.'}
+              </div>
             ) : (
               <>
                 <div className={clsx(local.feedLayout, mode === 'banner' && local.feedLayoutBanner)}>

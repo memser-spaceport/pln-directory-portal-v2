@@ -810,13 +810,25 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
               <div className={s.relChips}>
-                {/* Match dev: only the Direct-only quick toggle lives in the toolbar. */}
+                {/* Two momentary quick-lenses: reach directly, or only our PL backers. */}
                 <label className={x.directToggle}>
                   Direct only
                   <Switch.Root
                     className={x.directSwitch}
                     checked={pathSel.has('direct')}
                     onCheckedChange={() => togglePathToken('direct')}
+                  >
+                    <Switch.Thumb className={x.directThumb} />
+                  </Switch.Root>
+                </label>
+                {/* Narrow to investors who already back Protocol Labs — the warmest,
+                    highest-trust relationships (co-invest / vouch / intro-makers). */}
+                <label className={clsx(x.directToggle, x.lensGap)} title="Show only investors who have invested in Protocol Labs">
+                  PL investors only
+                  <Switch.Root
+                    className={x.directSwitch}
+                    checked={plBackedOnly}
+                    onCheckedChange={() => setPlBackedOnly((v) => !v)}
                   >
                     <Switch.Thumb className={x.directThumb} />
                   </Switch.Root>
@@ -839,11 +851,13 @@ export default function WarmIntrosFilterUpdatePrototype() {
               <thead>
                 <tr>
                   <th className={s.checkboxCol}></th>
-                  <th className={s.th} style={{ width: 260, maxWidth: 260 }}>Investor</th>
-                  <th className={s.th} style={{ width: 200, maxWidth: 200 }}>Team</th>
-                  <th className={s.th} style={{ width: 200, maxWidth: 200 }}>{INDUSTRY_SECTOR_LABEL}</th>
-                  <th className={s.th} style={{ width: 120, maxWidth: 120 }}>Proximity</th>
-                  {/* No width → Path absorbs the table's slack (shows the full chain instead of clipping). */}
+                  {/* Four content columns share ~17.5% each; Path has no width so in the
+                      table's fixed layout it absorbs the remainder (~30%) — the widest
+                      column, giving the people-chains the most room. */}
+                  <th className={s.th} style={{ width: '17.5%' }}>Investor</th>
+                  <th className={s.th} style={{ width: '17.5%' }}>Team</th>
+                  <th className={s.th} style={{ width: '17.5%' }}>{INDUSTRY_SECTOR_LABEL}</th>
+                  <th className={s.th} style={{ width: '17.5%' }}>Proximity</th>
                   <th className={s.th}>Path</th>
                 </tr>
               </thead>
@@ -895,6 +909,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                               code={inv.best_proximity_code}
                               cold={inv.has_path === false}
                               confidence={bestPath?.caliber_confidence}
+                              className={x.proxBadge}
                             />
                           ) : (
                             <span className={s.muted}>—</span>
@@ -957,6 +972,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                         code={inv.best_proximity_code}
                         cold={inv.has_path === false}
                         confidence={bestPath?.caliber_confidence}
+                        className={x.proxBadge}
                       />
                     )}
                   </div>

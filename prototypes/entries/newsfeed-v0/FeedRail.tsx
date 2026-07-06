@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
-import { getTeamLogoFallback } from '@/components/page/home/TeamNews/components/NewsCard/utils/getTeamLogoFallback';
+import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
 // Reuse the production news-card styling 1:1 (card shell, logo sizes).
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';

@@ -20,7 +20,7 @@ export function WhyFollowBanner() {
       </span>
       <header className={s.head}>
         <p className={local.railBlockTitle}>Stay in the loop</p>
-        <p className={s.lede}>Follow a team to pull its latest news and updates to the top of your feed.</p>
+        <p className={s.lede}>Follow teams to receive updates and announcements.</p>
       </header>
     </section>
   );

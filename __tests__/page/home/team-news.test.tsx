@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import type { ReactElement } from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
@@ -328,6 +328,192 @@ describe('TeamNews', () => {
       const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
       // Zeta is followed and should render first despite being last in insertion order.
       expect(teamLinks[0]).toHaveTextContent('Zeta');
+    });
+  });
+
+  describe('search', () => {
+    const SEARCH_PLACEHOLDER = 'Search news, teams…';
+    // The desktop field (rendered via headerDetails, inside NewsBase's header)
+    // comes before the mobile row (NewsBase's first `children`) in DOM order —
+    // so the mobile row is always the LAST match, whether or not desktop is open.
+    const getMobileInput = () => {
+      const inputs = screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER);
+      return inputs[inputs.length - 1];
+    };
+    const getDesktopInput = () => screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER)[0];
+
+    const lattice = {
+      ...makeItem('lattice-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-lattice',
+      teamName: 'Lattice Compute',
+      tags: ['network'],
+    };
+    const acme = {
+      ...makeItem('acme-1', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-acme',
+      teamName: 'Acme',
+      title: 'Acme launches new product',
+      summary: 'A regular update from the team.',
+      tags: ['network', 'ai-robotics'],
+    };
+    const filecoin = {
+      ...makeItem('fil-1', 'MILESTONE', ['AI & Robotics']),
+      teamUid: 'team-filecoin',
+      teamName: 'Filecoin Foundation',
+      title: 'Storage milestone reached',
+      summary: 'Great progress on the storage network.',
+      tags: ['network', 'storage'],
+    };
+    const searchGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [lattice, acme, filecoin] }];
+
+    it('renders the search icon collapsed by default, and reveals a focused input on click', () => {
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      expect(screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER)).toHaveLength(1); // mobile row only
+      expect(screen.getByRole('button', { name: 'Search news' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Search news' }));
+      const inputs = screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER);
+      expect(inputs).toHaveLength(2);
+      expect(inputs[0]).toHaveFocus(); // the desktop field, opened via the icon click
+    });
+
+    it('narrows visible cards by team name', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      fireEvent.change(getMobileInput(), { target: { value: 'lattice' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(screen.getByRole('link', { name: 'Lattice Compute' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Acme' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Filecoin Foundation' })).not.toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('narrows by story title, summary, or tag', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      const input = getMobileInput();
+
+      fireEvent.change(input, { target: { value: 'launches new product' } }); // title match
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Filecoin Foundation' })).not.toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: 'great progress' } }); // summary match
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('link', { name: 'Filecoin Foundation' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Acme' })).not.toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: 'ai-robotics' } }); // tag match
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Lattice Compute' })).not.toBeInTheDocument();
+
+      jest.useRealTimers();
+    });
+
+    it('keeps the query applied when switching focus-area tabs', () => {
+      jest.useFakeTimers();
+      const dhrAcme = { ...acme, uid: 'acme-dhr', focusAreas: ['Digital Human Rights'] };
+      const groupsWithTabs: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 3, items: [lattice, acme, filecoin] },
+        { focusArea: FA_DHR, total: 1, items: [dhrAcme] },
+      ];
+      renderTeamNews(<TeamNews groups={groupsWithTabs} />);
+      const input = getMobileInput();
+      fireEvent.change(input, { target: { value: 'acme' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      expect(getMobileInput()).toHaveValue('acme');
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('collapses the desktop field on blur when empty, but keeps it open with text', () => {
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Search news' }));
+      expect(screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER)).toHaveLength(2);
+
+      fireEvent.blur(getDesktopInput());
+      expect(screen.getByRole('button', { name: 'Search news' })).toBeInTheDocument();
+      expect(screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER)).toHaveLength(1);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Search news' }));
+      fireEvent.change(getDesktopInput(), { target: { value: 'a' } });
+      fireEvent.blur(getDesktopInput());
+      expect(screen.queryByRole('button', { name: 'Search news' })).not.toBeInTheDocument();
+      expect(screen.getAllByPlaceholderText(SEARCH_PLACEHOLDER)).toHaveLength(2);
+    });
+
+    it('shows a query-aware empty message when the search matches nothing', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      fireEvent.change(getMobileInput(), { target: { value: 'zzz-no-match' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByText('No network news matches "zzz-no-match".')).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('restores the full set when the query is cleared', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      const input = getMobileInput();
+      fireEvent.change(input, { target: { value: 'lattice' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.queryByRole('link', { name: 'Acme' })).not.toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: '' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('link', { name: 'Lattice Compute' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Acme' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Filecoin Foundation' })).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('resets page-level Show All/Less when a new search query is entered', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} pageSize={1} />);
+      fireEvent.click(screen.getByRole('button', { name: /Show All/i }));
+      expect(screen.getByRole('button', { name: /Show Less/i })).toBeInTheDocument();
+
+      // "network" matches all 3 items, so results still exceed pageSize=1 —
+      // isolates the expanded-reset behavior from the narrowing behavior.
+      fireEvent.change(getMobileInput(), { target: { value: 'network' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(screen.getByRole('button', { name: /Show All/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Show Less/i })).not.toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('does not revert typed text when an unrelated re-render interrupts an in-flight debounce (regression test)', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      const input = getMobileInput();
+
+      fireEvent.change(input, { target: { value: 'lat' } });
+      act(() => jest.advanceTimersByTime(300)); // 400ms still remain on this debounce
+
+      // Unrelated re-render: clicking a category chip forces TeamNews (and thus
+      // SearchInput's onChange prop) to re-render well before the debounce settles.
+      // Lattice is FUNDING, so it stays visible/matchable after this filter too.
+      fireEvent.click(screen.getByRole('button', { name: /^Funding/ }));
+
+      // Continue typing on the same input.
+      fireEvent.change(input, { target: { value: 'lattice' } });
+
+      // Advance to exactly when the original debounce (for 'lat') would have
+      // fired — the moment a leaked debounce instance would visibly revert
+      // the input to the stale, shorter value.
+      act(() => jest.advanceTimersByTime(400));
+      expect(getMobileInput()).toHaveValue('lattice');
+
+      // Let the real, single debounce settle fully.
+      act(() => jest.advanceTimersByTime(700));
+      expect(getMobileInput()).toHaveValue('lattice');
+      expect(screen.getByRole('link', { name: 'Lattice Compute' })).toBeInTheDocument();
+      jest.useRealTimers();
     });
   });
 });

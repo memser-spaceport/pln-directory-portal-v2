@@ -32,19 +32,23 @@ jest.mock('@/analytics/settings.analytics', () => ({
   }),
 }));
 
+const mockUseForumAccess = jest.fn();
+jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
+  useForumAccess: () => mockUseForumAccess(),
+}));
+
 describe('NewsRail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: false });
     mockGetForumDigestSettings.mockReturnValue({ data: { forumDigestEnabled: false } });
+    mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
   });
 
   it('always renders the why-follow explainer', () => {
     render(<NewsRail />);
     expect(screen.getByText('Stay in the loop')).toBeInTheDocument();
-    expect(
-      screen.getByText('Follow a team to pull its latest news and updates to the top of your feed.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Follow teams to receive updates and announcements.')).toBeInTheDocument();
   });
 
   it('renders the digest promo without a button before the auth store hydrates', () => {
@@ -69,6 +73,7 @@ describe('NewsRail', () => {
 
   it('calls the forum-digest mutation with weekly frequency when an authenticated user subscribes', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
@@ -89,6 +94,7 @@ describe('NewsRail', () => {
 
   it('shows the subscribed card with a link to Settings once forumDigestEnabled is true, instead of the promo card', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({ data: { forumDigestEnabled: true } });
     render(<NewsRail />);
 
@@ -98,5 +104,14 @@ describe('NewsRail', () => {
 
     expect(screen.queryByText('Get notified about network news updates')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Subscribe for Digest' })).not.toBeInTheDocument();
+  });
+
+  it('hides digest cards for authenticated users without forum access', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
+    render(<NewsRail />);
+
+    expect(screen.queryByText('Get notified about network news updates')).not.toBeInTheDocument();
+    expect(screen.queryByText("You're subscribed to the Digest")).not.toBeInTheDocument();
   });
 });

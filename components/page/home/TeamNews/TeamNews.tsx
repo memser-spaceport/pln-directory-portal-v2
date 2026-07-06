@@ -244,7 +244,7 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
       {/* Mobile only: header has no room to expand inline, so the field lives
           here as a permanent full-width row. Hidden on desktop via CSS. */}
       <div className={s.mobileSearchRow}>
-        <SearchInput value={query} onChange={handleSearch} placeholder="Search news, teams…" />
+        <SearchInput value={query} onChange={handleSearch} placeholder="Search by news, teams…" />
       </div>
 
       <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />

@@ -19,7 +19,7 @@ describe('NewsSearch', () => {
     );
     const btn = screen.getByRole('button', { name: 'Search news' });
     expect(btn).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('Search news, teams…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search by news, teams…')).not.toBeInTheDocument();
 
     fireEvent.click(btn);
     expect(onOpen).toHaveBeenCalledTimes(1);
@@ -37,7 +37,7 @@ describe('NewsSearch', () => {
       />,
     );
     expect(screen.queryByRole('button', { name: 'Search news' })).not.toBeInTheDocument();
-    const input = screen.getByPlaceholderText('Search news, teams…');
+    const input = screen.getByPlaceholderText('Search by news, teams…');
     expect(input).toBeInTheDocument();
     expect(input).toHaveValue('acme');
   });
@@ -55,7 +55,7 @@ describe('NewsSearch', () => {
         fieldRef={createRef<HTMLDivElement>()}
       />,
     );
-    fireEvent.change(screen.getByPlaceholderText('Search news, teams…'), { target: { value: 'lattice' } });
+    fireEvent.change(screen.getByPlaceholderText('Search by news, teams…'), { target: { value: 'lattice' } });
     jest.advanceTimersByTime(700);
     expect(onChange).toHaveBeenCalledWith('lattice');
     jest.useRealTimers();
@@ -73,7 +73,7 @@ describe('NewsSearch', () => {
         fieldRef={createRef<HTMLDivElement>()}
       />,
     );
-    fireEvent.blur(screen.getByPlaceholderText('Search news, teams…'));
+    fireEvent.blur(screen.getByPlaceholderText('Search by news, teams…'));
     expect(onBlur).toHaveBeenCalledTimes(1);
   });
 });

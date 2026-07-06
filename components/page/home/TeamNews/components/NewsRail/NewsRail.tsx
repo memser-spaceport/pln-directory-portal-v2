@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
@@ -47,7 +48,9 @@ interface NewsRailProps {
 export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const { hasAccess, isLoading: forumAccessLoading } = useForumAccess();
   const analytics = useSettingsAnalytics();
+  const showDigest = !currentUser || (!forumAccessLoading && hasAccess);
   const { mutate } = useUpdateForumDigestSettings();
 
   const defaultSettings = useMemo(
@@ -80,35 +83,36 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
           <TeamsIcon />
         </span>
         <p className={s.whyTitle}>Stay in the loop</p>
-        <p className={s.whyBody}>Follow a team to pull its latest news and updates to the top of your feed.</p>
+        <p className={s.whyBody}>Follow teams to receive updates and announcements.</p>
       </section>
 
-      {isSubscribed ? (
-        <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
-          <span className={s.iconBadge} aria-hidden="true">
-            <MailIcon />
-          </span>
-          <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
-          <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
-          <Link href="/settings/email" className={s.manageLink}>
-            <span>Manage in Settings</span>
-            <ArrowRight />
-          </Link>
-        </section>
-      ) : (
-        <section className={s.digestCard} aria-label="Subscribe to the news digest">
-          <p className={s.digestTitle}>Get notified about network news updates</p>
-          <p className={s.digestBody}>
-            A digest of raises, launches, and milestones from across the network, straight to your inbox.
-          </p>
-          {isHydrated && (
-            <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
-              <span>Subscribe for Digest</span>
+      {showDigest &&
+        (isSubscribed ? (
+          <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
+            <span className={s.iconBadge} aria-hidden="true">
+              <MailIcon />
+            </span>
+            <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
+            <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
+            <Link href="/settings/email" className={s.manageLink}>
+              <span>Manage in Settings</span>
               <ArrowRight />
-            </button>
-          )}
-        </section>
-      )}
+            </Link>
+          </section>
+        ) : (
+          <section className={s.digestCard} aria-label="Subscribe to the news digest">
+            <p className={s.digestTitle}>Get notified about network news updates</p>
+            <p className={s.digestBody}>
+              News digest covering raises, launches, and milestones from across the network, straight to your inbox.
+            </p>
+            {isHydrated && (
+              <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
+                <span>Subscribe for Digest</span>
+                <ArrowRight />
+              </button>
+            )}
+          </section>
+        ))}
     </aside>
   );
 }

@@ -1,8 +1,16 @@
+@import 'styles/media.scss';
+
 .rail {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+
+  @include desktop {
+    position: sticky;
+    /* Clear the fixed app header (global var) plus breathing room. */
+    top: calc(var(--app-header-height, 80px) + 16px);
+  }
 }
 
 .whyCard {
@@ -57,7 +65,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 20px;
-  background: #1b4dff;
+
+  box-shadow: 0 1px 1px 0 var(--transparent-dark-6, #0e0f110f);
+  background: linear-gradient(#204bba 8%, #156ff7 66%);
   border-radius: 16px;
 }
 
@@ -97,7 +107,13 @@
   letter-spacing: -0.1px;
   transition: background-color 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.9);
+  }
+
+  &:disabled {
+    cursor: default;
+    color: #455468;
+    background: rgba(255, 255, 255, 0.85);
   }
 }

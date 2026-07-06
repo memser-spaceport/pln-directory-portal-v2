@@ -1,5 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+
+import { useCurrentUserStore } from '@/services/auth/store';
+import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { TeamsIcon } from '@/components/core/navbar/components/icons';
 
 import s from './NewsRail.module.scss';
@@ -13,8 +20,51 @@ const ArrowRight = () => (
   </svg>
 );
 
-/** Static rail sitting beside the feed on wide screens: why-follow explainer + digest promo. Neither is wired to a backend yet — purely presentational. */
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path
+      d="M11.667 3.5 5.25 9.917 2.333 7"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const buildDefaultDigestSettings = (uid: string): ForumDigestSettings => ({
+  forumDigestEnabled: false,
+  forumDigestFrequency: 7,
+  forumDigestLastSentAt: null,
+  memberExternalId: null,
+  memberUid: uid,
+});
+
+/** Static why-follow explainer + a digest subscribe CTA that reuses the same forum-digest mutation as Settings > Email (weekly frequency). */
 export function NewsRail() {
+  const router = useRouter();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  const analytics = useSettingsAnalytics();
+  const { mutate } = useUpdateForumDigestSettings();
+
+  const defaultSettings = useMemo(() => buildDefaultDigestSettings(currentUser?.uid ?? ''), [currentUser?.uid]);
+  const { data } = useGetForumDigestSettings(currentUser?.uid, defaultSettings);
+  const isSubscribed = Boolean(data?.forumDigestEnabled);
+
+  const handleSubscribeClick = () => {
+    if (!currentUser?.uid) {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+      return;
+    }
+
+    const payload = { ...(data ?? defaultSettings), forumDigestEnabled: true, forumDigestFrequency: 7 as const };
+    mutate(
+      { uid: currentUser.uid, payload },
+      { onError: () => analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly' }) },
+    );
+    analytics.onForumDigestOptionSelect(payload);
+  };
+
   return (
     <aside className={s.rail} aria-label="News feed sidebar">
       <section className={s.whyCard} aria-label="Why follow teams">
@@ -30,10 +80,18 @@ export function NewsRail() {
         <p className={s.digestBody}>
           A digest of raises, launches, and milestones from across the network, straight to your inbox.
         </p>
-        <button type="button" className={s.digestBtn}>
-          <span>Subscribe for Digest</span>
-          <ArrowRight />
-        </button>
+        {isHydrated && (
+          <button
+            type="button"
+            className={s.digestBtn}
+            onClick={handleSubscribeClick}
+            disabled={isSubscribed}
+            aria-label={isSubscribed ? 'Subscribed to the news digest' : 'Subscribe for Digest'}
+          >
+            <span>{isSubscribed ? 'Subscribed' : 'Subscribe for Digest'}</span>
+            {isSubscribed ? <CheckIcon /> : <ArrowRight />}
+          </button>
+        )}
       </section>
     </aside>
   );

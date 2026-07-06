@@ -110,7 +110,7 @@ export default function StatsSection({ data }: StatsSectionProps) {
 
               {/* Total Tokens Available */}
               {stats.totalTokensAvailable && <tr className="stats-section__row">
-                <td className="stats-section__label">Total Tokens Available:</td>
+                <td className="stats-section__label">Total PLAA Available:</td>
                 <td className="stats-section__value">{stats.totalTokensAvailable}</td>
               </tr>}
 

@@ -101,6 +101,7 @@ export default function CurrentRoundComponent({
             onViewChange={setLeaderboardView}
             currentSnapshotData={leaderboardData.currentSnapshotData}
             cumulativeData={leaderboardData.cumulativeData}
+            roundNumber={data.meta.roundNumber}
           />
         )}
 

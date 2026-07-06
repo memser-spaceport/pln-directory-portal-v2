@@ -31,6 +31,7 @@ const MailIcon = () => (
 const buildDefaultDigestSettings = (uid: string): ForumDigestSettings => ({
   forumDigestEnabled: false,
   forumDigestFrequency: 7,
+  forumDigestNewsEnabled: false,
   forumDigestLastSentAt: null,
   memberExternalId: null,
   memberUid: uid,

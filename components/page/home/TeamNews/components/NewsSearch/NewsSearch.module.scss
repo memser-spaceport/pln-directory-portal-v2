@@ -36,6 +36,7 @@
   flex: 1 1 auto;
   min-width: 0;
   animation: searchFieldIn 0.16s ease;
+  max-width: 450px;
 
   @include mobile-only {
     display: none;

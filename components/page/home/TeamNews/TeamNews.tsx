@@ -162,7 +162,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
         <div className={s.empty}>No network news in this filter.</div>
       ) : (
         <>
-          <div className={s.grid}>
+          <div className={s.feed}>
             {visibleClusters.map((cluster) => (
               // Composite key intentionally forces a remount on every tab/category
               // change so each card's local `expanded` resets — see rationale in

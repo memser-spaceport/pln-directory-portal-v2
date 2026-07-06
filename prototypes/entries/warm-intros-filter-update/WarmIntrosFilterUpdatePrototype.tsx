@@ -13,7 +13,6 @@ import {
 } from '@/services/investors/constants';
 import type { CheckSizeRange, InvestorList, SectorTag, StageFocus, WarmIntroTier } from '@/services/investors/types';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
-import { EngagementTierBadge } from '@/components/page/investors/EngagementTierBadge/EngagementTierBadge';
 import { Tag } from '@/components/ui/Tag/Tag';
 import { ListPicker } from '@/components/page/investors/WarmIntrosWorkspace/ListPicker';
 import { GlossaryModal } from '@/components/page/investors/WarmIntrosWorkspace/GlossaryModal';
@@ -40,16 +39,6 @@ import { InvestorDrawerMock, InLabOsPill, TeamInline } from './InvestorDrawerMoc
 import { AddToListButton } from './AddToListButton';
 import { InvestedInPlBadge } from './InvestedInPlBadge';
 import x from './WarmIntrosImprovements.module.scss';
-
-const REL_FILTERS: { tier: WarmIntroTier; label: string }[] = [
-  { tier: 'co_invested', label: 'Co-invested' },
-  { tier: 'engaged', label: 'Engaged' },
-];
-
-const VISUAL_TABS = [
-  { value: 'all', label: 'All Investors' },
-  { value: 'warm-intros', label: 'Warm Intros' },
-];
 
 // Relationship keeps its color coding — it's a meaningful signal.
 function relationshipMeta(rel: WarmIntroTier): { label: string; cls: string } {
@@ -519,7 +508,10 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
       <div className={x.tabBar}>
         <Tabs
-          tabs={VISUAL_TABS}
+          tabs={[
+            { value: 'warm-intros', label: 'Warm Intros', badge: totalOnList.toLocaleString() },
+            { value: 'all', label: 'All Investors' },
+          ]}
           value="warm-intros"
           onValueChange={() => {}}
           variant="underline"
@@ -818,7 +810,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
               <div className={s.relChips}>
-                {/* Binary-lens zone: Direct-only DS toggle, then the relationship pills. */}
+                {/* Match dev: only the Direct-only quick toggle lives in the toolbar. */}
                 <label className={x.directToggle}>
                   Direct only
                   <Switch.Root
@@ -829,38 +821,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
                     <Switch.Thumb className={x.directThumb} />
                   </Switch.Root>
                 </label>
-                <span className={x.filterDivider} aria-hidden />
-                {/* Quick filter: only investors with a direct PL teammate route. */}
-                {SHOW_OLD_FILTERS && (
-                  <Tag
-                    value="Direct only"
-                    keyValue="direct-only"
-                    variant="secondary"
-                    selected={directOnly}
-                    className={x.relChip}
-                    callback={() => setDirectOnly((v) => !v)}
-                  />
-                )}
-                {/* Restrict-to lens (default off): only investors who back PL themselves. */}
-                <Tag
-                  value="Invested in PL"
-                  keyValue="invested-in-pl"
-                  variant="secondary"
-                  selected={plBackedOnly}
-                  className={x.relChip}
-                  callback={() => setPlBackedOnly((v) => !v)}
-                />
-                {REL_FILTERS.map(({ tier, label }) => (
-                  <Tag
-                    key={tier}
-                    value={label}
-                    keyValue={tier}
-                    variant="secondary"
-                    selected={relFilter[tier]}
-                    className={x.relChip}
-                    callback={() => setRelFilter((r) => ({ ...r, [tier]: !r[tier] }))}
-                  />
-                ))}
               </div>
               <AddToListButton
                 lists={liveLists}
@@ -879,17 +839,16 @@ export default function WarmIntrosFilterUpdatePrototype() {
               <thead>
                 <tr>
                   <th className={s.checkboxCol}></th>
-                  <th>Investor</th>
-                  <th>Team</th>
-                  <th>{INDUSTRY_SECTOR_LABEL}</th>
-                  <th>Relationship</th>
-                  <th>Proximity</th>
-                  <th className={x.colPath}>Path</th>
+                  <th className={s.th} style={{ width: 260, maxWidth: 260 }}>Investor</th>
+                  <th className={s.th} style={{ width: 200, maxWidth: 200 }}>Team</th>
+                  <th className={s.th} style={{ width: 200, maxWidth: 200 }}>{INDUSTRY_SECTOR_LABEL}</th>
+                  <th className={s.th} style={{ width: 120, maxWidth: 120 }}>Proximity</th>
+                  {/* No width → Path absorbs the table's slack (shows the full chain instead of clipping). */}
+                  <th className={s.th}>Path</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((inv) => {
-                  const rel = relationshipMeta(inv.relationship);
                   const bestPath = inv.paths[0];
                   const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
                   return (
@@ -906,7 +865,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                             onChange={() => toggleSelected(inv.investor_id)}
                           />
                         </td>
-                        <td>
+                        <td className={s.td}>
                           <div className={x.nameCellRow}>
                             <div>
                               <div className={x.nameWithBadge}>
@@ -914,6 +873,8 @@ export default function WarmIntrosFilterUpdatePrototype() {
                                   {inv.first_name} {inv.last_name}
                                 </span>
                                 <InLabOsPill profile={inv.lab_os_profile ?? null} />
+                                {/* PL investor tag — icon-only; label on hover + in the drawer. */}
+                                <InvestedInPlBadge investor={inv} />
                               </div>
                               <div className={s.subtle}>{inv.email}</div>
                             </div>
@@ -922,22 +883,13 @@ export default function WarmIntrosFilterUpdatePrototype() {
                             </span>
                           </div>
                         </td>
-                        <td>
+                        <td className={s.td}>
                           <TeamCell investor={inv} />
                         </td>
-                        <td>
+                        <td className={s.td}>
                           <MetaChips items={inv.sector_tags} max={3} />
                         </td>
-                        <td>
-                          <div className={s.relCell}>
-                            <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>
-                            <InvestedInPlBadge investor={inv} />
-                            {inv.relationship === 'engaged' && inv.engagement_tier !== 'T4_cold' && (
-                              <EngagementTierBadge tier={inv.engagement_tier} compact />
-                            )}
-                          </div>
-                        </td>
-                        <td>
+                        <td className={s.td}>
                           {hasProximity ? (
                             <ProximityCodeBadge
                               code={inv.best_proximity_code}
@@ -948,7 +900,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                             <span className={s.muted}>—</span>
                           )}
                         </td>
-                        <td>
+                        <td className={s.td}>
                           <div className={x.bestPathCell}>
                             {/* People-first: the warmest connector node chain. */}
                             {bestPath && pathChainNodes(bestPath, inv).length > 0 ? (

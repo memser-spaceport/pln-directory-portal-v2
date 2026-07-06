@@ -1,5 +1,6 @@
 'use client';
 
+import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 import type { MockInvestor } from './mocks';
 import { ProtocolLabsMark } from './ProtocolLabsMark';
 import x from './WarmIntrosImprovements.module.scss';
@@ -16,10 +17,14 @@ export function investedInPlText(inv: MockInvestor): string {
  *  in the tooltip and the drawer); `withLabel` renders the drawer-header pill. */
 export function InvestedInPlBadge({ investor, withLabel = false }: { investor: MockInvestor; withLabel?: boolean }) {
   if (!investor.invested_in_pl) return null;
-  return (
-    <span className={withLabel ? x.plInvestedPill : x.plInvestedBadge} title={investedInPlText(investor)}>
+  const badge = (
+    <span className={withLabel ? x.plInvestedPill : x.plInvestedBadge}>
       <ProtocolLabsMark width={12} height={12} />
       {withLabel && <span>Invested in PL</span>}
     </span>
   );
+  // The labeled pill already spells it out; only the icon-only badge needs the
+  // tooltip (real hover tooltip instead of a native title) to explain itself.
+  if (withLabel) return badge;
+  return <CustomTooltip forceTooltip content="Invested in Protocol Labs" trigger={badge} />;
 }

@@ -2582,6 +2582,12 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   border-radius: 6px;
   background: var(--background-brand-soft-surface, #f2f5ff);
   color: var(--foreground-brand-primary, #1b4dff);
+  cursor: default;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--background-brand-soft-hover, #e0e8ff);
+  }
 }
 
 // Labeled variant for the drawer header — same pill family as "In LabOS".

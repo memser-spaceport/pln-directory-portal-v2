@@ -15,7 +15,7 @@ interface Props {
   onOpen: () => void;
   onChange: (value: string) => void;
   onBlur: (e: FocusEvent<HTMLDivElement>) => void;
-  fieldRef: RefObject<HTMLDivElement>;
+  fieldRef: RefObject<HTMLDivElement | null>;
 }
 
 /**

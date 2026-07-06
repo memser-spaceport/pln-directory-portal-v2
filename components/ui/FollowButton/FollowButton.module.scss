@@ -43,6 +43,9 @@
 }
 
 .compactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   border: none;
   background: none;

@@ -2568,6 +2568,44 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   flex-wrap: wrap;
 }
 
+// ── "Invested in PL" (the investor backs Protocol Labs itself) ──────────────
+// Icon-only mark in the table's Relationship cell — the words live in the
+// tooltip and the drawer. Brand blue so it reads "ours", distinct from the
+// relationship pills' green/amber.
+.plInvestedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: default;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--background-brand-soft-hover, #e0e8ff);
+  }
+}
+
+// Labeled variant for the drawer header — same pill family as "In LabOS".
+.plInvestedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
 // All founders for an investor wrap in the Founders column (usually 1, rarely 2–3).
 .hopBadges {
   display: flex;

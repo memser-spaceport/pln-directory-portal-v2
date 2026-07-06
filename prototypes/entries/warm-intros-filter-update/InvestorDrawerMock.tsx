@@ -22,6 +22,7 @@ import x from './WarmIntrosImprovements.module.scss';
 import type { MockInvestor, TeamLink } from './mocks';
 import { WarmPathPanel, CompactChannels } from './WarmPathPanel';
 import { AddToListButton } from './AddToListButton';
+import { InvestedInPlBadge } from './InvestedInPlBadge';
 
 interface Props {
   investor: MockInvestor | null;
@@ -118,6 +119,16 @@ export function InvestorDrawerMock({
                     label="Relationship owner"
                     value={investor.relationship_owner ? investor.relationship_owner.name : <span className={s.muted}>—</span>}
                   />
+                  {/* The specifics behind the header pill — only rendered when the fact exists. */}
+                  {investor.invested_in_pl && (
+                    <FundItem
+                      label="Invested in PL"
+                      value={
+                        [investor.invested_in_pl.vehicle, investor.invested_in_pl.year].filter(Boolean).join(' · ') ||
+                        'Yes'
+                      }
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -308,6 +319,8 @@ function InvestorIdentity({ investor }: { investor: MockInvestor }) {
         </h2>
         {/* In LabOS sits next to the name (Figma). */}
         <InLabOsPill profile={investor.lab_os_profile ?? null} />
+        {/* Headline relationship fact — they back PL itself. Same pill family. */}
+        <InvestedInPlBadge investor={investor} withLabel />
       </div>
       <div className={s.meta}>
         {investor.title || '—'}

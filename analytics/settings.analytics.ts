@@ -198,6 +198,10 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_SAVE_FAILED, params);
   }
 
+  function onForumDigestNetworkNewsToggleClicked(params: Record<any, boolean>) {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_NETWORK_NEWS_TOGGLE_CLICKED, params);
+  }
+
   function onSubscribeToPlNewsletterChange(params: Record<any, boolean>) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE, params);
   }
@@ -236,6 +240,7 @@ export const useSettingsAnalytics = () => {
     onRecommendationEmailFeedbackClicked,
     onForumDigestOptionSelect,
     onForumDigestSaveFailed,
+    onForumDigestNetworkNewsToggleClicked,
     onSubscribeToPlNewsletterChange,
     onSubscribeToDemoDayUpdatesChange,
     onDemoDayUpdatesNotificationToggleClicked,

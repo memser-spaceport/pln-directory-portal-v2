@@ -2,8 +2,11 @@
 
 import { useMemo } from 'react';
 import { useToggle } from 'react-use';
+import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
@@ -20,10 +23,29 @@ interface NewsGroupCardProps {
   cluster: TeamCluster;
   onStoryClick?: (item: ITeamNewsItem) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
+  isFollowing?: boolean;
+  onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
-export function NewsGroupCard({ cluster, onStoryClick, analyticsSource = 'home' }: NewsGroupCardProps) {
+export function NewsGroupCard({
+  cluster,
+  onStoryClick,
+  analyticsSource = 'home',
+  isFollowing = false,
+  onFollowToggle,
+}: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
+  const router = useRouter();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+      return;
+    }
+    onFollowToggle?.(cluster.teamUid, cluster.teamName, isFollowing);
+  };
 
   // Memoized: reuses the same string-comparison sort as the rest of the
   // feed instead of a bespoke Date.getTime() comparator, and avoids
@@ -50,9 +72,13 @@ export function NewsGroupCard({ cluster, onStoryClick, analyticsSource = 'home' 
           target="_blank"
           rel="noopener noreferrer"
           className={newsCardStyles.teamName}
+          onClick={(e) => e.stopPropagation()}
         >
           {cluster.teamName}
         </a>
+        {isHydrated && onFollowToggle && (
+          <FollowButton following={isFollowing} onClick={handleFollowClick} name={cluster.teamName} size="compact" />
+        )}
       </div>
 
       {visibleStories.map((story, storyIndex) => {

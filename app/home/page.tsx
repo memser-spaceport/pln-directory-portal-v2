@@ -20,9 +20,10 @@ import { QuickActions } from '@/components/page/home/QuickActions';
 import { NewsLoginRedirect, TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup } from '@/types/team-news.types';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 
 export default async function Home() {
-  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups } = await getPageData();
+  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups, initialDigestSettings } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -39,7 +40,7 @@ export default async function Home() {
           )}
           {isLoggedIn && <QuickActions />}
           <div className={styles.home__cn__teamnews}>
-            <TeamNews groups={teamNewsGroups} />
+            <TeamNews groups={teamNewsGroups} initialDigestSettings={initialDigestSettings} />
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
@@ -63,17 +64,38 @@ const getPageData = async () => {
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
+  let initialDigestSettings: ForumDigestSettings | null = null;
+
+  // Seeded server-side (like Settings > Email does) so NewsRail's digest card
+  // shows the correct subscribed/not-subscribed state on first paint, instead
+  // of flashing "not subscribed" while the client-side query resolves.
+  const digestSettingsPromise: Promise<ForumDigestSettings | null> =
+    isLoggedIn && userInfo?.uid
+      ? fetch(`${process.env.DIRECTORY_API_URL}/v1/notification/settings/${userInfo.uid}/forum`, {
+          headers: { contentType: 'application/json', Authorization: `Bearer ${authToken}` },
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null)
+      : Promise.resolve(null);
 
   try {
-    const [teamFocusAreaResponse, projectFocusAreaResponse, featuredResponse, discoverResponse, teamNewsResponse] =
-      await Promise.all([
-        getFocusAreas('Team', {}),
-        getFocusAreas('Project', {}),
-        getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
-        getDiscoverData(),
-        getTeamNewsGroupedByFocusArea({}, authToken),
-      ]);
+    const [
+      teamFocusAreaResponse,
+      projectFocusAreaResponse,
+      featuredResponse,
+      discoverResponse,
+      teamNewsResponse,
+      digestSettingsResponse,
+    ] = await Promise.all([
+      getFocusAreas('Team', {}),
+      getFocusAreas('Project', {}),
+      getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
+      getDiscoverData(),
+      getTeamNewsGroupedByFocusArea({}, authToken),
+      digestSettingsPromise,
+    ]);
     teamNewsGroups = teamNewsResponse?.groups ?? [];
+    initialDigestSettings = digestSettingsResponse;
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -91,6 +113,7 @@ const getPageData = async () => {
         discoverData,
         featuredData,
         teamNewsGroups,
+        initialDigestSettings,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -112,6 +135,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      initialDigestSettings,
     };
   } catch (error) {
     console.error(error);
@@ -127,6 +151,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      initialDigestSettings,
     };
   }
 };

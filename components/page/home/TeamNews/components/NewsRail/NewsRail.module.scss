@@ -107,13 +107,37 @@
   letter-spacing: -0.1px;
   transition: background-color 0.15s ease;
 
-  &:hover:not(:disabled) {
+  &:hover {
     background: rgba(255, 255, 255, 0.9);
   }
+}
 
-  &:disabled {
-    cursor: default;
-    color: #455468;
-    background: rgba(255, 255, 255, 0.85);
+.subscribedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+}
+
+.manageLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.1px;
+  color: #1b4dff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }

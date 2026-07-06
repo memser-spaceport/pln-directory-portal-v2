@@ -2,7 +2,8 @@
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FocusEvent } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
@@ -34,6 +35,8 @@ import { DigestBanner } from './DigestBanner';
 import { WhyFollowBanner } from './WhyFollowBanner';
 import { QuickActionsMock } from './QuickActionsMock';
 import { HeaderSearch } from './HeaderSearch';
+// Production search field, reused 1:1 for the mobile drop-down row.
+import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FocusAreaSectionMock } from './FocusAreaSectionMock';
 import { FollowToast } from '../follow-shared/FollowToast';
 import { MOCK_GROUPS } from './mocks';
@@ -119,7 +122,13 @@ export default function NewsfeedV0Prototype() {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  // Desktop expands an inline field from the header icon; mobile shows a
+  // permanent full-width field in its own row. The ref focuses the desktop field
+  // when it expands.
+  const desktopFieldRef = useRef<HTMLDivElement>(null);
   const [followedTeams, setFollowedTeams] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   // Demo-only: preview the digest rail as a new user vs an already-subscribed one.
@@ -226,6 +235,24 @@ export default function NewsfeedV0Prototype() {
     setExpanded(false);
   };
 
+  const openSearch = () => setSearchOpen(true);
+
+  // Desktop only: collapse the inline field when focus leaves it while empty; a
+  // live query keeps it open so an active filter is never hidden. Reads the live
+  // input value (not the debounced `query`) so a just-typed/just-cleared field is
+  // judged by what's on screen.
+  const handleFieldBlur = (e: FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    const live = e.currentTarget.querySelector('input')?.value ?? '';
+    if (!live.trim()) setSearchOpen(false);
+  };
+
+  // Focus the desktop field the moment it expands.
+  useEffect(() => {
+    if (!searchOpen) return;
+    desktopFieldRef.current?.querySelector('input')?.focus();
+  }, [searchOpen]);
+
   if (!mounted) return <div className={local.page} />;
 
   return (
@@ -279,10 +306,23 @@ export default function NewsfeedV0Prototype() {
             headerDetails={
               <div className={clsx(local.headerActions, mode === 'banner' && local.headerActionsBanner)}>
                 {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
-                <HeaderSearch value={query} onChange={handleSearch} />
+                <HeaderSearch
+                  open={searchOpen}
+                  value={query}
+                  onOpen={openSearch}
+                  onChange={handleSearch}
+                  onBlur={handleFieldBlur}
+                  fieldRef={desktopFieldRef}
+                />
               </div>
             }
           >
+            {/* Mobile only: the header has no room to expand inline, so the field
+                lives here as a permanent full-width row. Hidden on desktop. */}
+            <div className={local.mobileSearchRow}>
+              <SearchInput value={query} onChange={handleSearch} placeholder="Search news, teams…" />
+            </div>
+
             {/* Constrain the tabs' underline to end at the news-card's right edge
                 (reserve the rail column), instead of spanning the full width. */}
             <div className={clsx(local.tabsConstrain, mode === 'banner' && local.tabsConstrainBanner)}>

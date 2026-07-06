@@ -112,14 +112,24 @@
     border-color: #5e718d;
     color: var(--foreground-neutral-primary, #0a0c11);
   }
+
+  /* Hidden on mobile — the field is a permanent row below the header there. */
+  @include mobile-only {
+    display: none;
+  }
 }
 
-/* Expanded state: the production SearchInput fades in and flex-grows to fill the
-   remaining header width, so it reaches the news card's right edge. */
+/* Expanded state (desktop, ≥640px): the production SearchInput fades in and
+   flex-grows to fill the remaining header width, reaching the news card's edge.
+   On mobile it has no room here — the field drops to its own row below. */
 .headerSearchField {
   flex: 1 1 auto;
   min-width: 0;
   animation: headerSearchIn 0.16s ease;
+
+  @include mobile-only {
+    display: none;
+  }
 }
 
 @keyframes headerSearchIn {
@@ -130,6 +140,15 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* Mobile-only permanent row: full-width field beneath the header, above the tabs. */
+.mobileSearchRow {
+  display: none;
+
+  @include mobile-only {
+    display: block;
   }
 }
 

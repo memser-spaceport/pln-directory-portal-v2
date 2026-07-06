@@ -36,15 +36,26 @@ const buildDefaultDigestSettings = (uid: string): ForumDigestSettings => ({
   memberUid: uid,
 });
 
+interface NewsRailProps {
+  /** Fetched server-side (like Settings > Email) so the subscribed/not-subscribed
+   * card matches on first paint — no client-side flash while the query resolves. */
+  initialDigestSettings?: ForumDigestSettings | null;
+}
+
 /** Static why-follow explainer + a digest subscribe CTA that reuses the same forum-digest mutation as Settings > Email (weekly frequency). */
-export function NewsRail() {
+export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const analytics = useSettingsAnalytics();
   const { mutate } = useUpdateForumDigestSettings();
 
-  const defaultSettings = useMemo(() => buildDefaultDigestSettings(currentUser?.uid ?? ''), [currentUser?.uid]);
+  const defaultSettings = useMemo(
+    () => initialDigestSettings ?? buildDefaultDigestSettings(currentUser?.uid ?? ''),
+    [initialDigestSettings, currentUser?.uid],
+  );
   const { data } = useGetForumDigestSettings(currentUser?.uid, defaultSettings);
+  // Known server-side up front (via initialDigestSettings), so this doesn't
+  // need to wait on client auth-store hydration the way the button below does.
   const isSubscribed = Boolean(data?.forumDigestEnabled);
 
   const handleSubscribeClick = () => {
@@ -71,7 +82,7 @@ export function NewsRail() {
         <p className={s.whyBody}>Follow a team to pull its latest news and updates to the top of your feed.</p>
       </section>
 
-      {isHydrated && isSubscribed ? (
+      {isSubscribed ? (
         <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
           <span className={s.iconBadge} aria-hidden="true">
             <MailIcon />

@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
@@ -37,9 +38,10 @@ import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   pageSize?: number;
+  initialDigestSettings?: ForumDigestSettings | null;
 }
 
-export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
+export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
@@ -228,7 +230,7 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
             </>
           )}
         </div>
-        <NewsRail />
+        <NewsRail initialDigestSettings={initialDigestSettings} />
       </div>
     </NewsBase>
   );

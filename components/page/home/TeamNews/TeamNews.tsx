@@ -5,6 +5,8 @@ import isEmpty from 'lodash/isEmpty';
 import { useMemo, useState } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { useFollowAnalytics } from '@/analytics/follow.analytics';
+import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
@@ -41,12 +43,12 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
   const analytics = useTeamNewsAnalytics();
+  const followAnalytics = useFollowAnalytics();
+  const { mutate: followMutate } = useFollowTeam();
 
   const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
 
-  // No follow-toggle affordance in v0 (see docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md),
-  // so this is seeded once from server data and never mutated client-side.
-  const [followedTeamUids] = useState<Set<string>>(
+  const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
   );
 
@@ -127,6 +129,40 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
   };
 
+  const handleFollowToggle = (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => {
+    const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
+    setFollowedTeamUids((prev) => {
+      const next = new Set(prev);
+      isCurrentlyFollowing ? next.delete(teamUid) : next.add(teamUid);
+      return next;
+    });
+    followMutate(
+      { teamUid, action },
+      {
+        onError: () => {
+          setFollowedTeamUids((prev) => {
+            const next = new Set(prev);
+            isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
+            return next;
+          });
+          followAnalytics.onTeamFollowFailed({
+            teamUid,
+            teamName,
+            source: 'news-feed',
+            action,
+          });
+        },
+        onSuccess: () => {
+          if (action === 'follow') {
+            followAnalytics.onTeamFollowed({ teamUid, teamName, source: 'news-feed' });
+          } else {
+            followAnalytics.onTeamUnfollowed({ teamUid, teamName, source: 'news-feed' });
+          }
+        },
+      },
+    );
+  };
+
   if (isEmpty(allItems)) {
     return (
       <NewsBase>
@@ -174,6 +210,8 @@ export const TeamNews = ({ groups, pageSize = 6 }: TeamNewsProps) => {
                 key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
                 cluster={cluster}
                 onStoryClick={handleCardClick}
+                isFollowing={followedTeamUids.has(cluster.teamUid)}
+                onFollowToggle={handleFollowToggle}
               />
             ))}
           </div>

@@ -16,6 +16,16 @@ jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartC
   },
 }));
 
+const mockUseCurrentUserStore = jest.fn();
+jest.mock('@/services/auth/store', () => ({
+  useCurrentUserStore: () => mockUseCurrentUserStore(),
+}));
+
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 const makeItem = (uid: string, eventDate: string, overrides: Partial<ITeamNewsItem> = {}): ITeamNewsItem => ({
   uid,
   teamUid: 'team-1',
@@ -43,12 +53,72 @@ const clusterWith = (items: ITeamNewsItem[]): TeamCluster => ({
 });
 
 describe('NewsGroupCard', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: false });
+  });
 
-  it('renders the team header and no follow button', () => {
+  it('renders the team header', () => {
     render(<NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
     expect(screen.getByRole('link', { name: 'Acme' })).toHaveAttribute('href', '/teams/team-1');
+  });
+
+  it('renders no follow button when onFollowToggle is not provided, even once hydrated', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+    render(<NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
     expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
+  });
+
+  it('does not render the follow button before the auth store hydrates, even with onFollowToggle provided', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onFollowToggle={jest.fn()} />,
+    );
+    expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
+  });
+
+  it('renders a compact Follow button next to the team name once hydrated, and calls onFollowToggle on click', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+    const onFollowToggle = jest.fn();
+    render(
+      <NewsGroupCard
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
+        onFollowToggle={onFollowToggle}
+      />,
+    );
+    const followBtn = screen.getByRole('button', { name: 'Follow Acme' });
+    fireEvent.click(followBtn);
+    expect(onFollowToggle).toHaveBeenCalledWith('team-1', 'Acme', false);
+  });
+
+  it('shows "Following" and does not open the story card when the follow button is clicked', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const onFollowToggle = jest.fn();
+    render(
+      <NewsGroupCard
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
+        isFollowing
+        onFollowToggle={onFollowToggle}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Following Acme' }));
+    expect(onFollowToggle).toHaveBeenCalledWith('team-1', 'Acme', true);
+    expect(openSpy).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
+
+  it('redirects to login instead of toggling follow when unauthenticated', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
+    const onFollowToggle = jest.fn();
+    render(
+      <NewsGroupCard
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
+        onFollowToggle={onFollowToggle}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Follow Acme' }));
+    expect(onFollowToggle).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
 
   it('renders a story with its summary when present, and omits the paragraph when absent', () => {

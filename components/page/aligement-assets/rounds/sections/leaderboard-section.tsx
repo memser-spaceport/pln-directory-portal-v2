@@ -10,6 +10,7 @@ interface LeaderboardSectionProps {
   onViewChange: (view: 'current' | 'alltime') => void;
   currentSnapshotData: LeaderboardEntry[];
   cumulativeData: LeaderboardEntry[];
+  roundNumber: number;
 }
 
 /**
@@ -19,21 +20,24 @@ interface LeaderboardSectionProps {
  * @param currentSnapshotData - Current round leaderboard data
  * @param cumulativeData - All-time leaderboard data
  */
-export default function LeaderboardSection({ 
-  view, 
+export default function LeaderboardSection({
+  view,
   onViewChange,
   currentSnapshotData,
-  cumulativeData
+  cumulativeData,
+  roundNumber
 }: LeaderboardSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(5);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { onLeaderboardViewToggleClicked, onLeaderboardSearchUsed, onLeaderboardShowMoreClicked } = useAlignmentAssetsAnalytics();
-  
+
   // Select data based on current view
   const allData = useMemo(() => {
     return view === 'current' ? currentSnapshotData : cumulativeData;
   }, [view, currentSnapshotData, cumulativeData]);
+
+  const tableTitle = view === 'current' ? `Round ${roundNumber}: Top Contributors` : 'All-Time: Top Contributors';
   
   // Filter data based on search term
   const filteredData = allData.filter(entry => 
@@ -83,13 +87,6 @@ export default function LeaderboardSection({
             </p>
           </div>
 
-          {/* Info Banner */}
-          <div className="leaderboard-section__info-banner">
-            <p className="leaderboard-section__info-text">
-              <strong>Note:</strong> Leaderboard updates weekly as new contributions are verified. Missing points? Submit for review during the Appeal Window.
-            </p>
-          </div>
-
           {/* Leaderboard Table */}
           <div className="leaderboard-section__table-wrapper">
             {/* Filter Header */}
@@ -123,6 +120,11 @@ export default function LeaderboardSection({
                   All-time
                 </button>
               </div>
+            </div>
+
+            {/* Table Title */}
+            <div className="leaderboard-section__table-title-bar">
+              <h2 className="leaderboard-section__table-title">{tableTitle}</h2>
             </div>
 
             {/* Table Rows or Empty State */}
@@ -229,32 +231,8 @@ export default function LeaderboardSection({
           margin: 0;
         }
 
-        .leaderboard-section__info-banner {
-          background-color: #f1f5f9;
-          border: 1px solid #e2e8f0;
-          border-radius: 100px;
-          padding: 4px 8px;
-          max-width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .leaderboard-section__info-text {
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 20px;
-          color: #475569;
-          text-align: center;
-          margin: 0;
-        }
-
-        .leaderboard-section__info-text strong {
-          font-weight: 600;
-        }
-
         .leaderboard-section__table-wrapper {
-          width: 829px;
+          width: 100%;
           max-width: 100%;
         }
 
@@ -267,6 +245,25 @@ export default function LeaderboardSection({
           border-top-left-radius: 24px;
           border-top-right-radius: 24px;
           background-color: white;
+        }
+
+        .leaderboard-section__table-title-bar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px 24px;
+          border-left: 1px solid #cbd5e1;
+          border-right: 1px solid #cbd5e1;
+          border-bottom: 1px solid #cbd5e1;
+          background-color: white;
+        }
+
+        .leaderboard-section__table-title {
+          font-size: 18px;
+          font-weight: 600;
+          line-height: 20px;
+          color: #0f172a;
+          margin: 0;
         }
 
         .leaderboard-section__search {
@@ -518,10 +515,6 @@ export default function LeaderboardSection({
 
         @media (max-width: 1024px) {
           .leaderboard-section__table-wrapper {
-            width: 100%;
-          }
-          
-          .leaderboard-section__info-banner {
             width: 100%;
           }
         }

@@ -5,7 +5,7 @@ import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
-import { MODAL_INTRO, SECURITY_NOTE, STEPS } from './constants';
+import { MODAL_INTRO, STEPS } from './constants';
 
 import { handleDownloadKit } from './utils/handleDownloadKit';
 
@@ -53,10 +53,6 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
         </div>
 
         <div className={s.footer}>
-          <div className={s.securityNote}>
-            <img className={s.securityNoteIcon} src="/icons/lock-grey.svg" alt="" />
-            <p className={s.securityNoteText}>{SECURITY_NOTE}</p>
-          </div>
           <div className={s.footerActions}>
             <Button size="s" style="border" variant="neutral" onClick={onClose}>
               Cancel

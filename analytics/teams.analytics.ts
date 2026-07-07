@@ -417,6 +417,22 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_EDIT_FORM_SAVED, params);
   }
 
+  function onFollowingTabSelected(params: { followingTotal?: number }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_FOLLOWING_TAB_SELECTED, params);
+  }
+
+  function onAllTabSelected() {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_ALL_TAB_SELECTED);
+  }
+
+  function onFollowingEmptyBrowseAllClicked() {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAMS_FOLLOWING_EMPTY_BROWSE_ALL_CLICKED);
+  }
+
+  function onFollowersModalOpened(params: { teamUid: string; followerCount: number }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_FOLLOWERS_MODAL_OPENED, params);
+  }
+
   return {
     onOfficeHoursSelected,
     onFriendsOfProtocolSelected,
@@ -477,5 +493,9 @@ export const useTeamAnalytics = () => {
     onTeamsPrioritiesFilterSelected,
     onTeamDetailEditInputChanged,
     onTeamDetailEditFormSaved,
+    onFollowingTabSelected,
+    onAllTabSelected,
+    onFollowingEmptyBrowseAllClicked,
+    onFollowersModalOpened,
   };
 };

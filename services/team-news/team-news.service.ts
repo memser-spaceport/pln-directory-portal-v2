@@ -1,4 +1,5 @@
 import type { ITeamNewsByTeamResponse, ITeamNewsGroupedResponse } from '@/types/team-news.types';
+import { getHeader } from '@/utils/common.utils';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from './constants';
 
 interface FetchGroupedOptions {
@@ -42,6 +43,7 @@ export async function fetchTeamNewsByTeam(
 
 export async function getTeamNewsGroupedByFocusArea(
   options: FetchGroupedOptions = {},
+  authToken?: string,
 ): Promise<ITeamNewsGroupedResponse | null> {
   const windowDays = options.windowDays ?? TEAM_NEWS_DEFAULT_WINDOW_DAYS;
   const url = `${process.env.DIRECTORY_API_URL}/v1/team-news/grouped-by-focus-area?windowDays=${windowDays}`;
@@ -49,7 +51,7 @@ export async function getTeamNewsGroupedByFocusArea(
   try {
     const response = await fetch(url, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeader(authToken),
     });
     if (!response.ok) {
       return null;

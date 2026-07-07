@@ -1,15 +1,14 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL, EMAIL_STATUS_LABEL } from '@/services/investors/constants';
+import { INVESTOR_TYPE_LABEL, STAGE_FOCUS_LABEL } from '@/services/investors/constants';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { Button } from '@/components/common/Button/Button';
 import { CopyButton } from '@/components/ui/CopyButton/CopyButton';
 // Reuse the pl-design-system Button styling for the footer link actions (anchors
 // can't use the <Button> component directly, so we borrow its classes).
 import btn from '@/components/common/Button/Button.module.scss';
-import { EngagementTierBadge } from '@/components/page/investors/EngagementTierBadge/EngagementTierBadge';
 // Reuse the production LabOsBadge pill styling, but render a real profile thumbnail
 // instead of the component's colored initials (it can't take an image).
 import labOs from '@/components/page/investors/LabOsBadge/LabOsBadge.module.scss';
@@ -72,56 +71,56 @@ export function InvestorDrawerMock({
                 ✕
               </button>
             </div>
-            <div className={s.pillRow}>
-              {investor.lp_stage && <span className={x.metaChip}>{investor.lp_stage}</span>}
-              <EngagementTierBadge tier={investor.engagement_tier} />
-              {/* Email status neutralised to grey (matches the other meta chips). */}
-              <span className={x.metaChip} title={`Email ${EMAIL_STATUS_LABEL[investor.email_status]}`}>
-                {EMAIL_STATUS_LABEL[investor.email_status]}
-              </span>
-              <span className={x.metaChip}>Source: {investor.source}</span>
-            </div>
           </div>
 
           <div className={s.section}>
-            <h3 className={s.sectionTitle}>Investor profile</h3>
-            <dl className={s.kv}>
-              <dt>Type</dt>
-              <dd>{INVESTOR_TYPE_LABEL[investor.investor_type]}</dd>
-              <dt>Stage focus</dt>
-              <dd>{STAGE_FOCUS_LABEL[investor.stage_focus]}</dd>
-              <dt>Industry / Sector</dt>
-              <dd>
-                {investor.sector_tags.length > 0 ? (
-                  <span className={x.metaChips}>
-                    {investor.sector_tags.map((t) => (
-                      <span key={t} className={x.metaChip}>
-                        {t}
-                      </span>
-                    ))}
-                  </span>
-                ) : (
-                  '—'
-                )}
-              </dd>
-              <dt>Check size</dt>
-              <dd>
-                {investor.check_size_range !== 'unknown' ? (
-                  investor.check_size_range
-                ) : (
-                  <span className={s.muted}>unknown</span>
-                )}
-              </dd>
-              <dt>AUM</dt>
-              <dd>
-                {investor.aum_range !== 'unknown' ? investor.aum_range : <span className={s.muted}>unknown</span>}
-              </dd>
-              <dt>Geo focus</dt>
-              <dd>{investor.geo_focus || <span className={s.muted}>—</span>}</dd>
-              <dt>Relationship owner</dt>
-              {/* Internal PL staff — not a LabOS member, so plain name (no link). */}
-              <dd>{investor.relationship_owner ? investor.relationship_owner.name : <span className={s.muted}>—</span>}</dd>
-            </dl>
+            <h3 className={s.sectionTitle}>Investment through fund(s)</h3>
+            <div className={x.fundCard}>
+              <div className={x.fundGrid}>
+                <div className={x.fundCol}>
+                  <FundItem label="Type" value={INVESTOR_TYPE_LABEL[investor.investor_type]} />
+                  <FundItem label="Stage focus" value={STAGE_FOCUS_LABEL[investor.stage_focus]} />
+                  <FundItem
+                    label="Industry / Sector"
+                    value={
+                      investor.sector_tags.length > 0 ? (
+                        <span className={x.metaChips}>
+                          {investor.sector_tags.map((t) => (
+                            <span key={t} className={x.metaChip}>
+                              {t}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        '—'
+                      )
+                    }
+                  />
+                  <FundItem
+                    label="Check size"
+                    value={
+                      investor.check_size_range !== 'unknown' ? (
+                        investor.check_size_range
+                      ) : (
+                        <span className={s.muted}>unknown</span>
+                      )
+                    }
+                  />
+                </div>
+                <div className={x.fundCol}>
+                  <FundItem
+                    label="AUM"
+                    value={investor.aum_range !== 'unknown' ? investor.aum_range : <span className={s.muted}>unknown</span>}
+                  />
+                  <FundItem label="Geo focus" value={investor.geo_focus || <span className={s.muted}>—</span>} />
+                  {/* Internal PL staff — not a LabOS member, so plain name (no link). */}
+                  <FundItem
+                    label="Relationship owner"
+                    value={investor.relationship_owner ? investor.relationship_owner.name : <span className={s.muted}>—</span>}
+                  />
+                </div>
+              </div>
+            </div>
             {investor.fund_thesis && (
               <p className={s.thesis}>
                 <strong>Thesis:</strong> {investor.fund_thesis}
@@ -196,6 +195,16 @@ export function InvestorDrawerMock({
         </div>
       )}
     </Drawer>
+  );
+}
+
+// One label-on-top / value-below cell of the "Investment through fund(s)" grid.
+function FundItem({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className={x.fundItem}>
+      <span className={x.fundLabel}>{label}</span>
+      <span className={x.fundValue}>{value}</span>
+    </div>
   );
 }
 
@@ -297,6 +306,15 @@ function InvestorIdentity({ investor }: { investor: MockInvestor }) {
         <h2 className={s.name}>
           {investor.first_name} {investor.last_name}
         </h2>
+        {/* In LabOS sits next to the name (Figma). */}
+        <InLabOsPill profile={investor.lab_os_profile ?? null} />
+      </div>
+      <div className={s.meta}>
+        {investor.title || '—'}
+        <InvestorAffiliations investor={investor} />
+      </div>
+      {/* Contact channels in their own grey box, per the Figma drawer. */}
+      <div className={x.contactBox}>
         <CompactChannels
           icons={[
             ...(investor.linkedin_url ? [{ type: 'linkedin', handle: investor.linkedin_url }] : []),
@@ -323,15 +341,7 @@ function InvestorIdentity({ investor }: { investor: MockInvestor }) {
             ) : undefined
           }
         />
-        {/* In LabOS sits with the contact details (next to the name), not in the
-            status pill row. Uses the profile thumbnail. */}
-        <InLabOsPill profile={investor.lab_os_profile ?? null} />
       </div>
-      <div className={s.meta}>
-        {investor.title || '—'}
-        <InvestorAffiliations investor={investor} />
-      </div>
-      <div className={s.metaSub}>{investor.investor_id}</div>
     </div>
   );
 }

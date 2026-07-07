@@ -12,6 +12,7 @@ import LearnMoreSection from './sections/learn-more-section';
 import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
+import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
 import { currentRoundData } from './data';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
@@ -68,6 +69,9 @@ export default function CurrentRoundComponent({
         {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
 
+        {/* Rights & Tokens Dashboard */}
+        {isLoggedIn && <RightsTokensDashboard />}
+
         {/* Points & Activities Dashboard */}
         {isLoggedIn && <PointsDashboard currentRound={data.meta.roundNumber} />}
 
@@ -97,6 +101,7 @@ export default function CurrentRoundComponent({
             onViewChange={setLeaderboardView}
             currentSnapshotData={leaderboardData.currentSnapshotData}
             cumulativeData={leaderboardData.cumulativeData}
+            roundNumber={data.meta.roundNumber}
           />
         )}
 

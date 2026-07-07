@@ -12,6 +12,7 @@ import pd from '@/components/page/investors/WarmPathDetail/WarmPathDetail.module
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { QuestionCircleStrokeIcon } from '@/components/icons';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
+import { ArrowUpRightIcon } from './ArrowUpRightIcon';
 import { ProtocolLabsMark } from './ProtocolLabsMark';
 import type { RouteNode } from './mocks';
 import x from './WarmIntrosImprovements.module.scss';
@@ -64,6 +65,7 @@ function RouteNodeView({ node }: { node: RouteNode }) {
       >
         <img className={x.chainIcon} src={getDefaultAvatar(node.label)} alt="" width={14} height={14} />
         <span>{node.label}</span>
+        <ArrowUpRightIcon className={x.chainArrowInline} width={12} height={12} />
       </a>
     );
   }
@@ -130,8 +132,8 @@ function PlNodeView({ node }: { node: RouteNode }) {
         <ProtocolLabsMark />
       </span>
       <span>{label}</span>
-      {/* No "?" on the PL node even when the exact teammate is unknown — the
-          Protocol Labs mark already says PL can route it. */}
+      {/* Known PL teammate → openable in LabOS, so show the ↗. */}
+      {!node.plUnknown && <ArrowUpRightIcon className={x.chainArrowInline} width={12} height={12} />}
     </span>
   );
 }

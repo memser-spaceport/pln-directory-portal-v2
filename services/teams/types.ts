@@ -1,3 +1,5 @@
+import { ITeamsSearchParams } from '@/types/teams.types';
+
 export type TeamsListQueryParams = {
-  searchParams: any;
+  searchParams: ITeamsSearchParams;
 };

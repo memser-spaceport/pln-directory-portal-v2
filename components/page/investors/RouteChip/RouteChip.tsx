@@ -21,6 +21,7 @@ export function RouteChip({ node, teamLogoUrl }: Props) {
             <MemberAvatar name={node.label} />
           </span>
           <span className={s.chipLabel}>{node.label}</span>
+          <span className={s.arrowIcon} aria-hidden>↗</span>
         </Link>
       );
     }
@@ -46,6 +47,7 @@ export function RouteChip({ node, teamLogoUrl }: Props) {
           <OrgAvatar name={node.label} logoUrl={teamLogoUrl} />
         </span>
         <span className={s.chipLabel}>{node.label}</span>
+        <span className={s.arrowIcon} aria-hidden>↗</span>
         <span className={s.unknownMark} aria-label="contact unknown">
           ?
         </span>

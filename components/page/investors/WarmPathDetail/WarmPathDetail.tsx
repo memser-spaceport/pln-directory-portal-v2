@@ -105,7 +105,7 @@ function formatDate(iso: string): string {
 export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investorName, lastEmailAt }: Props) {
   const [filters] = useQueryStates(investorsFilterParsers, { history: 'replace', shallow: true });
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
-  const { trackPathsViewed, trackCorrectionSubmitted } = useInvestorsAnalytics();
+  const { trackPathsViewed, trackCorrectionSubmitted, trackPathExpanded } = useInvestorsAnalytics();
   const submitCorrection = useSubmitCorrection(investorId);
 
   const paths = useMemo(() => {
@@ -183,8 +183,6 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
       <ol className={s.pathList}>
         {visiblePaths.map((p) => {
           const formOpen = openPathId === p.id;
-
-          console.log({ p });
 
           return (
             <li key={p.id} className={s.pathItem}>
@@ -319,7 +317,14 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
       </ol>
 
       {hiddenCount > 0 && !showAll && (
-        <button type="button" className={s.showMore} onClick={() => setShowAll(true)}>
+        <button
+          type="button"
+          className={s.showMore}
+          onClick={() => {
+            trackPathExpanded({ investorId, bestProximityCode });
+            setShowAll(true);
+          }}
+        >
           + Show {hiddenCount} more {hiddenCount === 1 ? 'path' : 'paths'}
         </button>
       )}
@@ -356,6 +361,9 @@ function RouteNodeChip({ node }: { node: RouteNode }) {
     return (
       <Link href={`/members/${node.memberUid}`} className={s.rnChip} target="_blank" rel="noopener noreferrer">
         {inner}
+        <span className={s.rnArrow} aria-hidden>
+          ↗
+        </span>
       </Link>
     );
   }
@@ -377,8 +385,6 @@ function ContactCard({ contact, org }: { contact: PathContact; org?: PathOrgConn
   ) : (
     <span className={s.contactName}>{contact.name}</span>
   );
-
-  console.log({ org });
 
   const orgEl = org ? (
     org.team_uid ? (

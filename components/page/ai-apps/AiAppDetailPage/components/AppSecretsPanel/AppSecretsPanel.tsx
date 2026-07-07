@@ -11,6 +11,8 @@ import s from './AppSecretsPanel.module.scss';
 
 interface Props {
   app: AiApp;
+  /** Fires while a deploy is in flight, so the parent can hide the stale iframe. */
+  onDeployingChange?: (deploying: boolean) => void;
 }
 
 /**
@@ -19,12 +21,17 @@ interface Props {
  * vars start empty and blank means "keep the stored value".
  */
 export function AppSecretsPanel(props: Props) {
-  const { app } = props;
+  const { app, onDeployingChange } = props;
 
   const queryClient = useQueryClient();
   const [values, setValues] = useState<Record<string, string>>({});
   const [isDeploying, setIsDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const setDeploying = (deploying: boolean) => {
+    setIsDeploying(deploying);
+    onDeployingChange?.(deploying);
+  };
 
   const provided = new Set(app.providedEnvVars);
   const isDraft = app.status === 'DRAFT';
@@ -48,9 +55,8 @@ export function AppSecretsPanel(props: Props) {
     }
 
     setError(null);
-    setIsDeploying(true);
+    setDeploying(true);
     const result = await deployAiApp(app.uid, secrets);
-    setIsDeploying(false);
 
     if (result.error) {
       setError(result.error);
@@ -58,10 +64,13 @@ export function AppSecretsPanel(props: Props) {
       setValues({});
     }
     // Refresh in both outcomes — a failed deploy still changes the app status/notes.
+    // Do it before clearing the deploying flag so the parent swaps back to the
+    // iframe only once the refreshed record (fresh updatedAt) is in the cache.
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
     ]);
+    setDeploying(false);
   };
 
   return (

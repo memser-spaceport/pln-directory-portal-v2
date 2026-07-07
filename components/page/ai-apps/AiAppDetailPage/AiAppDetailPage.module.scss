@@ -24,6 +24,19 @@
   text-align: center;
 }
 
+/* In-place replacement for the iframe while a redeploy is in flight. */
+.frameState {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  text-align: center;
+}
+
 .setupPage {
   display: flex;
   justify-content: center;

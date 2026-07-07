@@ -29,6 +29,7 @@ export function AiAppDetailPage(props: Props) {
   const trackedAppUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
   const [showSecrets, setShowSecrets] = useState(false);
+  const [isRedeploying, setIsRedeploying] = useState(false);
 
   useEffect(() => {
     if (!app || trackedAppUid.current === app.uid) return;
@@ -100,18 +101,27 @@ export function AiAppDetailPage(props: Props) {
           </button>
           {showSecrets && (
             <div className={s.secretsPanel}>
-              <AppSecretsPanel app={app} />
+              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
             </div>
           )}
         </div>
       )}
-      <iframe
-        className={s.iframe}
-        src={app.url ?? undefined}
-        title={app.name}
-        allow="fullscreen"
-        onLoad={handleIframeLoad}
-      />
+      {isRedeploying ? (
+        // Hide the stale iframe while the container restarts — it would show a
+        // raw gateway error page mid-redeploy.
+        <div className={s.frameState}>Redeploying the app — this can take a couple of minutes…</div>
+      ) : (
+        <iframe
+          // Remount after every deploy so the frame reloads instead of keeping
+          // whatever it captured before the restart.
+          key={app.updatedAt}
+          className={s.iframe}
+          src={app.url ?? undefined}
+          title={app.name}
+          allow="fullscreen"
+          onLoad={handleIframeLoad}
+        />
+      )}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function HeaderSearch({ open, value, onOpen, onChange, onBlur, fieldRef }
 
   return (
     <div className={local.headerSearchField} ref={fieldRef} onBlur={onBlur}>
-      <SearchInput value={value} onChange={onChange} placeholder="Search news, teams…" />
+      <SearchInput value={value} onChange={onChange} placeholder="Search by team or keyword…" />
     </div>
   );
 }

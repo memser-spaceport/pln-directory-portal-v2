@@ -320,7 +320,7 @@ export default function NewsfeedV0Prototype() {
             {/* Mobile only: the header has no room to expand inline, so the field
                 lives here as a permanent full-width row. Hidden on desktop. */}
             <div className={local.mobileSearchRow}>
-              <SearchInput value={query} onChange={handleSearch} placeholder="Search news, teams…" />
+              <SearchInput value={query} onChange={handleSearch} placeholder="Search by team or keyword…" />
             </div>
 
             {/* Constrain the tabs' underline to end at the news-card's right edge

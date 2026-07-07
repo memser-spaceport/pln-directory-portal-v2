@@ -103,7 +103,7 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
           <section className={s.digestCard} aria-label="Subscribe to the news digest">
             <p className={s.digestTitle}>Get notified about network news updates</p>
             <p className={s.digestBody}>
-              News digest covering raises, launches, and milestones from across the network, straight to your inbox.
+              A news digest covering raises, launches, and milestones across the network, straight to your inbox.
             </p>
             {isHydrated && (
               <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>

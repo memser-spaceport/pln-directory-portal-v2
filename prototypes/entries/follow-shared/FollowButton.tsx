@@ -65,7 +65,12 @@ export function FollowButton({
         style={btnStyle}
         variant={btnVariant}
         underline={false}
-        className={clsx(s.btn, { [s.blockBtn]: block, [s.tertiary]: tertiary, [s.glossy]: glossy && !following && !secondary })}
+        className={clsx(s.btn, {
+          [s.blockBtn]: block,
+          [s.tertiary]: tertiary,
+          [s.tertiaryFollow]: tertiary && !following,
+          [s.glossy]: glossy && !following && !secondary,
+        })}
         onClick={onClick}
         aria-haspopup={following && caret ? 'menu' : undefined}
         aria-expanded={following && caret ? menuExpanded : undefined}

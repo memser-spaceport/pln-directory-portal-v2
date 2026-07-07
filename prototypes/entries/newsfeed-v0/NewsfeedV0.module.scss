@@ -336,17 +336,17 @@
 }
 
 /* ---------- Digest subscribe banner (fills V0's rail) ----------
-   Gradient promo from the In-App Notifications design (Figma node 1106:19180):
-   vertical brand-blue gradient, white title + subtitle, full-width white DS
-   button. The two gradient stops are the design's own literal blues. */
+   Toned down from the original brand-blue gradient promo: a soft brand tint with
+   a subtle brand border and dark text, so it reads as a quiet rail module rather
+   than a loud ad. The filled-brand DS button carries the emphasis instead. */
 .digestPromo {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
   padding: 20px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #204bba 8%, #156ff7 66%);
-  box-shadow: 0 1px 1px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 }
 
 .digestPromoText {
@@ -361,7 +361,7 @@
   line-height: 24px;
   font-weight: 600;
   letter-spacing: -0.4px;
-  color: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .digestPromoBody {
@@ -369,11 +369,11 @@
   font-size: 14px;
   line-height: 20px;
   letter-spacing: -0.2px;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Full-width white pill — the DS border/neutral Button supplies bg, border,
-   #455468 text and the inset shadow; this just makes it fill and center. */
+/* Full-width filled-brand pill — the DS fill/primary Button supplies the brand
+   bg and white text; this just makes it fill and center. */
 .digestPromoBtn.digestPromoBtn {
   width: 100%;
   display: flex;

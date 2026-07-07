@@ -13,9 +13,10 @@ interface Props {
 
 /**
  * Rail module: the network-news email digest, in two states.
- *  - Not subscribed → the gradient promo banner (from the In-App Notifications
- *    design, Figma node 1106:19180: brand-blue gradient, white title/subtitle,
- *    full-width white "Subscribe for Digest" DS button).
+ *  - Not subscribed → a low-key subscribe banner: soft brand tint, dark
+ *    title/subtitle, and a full-width filled-brand "Subscribe for Digest" DS
+ *    button that carries the emphasis (toned down from the original loud
+ *    brand-blue gradient promo).
  *  - Already subscribed → the same banner shape, greyed out, pointing to
  *    Settings (production's real digest control lives in Settings › email
  *    preferences) — no pitch spent on something they already have.
@@ -52,19 +53,18 @@ export function DigestBanner({ subscribed, onToggle }: Props) {
       <div className={local.digestPromoText}>
         <p className={local.digestPromoTitle}>Get notified about network news updates</p>
         <p className={local.digestPromoBody}>
-          News digest covering raises, launches, and milestones from across the network, straight to your inbox.
+          A news digest covering raises, launches, and milestones across the network, straight to your inbox.
         </p>
       </div>
       <Button
         size="s"
-        style="border"
-        variant="neutral"
+        style="fill"
+        variant="primary"
         underline={false}
         className={local.digestPromoBtn}
         onClick={onToggle}
       >
         <span>Subscribe for Digest</span>
-        <ArrowRight />
       </Button>
     </section>
   );

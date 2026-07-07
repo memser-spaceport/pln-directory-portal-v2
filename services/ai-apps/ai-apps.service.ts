@@ -10,17 +10,63 @@ export interface AiApp {
   description: string;
   status: string;
   notes: string | null;
-  url: string;
-  httpUrl: string;
-  host: string;
-  port: number;
+  url: string | null;
+  httpUrl: string | null;
+  host: string | null;
+  port: number | null;
   deploymentId: string;
+  /** Env var NAMES the app needs at runtime (draft/secrets flow). */
+  requiredEnvVars: string[];
+  /** NAMES the member already stored values for (values never leave the backend). */
+  providedEnvVars: string[];
   createdAt: string;
   updatedAt: string;
   member: {
     uid: string;
     name: string;
   };
+}
+
+export interface DeployAiAppResult {
+  app: AiApp | null;
+  error: string | null;
+}
+
+/**
+ * Member-triggered deploy of a draft app (or redeploy after updating secrets).
+ * `secrets` maps env var names to the values entered on the page; the backend
+ * forwards them straight to the sandbox runner's secret store (they are never
+ * persisted in the directory DB). A 400 (e.g. missing required vars) surfaces
+ * its message so the page can show it.
+ */
+export async function deployAiApp(uid: string, secrets: Record<string, string>): Promise<DeployAiAppResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.keys(secrets).length ? { secrets } : {}),
+    },
+    true,
+  );
+
+  if (!response) {
+    return { app: null, error: 'Deploy failed. Please try again.' };
+  }
+  if (!response.ok) {
+    let message = 'Deploy failed. Please try again.';
+    try {
+      const body = await response.json();
+      if (typeof body?.message === 'string' && body.message) {
+        message = body.message;
+      }
+    } catch {
+      // Non-JSON error body — keep the generic message.
+    }
+    return { app: null, error: message };
+  }
+
+  return { app: await response.json(), error: null };
 }
 
 export async function fetchAiApps(): Promise<AiApp[]> {

@@ -8,13 +8,8 @@ import { getToastIcon } from './utils/getToastIcon';
 
 import s from './Toast.module.scss';
 
-export type Data = {
-  withBg?: boolean;
-};
-
-export function Toast(props: PropsWithChildren<ToastContentProps<Data>>) {
-  const { data, children, closeToast, toastProps } = props;
-  const { withBg = false } = data || {};
+export function Toast(props: PropsWithChildren<ToastContentProps>) {
+  const { children, closeToast, toastProps } = props;
   const { type } = toastProps;
 
   const Icon = getToastIcon(type);
@@ -22,7 +17,6 @@ export function Toast(props: PropsWithChildren<ToastContentProps<Data>>) {
   return (
     <div
       className={clsx(s.root, {
-        [s.border]: !withBg,
         [s.default]: type === 'default',
         [s.error]: type === 'error',
         [s.info]: type === 'info',

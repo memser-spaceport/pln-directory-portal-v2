@@ -9,9 +9,26 @@ interface FollowButtonProps {
   name: string;
   disabled?: boolean;
   className?: string;
+  /** 'compact' is a plain text link — for sitting inline next to a name (e.g. a card header) rather than as a standalone full-width action. */
+  size?: 'default' | 'compact';
 }
 
-export function FollowButton({ following, onClick, name, disabled, className }: FollowButtonProps) {
+export function FollowButton({ following, onClick, name, disabled, className, size = 'default' }: FollowButtonProps) {
+  if (size === 'compact') {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        className={clsx(s.compactBtn, following && s.compactFollowing, className)}
+        onClick={onClick}
+        aria-label={following ? `Following ${name}` : `Follow ${name}`}
+      >
+        {following && <CheckIcon />}
+        {following ? 'Following' : 'Follow'}
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"

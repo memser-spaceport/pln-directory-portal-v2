@@ -53,6 +53,17 @@
   }
 }
 
+// Follow (not-following) tertiary reads as a brand-blue CTA; the following
+// state keeps the quiet grey above.
+.tertiary.tertiaryFollow {
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  }
+}
+
 .icon {
   display: inline-flex;
   align-items: center;

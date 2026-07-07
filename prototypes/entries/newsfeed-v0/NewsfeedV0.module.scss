@@ -61,35 +61,108 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-/* Clustered V0 cards vary in height, so a row-based grid leaves holes under
-   short cards. CSS columns pack each column top-down and auto-balance heights
-   — mirrors the production grid's column count and gaps. */
-.masonry {
-  column-count: 1;
-  column-gap: 16px;
+/* ---------- Header search: expand-on-click icon ---------- */
 
-  > * {
-    break-inside: avoid;
-    margin-bottom: 12px;
-  }
+/* Sits inline right after the title: N-new badge · search. Grows to fill the
+   rest of the header so the expanded field can reach the news card's edge —
+   stopping at the reserved rail column, same offset the filter tabs use
+   (.tabsConstrain), so the field's right edge lines up with the card + tabs. */
+.headerActions {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-  @include tablet-portrait {
-    column-count: 2;
-
-    > * {
-      margin-bottom: 16px;
-    }
+  @include tablet-landscape {
+    margin-right: calc(100% / 3 + 4px);
   }
 }
 
-/* ---------- V0 feed mode: single column, equal-weight stories ---------- */
+.headerActionsBanner {
+  @include tablet-landscape {
+    margin-right: 312px; /* 300px rail + 12px gutter, matching .tabsConstrainBanner */
+  }
+}
+
+/* Collapsed state: a single icon button matching the field's border/hover. */
+.headerSearchBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover {
+    border-color: #5e718d;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  /* Hidden on mobile — the field is a permanent row below the header there. */
+  @include mobile-only {
+    display: none;
+  }
+}
+
+/* Expanded state (desktop, ≥640px): the production SearchInput fades in and
+   flex-grows to fill the remaining header width, reaching the news card's edge.
+   On mobile it has no room here — the field drops to its own row below. */
+.headerSearchField {
+  flex: 1 1 auto;
+  min-width: 0;
+  animation: headerSearchIn 0.16s ease;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+@keyframes headerSearchIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile-only permanent row: full-width field beneath the header, above the tabs. */
+.mobileSearchRow {
+  display: none;
+
+  @include mobile-only {
+    display: block;
+  }
+}
+
+/* ---------- V0/V1 feed: single column, equal-weight stories ---------- */
 
 .feedList {
   display: flex;
   flex-direction: column;
   gap: 20px; /* a beat more than the grid's 16px — separates cards in a vertical scroll */
-  flex: 1;
   min-width: 0; /* let the column shrink instead of overflowing the row */
+
+  @include tablet-landscape {
+    grid-column: span 2; /* 2 of the 3 columns = 2 action-cards wide, every mode */
+  }
 }
 
 /* The card is a container here — the stories inside are the click targets, so
@@ -133,6 +206,16 @@
   padding-top: 16px;
 }
 
+/* Full-width divider above the reused Job Board "View all N …" expander (which
+   is centered + auto-margin by default); double class beats the shared expander. */
+.viewAllExpander.viewAllExpander {
+  width: 100%;
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  text-align: center;
+}
+
 .feedTitle {
   transition: color 0.12s ease;
 }
@@ -149,12 +232,44 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  align-items: stretch;
 
   @include tablet-landscape {
-    flex-direction: row;
-    gap: 24px;
-    align-items: flex-start;
+    /* Mirror the Quick Actions grid (repeat(3, 1fr), 12px gap): the feed card
+       spans 2 columns — exactly 2 action-cards wide — and the rail takes the
+       3rd, so both edges line up with Quick Actions above. */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+}
+
+/* Constrain the filter-tabs underline to the news-card's right edge by reserving
+   the rail column. Only at tablet-landscape+, where the 3-col grid (and rail)
+   exist; below that the feed is full-width so the line spans fully. */
+.tabsConstrain {
+  @include tablet-landscape {
+    /* one 1fr column of the repeat(3, 1fr) grid + its 12px gutter */
+    margin-right: calc(100% / 3 + 4px);
+  }
+}
+
+.tabsConstrainBanner {
+  @include tablet-landscape {
+    margin-right: 312px; /* 300px rail + 12px gutter */
+  }
+}
+
+/* Banner mode: the digest banner is lighter than the full V1 rail, so it takes
+   a narrower fixed column and the feed card stretches to fill the rest (wider
+   than the strict 2-of-3 grid). */
+.feedLayoutBanner {
+  @include tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 300px;
+
+    .feedList {
+      grid-column: auto;
+    }
   }
 }
 
@@ -164,8 +279,7 @@
   gap: 16px;
 
   @include tablet-landscape {
-    width: 300px;
-    flex-shrink: 0;
+    grid-column: span 1;
     position: sticky;
     /* Clear the fixed app header (global var, 80px) plus breathing room. */
     top: calc(var(--app-header-height, 80px) + 16px);
@@ -193,9 +307,122 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-.railRow {
+/* Banner-mode rail (Why-follow + Digest): supplementary, so hide it while it's
+   stacked below the feed on narrow screens; it returns as the side column at
+   tablet-landscape. Double class beats .feedRail's base display. */
+.railHideMobile.railHideMobile {
+  display: none;
+
+  @include tablet-landscape {
+    display: flex;
+  }
+}
+
+/* Small grey icon badge atop the rail explainers (why-follow, subscribed digest). */
+.railIconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ---------- Digest subscribe banner (fills V0's rail) ----------
+   Toned down from the original brand-blue gradient promo: a soft brand tint with
+   a subtle brand border and dark text, so it reads as a quiet rail module rather
+   than a loud ad. The filled-brand DS button carries the emphasis instead. */
+.digestPromo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+.digestPromoText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.digestPromoTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.digestPromoBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Full-width filled-brand pill — the DS fill/primary Button supplies the brand
+   bg and white text; this just makes it fill and center. */
+.digestPromoBtn.digestPromoBtn {
+  width: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Subscribed: the same banner shape in a light brand-blue tint — calmer than
+   the vibrant promo gradient, but clearly blue (echoing it), a settled state
+   pointing to Settings rather than pitching. */
+.digestGrey {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: transparent; /* lightweight: outlined only, no fill */
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+/* Tertiary "Manage in Settings" link — no fill/border, just text + arrow. */
+.digestManageBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Small block header, shared by the rail explainers (subscribed digest, why-follow). */
+.railBlockTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.digestGreyBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.railRow {
+  display: flex;
+  align-items: flex-start;
   gap: 10px;
 }
 
@@ -207,7 +434,18 @@
   gap: 1px;
 }
 
+/* Name + Follow on one line — Follow reads as acting on this specific team,
+   not the row's reason text underneath it. */
+.railNameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .railName {
+  flex: 1;
+  min-width: 0;
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
@@ -263,26 +501,6 @@
 .teamNameTight.teamNameTight {
   flex: 0 1 auto;
   min-width: 0;
-}
-
-/* Bigger news headline. DELIBERATE off-scale size: the DS type scale jumps
-   20 (body-xl) → 24 (heading-sm) and 24 was judged too big for this card —
-   22 is a designer decision pending a DS-owner call (new token vs snap).
-   Assumes headline-style titles. Double class beats the production size. */
-.headlineLg.headlineLg {
-  font-size: 22px;
-  line-height: 28px;
-  letter-spacing: -0.5px;
-  transition: color 0.12s ease;
-}
-
-/* Card hover highlights the lead headline (it's the card's click target) —
-   but only while the pointer is over territory whose click opens the lead
-   article. Anywhere with its own destination or action (the rows region,
-   footer actions, Follow, the team-name link) suppresses it. */
-.cardRoot:hover:not(:has(.more:hover)):not(:has(.footerActions:hover)):not(:has(.headFollow:hover)):not(:has(a:hover))
-  .headlineLg {
-  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 /* Follow sits after the team name, always visible. The tertiary button carries
@@ -347,6 +565,13 @@
   column-gap: 6px;
   row-gap: 12px; /* air above "Join discussion" when it wraps under the meta line */
   flex-wrap: wrap;
+
+  /* Mobile: always stack the Discuss / Join discussion button under the meta
+     line (event · source · time) rather than crowding it on one row. */
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .source {
@@ -360,11 +585,13 @@
   white-space: nowrap;
 }
 
-.favicon {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  flex-shrink: 0;
+/* Source domain — highlights on hover to signal it's the link out to the article. */
+.sourceDomain {
+  transition: color 0.12s ease;
+}
+
+.sourceDomain:hover {
+  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 /* Upvote + comment pair on the footer's right. */
@@ -374,159 +601,4 @@
   gap: 16px;
 }
 
-.discussLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.12s ease;
 
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-
-  &:focus-visible {
-    outline: 2px solid #1b4dff;
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  /* Touch devices: same quiet look, but an invisible halo extends the tap
-     zone to ≥44px. */
-  @media (hover: none) {
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset: -12px -10px;
-    }
-  }
-}
-
-/* ---------- V0 card: the team's other updates, always visible ---------- */
-
-.more {
-  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  padding-top: 2px;
-  display: flex;
-  flex-direction: column;
-  cursor: default;
-}
-
-/* Each row mirrors the lead's shape: headline, then the same quiet
-   "source · time" meta line underneath. */
-.moreRow {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 0;
-  cursor: pointer;
-
-  &:not(:first-child) {
-    border-top: 1px solid var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  }
-
-  /* Row hover highlights its title (the row's click target) — but not while
-     the pointer is on the row's own upvote/comment buttons. */
-  &:hover:not(:has(button:hover)) .moreTitle {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-
-  &:focus-visible {
-    outline: 2px solid #1b4dff;
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-}
-
-/* DS body-md (16/24, 400) — a size step below the 22px lead without weight noise. */
-.moreTitle {
-  min-width: 0;
-  font-size: var(--type-body-md-default-font-size, 16px);
-  line-height: var(--type-body-md-default-line-height, 24px);
-  font-weight: 400;
-  letter-spacing: var(--type-body-md-default-letter-spacing, -0.3px);
-  color: var(--foreground-neutral-primary, #0a0c11);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.moreMeta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.moreMetaText {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Comment count inside a row's meta line — the chat glyph + bare count, same
-   icon vocabulary as the lead's "Join discussion" link. */
-.moreComments {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.2px;
-  font-weight: 500;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.12s ease;
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-
-  &:focus-visible {
-    outline: 2px solid #1b4dff;
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  /* Touch devices: same quiet look, but an invisible halo extends the tap
-     zone to ≥44px. */
-  @media (hover: none) {
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset: -14px -10px;
-    }
-  }
-}
-
-/* Voted state: color returns to announce "you did this" — the one place the
-   engagement layer earns brand blue at rest (double class beats the gray). */
-.rowVoted.rowVoted {
-  color: var(--foreground-brand-primary, #1b4dff);
-  font-weight: 700;
-}

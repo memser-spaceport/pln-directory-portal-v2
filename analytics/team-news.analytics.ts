@@ -122,6 +122,22 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsSearch = (
+    searchValue: string,
+    resultCount: number,
+    currentTab: string,
+    currentCategory: string,
+    source: TeamNewsAnalyticsSource = 'home',
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SEARCH_REQUESTED, {
+      searchValue,
+      resultCount,
+      currentTab,
+      currentCategory,
+      source,
+    });
+  };
+
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
@@ -130,5 +146,6 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCardClicked,
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,
+    onTeamNewsSearch,
   };
 };

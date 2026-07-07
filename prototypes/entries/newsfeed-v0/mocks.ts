@@ -90,6 +90,31 @@ const INFRA: ITeamNewsItem[] = [
     sourceDomain: 'protocol.ai',
     discussion: { count: 2, latestTopicUrl: 'https://forum' },
   }),
+  // Two more Protocol Labs items (older than n1) so its card carries 5 stories —
+  // demoing the "+N more" collapse on the second card in the feed.
+  item({
+    uid: 'n12',
+    teamUid: 'protocol-labs',
+    teamName: 'Protocol Labs',
+    eventType: 'ANNOUNCEMENT',
+    eventDate: '2026-06-15T09:30:00.000Z',
+    title: 'Grants program expands to fund open-source AI tooling',
+    summary:
+      'A new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k. Applications open in July.',
+    sourceDomain: 'protocol.ai',
+    discussion: { count: 1, latestTopicUrl: 'https://forum' },
+  }),
+  item({
+    uid: 'n13',
+    teamUid: 'protocol-labs',
+    teamName: 'Protocol Labs',
+    eventType: 'LAUNCH',
+    eventDate: '2026-06-12T11:00:00.000Z',
+    title: 'New developer portal unifies IPFS, Filecoin, and libp2p docs',
+    summary:
+      'The portal brings the three projects’ documentation under one search and navigation, with runnable examples and a shared getting-started path.',
+    sourceDomain: 'protocol.ai',
+  }),
 ];
 
 const STORAGE: ITeamNewsItem[] = [
@@ -185,6 +210,8 @@ export const UPVOTES: Record<string, number> = {
   n9: 3,
   n10: 2,
   n11: 4,
+  n12: 3,
+  n13: 1,
 };
 
 /** Rail suggestions: teams NOT already in the feed (suggesting what you already read is redundant). */

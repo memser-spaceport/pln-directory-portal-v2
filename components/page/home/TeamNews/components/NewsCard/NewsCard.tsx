@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
-import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
 
-import { getTeamLogoFallback } from './utils/getTeamLogoFallback';
+import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
+import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 
 import { StartConversationButton } from './components/StartConversationButton';
 
@@ -26,24 +27,6 @@ interface NewsCardProps {
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
-
-const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
-  FUNDING: 'Funding',
-  LAUNCH: 'Launch',
-  PARTNERSHIP: 'Partnership',
-  ANNOUNCEMENT: 'Announcement',
-  MILESTONE: 'Milestone',
-  OTHER: 'Other',
-};
-
-const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
-  FUNDING: s.dotFunding,
-  LAUNCH: s.dotLaunch,
-  PARTNERSHIP: s.dotPartnership,
-  ANNOUNCEMENT: s.dotAnnouncement,
-  MILESTONE: s.dotMilestone,
-  OTHER: s.dotOther,
-};
 
 export const NewsCard = ({
   item,
@@ -81,6 +64,8 @@ export const NewsCard = ({
     }
   };
 
+  const { label: eventTypeLabel, dotClassName: eventTypeDotClassName } = getEventTypeConfig(item.eventType);
+
   return (
     <div
       role="link"
@@ -109,18 +94,19 @@ export const NewsCard = ({
               {item.teamName}
             </a>
           )}
-          {/*{isHydrated && onFollowToggle && (*/}
-          {/*  <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} />*/}
-          {/*)}*/}
+          {isHydrated && onFollowToggle && (
+            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} size="compact" />
+          )}
         </div>
       )}
       <h3 className={s.headline}>{item.title}</h3>
+      {item.summary && <p className={s.summary}>{item.summary}</p>}
 
       <div className={s.metaLine}>
         <div className={s.meta}>
           <span className={s.eventType}>
-            <span className={`${s.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
-            <span className={s.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+            <span className={`${s.eventDot} ${eventTypeDotClassName}`} aria-hidden="true" />
+            <span className={s.eventLabel}>{eventTypeLabel}</span>
           </span>
           {item.sourceDomain && (
             <>

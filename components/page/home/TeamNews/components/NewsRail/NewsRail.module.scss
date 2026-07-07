@@ -1,0 +1,148 @@
+@import 'styles/media.scss';
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+
+  @include desktop {
+    position: sticky;
+    /* Clear the fixed app header (global var) plus breathing room. */
+    top: calc(var(--app-header-height, 80px) + 16px);
+  }
+}
+
+.whyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+}
+
+.iconBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(14, 15, 17, 0.06);
+  color: #455468;
+  margin-bottom: 4px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.whyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #0a0c11;
+}
+
+.whyBody {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: -0.1px;
+  color: #455468;
+}
+
+.digestCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+
+  background: var(--transparent-brand-8, #1b4dff0f);
+  border: 1px solid var(--transparent-brand-16, #1b4dff29);
+  border-radius: 16px;
+}
+
+.digestTitle {
+  letter-spacing: -.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.digestBody {
+  letter-spacing: -.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.digestBtn {
+  background: #1b4dff;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  display: flex;
+  letter-spacing: -.2px;
+  min-width: 72px;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #fff;
+  border: 1px solid #1b4dff;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  transition: all .2s;
+  overflow: hidden;
+  margin-top: 8px;
+
+  &:hover {
+    background: #0f3cd9;
+    border-color: #0f3cd9;
+  }
+}
+
+.subscribedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+}
+
+.manageLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.1px;
+  color: #6b7280;
+  text-decoration: none;
+
+  &:hover {
+    color: #374151;
+  }
+}

@@ -6,6 +6,7 @@ import s from './ForumDigest.module.scss';
 import { ForumDigestSettings, useGetForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { IUserInfo } from '@/types/shared.types';
 import { Field } from '@base-ui-components/react/field';
+import { Switch } from '@base-ui-components/react/switch';
 import { clsx } from 'clsx';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import dynamic from 'next/dynamic';
@@ -81,13 +82,14 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'no_digest' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'no_digest', source: 'settings' });
           },
         },
       );
-
-      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
@@ -96,7 +98,7 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
       const _payload = {
         ...data,
         forumDigestEnabled: true,
-        forumDigestFrequency: 1,
+        forumDigestFrequency: 1 as const,
       };
 
       mutate(
@@ -105,13 +107,14 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'daily' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'daily', source: 'settings' });
           },
         },
       );
-
-      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
@@ -120,7 +123,7 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
       const _payload = {
         ...data,
         forumDigestEnabled: true,
-        forumDigestFrequency: 7,
+        forumDigestFrequency: 7 as const,
       };
 
       mutate(
@@ -129,16 +132,33 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly', source: 'settings' });
           },
         },
       );
 
-      analytics.onForumDigestOptionSelect(_payload);
-
       return;
     }
+  };
+
+  const handleNewsChange = (checked: boolean) => {
+    if (!userInfo.uid || !data) {
+      return;
+    }
+
+    mutate({
+      uid: userInfo.uid,
+      payload: {
+        ...data,
+        forumDigestNewsEnabled: checked,
+      },
+    });
+
+    analytics.onForumDigestNetworkNewsToggleClicked({ forumDigestNewsEnabled: checked });
   };
 
   return (
@@ -246,6 +266,25 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
             }}
           />
         </Field.Root>
+        {data?.forumDigestEnabled && (
+          <div className={s.toggleSection}>
+            <label className={clsx(s.Label, s.toggle)}>
+              Include Network News
+              <Switch.Root
+                className={s.Switch}
+                checked={data?.forumDigestNewsEnabled ?? true}
+                onCheckedChange={handleNewsChange}
+              >
+                <Switch.Thumb className={s.Thumb}>
+                  <div className={s.dot} />
+                </Switch.Thumb>
+              </Switch.Root>
+            </label>
+            <div className={s.desc}>
+              Get the latest news from teams across the network included in your digest email.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

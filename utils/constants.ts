@@ -217,6 +217,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_SUBSCRIBE_TO_NEWSLETTER_CHANGE: 'settings-subscribe-to-newsletter-change',
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
   FORUM_DIGEST_SAVE_FAILED: 'settings-forum-digest-save-failed',
+  FORUM_DIGEST_NETWORK_NEWS_TOGGLE_CLICKED: 'settings-forum-digest-network-news-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
@@ -585,6 +586,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
+  TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

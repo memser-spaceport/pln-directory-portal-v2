@@ -456,11 +456,36 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 // scrolling drawer so it stays visible while reading the lower sections.
 // Production .header already has padding + bottom border; we add the sticky
 // behaviour + an opaque background so content doesn't bleed through.
-.stickyHeader {
+// Proximity badge: bump the confidence "%" suffix up from its 10px default so it
+// reads a bit stronger in the column. It's the 2nd span inside the badge root
+// (the `.code` span comes first), so `span + span` targets only the % — never
+// the code — and never the "Cold" badge (which has no child spans).
+.proxBadge span + span {
+  font-size: 12px;
+}
+
+// Extra breathing room between the two quick-lens toggles (Direct only / PL
+// investors only) — adds to the 6px flex gap on their .relChips container.
+.lensGap {
+  margin-left: 12px;
+}
+
+// Scoped under .drawerScroll so this override out-specifies the production
+// `.header` rule (both are single-class otherwise, and production wins on bundle
+// order). Production `.header` was reworked into a slim 56px `align-items: center`
+// back-button bar; this mock keeps the full identity block inside the header (so it
+// stays pinned while scrolling), so we must undo that fixed height — otherwise the
+// tall name row overflows and gets clipped above the box.
+.drawerScroll .stickyHeader {
   position: sticky;
   top: 0;
   z-index: 5;
   background: var(--background-base-white, #fff);
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 // The drawer's inner scroll container — owns the scroll (instead of the production
@@ -2566,6 +2591,44 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+// ── "Invested in PL" (the investor backs Protocol Labs itself) ──────────────
+// Icon-only mark in the table's Relationship cell — the words live in the
+// tooltip and the drawer. Brand blue so it reads "ours", distinct from the
+// relationship pills' green/amber.
+.plInvestedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: default;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--background-brand-soft-hover, #e0e8ff);
+  }
+}
+
+// Labeled variant for the drawer header — same pill family as "In LabOS".
+.plInvestedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  color: var(--foreground-brand-primary, #1b4dff);
 }
 
 // All founders for an investor wrap in the Founders column (usually 1, rarely 2–3).

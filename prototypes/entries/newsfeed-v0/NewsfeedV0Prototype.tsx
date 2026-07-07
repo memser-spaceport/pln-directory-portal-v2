@@ -2,7 +2,8 @@
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FocusEvent } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
@@ -27,11 +28,15 @@ import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
 // Production home-page shell (outer layout + section spacing), reused 1:1.
 import styles from '@/app/home/page.module.css';
 
-import { CurrentNewsCard } from './CurrentNewsCard';
-import { V0NewsCard, type TeamCluster } from './V0NewsCard';
 import { V0FeedCard } from './V0FeedCard';
+import type { TeamCluster } from './V0NewsCard';
 import { FeedRail } from './FeedRail';
+import { DigestBanner } from './DigestBanner';
+import { WhyFollowBanner } from './WhyFollowBanner';
 import { QuickActionsMock } from './QuickActionsMock';
+import { HeaderSearch } from './HeaderSearch';
+// Production search field, reused 1:1 for the mobile drop-down row.
+import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FocusAreaSectionMock } from './FocusAreaSectionMock';
 import { FollowToast } from '../follow-shared/FollowToast';
 import { MOCK_GROUPS } from './mocks';
@@ -40,20 +45,18 @@ import local from './NewsfeedV0.module.scss';
 const groups = MOCK_GROUPS;
 const PAGE_SIZE = 6;
 
-type Mode = 'current' | 'v0' | 'even' | 'feed';
+type Mode = 'v0' | 'banner' | 'v1';
 
 const MODE_LABEL: Record<Mode, string> = {
-  current: 'Current',
-  v0: 'V0 · grid',
-  even: 'V0 · even',
-  feed: 'V0 · feed',
+  v0: 'V0',
+  banner: 'V0 + digest',
+  v1: 'V1',
 };
 
 const MODE_NOTE: Record<Mode, string> = {
-  current: 'Exact copy of the production homepage feed.',
-  v0: 'Quick wins: summary on card · one card per team, other updates visible · event + source + discussion in one meta line.',
-  even: 'Same cards in a row grid — side-by-side cards stretch to equal height.',
-  feed: 'Single column, one card per team — every story equal weight, newest first.',
+  v0: 'Single column (two action-cards wide) — no sidebar, no upvotes.',
+  banner: 'Same column, with the digest banner filling the reserved side column.',
+  v1: 'Adds the follow-suggestions / focus-areas / popular rail and per-story upvotes.',
 };
 
 // How much each event type matters when picking a cluster's lead story.
@@ -107,10 +110,10 @@ function clusterByTeam(items: ITeamNewsItem[]): TeamCluster[] {
 }
 
 /**
- * Newsfeed redesign v0. "Current" renders a faithful copy of the production
- * homepage `TeamNews` feed (tabs → category row → card grid → Show All, with
- * analytics stripped and mock data). "V0" keeps the identical shell and layers
- * the quick wins on the cards.
+ * Newsfeed redesign. Single-column feed (one card per team, newest first) in
+ * two cuts: V0 ships without the right rail or per-story upvotes; V1 adds
+ * both back. Same shell, cards, and data either way — only that surface area
+ * differs, so the two are easy to compare side by side.
  */
 export default function NewsfeedV0Prototype() {
   // Tabs are base-ui / client-only — gate render so SSR === first client render.
@@ -118,9 +121,18 @@ export default function NewsfeedV0Prototype() {
   const [mode, setMode] = useState<Mode>('v0');
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  // Desktop expands an inline field from the header icon; mobile shows a
+  // permanent full-width field in its own row. The ref focuses the desktop field
+  // when it expands.
+  const desktopFieldRef = useRef<HTMLDivElement>(null);
   const [followedTeams, setFollowedTeams] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+  // Demo-only: preview the digest rail as a new user vs an already-subscribed one.
+  const [digestSubscribed, setDigestSubscribed] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -180,12 +192,27 @@ export default function NewsfeedV0Prototype() {
     return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
   }, [activeCategory, itemsForActiveTab]);
 
-  const clusters = useMemo(() => clusterByTeam(filteredItems), [filteredItems]);
+  // Free-text search narrows the current tab/category slice by team name, story
+  // headline, summary, or tag.
+  const searchedItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return filteredItems;
+    return filteredItems.filter(
+      (i) =>
+        i.teamName.toLowerCase().includes(q) ||
+        i.title.toLowerCase().includes(q) ||
+        (i.summary?.toLowerCase().includes(q) ?? false) ||
+        i.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [filteredItems, query]);
 
-  const visibleItems = expanded ? filteredItems : filteredItems.slice(0, PAGE_SIZE);
+  const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
+
   const visibleClusters = expanded ? clusters : clusters.slice(0, PAGE_SIZE);
-  const totalForMode = mode === 'current' ? filteredItems.length : clusters.length;
   const newCount = allItems.length;
+  // A rail (and its reserved column) only exists in the banner / V1 modes; plain
+  // V0 has none, so its cards grow to the full width.
+  const hasRail = mode === 'banner' || mode === 'v1';
 
   const handleMode = (next: Mode) => {
     setMode(next);
@@ -203,6 +230,29 @@ export default function NewsfeedV0Prototype() {
     setExpanded(false);
   };
 
+  const handleSearch = (value: string) => {
+    setQuery(value);
+    setExpanded(false);
+  };
+
+  const openSearch = () => setSearchOpen(true);
+
+  // Desktop only: collapse the inline field when focus leaves it while empty; a
+  // live query keeps it open so an active filter is never hidden. Reads the live
+  // input value (not the debounced `query`) so a just-typed/just-cleared field is
+  // judged by what's on screen.
+  const handleFieldBlur = (e: FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    const live = e.currentTarget.querySelector('input')?.value ?? '';
+    if (!live.trim()) setSearchOpen(false);
+  };
+
+  // Focus the desktop field the moment it expands.
+  useEffect(() => {
+    if (!searchOpen) return;
+    desktopFieldRef.current?.querySelector('input')?.focus();
+  }, [searchOpen]);
+
   if (!mounted) return <div className={local.page} />;
 
   return (
@@ -210,7 +260,7 @@ export default function NewsfeedV0Prototype() {
       <div className={styles.home__cn}>
         <div className={local.switchBar}>
           <div className={local.switch} role="tablist" aria-label="Feed version">
-            {(['current', 'v0', 'even', 'feed'] as const).map((m) => (
+            {(['v0', 'banner', 'v1'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -224,6 +274,24 @@ export default function NewsfeedV0Prototype() {
             ))}
           </div>
           <span className={local.switchNote}>{MODE_NOTE[mode]}</span>
+
+          {/* Demo-only: preview the digest rail in either subscription state (banner mode only). */}
+          {mode === 'banner' && (
+            <div className={local.switch} role="tablist" aria-label="Digest state (demo)">
+              {([false, true] as const).map((sub) => (
+                <button
+                  key={String(sub)}
+                  type="button"
+                  role="tab"
+                  aria-selected={digestSubscribed === sub}
+                  className={clsx(local.switchBtn, digestSubscribed === sub && local.switchBtnActive)}
+                  onClick={() => setDigestSubscribed(sub)}
+                >
+                  {sub ? 'Subscribed' : 'Not subscribed'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <QuickActionsMock />
@@ -234,8 +302,32 @@ export default function NewsfeedV0Prototype() {
             <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
           </NewsBase>
         ) : (
-          <NewsBase headerDetails={newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}>
-            <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+          <NewsBase
+            headerDetails={
+              <div className={clsx(local.headerActions, mode === 'banner' && local.headerActionsBanner)}>
+                {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+                <HeaderSearch
+                  open={searchOpen}
+                  value={query}
+                  onOpen={openSearch}
+                  onChange={handleSearch}
+                  onBlur={handleFieldBlur}
+                  fieldRef={desktopFieldRef}
+                />
+              </div>
+            }
+          >
+            {/* Mobile only: the header has no room to expand inline, so the field
+                lives here as a permanent full-width row. Hidden on desktop. */}
+            <div className={local.mobileSearchRow}>
+              <SearchInput value={query} onChange={handleSearch} placeholder="Search by team or keyword…" />
+            </div>
+
+            {/* Constrain the tabs' underline to end at the news-card's right edge
+                (reserve the rail column), instead of spanning the full width. */}
+            <div className={clsx(local.tabsConstrain, mode === 'banner' && local.tabsConstrainBanner)}>
+              <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+            </div>
 
             <div className={s.catRow}>
               {categoriesWithCounts.map((c) => {
@@ -256,56 +348,45 @@ export default function NewsfeedV0Prototype() {
               })}
             </div>
 
-            {filteredItems.length === 0 ? (
-              <div className={s.empty}>No network news in this filter.</div>
+            {searchedItems.length === 0 ? (
+              <div className={s.empty}>
+                {query.trim() ? `No network news matches “${query.trim()}”.` : 'No network news in this filter.'}
+              </div>
             ) : (
               <>
-                {mode === 'current' ? (
-                  <div className={s.grid}>
-                    {visibleItems.map((item) => (
-                      <CurrentNewsCard key={item.uid} item={item} />
-                    ))}
-                  </div>
-                ) : mode === 'v0' ? (
-                  <div className={local.masonry}>
+                <div className={clsx(local.feedLayout, mode === 'banner' && local.feedLayoutBanner)}>
+                  <div className={local.feedList}>
                     {visibleClusters.map((cluster) => (
-                      <V0NewsCard
+                      <V0FeedCard
                         key={cluster.teamUid}
                         cluster={cluster}
                         following={followedTeams.has(cluster.teamUid)}
                         onToggleFollow={() => toggleFollow(cluster.teamUid, cluster.teamName)}
+                        showUpvote={mode === 'v1'}
                       />
                     ))}
                   </div>
-                ) : mode === 'even' ? (
-                  <div className={s.grid}>
-                    {visibleClusters.map((cluster) => (
-                      <V0NewsCard
-                        key={cluster.teamUid}
-                        cluster={cluster}
-                        following={followedTeams.has(cluster.teamUid)}
-                        onToggleFollow={() => toggleFollow(cluster.teamUid, cluster.teamName)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className={local.feedLayout}>
-                    <div className={local.feedList}>
-                      {visibleClusters.map((cluster) => (
-                        <V0FeedCard
-                          key={cluster.teamUid}
-                          cluster={cluster}
-                          following={followedTeams.has(cluster.teamUid)}
-                          onToggleFollow={() => toggleFollow(cluster.teamUid, cluster.teamName)}
-                        />
-                      ))}
-                    </div>
-                    <aside className={local.feedRail}>
-                      <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
+                  {/* The rail (and its reserved column) only exists in the banner / V1
+                      modes — plain V0 drops it so the cards grow to full width. Banner
+                      mode: the digest banner; V1: the full follow-suggestions rail. */}
+                  {hasRail && (
+                    <aside className={clsx(local.feedRail, mode === 'banner' && local.railHideMobile)}>
+                      {mode === 'v1' ? (
+                        <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
+                      ) : (
+                        <>
+                          {/* Why-follow explainer sits above the digest banner. */}
+                          <WhyFollowBanner />
+                          <DigestBanner
+                            subscribed={digestSubscribed}
+                            onToggle={() => setDigestSubscribed((v) => !v)}
+                          />
+                        </>
+                      )}
                     </aside>
-                  </div>
-                )}
-                {totalForMode > PAGE_SIZE && (
+                  )}
+                </div>
+                {clusters.length > PAGE_SIZE && (
                   <div className={s.showAll}>
                     <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
                       {expanded ? 'Show Less' : 'Show All'}
@@ -318,9 +399,12 @@ export default function NewsfeedV0Prototype() {
         )}
         </div>
 
-        <div className={styles.home__cn__focusarea}>
-          <FocusAreaSectionMock />
-        </div>
+        {/* V1's rail already carries a Focus Areas module — no duplicate below. */}
+        {mode !== 'v1' && (
+          <div className={styles.home__cn__focusarea}>
+            <FocusAreaSectionMock />
+          </div>
+        )}
       </div>
 
       {toast && (

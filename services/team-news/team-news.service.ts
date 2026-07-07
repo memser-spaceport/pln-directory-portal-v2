@@ -1,6 +1,7 @@
 import type { ITeamNewsByTeamResponse, ITeamNewsGroupedResponse } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from './constants';
+import { MOCK_TEAM_NEWS_GROUPED_RESPONSE } from './team-news.mock-data';
 
 interface FetchGroupedOptions {
   windowDays?: number;
@@ -45,6 +46,10 @@ export async function getTeamNewsGroupedByFocusArea(
   options: FetchGroupedOptions = {},
   authToken?: string,
 ): Promise<ITeamNewsGroupedResponse | null> {
+  if (process.env.MOCK_TEAM_NEWS === 'true') {
+    return MOCK_TEAM_NEWS_GROUPED_RESPONSE;
+  }
+
   const windowDays = options.windowDays ?? TEAM_NEWS_DEFAULT_WINDOW_DAYS;
   const url = `${process.env.DIRECTORY_API_URL}/v1/team-news/grouped-by-focus-area?windowDays=${windowDays}`;
 

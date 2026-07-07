@@ -41,3 +41,40 @@
     background: #f8fafc;
   }
 }
+
+.compactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 2px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.1px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--transparent-brand-8, #1b4dff14);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.compactFollowing {
+  color: #455468;
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--transparent-dark-4, #0e0f110a);
+  }
+}

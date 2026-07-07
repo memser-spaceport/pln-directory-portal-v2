@@ -12,6 +12,12 @@
   &:not(:last-child) {
     border-bottom: 1px solid rgba(27, 56, 96, 0.12);
   }
+
+  &:hover {
+    h3 {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
 }
 
 .summary {

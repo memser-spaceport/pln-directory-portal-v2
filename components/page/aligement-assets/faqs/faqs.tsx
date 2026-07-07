@@ -33,8 +33,8 @@ const faqCategories: FAQCategoryData[] = [
         answer: 'For questions about the Surus platform and features, please contact support@surus.io.',
       },
       {
-        question: 'I have questions about the Hub & Explainer, Incentivized Activities, point to token conversion, or the Trust agreement. Who should I contact?',
-        answer: 'Please contact plaa-wg@plrs.xyz. Please note that the AA WG has dedicated significant time to making this explainer as comprehensive as possible. Given our limited resources, response times to inquiries may take longer than expected, potentially up to one to two weeks. To enhance transparency, we will aim to publish answers to frequently asked questions approximately every two weeks for everyone\'s benefit. We appreciate your patience.',
+        question: 'I have questions about the Hub & Explainer, Incentivized Activities, converting points to PLAA, or the Trust agreement. Who should I contact?',
+        answer: 'Please contact plaa-wg@plrs.xyz. Please note that the AAWG has dedicated significant time to making this explainer as comprehensive as possible. Given our limited resources, response times to inquiries may take longer than expected, potentially up to one to two weeks. To enhance transparency, we will aim to publish answers to frequently asked questions approximately every two weeks for everyone\'s benefit. We appreciate your patience.',
       },
       {
         question: 'I\'m having trouble with the Surus platform. Who should I contact?',
@@ -53,15 +53,15 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'What role does Surus play in the Alignment Asset experiment?',
-        answer: 'Surus is a member of Protocol Labs and a core contributor to the Working Group for the Alignment Asset project, providing: Fiduciary services, via Surus Trust Company, to the Alignment Asset Trust in accordance with the trust agreement, including executing the trust\'s investment strategy and the administration of token buybacks. Tokenization and wallet services for users. KYC, KYB, and accreditation services.',
+        answer: 'Surus is a member of the Protocol Labs Network and a core contributor to the Working Group for the Alignment Asset project, providing: Fiduciary services, via Surus Trust Company, to the Alignment Asset Trust in accordance with the trust agreement, including executing the trust\'s investment strategy and the administration of PLAA buybacks, Tokenization and wallet services for users, and KYC, KYB, and accreditation services.',
       },
       {
         question: 'How secure is Surus\' platform architecture?',
-        answer: 'Surus\' platform employs advanced technology and industry-leading security, including the Argon2 brute force-resistant password hashing algorithm, orchestrated container management via Kubernetes for system reliability, distributed ACID SQL transactions to prevent data loss, required TLS1.3+ encryption for encrypted information exchange, and a Wasm-based client to avoid Javascript ( 😜).',
+        answer: 'Surus\' platform employs advanced technology and industry-leading security, including the Argon2 brute force-resistant password hashing algorithm, orchestrated container management via Kubernetes for system reliability, distributed ACID SQL transactions to prevent data loss, required TLS1.3+ encryption for encrypted information exchange, and a Wasm-based client to avoid Javascript.',
       },
       {
         question: 'How does Surus handle tokenization and wallets?',
-        answer: 'Surus\' asset tokenization platform is chain- and token standard-agnostic. This allows for maximum flexibility for future AA experiments. When a user successfully completes all compliance requirements, they are fully authorized on the platform. At that time, a multi-party computation (MPC) wallet is created immediately upon their first successful log-in attempt. Tokens purchased or claimed are held securely in these wallets. Keys are managed and securely backed up invisibly and automatically in the user\'s browser and our wallet provider partner Fordefi\'s cloud storage environment. Surus\' platform is designed with the ease-of-use of a Web2 application while leveraging all of the advantages of Web3. Actions such as transaction-signing and smart contract execution are conducted via a familiar Web2 interface in order to help bring more people and capital onchain.',
+        answer: 'Surus\' asset tokenization platform is chain- and token standard-agnostic. This allows for maximum flexibility for future AA experiments. When a user successfully completes all compliance requirements, they are fully authorized on the platform. At that time, a multi-party computation (MPC) wallet is created immediately upon their first successful log-in attempt. Tokens settled are held securely in these wallets. Keys are managed and securely backed up invisibly and automatically in the user\'s browser and our wallet provider partner Fordefi\'s cloud storage environment. Surus\' platform is designed with the ease-of-use of a Web2 application while leveraging all of the advantages of Web3. Actions such as transaction-signing and smart contract execution are conducted via a familiar Web2 interface in order to help bring more people and capital onchain.',
       },
     ],
   },
@@ -72,52 +72,112 @@ const faqCategories: FAQCategoryData[] = [
     items: [
       {
         question: 'To obtain an accreditation letter, will a credit check be conducted?',
-        answer: 'No. Instead, you will need to submit documentation to verify your income for the last two years.',
+        answer: (
+          <div>
+            <p style={{ marginBottom: '16px' }}>
+              No. Instead, you will need to submit documentation to verify your income for the last two years.
+            </p>
+            <p style={{ marginBottom: '16px' }}>
+              For more information on the general accreditation process, Parallel Markets offers the following FAQs:{' '}
+              <a
+                href="https://support.parallelmarkets.com/hc/en-us/sections/4417804182925-Accreditation"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#156ff7', textDecoration: 'underline', wordBreak: 'break-word' }}
+              >
+                https://support.parallelmarkets.com/hc/en-us/sections/4417804182925-Accreditation
+              </a>
+            </p>
+            <p style={{ fontStyle: 'italic', marginBottom: '0' }}>
+              Disclaimer: Protocol Labs Inc. is not affiliated with Parallel Markets. This link is provided for convenience and does not constitute an endorsement or warranty of Parallel Markets&apos; products or services. By clicking this link, you acknowledge that you are leaving our site and are subject to Parallel Markets&apos; terms of use and privacy policy. Protocol Labs Inc. assumes no responsibility for the accuracy of their information or the quality of their services.
+            </p>
+          </div>
+        ),
       },
       {
         question: 'If I\'m a contractor and do not have a W-2, can I submit a 1099? Can I submit multiple 1099s? Can I submit a combination of W-2s and 1099s for the same tax year?',
-        answer: 'Yes, you can submit a 1099 if you do not have a W-2. You can only submit one document per year for income verification. If you have multiple 1099s or W-2s for the same tax year, it is recommended to submit a copy of your filed Form 1040 to show your combined income for the period. A combination of W-2s and 1099s for the same tax year is not accepted unless consolidated into a filed Form 1040 or combined into one PDF document.',
+        answer: (
+          <div>
+            <p style={{ marginBottom: '16px' }}>
+              Yes, you can submit a 1099 if you do not have a W-2. You can only submit one document per year for income verification. If you have multiple 1099s or W-2s for the same tax year, it is recommended to submit a copy of your filed Form 1040 to show your combined income for the period. A combination of W-2s and 1099s for the same tax year is not accepted unless consolidated into a filed Form 1040 or combined into one PDF document.
+            </p>
+            <p style={{ marginBottom: '16px' }}>
+              For more information on the general accreditation process, Parallel Markets offers the following FAQs:{' '}
+              <a
+                href="https://support.parallelmarkets.com/hc/en-us/sections/4417804182925-Accreditation"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#156ff7', textDecoration: 'underline', wordBreak: 'break-word' }}
+              >
+                https://support.parallelmarkets.com/hc/en-us/sections/4417804182925-Accreditation
+              </a>
+            </p>
+            <p style={{ fontStyle: 'italic', marginBottom: '0' }}>
+              Disclaimer: Protocol Labs Inc is not affiliated with Parallel Markets. The link above is provided as a convenience to you and does not constitute an endorsement, representation or warranty by Protocol Labs Inc regarding Parallel Markets or its products, services or the accuracy of any information provided. Once you access Parallel Markets&apos; third party site, through the provided link, you acknowledge that the third party&apos;s terms of use and privacy policy apply, and you agree to comply with them. Protocol Labs Inc does not guarantee any of the information provided by Parallel Markets or the quality of their services.
+            </p>
+          </div>
+        ),
       },
       {
-        question: 'Is the PLAA experiment only for PL employees?',
+        question: 'Is the PLAA experiment only for individuals who work for PL?',
         answer: 'No! If you\'ve received an invite to join the PLAA experiment, you were intentionally chosen as a participant.',
       },
     ],
   },
   {
     id: 'aa-points',
-    title: 'AA Points & KPI Pillars',
+    title: 'PLAA, AA Points & KPI categories',
     icon: '/icons/notes-icon.png',
     items: [
+      {
+        question: 'How can I receive PLAA?',
+        answer: 'Eligibility for PLAA is ultimately determined by the Trust, but it\'s generally received as a reward or AA points earned through incentivized activities.',
+      },
+      {
+        question: 'What\'s the difference between the two paths?',
+        answer: (
+          <p style={{ margin: 0 }}>
+            <strong>Reward</strong>-based PLAA is allocated to eligible service providers of companies within the Protocol Labs Network. Points-based PLAA is collected over time — you complete incentivized activities, accumulate AA points, and those points may convert into PLAA according to the program&apos;s published conversion terms.
+          </p>
+        ),
+      },
       {
         question: 'When can I start collecting points?',
         answer: 'You become eligible to collect points after your onboarding to the Surus platform is confirmed by Surus. However, you may start working on the incentivized activities as soon as you submit your accreditation letter to Surus for verification. Once your account is approved by Surus, we will retroactively award the points you collected based on your incentivized activities.',
       },
       {
-        question: 'What if there are no points collected in a particular KPI Pillar in a snapshot period?',
-        answer: 'If no points are collected in any of the KPI Pillars in a particular snapshot period, then the token emissions for that particular KPI Pillar shall be 0 for the corresponding snapshot period.',
+        question: 'What if there are no points collected in a particular KPI category in a snapshot period?',
+        answer: 'If no points are collected in any of the KPI categories in a particular snapshot period, then the PLAA emissions for that particular KPI category shall be 0 for the corresponding snapshot period.',
       },
       {
-        question: 'What if everyone tries to collect points in one particular KPI Pillar?',
-        answer: 'The PLAA conversion mechanism is designed to reward efforts in less crowded pillars. If many participants target one pillar, its total emissions will spread thinly. Conversely, if you collect points in a pillar with lower overall participation, you will receive a proportionately larger share of that pillar\'s emissions. This balancing feature is intentional—it encourages diverse contributions across all network dimensions.',
+        question: 'What if everyone tries to collect points in one particular KPI category?',
+        answer: 'The PLAA conversion mechanism is designed to reward efforts in less crowded categories. If many participants target one category, its total emissions will spread thinly. Conversely, if you collect points in a category with lower overall participation, you will receive a proportionately larger share of that category\'s emissions. This balancing feature is intentional—it encourages diverse contributions across all network dimensions.',
       },
       {
-        question: 'Can you collect AA points in multiple KPI Pillars in the same snapshot period?',
-        answer: 'Yes. For more information, please review Calculating PLAA Token Emissions Per KPI Pillar Per Snapshot Period.',
+        question: 'Can you collect AA points in multiple KPI categories in the same snapshot period?',
+        answer: (
+          <p style={{ margin: 0 }}>
+            Yes. For more information, please review &lsquo;
+            <a href="#point-to-rights-conversion" style={{ color: '#156ff7', textDecoration: 'underline' }}>
+              Points-to-PLAA Conversion
+            </a>
+            .&rsquo;
+          </p>
+        ),
       },
     ],
   },
   {
     id: 'point-to-rights-conversion',
-    title: 'Point-to-Rights Conversion',
+    title: 'Points-to-PLAA Conversion',
     icon: '/icons/loop-icon.png',
     items: [
       {
-        question: 'How do points convert to rights?',
+        question: 'How do points convert to PLAA?',
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-            Points can convert to rights at the end of each monthly snapshot period using a predefined points-to-right formula tied to the KPI emissions schedule (shown below) and the 10,000-right monthly cap. The actual number of rights the Trust issues each month may be less than 10,000 if no participants collect points in certain KPI categories.
+            Points can convert to PLAA at the end of each monthly snapshot period using a predefined points-to-PLAA formula tied to the KPI emissions schedule (shown below) and the 10,000-PLAA monthly cap. The actual number of PLAA the Trust issues each month may be less than 10,000 if no participants collect points in certain KPI categories.
             </p>
 
             <p style={{ marginBottom: '16px' }}>
@@ -126,43 +186,43 @@ const faqCategories: FAQCategoryData[] = [
             
             <ol style={{ paddingLeft: '24px', marginBottom: '16px' }}>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Category allocation:</strong> Each KPI category (Programs, Network Tooling, etc.) is allocated a portion of the 10,000 monthly rights based on its network weight (see table below). However, if no participants collect points in a specific category during the snapshot period, no rights will be distributed for that category that month.
+                <strong>Category allocation:</strong> Each KPI category (Programs, Network Tooling, etc.) is allocated a portion of the 10,000 monthly PLAA based on its network weight (see table below). However, if no participants collect points in a specific category during the snapshot period, no PLAA will be distributed for that category that month.
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Right Percentage Calculation:</strong> [Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]
+                <strong>PLAA Percentage Calculation:</strong> [Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong>Right distribution:</strong> [Your Percentage] × [Rights Allocated to that Category] = [Your Rights]
+                <strong>PLAA distribution:</strong> [Your Percentage] × [PLAA Allocated to that Category] = [Your PLAA]
               </li>
             </ol>
 
             <p style={{ marginBottom: '16px' }}>
-            Because Rights are settled through whole Tokens, any calculated settlement amounts are rounded down to the nearest whole Token. This rounding rule is applied consistently to all participants to ensure fairness and to prevent the number of Tokens issued in connection with the settlement of Rights from exceeding the applicable monthly cap.
+            Because PLAA are settled through whole tokens, any calculated settlement amounts are rounded down to the nearest whole token. This rounding rule is applied consistently to all participants to ensure fairness and to prevent the number of tokens issued in connection with the settlement of PLAA from exceeding the applicable monthly cap.
             </p>
 
             <p style={{ marginBottom: '16px' }}>
-            While the Alignment Asset Trust ultimately controls the issuance of Rights and the settlement of such Rights through Tokens, the conversion of Points into Rights, and the settlement of such Rights, is not guaranteed. Nevertheless, participation today allows you to engage with and help shape this evolving initiative.
+            While the Alignment Asset Trust ultimately controls the issuance of PLAA and the settlement of such PLAA through tokens, the conversion of Points into PLAA, and the settlement of such PLAA, is not guaranteed. Nevertheless, participation today allows you to engage with and help shape this evolving initiative.
             </p>
 
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.64% of 10,000 rights = 1,463 rights available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.64% of 10,000 PLAA = 1,463 PLAA available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your tokens: 10% × 1,463 = ~146 tokens</li>
+                <li>Your PLAA: 10% × 1,463 = ~146 PLAA</li>
               </ul>
             </div>
 
-            <p style={{ marginBottom: '16px' }}>You can collect rights from multiple categories in the same period. Such rights may ultimately be settled through Tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.</p>
+            <p style={{ marginBottom: '16px' }}>You can collect PLAA from multiple categories in the same period. Such PLAA may ultimately be settled through tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.</p>
 
-            {/* KPI Pillars Table */}
+            {/* KPI categories Table */}
             <div style={{ overflowX: 'auto' }}>
             <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>KPI Emissions Schedule</p>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em', border: '1px solid #e2e8f0' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f1f5f9' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI Pillars</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI categories</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>KPI Weight</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>% of Total Emissions</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', borderBottom: '2px solid #3b82f6' }}>Emission Each Snapshot</th>
@@ -225,12 +285,12 @@ const faqCategories: FAQCategoryData[] = [
               KPI categories group similar activities together—for example: Capital, Programs, Knowledge, Network Tooling, People/Talent, etc.
             </p>
             <p style={{ marginBottom: '16px' }}>
-              Each category receives a portion of monthly rights based on its network weight. Example:
+              Each category receives a portion of monthly PLAA based on its network weight. Example:
             </p>
             <ul style={{ paddingLeft: '24px', marginBottom: '16px', listStyleType: 'disc' }}>
-              <li style={{ marginBottom: '4px' }}>Knowledge: 22.58% of rights</li>
-              <li style={{ marginBottom: '4px' }}>Programs: 18.55% of rights</li>
-              <li>Network Tooling: 19.35% of rights</li>
+              <li style={{ marginBottom: '4px' }}>Knowledge: 22.58% of PLAA</li>
+              <li style={{ marginBottom: '4px' }}>Programs: 18.55% of PLAA</li>
+              <li>Network Tooling: 19.35% of PLAA</li>
             </ul>
             <p>
               The weights reflect what types of contribution we think create the most impact and value for the network at that time, and so they will change as network needs evolve.
@@ -258,29 +318,29 @@ const faqCategories: FAQCategoryData[] = [
         ),
       },
       {
-        question: 'What if I don\'t have enough points for a whole token?',
+        question: 'What if I don\'t have enough points for a whole PLAA?',
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              Only whole tokens are issued. If your points don&apos;t add up to at least one token in any category, you won&apos;t collect tokens that snapshot period.
+              Only whole PLAA are issued. If your points don&apos;t add up to at least one PLAA in any category, you won&apos;t collect PLAA that snapshot period.
             </p>
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <p style={{ marginBottom: '8px' }}>If you collect:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
                 <li style={{ marginBottom: '4px' }}>100 Network Tooling points (updating your Directory Profile)</li>
-                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,935 tokens available</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling has 1,935 PLAA available</li>
                 <li style={{ marginBottom: '4px' }}>Total Network Tooling points collected for the snapshot period: 193,620 points (realistic if many people complete profiles and host office hours in the same snapshot period)</li>
                 <li style={{ marginBottom: '4px' }}>Your portion: 100 ÷ 193,620 = 0.00052%</li>
-                <li style={{ marginBottom: '4px' }}>Your tokens: 0.00052% × 1,935 = 0.9998 tokens</li>
-                <li>You receive: 0 tokens</li>
+                <li style={{ marginBottom: '4px' }}>Your PLAA: 0.00052% × 1,935 = 0.9998 PLAA</li>
+                <li>You receive: 0 PLAA</li>
               </ul>
             </div>
           </div>
         ),
       },
       {
-        question: 'How is my portion of rights calculated?',
+        question: 'How is my portion of PLAA calculated?',
         answer: (
           <div>
             <ol style={{ paddingLeft: '24px', marginBottom: '16px' }}>
@@ -288,7 +348,7 @@ const faqCategories: FAQCategoryData[] = [
                 Determine your individual contribution as a percentage of each KPI Category: <strong>[Your Points in a Category] ÷ [Total Points in that Category] = [Your Portion as a Percentage]</strong>
               </li>
               <li>
-                Multiply your individual contributions as a percentage by the KPI Emissions (total rewards allocated to that KPI Category): <strong>[Your Percentage] × [Rights Allocated to that Category] = [Your Tokens]</strong>
+                Multiply your individual contributions as a percentage by the KPI Emissions (total rewards allocated to that KPI Category): <strong>[Your Percentage] × [PLAA Allocated to that Category] = [Your PLAA]</strong>
               </li>
             </ol>
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
@@ -299,17 +359,17 @@ const faqCategories: FAQCategoryData[] = [
                 <li style={{ marginBottom: '4px' }}>Network Tooling has 1,935 rewards available and People/Talent has 1,452 rewards available.</li>
                 <li style={{ marginBottom: '4px' }}>The amount of Points collected across all participants for the Network Tooling KPI Category is 1,000 points.</li>
                 <li style={{ marginBottom: '4px' }}>The amount of points collected across all participants for the People/Talent KPI Category is 4,000 points.</li>
-                <li style={{ marginBottom: '4px' }}>You will claim 100 / 1000 or 10% of the Network Tooling KPI Emissions for the March 2025 snapshot period (PLAA1 rights claimed for Network Tooling KPI = 10% * 1,935 (Network Tooling emissions see table above)).</li>
-                <li style={{ marginBottom: '4px' }}>You will claim 200 / 4000 or 5% of the People/Talent KPI Emissions for the March 2025 snapshot period (PLAA1 rights claimed for People/Talent KPI = 5% * 1,452 (People/Talent Emissions see table above)).</li>
+                <li style={{ marginBottom: '4px' }}>You will claim 100 / 1000 or 10% of the Network Tooling KPI Emissions (PLAA = 10% × 1,935).</li>
+                <li style={{ marginBottom: '4px' }}>You will claim 200 / 4000 or 5% of the People/Talent KPI Emissions (PLAA = 5% × 1,452).</li>
                 <li style={{ marginBottom: '4px' }}>For March 2025, you claim:
                   <ul style={{ paddingLeft: '20px', listStyleType: 'circle', marginTop: '4px' }}>
-                    <li style={{ marginBottom: '4px' }}>10% * 1,935 ~ 194 PLAA1 rights in the Network Tooling KPI Category</li>
-                    <li style={{ marginBottom: '4px' }}>5% * 1,452 ~ 73 PLAA1 rights in the People/Talent KPI Category</li>
-                    <li><strong>Total for March: 194 + 73 = 267 rights</strong></li>
+                    <li style={{ marginBottom: '4px' }}>10% × 1,935 ~ 194 PLAA in Network Tooling</li>
+                    <li style={{ marginBottom: '4px' }}>5% × 1,452 ~ 73 PLAA in People/Talent</li>
+                    <li><strong>Total for March: 194 + 73 = 267 PLAA</strong></li>
                   </ul>
                 </li>
               </ul>
-              <p>Please note, only whole tokens may be claimed. In the event you do not collect enough Points to claim a whole PLAA1 right, you will receive 0 tokens during the snapshot period.</p>
+              <p>Please note, only whole PLAA may be claimed. In the event you do not collect enough Points to claim a whole PLAA you will receive 0 PLAA during the snapshot period.</p>
             </div>
           </div>
         ),
@@ -323,43 +383,43 @@ const faqCategories: FAQCategoryData[] = [
     items: [
       {
         question: 'What are the tax implications of collecting points?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into rights and may never result in any settlement, cash, Tokens or other consideration. Points are simply a way of measuring activity within the network. In addition, unless you execute the applicable Rights documentation and satisfy any other eligibility requirements, you may not receive any Rights. Any Rights that are issued may be settled through the issuance of Tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The points you collect are not guaranteed to convert into PLAA and may never result in any settlement, cash, PLAA or other consideration. Points are simply a way of measuring activity within the network. In addition, unless you execute the applicable PLAA documentation and satisfy any other eligibility requirements, you may not receive any PLAA. Any PLAA that are issued may be settled through the issuance of PLAA and redeemed for cash via a buyback or other consideration in accordance with the applicable settlement process.',
       },
       {
-        question: 'What are the tax implications of receiving tokens?',
-        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tax treatment of rights, the settlement of rights through tokens and any subsequent redemption of such tokens for cash or other consideration is uncertain and may vary based on your particular circumstances. Rights settled through tokens may be treated as taxable income upon settlement based on the value of the tokens at that time. In addition, the redemption or buyback of tokens may result in capital gain or loss. Any such capital loss may not be available to offset income recognized upon settlement of Rights. Participation in any Token buyback event is voluntary.',
+        question: 'What are the tax implications of receiving PLAA?',
+        answer: 'We cannot provide tax advice and the response to this question should not be construed as tax advice. We encourage you to consult with a tax professional. The tax treatment of PLAA, the settlement of PLAA and any subsequent redemption of such PLAA for cash or other consideration is uncertain and may vary based on your particular circumstances. PLAA settled through tokens may be treated as taxable income upon settlement based on the value of the PLAA at that time. In addition, the redemption or buyback of PLAA may result in capital gain or loss. Any such capital loss may not be available to offset income recognized upon settlement of PLAA. Participation in any PLAA buyback event is voluntary.',
       },
     ],
   },
   {
     id: 'right-issuance-and-token-settlements',
-    title: 'Right Issuance and Token Settlements',
+    title: 'PLAA Issuance and Settlements',
     icon: '/icons/coin-icon.png',
     items: [
       {
-        question: 'Why are my token calculations "rounded down"? What is the rundown function and why does it exist?',
-        answer: 'The Points-to-Rights algorithm converts participant Points into rights based on a predefined formula tied to the KPI emissions schedule and the monthly Rights allocation cap (see Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the monthly Rights allocation relative to the total Points earned across the network for the applicable KPIs. Because Rights are settled through whole Tokens and fractional Tokens are not currently issued, the settlement of Rights may result in fractional Token amounts. In those cases, the amount is rounded down to the nearest whole Token. This round down function ensures compliance with the applicable monthly settlement cap and avoids over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness across the program.',
+        question: 'Why are my PLAA calculations "rounded down"? What is the rundown function and why does it exist?',
+        answer: 'The Points-to-PLAA algorithm converts participant Points into PLAA based on a predefined formula tied to the KPI emissions schedule and the monthly PLAA allocation cap (see Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the monthly PLAA allocation relative to the total Points earned across the network for the applicable KPIs. Because PLAA are settled through whole tokens and fractional tokens are not currently issued, the settlement of PLAA may result in fractional PLAA amounts. In those cases, the amount is rounded down to the nearest whole PLAA. This round down function ensures compliance with the applicable monthly settlement cap and avoids over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness across the program.',
       },
       {
-        question: 'I\'m not based in the US. When will I be eligible to collect points and receive rights and settled tokens?',
-        answer: 'The current rights issuance is limited to individual accredited investors in the United States. We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information.',
+        question: 'I\'m not based in the US. When will I be eligible to collect points and receive PLAA?',
+        answer: 'We\'re actively working to expand eligibility to other jurisdictions and will communicate updates as soon as we have more information. Please reach out to plaa-wg@plrs.xyz for further questions.',
       },
       {
-        question: 'Why are additional rights being issued?',
+        question: 'Why are additional PLAA being issued?',
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              Additional PLAA1 rights will be distributed to PL Infra team service providers as reward for their contributions to maintaining and supporting the network (also referred to as PL Infra Rewards). As a result, you may see additional rights being issued beyond those associated with incentivized activity participation.
+              Additional PLAA will be distributed to PL Infra team service providers as reward for their contributions to maintaining and supporting the network (also referred to as PL Infra Rewards). As a result, you may see additional PLAA being issued beyond those associated with incentivized activity participation.
             </p>
             <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Importantly:</p>
             <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
               <li style={{ marginBottom: '4px' }}>The structure of the PLAA program otherwise remains unchanged.</li>
-              <li style={{ marginBottom: '4px' }}>PLAA1 rights distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
-              <li style={{ marginBottom: '4px' }}>The distribution of PLAA1 rights for PL Infra Rewards will not impact baseline PLAA activities.</li>
-              <li>The monthly PLAA1 right pool of 10,000 rights reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional token distributions for PL Infra team services providers.</li>
+              <li style={{ marginBottom: '4px' }}>PLAA distributed for PL Infra Rewards are separate from and will not be drawn from, nor funded by, incentivized activity allocations.</li>
+              <li style={{ marginBottom: '4px' }}>The distribution of PLAA for PL Infra Rewards will not impact baseline PLAA activities.</li>
+              <li>The monthly PLAA pool of 10,000 PLAA reserved for PLAA participants who complete incentivized activities during a snapshot period will not be reduced nor diluted as a result of additional PLAA distributions for PL Infra team services providers.</li>
             </ul>
             <p style={{ marginTop: '8px' }}>
-              This reflects an expansion in how the PLAA1 right is being utilized, not a change to how participant rewards operate.
+              This reflects an expansion in how the PLAA is being utilized, not a change to how participant rewards operate.
             </p>
           </div>
         ),
@@ -373,7 +433,7 @@ const faqCategories: FAQCategoryData[] = [
     items: [
       {
         question: 'What is a reverse auction?',
-        answer: 'A reverse auction is a process in which holders of Rights submit the price at which they are willing to sell their Rights. The Trust accepts bids beginning with the lowest asking prices and continues upward until the available buyback pool is exhausted or the applicable allocation cap is reached. Rights that are accepted in the auction are settled through the issuance of Tokens, which are then immediately purchased by the Trust for cash or other consideration in accordance with the applicable settlement process.',
+        answer: 'A reverse auction is a process in which holders of PLAA submit the price at which they are willing to redeem their PLAA. The Trust accepts bids beginning with the lowest asking prices and continues upward until the available buyback pool is exhausted or the applicable allocation cap is reached. PLAA that are accepted in the auction are settled through the issuance of tokens, which are then immediately purchased by the Trust for cash or other consideration in accordance with the applicable settlement process.',
       },
       {
         question: 'What is a batch auction?',
@@ -395,9 +455,9 @@ const faqCategories: FAQCategoryData[] = [
             <p style={{ marginBottom: '12px' }}>Bids are selected when they fall at or below the clearing price.</p>
             <ol style={{ paddingLeft: '24px', marginBottom: '12px', listStyleType: 'lower-alpha' }}>
                <li style={{ marginBottom: '4px' }}>Bids below the clearing price → filled up to their full bid value.</li>
-               <li>Bids at the clearing price → may be partially filled if the buyback pool runs out. In that case, each bid is filled only up to its total bid value (tokens × bid price).</li>
+               <li>Bids at the clearing price → may be partially filled if the buyback pool runs out. In that case, each bid is filled only up to its total bid value (PLAA × bid price).</li>
             </ol>
-            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 rights at $18 (total bid value $90) and the clearing price was $20, you would only be able to sell 4 rights for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole rights are accepted.</p>
+            <p style={{ marginBottom: '12px' }}>Each accepted bidder receives payment using the clearing price up to their total bid value. This means that for example, if you bid 5 PLAA at $18 (total bid value $90) and the clearing price was $20, you would only be able to sell 4 PLAA for $72 (5 x $18 / $20) because your fill cannot exceed your original bid value and only whole PLAA are accepted.</p>
             <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
           </div>
         ),
@@ -415,26 +475,26 @@ const faqCategories: FAQCategoryData[] = [
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>No — if your bid is accepted, you are paid at the clearing price, not your bid price.</p>
-            <p>If your bid is accepted, you receive up to the total dollar value of your bid. When the clearing price is higher than your bid price, this means you may sell fewer tokens, but the total cash amount you receive stays within your bid&apos;s total value. In some cases, if multiple bids are accepted at the clearing price and the buyback pool is fully used, those bids may be partially filled, again capped by each bid&apos;s total value.</p>
+            <p>If your bid is accepted, you receive up to the total dollar value of your bid. When the clearing price is higher than your bid price, this means you may sell fewer PLAA, but the total cash amount you receive stays within your bid&apos;s total value. In some cases, if multiple bids are accepted at the clearing price and the buyback pool is fully used, those bids may be partially filled, again capped by each bid&apos;s total value.</p>
           </div>
         ),
       },
       {
         question: 'What happens after the buyback if my bid is above the clearing price?',
-        answer: 'Your bid will not be accepted, and you retain all of your rights — nothing is sold or removed from your account, and you may use them to participate in future buyback auctions.',
+        answer: 'Your bid will not be accepted, and you retain all of your PLAA — nothing is sold or removed from your account, and you may use them to participate in future buyback auctions.',
       },
       {
         question: 'Can I change or cancel my bid?',
         answer: 'You may submit, edit, or cancel your bids anytime before the auction closes. After close, no changes or new bids are accepted.',
       },
       {
-        question: 'What determines how many of my rights are purchased?',
+        question: 'What determines how many of my PLAA are purchased?',
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>In general, three factors determine your fill:</p>
             <ol style={{ paddingLeft: '24px', marginBottom: '12px' }}>
               <li style={{ marginBottom: '4px' }}><strong>Your bid price vs. the clearing price:</strong> Your bid must be at or below the clearing price to be accepted.</li>
-              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (rights × your bid price). So if you bid 100 rights at $5 and the clearing price is $20, you&apos;ll sell 25 rights for $500, not all 100.</li>
+              <li style={{ marginBottom: '4px' }}><strong>Your bid-value cap:</strong> You can only receive up to your total bid value (PLAA × your bid price). So if you bid 100 PLAA at $5 and the clearing price is $20, you&apos;ll sell 25 PLAA for $500, not all 100.</li>
               <li><strong>The 4.5% per-bidder cap:</strong> No single participant can receive more than 4.5% of the total buyback pool.</li>
             </ol>
             <p>Any changes to auction rules will be communicated 24 hours in advance.</p>
@@ -443,18 +503,18 @@ const faqCategories: FAQCategoryData[] = [
       },
       {
         question: 'Why do clearing prices vary between auctions?',
-        answer: 'Clearing prices differ based on participation, bid distribution, total rights offered, and the size of the buyback pool. In general, if participants offer higher prices, or fewer rights are offered relative to the size of the buyback, the clearing price will be higher.',
+        answer: 'Clearing prices differ based on participation, bid distribution, total PLAA offered, and the size of the buyback pool. In general, if participants offer higher prices, or fewer PLAA are offered relative to the size of the buyback, the clearing price will be higher.',
       },
       {
-        question: 'What happens to purchased tokens?',
+        question: 'What happens to settled tokens?',
         answer: 'Tokens issued as part of the settlement process are purchased by the PLAA1 Trust and then cancelled (or "burned"), after which they are no longer available on the applicable blockchain.',
       },
       {
-        question: 'How do I receive payment for the rights sold in an auction?',
-        answer: 'After the auction results have been calculated, if your bids are accepted, you will receive an email from Surus with instructions regarding settlement and payment. Accepted Rights will be settled through the issuance of Tokens, which will then be purchased by the Trust for cash or other consideration, including stablecoins, at Surus\' discretion.',
+        question: 'How do I receive payment for the PLAA redeemed in an auction?',
+        answer: 'After the auction results have been calculated, if your bids are accepted, you will receive an email from Surus with instructions regarding settlement and payment. Accepted PLAA will be settled through the issuance of tokens, which will then be purchased by the Trust for cash or other consideration, including stablecoins, at Surus\' discretion.',
       },
       {
-        question: 'When do I receive payment for the rights sold?',
+        question: 'When do I receive payment for the PLAA redeemed?',
         answer: 'Payments will be processed as soon as reasonably practicable after auction winners are notified of their accepted bids and Surus receives any payment information required to complete settlement.',
       },
     ],
@@ -469,19 +529,19 @@ const faqCategories: FAQCategoryData[] = [
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              The Simultaneous Token Settlement Program (STSP) is a new program developed by PLAA1 Trust to facilitate the
-              settlement of Rights through Tokens. Under the STSP, participants continue to participate in buyback auctions
-              using their Rights, but Tokens are no longer issued and distributed on a monthly basis. Instead, Tokens are
+              The Simultaneous Token Settlement Program (STSP) is a new program developed by the PLAA1 Trust to facilitate the
+              settlement of PLAA through Tokens. Under the STSP, participants continue to participate in buyback auctions
+              using their PLAA, but Tokens are no longer issued and distributed on a monthly basis. Instead, Tokens are
               issued only in connection with a successful bid in a buyback auction and are thereafter immediately settled
               for cash (or other consideration).
             </p>
             <p style={{ fontWeight: 600, marginBottom: '8px' }}>At an Auction Event:</p>
             <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
               <li style={{ marginBottom: '8px' }}>
-                Participants submit bids using their Rights (in lieu of Tokens).
+                Participants submit bids using their PLAA (in lieu of Tokens).
               </li>
               <li style={{ marginBottom: '8px' }}>
-                To the extent a participant has a successful bid, Tokens corresponding to the Rights accepted in the
+                To the extent a participant has a successful bid, Tokens corresponding to the PLAA accepted in the
                 auction are automatically &quot;issued&quot; to the participant.
               </li>
               <li style={{ marginBottom: '8px' }}>
@@ -514,7 +574,7 @@ const faqCategories: FAQCategoryData[] = [
       {
         question: 'Who is eligible for the Simultaneous Token Settlement Program?',
         answer:
-          'All PLAA stakeholders are automatically enrolled into the Simultaneous Token Settlement Program. There is no election required. All participants follow the same settlement mechanics under the program.',
+          'All PLAA holders are automatically enrolled into the Simultaneous Token Settlement Program. There is no election required. All participants follow the same settlement mechanics under the program.',
       },
       {
         question: 'How does this work for PL Infra Members who are not PLCS employees?',
@@ -524,16 +584,16 @@ const faqCategories: FAQCategoryData[] = [
       {
         question: 'What if I am a PLCS employee?',
         answer:
-          'PLCS employees have additional withholding mechanics. The following applies even if you cease providing service as a PLCS employer. For PL Infra members who are employees of PLCS, applicable tax withholding may apply at the time of settlement.',
+          'PLCS employees have additional withholding mechanics. The following applies even if you cease providing service as a PLCS employee. For PL Infra members who are employees of PLCS, applicable tax withholding may apply at the time of settlement.',
       },
       {
-        question: 'How are PLAA Tokens taxed?',
+        question: 'How is PLAA taxed?',
         answer: (
           <div>
             <p style={{ marginBottom: '12px' }}>
-              PLAA Tokens are generally subject to ordinary income tax based on the value of the tokens when settled,
-              which can be found in your end of year transaction report from the Surus Trust Company. If you have
-              questions about withholding:
+              PLAA is generally subject to ordinary income tax based on the value of the settled tokens, which can be
+              found in your end of year transaction report from the Surus Trust Company. If you have questions about
+              withholding:
             </p>
             <ul style={{ paddingLeft: '24px', listStyleType: 'disc', marginBottom: '0' }}>
               <li style={{ marginBottom: '8px' }}>
@@ -554,10 +614,10 @@ const faqCategories: FAQCategoryData[] = [
             Yes, Tokens issued before the Simultaneous Token Settlement Program went into effect remain valid and may be
             used in future buyback auctions. No action is required from existing holders, and no migration or re-issuance
             is needed. Existing tokens will continue to participate in future buyback auctions on the same terms and
-            conditions as before. In addition, Rights eligible for settlement under the STSP as described above may be
+            conditions as before. In addition, PLAA eligible for settlement under the STSP as described above may be
             used to participate in future auctions. We expect that existing Tokens will be used first in auction events
-            and once these are exhausted, Rights will be used on a go-forward basis as described above. Any pending
-            Tokens not issued before October 1, 2025 will automatically be issued as Rights instead.
+            and once these are exhausted, PLAA will be used on a go-forward basis as described above. Any pending
+            Tokens not issued before October 1, 2025 will automatically be issued as PLAA instead.
           </p>
         ),
       },
@@ -760,7 +820,7 @@ export default function FAQsPage() {
         <div className="faqs__header">
           <h1 className="faqs__header__title">Frequently Asked Questions</h1>
           <p className="faqs__header__header__date">
-            <em>Last Updated: June 29, 2026</em>
+            <em>Last Updated: July 7, 2026</em>
           </p>
         </div>
 
@@ -846,13 +906,13 @@ export default function FAQsPage() {
 
                 {category.id === 'point-to-rights-conversion' && (
                   <div className="faqs__container__category__disclaimer">
-                    <strong>Disclaimer:</strong> The points you collect are not guaranteed to convert into rights and may never result in any value. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign the applicable rights documentation, you may not receive any rights. Any Rights that are issued may be settled through the issuance of tokens as part of the applicable settlement process
+                    <strong>Disclaimer:</strong> The points you collect are not guaranteed to convert into PLAA and may never result in any value. The points are a way of measuring the activities that you are doing in the network. Additionally, unless you sign the applicable PLAA documentation, you may not receive any PLAA. Any PLAA that are issued may be settled through the PLAA settlement process.
                   </div>
                 )}
 
                 {category.id === 'buyback-auctions' && (
                   <div className="faqs__container__category__disclaimer">
-                    <strong>Disclaimer:</strong> Nothing in these materials constitutes investment, financial, or legal advice. The clearing price established in any auction reflects the supply and demand among participating rightsholders and should not be construed as an appraisal, or fair market value determination of Alignment Asset tokens. Rightsholders should consult with their own financial, tax, and legal advisors before deciding whether to participate.
+                    <strong>Disclaimer:</strong> Nothing in these materials constitutes investment, financial, or legal advice. The clearing price established in any auction reflects the supply and demand among participating holders of PLAA and should not be construed as an appraisal, or fair market value determination of PLAA. Holders of PLAA should consult with their own financial, tax, and legal advisors before deciding whether to participate.
                   </div>
                 )}
 

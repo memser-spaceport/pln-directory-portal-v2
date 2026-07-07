@@ -21,24 +21,33 @@ export interface VersionData {
 
 const productVersions: VersionData[] = [
   {
-    version: 'v0.5',
-    dateRange: 'January 2026 - present',
+    version: 'v0.6',
+    dateRange: 'June 2026 - present',
     added: [
-      {
-        text: 'New Activities:',
-        subItems: [
-          'Help Organize an Event',
-          'Respond to an IRL Event',
-          'Contribute a High-Quality Response to the Forum',
-          'Share a Reusable AI Resource or Tool',
-          'Rank Among the Network\'s Most Supportive Members',
-        ],
-      },
-      'Points and Activities Dashboard',
-      'Activity Assistant Bot',
+      'PLVH portfolio holdings added to the Trust\'s assets',
+      'Launched PLAA Dashboard',
+      'Introduced Simultaneous Settlement Program',
+    ],
+  },
+  {
+    version: 'v0.5',
+    dateRange: 'January 2026 - June 2026',
+    added: [
+      'Launched the Alignment Asset website',
+      'Launched monthly Alignment Asset newsletter',
+      'Regions unlocked: Portugal',
+      'Launched Points & Activities Dashboard to enable users a private way to view activities completed and points collected',
+      'Launched AI-powered Activity Assistant bot',
+      '+6 new activities introduced H1 2026',
+      '2 activities removed February 2026 to better align with network needs',
     ],
     changed: [
-      'Expanded onboarded participants from 48 to 61',
+      'Expanded onboarded participants from 48 to 62',
+      'Removed the strict login gate for the website',
+    ],
+    learned: [
+      'Users strongly prefer activities that are tracked and rewarded automatically',
+      'Users desire a more frequent cadence for buyback auctions',
     ],
   },
   {

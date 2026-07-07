@@ -100,6 +100,7 @@ export const NewsCard = ({
         </div>
       )}
       <h3 className={s.headline}>{item.title}</h3>
+      {item.summary && <p className={s.summary}>{item.summary}</p>}
 
       <div className={s.metaLine}>
         <div className={s.meta}>

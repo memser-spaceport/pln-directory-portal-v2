@@ -32,7 +32,7 @@ export function NewsSearch({ open, value, onOpen, onChange, onBlur, fieldRef }: 
 
   return (
     <div className={s.searchField} ref={fieldRef} onBlur={onBlur}>
-      <SearchInput value={value} onChange={onChange} placeholder="Search news, teams…" />
+      <SearchInput value={value} onChange={onChange} placeholder="Search by news, teams…" />
     </div>
   );
 }

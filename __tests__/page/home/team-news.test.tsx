@@ -332,7 +332,7 @@ describe('TeamNews', () => {
   });
 
   describe('search', () => {
-    const SEARCH_PLACEHOLDER = 'Search news, teams…';
+    const SEARCH_PLACEHOLDER = 'Search by news, teams…';
     // The desktop field (rendered via headerDetails, inside NewsBase's header)
     // comes before the mobile row (NewsBase's first `children`) in DOM order —
     // so the mobile row is always the LAST match, whether or not desktop is open.

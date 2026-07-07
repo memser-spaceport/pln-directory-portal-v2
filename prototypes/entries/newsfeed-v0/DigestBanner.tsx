@@ -52,7 +52,9 @@ export function DigestBanner({ subscribed, onToggle }: Props) {
     <section className={local.digestPromo} aria-label="Subscribe to the news digest">
       <div className={local.digestPromoText}>
         <p className={local.digestPromoTitle}>Get notified about network news updates</p>
-        <p className={local.digestPromoBody}>A news digest covering raises, launches, and milestones across the network, straight to your inbox.</p>
+        <p className={local.digestPromoBody}>
+          A news digest covering raises, launches, and milestones across the network, straight to your inbox.
+        </p>
       </div>
       <Button
         size="s"

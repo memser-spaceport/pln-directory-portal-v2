@@ -110,7 +110,6 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
             {isHydrated && (
               <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
                 <span>Subscribe for Digest</span>
-                <ArrowRight />
               </button>
             )}
           </section>

@@ -2,6 +2,13 @@ import { IAnalyticsUserInfo } from '@/types/shared.types';
 import { SETTINGS_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+
+export type ForumDigestAnalyticsSource = 'home-feed' | 'settings';
+
+export interface ForumDigestOptionSelectParams extends ForumDigestSettings {
+  source: ForumDigestAnalyticsSource;
+}
 
 export const useSettingsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -190,11 +197,11 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.RECOMMENDATION_EMAIL_FEEDBACK_CLICKED, params);
   }
 
-  function onForumDigestOptionSelect(params: any) {
+  function onForumDigestOptionSelect(params: ForumDigestOptionSelectParams) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_OPTION_SELECTED, params);
   }
 
-  function onForumDigestSaveFailed(params: { attemptedFrequency: string }) {
+  function onForumDigestSaveFailed(params: { attemptedFrequency: string; source: ForumDigestAnalyticsSource }) {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.FORUM_DIGEST_SAVE_FAILED, params);
   }
 

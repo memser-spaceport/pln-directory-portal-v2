@@ -18,6 +18,7 @@ const mockOnTabClicked = jest.fn();
 const mockOnCategoryClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
 const mockOnCardClicked = jest.fn();
+const mockOnTeamNewsSearch = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -25,6 +26,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsCategoryClicked: (...a: unknown[]) => mockOnCategoryClicked(...a),
     onTeamNewsLoadMoreClicked: (...a: unknown[]) => mockOnLoadMoreClicked(...a),
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
+    onTeamNewsSearch: (...a: unknown[]) => mockOnTeamNewsSearch(...a),
   }),
 }));
 
@@ -513,6 +515,83 @@ describe('TeamNews', () => {
       act(() => jest.advanceTimersByTime(700));
       expect(getMobileInput()).toHaveValue('lattice');
       expect(screen.getByRole('link', { name: 'Lattice Compute' })).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('fires onTeamNewsSearch once the debounce settles, with the typed value, narrowed result count, and current tab/category', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      fireEvent.change(getMobileInput(), { target: { value: 'lattice' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledWith('lattice', 1, 'All', 'all');
+      jest.useRealTimers();
+    });
+
+    it('does not fire onTeamNewsSearch when the query is cleared', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      const input = getMobileInput();
+      fireEvent.change(input, { target: { value: 'lattice' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledTimes(1);
+
+      fireEvent.change(input, { target: { value: '' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledTimes(1); // still just the one call from above
+      jest.useRealTimers();
+    });
+
+    it('does not re-fire onTeamNewsSearch merely from switching tabs with an already-set query', () => {
+      jest.useFakeTimers();
+      const dhrAcme = { ...acme, uid: 'acme-dhr', focusAreas: ['Digital Human Rights'] };
+      const groupsWithTabs: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 3, items: [lattice, acme, filecoin] },
+        { focusArea: FA_DHR, total: 1, items: [dhrAcme] },
+      ];
+      renderTeamNews(<TeamNews groups={groupsWithTabs} />);
+      fireEvent.change(getMobileInput(), { target: { value: 'acme' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledTimes(1); // tab switch alone must not trigger a second call
+      jest.useRealTimers();
+    });
+
+    it('reports resultCount/currentTab scoped to the tab active when the search fires, not the tab at mount (latest-ref correctness)', () => {
+      jest.useFakeTimers();
+      const dhrOnly = {
+        ...makeItem('dhr-unique', 'MILESTONE', ['Digital Human Rights']),
+        teamUid: 'team-dhr-only',
+        teamName: 'DHR Only Team',
+        tags: ['unique-dhr-tag'],
+      };
+      const groupsWithTabs: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 3, items: [lattice, acme, filecoin] },
+        { focusArea: FA_DHR, total: 1, items: [dhrOnly] },
+      ];
+      renderTeamNews(<TeamNews groups={groupsWithTabs} />);
+
+      // Switch to the DHR tab BEFORE searching — the search's resultCount/tab
+      // should reflect DHR, not the AI/"All" tab active when the component mounted.
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      fireEvent.change(getMobileInput(), { target: { value: 'unique-dhr-tag' } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledWith('unique-dhr-tag', 1, 'Digital Human Rights', 'all');
+      jest.useRealTimers();
+    });
+
+    it('truncates searchValue to 100 characters before reporting it', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={searchGroups} />);
+      const longQuery = 'a'.repeat(150);
+      fireEvent.change(getMobileInput(), { target: { value: longQuery } });
+      act(() => jest.advanceTimersByTime(700));
+
+      expect(mockOnTeamNewsSearch).toHaveBeenCalledWith(longQuery.slice(0, 100), 0, 'All', 'all');
+      const [reportedValue] = mockOnTeamNewsSearch.mock.calls[0];
+      expect(reportedValue).toHaveLength(100);
       jest.useRealTimers();
     });
   });

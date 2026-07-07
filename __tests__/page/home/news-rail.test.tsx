@@ -71,7 +71,7 @@ describe('NewsRail', () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
 
-  it('calls the forum-digest mutation with weekly frequency when an authenticated user subscribes', () => {
+  it('calls the forum-digest mutation with weekly frequency when an authenticated user subscribes, and fires onForumDigestOptionSelect(source: home-feed) once it succeeds', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
     mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({
@@ -87,9 +87,32 @@ describe('NewsRail', () => {
       },
       expect.anything(),
     );
+
+    // mockMutate is a bare jest.fn() — it doesn't auto-invoke onSuccess/onError,
+    // so the mutation's outcome must be simulated manually.
+    const options = mockMutate.mock.calls[0][1];
+    options.onSuccess();
+
     expect(mockOnForumDigestOptionSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ forumDigestEnabled: true, forumDigestFrequency: 7 }),
+      expect.objectContaining({ forumDigestEnabled: true, forumDigestFrequency: 7, source: 'home-feed' }),
     );
+    expect(mockOnForumDigestSaveFailed).not.toHaveBeenCalled();
+  });
+
+  it('fires onForumDigestSaveFailed(source: home-feed) on mutation failure, and does not also fire onForumDigestOptionSelect', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
+    mockGetForumDigestSettings.mockReturnValue({
+      data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
+    });
+    render(<NewsRail />);
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe for Digest' }));
+
+    const options = mockMutate.mock.calls[0][1];
+    options.onError();
+
+    expect(mockOnForumDigestSaveFailed).toHaveBeenCalledWith({ attemptedFrequency: 'weekly', source: 'home-feed' });
+    expect(mockOnForumDigestOptionSelect).not.toHaveBeenCalled();
   });
 
   it('shows the subscribed card with a link to Settings once forumDigestEnabled is true, instead of the promo card', () => {

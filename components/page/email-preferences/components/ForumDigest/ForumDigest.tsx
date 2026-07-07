@@ -82,13 +82,14 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'no_digest' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'no_digest', source: 'settings' });
           },
         },
       );
-
-      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
@@ -97,7 +98,7 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
       const _payload = {
         ...data,
         forumDigestEnabled: true,
-        forumDigestFrequency: 1,
+        forumDigestFrequency: 1 as const,
       };
 
       mutate(
@@ -106,13 +107,14 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'daily' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'daily', source: 'settings' });
           },
         },
       );
-
-      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }
@@ -121,7 +123,7 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
       const _payload = {
         ...data,
         forumDigestEnabled: true,
-        forumDigestFrequency: 7,
+        forumDigestFrequency: 7 as const,
       };
 
       mutate(
@@ -130,13 +132,14 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           payload: _payload,
         },
         {
+          onSuccess: () => {
+            analytics.onForumDigestOptionSelect({ ..._payload, source: 'settings' });
+          },
           onError: () => {
-            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly' });
+            analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly', source: 'settings' });
           },
         },
       );
-
-      analytics.onForumDigestOptionSelect(_payload);
 
       return;
     }

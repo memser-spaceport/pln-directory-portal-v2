@@ -45,6 +45,18 @@ function getSearchInputEl(container: HTMLDivElement | null): HTMLInputElement | 
   return container?.querySelector('input') ?? null;
 }
 
+// Shared by searchedItems' useMemo and handleSearch's synchronous result-count
+// computation, so the two never drift into different definitions of "matches".
+function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): boolean {
+  if (!lowerCaseQuery) return true;
+  return (
+    item.teamName.toLowerCase().includes(lowerCaseQuery) ||
+    item.title.toLowerCase().includes(lowerCaseQuery) ||
+    (item.summary?.toLowerCase().includes(lowerCaseQuery) ?? false) ||
+    item.tags.some((t) => t.toLowerCase().includes(lowerCaseQuery))
+  );
+}
+
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   pageSize?: number;
@@ -106,13 +118,7 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
   const searchedItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return filteredItems;
-    return filteredItems.filter(
-      (i) =>
-        i.teamName.toLowerCase().includes(q) ||
-        i.title.toLowerCase().includes(q) ||
-        (i.summary?.toLowerCase().includes(q) ?? false) ||
-        i.tags.some((t) => t.toLowerCase().includes(q)),
-    );
+    return filteredItems.filter((i) => matchesTeamNewsQuery(i, q));
   }, [filteredItems, query]);
 
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
@@ -159,14 +165,44 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
   };
 
+  // "Latest ref" pattern: lets handleSearch read current context synchronously
+  // without adding it to handleSearch's dependency array, which must stay
+  // empty (see the comment on handleSearch below). Refs are synced in an
+  // effect with no dependency array (runs after every render) rather than
+  // written during render, per this repo's react-hooks/refs lint rule.
+  const filteredItemsRef = useRef(filteredItems);
+  const activeTabRef = useRef(activeTab);
+  const activeCategoryRef = useRef(activeCategory);
+  const analyticsRef = useRef(analytics);
+  useEffect(() => {
+    filteredItemsRef.current = filteredItems;
+    activeTabRef.current = activeTab;
+    activeCategoryRef.current = activeCategory;
+    analyticsRef.current = analytics;
+  });
+
   // useCallback with empty deps is required here, not just tidy: SearchInput's
   // DebouncedInput recreates its internal debounce instance whenever this
   // function's identity changes, which orphans any in-flight debounce timer
   // rather than cancelling it — a stale timer can then overwrite text the
-  // user typed after an unrelated re-render (e.g. clicking Follow).
+  // user typed after an unrelated re-render (e.g. clicking Follow). This is
+  // also why resultCount/activeTab/activeCategory/analytics are read via the
+  // refs above rather than added here as dependencies.
   const handleSearch = useCallback((value: string) => {
     setQuery(value);
     setExpanded(false); // matches handleTab/handleCategory's reset-on-filter-change convention
+
+    const trimmed = value.trim();
+    if (!trimmed) return; // clearing a search isn't a search event
+    const q = trimmed.toLowerCase();
+    const resultCount = filteredItemsRef.current.filter((i) => matchesTeamNewsQuery(i, q)).length;
+    const truncatedSearchValue = value.length > 100 ? value.slice(0, 100) : value;
+    analyticsRef.current.onTeamNewsSearch(
+      truncatedSearchValue,
+      resultCount,
+      activeTabRef.current,
+      String(activeCategoryRef.current),
+    );
   }, []);
 
   const handleFieldBlur = useCallback((e: FocusEvent<HTMLDivElement>) => {

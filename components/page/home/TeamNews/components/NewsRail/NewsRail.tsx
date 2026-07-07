@@ -71,9 +71,11 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
     const payload = { ...(data ?? defaultSettings), forumDigestEnabled: true, forumDigestFrequency: 7 as const };
     mutate(
       { uid: currentUser.uid, payload },
-      { onError: () => analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly' }) },
+      {
+        onSuccess: () => analytics.onForumDigestOptionSelect({ ...payload, source: 'home-feed' }),
+        onError: () => analytics.onForumDigestSaveFailed({ attemptedFrequency: 'weekly', source: 'home-feed' }),
+      },
     );
-    analytics.onForumDigestOptionSelect(payload);
   };
 
   return (

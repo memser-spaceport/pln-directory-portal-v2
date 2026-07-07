@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
-import { toast } from '@/components/core/ToastContainer';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
@@ -245,9 +244,6 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
         },
         onSuccess: () => {
           if (action === 'follow') {
-            toast.success(
-              `You're now following ${teamName} — their updates will appear first in your feed. Manage who you follow from your profile.`,
-            );
             followAnalytics.onTeamFollowed({ teamUid, teamName, source: 'news-feed' });
           } else {
             followAnalytics.onTeamUnfollowed({ teamUid, teamName, source: 'news-feed' });

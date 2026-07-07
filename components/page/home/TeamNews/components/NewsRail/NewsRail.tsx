@@ -86,33 +86,32 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
         <p className={s.whyBody}>Follow teams to receive updates and announcements.</p>
       </section>
 
-      {showDigest &&
-        (isSubscribed ? (
-          <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
-            <span className={s.iconBadge} aria-hidden="true">
-              <MailIcon />
-            </span>
-            <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
-            <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
-            <Link href="/settings/email" className={s.manageLink}>
-              <span>Manage in Settings</span>
+      {isSubscribed ? (
+        <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
+          <span className={s.iconBadge} aria-hidden="true">
+            <MailIcon />
+          </span>
+          <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
+          <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
+          <Link href="/settings/email" className={s.manageLink}>
+            <span>Manage in Settings</span>
+            <ArrowRight />
+          </Link>
+        </section>
+      ) : (
+        <section className={s.digestCard} aria-label="Subscribe to the news digest">
+          <p className={s.digestTitle}>Get notified about network news updates</p>
+          <p className={s.digestBody}>
+            A news digest covering raises, launches, and milestones across the network, straight to your inbox.
+          </p>
+          {isHydrated && (
+            <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
+              <span>Subscribe for Digest</span>
               <ArrowRight />
-            </Link>
-          </section>
-        ) : (
-          <section className={s.digestCard} aria-label="Subscribe to the news digest">
-            <p className={s.digestTitle}>Get notified about network news updates</p>
-            <p className={s.digestBody}>
-              A news digest covering raises, launches, and milestones across the network, straight to your inbox.
-            </p>
-            {isHydrated && (
-              <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
-                <span>Subscribe for Digest</span>
-                <ArrowRight />
-              </button>
-            )}
-          </section>
-        ))}
+            </button>
+          )}
+        </section>
+      )}
     </aside>
   );
 }

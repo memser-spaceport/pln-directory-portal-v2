@@ -49,17 +49,19 @@
   flex-shrink: 0;
   border: none;
   background: none;
-  padding: 0;
+  padding: 2px 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
   letter-spacing: -0.1px;
-  color: #156ff7;
+  color: var(--foreground-brand-primary, #1b4dff);
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    text-decoration: underline;
+    color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--transparent-brand-8, #1b4dff14);
   }
 
   &:disabled {
@@ -70,4 +72,9 @@
 
 .compactFollowing {
   color: #455468;
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    background: var(--transparent-dark-4, #0e0f110a);
+  }
 }

@@ -24,19 +24,9 @@ export const Toasts: Story = {
           toast('Hello World', { type, autoClose: 3000 });
         }
 
-        function openToastWithBg() {
-          toast('Hello World', {
-            type,
-            data: {
-              withBg: true,
-            },
-          });
-        }
-
         return (
           <div className={s.row} key={type}>
             <button onClick={openToast}>{capitalize(type)}</button>
-            <button onClick={openToastWithBg}>With BG</button>
           </div>
         );
       })}

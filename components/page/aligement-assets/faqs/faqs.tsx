@@ -207,10 +207,10 @@ const faqCategories: FAQCategoryData[] = [
             <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
               <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>Example:</p>
               <ul style={{ paddingLeft: '20px', listStyleType: 'disc', marginBottom: '0' }}>
-                <li style={{ marginBottom: '4px' }}>Network Tooling gets 14.64% of 10,000 PLAA = 1,463 PLAA available for Network Tooling</li>
+                <li style={{ marginBottom: '4px' }}>Network Tooling gets 19.35% of 10,000 PLAA = 1,935 PLAA available for Network Tooling</li>
                 <li style={{ marginBottom: '4px' }}>You collected 100 points; everyone collected 1,000 points total</li>
                 <li style={{ marginBottom: '4px' }}>Your portion of points: 100 ÷ 1,000 = 10%</li>
-                <li>Your PLAA: 10% × 1,463 = ~146 PLAA</li>
+                <li>Your PLAA: 10% × 1,935 = ~194 PLAA</li>
               </ul>
             </div>
 

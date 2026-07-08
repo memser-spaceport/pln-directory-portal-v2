@@ -71,28 +71,13 @@ export function AiAppFeedbackPage() {
           Back to AI Apps
         </Link>
 
-        <div className={s.header}>
-          <div className={s.titleBlock}>
-            <h1 className={s.title}>{isDirectoryAdmin ? 'All app feedback' : 'Feedback on your apps'}</h1>
-            <p className={s.subtitle}>
-              {isDirectoryAdmin
-                ? 'Every app across the directory.'
-                : 'Only the apps you build — not every app on the page.'}
-            </p>
-          </div>
-          {!isLoading && !isError && feedback.length > 0 && (
-            <Button
-              size="s"
-              style="fill"
-              variant="primary"
-              onClick={handleExport}
-              disabled={visibleRows.length === 0}
-              className={s.exportButton}
-            >
-              <DownloadIcon />
-              Export CSV
-            </Button>
-          )}
+        <div className={s.titleBlock}>
+          <h1 className={s.title}>{isDirectoryAdmin ? 'All app feedback' : 'Feedback on your apps'}</h1>
+          <p className={s.subtitle}>
+            {isDirectoryAdmin
+              ? 'Every app across the directory.'
+              : 'Only the apps you build — not every app on the page.'}
+          </p>
         </div>
 
         {isLoading ? (
@@ -103,18 +88,31 @@ export function AiAppFeedbackPage() {
           <div className={s.state}>No feedback has been submitted yet.</div>
         ) : (
           <>
-            <div className={s.tabs}>
-              {tabs.map((tab) => (
-                <button
-                  key={tab.name}
-                  type="button"
-                  className={clsx(s.tab, { [s.tabActive]: tab.name === activeTab })}
-                  onClick={() => handleTabClick(tab.name)}
-                >
-                  {tab.name}
-                  <span className={s.tabCount}>{tab.count}</span>
-                </button>
-              ))}
+            <div className={s.tabsRow}>
+              <div className={s.tabs}>
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.name}
+                    type="button"
+                    className={clsx(s.tab, { [s.tabActive]: tab.name === activeTab })}
+                    onClick={() => handleTabClick(tab.name)}
+                  >
+                    {tab.name}
+                    <span className={s.tabCount}>{tab.count}</span>
+                  </button>
+                ))}
+              </div>
+              <Button
+                size="s"
+                style="fill"
+                variant="primary"
+                onClick={handleExport}
+                disabled={visibleRows.length === 0}
+                className={s.exportButton}
+              >
+                <DownloadIcon />
+                Export CSV
+              </Button>
             </div>
 
             {visibleRows.length === 0 ? (

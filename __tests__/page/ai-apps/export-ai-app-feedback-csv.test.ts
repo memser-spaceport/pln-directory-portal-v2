@@ -1,14 +1,13 @@
 import { exportAiAppFeedbackCsv } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/exportAiAppFeedbackCsv';
-import type { AiAppFeedback } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 
-function makeRow(overrides: Partial<AiAppFeedback> = {}): AiAppFeedback {
+function makeRow(overrides: Partial<AiAppFeedbackRow> = {}): AiAppFeedbackRow {
   return {
     uid: 'fb-1',
     appUid: 'app-1',
     appName: 'Test App',
-    message: 'Great app!',
-    memberUid: 'member-1',
-    memberName: 'Ada Lovelace',
+    text: 'Great app!',
+    member: { uid: 'member-1', name: 'Ada Lovelace' },
     createdAt: '2026-07-08T00:00:00.000Z',
     ...overrides,
   };
@@ -50,7 +49,7 @@ describe('exportAiAppFeedbackCsv', () => {
   });
 
   it('builds a CSV with a header row and escapes commas/quotes/newlines', () => {
-    const rows = [makeRow({ message: 'Contains, a comma and "quotes"\nand a newline' })];
+    const rows = [makeRow({ text: 'Contains, a comma and "quotes"\nand a newline' })];
 
     exportAiAppFeedbackCsv(rows, 'feedback.csv');
 
@@ -85,5 +84,12 @@ describe('exportAiAppFeedbackCsv', () => {
     exportAiAppFeedbackCsv([makeRow()], 'my-export.csv');
 
     expect(downloadedFilename).toBe('my-export.csv');
+  });
+
+  it('falls back to "Unknown member" when the submitter record is gone (member: null)', () => {
+    exportAiAppFeedbackCsv([makeRow({ member: null })], 'feedback.csv');
+
+    const [, dataLine] = capturedCsvText!.split('\r\n');
+    expect(dataLine).toBe('Test App,Great app!,Unknown member,2026-07-08T00:00:00.000Z');
   });
 });

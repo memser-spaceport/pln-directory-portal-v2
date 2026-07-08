@@ -1,4 +1,4 @@
-import type { AiAppFeedback } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 
 /**
  * Serialize a value for CSV: quote if it contains comma / quote / newline.
@@ -13,15 +13,15 @@ function csvCell(value: unknown): string {
   return str;
 }
 
-const COLUMNS: Array<{ header: string; getter: (row: AiAppFeedback) => unknown }> = [
+const COLUMNS: Array<{ header: string; getter: (row: AiAppFeedbackRow) => unknown }> = [
   { header: 'app_name', getter: (row) => row.appName },
-  { header: 'feedback', getter: (row) => row.message },
-  { header: 'submitter', getter: (row) => row.memberName },
+  { header: 'feedback', getter: (row) => row.text },
+  { header: 'submitter', getter: (row) => row.member?.name ?? 'Unknown member' },
   { header: 'date', getter: (row) => row.createdAt },
 ];
 
 /** Build a CSV blob and trigger a browser download for the currently loaded/filtered feedback rows. */
-export function exportAiAppFeedbackCsv(rows: AiAppFeedback[], filename: string): void {
+export function exportAiAppFeedbackCsv(rows: AiAppFeedbackRow[], filename: string): void {
   if (rows.length === 0) return;
 
   const lines = [COLUMNS.map((c) => csvCell(c.header)).join(',')];

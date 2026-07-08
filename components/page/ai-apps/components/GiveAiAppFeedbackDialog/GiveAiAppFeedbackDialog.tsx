@@ -66,7 +66,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
     }
 
     mutate(
-      { appUid: targetAppUid, message: trimmedMessage },
+      { appUid: targetAppUid, text: trimmedMessage },
       {
         onSuccess: () => {
           analytics.onFeedbackSubmitted(targetAppUid, appName ?? app?.label ?? '');

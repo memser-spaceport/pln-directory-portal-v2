@@ -64,7 +64,7 @@ describe('GiveAiAppFeedbackDialog', () => {
     // isn't synchronous with the click.
     await waitFor(() =>
       expect(mockMutate).toHaveBeenCalledWith(
-        { appUid: 'app-1', message: 'Nice app!' },
+        { appUid: 'app-1', text: 'Nice app!' },
         expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
       ),
     );

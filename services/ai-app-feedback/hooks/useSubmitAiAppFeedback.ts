@@ -5,12 +5,12 @@ import { submitAiAppFeedback } from '@/services/ai-app-feedback/ai-app-feedback.
 
 export interface SubmitAiAppFeedbackData {
   appUid: string;
-  message: string;
+  text: string;
 }
 
 export function useSubmitAiAppFeedback() {
   return useMutation({
-    mutationFn: ({ appUid, message }: SubmitAiAppFeedbackData) => submitAiAppFeedback(appUid, message),
+    mutationFn: ({ appUid, text }: SubmitAiAppFeedbackData) => submitAiAppFeedback(appUid, text),
     onError: (error) => {
       console.error('Failed to submit AI App feedback:', error);
     },

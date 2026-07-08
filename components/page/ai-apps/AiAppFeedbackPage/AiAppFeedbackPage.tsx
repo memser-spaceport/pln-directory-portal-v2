@@ -80,8 +80,8 @@ export function AiAppFeedbackPage() {
                       <span className={s.appName}>{row.appName}</span>
                       <span className={s.date}>{new Date(row.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <p className={s.message}>{row.message}</p>
-                    <span className={s.submitter}>{row.memberName}</span>
+                    <p className={s.message}>{row.text}</p>
+                    <span className={s.submitter}>{row.member?.name ?? 'Unknown member'}</span>
                   </div>
                 ))}
               </div>

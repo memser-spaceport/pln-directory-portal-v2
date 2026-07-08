@@ -1,0 +1,91 @@
+@use 'styles/media';
+
+.pageFrame {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 16px 64px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 20px;
+  }
+}
+
+.state {
+  padding: 24px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+}
+
+.rowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.appName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.date {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.message {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.submitter {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

@@ -5,6 +5,8 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
 import { AiAppsGrid } from './components/AiAppsGrid';
 import { CreateAiAppModal } from './components/CreateAiAppModal';
+import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
+import { ViewFeedbackEntryPoint } from '../components/ViewFeedbackEntryPoint';
 
 import s from './AiAppsPage.module.scss';
 
@@ -39,12 +41,15 @@ export function AiAppsPage() {
               A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.
             </p>
           </div>
+          <ViewFeedbackEntryPoint />
         </div>
 
         <AiAppsGrid onOpenCreateModal={handleOpenCreateModal} />
 
         <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
       </div>
+
+      <FloatingFeedbackButton />
     </div>
   );
 }

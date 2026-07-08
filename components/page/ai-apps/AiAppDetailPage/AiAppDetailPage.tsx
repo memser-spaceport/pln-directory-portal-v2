@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
+import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 
 import s from './AiAppDetailPage.module.scss';
 
@@ -52,6 +53,7 @@ export function AiAppDetailPage(props: Props) {
   return (
     <div className={s.root}>
       <iframe className={s.iframe} src={app.url} title={app.name} allow="fullscreen" onLoad={handleIframeLoad} />
+      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
     </div>
   );
 }

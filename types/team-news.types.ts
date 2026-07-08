@@ -22,6 +22,16 @@ export interface ITeamNewsItem {
   createdAt: string;
   discussion: ITeamNewsDiscussion;
   isFollowed?: boolean;
+  isUpvoted?: boolean;
+  upvoteCount?: number;
+}
+
+export interface ISuggestedTeam {
+  uid: string;
+  name: string;
+  logoUrl: string | null;
+  reason: string;
+  reasonType: 'focus-area' | 'community-affiliation' | 'industry-tag';
 }
 
 export interface ICreateTeamNewsDiscussionRequest {

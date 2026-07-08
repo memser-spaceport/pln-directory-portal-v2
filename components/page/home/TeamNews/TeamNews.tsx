@@ -7,6 +7,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } fr
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useFollowAnalytics } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useCurrentUserStore } from '@/services/auth/store';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
 
@@ -26,6 +29,7 @@ import { hasExistingDiscussion } from './components/NewsCard/components/StartCon
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { clusterByTeam } from './utils/clusterByTeam';
+import { getPopularThisWeek } from '@/services/team-news/utils/getPopularThisWeek';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
@@ -73,8 +77,22 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
   const analytics = useTeamNewsAnalytics();
   const followAnalytics = useFollowAnalytics();
   const { mutate: followMutate } = useFollowTeam();
+  const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
 
-  const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), [groups]);
+  // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
+  // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
+  // same way follow state already is (see followedTeamUids below): a local overlay,
+  // applied once in this memo, so every derived view (tabs, clusters, the Popular
+  // rail) reads the same merged item and can never drift out of sync with itself.
+  const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { isUpvoted: boolean; upvoteCount: number }>>(
+    () => new Map(),
+  );
+
+  const allItems = useMemo(() => {
+    const merged = sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items)));
+    if (upvoteOverlay.size === 0) return merged;
+    return merged.map((item) => (upvoteOverlay.has(item.uid) ? { ...item, ...upvoteOverlay.get(item.uid) } : item));
+  }, [groups, upvoteOverlay]);
 
   const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
@@ -131,6 +149,22 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
 
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
+
+  // Global (not filtered to unfollowed teams) and derived from the same overlay-applied
+  // allItems the feed renders — a viewer's own upvote crossing the >=2 threshold shows
+  // up here immediately, with no separate fetch to fall out of sync with.
+  const popularItems = useMemo(() => getPopularThisWeek(allItems, new Date()), [allItems]);
+
+  const { currentUser } = useCurrentUserStore();
+  const memberTeamUid = currentUser?.leadingTeams?.[0] ?? null;
+  const todayDateString = new Date().toISOString().slice(0, 10);
+  const suggestionSeed = `${todayDateString}:${currentUser?.uid ?? 'anon'}`;
+  const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
+    memberTeamUid,
+    followedTeamUids,
+    recentNewsItems: allItems,
+    seed: suggestionSeed,
+  });
 
   const handleTab = (id: string) => {
     const nextItems = id === ALL_TAB ? allItems : (groups.find((g) => g.focusArea.title === id)?.items ?? []);
@@ -253,6 +287,40 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
     );
   };
 
+  // Auth check + login redirect happens in the calling card component (see
+  // NewsGroupCard.handleUpvoteClick), matching handleFollowToggle's split below —
+  // this handler assumes an authenticated caller.
+  const handleUpvoteToggle = (item: ITeamNewsItem) => {
+    const wasUpvoted = Boolean(item.isUpvoted);
+    const nextUpvoted = !wasUpvoted;
+    const prevCount = item.upvoteCount ?? 0;
+    const nextCount = wasUpvoted ? Math.max(0, prevCount - 1) : prevCount + 1;
+
+    setUpvoteOverlay((prev) => {
+      const next = new Map(prev);
+      next.set(item.uid, { isUpvoted: nextUpvoted, upvoteCount: nextCount });
+      return next;
+    });
+
+    const position = visibleClusters.findIndex((c) => c.teamUid === item.teamUid);
+
+    upvoteMutate(
+      { uid: item.uid, isUpvoted: nextUpvoted },
+      {
+        onError: () => {
+          setUpvoteOverlay((prev) => {
+            const next = new Map(prev);
+            next.set(item.uid, { isUpvoted: wasUpvoted, upvoteCount: prevCount });
+            return next;
+          });
+        },
+        onSuccess: () => {
+          analytics.onTeamNewsUpvoteToggled(item, position >= 0 ? position : 0, nextUpvoted, 'home');
+        },
+      },
+    );
+  };
+
   if (isEmpty(allItems)) {
     return (
       <NewsBase>
@@ -326,6 +394,7 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
                     onStoryClick={handleCardClick}
                     isFollowing={followedTeamUids.has(cluster.teamUid)}
                     onFollowToggle={handleFollowToggle}
+                    onUpvoteToggle={handleUpvoteToggle}
                   />
                 ))}
               </div>
@@ -339,7 +408,13 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
             </>
           )}
         </div>
-        <NewsRail initialDigestSettings={initialDigestSettings} />
+        <NewsRail
+          initialDigestSettings={initialDigestSettings}
+          popularItems={popularItems}
+          suggestedTeams={suggestedTeams}
+          isLoadingSuggestedTeams={isLoadingSuggestedTeams}
+          onFollowToggle={handleFollowToggle}
+        />
       </div>
     </NewsBase>
   );

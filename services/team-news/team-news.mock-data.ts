@@ -40,6 +40,7 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     sourceDomain: 'protocol.ai',
     discussion: { count: 4, latestTopicUrl: '/forum/t/1' },
     isFollowed: true,
+    upvoteCount: 12,
   }),
   item({
     uid: 'mock-pl-2',
@@ -48,8 +49,7 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     eventType: 'MILESTONE',
     eventDate: '2026-06-28T12:00:00.000Z',
     title: 'Network crosses 10,000 contributing builders',
-    summary:
-      'Contributor growth nearly doubled year over year, driven by the compute and AI-data tracks.',
+    summary: 'Contributor growth nearly doubled year over year, driven by the compute and AI-data tracks.',
     sourceDomain: 'protocol.ai',
     discussion: { count: 2, latestTopicUrl: '/forum/t/2' },
     isFollowed: true,
@@ -61,9 +61,11 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     eventType: 'ANNOUNCEMENT',
     eventDate: '2026-06-24T09:30:00.000Z',
     title: 'Grants program expands to fund open-source AI tooling',
-    summary: 'A new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k.',
+    summary:
+      'A new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k.',
     sourceDomain: 'protocol.ai',
     isFollowed: true,
+    upvoteCount: 9,
   }),
   item({
     uid: 'mock-pl-4',
@@ -75,6 +77,7 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     summary: 'The portal brings the three projects’ documentation under one search and navigation.',
     sourceDomain: 'protocol.ai',
     isFollowed: true,
+    upvoteCount: 3,
   }),
   item({
     uid: 'mock-pl-5',
@@ -86,6 +89,7 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     summary: 'The group will draft a shared spec for wallet-portable identity across networks.',
     sourceDomain: 'protocol.ai',
     isFollowed: true,
+    upvoteCount: 1, // exactly below the Popular-this-week threshold (>=2) — demos the excluded case
   }),
 ];
 
@@ -102,6 +106,7 @@ const PROTOCOL_LABS_NETWORKING: ITeamNewsItem[] = [
     summary: 'A joint reference implementation ships with the next libp2p release.',
     sourceDomain: 'protocol.ai',
     isFollowed: true,
+    upvoteCount: 5,
   }),
 ];
 
@@ -117,6 +122,8 @@ const LATTICE: ITeamNewsItem[] = [
     summary:
       'The $4.2M extension was led by existing backers and funds a marketplace matching idle GPU capacity with verifiable workloads.',
     discussion: { count: 2, latestTopicUrl: '/forum/t/3' },
+    upvoteCount: 14, // highest count in the fixture set — the clear "Popular this week" #1
+    isUpvoted: true, // demos the viewer-already-upvoted state
   }),
   item({
     uid: 'mock-lc-2',
@@ -127,6 +134,7 @@ const LATTICE: ITeamNewsItem[] = [
     title: 'New retrieval client cuts cold-storage reads by 40%',
     summary: 'Early adopters report cold-storage reads dropping from minutes to under thirty seconds.',
     discussion: { count: 1, latestTopicUrl: '/forum/t/4' },
+    upvoteCount: 2, // exactly at the Popular-this-week threshold — demos the included boundary case
   }),
 ];
 
@@ -143,6 +151,7 @@ const FILECOIN: ITeamNewsItem[] = [
       'The round offers up to $250k per project for teams building provenance and verifiable-storage tooling for AI training data.',
     sourceDomain: 'fil.org',
     discussion: { count: 3, latestTopicUrl: '/forum/t/5' },
+    upvoteCount: 6,
   }),
 ];
 

@@ -10,6 +10,10 @@ import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { TeamsIcon } from '@/components/core/navbar/components/icons';
+import type { ISuggestedTeam, ITeamNewsItem } from '@/types/team-news.types';
+
+import { TeamsToFollowCard } from './components/TeamsToFollowCard';
+import { PopularThisWeekCard } from './components/PopularThisWeekCard';
 
 import s from './NewsRail.module.scss';
 
@@ -42,10 +46,25 @@ interface NewsRailProps {
   /** Fetched server-side (like Settings > Email) so the subscribed/not-subscribed
    * card matches on first paint — no client-side flash while the query resolves. */
   initialDigestSettings?: ForumDigestSettings | null;
+  /** Pre-derived via getPopularThisWeek(allItems, now) in TeamNews.tsx — reads the
+   * same overlay-applied item list the feed does, so it can never drift from it. */
+  popularItems?: ITeamNewsItem[];
+  suggestedTeams?: ISuggestedTeam[];
+  isLoadingSuggestedTeams?: boolean;
+  /** Same followedTeamUids/handleFollowToggle TeamNews.tsx already threads to
+   * NewsGroupCard — NewsRail renders as a sibling of the feed within TeamNews.tsx's
+   * own tree, not a separate route, so this is an ordinary prop, not a new store. */
+  onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
-/** Static why-follow explainer + a digest subscribe CTA that reuses the same forum-digest mutation as Settings > Email (weekly frequency). */
-export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
+/** Teams-to-follow + Popular-this-week (v1) alongside the existing why-follow explainer + digest subscribe CTA (reuses the same forum-digest mutation as Settings > Email, weekly frequency). */
+export function NewsRail({
+  initialDigestSettings = null,
+  popularItems = [],
+  suggestedTeams = [],
+  isLoadingSuggestedTeams = false,
+  onFollowToggle,
+}: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { hasAccess, isLoading: forumAccessLoading } = useForumAccess();
@@ -80,6 +99,15 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
 
   return (
     <aside className={s.rail} aria-label="News feed sidebar">
+      {onFollowToggle && (
+        <TeamsToFollowCard
+          suggestions={suggestedTeams}
+          isLoading={isLoadingSuggestedTeams}
+          onFollowToggle={onFollowToggle}
+        />
+      )}
+      <PopularThisWeekCard items={popularItems} />
+
       <section className={s.whyCard} aria-label="Why follow teams">
         <span className={s.iconBadge} aria-hidden="true">
           <TeamsIcon />

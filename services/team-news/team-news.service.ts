@@ -1,3 +1,4 @@
+import { customFetch } from '@/utils/fetch-wrapper';
 import type { ITeamNewsByTeamResponse, ITeamNewsGroupedResponse } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from './constants';
@@ -65,4 +66,22 @@ export async function getTeamNewsGroupedByFocusArea(
   } catch {
     return null;
   }
+}
+
+// Called from a client-side mutation (useTeamNewsUpvoteToggle), so the mock gate must be
+// NEXT_PUBLIC_ — unlike MOCK_TEAM_NEWS above, which only ever runs in a Server Component and
+// can stay server-only.
+export async function toggleTeamNewsUpvote(uid: string, isUpvoted: boolean): Promise<{ ok: true } | null> {
+  if (process.env.NEXT_PUBLIC_MOCK_TEAM_NEWS_V1 === 'true') {
+    return { ok: true };
+  }
+
+  // Real endpoint TBD by LAB-2094 (mirrors follow.service.ts's followTeam/unfollowTeam pairing).
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/team-news/${encodeURIComponent(uid)}/upvote`,
+    { method: isUpvoted ? 'POST' : 'DELETE', headers: { 'Content-Type': 'application/json' } },
+    true,
+  );
+  if (!response?.ok) return null;
+  return { ok: true };
 }

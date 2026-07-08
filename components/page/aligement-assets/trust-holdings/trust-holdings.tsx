@@ -460,17 +460,17 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         .th__title {
           margin: 0;
-          font-size: 32px;
-          font-weight: 700;
-          line-height: 45px;
+          font-size: 24px;
+          font-weight: 600;
+          line-height: 28px;
           color: #0f172a;
         }
 
         .th__subtitle {
           margin: 0;
           max-width: 1052px;
-          font-size: 16px;
-          line-height: 22px;
+          font-size: 14px;
+          line-height: 20px;
           color: #475569;
         }
 
@@ -1043,7 +1043,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           }
 
           .th__title {
-            font-size: 26px;
+            font-size: 20px;
           }
 
           .th-cta {

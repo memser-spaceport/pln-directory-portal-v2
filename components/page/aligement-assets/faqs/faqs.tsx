@@ -862,6 +862,12 @@ export default function FAQsPage() {
             />
           </div>
 
+          {!query && (
+            <div className="faqs__container__category__disclaimer">
+              PLAA refers to both PLAA1 tokens and contractual rights to those tokens. Both are redeemable when you participate in a periodic reverse auction (buyback), which provides holders exposure to the Protocol Labs Network portfolio of frontier technology investments, as well as cryptocurrencies and other digital assets. New contributors receive contractual rights, while existing token holders keep their tokens, which are tracked by the Alignment Asset team and Surus Trust. Whether you have rights or tokens, the experience is the same, so we just call it all PLAA.
+            </div>
+          )}
+
           {filteredCategories.length > 0 ? (
             filteredCategories.map((category) => (
               <div 

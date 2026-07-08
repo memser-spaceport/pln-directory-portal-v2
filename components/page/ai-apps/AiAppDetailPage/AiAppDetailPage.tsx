@@ -61,7 +61,10 @@ export function AiAppDetailPage(props: Props) {
     return <div className={s.state}>App not found.</div>;
   }
 
-  const isCreator = !!currentUser?.uid && currentUser.uid === app.member?.uid;
+  // Trust the server-computed flag (creator or directory admin); the uid
+  // comparison is only a fallback for API versions without `canManage` — the
+  // login cookie's uid can go stale (e.g. after a dev DB reseed).
+  const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
   const requiredEnvVars = app.requiredEnvVars ?? [];
   // A secrets app that isn't live yet (draft, deploying, or failed) shows the
   // setup card instead of an iframe onto a dead URL.

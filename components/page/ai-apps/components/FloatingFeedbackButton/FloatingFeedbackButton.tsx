@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
+import { CommentIcon } from '@/components/icons';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 
 import s from './FloatingFeedbackButton.module.scss';
@@ -25,6 +26,7 @@ export function FloatingFeedbackButton({ appUid, appName }: Props) {
   return (
     <>
       <button type="button" className={s.floatingButton} onClick={() => setIsOpen(true)}>
+        <CommentIcon />
         Give feedback
       </button>
       <GiveAiAppFeedbackDialog isOpen={isOpen} onClose={() => setIsOpen(false)} appUid={appUid} appName={appName} />

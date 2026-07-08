@@ -1,18 +1,34 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Tabs } from '@/components/ui/tabs/Tabs/Tabs';
 import { Button } from '@/components/common/Button/Button';
+import { ArrowBackIcon } from '@/components/icons';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
+import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 
 import s from './AiAppFeedbackPage.module.scss';
 
-const ALL_TAB = 'All';
+const ALL_TAB = 'All apps';
+
+const DownloadIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M8 1.5V10.5M8 10.5L4.5 7M8 10.5L11.5 7M2.5 13.5H13.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export function AiAppFeedbackPage() {
   const { feedback, isLoading, isError } = useAiAppFeedbackList();
+  const { isDirectoryAdmin } = useAiAppFeedbackReviewAccess();
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
@@ -46,25 +62,43 @@ export function AiAppFeedbackPage() {
     analytics.onFeedbackExported(visibleRows.length);
   };
 
-  if (isLoading) {
-    return <div className={s.state}>Loading feedback…</div>;
-  }
-
-  if (isError) {
-    return <div className={s.state}>Unable to load feedback. Please try again later.</div>;
-  }
-
   return (
     <div className={s.pageFrame}>
       <div className={s.content}>
+        <Link href="/pl-infra/ai-apps" className={s.backLink}>
+          <ArrowBackIcon width={16} height={16} />
+          Back to AI Apps
+        </Link>
+
         <div className={s.header}>
-          <h1 className={s.title}>App feedback</h1>
-          <Button size="s" style="border" variant="neutral" onClick={handleExport} disabled={visibleRows.length === 0}>
-            Export (CSV)
-          </Button>
+          <div className={s.titleBlock}>
+            <h1 className={s.title}>{isDirectoryAdmin ? 'All app feedback' : 'Feedback on your apps'}</h1>
+            <p className={s.subtitle}>
+              {isDirectoryAdmin
+                ? 'Every app across the directory.'
+                : 'Only the apps you build — not every app on the page.'}
+            </p>
+          </div>
+          {!isLoading && !isError && feedback.length > 0 && (
+            <Button
+              size="s"
+              style="border"
+              variant="neutral"
+              onClick={handleExport}
+              disabled={visibleRows.length === 0}
+              className={s.exportButton}
+            >
+              <DownloadIcon />
+              Export CSV
+            </Button>
+          )}
         </div>
 
-        {feedback.length === 0 ? (
+        {isLoading ? (
+          <div className={s.state}>Loading feedback…</div>
+        ) : isError ? (
+          <div className={s.state}>Unable to load feedback. Please try again later.</div>
+        ) : feedback.length === 0 ? (
           <div className={s.state}>No feedback has been submitted yet.</div>
         ) : (
           <>
@@ -73,17 +107,41 @@ export function AiAppFeedbackPage() {
             {visibleRows.length === 0 ? (
               <div className={s.state}>No feedback for this app yet.</div>
             ) : (
-              <div className={s.list}>
-                {visibleRows.map((row) => (
-                  <div key={row.uid} className={s.row}>
-                    <div className={s.rowHeader}>
-                      <span className={s.appName}>{row.appName}</span>
-                      <span className={s.date}>{new Date(row.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <p className={s.message}>{row.text}</p>
-                    <span className={s.submitter}>{row.member?.name ?? 'Unknown member'}</span>
-                  </div>
-                ))}
+              <div className={s.tableWrapper}>
+                <table className={s.table}>
+                  <thead>
+                    <tr>
+                      <th>App</th>
+                      <th>Feedback</th>
+                      <th>From</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((row) => {
+                      const submitterName = row.member?.name ?? 'Unknown member';
+                      return (
+                        <tr key={row.uid}>
+                          <td className={s.appNameCell}>{row.appName}</td>
+                          <td className={s.messageCell}>{row.text}</td>
+                          <td>
+                            <div className={s.submitter}>
+                              <span className={s.avatar}>{submitterName.charAt(0).toUpperCase()}</span>
+                              {submitterName}
+                            </div>
+                          </td>
+                          <td className={s.dateCell}>
+                            {new Date(row.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </>

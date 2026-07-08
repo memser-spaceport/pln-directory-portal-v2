@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { Modal } from '@/components/common/Modal/Modal';
+import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button/Button';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
-import { CloseIcon } from '@/components/icons';
+import { CloseIcon, CommentIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
@@ -46,7 +46,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
 
   const methods = useForm<FormValues>({ defaultValues: { app: null, message: '' } });
   const { handleSubmit, reset, watch } = methods;
-  const isOverLimit = watch('message').length > MAX_LENGTH;
+  const messageLength = watch('message').length;
+  const isOverLimit = messageLength > MAX_LENGTH;
   const noAppsToPickFrom = isPickerMode && !isAppsLoading && appOptions.length === 0;
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -82,18 +83,16 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
   });
 
   return (
-    <Modal isOpen={isOpen} onClose={onDialogClose}>
+    <Drawer isOpen={isOpen} onClose={onDialogClose} width={420}>
       <div className={s.root}>
-        <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
-          <CloseIcon width={16} height={16} />
-        </button>
+        <div className={s.header}>
+          <h2 className={s.title}>Give feedback</h2>
+          <button type="button" className={s.closeButton} onClick={onDialogClose} aria-label="Close">
+            <CloseIcon width={16} height={16} />
+          </button>
+        </div>
 
         <div className={s.content}>
-          <h2 className={s.title}>Give feedback</h2>
-          <p className={s.description}>
-            Posting as {currentUser?.name ?? 'you'}. Visible to the app&apos;s author and Directory admins.
-          </p>
-
           <FormProvider {...methods}>
             <div className={s.form}>
               {isPickerMode &&
@@ -103,8 +102,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
                   <>
                     <FormSelect
                       name="app"
-                      label="App"
-                      placeholder="Select an app"
+                      label="Which app is this about?"
+                      placeholder="Select an app…"
                       options={appOptions}
                       disabled={isAppsLoading}
                       isRequired
@@ -115,15 +114,23 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
 
               <FormTextArea
                 name="message"
-                label="Feedback"
-                placeholder="Share your thoughts"
+                label="Your feedback"
+                placeholder="What worked, what didn’t, and what would make this more useful?"
                 maxLength={MAX_LENGTH}
                 showCharCount
-                rows={5}
+                rows={6}
                 disabled={noAppsToPickFrom}
               />
             </div>
           </FormProvider>
+
+          <div className={s.postingAs}>
+            <CommentIcon />
+            <span>
+              Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and Directory
+              admins
+            </span>
+          </div>
         </div>
 
         <div className={s.footer}>
@@ -131,10 +138,10 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
             Cancel
           </Button>
           <Button onClick={onSubmit} disabled={isPending || isOverLimit || noAppsToPickFrom}>
-            {isPending ? 'Submitting...' : 'Submit'}
+            {isPending ? 'Sending…' : 'Send feedback'}
           </Button>
         </div>
       </div>
-    </Modal>
+    </Drawer>
   );
 }

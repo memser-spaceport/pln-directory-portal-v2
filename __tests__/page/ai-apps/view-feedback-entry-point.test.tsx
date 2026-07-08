@@ -3,12 +3,21 @@ import { render, screen } from '@testing-library/react';
 import { ViewFeedbackEntryPoint } from '@/components/page/ai-apps/components/ViewFeedbackEntryPoint';
 
 const mockUseAiAppFeedbackReviewAccess = jest.fn();
+const mockUseAiAppFeedbackList = jest.fn();
 
 jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess', () => ({
   useAiAppFeedbackReviewAccess: () => mockUseAiAppFeedbackReviewAccess(),
 }));
 
+jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackList', () => ({
+  useAiAppFeedbackList: () => mockUseAiAppFeedbackList(),
+}));
+
 describe('ViewFeedbackEntryPoint', () => {
+  beforeEach(() => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -18,7 +27,7 @@ describe('ViewFeedbackEntryPoint', () => {
 
     render(<ViewFeedbackEntryPoint />);
 
-    const link = screen.getByRole('link', { name: 'View feedback' });
+    const link = screen.getByRole('link', { name: /View feedback/ });
     expect(link).toHaveAttribute('href', '/pl-infra/ai-apps/feedback');
   });
 
@@ -36,5 +45,29 @@ describe('ViewFeedbackEntryPoint', () => {
     const { container } = render(<ViewFeedbackEntryPoint />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows no badge when there is no feedback yet', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+
+    render(<ViewFeedbackEntryPoint />);
+
+    const link = screen.getByRole('link', { name: 'View feedback' });
+    expect(link).toHaveTextContent('View feedback');
+  });
+
+  it('shows the total feedback count as a badge (not an "unread" count)', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [{ uid: 'fb-1' }, { uid: 'fb-2' }, { uid: 'fb-3' }],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<ViewFeedbackEntryPoint />);
+
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.queryByText(/new/i)).not.toBeInTheDocument();
   });
 });

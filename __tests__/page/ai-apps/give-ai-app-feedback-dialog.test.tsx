@@ -54,11 +54,14 @@ describe('GiveAiAppFeedbackDialog', () => {
 
     render(<GiveAiAppFeedbackDialog isOpen onClose={onClose} appUid="app-1" appName="My App" />);
 
-    expect(screen.getByText(/Posting as Ada Lovelace/)).toBeInTheDocument();
-    expect(screen.queryByLabelText('App')).not.toBeInTheDocument();
+    expect(screen.getByText(/Posting as/)).toBeInTheDocument();
+    expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Which app is this about?')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('Share your thoughts'), { target: { value: 'Nice app!' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    fireEvent.change(screen.getByPlaceholderText('What worked, what didn’t, and what would make this more useful?'), {
+      target: { value: 'Nice app!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
 
     // react-hook-form's handleSubmit resolves on a microtask, so the mutate call
     // isn't synchronous with the click.
@@ -76,6 +79,6 @@ describe('GiveAiAppFeedbackDialog', () => {
     render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} />);
 
     expect(screen.getByText('No apps available to give feedback on yet.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Send feedback' })).toBeDisabled();
   });
 });

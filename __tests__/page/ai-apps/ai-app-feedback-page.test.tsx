@@ -120,9 +120,9 @@ describe('AiAppFeedbackPage', () => {
     expect(screen.getByText('Needs work')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
 
-    // The tab renders as "Alpha (1)" (secondary Tabs variant appends the count); the
-    // table cell below also shows "Alpha", so target the tab's full text to disambiguate.
-    fireEvent.click(screen.getByText('Alpha (1)'));
+    // The tab is a <button> with the count in a separate span; the table cell below
+    // also shows "Alpha" as plain text (not a button), so role + name disambiguates.
+    fireEvent.click(screen.getByRole('button', { name: /Alpha/ }));
 
     expect(mockOnFeedbackTabFiltered).toHaveBeenCalledWith('Alpha');
     expect(screen.getByText('Loved it')).toBeInTheDocument();

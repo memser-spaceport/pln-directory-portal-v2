@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { clsx } from 'clsx';
 import Link from 'next/link';
-import { Tabs } from '@/components/ui/tabs/Tabs/Tabs';
 import { Button } from '@/components/common/Button/Button';
 import { ArrowBackIcon } from '@/components/icons';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
+import { getAvatarColor } from './utils/getAvatarColor';
 
 import s from './AiAppFeedbackPage.module.scss';
 
@@ -82,8 +83,8 @@ export function AiAppFeedbackPage() {
           {!isLoading && !isError && feedback.length > 0 && (
             <Button
               size="s"
-              style="border"
-              variant="neutral"
+              style="fill"
+              variant="primary"
               onClick={handleExport}
               disabled={visibleRows.length === 0}
               className={s.exportButton}
@@ -102,7 +103,19 @@ export function AiAppFeedbackPage() {
           <div className={s.state}>No feedback has been submitted yet.</div>
         ) : (
           <>
-            <Tabs tabs={tabs} activeTab={activeTab} onTabClick={handleTabClick} variant="secondary" />
+            <div className={s.tabs}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab.name}
+                  type="button"
+                  className={clsx(s.tab, { [s.tabActive]: tab.name === activeTab })}
+                  onClick={() => handleTabClick(tab.name)}
+                >
+                  {tab.name}
+                  <span className={s.tabCount}>{tab.count}</span>
+                </button>
+              ))}
+            </div>
 
             {visibleRows.length === 0 ? (
               <div className={s.state}>No feedback for this app yet.</div>
@@ -126,7 +139,9 @@ export function AiAppFeedbackPage() {
                           <td className={s.messageCell}>{row.text}</td>
                           <td>
                             <div className={s.submitter}>
-                              <span className={s.avatar}>{submitterName.charAt(0).toUpperCase()}</span>
+                              <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
+                                {submitterName.charAt(0).toUpperCase()}
+                              </span>
                               {submitterName}
                             </div>
                           </td>

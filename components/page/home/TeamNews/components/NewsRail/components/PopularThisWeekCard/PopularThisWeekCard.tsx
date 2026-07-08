@@ -1,5 +1,7 @@
 'use client';
 
+import { motion } from 'framer-motion';
+
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 
@@ -9,10 +11,14 @@ interface PopularThisWeekCardProps {
   items: ITeamNewsItem[];
 }
 
-// Read-only — tapping a story just opens its source link, per ticket scope
-// (no upvote action from the rail). Hidden entirely when `items` is empty;
-// `getPopularThisWeek` is what decides that emptiness (7-day window, >=2
-// upvotes on the top story), this component just renders whatever it's given.
+const CARD_TRANSITION = { duration: 0.28, ease: [0.4, 0, 0.2, 1] as const };
+
+// Read-only — tapping a story just opens its source link, per ticket scope (no
+// upvote action from the rail). Whether to mount this component at all is
+// decided by NewsRail, not here — a story can legitimately drop below the
+// popularity threshold mid-session as upvotes change, so NewsRail's
+// AnimatePresence needs to see that removal to play the exit (fade + height
+// collapse) below, rather than the card just vanishing.
 export function PopularThisWeekCard({ items }: PopularThisWeekCardProps) {
   const analytics = useTeamNewsAnalytics();
 
@@ -24,7 +30,15 @@ export function PopularThisWeekCard({ items }: PopularThisWeekCardProps) {
   };
 
   return (
-    <section className={s.railCard} aria-label="Popular this week">
+    <motion.section
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      transition={CARD_TRANSITION}
+      className={s.railCard}
+      aria-label="Popular this week"
+    >
       <h3 className={s.railTitle}>Popular this week</h3>
       {items.map((item, position) => (
         <button key={item.uid} type="button" className={s.railStory} onClick={() => openStory(item, position)}>
@@ -34,6 +48,6 @@ export function PopularThisWeekCard({ items }: PopularThisWeekCardProps) {
           </span>
         </button>
       ))}
-    </section>
+    </motion.section>
   );
 }

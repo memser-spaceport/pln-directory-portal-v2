@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -15,17 +16,29 @@ interface TeamsToFollowCardProps {
   onFollowToggle: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
-// Hidden when there are no suggestions — whether that's the initial empty state
-// (backend/mock returned nothing) or the reactive mid-session case (the viewer
-// followed every suggested team; useSuggestedTeamsToFollow filters them out and
-// this card just renders nothing once the list is empty).
+const CARD_TRANSITION = { duration: 0.28, ease: [0.4, 0, 0.2, 1] as const };
+// `layout` lets sibling rail cards smoothly reflow when this card's height
+// changes; the explicit height/marginBottom in `exit` gives AnimatePresence
+// something to collapse to, instead of the space just snapping shut.
+const CARD_MOTION_PROPS = {
+  layout: true,
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0, height: 0, marginBottom: 0 },
+  transition: CARD_TRANSITION,
+} as const;
+
+// Whether to mount this component at all — including the transition from
+// "loading" to "no suggestions" — is decided by NewsRail, not here, so
+// AnimatePresence there can see it leave the tree and play this card's exit
+// animation (fade + height collapse) instead of it just vanishing.
 export function TeamsToFollowCard({ suggestions, isLoading, onFollowToggle }: TeamsToFollowCardProps) {
   const router = useRouter();
   const { currentUser } = useCurrentUserStore();
 
   if (isLoading) {
     return (
-      <section className={s.railCard} aria-label="Teams to follow" aria-busy="true">
+      <motion.section {...CARD_MOTION_PROPS} className={s.railCard} aria-label="Teams to follow" aria-busy="true">
         <h3 className={s.railTitle}>Teams to follow</h3>
         {[0, 1, 2].map((i) => (
           <div key={i} className={s.railSkeletonRow}>
@@ -33,7 +46,7 @@ export function TeamsToFollowCard({ suggestions, isLoading, onFollowToggle }: Te
             <span className={s.railSkeletonBlock} style={{ width: '100%', height: 16 }} />
           </div>
         ))}
-      </section>
+      </motion.section>
     );
   }
 
@@ -50,7 +63,7 @@ export function TeamsToFollowCard({ suggestions, isLoading, onFollowToggle }: Te
   };
 
   return (
-    <section className={s.railCard} aria-label="Teams to follow">
+    <motion.section {...CARD_MOTION_PROPS} className={s.railCard} aria-label="Teams to follow">
       <h3 className={s.railTitle}>Teams to follow</h3>
       {suggestions.map((team) => (
         <div key={team.uid} className={s.railRow}>
@@ -68,6 +81,6 @@ export function TeamsToFollowCard({ suggestions, isLoading, onFollowToggle }: Te
           </span>
         </div>
       ))}
-    </section>
+    </motion.section>
   );
 }

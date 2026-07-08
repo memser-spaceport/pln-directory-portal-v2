@@ -282,7 +282,7 @@ const faqCategories: FAQCategoryData[] = [
         answer: (
           <div>
             <p style={{ marginBottom: '16px' }}>
-              KPI categories group similar activities together—for example: Capital, Programs, Knowledge, Network Tooling, People/Talent, etc.
+              KPI categories group similar activities together—for example: Programs, Knowledge, Network Tooling, People/Talent, etc.
             </p>
             <p style={{ marginBottom: '16px' }}>
               Each category receives a portion of monthly PLAA based on its network weight. Example:
@@ -397,8 +397,16 @@ const faqCategories: FAQCategoryData[] = [
     icon: '/icons/coin-icon.png',
     items: [
       {
-        question: 'Why are my PLAA calculations "rounded down"? What is the rundown function and why does it exist?',
-        answer: 'The Points-to-PLAA algorithm converts participant Points into PLAA based on a predefined formula tied to the KPI emissions schedule and the monthly PLAA allocation cap (see Incentivized Activities & KPI Weights). This formula calculates each participant\'s share of the monthly PLAA allocation relative to the total Points earned across the network for the applicable KPIs. Because PLAA are settled through whole tokens and fractional tokens are not currently issued, the settlement of PLAA may result in fractional PLAA amounts. In those cases, the amount is rounded down to the nearest whole PLAA. This round down function ensures compliance with the applicable monthly settlement cap and avoids over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness across the program.',
+        question: 'Why are my PLAA calculations "rounded down"? What is the round down function and why does it exist?',
+        answer: (
+          <p style={{ margin: 0 }}>
+            The Points-to-PLAA algorithm converts participant Points into PLAA based on a predefined formula tied to the KPI emissions schedule and the monthly PLAA allocation cap (see{' '}
+            <a href="#point-to-rights-conversion" style={{ color: '#156ff7', textDecoration: 'underline' }}>
+              Points-to-PLAA Conversion
+            </a>
+            ). This formula calculates each participant&apos;s share of the monthly PLAA allocation relative to the total Points earned across the network for the applicable KPIs. Because PLAA are settled through whole tokens and fractional tokens are not currently issued, the settlement of PLAA may result in fractional PLAA amounts. In those cases, the amount is rounded down to the nearest whole PLAA. This round down function ensures compliance with the applicable monthly settlement cap and avoids over-distribution. The same rounding rule is applied consistently to all participants to maintain fairness across the program.
+          </p>
+        ),
       },
       {
         question: 'I\'m not based in the US. When will I be eligible to collect points and receive PLAA?',

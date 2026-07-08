@@ -651,13 +651,13 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           width: 100%;
           min-width: 938px;
           border-collapse: collapse;
-          font-size: 13.5px;
+          font-size: 12px;
         }
 
         .th-table th {
           text-align: right;
           padding: 15px 24px;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.04em;
           text-transform: uppercase;

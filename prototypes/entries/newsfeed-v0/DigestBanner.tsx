@@ -14,7 +14,7 @@ interface Props {
 /**
  * Rail module: the network-news email digest, in two states.
  *  - Not subscribed → a low-key subscribe banner: soft brand tint, dark
- *    title/subtitle, and a full-width filled-brand "Subscribe for Digest" DS
+ *    title/subtitle, and a full-width filled-brand "Subscribe" DS
  *    button that carries the emphasis (toned down from the original loud
  *    brand-blue gradient promo).
  *  - Already subscribed → the same banner shape, greyed out, pointing to
@@ -51,7 +51,7 @@ export function DigestBanner({ subscribed, onToggle }: Props) {
   return (
     <section className={local.digestPromo} aria-label="Subscribe to the news digest">
       <div className={local.digestPromoText}>
-        <p className={local.digestPromoTitle}>Get notified about network news updates</p>
+        <p className={local.digestPromoTitle}>Get network news Digest</p>
         <p className={local.digestPromoBody}>
           A news digest covering raises, launches, and milestones across the network, straight to your inbox.
         </p>
@@ -64,7 +64,7 @@ export function DigestBanner({ subscribed, onToggle }: Props) {
         className={local.digestPromoBtn}
         onClick={onToggle}
       >
-        <span>Subscribe for Digest</span>
+        <span>Subscribe</span>
       </Button>
     </section>
   );

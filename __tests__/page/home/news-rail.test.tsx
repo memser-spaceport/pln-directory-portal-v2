@@ -53,20 +53,20 @@ describe('NewsRail', () => {
 
   it('renders the digest promo without a button before the auth store hydrates', () => {
     render(<NewsRail />);
-    expect(screen.getByText('Get notified about network news updates')).toBeInTheDocument();
+    expect(screen.getByText('Get network news Digest')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /subscribe/i })).not.toBeInTheDocument();
   });
 
   it('shows an enabled Subscribe button once hydrated, for an anonymous user', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
     render(<NewsRail />);
-    expect(screen.getByRole('button', { name: 'Subscribe for Digest' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 
   it('redirects to login on click when unauthenticated', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
     render(<NewsRail />);
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe for Digest' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
@@ -78,7 +78,7 @@ describe('NewsRail', () => {
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
     render(<NewsRail />);
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe for Digest' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
 
     expect(mockMutate).toHaveBeenCalledWith(
       {
@@ -106,7 +106,7 @@ describe('NewsRail', () => {
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
     render(<NewsRail />);
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe for Digest' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
 
     const options = mockMutate.mock.calls[0][1];
     options.onError();
@@ -125,8 +125,8 @@ describe('NewsRail', () => {
     expect(screen.getByText('Change frequency or unsubscribe anytime in Settings.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Manage in Settings/ })).toHaveAttribute('href', '/settings/email');
 
-    expect(screen.queryByText('Get notified about network news updates')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Subscribe for Digest' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Get network news Digest')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Subscribe' })).not.toBeInTheDocument();
   });
 
   it('hides digest cards for authenticated users without forum access', () => {
@@ -134,7 +134,7 @@ describe('NewsRail', () => {
     mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
     render(<NewsRail />);
 
-    expect(screen.queryByText('Get notified about network news updates')).not.toBeInTheDocument();
+    expect(screen.queryByText('Get network news Digest')).not.toBeInTheDocument();
     expect(screen.queryByText("You're subscribed to the Digest")).not.toBeInTheDocument();
   });
 });

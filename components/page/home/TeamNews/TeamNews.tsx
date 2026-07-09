@@ -39,6 +39,7 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 import s from './TeamNews.module.scss';
 
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
+import { toast } from '@/components/core/ToastContainer';
 
 // DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
 // a forwarded ref, so this is the only way to read its live (undebounced)
@@ -69,12 +70,7 @@ interface TeamNewsProps {
   initialDigestSettings?: ForumDigestSettings | null;
 }
 
-export const TeamNews = ({
-  groups,
-  popularItems = [],
-  pageSize = 6,
-  initialDigestSettings = null,
-}: TeamNewsProps) => {
+export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDigestSettings = null }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
@@ -169,6 +165,7 @@ export const TeamNews = ({
     setActiveTab(id);
     setActiveCategory(ALL_CAT);
     setExpanded(false);
+    toast.success('Your details have been updated!', { autoClose: false });
   };
 
   const handleCategory = (id: TeamNewsCategoryId) => {

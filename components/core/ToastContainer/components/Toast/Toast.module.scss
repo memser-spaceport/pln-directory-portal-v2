@@ -27,14 +27,7 @@
 .body {
   gap: 10px;
   display: flex;
-}
-
-.content {
-  padding-top: 5px;
-
-  //@include media.tablet-landscape {
-  //  padding-top: 8px;
-  //}
+  align-items: center;
 }
 
 .icon {
@@ -44,18 +37,15 @@
 .statusIcon {
   width: 20px;
   height: 20px;
-  margin-top: 3px;
 
   @include media.tablet-landscape {
     width: 24px;
     height: 24px;
-    margin-top: 5px;
   }
 }
 
 .closeIcon {
   cursor: pointer;
-  margin-top: 5px;
 
   @include media.tablet-landscape {
     width: 20px;

@@ -67,8 +67,8 @@ export function TeamsToFollowCard({ suggestions, isLoading, onFollowToggle }: Te
       <h3 className={s.railTitle}>Teams to follow</h3>
       {suggestions.map((team) => (
         <div key={team.uid} className={s.railRow}>
-          {team.logoUrl ? (
-            <img className={s.railLogo} src={team.logoUrl} alt="" loading="lazy" />
+          {team.logo ? (
+            <img className={s.railLogo} src={team.logo} alt="" loading="lazy" />
           ) : (
             <div className={s.railLogoFallback}>{getTeamLogoFallback(team.name)}</div>
           )}

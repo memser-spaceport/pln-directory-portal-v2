@@ -2,13 +2,13 @@
 
 import { motion } from 'framer-motion';
 
-import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { ITeamNewsPopularItem } from '@/types/team-news.types';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 
 import s from '../../NewsRail.module.scss';
 
 interface PopularThisWeekCardProps {
-  items: ITeamNewsItem[];
+  items: ITeamNewsPopularItem[];
 }
 
 const CARD_TRANSITION = { duration: 0.28, ease: [0.4, 0, 0.2, 1] as const };
@@ -24,7 +24,7 @@ export function PopularThisWeekCard({ items }: PopularThisWeekCardProps) {
 
   if (items.length === 0) return null;
 
-  const openStory = (item: ITeamNewsItem, position: number) => {
+  const openStory = (item: ITeamNewsPopularItem, position: number) => {
     analytics.onTeamNewsPopularStoryClicked(item, position);
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
   };

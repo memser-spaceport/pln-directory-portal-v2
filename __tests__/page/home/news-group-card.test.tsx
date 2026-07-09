@@ -211,7 +211,7 @@ describe('NewsGroupCard', () => {
   });
 
   it("renders an Upvote button reflecting the story's upvote state", () => {
-    const item = makeItem('a', '2026-05-03T00:00:00.000Z', { isUpvoted: true, upvoteCount: 5 });
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z', { viewerHasUpvoted: true, upvoteCount: 5 });
     render(<NewsGroupCard cluster={clusterWith([item])} />);
     expect(screen.getByRole('button', { name: 'Remove upvote (5)' })).toBeInTheDocument();
   });

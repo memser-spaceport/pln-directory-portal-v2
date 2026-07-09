@@ -11,7 +11,7 @@ import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import { TeamsIcon } from '@/components/core/navbar/components/icons';
-import type { ISuggestedTeam, ITeamNewsItem } from '@/types/team-news.types';
+import type { ISuggestedTeam, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import { TeamsToFollowCard } from './components/TeamsToFollowCard';
 import { PopularThisWeekCard } from './components/PopularThisWeekCard';
@@ -47,9 +47,9 @@ interface NewsRailProps {
   /** Fetched server-side (like Settings > Email) so the subscribed/not-subscribed
    * card matches on first paint — no client-side flash while the query resolves. */
   initialDigestSettings?: ForumDigestSettings | null;
-  /** Pre-derived via getPopularThisWeek(allItems, now) in TeamNews.tsx — reads the
-   * same overlay-applied item list the feed does, so it can never drift from it. */
-  popularItems?: ITeamNewsItem[];
+  /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR in
+   * app/home/page.tsx and threaded through TeamNews.tsx. */
+  popularItems?: ITeamNewsPopularItem[];
   suggestedTeams?: ISuggestedTeam[];
   isLoadingSuggestedTeams?: boolean;
   /** Same followedTeamUids/handleFollowToggle TeamNews.tsx already threads to

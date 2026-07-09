@@ -11,7 +11,7 @@ import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedT
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -29,7 +29,6 @@ import { hasExistingDiscussion } from './components/NewsCard/components/StartCon
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { clusterByTeam } from './utils/clusterByTeam';
-import { getPopularThisWeek } from '@/services/team-news/utils/getPopularThisWeek';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
@@ -63,11 +62,19 @@ function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): bool
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
+  /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
+   * alongside `groups`. Empty → the rail's Popular module hides itself. */
+  popularItems?: ITeamNewsPopularItem[];
   pageSize?: number;
   initialDigestSettings?: ForumDigestSettings | null;
 }
 
-export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }: TeamNewsProps) => {
+export const TeamNews = ({
+  groups,
+  popularItems = [],
+  pageSize = 6,
+  initialDigestSettings = null,
+}: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
@@ -84,7 +91,7 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
   // same way follow state already is (see followedTeamUids below): a local overlay,
   // applied once in this memo, so every derived view (tabs, clusters, the Popular
   // rail) reads the same merged item and can never drift out of sync with itself.
-  const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { isUpvoted: boolean; upvoteCount: number }>>(
+  const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>>(
     () => new Map(),
   );
 
@@ -150,20 +157,10 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
 
-  // Global (not filtered to unfollowed teams) and derived from the same overlay-applied
-  // allItems the feed renders — a viewer's own upvote crossing the >=2 threshold shows
-  // up here immediately, with no separate fetch to fall out of sync with.
-  const popularItems = useMemo(() => getPopularThisWeek(allItems, new Date()), [allItems]);
-
   const { currentUser } = useCurrentUserStore();
-  const memberTeamUid = currentUser?.leadingTeams?.[0] ?? null;
-  const todayDateString = new Date().toISOString().slice(0, 10);
-  const suggestionSeed = `${todayDateString}:${currentUser?.uid ?? 'anon'}`;
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
-    memberTeamUid,
+    currentUserUid: currentUser?.uid ?? null,
     followedTeamUids,
-    recentNewsItems: allItems,
-    seed: suggestionSeed,
   });
 
   const handleTab = (id: string) => {
@@ -291,14 +288,14 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
   // NewsGroupCard.handleUpvoteClick), matching handleFollowToggle's split below —
   // this handler assumes an authenticated caller.
   const handleUpvoteToggle = (item: ITeamNewsItem) => {
-    const wasUpvoted = Boolean(item.isUpvoted);
+    const wasUpvoted = Boolean(item.viewerHasUpvoted);
     const nextUpvoted = !wasUpvoted;
     const prevCount = item.upvoteCount ?? 0;
     const nextCount = wasUpvoted ? Math.max(0, prevCount - 1) : prevCount + 1;
 
     setUpvoteOverlay((prev) => {
       const next = new Map(prev);
-      next.set(item.uid, { isUpvoted: nextUpvoted, upvoteCount: nextCount });
+      next.set(item.uid, { viewerHasUpvoted: nextUpvoted, upvoteCount: nextCount });
       return next;
     });
 
@@ -310,11 +307,20 @@ export const TeamNews = ({ groups, pageSize = 6, initialDigestSettings = null }:
         onError: () => {
           setUpvoteOverlay((prev) => {
             const next = new Map(prev);
-            next.set(item.uid, { isUpvoted: wasUpvoted, upvoteCount: prevCount });
+            next.set(item.uid, { viewerHasUpvoted: wasUpvoted, upvoteCount: prevCount });
             return next;
           });
         },
-        onSuccess: () => {
+        onSuccess: (status) => {
+          // Reconcile the optimistic overlay with the server's authoritative
+          // count/state (e.g. concurrent votes from others), when available.
+          if (status) {
+            setUpvoteOverlay((prev) => {
+              const next = new Map(prev);
+              next.set(item.uid, { viewerHasUpvoted: status.viewerHasUpvoted, upvoteCount: status.upvoteCount });
+              return next;
+            });
+          }
           analytics.onTeamNewsUpvoteToggled(item, position >= 0 ? position : 0, nextUpvoted, 'home');
         },
       },

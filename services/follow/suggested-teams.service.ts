@@ -1,25 +1,16 @@
-import { getTeamList } from '@/app/actions/teams.actions';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
-import type { ISuggestedTeam, ITeamNewsItem } from '@/types/team-news.types';
-import { computeMockSuggestions } from './suggested-teams.mock-data';
+import { customFetch } from '@/utils/fetch-wrapper';
+import type { ISuggestedTeam, ITeamNewsFollowSuggestionsResponse } from '@/types/team-news.types';
 
-const SUGGESTION_CANDIDATE_POOL_SIZE = 40;
-
-// Called from a client-side query (useSuggestedTeamsToFollow), so — like
-// toggleTeamNewsUpvote — the mock gate must be NEXT_PUBLIC_.
-export async function getSuggestedTeamsToFollow(
-  memberTeamUid: string | null,
-  followedTeamUids: string[],
-  recentNewsItems: ITeamNewsItem[],
-  seed: string,
-): Promise<ISuggestedTeam[]> {
-  if (process.env.NEXT_PUBLIC_MOCK_TEAM_NEWS_V1 === 'true') {
-    const { authToken } = getCookiesFromClient();
-    const res = await getTeamList('', 1, SUGGESTION_CANDIDATE_POOL_SIZE, authToken);
-    if (!res || 'isError' in res) return [];
-    return computeMockSuggestions(res.data ?? [], memberTeamUid, followedTeamUids, recentNewsItems, seed);
-  }
-
-  // Real endpoint TBD by LAB-2094.
-  return [];
+// GET /v1/team-news/follow-suggestions — auth required; the backend derives the
+// suggestions from the current member, so no params are needed. Returns [] on
+// failure or when there are no suggestions, which hides the module.
+export async function getSuggestedTeamsToFollow(): Promise<ISuggestedTeam[]> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/team-news/follow-suggestions`,
+    { method: 'GET', headers: { 'Content-Type': 'application/json' } },
+    true,
+  );
+  if (!response?.ok) return [];
+  const data = (await response.json()) as ITeamNewsFollowSuggestionsResponse;
+  return data.items ?? [];
 }

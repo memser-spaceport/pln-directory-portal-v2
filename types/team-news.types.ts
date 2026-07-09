@@ -22,16 +22,43 @@ export interface ITeamNewsItem {
   createdAt: string;
   discussion: ITeamNewsDiscussion;
   isFollowed?: boolean;
-  isUpvoted?: boolean;
+  viewerHasUpvoted?: boolean;
   upvoteCount?: number;
 }
 
+/** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */
+export interface ITeamNewsUpvoteStatus {
+  upvoteCount: number;
+  viewerHasUpvoted: boolean;
+}
+
+// Shape returned by GET /v1/team-news/follow-suggestions — `reason` is a
+// pre-formatted display string (e.g. "Storage · 1.2k followers"); the backend
+// does not expose the underlying reason kind.
 export interface ISuggestedTeam {
   uid: string;
   name: string;
-  logoUrl: string | null;
+  logo: string | null;
   reason: string;
-  reasonType: 'focus-area' | 'community-affiliation' | 'industry-tag';
+}
+
+export interface ITeamNewsFollowSuggestionsResponse {
+  items: ISuggestedTeam[];
+}
+
+// Trimmed item shape returned by GET /v1/team-news/popular — distinct from
+// ITeamNewsItem (no eventDate/summary/discussion), so it has its own type.
+export interface ITeamNewsPopularItem {
+  uid: string;
+  title: string;
+  teamUid: string;
+  teamName: string;
+  sourceUrl: string;
+  upvoteCount: number;
+}
+
+export interface ITeamNewsPopularResponse {
+  items: ITeamNewsPopularItem[];
 }
 
 export interface ICreateTeamNewsDiscussionRequest {

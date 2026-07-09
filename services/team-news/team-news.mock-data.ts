@@ -123,7 +123,7 @@ const LATTICE: ITeamNewsItem[] = [
       'The $4.2M extension was led by existing backers and funds a marketplace matching idle GPU capacity with verifiable workloads.',
     discussion: { count: 2, latestTopicUrl: '/forum/t/3' },
     upvoteCount: 14, // highest count in the fixture set — the clear "Popular this week" #1
-    isUpvoted: true, // demos the viewer-already-upvoted state
+    viewerHasUpvoted: true, // demos the viewer-already-upvoted state
   }),
   item({
     uid: 'mock-lc-2',

@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { PopularThisWeekCard } from '@/components/page/home/TeamNews/components/NewsRail/components/PopularThisWeekCard';
-import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { ITeamNewsPopularItem } from '@/types/team-news.types';
 
 const mockOnPopularStoryClicked = jest.fn();
 jest.mock('@/analytics/team-news.analytics', () => ({
@@ -11,21 +11,12 @@ jest.mock('@/analytics/team-news.analytics', () => ({
   }),
 }));
 
-const item = (partial: Partial<ITeamNewsItem> & Pick<ITeamNewsItem, 'uid'>): ITeamNewsItem => ({
+const item = (partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>): ITeamNewsPopularItem => ({
   teamUid: 'team-1',
   teamName: 'Team One',
-  teamLogoUrl: null,
-  eventType: 'ANNOUNCEMENT',
-  eventDate: '2026-07-07T00:00:00.000Z',
   title: 'Untitled',
-  summary: null,
   sourceUrl: 'https://example.com/story',
-  sourceDomain: 'example.com',
-  tags: [],
-  focusAreas: [],
-  subFocusAreas: [],
-  createdAt: '2026-07-07T00:00:00.000Z',
-  discussion: { count: 0, latestTopicUrl: null },
+  upvoteCount: 0,
   ...partial,
 });
 

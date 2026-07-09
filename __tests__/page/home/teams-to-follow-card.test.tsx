@@ -16,9 +16,8 @@ jest.mock('@/services/auth/store', () => ({
 
 const team = (partial: Partial<ISuggestedTeam> & Pick<ISuggestedTeam, 'uid'>): ISuggestedTeam => ({
   name: 'Team',
-  logoUrl: null,
-  reason: 'Storage · shared focus area',
-  reasonType: 'focus-area',
+  logo: null,
+  reason: 'Storage · 1.2k followers',
   ...partial,
 });
 

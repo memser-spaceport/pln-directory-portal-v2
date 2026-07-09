@@ -128,7 +128,7 @@ export function NewsGroupCard({
               <div className={newsCardStyles.actions}>
                 <UpvoteButton
                   count={story.upvoteCount ?? 0}
-                  voted={Boolean(story.isUpvoted)}
+                  voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
                 {/* `position` is this story's own index within its card, not the

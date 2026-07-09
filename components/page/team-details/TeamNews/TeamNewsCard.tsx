@@ -18,6 +18,7 @@ export function TeamNewsCard({ item, position = 0, variant = 'outline', onClick,
       item={item}
       position={position}
       hideTeam
+      compact
       variant={variant}
       onClick={onClick}
       analyticsSource={analyticsSource}

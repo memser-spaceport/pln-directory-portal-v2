@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
-import { useFollowAnalytics } from '@/analytics/follow.analytics';
+import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
@@ -156,7 +156,6 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
-    followedTeamUids,
   });
 
   const handleTab = (id: string) => {
@@ -247,7 +246,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     getSearchInputEl(desktopFieldRef.current)?.focus();
   }, [searchOpen]);
 
-  const handleFollowToggle = (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => {
+  const handleFollowToggle = (
+    teamUid: string,
+    teamName: string,
+    isCurrentlyFollowing: boolean,
+    source: FollowAnalyticsSource = 'news-feed',
+  ) => {
     const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
     setFollowedTeamUids((prev) => {
       const next = new Set(prev);
@@ -266,15 +270,15 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           followAnalytics.onTeamFollowFailed({
             teamUid,
             teamName,
-            source: 'news-feed',
+            source,
             action,
           });
         },
         onSuccess: () => {
           if (action === 'follow') {
-            followAnalytics.onTeamFollowed({ teamUid, teamName, source: 'news-feed' });
+            followAnalytics.onTeamFollowed({ teamUid, teamName, source });
           } else {
-            followAnalytics.onTeamUnfollowed({ teamUid, teamName, source: 'news-feed' });
+            followAnalytics.onTeamUnfollowed({ teamUid, teamName, source });
           }
         },
       },
@@ -416,6 +420,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           popularItems={popularItems}
           suggestedTeams={suggestedTeams}
           isLoadingSuggestedTeams={isLoadingSuggestedTeams}
+          followedTeamUids={followedTeamUids}
           onFollowToggle={handleFollowToggle}
         />
       </div>

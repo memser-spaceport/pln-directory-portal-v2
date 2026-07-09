@@ -33,8 +33,9 @@ export interface ITeamNewsUpvoteStatus {
 }
 
 // Shape returned by GET /v1/team-news/follow-suggestions — `reason` is a
-// pre-formatted display string (e.g. "Storage · 1.2k followers"); the backend
-// does not expose the underlying reason kind.
+// pre-formatted display string (e.g. "Storage · 1.2k followers"); the UI strips
+// the trailing follower-count segment before display. The backend does not
+// expose the underlying reason kind.
 export interface ISuggestedTeam {
   uid: string;
   name: string;

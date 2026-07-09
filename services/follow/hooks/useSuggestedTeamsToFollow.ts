@@ -5,26 +5,20 @@ import { FollowQueryKeys } from '../constants';
 interface UseSuggestedTeamsToFollowOptions {
   /** Current member uid — keys the cache per user and gates the auth-required fetch. */
   currentUserUid: string | null;
-  followedTeamUids: Set<string>;
   enabled?: boolean;
 }
 
-// followedTeamUids is deliberately NOT part of the query key — it's applied as a
-// client-side filter on the result below, so following a suggested team removes it
-// from the rendered list immediately via React re-render, with no refetch (which
-// would also disturb the backend's day-stable suggestion order).
-export function useSuggestedTeamsToFollow({
-  currentUserUid,
-  followedTeamUids,
-  enabled = true,
-}: UseSuggestedTeamsToFollowOptions) {
+// Suggestions are returned unfiltered. The Teams-to-follow card applies a
+// delayed client-side hide after follow (Following checkmark for 2s) so we
+// must not drop teams from this list the instant followedTeamUids updates —
+// that would unmount the row before the confirm state can show. Filtering
+// here would also force a refetch to restore day-stable order.
+export function useSuggestedTeamsToFollow({ currentUserUid, enabled = true }: UseSuggestedTeamsToFollowOptions) {
   const { data, isLoading } = useQuery({
     queryKey: [FollowQueryKeys.SUGGESTED_TEAMS, currentUserUid],
     queryFn: getSuggestedTeamsToFollow,
     enabled: enabled && Boolean(currentUserUid),
   });
 
-  const suggestions = (data ?? []).filter((team) => !followedTeamUids.has(team.uid));
-
-  return { suggestions, isLoading };
+  return { suggestions: data ?? [], isLoading };
 }

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { NewsRail } from '@/components/page/home/TeamNews/components/NewsRail/NewsRail';
 
@@ -45,10 +45,9 @@ describe('NewsRail', () => {
     mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
   });
 
-  it('always renders the why-follow explainer', () => {
+  it('does not render the why-follow explainer', () => {
     render(<NewsRail />);
-    expect(screen.getByText('Stay in the loop')).toBeInTheDocument();
-    expect(screen.getByText('Follow teams to receive updates and announcements.')).toBeInTheDocument();
+    expect(screen.queryByText('Stay in the loop')).not.toBeInTheDocument();
   });
 
   it('renders the digest promo without a button before the auth store hydrates', () => {
@@ -136,5 +135,38 @@ describe('NewsRail', () => {
 
     expect(screen.queryByText('Get network news Digest')).not.toBeInTheDocument();
     expect(screen.queryByText("You're subscribed to the Digest")).not.toBeInTheDocument();
+  });
+
+  it('keeps a followed suggestion visible with Following for 2s, then removes it', () => {
+    jest.useFakeTimers();
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    const onFollowToggle = jest.fn();
+    const suggestions = [
+      { uid: 't1', name: 'Banyan Storage', logo: null, reason: 'Storage · 1.2k followers' },
+      { uid: 't2', name: 'Helia Labs', logo: null, reason: 'Infrastructure · 890 followers' },
+    ];
+
+    const { rerender } = render(
+      <NewsRail suggestedTeams={suggestions} followedTeamUids={new Set()} onFollowToggle={onFollowToggle} />,
+    );
+
+    expect(screen.getByText('Banyan Storage')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /follow banyan storage/i }));
+    expect(onFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail');
+
+    rerender(
+      <NewsRail suggestedTeams={suggestions} followedTeamUids={new Set(['t1'])} onFollowToggle={onFollowToggle} />,
+    );
+
+    expect(screen.getByRole('button', { name: /following banyan storage/i })).toBeInTheDocument();
+    expect(screen.getByText('Helia Labs')).toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(screen.queryByText('Banyan Storage')).not.toBeInTheDocument();
+    expect(screen.getByText('Helia Labs')).toBeInTheDocument();
+    jest.useRealTimers();
   });
 });

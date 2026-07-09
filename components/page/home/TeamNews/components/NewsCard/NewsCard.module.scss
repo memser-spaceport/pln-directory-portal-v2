@@ -117,6 +117,25 @@
   overflow: hidden;
 }
 
+.headlineCompact {
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.3px;
+  -webkit-line-clamp: 3;
+}
+
+.compact {
+  gap: 10px;
+
+  &.card {
+    padding: 16px;
+  }
+
+  &.cardFlat {
+    padding: 12px 0;
+  }
+}
+
 .metaLine {
   gap: 6px;
   display: flex;
@@ -137,6 +156,11 @@
   line-height: 16px;
   letter-spacing: -0.2px;
   color: #455468;
+}
+
+.metaCompact {
+  font-size: 11px;
+  line-height: 15px;
 }
 
 .sep {
@@ -176,6 +200,10 @@
   letter-spacing: -0.2px;
 }
 
+.eventLabelCompact {
+  font-size: 11px;
+}
+
 .dotFunding {
   background: #027a48;
 }
@@ -209,6 +237,11 @@
   letter-spacing: -0.2px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+}
+
+.summaryCompact {
+  font-size: 13px;
+  line-height: 18px;
 }
 
 .actions {

@@ -22,6 +22,7 @@ interface NewsCardProps {
   hideTeamLink?: boolean;
   hideTeam?: boolean;
   variant?: 'default' | 'flat' | 'outline';
+  compact?: boolean;
   className?: string;
   analyticsSource?: TeamNewsAnalyticsSource;
   isFollowing?: boolean;
@@ -35,6 +36,7 @@ export const NewsCard = ({
   hideTeamLink = false,
   hideTeam = false,
   variant = 'default',
+  compact = false,
   className,
   analyticsSource = 'home',
   isFollowing = false,
@@ -70,7 +72,12 @@ export const NewsCard = ({
     <div
       role="link"
       tabIndex={0}
-      className={clsx(variant === 'flat' ? s.cardFlat : s.card, variant === 'outline' && s.cardOutline, className)}
+      className={clsx(
+        variant === 'flat' ? s.cardFlat : s.card,
+        variant === 'outline' && s.cardOutline,
+        compact && s.compact,
+        className,
+      )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
@@ -99,14 +106,14 @@ export const NewsCard = ({
           )}
         </div>
       )}
-      <h3 className={s.headline}>{item.title}</h3>
-      {item.summary && <p className={s.summary}>{item.summary}</p>}
+      <h3 className={clsx(s.headline, compact && s.headlineCompact)}>{item.title}</h3>
+      {item.summary && <p className={clsx(s.summary, compact && s.summaryCompact)}>{item.summary}</p>}
 
       <div className={s.metaLine}>
-        <div className={s.meta}>
+        <div className={clsx(s.meta, compact && s.metaCompact)}>
           <span className={s.eventType}>
             <span className={`${s.eventDot} ${eventTypeDotClassName}`} aria-hidden="true" />
-            <span className={s.eventLabel}>{eventTypeLabel}</span>
+            <span className={clsx(s.eventLabel, compact && s.eventLabelCompact)}>{eventTypeLabel}</span>
           </span>
           {item.sourceDomain && (
             <>

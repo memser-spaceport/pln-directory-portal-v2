@@ -36,7 +36,12 @@ export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; fl
   const open = () => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
 
   return (
-    <div role="link" tabIndex={0} className={`${n.card} ${flat ? s.flatNews : s.cardOutline}`} onClick={open}>
+    <div
+      role="link"
+      tabIndex={0}
+      className={`${n.card} ${n.compact} ${flat ? s.flatNews : s.cardOutline}`}
+      onClick={open}
+    >
       {/* On the team's own profile the news is all from this team, so the team
           row is redundant — hide it. The modal / full feed keeps it. */}
       {!hideTeam && (
@@ -50,13 +55,13 @@ export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; fl
         </div>
       )}
 
-      <h3 className={n.headline}>{item.title}</h3>
+      <h3 className={`${n.headline} ${n.headlineCompact}`}>{item.title}</h3>
 
       <div className={n.metaLine}>
-        <div className={n.meta}>
+        <div className={`${n.meta} ${n.metaCompact}`}>
           <span className={n.eventType}>
             <span className={`${n.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
-            <span className={n.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+            <span className={`${n.eventLabel} ${n.eventLabelCompact}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
           </span>
           {item.sourceDomain && (
             <>

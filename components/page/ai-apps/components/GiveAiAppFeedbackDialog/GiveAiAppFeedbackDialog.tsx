@@ -127,7 +127,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
           <div className={s.postingAs}>
             <CommentIcon />
             <span>
-              Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and Directory
+              Posting as <strong>{currentUser?.name ?? 'you'}</strong> · visible to the app&apos;s author and LabOS
               admins
             </span>
           </div>

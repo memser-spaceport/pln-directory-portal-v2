@@ -1,7 +1,35 @@
+@use 'styles/media';
+
+// Overrides Modal's default centered overlay - anchors the card bottom-right,
+// floating above the FloatingFeedbackButton it's triggered from, instead of a
+// full-viewport centered dialog.
+.overlay {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 16px 24px 92px;
+
+  @include media.mobile-only {
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+  }
+}
+
+.modalContainer {
+  max-width: 420px;
+  margin: 0;
+}
+
 .root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  max-height: calc(100vh - 120px);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.08),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+  overflow: hidden;
 }
 
 .header {

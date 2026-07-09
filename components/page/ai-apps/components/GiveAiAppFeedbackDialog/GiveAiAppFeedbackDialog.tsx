@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { Drawer } from '@/components/common/Drawer';
+import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
@@ -83,7 +83,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
   });
 
   return (
-    <Drawer isOpen={isOpen} onClose={onDialogClose} width={420}>
+    <Modal isOpen={isOpen} onClose={onDialogClose} overlayClassname={s.overlay} className={s.modalContainer}>
       <div className={s.root}>
         <div className={s.header}>
           <h2 className={s.title}>Give feedback</h2>
@@ -142,6 +142,6 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
           </Button>
         </div>
       </div>
-    </Drawer>
+    </Modal>
   );
 }

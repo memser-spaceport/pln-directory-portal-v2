@@ -4,6 +4,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { AI_APPS_STARTER_KIT_VERSION } from '@/services/ai-apps/constants';
 
 import { MODAL_INTRO, STEPS } from './constants';
 
@@ -58,7 +59,7 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
               Cancel
             </Button>
             <Button size="s" onClick={handleDownload}>
-              Download Starter Kit
+              Download Starter Kit v{AI_APPS_STARTER_KIT_VERSION}
             </Button>
           </div>
         </div>

@@ -1,14 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useQueryStates } from 'nuqs';
 import { useCallback, type KeyboardEvent, type MouseEvent } from 'react';
+import { gantryDashboardParsers } from '@/app/gantry/dashboard/searchParams';
 
 export function useGantryCardNavigate(uid: string) {
-  const router = useRouter();
+  const [, setParams] = useQueryStates(gantryDashboardParsers, {
+    history: 'push',
+    shallow: true,
+  });
 
   const navigate = useCallback(() => {
-    router.push(`/gantry/${uid}`);
-  }, [router, uid]);
+    void setParams({ itemId: uid });
+  }, [setParams, uid]);
 
   const onClick = useCallback(
     (e: MouseEvent) => {

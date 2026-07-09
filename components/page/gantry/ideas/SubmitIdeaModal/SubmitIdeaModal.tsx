@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
+import { useQueryStates } from 'nuqs';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
@@ -22,6 +22,7 @@ import {
   useGantrySaveDraftMutation,
 } from '@/services/gantry/hooks/useGantryDraft';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
+import { gantryDashboardParsers } from '@/app/gantry/dashboard/searchParams';
 import {
   submitIdeaSchema,
   hasRichTextContent,
@@ -41,7 +42,10 @@ interface Props {
 }
 
 export function SubmitIdeaModal({ objectives = [] }: Props) {
-  const router = useRouter();
+  const [, setDashboardParams] = useQueryStates(gantryDashboardParsers, {
+    history: 'push',
+    shallow: true,
+  });
   const analytics = useGantryAnalytics();
   const { open, variant, actions } = useSubmitIdeaModalStore();
   const copy = SUBMIT_IDEA_MODAL_COPY[variant];
@@ -60,11 +64,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
 
   const hasDraft = !!draftResult && !isSubmitIdeaDraftEmpty(draftResult.data);
 
-  const saveStatus = saveDraftMutation.isPending
-    ? 'saving'
-    : saveDraftMutation.isSuccess
-    ? 'saved'
-    : 'idle';
+  const saveStatus = saveDraftMutation.isPending ? 'saving' : saveDraftMutation.isSuccess ? 'saved' : 'idle';
 
   const methods = useForm<SubmitIdeaFormData>({
     resolver: yupResolver(submitIdeaSchema) as any,
@@ -106,17 +106,22 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
       setShowCreateObjective(false);
       setNewObjectiveTitle('');
     }
-    const id = window.setTimeout(() => { skipSaveRef.current = false; }, 0);
+    const id = window.setTimeout(() => {
+      skipSaveRef.current = false;
+    }, 0);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, variant]);
 
   // Autosave draft while modal is open
-  const toDraft = useCallback((): SubmitIdeaDraft => ({
-    form: getValues(),
-    showCreateObjective,
-    newObjectiveTitle,
-  }), [getValues, showCreateObjective, newObjectiveTitle]);
+  const toDraft = useCallback(
+    (): SubmitIdeaDraft => ({
+      form: getValues(),
+      showCreateObjective,
+      newObjectiveTitle,
+    }),
+    [getValues, showCreateObjective, newObjectiveTitle],
+  );
 
   useEffect(() => {
     if (!open || skipSaveRef.current) return;
@@ -183,7 +188,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
           setShowCreateObjective(false);
           setNewObjectiveTitle('');
           actions.closeModal();
-          router.push(`/gantry/${created.uid}`);
+          void setDashboardParams({ itemId: created.uid });
         },
       },
     );
@@ -222,7 +227,9 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
                     <button
                       type="button"
                       className={s.objectiveCreateBtn}
-                      onClick={() => { setShowCreateObjective(true); }}
+                      onClick={() => {
+                        setShowCreateObjective(true);
+                      }}
                     >
                       + New objective
                     </button>

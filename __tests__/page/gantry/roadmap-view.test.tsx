@@ -9,6 +9,14 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/gantry/dashboard',
 }));
 
+jest.mock('nuqs', () => ({
+  useQueryStates: () => [{ itemId: '' }, jest.fn()],
+}));
+
+jest.mock('@/components/page/gantry/GantryItemDrawer/GantryItemDrawer', () => ({
+  GantryItemDrawer: () => null,
+}));
+
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'member-1' } }),
 }));

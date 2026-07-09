@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
+import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
 
@@ -125,6 +126,7 @@ export function AiAppDetailPage(props: Props) {
           onLoad={handleIframeLoad}
         />
       )}
+      <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
     </div>
   );
 }

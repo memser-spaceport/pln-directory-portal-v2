@@ -1,4 +1,8 @@
-import { resolveBestPath, resolveBestConnector } from '@/services/investors/pathfinder.service';
+import {
+  normalizeLinkedInUrl,
+  resolveBestPath,
+  resolveBestConnector,
+} from '@/services/investors/pathfinder.service';
 import type { PathContact, PathOrgConnector, PathfinderPath } from '@/services/investors/types';
 
 function path(overrides: Partial<PathfinderPath>): PathfinderPath {
@@ -72,5 +76,22 @@ describe('resolveBestConnector', () => {
 
   it('returns kind "none" when neither contact nor org is present', () => {
     expect(resolveBestConnector(path({}))).toEqual({ kind: 'none' });
+  });
+});
+
+describe('normalizeLinkedInUrl', () => {
+  it('passes through absolute URLs', () => {
+    expect(normalizeLinkedInUrl('https://www.linkedin.com/in/jane-doe')).toBe(
+      'https://www.linkedin.com/in/jane-doe',
+    );
+  });
+
+  it('builds a profile URL from a bare handle', () => {
+    expect(normalizeLinkedInUrl('jane-doe')).toBe('https://www.linkedin.com/in/jane-doe');
+  });
+
+  it('returns undefined for empty values', () => {
+    expect(normalizeLinkedInUrl('')).toBeUndefined();
+    expect(normalizeLinkedInUrl(null)).toBeUndefined();
   });
 });

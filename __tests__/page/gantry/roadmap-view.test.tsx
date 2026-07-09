@@ -117,7 +117,7 @@ describe('RoadmapView', () => {
             viewerHasUpvoted: false,
             pinCount: 0,
             viewerHasPinned: false,
-            objective: null,
+            objectives: [],
             deletedAt: null,
             createdAt: '',
             updatedAt: '',

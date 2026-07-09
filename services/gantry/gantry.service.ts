@@ -42,7 +42,9 @@ function buildQuery(params: GantryListParams): string {
   if (params.type?.length) {
     search.set('type', params.type.join(','));
   }
-  if (params.objectiveUid) search.set('objectiveUid', params.objectiveUid);
+  if (params.objectiveUid?.length) {
+    search.set('objectiveUid', params.objectiveUid.join(','));
+  }
   return search.toString();
 }
 
@@ -175,14 +177,14 @@ export async function declineGantryItem(uid: string, reason: string): Promise<Ga
   return parseJsonOrThrow<GantryItem>(res, 'Failed to decline gantry item');
 }
 
-export type AssignObjectiveBody =
-  | { objectiveUid: string }
-  | { objectiveUid: null }
-  | { title: string };
+export type AssignObjectivesBody = {
+  objectiveUids: string[];
+  titles?: string[];
+};
 
-export async function assignGantryItemObjective(uid: string, body: AssignObjectiveBody): Promise<GantryItem> {
+export async function assignGantryItemObjectives(uid: string, body: AssignObjectivesBody): Promise<GantryItem> {
   const res = await customFetch(
-    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/objective`,
+    `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/objectives`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -190,7 +192,7 @@ export async function assignGantryItemObjective(uid: string, body: AssignObjecti
     },
     true,
   );
-  return parseJsonOrThrow<GantryItem>(res, 'Failed to assign objective');
+  return parseJsonOrThrow<GantryItem>(res, 'Failed to assign objectives');
 }
 
 export async function fetchGantryObjectives(): Promise<GantryObjective[]> {

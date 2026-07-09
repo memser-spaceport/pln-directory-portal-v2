@@ -434,8 +434,10 @@ export type PathHopChain = {
   /** Rich per-hop contacts (v2 API). When present, prefer over `nodes` for display. */
   routeNodes?: RouteNode[];
   edges: PathHopEdge[];
-  /** Plain-English description of the path, surfaced in the expanded row. */
+  /** Route / prior-backing narrative (excludes Affinity/LinkedIn attribution). */
   explanation: string;
+  /** Structured why-warm bullets (`Affinity:` / `LinkedIn:`). */
+  attribution_lines?: Array<{ source: 'Affinity' | 'LinkedIn'; text: string }>;
 };
 
 /** A single ranked warm path to a target investor (one PathfinderPath row). */

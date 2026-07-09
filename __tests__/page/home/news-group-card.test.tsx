@@ -209,4 +209,34 @@ describe('NewsGroupCard', () => {
     rerender(<NewsGroupCard key="tab-b" cluster={clusterWith(items)} />);
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
   });
+
+  it("renders an Upvote button reflecting the story's upvote state", () => {
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z', { viewerHasUpvoted: true, upvoteCount: 5 });
+    render(<NewsGroupCard cluster={clusterWith([item])} />);
+    expect(screen.getByRole('button', { name: 'Remove upvote (5)' })).toBeInTheDocument();
+  });
+
+  it('redirects to login instead of calling onUpvoteToggle when unauthenticated', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
+    const onUpvoteToggle = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    expect(onUpvoteToggle).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+  });
+
+  it('calls onUpvoteToggle with the clicked story when authenticated, without opening the story', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const onUpvoteToggle = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    expect(onUpvoteToggle).toHaveBeenCalledWith(item);
+    expect(openSpy).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
 });

@@ -27,8 +27,8 @@ interface Props {
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
   readonly objectives: GantryObjective[];
-  readonly selectedObjective: string | null;
-  readonly onSelectedObjectiveChange: (uid: string | null) => void;
+  readonly selectedObjectives: string[];
+  readonly onSelectedObjectivesChange: (uids: string[]) => void;
 }
 
 export function RoadmapFiltersContent({
@@ -41,8 +41,8 @@ export function RoadmapFiltersContent({
   searchText,
   onSearchTextChange,
   objectives,
-  selectedObjective,
-  onSelectedObjectiveChange,
+  selectedObjectives,
+  onSelectedObjectivesChange,
 }: Props) {
   const toggleColumn = (stage: RoadmapColumnStage) => {
     if (visibleColumns.includes(stage)) {
@@ -50,6 +50,14 @@ export function RoadmapFiltersContent({
       return;
     }
     onVisibleColumnsChange(sortRoadmapColumnStages([...visibleColumns, stage]));
+  };
+
+  const toggleObjective = (uid: string) => {
+    if (selectedObjectives.includes(uid)) {
+      onSelectedObjectivesChange(selectedObjectives.filter((id) => id !== uid));
+      return;
+    }
+    onSelectedObjectivesChange([...selectedObjectives, uid]);
   };
 
   return (
@@ -80,15 +88,15 @@ export function RoadmapFiltersContent({
       </FilterSection>
 
       {objectives.length > 0 && (
-        <FilterSection title="Objective">
+        <FilterSection title="Objectives">
           <div>
             {objectives.map((obj) => {
-              const checked = selectedObjective === obj.uid;
+              const checked = selectedObjectives.includes(obj.uid);
               return (
                 <div
                   key={obj.uid}
                   className={filterStyles.objectiveItem}
-                  onClick={() => onSelectedObjectiveChange(checked ? null : obj.uid)}
+                  onClick={() => toggleObjective(obj.uid)}
                 >
                   <span className={filterStyles.objectiveFirstLineSlot}>
                     <Checkbox checked={checked} classes={{ root: filterStyles.objectiveCheckbox }} />

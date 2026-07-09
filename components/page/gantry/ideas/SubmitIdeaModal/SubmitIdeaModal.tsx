@@ -8,12 +8,12 @@ import { useRouter } from 'next/navigation';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
-import { FormSelect } from '@/components/form/FormSelect';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { IdeaFormFields } from '@/components/page/gantry/shared/IdeaFormFields';
 import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { useCreateGantryItem } from '@/services/gantry/hooks/useCreateGantryItem';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
-import { assignGantryItemObjective } from '@/services/gantry/gantry.service';
+import { assignGantryItemObjectives } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
 import { getSubmitIdeaFormDefaults, SUBMIT_IDEA_MODAL_COPY } from '@/services/gantry/submitIdeaModal';
 import {
@@ -91,7 +91,14 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     }
     skipSaveRef.current = true;
     if (draftResult && !isSubmitIdeaDraftEmpty(draftResult.data)) {
-      reset(draftResult.data.form);
+      const form = {
+        ...draftResult.data.form,
+        objectives: (draftResult.data.form.objectives ?? []).map((opt) => {
+          const match = objectives.find((o) => o.uid === opt.value);
+          return match ? { label: `O${match.order} · ${match.title}`, value: match.uid } : opt;
+        }),
+      };
+      reset(form);
       setShowCreateObjective(draftResult.data.showCreateObjective ?? false);
       setNewObjectiveTitle(draftResult.data.newObjectiveTitle ?? '');
     } else {
@@ -159,15 +166,13 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
       {
         onSuccess: async (created) => {
           const pendingTitle = newObjectiveTitle.trim();
-          if (pendingTitle) {
+          const objectiveUids = data.objectives?.map((o) => o.value) ?? [];
+          if (pendingTitle || objectiveUids.length > 0) {
             try {
-              await assignGantryItemObjective(created.uid, { title: pendingTitle });
-            } catch {
-              // non-fatal
-            }
-          } else if (data.objective?.value) {
-            try {
-              await assignGantryItemObjective(created.uid, { objectiveUid: data.objective.value });
+              await assignGantryItemObjectives(created.uid, {
+                objectiveUids,
+                ...(pendingTitle ? { titles: [pendingTitle] } : {}),
+              });
             } catch {
               // non-fatal
             }
@@ -206,17 +211,12 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
               <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
               {canCurate && (
                 <div className={s.objectiveField}>
-                  <FormSelect
-                    name="objective"
-                    label="Objective"
-                    placeholder="Select an objective..."
+                  <FormMultiSelect
+                    name="objectives"
+                    label="Objectives"
+                    placeholder="Select objectives..."
                     options={objectiveOptions}
-                    isClearable
                     menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                    onChange={() => {
-                      setShowCreateObjective(false);
-                      setNewObjectiveTitle('');
-                    }}
                   />
                   {!showCreateObjective ? (
                     <button

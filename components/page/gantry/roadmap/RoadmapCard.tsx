@@ -91,9 +91,13 @@ function RoadmapCardContent({
           )}
         </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
-        {item.objective && (
-          <span className={s.objectiveBadge}>
-            <span className={s.objectiveDot} aria-hidden />O{item.objective.order}
+        {item.objectives?.length > 0 && (
+          <span className={s.objectiveBadges}>
+            {item.objectives.map((objective) => (
+              <span key={objective.uid} className={s.objectiveBadge}>
+                <span className={s.objectiveDot} aria-hidden />O{objective.order}
+              </span>
+            ))}
           </span>
         )}
       </div>

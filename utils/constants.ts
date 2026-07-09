@@ -587,6 +587,8 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
+  TEAM_NEWS_UPVOTE_TOGGLED: 'team-news-upvote-toggled',
+  TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

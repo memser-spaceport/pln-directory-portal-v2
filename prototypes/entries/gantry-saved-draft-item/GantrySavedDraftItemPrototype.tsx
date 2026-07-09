@@ -10,7 +10,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { FiltersSidePanel } from '@/components/common/filters/FiltersSidePanel';
-import { FormSelect } from '@/components/form/FormSelect';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { IdeaFormFields } from '@/components/page/gantry/shared/IdeaFormFields';
 import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { IdeasSubmitButton } from '@/components/page/gantry/ideas/IdeasSubmitButton';
@@ -80,16 +80,15 @@ function getTypeFromForm(form: SubmitIdeaFormData): GantryItemType | null {
   return isGantryItemType(form.type?.value) ? form.type.value : null;
 }
 
-function getObjectiveFromForm(form: SubmitIdeaFormData) {
-  const objective = mockGantryObjectives.find((item) => item.uid === form.objective?.value);
-
-  if (!objective) return null;
-
-  return {
-    uid: objective.uid,
-    order: objective.order,
-    title: objective.title,
-  };
+function getObjectivesFromForm(form: SubmitIdeaFormData) {
+  const selected = new Set((form.objectives ?? []).map((o) => o.value));
+  return mockGantryObjectives
+    .filter((item) => selected.has(item.uid))
+    .map((objective) => ({
+      uid: objective.uid,
+      order: objective.order,
+      title: objective.title,
+    }));
 }
 
 function hasDraftContent(form: SubmitIdeaFormData): boolean {
@@ -98,7 +97,7 @@ function hasDraftContent(form: SubmitIdeaFormData): boolean {
     hasRichTextContent(form.description) ||
     !!form.tags?.length ||
     !!form.type ||
-    !!form.objective
+    !!form.objectives?.length
   );
 }
 
@@ -109,7 +108,7 @@ function getFormFingerprint(form: SubmitIdeaFormData): string {
     form.stage?.value ?? '',
     form.tags?.map((tag) => tag.value).join(',') ?? '',
     form.type?.value ?? '',
-    form.objective?.value ?? '',
+    form.objectives?.map((o) => o.value).join(',') ?? '',
   ].join('|');
 }
 
@@ -124,7 +123,7 @@ function buildDraftFromForm(form: SubmitIdeaFormData): MockSavedGantryDraft {
       stage: form.stage,
       tags: form.tags ?? [],
       type: form.type ?? null,
-      objective: form.objective ?? null,
+      objectives: form.objectives ?? [],
     },
   };
 }
@@ -140,7 +139,7 @@ function buildItemFromForm(form: SubmitIdeaFormData, uid: string, order: number)
     acceptanceCriteria: null,
     stage,
     focusArea: null,
-    objective: getObjectiveFromForm(form),
+    objectives: getObjectivesFromForm(form),
     tags: form.tags?.map((tag) => tag.value) ?? [],
     type: getTypeFromForm(form),
     order,
@@ -165,7 +164,13 @@ function itemMatchesSearch(item: GantryItem, searchText: string): boolean {
   const query = searchText.trim().toLowerCase();
   if (!query) return true;
 
-  const haystack = [item.title, toPlainText(item.description), item.type ?? '', item.objective?.title ?? '', ...(item.tags ?? [])]
+  const haystack = [
+    item.title,
+    toPlainText(item.description),
+    item.type ?? '',
+    ...(item.objectives ?? []).map((o) => o.title),
+    ...(item.tags ?? []),
+  ]
     .join(' ')
     .toLowerCase();
 
@@ -210,7 +215,7 @@ export default function GantrySavedDraftItemPrototype() {
   const [visibleColumns, setVisibleColumns] = useState<RoadmapColumnStage[]>([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
+  const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
   // Render client-only: this prototype reuses interactive production components (react-select,
   // framer-motion) whose markup differs pre-hydration. Gating on mount keeps SSR === first paint.
   const [mounted, setMounted] = useState(false);
@@ -225,7 +230,7 @@ export default function GantrySavedDraftItemPrototype() {
   const watchedStage = useWatch({ control: methods.control, name: 'stage' });
   const watchedTags = useWatch({ control: methods.control, name: 'tags' });
   const watchedType = useWatch({ control: methods.control, name: 'type' });
-  const watchedObjective = useWatch({ control: methods.control, name: 'objective' });
+  const watchedObjectives = useWatch({ control: methods.control, name: 'objectives' });
 
   const liveFormValues = useMemo<SubmitIdeaFormData>(
     () => ({
@@ -234,9 +239,9 @@ export default function GantrySavedDraftItemPrototype() {
       stage: watchedStage,
       tags: watchedTags ?? [],
       type: watchedType,
-      objective: watchedObjective,
+      objectives: watchedObjectives ?? [],
     }),
-    [watchedDescription, watchedObjective, watchedStage, watchedTags, watchedTitle, watchedType],
+    [watchedDescription, watchedObjectives, watchedStage, watchedTags, watchedTitle, watchedType],
   );
 
   const liveFormFingerprint = useMemo(() => getFormFingerprint(liveFormValues), [liveFormValues]);
@@ -286,11 +291,13 @@ export default function GantrySavedDraftItemPrototype() {
         if (!visibleColumns.includes(item.stage as RoadmapColumnStage)) return false;
         if (selectedTags.length > 0 && !selectedTags.every((tag) => item.tags?.includes(tag))) return false;
         if (selectedTypes.length > 0 && (!item.type || !selectedTypes.includes(item.type))) return false;
-        if (selectedObjective && item.objective?.uid !== selectedObjective) return false;
+        if (selectedObjectives.length > 0 && !item.objectives?.some((o) => selectedObjectives.includes(o.uid))) {
+          return false;
+        }
 
         return itemMatchesSearch(item, searchText);
       }),
-    [items, searchText, selectedObjective, selectedTags, selectedTypes, visibleColumns],
+    [items, searchText, selectedObjectives, selectedTags, selectedTypes, visibleColumns],
   );
 
   const itemsByStage = useMemo(() => {
@@ -309,7 +316,7 @@ export default function GantrySavedDraftItemPrototype() {
   }, [filteredItems, visibleColumns]);
 
   const appliedFiltersCount =
-    selectedTags.length + selectedTypes.length + (selectedObjective ? 1 : 0) + (searchText.trim() ? 1 : 0);
+    selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText.trim() ? 1 : 0);
 
   const draftTitle = draft?.form.title.trim() || 'Untitled Gantry request';
 
@@ -344,7 +351,7 @@ export default function GantrySavedDraftItemPrototype() {
     setVisibleColumns([...DEFAULT_ROADMAP_VISIBLE_COLUMNS]);
     setSelectedTags([]);
     setSelectedTypes([]);
-    setSelectedObjective(null);
+    setSelectedObjectives([]);
     setSearchText('');
   };
 
@@ -469,8 +476,8 @@ export default function GantrySavedDraftItemPrototype() {
         searchText={searchText}
         onSearchTextChange={setSearchText}
         objectives={mockGantryObjectives}
-        selectedObjective={selectedObjective}
-        onSelectedObjectiveChange={setSelectedObjective}
+        selectedObjectives={selectedObjectives}
+        onSelectedObjectivesChange={setSelectedObjectives}
       />
     </FiltersSidePanel>
   );
@@ -627,8 +634,8 @@ export default function GantrySavedDraftItemPrototype() {
             searchText={searchText}
             onSearchTextChange={setSearchText}
             objectives={mockGantryObjectives}
-            selectedObjective={selectedObjective}
-            onSelectedObjectiveChange={setSelectedObjective}
+            selectedObjectives={selectedObjectives}
+            onSelectedObjectivesChange={setSelectedObjectives}
           />
           {/* Common mobile-filter footer — sticky Clear + Apply actions, matching the shared
               MobileFilterWrapper used by Members / Teams / Jobs (gantry was the outlier with a
@@ -663,12 +670,11 @@ export default function GantrySavedDraftItemPrototype() {
             <FormProvider {...methods}>
               <IdeaFormFields canSetStageOnCreate />
               <div className={submitIdea.objectiveField}>
-                <FormSelect
-                  name="objective"
-                  label="Objective"
-                  placeholder="Select an objective..."
+                <FormMultiSelect
+                  name="objectives"
+                  label="Objectives"
+                  placeholder="Select objectives..."
                   options={mockObjectiveOptions}
-                  isClearable
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
               </div>

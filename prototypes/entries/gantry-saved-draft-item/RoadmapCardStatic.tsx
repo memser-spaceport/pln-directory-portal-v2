@@ -71,22 +71,26 @@ export function RoadmapCardContent({
           )}
         </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
-        {item.objective && (
-          <span className={s.objectiveBadge}>
-            {/* Inline style forces a perfect 6px circle regardless of flex/CSS-module quirks. */}
-            <span
-              aria-hidden
-              style={{
-                display: 'inline-block',
-                flex: '0 0 auto',
-                alignSelf: 'center',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'currentColor',
-              }}
-            />
-            O{item.objective.order}
+        {item.objectives?.length > 0 && (
+          <span className={s.objectiveBadges}>
+            {item.objectives.map((objective) => (
+              <span key={objective.uid} className={s.objectiveBadge}>
+                {/* Inline style forces a perfect 6px circle regardless of flex/CSS-module quirks. */}
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    flex: '0 0 auto',
+                    alignSelf: 'center',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: 'currentColor',
+                  }}
+                />
+                O{objective.order}
+              </span>
+            ))}
           </span>
         )}
       </div>

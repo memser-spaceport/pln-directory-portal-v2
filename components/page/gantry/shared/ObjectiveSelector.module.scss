@@ -113,7 +113,7 @@
 
 .readOnly {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -122,6 +122,13 @@
   font-weight: 500;
   color: #455468;
   flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.badgeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .badge {

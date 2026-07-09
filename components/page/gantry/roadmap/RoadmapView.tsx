@@ -521,8 +521,8 @@ export function RoadmapView() {
               searchText={filters.searchText}
               onSearchTextChange={filters.handleSearchTextChange}
               objectives={objectives}
-              selectedObjective={filters.selectedObjective}
-              onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+              selectedObjectives={filters.selectedObjectives}
+              onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
             />
           </MobileDrawer>
 
@@ -559,8 +559,8 @@ export function RoadmapView() {
             searchText={filters.searchText}
             onSearchTextChange={filters.handleSearchTextChange}
             objectives={objectives}
-            selectedObjective={filters.selectedObjective}
-            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+            selectedObjectives={filters.selectedObjectives}
+            onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
           />
         }
         content={

@@ -68,7 +68,7 @@ export const mockSavedGantryDraft: MockSavedGantryDraft = {
     stage: submittedStageOption,
     tags: [gantryTagOption, notificationsTagOption],
     type: enhancementTypeOption,
-    objective: mockObjectiveOptions[1],
+    objectives: [mockObjectiveOptions[1]],
   },
 };
 
@@ -78,7 +78,7 @@ export const mockEmptyGantryForm: SubmitIdeaFormData = {
   stage: plannedStageOption,
   tags: [],
   type: null,
-  objective: null,
+  objectives: [],
 };
 
 export const mockBoardItems: GantryItem[] = [
@@ -90,11 +90,11 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'PLANNED',
     focusArea: null,
-    objective: {
+    objectives: [{
       uid: 'mock-objective-2',
       order: 2,
       title: 'Increase roadmap visibility',
-    },
+    }],
     tags: ['Directory', 'Back Office'],
     type: 'Enhancement Request',
     order: 1,
@@ -125,11 +125,11 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'IN_PROGRESS',
     focusArea: null,
-    objective: {
+    objectives: [{
       uid: 'mock-objective-1',
       order: 1,
       title: 'Improve contributor request flow',
-    },
+    }],
     tags: ['Gantry', 'Notifications'],
     type: 'New Feature Request',
     order: 1,
@@ -160,7 +160,7 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'SHIPPED',
     focusArea: null,
-    objective: null,
+    objectives: [],
     tags: ['Gantry'],
     type: 'Enhancement Request',
     order: 1,
@@ -190,11 +190,11 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'IDEA',
     focusArea: null,
-    objective: {
+    objectives: [{
       uid: 'mock-objective-1',
       order: 1,
       title: 'Improve contributor request flow',
-    },
+    }],
     tags: ['Gantry', 'Search'],
     type: 'New Feature Request',
     order: null,

@@ -242,6 +242,19 @@ export function GantryDetailPage({ uid }: Props) {
               </div>
             )}
 
+            {item.objectives?.length > 0 && !isEditMode && (
+              <div className={s.tagsRow}>
+                <span className={s.tagsLabel}>Objectives</span>
+                <div className={s.tagsList} aria-label={`Objectives: ${item.objectives.map((o) => `O${o.order}`).join(', ')}`}>
+                  {item.objectives.map((objective) => (
+                    <span key={objective.uid} className={s.objectiveChip}>
+                      O{objective.order} · {objective.title}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className={s.mobileDivider} />
 
             {isEditMode ? (

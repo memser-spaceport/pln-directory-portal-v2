@@ -32,14 +32,14 @@ const apiDraft: ApiGantryDraft = {
   tags: [],
   type: null,
   stage: null,
-  objectiveUid: null,
+  objectiveUids: [],
   newObjectiveTitle: null,
   showCreateObjective: false,
   updatedAt: UPDATED_AT,
 };
 
 const sampleDraft: SubmitIdeaDraft = {
-  form: { title: 'Test title', description: '', tags: [], type: null, objective: null },
+  form: { title: 'Test title', description: '', tags: [], type: null, objectives: [] },
   showCreateObjective: false,
   newObjectiveTitle: '',
 };

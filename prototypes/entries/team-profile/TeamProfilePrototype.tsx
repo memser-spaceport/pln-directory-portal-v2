@@ -44,6 +44,7 @@ import {
   MOCK_NEWS,
   MOCK_FOLLOWERS,
   TEAM_FOLLOWER_COUNT,
+  MOCK_TEAM_DEMO_DAY,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -143,6 +144,7 @@ export default function TeamProfilePrototype() {
         <div className={shell.teamDetail__Container__details}>
           <TeamDetailsView
             team={team}
+            demoDayParticipation={MOCK_TEAM_DEMO_DAY}
             headerAction={
               view === 'public' ? (
                 <div className={`${local.followHeader} ${local.followClusterMobile}`}>

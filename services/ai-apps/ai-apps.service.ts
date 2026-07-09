@@ -19,6 +19,8 @@ export interface AiApp {
   requiredEnvVars: string[];
   /** NAMES the member already stored values for (values never leave the backend). */
   providedEnvVars: string[];
+  /** Server-computed on the detail endpoint: requester is the creator or a directory admin. */
+  canManage?: boolean;
   createdAt: string;
   updatedAt: string;
   member: {

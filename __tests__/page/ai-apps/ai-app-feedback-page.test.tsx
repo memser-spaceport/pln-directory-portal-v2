@@ -133,4 +133,22 @@ describe('AiAppFeedbackPage', () => {
     expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0]], 'ai-app-feedback-alpha.csv');
     expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
   });
+
+  it('moves the sliding active-tab indicator to whichever tab was clicked', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<AiAppFeedbackPage />);
+
+    const allAppsTab = screen.getByRole('button', { name: /All apps/ });
+    const alphaTab = screen.getByRole('button', { name: /Alpha/ });
+
+    // Framer Motion's layoutId indicator is only rendered inside the active tab.
+    expect(allAppsTab.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
+    expect(alphaTab.querySelector('[class*="activeIndicator"]')).not.toBeInTheDocument();
+
+    fireEvent.click(alphaTab);
+
+    expect(allAppsTab.querySelector('[class*="activeIndicator"]')).not.toBeInTheDocument();
+    expect(alphaTab.querySelector('[class*="activeIndicator"]')).toBeInTheDocument();
+  });
 });

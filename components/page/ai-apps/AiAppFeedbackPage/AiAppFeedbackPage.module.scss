@@ -77,6 +77,9 @@
   justify-content: space-between;
   gap: 16px;
 
+  border-bottom: 1px solid var(--border-neutral-subtle, #1b38601f);
+
+
   @include media.mobile-only {
     flex-direction: column;
     align-items: stretch;
@@ -90,14 +93,14 @@
 }
 
 .tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 4px 12px;
+  padding: 10px 4px 14px;
   margin-right: 20px;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -106,6 +109,16 @@
   &:hover {
     color: var(--foreground-brand-primary, #1b4dff);
   }
+}
+
+.activeIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 9px 9px 0 0;
+  background: var(--foreground-brand-primary, #1b4dff);
 }
 
 .tabCount {
@@ -124,7 +137,6 @@
 
 .tabActive {
   color: var(--foreground-brand-primary, #1b4dff);
-  border-bottom-color: var(--foreground-brand-primary, #1b4dff);
 
   .tabCount {
     background: #dbeafe;

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/common/Button/Button';
 import { ArrowBackIcon } from '@/components/icons';
@@ -99,6 +100,13 @@ export function AiAppFeedbackPage() {
                   >
                     {tab.name}
                     <span className={s.tabCount}>{tab.count}</span>
+                    {tab.name === activeTab && (
+                      <motion.span
+                        layoutId="aiAppFeedbackActiveTab"
+                        className={s.activeIndicator}
+                        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                      />
+                    )}
                   </button>
                 ))}
               </div>

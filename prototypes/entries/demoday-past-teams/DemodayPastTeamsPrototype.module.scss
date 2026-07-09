@@ -1,0 +1,8 @@
+// Page frame only — the completed card sits on a light page background in production.
+// Everything inside reuses the real DemodayCompletedView.module.scss classes.
+.page {
+  min-height: 100%;
+  width: 100%;
+  padding: 0 16px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}

@@ -60,6 +60,10 @@ export const MOCK_TEAM = {
   asks: [],
 } satisfies Partial<ITeam>;
 
+/* --------------- Demo Day participation (drives the header badge) --------------- */
+// Slug matches the completed demo day so the badge deep-links to its page.
+export const MOCK_TEAM_DEMO_DAY = { title: 'Demo Day F25', slug: 'pl-demo-day-f25' };
+
 /* ---------------- Followers (team view: who follows this team) ---------------- */
 export interface TeamFollower {
   id: string;

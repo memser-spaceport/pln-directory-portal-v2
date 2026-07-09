@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'team-profile',
     title: 'Team profile',
     description:
-      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal.',
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a "Demo Day F25" participation badge that deep-links to that demo day.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },
@@ -84,6 +84,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal.',
     category: 'Members',
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
+  },
+  {
+    key: 'demoday-tag-placements',
+    title: 'Demo Day tag — placement options',
+    description:
+      'Placements + styles for the "participated in Demo Day" indicator on the team profile, switchable by tab: next to the name as a filled code badge, an outlined code badge, a calendar-icon emblem, or a series-tag-style pill; on its own separate row; as a chip in the tags row; or as a row inside the Events/Contributions block.',
+    category: 'Teams',
+    load: () => import('./entries/demoday-tag-placements/DemodayTagPlacementsPrototype'),
   },
   {
     key: 'follow-team',
@@ -148,6 +156,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Recreation of the Settings › Email Preferences tab (settings menu + all sections) from the real components. The one change: the old "Forum Digest" is renamed "Digest" (it actually carries forum activity + network news) and gains per-content toggles, so a member can keep the digest but switch Network news off independently.',
     category: 'Newsfeed',
     load: () => import('./entries/email-preferences/EmailPreferencesPrototype'),
+  },
+  {
+    key: 'demoday-past-teams',
+    title: 'Demo Day — past participating teams',
+    description:
+      'The completed (past) Demo Day page with the "Teams That Presented" grid un-hidden: hero, partner logos, the full list of past participating teams (real TeamCards linking to team pages), FAQ, and footer. Only shown for demo days that already happened.',
+    category: 'Demo Day',
+    load: () => import('./entries/demoday-past-teams/DemodayPastTeamsPrototype'),
   },
   {
     key: 'ai-apps',

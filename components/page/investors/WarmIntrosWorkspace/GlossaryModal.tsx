@@ -83,11 +83,16 @@ export function GlossaryModal({ open, onClose }: Props) {
         </section>
 
         <section className={s.section}>
-          <h3 className={s.h3}>Warmth &amp; confidence</h3>
+          <h3 className={s.h3}>Path warmth (0–100)</h3>
           <p className={s.p}>
-            <strong>Warmth</strong> is the path&apos;s success probability (0–100%) — the product of each hop&apos;s
-            likelihood. <strong>Confidence</strong> is how sure the model is about the computed caliber; it abstains
-            (low confidence) when the underlying data is thin.
+            How strong this intro route is. Higher = better path to reach this investor. We combine the{' '}
+            <strong>route</strong> (how direct/reliable the chain is), <strong>Affinity</strong> (PL relationship
+            strength and recency), and <strong>LinkedIn</strong> (shared work or school — stronger when dates overlap;
+            weaker when unverified).
+          </p>
+          <p className={s.p}>
+            Lines below the score (<code>Affinity:</code> / <code>LinkedIn:</code>) explain <em>why</em> the path is
+            warm. They are context, not separate scores. Paths with fewer hops rank first; then by higher path warmth.
           </p>
         </section>
 

@@ -39,6 +39,20 @@ export function mapHopNode(n: AnyDto): PathHopChain['nodes'][number] {
   return { id, label, type: 'person' };
 }
 
+/** Normalize LinkedIn handle or URL to an https profile URL (seed stores `linkedin` as handle). */
+export function normalizeLinkedInUrl(value: string | null | undefined): string | undefined {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (!raw) return undefined;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const handle = raw
+    .replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '')
+    .replace(/^linkedin\.com\/in\//i, '')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '');
+  if (!handle) return undefined;
+  return `https://www.linkedin.com/in/${handle}`;
+}
+
 function mapContact(dto: AnyDto): PathContact {
   return {
     id: dto.id as string | undefined,
@@ -46,7 +60,9 @@ function mapContact(dto: AnyDto): PathContact {
     role: dto.role as string | undefined,
     email: dto.email as string | undefined,
     image_url: (dto.imageUrl ?? dto.image_url) as string | undefined,
-    linkedin_url: (dto.linkedinUrl ?? dto.linkedin_url) as string | undefined,
+    linkedin_url: normalizeLinkedInUrl(
+      (dto.linkedinUrl ?? dto.linkedin_url ?? dto.linkedin) as string | undefined,
+    ),
     telegram: dto.telegram as string | undefined,
     member_uid: (dto.memberUid ?? dto.member_uid) as string | undefined,
   };
@@ -94,7 +110,24 @@ function mapHopChain(dto: AnyDto | null | undefined): PathHopChain {
     probability: (e.probability ?? 0) as number,
     evidence: (e.evidence ?? null) as string | null,
   }));
-  return { nodes, routeNodes, edges, explanation: (dto?.explanation ?? '') as string };
+  const rawLines = (dto?.attributionLines ?? dto?.attribution_lines) as AnyDto[] | undefined;
+  const attribution_lines = Array.isArray(rawLines)
+    ? rawLines
+        .map((line) => {
+          const source = line?.source as string | undefined;
+          const text = typeof line?.text === 'string' ? line.text.trim() : '';
+          if ((source !== 'Affinity' && source !== 'LinkedIn') || !text) return null;
+          return { source: source as 'Affinity' | 'LinkedIn', text };
+        })
+        .filter((line): line is { source: 'Affinity' | 'LinkedIn'; text: string } => line != null)
+    : undefined;
+  return {
+    nodes,
+    routeNodes,
+    edges,
+    explanation: (dto?.explanation ?? '') as string,
+    ...(attribution_lines && attribution_lines.length > 0 ? { attribution_lines } : {}),
+  };
 }
 
 function mapCorrection(dto: AnyDto): PathCorrection {
@@ -110,6 +143,20 @@ function mapCorrection(dto: AnyDto): PathCorrection {
 }
 
 export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
+  const hop_chain = mapHopChain(dto.hopChain);
+  let contact = dto.hopChain?.contact ? mapContact(dto.hopChain.contact as AnyDto) : undefined;
+  // Seed often stores LinkedIn on routeNodes / contact.linkedin (handle); prefer contact, else match route node.
+  if (contact && !contact.linkedin_url && hop_chain.routeNodes?.length) {
+    const byUid = contact.member_uid
+      ? hop_chain.routeNodes.find((n) => n.memberUid === contact!.member_uid)
+      : undefined;
+    const byName = hop_chain.routeNodes.find(
+      (n) => n.label.trim().toLowerCase() === contact!.name.trim().toLowerCase(),
+    );
+    const linkedin = normalizeLinkedInUrl(byUid?.linkedin ?? byName?.linkedin);
+    if (linkedin) contact = { ...contact, linkedin_url: linkedin };
+  }
+
   return {
     id: dto.id as number,
     target_investor_id: dto.targetInvestorId as string,
@@ -120,11 +167,11 @@ export function mapPathfinderPath(dto: AnyDto): PathfinderPath {
     proximity_code: (dto.proximityCode ?? '') as string,
     score: (dto.score ?? 0) as number,
     caliber_confidence: dto.caliberConfidence ?? null,
-    hop_chain: mapHopChain(dto.hopChain),
+    hop_chain,
     rank: (dto.rank ?? 0) as number,
     computed_at: dto.computedAt ?? undefined,
     corrections: ((dto.corrections ?? []) as AnyDto[]).map(mapCorrection),
-    contact: dto.hopChain?.contact ? mapContact(dto.hopChain.contact as AnyDto) : undefined,
+    contact,
     org_connector: dto.hopChain?.orgConnector ? mapOrgConnector(dto.hopChain.orgConnector as AnyDto) : undefined,
   };
 }

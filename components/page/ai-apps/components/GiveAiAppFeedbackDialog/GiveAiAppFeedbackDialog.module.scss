@@ -1,12 +1,17 @@
 @use 'styles/media';
 
-// Overrides Modal's default centered overlay - anchors the card bottom-right,
-// floating above the FloatingFeedbackButton it's triggered from, instead of a
-// full-viewport centered dialog.
+// Overrides Modal's default centered, blurred/dimmed overlay - this floats as
+// a plain popover above the FloatingFeedbackButton with the rest of the page
+// left fully sharp and undimmed, anchored bottom-right instead of centered.
+// !important guards against CSS module import-order flipping which class wins
+// for these properties, since Modal.module.scss's own .overlay sets them too.
 .overlay {
   align-items: flex-end;
   justify-content: flex-end;
   padding: 16px 24px 92px;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 
   @include media.mobile-only {
     align-items: center;

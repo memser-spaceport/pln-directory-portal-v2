@@ -153,6 +153,8 @@
 
 .table {
   width: 100%;
+  min-width: 640px;
+  table-layout: fixed;
   border-collapse: collapse;
 
   th {
@@ -182,13 +184,28 @@
   }
 }
 
+// APP, FROM, and DATE are fixed-width so they don't reflow as content changes;
+// FEEDBACK (no width set) fills the remaining space via table-layout: fixed.
+.appCol {
+  width: 160px;
+}
+
+.fromCol {
+  width: 180px;
+}
+
+.dateCol {
+  width: 110px;
+}
+
 .appNameCell {
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .messageCell {
-  min-width: 280px;
   white-space: pre-wrap;
 }
 
@@ -201,6 +218,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.submitterName {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 

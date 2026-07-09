@@ -130,10 +130,10 @@ export function AiAppFeedbackPage() {
                 <table className={s.table}>
                   <thead>
                     <tr>
-                      <th>App</th>
+                      <th className={s.appCol}>App</th>
                       <th>Feedback</th>
-                      <th>From</th>
-                      <th>Date</th>
+                      <th className={s.fromCol}>From</th>
+                      <th className={s.dateCol}>Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -148,7 +148,7 @@ export function AiAppFeedbackPage() {
                               <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
                                 {submitterName.charAt(0).toUpperCase()}
                               </span>
-                              {submitterName}
+                              <span className={s.submitterName}>{submitterName}</span>
                             </div>
                           </td>
                           <td className={s.dateCell}>

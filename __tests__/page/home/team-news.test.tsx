@@ -860,7 +860,7 @@ describe('TeamNews', () => {
       openSpy.mockRestore();
     });
 
-    it('highlights the revealed row and removes the highlight after 3s', () => {
+    it('highlights the revealed row and removes the highlight shortly after', () => {
       jest.useFakeTimers();
       renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
 
@@ -868,7 +868,7 @@ describe('TeamNews', () => {
       const row = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
       expect(row).toHaveClass('storyHighlighted');
 
-      act(() => jest.advanceTimersByTime(3000));
+      act(() => jest.advanceTimersByTime(1100));
       expect(row).not.toHaveClass('storyHighlighted');
       jest.useRealTimers();
     });

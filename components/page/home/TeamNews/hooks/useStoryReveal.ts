@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import styles from '../components/NewsGroupCard/NewsGroupCard.module.scss';
 
+// Must match .storyHighlighted's animation duration in NewsGroupCard.module.scss.
+const HIGHLIGHT_DURATION_MS = 1100;
+
 // Scroll a revealed story row into view, briefly highlight it, and move
 // keyboard focus to it. Kept as a plain imperative call (not an effect keyed
 // on external state) so there's no reactive loop for a "reveal complete"
@@ -12,7 +15,7 @@ export function useStoryReveal() {
 
   const clear = useCallback(() => {
     if (!pendingRef.current) return;
-    window.clearTimeout(pendingRef.current.timeoutId);
+    clearTimeout(pendingRef.current.timeoutId);
     pendingRef.current.el.classList.remove(styles.storyHighlighted);
     pendingRef.current = null;
   }, []);
@@ -24,10 +27,10 @@ export function useStoryReveal() {
       el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
       el.classList.add(styles.storyHighlighted);
       el.focus({ preventScroll: true });
-      const timeoutId = window.setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         el.classList.remove(styles.storyHighlighted);
         pendingRef.current = null;
-      }, 3000);
+      }, HIGHLIGHT_DURATION_MS);
       pendingRef.current = { el, timeoutId };
     },
     [clear],

@@ -173,6 +173,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'AI Apps',
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
   },
+  {
+    key: 'ai-apps-feedback',
+    title: 'AI Apps — feedback',
+    description:
+      'Feedback flows on the AI Apps page: give feedback via a floating button or a header button, and a full received-feedback view for app authors and admins, switchable by role.',
+    category: 'AI Apps',
+    load: () => import('./entries/ai-apps-feedback/AiAppsFeedbackPrototype'),
+  },
+  {
+    key: 'ai-apps-secrets',
+    title: 'AI Apps — stored secrets & re-deploy',
+    description:
+      'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
+    category: 'AI Apps',
+    load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

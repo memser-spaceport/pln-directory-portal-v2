@@ -85,26 +85,31 @@ export function GlossaryModal({ open, onClose }: Props) {
         <section className={s.section}>
           <h3 className={s.h3}>Path warmth (0–100)</h3>
           <p className={s.p}>
-            How strong this intro route is. Higher = better path to reach this investor. Built as{' '}
-            <strong>route score + best LinkedIn bonus</strong> (capped at 100):
+            How strong this intro route is. Higher = better path to reach this investor. The score starts from the{' '}
+            <strong>route</strong>, then may add points when people on the path share work or school history on
+            LinkedIn (capped at 100):
           </p>
           <ul className={s.list}>
             <li>
-              <strong>Route (0–100)</strong> — graph path reliability, blended with Affinity relationship strength /
-              recency (and prior-backing when relevant).
+              <strong>Route (0–100)</strong> — how direct and reliable the chain is, blended with Affinity relationship
+              strength / recency (and prior-backing when relevant).
             </li>
             <li>
-              <strong>+25</strong> — verified LinkedIn overlap (shared work with overlapping dates, or school years that
-              overlap).
+              <strong>+25</strong> — verified shared work (overlapping dates) or school years that overlap.
             </li>
             <li>
-              <strong>+10</strong> — same company or school on LinkedIn, but dates unverified or non-overlapping.
+              <strong>+10</strong> — same company or school, but dates unverified or non-overlapping.
             </li>
           </ul>
           <p className={s.p}>
-            Only the <em>best single</em> LinkedIn bonus is added (no stacking). Lines below the score (
-            <code>Affinity:</code> / <code>LinkedIn:</code>) explain <em>why</em> the path is warm — context, not
-            separate scores. Paths with fewer hops rank first; then by higher path warmth.
+            Only the <em>strongest</em> shared-history signal is added — multiple overlaps do not stack. Lines below
+            the score (<code>Affinity:</code> / <code>LinkedIn:</code>) explain <em>why</em> the path is warm; they are
+            context, not separate scores. Paths with fewer hops rank first; then by higher path warmth.
+          </p>
+          <p className={s.note}>
+            <strong>Example:</strong> a route scores <strong>55</strong>. Lacey and the investor both worked at Eniac
+            Ventures in overlapping years (+25). Path warmth = 55 + 25 = <strong>80</strong>. If they only shared a
+            school with no overlapping years, that would be +10 instead → warmth <strong>65</strong>.
           </p>
         </section>
 

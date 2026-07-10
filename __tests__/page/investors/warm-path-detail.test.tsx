@@ -27,6 +27,7 @@ jest.mock('@/analytics/investors.analytics', () => ({
   useInvestorsAnalytics: () => ({
     trackPathsViewed: jest.fn(),
     trackPathExpanded: jest.fn(),
+    trackContactDetailsExpanded: jest.fn(),
     trackCorrectionSubmitted: mockTrackCorrectionSubmitted,
   }),
 }));

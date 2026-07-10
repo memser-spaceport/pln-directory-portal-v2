@@ -23,7 +23,13 @@ export const useFollowAnalytics = () => {
     }
   };
 
-  const onTeamFollowed = (params: { teamUid: string; teamName: string; source: FollowAnalyticsSource }) => {
+  const onTeamFollowed = (params: {
+    teamUid: string;
+    teamName: string;
+    source: FollowAnalyticsSource;
+    position?: number;
+    reason?: string;
+  }) => {
     captureEvent(FOLLOW_ANALYTICS_EVENTS.TEAM_FOLLOWED, params);
   };
 

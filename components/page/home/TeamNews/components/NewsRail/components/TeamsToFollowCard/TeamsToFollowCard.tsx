@@ -26,6 +26,7 @@ interface TeamsToFollowCardProps {
     teamName: string,
     isCurrentlyFollowing: boolean,
     source?: FollowAnalyticsSource,
+    meta?: { position?: number; reason?: string },
   ) => void;
 }
 
@@ -70,7 +71,7 @@ export function TeamsToFollowCard({
 
   if (suggestions.length === 0) return null;
 
-  const handleFollowClick = (team: ISuggestedTeam) => (e: React.MouseEvent) => {
+  const handleFollowClick = (team: ISuggestedTeam, position: number) => (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
       router.push(`${window.location.pathname}${window.location.search}#login`);
@@ -78,13 +79,16 @@ export function TeamsToFollowCard({
     }
     if (followedTeamUids.has(team.uid)) return;
     // Suggestions only ever list teams the member doesn't already follow.
-    onFollowToggle(team.uid, team.name, false, 'news-rail');
+    onFollowToggle(team.uid, team.name, false, 'news-rail', {
+      position,
+      reason: stripFollowerCountFromReason(team.reason),
+    });
   };
 
   return (
     <motion.section {...CARD_MOTION_PROPS} className={s.railCard} aria-label="Teams to follow">
       <h3 className={s.railTitle}>Teams to follow</h3>
-      {suggestions.map((team) => {
+      {suggestions.map((team, position) => {
         const isFollowing = followedTeamUids.has(team.uid);
         const reason = stripFollowerCountFromReason(team.reason);
         return (
@@ -99,7 +103,7 @@ export function TeamsToFollowCard({
                 <span className={s.railName}>{team.name}</span>
                 <FollowButton
                   following={isFollowing}
-                  onClick={handleFollowClick(team)}
+                  onClick={handleFollowClick(team, position)}
                   name={team.name}
                   size="compact"
                   disabled={isFollowing}

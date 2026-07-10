@@ -63,6 +63,7 @@ interface NewsRailProps {
     teamName: string,
     isCurrentlyFollowing: boolean,
     source?: FollowAnalyticsSource,
+    meta?: { position?: number; reason?: string },
   ) => void;
   /** Threaded straight through to PopularThisWeekCard, unchanged — TeamNews.tsx
    * is the single caller and always provides it, so there's no fallback here. */

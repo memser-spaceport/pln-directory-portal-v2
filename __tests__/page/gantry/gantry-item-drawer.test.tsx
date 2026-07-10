@@ -5,6 +5,13 @@ import { GantryItemDrawer } from '@/components/page/gantry/GantryItemDrawer/Gant
 const mockSetParams = jest.fn();
 let mockItemId = '';
 
+jest.mock('@/analytics/gantry.analytics', () => ({
+  useGantryAnalytics: () => ({
+    onItemDrawerOpened: jest.fn(),
+    onItemDrawerClosed: jest.fn(),
+  }),
+}));
+
 jest.mock('nuqs', () => ({
   useQueryStates: () => [{ itemId: mockItemId }, mockSetParams],
 }));

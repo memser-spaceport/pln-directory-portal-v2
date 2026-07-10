@@ -159,7 +159,10 @@ describe('NewsRail', () => {
 
     expect(screen.getByText('Banyan Storage')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /follow banyan storage/i }));
-    expect(onFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail');
+    expect(onFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail', {
+      position: 0,
+      reason: 'Storage',
+    });
 
     rerender(
       <NewsRail

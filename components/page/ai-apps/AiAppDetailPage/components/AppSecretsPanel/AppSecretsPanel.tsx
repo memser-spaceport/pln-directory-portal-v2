@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { AiApp, deployAiApp } from '@/services/ai-apps/ai-apps.service';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
@@ -23,6 +24,7 @@ interface Props {
 export function AppSecretsPanel(props: Props) {
   const { app, onDeployingChange } = props;
 
+  const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
   const [values, setValues] = useState<Record<string, string>>({});
   const [isDeploying, setIsDeploying] = useState(false);
@@ -54,13 +56,26 @@ export function AppSecretsPanel(props: Props) {
       return;
     }
 
+    const willProvide = new Set(provided);
+    for (const [name, value] of Object.entries(secrets)) {
+      if (value.trim()) willProvide.add(name);
+    }
+    const varsProvidedCount = app.requiredEnvVars.filter((name) => willProvide.has(name)).length;
+
     setError(null);
     setDeploying(true);
+    analytics.onSecretsDeployClicked({
+      appUid: app.uid,
+      isDraft,
+      varsRequiredCount: app.requiredEnvVars.length,
+      varsProvidedCount,
+    });
     const result = await deployAiApp(app.uid, secrets);
 
     if (result.error) {
       setError(result.error);
     } else {
+      analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft });
       setValues({});
     }
     // Refresh in both outcomes — a failed deploy still changes the app status/notes.

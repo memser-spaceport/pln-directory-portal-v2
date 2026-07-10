@@ -107,7 +107,10 @@ describe('TeamsToFollowCard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /follow banyan storage/i }));
-    expect(mockOnFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail');
+    expect(mockOnFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail', {
+      position: 0,
+      reason: 'Storage',
+    });
     expect(mockPush).not.toHaveBeenCalled();
   });
 

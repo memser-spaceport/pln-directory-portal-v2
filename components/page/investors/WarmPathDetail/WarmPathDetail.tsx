@@ -107,7 +107,8 @@ function formatDate(iso: string): string {
 export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investorName, lastEmailAt }: Props) {
   const [filters] = useQueryStates(investorsFilterParsers, { history: 'replace', shallow: true });
   const { data, isLoading } = useGetPathsForTarget(investorId, true);
-  const { trackPathsViewed, trackCorrectionSubmitted, trackPathExpanded } = useInvestorsAnalytics();
+  const { trackPathsViewed, trackCorrectionSubmitted, trackPathExpanded, trackContactDetailsExpanded } =
+    useInvestorsAnalytics();
   const submitCorrection = useSubmitCorrection(investorId);
 
   const paths = useMemo(() => {
@@ -134,8 +135,13 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
   const [openContactIds, setOpenContactIds] = useState<Set<number>>(new Set());
   const toggleContacts = (pathId: number) =>
     setOpenContactIds((prev) => {
-      const next = new Set(prev); // new ref — mutating in place would not re-render
-      next.has(pathId) ? next.delete(pathId) : next.add(pathId);
+      const next = new Set(prev);
+      if (next.has(pathId)) {
+        next.delete(pathId);
+      } else {
+        next.add(pathId);
+        trackContactDetailsExpanded({ investorId, pathId });
+      }
       return next;
     });
 
@@ -208,9 +214,7 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
               </div>
               <p className={s.warmthSubtitle}>How strong this intro route is</p>
 
-              {p.hop_chain.explanation?.trim() && (
-                <div className={s.explanation}>{p.hop_chain.explanation}</div>
-              )}
+              {p.hop_chain.explanation?.trim() && <div className={s.explanation}>{p.hop_chain.explanation}</div>}
               {p.hop_chain.attribution_lines && p.hop_chain.attribution_lines.length > 0 && (
                 <ul className={s.attributionList}>
                   {p.hop_chain.attribution_lines.map((line, i) => (

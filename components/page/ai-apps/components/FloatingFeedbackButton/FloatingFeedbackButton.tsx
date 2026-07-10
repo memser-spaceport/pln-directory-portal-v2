@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { CommentIcon } from '@/components/icons';
 import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 
@@ -16,6 +17,7 @@ interface Props {
 
 export function FloatingFeedbackButton({ appUid, appName }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const analytics = useAiAppsAnalytics();
   const { permsSet, isLoading } = usePermissions();
   const hasAccess = canViewAiApps(permsSet);
 
@@ -25,7 +27,14 @@ export function FloatingFeedbackButton({ appUid, appName }: Props) {
 
   return (
     <>
-      <button type="button" className={s.floatingButton} onClick={() => setIsOpen(true)}>
+      <button
+        type="button"
+        className={s.floatingButton}
+        onClick={() => {
+          analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
+          setIsOpen(true);
+        }}
+      >
         <CommentIcon />
         Give feedback
       </button>

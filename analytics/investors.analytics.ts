@@ -22,6 +22,7 @@ const INVESTORS_ANALYTICS_EVENTS = {
   DRAWER_VIEW_IN_LABOS_CLICKED: 'investor-drawer-view-in-labos-clicked',
   GLOSSARY_OPENED: 'warm-intros-glossary-opened',
   CROSSWALK_OPENED: 'warm-intros-crosswalk-opened',
+  PATHFINDER_CONTACT_DETAILS_EXPANDED: 'pathfinder-contact-details-expanded',
 } as const;
 
 export type InvestorDrawerSource = 'warm-intros-table' | 'all-investors-table';
@@ -169,6 +170,13 @@ export function useInvestorsAnalytics() {
     posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CROSSWALK_OPENED);
   }, [posthog]);
 
+  const trackContactDetailsExpanded = useCallback(
+    (params: { investorId: string; pathId: number }) => {
+      posthog?.capture(INVESTORS_ANALYTICS_EVENTS.PATHFINDER_CONTACT_DETAILS_EXPANDED, params);
+    },
+    [posthog],
+  );
+
   return {
     trackPathsViewed,
     trackPathExpanded,
@@ -190,5 +198,6 @@ export function useInvestorsAnalytics() {
     trackDrawerViewInLabOsClicked,
     trackGlossaryOpened,
     trackCrosswalkOpened,
+    trackContactDetailsExpanded,
   };
 }

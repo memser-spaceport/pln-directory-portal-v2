@@ -265,6 +265,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     teamName: string,
     isCurrentlyFollowing: boolean,
     source: FollowAnalyticsSource = 'news-feed',
+    meta?: { position?: number; reason?: string },
   ) => {
     const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
     setFollowedTeamUids((prev) => {
@@ -290,7 +291,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
         },
         onSuccess: () => {
           if (action === 'follow') {
-            followAnalytics.onTeamFollowed({ teamUid, teamName, source });
+            followAnalytics.onTeamFollowed({ teamUid, teamName, source, ...meta });
           } else {
             followAnalytics.onTeamUnfollowed({ teamUid, teamName, source });
           }
@@ -469,9 +470,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
                     isFollowing={followedTeamUids.has(cluster.teamUid)}
                     onFollowToggle={handleFollowToggle}
                     onUpvoteToggle={handleUpvoteToggle}
-                    autoExpandStoryUid={
-                      scrollTarget?.teamUid === cluster.teamUid ? scrollTarget.storyUid : undefined
-                    }
+                    autoExpandStoryUid={scrollTarget?.teamUid === cluster.teamUid ? scrollTarget.storyUid : undefined}
                   />
                 ))}
               </div>

@@ -40,6 +40,7 @@ export function AiAppDetailPage(props: Props) {
   const { currentUser } = useCurrentUserStore();
   const analytics = useAiAppsAnalytics();
   const trackedAppUid = useRef<string | null>(null);
+  const trackedDraftSetupUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
   const [showSecrets, setShowSecrets] = useState(false);
   const [isRedeploying, setIsRedeploying] = useState(false);
@@ -55,6 +56,25 @@ export function AiAppDetailPage(props: Props) {
     trackedAppUid.current = app.uid;
     analytics.onDetailPageViewed(app.uid, app.name);
   }, [app, analytics]);
+
+  const requiredEnvVars = app?.requiredEnvVars ?? [];
+  const needsSetup = !!app && requiredEnvVars.length > 0 && app.status !== 'READY';
+
+  useEffect(() => {
+    if (!app || app.status !== 'DRAFT' || !needsSetup || trackedDraftSetupUid.current === app.uid) return;
+    trackedDraftSetupUid.current = app.uid;
+    analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
+  }, [app, needsSetup, analytics]);
+
+  const handleSecretsToggle = () => {
+    setShowSecrets((wasOpen) => {
+      const next = !wasOpen;
+      if (next && app) {
+        analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (isError && uid) {
@@ -124,10 +144,6 @@ export function AiAppDetailPage(props: Props) {
   // comparison is only a fallback for API versions without `canManage` — the
   // login cookie's uid can go stale (e.g. after a dev DB reseed).
   const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
-  const requiredEnvVars = app.requiredEnvVars ?? [];
-  // A secrets app that isn't live yet (draft, deploying, or failed) shows the
-  // setup card instead of an iframe onto a dead URL.
-  const needsSetup = requiredEnvVars.length > 0 && app.status !== 'READY';
 
   if (needsSetup) {
     return (
@@ -145,8 +161,8 @@ export function AiAppDetailPage(props: Props) {
             <AppSecretsPanel app={app} />
           ) : (
             <p className={s.setupInfo}>
-              This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values
-              and deploy it.
+              This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values and
+              deploy it.
             </p>
           )}
         </div>
@@ -217,7 +233,7 @@ export function AiAppDetailPage(props: Props) {
     <div className={s.root}>
       {isCreator && requiredEnvVars.length > 0 && (
         <div className={s.secretsBar}>
-          <button type="button" className={s.secretsToggle} onClick={() => setShowSecrets((v) => !v)}>
+          <button type="button" className={s.secretsToggle} onClick={handleSecretsToggle}>
             {showSecrets ? 'Hide secrets' : 'Update secrets & redeploy'}
           </button>
           {showSecrets && (

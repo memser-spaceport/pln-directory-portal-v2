@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 
@@ -13,6 +14,7 @@ import s from './ViewFeedbackEntryPoint.module.scss';
  * docs/plans/2026-07-08-feat-ai-apps-feedback-ui-plan.md, Dependencies & Risks).
  */
 export function ViewFeedbackEntryPoint() {
+  const analytics = useAiAppsAnalytics();
   const { canReview, isLoading } = useAiAppFeedbackReviewAccess();
   const { feedback } = useAiAppFeedbackList();
 
@@ -21,7 +23,11 @@ export function ViewFeedbackEntryPoint() {
   }
 
   return (
-    <Link href="/pl-infra/ai-apps/feedback" className={s.link}>
+    <Link
+      href="/pl-infra/ai-apps/feedback"
+      className={s.link}
+      onClick={() => analytics.onViewFeedbackClicked({ feedbackCount: feedback.length })}
+    >
       View feedback
       {feedback.length > 0 && <span className={s.badge}>{feedback.length > 99 ? '99+' : feedback.length}</span>}
     </Link>

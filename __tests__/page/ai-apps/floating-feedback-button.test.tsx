@@ -46,4 +46,14 @@ describe('FloatingFeedbackButton', () => {
 
     expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
   });
+
+  it('only applies the content-aligned offset when alignToContent is passed', () => {
+    mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
+
+    const { rerender } = render(<FloatingFeedbackButton />);
+    expect(screen.getByRole('button', { name: 'Give feedback' }).className).not.toMatch(/alignToContent/);
+
+    rerender(<FloatingFeedbackButton alignToContent />);
+    expect(screen.getByRole('button', { name: 'Give feedback' }).className).toMatch(/alignToContent/);
+  });
 });

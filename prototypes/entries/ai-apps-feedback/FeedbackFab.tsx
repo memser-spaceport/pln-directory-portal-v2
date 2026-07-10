@@ -14,13 +14,15 @@ interface Props {
   initialAppUid?: string | null;
   currentUserName: string;
   onSubmit: (appUid: string, text: string) => void;
+  /** Align the fab with the page's max-width content column instead of the viewport edge. */
+  alignToContent?: boolean;
 }
 
 /**
  * Floating "Give feedback" button pinned to the bottom-right corner. Opens the
  * shared feedback form as a popover above the button (no modal).
  */
-export function FeedbackFab({ apps, initialAppUid, currentUserName, onSubmit }: Props) {
+export function FeedbackFab({ apps, initialAppUid, currentUserName, onSubmit, alignToContent }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +44,7 @@ export function FeedbackFab({ apps, initialAppUid, currentUserName, onSubmit }: 
   }, [open]);
 
   return (
-    <div className={s.fabWrap} ref={wrapRef}>
+    <div className={`${s.fabWrap} ${alignToContent ? s.fabAlignToContent : ''}`} ref={wrapRef}>
       {open && (
         <div className={s.popover} role="dialog" aria-label="Give feedback">
           <FeedbackForm

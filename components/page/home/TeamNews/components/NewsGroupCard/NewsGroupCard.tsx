@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
@@ -27,6 +27,10 @@ interface NewsGroupCardProps {
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
   onUpvoteToggle?: (item: ITeamNewsItem) => void;
+  /** Set by TeamNews.tsx when a "Popular this week" click targets a story inside
+   * this card that's beyond VISIBLE_STORIES — forces this card's own truncation
+   * open. One-directional (never collapses); see the scroll-to-story plan. */
+  autoExpandStoryUid?: string;
 }
 
 export function NewsGroupCard({
@@ -36,6 +40,7 @@ export function NewsGroupCard({
   isFollowing = false,
   onFollowToggle,
   onUpvoteToggle,
+  autoExpandStoryUid,
 }: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
@@ -64,6 +69,17 @@ export function NewsGroupCard({
   const stories = useMemo(() => sortAllTabItemsByEventDate(cluster.items), [cluster.items]);
   const hiddenCount = Math.max(0, stories.length - VISIBLE_STORIES);
   const visibleStories = expanded ? stories : stories.slice(0, VISIBLE_STORIES);
+
+  // useLayoutEffect, not useEffect: this must commit synchronously within the
+  // flushSync call TeamNews.tsx's handlePopularItemClick wraps its state updates
+  // in, so the parent's very next line (a synchronous querySelector, no polling)
+  // can rely on this card already being expanded. Only ever force-opens, never
+  // collapses — safe to re-run.
+  useLayoutEffect(() => {
+    if (!autoExpandStoryUid) return;
+    const isBeyondVisible = stories.slice(VISIBLE_STORIES).some((story) => story.uid === autoExpandStoryUid);
+    if (isBeyondVisible) toggleExpanded(true);
+  }, [autoExpandStoryUid, stories, toggleExpanded]);
 
   const openStory = (item: ITeamNewsItem) => {
     onStoryClick?.(item);
@@ -97,6 +113,7 @@ export function NewsGroupCard({
         return (
           <div
             key={story.uid}
+            data-story-uid={story.uid}
             role="link"
             tabIndex={0}
             className={s.storyRow}

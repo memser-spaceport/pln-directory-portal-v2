@@ -64,6 +64,9 @@ interface NewsRailProps {
     isCurrentlyFollowing: boolean,
     source?: FollowAnalyticsSource,
   ) => void;
+  /** Threaded straight through to PopularThisWeekCard, unchanged — TeamNews.tsx
+   * is the single caller and always provides it, so there's no fallback here. */
+  onPopularItemClick: (item: ITeamNewsPopularItem, position: number) => void;
 }
 
 const EMPTY_FOLLOWED_UIDS = new Set<string>();
@@ -160,6 +163,7 @@ export function NewsRail({
   isLoadingSuggestedTeams = false,
   followedTeamUids = EMPTY_FOLLOWED_UIDS,
   onFollowToggle,
+  onPopularItemClick,
 }: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -214,7 +218,9 @@ export function NewsRail({
             onFollowToggle={onFollowToggle!}
           />
         )}
-        {showPopular && <PopularThisWeekCard key="popular-this-week" items={popularItems} />}
+        {showPopular && (
+          <PopularThisWeekCard key="popular-this-week" items={popularItems} onPopularItemClick={onPopularItemClick} />
+        )}
 
         {showDigest &&
           (isSubscribed ? (

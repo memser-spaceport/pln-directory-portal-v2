@@ -37,6 +37,8 @@ jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
   useForumAccess: () => mockUseForumAccess(),
 }));
 
+const mockOnPopularItemClick = jest.fn();
+
 describe('NewsRail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,25 +48,25 @@ describe('NewsRail', () => {
   });
 
   it('does not render the why-follow explainer', () => {
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     expect(screen.queryByText('Stay in the loop')).not.toBeInTheDocument();
   });
 
   it('renders the digest promo without a button before the auth store hydrates', () => {
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     expect(screen.getByText('Get network news Digest')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /subscribe/i })).not.toBeInTheDocument();
   });
 
   it('shows an enabled Subscribe button once hydrated, for an anonymous user', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 
   it('redirects to login on click when unauthenticated', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
     expect(mockMutate).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
@@ -76,7 +78,7 @@ describe('NewsRail', () => {
     mockGetForumDigestSettings.mockReturnValue({
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
 
     expect(mockMutate).toHaveBeenCalledWith(
@@ -104,7 +106,7 @@ describe('NewsRail', () => {
     mockGetForumDigestSettings.mockReturnValue({
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
 
     const options = mockMutate.mock.calls[0][1];
@@ -118,7 +120,7 @@ describe('NewsRail', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
     mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({ data: { forumDigestEnabled: true } });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
 
     expect(screen.getByText("You're subscribed to the Digest")).toBeInTheDocument();
     expect(screen.getByText('Change frequency or unsubscribe anytime in Settings.')).toBeInTheDocument();
@@ -131,7 +133,7 @@ describe('NewsRail', () => {
   it('hides digest cards for authenticated users without forum access', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
     mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
-    render(<NewsRail />);
+    render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
 
     expect(screen.queryByText('Get network news Digest')).not.toBeInTheDocument();
     expect(screen.queryByText("You're subscribed to the Digest")).not.toBeInTheDocument();
@@ -147,7 +149,12 @@ describe('NewsRail', () => {
     ];
 
     const { rerender } = render(
-      <NewsRail suggestedTeams={suggestions} followedTeamUids={new Set()} onFollowToggle={onFollowToggle} />,
+      <NewsRail
+        suggestedTeams={suggestions}
+        followedTeamUids={new Set()}
+        onFollowToggle={onFollowToggle}
+        onPopularItemClick={mockOnPopularItemClick}
+      />,
     );
 
     expect(screen.getByText('Banyan Storage')).toBeInTheDocument();
@@ -155,7 +162,12 @@ describe('NewsRail', () => {
     expect(onFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail');
 
     rerender(
-      <NewsRail suggestedTeams={suggestions} followedTeamUids={new Set(['t1'])} onFollowToggle={onFollowToggle} />,
+      <NewsRail
+        suggestedTeams={suggestions}
+        followedTeamUids={new Set(['t1'])}
+        onFollowToggle={onFollowToggle}
+        onPopularItemClick={mockOnPopularItemClick}
+      />,
     );
 
     expect(screen.getByRole('button', { name: /following banyan storage/i })).toBeInTheDocument();

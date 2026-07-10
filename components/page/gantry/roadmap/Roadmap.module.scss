@@ -373,6 +373,15 @@
   }
 }
 
+.objectiveBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 8px;
+  flex-shrink: 0;
+  max-width: 50%;
+}
+
 .objectiveBadge {
   display: inline-flex;
   align-items: center;

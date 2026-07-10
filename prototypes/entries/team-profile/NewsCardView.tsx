@@ -82,7 +82,7 @@ export function NewsCardView({
         <div className={n.meta}>
           <span className={n.eventType}>
             <span className={`${n.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
-            <span className={n.eventLabel}>{EVENT_TYPE_LABEL[item.eventType]}</span>
+            <span className={`${n.eventLabel} ${n.eventLabelCompact}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
           </span>
           {item.sourceDomain && (
             <>

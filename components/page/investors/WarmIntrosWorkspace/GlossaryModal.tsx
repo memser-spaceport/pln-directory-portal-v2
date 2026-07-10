@@ -83,11 +83,28 @@ export function GlossaryModal({ open, onClose }: Props) {
         </section>
 
         <section className={s.section}>
-          <h3 className={s.h3}>Warmth &amp; confidence</h3>
+          <h3 className={s.h3}>Path warmth (0–100)</h3>
           <p className={s.p}>
-            <strong>Warmth</strong> is the path&apos;s success probability (0–100%) — the product of each hop&apos;s
-            likelihood. <strong>Confidence</strong> is how sure the model is about the computed caliber; it abstains
-            (low confidence) when the underlying data is thin.
+            How strong this intro route is. Higher = better path to reach this investor. Built as{' '}
+            <strong>route score + best LinkedIn bonus</strong> (capped at 100):
+          </p>
+          <ul className={s.list}>
+            <li>
+              <strong>Route (0–100)</strong> — graph path reliability, blended with Affinity relationship strength /
+              recency (and prior-backing when relevant).
+            </li>
+            <li>
+              <strong>+25</strong> — verified LinkedIn overlap (shared work with overlapping dates, or school years that
+              overlap).
+            </li>
+            <li>
+              <strong>+10</strong> — same company or school on LinkedIn, but dates unverified or non-overlapping.
+            </li>
+          </ul>
+          <p className={s.p}>
+            Only the <em>best single</em> LinkedIn bonus is added (no stacking). Lines below the score (
+            <code>Affinity:</code> / <code>LinkedIn:</code>) explain <em>why</em> the path is warm — context, not
+            separate scores. Paths with fewer hops rank first; then by higher path warmth.
           </p>
         </section>
 

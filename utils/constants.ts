@@ -587,6 +587,8 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
+  TEAM_NEWS_UPVOTE_TOGGLED: 'team-news-upvote-toggled',
+  TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {
@@ -2297,4 +2299,9 @@ export const AI_APPS_ANALYTICS = {
   ACCESS_DENIED: 'ai_apps_access_denied',
   IFRAME_LOADED: 'ai_apps_iframe_loaded',
   IFRAME_LOAD_FAILED: 'ai_apps_iframe_load_failed',
+  FEEDBACK_SUBMITTED: 'ai_apps_feedback_submitted',
+  FEEDBACK_SUBMIT_FAILED: 'ai_apps_feedback_submit_failed',
+  FEEDBACK_REVIEW_VIEWED: 'ai_apps_feedback_review_viewed',
+  FEEDBACK_TAB_FILTERED: 'ai_apps_feedback_tab_filtered',
+  FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
 };

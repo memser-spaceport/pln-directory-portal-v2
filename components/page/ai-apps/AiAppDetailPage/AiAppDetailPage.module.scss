@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -24,17 +26,80 @@
   text-align: center;
 }
 
-/* In-place replacement for the iframe while a redeploy is in flight. */
+/* In-place replacement for the iframe while a redeploy / liveness check runs. */
 .frameState {
   display: flex;
   flex: 1;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  text-align: center;
+}
+
+.progressBar {
+  width: 260px;
+  height: 6px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+/* Indeterminate sweep — the deploy has no reportable percentage. */
+.progressIndicator {
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: #156ff7;
+  animation: progress-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.progressTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #0f172a;
+}
+
+.progressText {
+  margin: 0;
   font-size: 14px;
   line-height: 20px;
   color: #64748b;
-  text-align: center;
+}
+
+.retryButton {
+  margin-top: 8px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #156ff7;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+
+  &:hover {
+    background: #1d4ed8;
+  }
 }
 
 .setupPage {
@@ -124,9 +189,15 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Horizontal padding mirrors the navbar (NavBar.module.scss), so the toggle
+     and form line up with the header logo. */
   padding: 8px 16px;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
+
+  @include media.tablet-landscape {
+    padding: 8px 24px;
+  }
 }
 
 .secretsToggle {

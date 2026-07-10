@@ -39,5 +39,11 @@ export function useAiAppsAnalytics() {
     onIframeLoaded: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.IFRAME_LOADED, { appUid, appName }),
     onIframeLoadFailed: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.IFRAME_LOAD_FAILED, { appUid, appName }),
+    onFeedbackSubmitted: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMITTED, { appUid, appName }),
+    onFeedbackSubmitFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMIT_FAILED, { appUid }),
+    onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
+    onFeedbackTabFiltered: (appName: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_TAB_FILTERED, { appName }),
+    onFeedbackExported: (rowCount: number) => capture(AI_APPS_ANALYTICS.FEEDBACK_EXPORTED, { rowCount }),
   };
 }

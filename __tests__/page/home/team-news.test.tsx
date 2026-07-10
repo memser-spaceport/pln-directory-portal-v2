@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
+import { useCurrentUserStore } from '@/services/auth/store';
 import type { ITeamNewsDiscussion, ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 // TeamNews renders NewsRail, which calls the real useQueryClient() for the
@@ -19,6 +20,8 @@ const mockOnCategoryClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
 const mockOnCardClicked = jest.fn();
 const mockOnTeamNewsSearch = jest.fn();
+const mockOnUpvoteToggled = jest.fn();
+const mockOnPopularStoryClicked = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -27,11 +30,32 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsLoadMoreClicked: (...a: unknown[]) => mockOnLoadMoreClicked(...a),
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
     onTeamNewsSearch: (...a: unknown[]) => mockOnTeamNewsSearch(...a),
+    onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
+    onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
   }),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '2d ago',
+}));
+
+// TeamNews.tsx calls this directly to feed NewsRail's Teams-to-follow card; the
+// global useQuery mock in jest.setup.js returns a fixed non-array `data`, which
+// this hook's own array `.filter()` would choke on — mock the hook itself instead,
+// matching the pattern news-rail.test.tsx already uses for its other query hooks.
+const mockUseSuggestedTeamsToFollow = jest.fn();
+jest.mock('@/services/follow/hooks/useSuggestedTeamsToFollow', () => ({
+  useSuggestedTeamsToFollow: (...a: unknown[]) => mockUseSuggestedTeamsToFollow(...a),
+}));
+
+// The globally mocked useMutation (jest.setup.js) returns a bare jest.fn() that
+// never invokes onSuccess/onError — fine for tests only asserting the optimistic
+// overlay update, but the analytics-on-success test below needs to trigger that
+// callback manually, so this hook is mocked directly instead (same pattern as
+// useSuggestedTeamsToFollow above).
+const mockUpvoteMutate = jest.fn();
+jest.mock('@/services/team-news/hooks/useTeamNewsUpvoteToggle', () => ({
+  useTeamNewsUpvoteToggle: () => ({ mutate: (...a: unknown[]) => mockUpvoteMutate(...a) }),
 }));
 
 const FA_AI = { uid: 'fa-ai', title: 'AI & Robotics' };
@@ -76,7 +100,10 @@ const groups: ITeamNewsGroup[] = [
 ];
 
 describe('TeamNews', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
+  });
 
   it('renders the global empty state when there are no items', () => {
     renderTeamNews(<TeamNews groups={[]} />);
@@ -593,6 +620,89 @@ describe('TeamNews', () => {
       const [reportedValue] = mockOnTeamNewsSearch.mock.calls[0];
       expect(reportedValue).toHaveLength(100);
       jest.useRealTimers();
+    });
+  });
+
+  describe('upvotes', () => {
+    const itemA = makeItem('up-a', 'ANNOUNCEMENT', ['AI & Robotics']);
+    const itemB = {
+      ...makeItem('up-b', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-up-b',
+      teamName: 'Team up-b',
+    };
+    const upvoteGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 2, items: [itemA, itemB] }];
+
+    // This file otherwise relies on the real (unmocked) auth store defaulting to
+    // signed-out, which every other describe block here is fine with (FollowButton
+    // is gated behind isHydrated and never renders). UpvoteButton has no such gate,
+    // so an anonymous click here would just redirect to login — sign in for these
+    // tests specifically, and restore the signed-out default afterward.
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it("toggling upvote on one story does not affect another story's state (overlay is per-item)", () => {
+      renderTeamNews(<TeamNews groups={upvoteGroups} />);
+      const buttons = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      expect(buttons).toHaveLength(2);
+
+      fireEvent.click(buttons[0]);
+
+      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Upvote (0)' })).toBeInTheDocument(); // the other story unaffected
+    });
+
+    it('fires onTeamNewsUpvoteToggled analytics once the mutation succeeds', () => {
+      renderTeamNews(<TeamNews groups={upvoteGroups} />);
+      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      fireEvent.click(firstButton);
+
+      expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'up-a', isUpvoted: true }, expect.anything());
+      // mockUpvoteMutate is a bare jest.fn() — it doesn't auto-invoke onSuccess/onError,
+      // so the mutation's outcome must be simulated manually (mirrors news-rail.test.tsx).
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      options.onSuccess();
+
+      expect(mockOnUpvoteToggled).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: 'up-a' }),
+        expect.any(Number),
+        true,
+        'home',
+      );
+    });
+
+    it('reverts the overlay and does not fire success analytics when the mutation fails', () => {
+      renderTeamNews(<TeamNews groups={upvoteGroups} />);
+      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      fireEvent.click(firstButton);
+      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
+
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onError());
+
+      expect(screen.getAllByRole('button', { name: 'Upvote (0)' })).toHaveLength(2);
+      expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+    });
+
+    it('does not change followed-first cluster ordering when upvoting an unfollowed story', () => {
+      const followedItem = {
+        ...makeItem('followed-x', 'FUNDING', ['AI & Robotics']),
+        teamUid: 'team-zzz',
+        teamName: 'Zzz',
+        isFollowed: true,
+      };
+      const groupsWithFollowed: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 3, items: [itemA, itemB, followedItem] },
+      ];
+      renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Upvote (0)' })[0]);
+
+      const teamLinks = screen.getAllByRole('link', { name: /Zzz|Team up-/ });
+      expect(teamLinks[0]).toHaveTextContent('Zzz');
     });
   });
 });

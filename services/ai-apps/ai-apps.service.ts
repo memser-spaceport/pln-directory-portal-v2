@@ -19,6 +19,8 @@ export interface AiApp {
   requiredEnvVars: string[];
   /** NAMES the member already stored values for (values never leave the backend). */
   providedEnvVars: string[];
+  /** Server-computed on the detail endpoint: requester is the creator or a directory admin. */
+  canManage?: boolean;
   createdAt: string;
   updatedAt: string;
   member: {
@@ -67,6 +69,25 @@ export async function deployAiApp(uid: string, secrets: Record<string, string>):
   }
 
   return { app: await response.json(), error: null };
+}
+
+/**
+ * Server-side reachability probe of the app's public URL (one attempt per call).
+ * The detail page polls this before mounting/remounting the iframe so the user
+ * sees our own loading/error state instead of a raw gateway error page. Any
+ * failure (network, 404, …) is treated as "not live yet".
+ */
+export async function checkAiAppLive(uid: string): Promise<boolean> {
+  try {
+    const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}/live`, { method: 'GET' }, true);
+    if (!response || !response.ok) {
+      return false;
+    }
+    const body = await response.json();
+    return body?.live === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function fetchAiApps(): Promise<AiApp[]> {

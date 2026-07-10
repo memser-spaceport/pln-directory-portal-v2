@@ -203,7 +203,9 @@
   justify-content: center;
   padding: 2px 8px;
   border-radius: 6px;
-  transition: filter 0.15s ease, transform 0.15s ease;
+  transition:
+    filter 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     transform: translateY(-1px);
@@ -309,7 +311,6 @@
 .aboutSpacing {
   margin-top: 40px;
 }
-
 
 // About: kill the ExpandableDescription's own box + reserved bottom so the text
 // sits tight inside the single grey container.
@@ -828,11 +829,6 @@
   @include media.tablet-portrait {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
-  h3 {
-    -webkit-line-clamp: 3;
-  }
 }
 
 .modalHeader {
@@ -995,12 +991,6 @@
   flex-direction: column;
   gap: 12px;
   padding: 0 16px 24px;
-
-  /* Production NewsCard clamps the headline (<h3>) to 2 lines; on the mobile
-     full page allow 3. */
-  h3 {
-    -webkit-line-clamp: 3;
-  }
 }
 
 .newsPageEmpty {

@@ -7,7 +7,7 @@ type Analytics = ReturnType<typeof useGantryAnalytics>;
 export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], analytics: Analytics) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
+  const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
   const [searchText, setSearchText] = useState<string>('');
 
   const handleSelectedTagsChange = (tags: string[]) => {
@@ -20,9 +20,9 @@ export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], a
     if (types.length > 0) analytics.onTypeFiltered(types);
   };
 
-  const handleSelectedObjectiveChange = (uid: string | null) => {
-    setSelectedObjective(uid);
-    if (uid) analytics.onObjectivesFiltered([uid]);
+  const handleSelectedObjectivesChange = (uids: string[]) => {
+    setSelectedObjectives(uids);
+    if (uids.length > 0) analytics.onObjectivesFiltered(uids);
   };
 
   const handleSearchTextChange = (text: string) => {
@@ -35,17 +35,18 @@ export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], a
       stage: orderedVisibleColumns.length > 0 ? orderedVisibleColumns : undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       type: selectedTypes.length > 0 ? selectedTypes : undefined,
-      objectiveUid: selectedObjective ?? undefined,
+      objectiveUid: selectedObjectives.length > 0 ? selectedObjectives : undefined,
     }),
-    [orderedVisibleColumns, selectedTags, selectedTypes, selectedObjective],
+    [orderedVisibleColumns, selectedTags, selectedTypes, selectedObjectives],
   );
 
-  const activeFiltersCount = selectedTags.length + selectedTypes.length + (selectedObjective ? 1 : 0) + (searchText ? 1 : 0);
+  const activeFiltersCount =
+    selectedTags.length + selectedTypes.length + selectedObjectives.length + (searchText ? 1 : 0);
 
   const handleClearAll = () => {
     setSelectedTags([]);
     setSelectedTypes([]);
-    setSelectedObjective(null);
+    setSelectedObjectives([]);
     setSearchText('');
   };
 
@@ -54,8 +55,8 @@ export function useRoadmapFilters(orderedVisibleColumns: RoadmapColumnStage[], a
     handleSelectedTagsChange,
     selectedTypes,
     handleSelectedTypesChange,
-    selectedObjective,
-    handleSelectedObjectiveChange,
+    selectedObjectives,
+    handleSelectedObjectivesChange,
     searchText,
     handleSearchTextChange,
     handleClearAll,

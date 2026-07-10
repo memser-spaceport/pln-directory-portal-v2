@@ -1,25 +1,46 @@
 import { ReactNode } from 'react';
 
+import { AI_APPS_STARTER_KIT_VERSION } from '@/services/ai-apps/constants';
+
 export const STEPS: { title: string; description: ReactNode }[] = [
-  { title: 'Download Template', description: 'Click the button below to get your workspace package.' },
   {
-    title: 'Open Locally',
+    title: 'Download the starter kit',
+    description: `Click the button below to get Starter Kit v${AI_APPS_STARTER_KIT_VERSION} — a ready-to-use workspace for your AI coding tool.`,
+  },
+  {
+    title: 'Open it in your AI tool',
     description: (
       <>
-        Unzip the folder and open it in your preferred setup (Claude Code, Cursor, etc.). If you are migrating an
-        existing app, copy your project files into the <strong>app</strong> folder so your agent can work alongside the
-        included deploy instructions.
+        Unzip the folder and open it in Claude Code, Cursor, or similar. For an existing app, copy your project into the{' '}
+        <strong>app</strong> folder so the agent can work with the included deploy instructions.
       </>
     ),
   },
   {
-    title: 'Build or Migrate',
-    description:
-      "For a new app, prompt your agent to develop it using the integrated instructions. For an existing app, point your agent at your code and the template's deploy config to wire it into LabOS infra.",
+    title: 'Describe what to build',
+    description: (
+      <>
+        Tell your agent what you want. <strong>Frontend and backend are both supported</strong> — a UI-only page, or an
+        app that talks to data and services (ChatGPT, email, a database, etc.). Your agent handles the technical setup.
+      </>
+    ),
   },
   {
     title: 'Deploy',
-    description: 'Ask your agent to deploy when ready (for example, "Deploy this to labs").',
+    description: (
+      <>
+        Say &quot;deploy this app&quot;, then:
+        <ol>
+          <li>Open the LabOS link your agent gives you, sign in, and click Approve.</li>
+          <li>
+            <em>Optional</em> — if the backend needs access to data or external services, your agent will send a second
+            LabOS link. Enter your <strong>secrets (API keys / passwords)</strong> there and click Deploy. Never paste
+            keys in chat.
+          </li>
+        </ol>
+        When done, open the app from the AI Apps dashboard.
+      </>
+    ),
   },
 ];
 

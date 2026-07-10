@@ -18,12 +18,13 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { NewsLoginRedirect, TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
-import { getTeamNewsGroupedByFocusArea } from '@/services/team-news/team-news.service';
-import type { ITeamNewsGroup } from '@/types/team-news.types';
+import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
+import type { ITeamNewsGroup, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 
 export default async function Home() {
-  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups, initialDigestSettings } = await getPageData();
+  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups, popularItems, initialDigestSettings } =
+    await getPageData();
 
   if (isError) {
     return <Error />;
@@ -40,7 +41,11 @@ export default async function Home() {
           )}
           {isLoggedIn && <QuickActions />}
           <div className={styles.home__cn__teamnews}>
-            <TeamNews groups={teamNewsGroups} initialDigestSettings={initialDigestSettings} />
+            <TeamNews
+              groups={teamNewsGroups}
+              popularItems={popularItems}
+              initialDigestSettings={initialDigestSettings}
+            />
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
@@ -64,6 +69,7 @@ const getPageData = async () => {
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
+  let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
 
   // Seeded server-side (like Settings > Email does) so NewsRail's digest card
@@ -85,6 +91,7 @@ const getPageData = async () => {
       featuredResponse,
       discoverResponse,
       teamNewsResponse,
+      popularResponse,
       digestSettingsResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
@@ -92,9 +99,12 @@ const getPageData = async () => {
       getFeaturedData(authToken, isLoggedIn, isAdminUser(userInfo)),
       getDiscoverData(),
       getTeamNewsGroupedByFocusArea({}, authToken),
+      getTeamNewsPopular(undefined, authToken),
       digestSettingsPromise,
     ]);
+
     teamNewsGroups = teamNewsResponse?.groups ?? [];
+    popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     if (
       teamFocusAreaResponse?.error ||
@@ -113,6 +123,7 @@ const getPageData = async () => {
         discoverData,
         featuredData,
         teamNewsGroups,
+        popularItems,
         initialDigestSettings,
       };
     }
@@ -135,6 +146,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      popularItems,
       initialDigestSettings,
     };
   } catch (error) {
@@ -151,6 +163,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      popularItems,
       initialDigestSettings,
     };
   }

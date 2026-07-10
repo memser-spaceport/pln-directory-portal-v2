@@ -8,7 +8,7 @@ interface Props {
   code?: string | null;
   /** Explicit cold marker (e.g. has_path === false). Overrides the code. */
   cold?: boolean;
-  /** 0–1 confidence in the computed caliber/code; rendered as a % suffix. */
+  /** 0–1 path warmth (or legacy caliber confidence); rendered as a % suffix. */
   confidence?: number | null;
   className?: string;
 }
@@ -53,7 +53,7 @@ export function ProximityCodeBadge({ code, cold, confidence, className }: Props)
   const tooltip = [
     PATH_CONNECTOR_LABEL[parsed.connector],
     parsed.caliber ? PATH_CALIBER_LABEL[parsed.caliber] : null,
-    typeof confidence === 'number' ? `${Math.round(confidence * 100)}% confidence` : null,
+    typeof confidence === 'number' ? `Path warmth ${Math.round(confidence * 100)}` : null,
   ]
     .filter(Boolean)
     .join(' · ');

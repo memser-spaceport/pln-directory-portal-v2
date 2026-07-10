@@ -283,6 +283,7 @@ export default function GantrySavedDraftItemPrototype() {
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } = useRoadmapMobileNav(
     visibleColumns,
     isNarrow,
+    mounted,
   );
 
   const filteredItems = useMemo(

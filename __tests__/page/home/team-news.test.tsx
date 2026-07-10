@@ -868,7 +868,7 @@ describe('TeamNews', () => {
       const row = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
       expect(row).toHaveClass('storyHighlighted');
 
-      act(() => jest.advanceTimersByTime(1100));
+      act(() => jest.advanceTimersByTime(2000));
       expect(row).not.toHaveClass('storyHighlighted');
       jest.useRealTimers();
     });

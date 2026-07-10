@@ -20,6 +20,8 @@ const config: Config = {
     '!**/vendor/**',
     '!**/analytics/**',
     '!**/app/**',
+    '!**/pl-design-system/**',
+    '!**/prototypes/**',
     '!jest.config.ts',
     '!next.config.js',
     '!next-i18next.config.js',

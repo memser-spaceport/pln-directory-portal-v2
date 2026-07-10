@@ -49,7 +49,7 @@ export function AiAppsPage() {
         <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
       </div>
 
-      <FloatingFeedbackButton />
+      <FloatingFeedbackButton alignToContent />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import clsx from 'clsx';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canViewAiApps } from '@/services/rbac/utils/aiApps/canViewAiApps';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -13,9 +14,11 @@ interface Props {
   /** When provided (app detail page), feedback applies to this app and no picker is shown. */
   appUid?: string;
   appName?: string;
+  /** Align the button with the page's max-width content column instead of the viewport edge. */
+  alignToContent?: boolean;
 }
 
-export function FloatingFeedbackButton({ appUid, appName }: Props) {
+export function FloatingFeedbackButton({ appUid, appName, alignToContent }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const analytics = useAiAppsAnalytics();
   const { permsSet, isLoading } = usePermissions();
@@ -29,7 +32,7 @@ export function FloatingFeedbackButton({ appUid, appName }: Props) {
     <>
       <button
         type="button"
-        className={s.floatingButton}
+        className={clsx(s.floatingButton, alignToContent && s.alignToContent)}
         onClick={() => {
           analytics.onFeedbackDialogOpened(appUid ? { appUid, appName } : {});
           setIsOpen(true);
@@ -38,7 +41,13 @@ export function FloatingFeedbackButton({ appUid, appName }: Props) {
         <CommentIcon />
         Give feedback
       </button>
-      <GiveAiAppFeedbackDialog isOpen={isOpen} onClose={() => setIsOpen(false)} appUid={appUid} appName={appName} />
+      <GiveAiAppFeedbackDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        appUid={appUid}
+        appName={appName}
+        alignToContent={alignToContent}
+      />
     </>
   );
 }

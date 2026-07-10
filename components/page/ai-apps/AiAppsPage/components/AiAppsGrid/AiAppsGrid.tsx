@@ -1,9 +1,12 @@
 'use client';
 
+import { motion, useReducedMotion } from 'framer-motion';
+
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 
 import { AddAiAppCard } from '../AddAiAppCard';
 
+import { getAddCardVariants, getCardVariants, getContainerVariants } from './AiAppsGrid.variants';
 import { AiAppCard } from './components/AiAppCard';
 
 import s from './AiAppsGrid.module.scss';
@@ -13,6 +16,7 @@ interface Props {
 }
 
 export function AiAppsGrid({ onOpenCreateModal }: Props) {
+  const shouldReduceMotion = useReducedMotion();
   const { apps, isLoading, isError } = useAiApps();
 
   if (isLoading) {
@@ -23,12 +27,20 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
     return <div className={s.state}>Unable to load apps. Please try again later.</div>;
   }
 
+  const containerVariants = getContainerVariants(!!shouldReduceMotion);
+  const addCardVariants = getAddCardVariants();
+  const cardVariants = getCardVariants(!!shouldReduceMotion);
+
   return (
-    <div className={s.grid}>
-      <AddAiAppCard onClick={onOpenCreateModal} />
+    <motion.div className={s.grid} variants={containerVariants} initial="hidden" animate="show">
+      <motion.div variants={addCardVariants}>
+        <AddAiAppCard onClick={onOpenCreateModal} />
+      </motion.div>
       {apps.map((app) => (
-        <AiAppCard key={app.uid} app={app} />
+        <motion.div key={app.uid} variants={cardVariants}>
+          <AiAppCard app={app} />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }

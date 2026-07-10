@@ -1,0 +1,684 @@
+@use 'styles/media';
+
+/* ---------- demo role switcher (prototype-only chrome) ---------- */
+.demoBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  margin-bottom: 4px;
+}
+
+.demoBarLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-transform: uppercase;
+}
+
+.roleSwitch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.roleButton {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.roleButtonActive {
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+
+  &:hover {
+    background: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.demoHint {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---------- header action row ---------- */
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Let the description wrap instead of claiming its full one-line width, so the
+   actions stay pinned to the container's right edge instead of drifting inboard. */
+.headerTitle {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  // Keeps the group right-aligned even when it wraps onto its own line.
+  margin-left: auto;
+}
+
+/* Applied to the shared Button (its root is inline-block) so the icon + label
+   are flex-centered instead of riding the text baseline. */
+.iconLabelButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Optical nudge: lift the comment glyph so it centers against the label. */
+.iconLabelButton svg,
+.fab svg {
+  transform: translateY(-2px);
+}
+
+/* The reused newsfeed pill inherits a tall line-height from its host (button /
+   tab); collapse it so "new" is optically centered in the pill. */
+.newBadge {
+  line-height: 1;
+}
+
+/* ---------- give-feedback modal ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.picker {
+  position: relative;
+}
+
+.pickerButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.pickerButtonOpen {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+}
+
+.pickerPlaceholder {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.pickerValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pickerCaret {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: transform 0.15s;
+}
+
+.pickerCaretOpen {
+  transform: rotate(180deg);
+}
+
+.pickerMenu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.pickerOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.pickerOptionSelected {
+  background: rgba(27, 77, 255, 0.06);
+}
+
+.optionAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionName {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.optionMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.optionCheck {
+  margin-left: auto;
+  color: var(--foreground-brand-primary, #1b4dff);
+  flex-shrink: 0;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+  }
+}
+
+.charCount {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.postingAs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.postingAsAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+}
+
+/* ---------- success state ---------- */
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 28px 20px;
+}
+
+.successGlyph {
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.successTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.successText {
+  margin: 0;
+  max-width: 360px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- detail view chrome ---------- */
+.detailRoot {
+  position: relative;
+  height: calc(100vh - var(--app-header-height));
+  width: 100%;
+}
+
+.detailIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* ---------- floating "Give feedback" button + popover ---------- */
+.fabWrap {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  // Below the Drawer overlay (z-index 10) so the full-view drawer covers it.
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+
+  @include media.mobile-only {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+.fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(27, 77, 255, 0.32);
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(27, 77, 255, 0.4);
+  }
+}
+
+.fabActive {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(27, 77, 255, 0.4);
+}
+
+.popover {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow: 0 18px 48px rgba(14, 15, 17, 0.18);
+  overflow: hidden;
+  animation: fabPopIn 0.14s ease-out;
+
+  // Fill the available width on phones; the FAB margins (16px) keep the gutters.
+  @include media.mobile-only {
+    width: calc(100vw - 32px);
+    max-height: calc(100dvh - 120px);
+  }
+}
+
+/* Header placement of "Give feedback": button + dropdown popover below it. */
+.headerFeedbackWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.headerPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+}
+
+@keyframes fabPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.popoverTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.popoverClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.popoverBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.popoverFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* ---------- feedback page (full view) ---------- */
+.pageWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pageToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  // Full-width divider under the whole toolbar (tabs + export), to the table edge.
+  // Tabs stretch to the line; the export button sits centered above it (investors pattern).
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.pageCard {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  overflow: hidden;
+
+  // On mobile the table becomes free-standing cards; drop the outer frame.
+  @include media.mobile-only {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+}
+
+.pageEmpty {
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/* ---------- mobile cards (replace the table <640px) ---------- */
+.cardList {
+  display: none;
+
+  @include media.mobile-only {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardApp {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.cardDate {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.cardText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.cardFrom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.03));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  white-space: nowrap;
+}
+
+.td {
+  padding: 14px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.08));
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.tr {
+  &:last-child .td {
+    border-bottom: none;
+  }
+  &:hover .td {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.02));
+  }
+}
+
+.tdApp {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.tdText {
+  min-width: 320px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.fromCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tdDate {
+  white-space: nowrap;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.fromAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+}
+

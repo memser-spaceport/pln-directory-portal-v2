@@ -8,10 +8,14 @@ import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTe
 import n from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import s from './TeamProfile.module.scss';
 
+import { UpvoteButton } from '../newsfeed-v0/V0NewsCard';
+
 /**
  * Copy-simplified from the homepage NewsCard. The production card embeds
  * `StartConversationButton`, which is store/forum-access/analytics bound, so we
  * swap it for a plain "Discuss" link and keep everything else identical.
+ * On top of production: a smaller rail headline, the summary clamped to two
+ * lines, and an Upvote button (newsfeed prototype's) next to Discuss.
  */
 
 const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
@@ -32,14 +36,30 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
   OTHER: n.dotOther,
 };
 
-export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; flat?: boolean; hideTeam?: boolean }) {
+export function NewsCardView({
+  item,
+  flat,
+  hideTeam,
+  upvotes = 0,
+  voted = false,
+  onToggleUpvote,
+}: {
+  item: ITeamNewsItem;
+  flat?: boolean;
+  hideTeam?: boolean;
+  upvotes?: number;
+  voted?: boolean;
+  onToggleUpvote?: () => void;
+}) {
   const open = () => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
 
   return (
+    // Flat rows reuse production's .cardFlat (transparent, hairline divider
+    // between rows) — the rail is a list, not a stack of cards.
     <div
       role="link"
       tabIndex={0}
-      className={`${n.card} ${n.compact} ${flat ? s.flatNews : s.cardOutline}`}
+      className={flat ? `${n.cardFlat} ${s.newsRowTight}` : `${n.card} ${n.cardOutline}`}
       onClick={open}
     >
       {/* On the team's own profile the news is all from this team, so the team
@@ -55,10 +75,11 @@ export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; fl
         </div>
       )}
 
-      <h3 className={`${n.headline} ${n.headlineCompact}`}>{item.title}</h3>
+      <h3 className={`${n.headline} ${s.newsHeadline}`}>{item.title}</h3>
+      {item.summary && <p className={`${n.summary} ${s.newsSummary}`}>{item.summary}</p>}
 
-      <div className={n.metaLine}>
-        <div className={`${n.meta} ${n.metaCompact}`}>
+      <div className={`${n.metaLine} ${s.newsMetaRow}`}>
+        <div className={n.meta}>
           <span className={n.eventType}>
             <span className={`${n.eventDot} ${EVENT_TYPE_DOT_CLASS[item.eventType]}`} aria-hidden="true" />
             <span className={`${n.eventLabel} ${n.eventLabelCompact}`}>{EVENT_TYPE_LABEL[item.eventType]}</span>
@@ -72,10 +93,13 @@ export function NewsCardView({ item, flat, hideTeam }: { item: ITeamNewsItem; fl
           <span className={n.sep} aria-hidden="true" />
           <span className={n.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
-        <button type="button" className={s.discuss} onClick={(e) => e.stopPropagation()}>
-          Discuss
-          <ArrowRight />
-        </button>
+        <span className={s.newsActions} onClick={(e) => e.stopPropagation()}>
+          {onToggleUpvote && <UpvoteButton count={upvotes} voted={voted} onToggle={onToggleUpvote} />}
+          <button type="button" className={s.discuss}>
+            Discuss
+            <ArrowRight />
+          </button>
+        </span>
       </div>
     </div>
   );

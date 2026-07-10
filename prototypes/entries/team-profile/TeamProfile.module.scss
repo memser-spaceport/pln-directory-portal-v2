@@ -742,32 +742,44 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
-/* Fixed-height, internally scrolling news list so the rail never grows past the
-   viewport. A little right padding keeps the scrollbar off the cards. */
-/* Outlined card — used in the modal grid. */
-.cardOutline {
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.16));
+/* One step down from the production 18px headline — the 340px rail reads
+   calmer at 16/22 and keeps two-line titles from dominating the panel. */
+.newsHeadline {
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: -0.3px;
 }
 
-/* Flat row with a divider — used in the rail list. */
-.flatNews {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  border-radius: 0;
-  padding: 16px 0;
+/* Two-line teaser: production's .summary sets the -webkit-box plumbing but
+   leaves the clamp count to the surface; the rail cuts at 2. Pulled up against
+   the headline (card gap is 14px → effective 8px) so title + teaser read as
+   one block. */
+.newsSummary {
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 
-  &:hover {
-    box-shadow: none;
-  }
+/* Dense inner rhythm. The card is a flex column whose `gap` (production
+   .cardFlat sets 14px) drives EVERY vertical gap — headline→summary→meta. A
+   per-element margin can't shrink it: production's `.summary { margin: 0 }`
+   shorthand clobbers a single-class margin-top. So shrink the gap itself, with
+   a doubled class that outranks .cardFlat regardless of CSS bundle order. */
+.newsRowTight.newsRowTight {
+  gap: 8px;
+  padding-bottom: 12px;
+}
 
-  &:first-child {
-    padding-top: 0;
-  }
+/* Space above the wrapped Upvote/Discuss row. `.metaLine { gap: 6px }` is a
+   shorthand that beats a single-class row-gap, so double the class to win. */
+.newsMetaRow.newsMetaRow {
+  row-gap: 12px;
+}
 
-  &:not(:first-child) {
-    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  }
+/* Upvote + Discuss cluster on the right of the meta line. */
+.newsActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .newsList {

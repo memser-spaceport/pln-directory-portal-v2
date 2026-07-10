@@ -133,12 +133,184 @@
   padding-bottom: 16px;
 }
 
+/* Tags-chip (in-row): filled Demo Day gradient with white text, sized to match
+   the sibling industry tags (same padding / height / radius) so it fills the line. */
+.demoDayChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  text-shadow: 0 1px 1px rgba(14, 15, 17, 0.22);
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+
+  svg {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    color: #fff;
+  }
+
+  &:hover {
+    filter: brightness(0.97) saturate(1.04);
+  }
+}
+
+/* Events-block pill: filled Demo Day gradient, white text. */
+.demoDayPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  text-shadow: 0 1px 1px rgba(14, 15, 17, 0.22);
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+
+  svg {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    color: #fff;
+  }
+
+  &:hover {
+    filter: brightness(0.97) saturate(1.04);
+  }
+}
+
+/* Demo Day participation emblem — a compact code badge (e.g. "DDF25") next to the
+   team name. Two variants: filled gradient (white text) and outlined (gradient ring
+   on white, dark text). Full meaning comes from the tooltip. */
+.demoDayEmblem,
+.demoDayEmblemOutlined {
+  flex: none;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  transition:
+    filter 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  svg {
+    flex: none;
+  }
+
+  // Keep the rectangular (6px) shape on mobile too — just a touch more padding
+  // now that it shows the full title instead of the compact code.
+  @include media.mobile-only {
+    padding: 3px 8px;
+  }
+}
+
+// Filled: brand gradient, white text.
+.demoDayEmblem {
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.12);
+  text-shadow: 0 1px 1px rgba(14, 15, 17, 0.22);
+
+  &:hover {
+    filter: brightness(1.03) saturate(1.05);
+  }
+}
+
+// Outlined: gradient ring on a white fill, with the code/label text gradient-filled
+// too (background-clipped to the glyphs) so it matches the ring. Ends on the deeper
+// #0a9952 green (vs the filled variant's lighter #4cee8c) so the text reads crisply
+// on white.
+.demoDayEmblemOutlined {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, #1b4dff 0%, #0a9952 100%) border-box;
+
+  &:hover {
+    filter: brightness(0.99);
+  }
+
+  .demoDayEmblemCode,
+  .demoDayEmblemLabel {
+    background: linear-gradient(135deg, #1b4dff 0%, #0a9952 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+// Compact code (e.g. "DDF25"): shown on desktop, replaced by the full label on mobile.
+.demoDayEmblemCode {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.2px;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+// Label: desktop hidden (code + tooltip carry meaning); mobile shows the full title.
+.demoDayEmblemLabel {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline;
+    color: inherit;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+  }
+}
+
+// Separate-row wrapper: the compact badge on its own row below the header. The
+// badge keeps its emblem look but drops the next-to-name left margin.
+.demoDayRow {
+  display: flex;
+  margin-top: 12px;
+
+  .demoDayEmblem {
+    margin-left: 0;
+  }
+}
+
+// Series-tag variant: adopts the Demo Day past-teams card ".stage" pill (imported
+// as `tc.stage`); we only add link behavior + alignment next to the name.
+.demoDayEmblemSeries {
+  margin-top: 0;
+  margin-left: 8px;
+  text-decoration: none;
+}
+
 // Breathing room above About now that it lives back inside the header card
 // (DetailsSection's own row gap is commented out in production).
 .aboutSpacing {
   margin-top: 40px;
 }
-
 
 // About: kill the ExpandableDescription's own box + reserved bottom so the text
 // sits tight inside the single grey container.
@@ -570,32 +742,44 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
-/* Fixed-height, internally scrolling news list so the rail never grows past the
-   viewport. A little right padding keeps the scrollbar off the cards. */
-/* Outlined card — used in the modal grid. */
-.cardOutline {
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.16));
+/* One step down from the production 18px headline — the 340px rail reads
+   calmer at 16/22 and keeps two-line titles from dominating the panel. */
+.newsHeadline {
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: -0.3px;
 }
 
-/* Flat row with a divider — used in the rail list. */
-.flatNews {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  border-radius: 0;
-  padding: 16px 0;
+/* Two-line teaser: production's .summary sets the -webkit-box plumbing but
+   leaves the clamp count to the surface; the rail cuts at 2. Pulled up against
+   the headline (card gap is 14px → effective 8px) so title + teaser read as
+   one block. */
+.newsSummary {
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 
-  &:hover {
-    box-shadow: none;
-  }
+/* Dense inner rhythm. The card is a flex column whose `gap` (production
+   .cardFlat sets 14px) drives EVERY vertical gap — headline→summary→meta. A
+   per-element margin can't shrink it: production's `.summary { margin: 0 }`
+   shorthand clobbers a single-class margin-top. So shrink the gap itself, with
+   a doubled class that outranks .cardFlat regardless of CSS bundle order. */
+.newsRowTight.newsRowTight {
+  gap: 8px;
+  padding-bottom: 12px;
+}
 
-  &:first-child {
-    padding-top: 0;
-  }
+/* Space above the wrapped Upvote/Discuss row. `.metaLine { gap: 6px }` is a
+   shorthand that beats a single-class row-gap, so double the class to win. */
+.newsMetaRow.newsMetaRow {
+  row-gap: 12px;
+}
 
-  &:not(:first-child) {
-    border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  }
+/* Upvote + Discuss cluster on the right of the meta line. */
+.newsActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .newsList {
@@ -644,11 +828,6 @@
 
   @include media.tablet-portrait {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
-  h3 {
-    -webkit-line-clamp: 3;
   }
 }
 
@@ -812,12 +991,6 @@
   flex-direction: column;
   gap: 12px;
   padding: 0 16px 24px;
-
-  /* Production NewsCard clamps the headline (<h3>) to 2 lines; on the mobile
-     full page allow 3. */
-  h3 {
-    -webkit-line-clamp: 3;
-  }
 }
 
 .newsPageEmpty {

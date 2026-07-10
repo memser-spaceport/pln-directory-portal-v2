@@ -1,6 +1,12 @@
-import type { ITeamNewsByTeamResponse, ITeamNewsGroupedResponse } from '@/types/team-news.types';
+import { customFetch } from '@/utils/fetch-wrapper';
+import type {
+  ITeamNewsByTeamResponse,
+  ITeamNewsGroupedResponse,
+  ITeamNewsPopularResponse,
+  ITeamNewsUpvoteStatus,
+} from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
-import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from './constants';
+import { TEAM_NEWS_DEFAULT_WINDOW_DAYS, TEAM_NEWS_PREVIEW_LIMIT } from './constants';
 import { MOCK_TEAM_NEWS_GROUPED_RESPONSE } from './team-news.mock-data';
 
 interface FetchGroupedOptions {
@@ -65,4 +71,41 @@ export async function getTeamNewsGroupedByFocusArea(
   } catch {
     return null;
   }
+}
+
+// Fetches "Popular this week" — server-ranked stories (>=2 upvotes in the last 7
+// days, capped by `limit`). Auth is optional; passing the token is harmless and
+// keeps this consistent with the grouped feed's SSR fetch. Returns null on
+// failure so the caller can fall back to hiding the module.
+export async function getTeamNewsPopular(
+  limit: number = TEAM_NEWS_PREVIEW_LIMIT,
+  authToken?: string,
+): Promise<ITeamNewsPopularResponse | null> {
+  const url = `${process.env.DIRECTORY_API_URL}/v1/team-news/popular?limit=${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: getHeader(authToken),
+    });
+    if (!response.ok) {
+      return null;
+    }
+    return (await response.json()) as ITeamNewsPopularResponse;
+  } catch {
+    return null;
+  }
+}
+
+// Called from a client-side mutation (useTeamNewsUpvoteToggle). POST to upvote,
+// DELETE to remove; both return the authoritative { upvoteCount, viewerHasUpvoted }.
+// Throws on failure so React Query's onError fires and the optimistic overlay rolls back.
+export async function toggleTeamNewsUpvote(uid: string, upvoted: boolean): Promise<ITeamNewsUpvoteStatus> {
+  const response = await customFetch(
+    `${process.env.DIRECTORY_API_URL}/v1/team-news/${encodeURIComponent(uid)}/upvote`,
+    { method: upvoted ? 'POST' : 'DELETE', headers: { 'Content-Type': 'application/json' } },
+    true,
+  );
+  if (!response?.ok) throw new Error('Failed to toggle team news upvote');
+  return (await response.json()) as ITeamNewsUpvoteStatus;
 }

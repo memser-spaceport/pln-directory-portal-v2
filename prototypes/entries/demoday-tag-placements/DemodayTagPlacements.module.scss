@@ -1,0 +1,66 @@
+@use 'styles/media';
+
+.page {
+  min-height: 100%;
+  width: 100%;
+  padding: 24px 16px 48px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+/* Placement switcher */
+.controls {
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.tabBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.tab {
+  flex: 1 1 auto;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.tabActive {
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+
+  &:hover {
+    background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+    filter: brightness(0.98);
+  }
+}
+
+.caption {
+  margin: 12px 4px 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Team card frame — centered like the production detail column. */
+.card {
+  max-width: 900px;
+  margin: 0 auto;
+}

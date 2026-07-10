@@ -1,11 +1,15 @@
+@use 'styles/media';
+
 .root {
+  display: flex;
+  flex-direction: column;
   height: calc(100vh - var(--app-header-height));
   width: 100%;
 }
 
 .iframe {
   width: 100%;
-  height: 100%;
+  flex: 1;
   border: none;
   display: block;
 }
@@ -20,4 +24,198 @@
   line-height: 20px;
   color: #64748b;
   text-align: center;
+}
+
+/* In-place replacement for the iframe while a redeploy / liveness check runs. */
+.frameState {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  text-align: center;
+}
+
+.progressBar {
+  width: 260px;
+  height: 6px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+/* Indeterminate sweep — the deploy has no reportable percentage. */
+.progressIndicator {
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: #156ff7;
+  animation: progress-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.progressTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #0f172a;
+}
+
+.progressText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #64748b;
+}
+
+.retryButton {
+  margin-top: 8px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #156ff7;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.setupPage {
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - var(--app-header-height));
+  padding: 48px 24px;
+  background: #f1f5f9;
+}
+
+.setupCard {
+  width: 100%;
+  max-width: 560px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.setupHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setupTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.statusBadge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  background: #fef3c7;
+  color: #92400e;
+
+  &[data-status='ERROR'] {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  &[data-status='DEPLOYING'] {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+}
+
+.setupDescription {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: #475569;
+}
+
+.setupError {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 13px;
+  line-height: 20px;
+  color: #b91c1c;
+  word-break: break-word;
+}
+
+.setupInfo {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: #64748b;
+}
+
+.secretsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Horizontal padding mirrors the navbar (NavBar.module.scss), so the toggle
+     and form line up with the header logo. */
+  padding: 8px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+
+  @include media.tablet-landscape {
+    padding: 8px 24px;
+  }
+}
+
+.secretsToggle {
+  align-self: flex-start;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #156ff7;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.secretsPanel {
+  max-width: 560px;
+  padding-bottom: 8px;
 }

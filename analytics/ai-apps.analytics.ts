@@ -39,5 +39,27 @@ export function useAiAppsAnalytics() {
     onIframeLoaded: (appUid: string, appName: string) => capture(AI_APPS_ANALYTICS.IFRAME_LOADED, { appUid, appName }),
     onIframeLoadFailed: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.IFRAME_LOAD_FAILED, { appUid, appName }),
+    onFeedbackSubmitted: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMITTED, { appUid, appName }),
+    onFeedbackSubmitFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_SUBMIT_FAILED, { appUid }),
+    onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
+    onFeedbackTabFiltered: (appName: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_TAB_FILTERED, { appName }),
+    onFeedbackExported: (rowCount: number) => capture(AI_APPS_ANALYTICS.FEEDBACK_EXPORTED, { rowCount }),
+    onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
+    onViewFeedbackClicked: (params: { feedbackCount: number }) =>
+      capture(AI_APPS_ANALYTICS.VIEW_FEEDBACK_CLICKED, params),
+    onSecretsPanelOpened: (params: { appUid: string; isDraft: boolean }) =>
+      capture(AI_APPS_ANALYTICS.SECRETS_PANEL_OPENED, params),
+    onSecretsDeployClicked: (params: {
+      appUid: string;
+      isDraft: boolean;
+      varsRequiredCount: number;
+      varsProvidedCount: number;
+    }) => capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_CLICKED, params),
+    onSecretsDeploySucceeded: (params: { appUid: string; isDraft: boolean }) =>
+      capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_SUCCEEDED, params),
+    onDraftSetupViewed: (params: { appUid: string; appName: string }) =>
+      capture(AI_APPS_ANALYTICS.DRAFT_SETUP_VIEWED, params),
   };
 }

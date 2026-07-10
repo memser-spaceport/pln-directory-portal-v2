@@ -27,9 +27,14 @@ export function AiAppCard(props: Props) {
     analytics.onCardClicked(app.uid, app.name);
   };
 
+  const isDraft = app.status === 'DRAFT';
+
   const body = (
     <>
-      <h3 className={s.name}>{app.name}</h3>
+      <div className={s.nameRow}>
+        <h3 className={s.name}>{app.name}</h3>
+        {isDraft && <span className={s.draftBadge}>Draft</span>}
+      </div>
       <p className={s.description}>{app.description}</p>
     </>
   );
@@ -51,7 +56,9 @@ export function AiAppCard(props: Props) {
               {app.member.name}
             </Link>
           </p>
-          <p className={s.deployed}>Deployed {new Date(app.createdAt).toLocaleDateString()}</p>
+          <p className={s.deployed}>
+            {isDraft ? 'Draft created' : 'Deployed'} {new Date(app.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
 

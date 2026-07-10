@@ -60,6 +60,10 @@ export const MOCK_TEAM = {
   asks: [],
 } satisfies Partial<ITeam>;
 
+/* --------------- Demo Day participation (drives the header badge) --------------- */
+// Slug matches the completed demo day so the badge deep-links to its page.
+export const MOCK_TEAM_DEMO_DAY = { title: 'Demo Day F25', slug: 'pl-demo-day-f25' };
+
 /* ---------------- Followers (team view: who follows this team) ---------------- */
 export interface TeamFollower {
   id: string;
@@ -204,8 +208,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'ANNOUNCEMENT',
     eventDate: '2026-06-21T10:00:00.000Z',
-    title: 'Protocol Labs announced the next IPFS mainnet upgrade, introducing faster content routing and lower retrieval latency.',
-    summary: null,
+    title: 'Protocol Labs announces the next IPFS mainnet upgrade',
+    summary:
+      'The upgrade introduces faster content routing and lower retrieval latency, with a phased rollout for node operators starting this quarter.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['IPFS'],
@@ -221,8 +226,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'LAUNCH',
     eventDate: '2026-06-21T09:00:00.000Z',
-    title: 'Filecoin Foundation launched a new grants round focused on verifiable storage for AI training datasets.',
-    summary: null,
+    title: 'Filecoin Foundation opens a grants round for verifiable AI storage',
+    summary:
+      'The round funds teams building verifiable storage for AI training datasets, with milestones reviewed by the foundation’s research group.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin', 'Grants'],
@@ -238,8 +244,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'PARTNERSHIP',
     eventDate: '2026-06-20T14:00:00.000Z',
-    title: 'libp2p partnered with a major L2 to standardize peer discovery across rollup networks.',
-    summary: null,
+    title: 'libp2p partners with a major L2 on a peer discovery standard',
+    summary:
+      'The collaboration standardizes peer discovery across rollup networks so clients can interoperate without custom bootstrap code.',
     sourceUrl: 'https://x.com/libp2p',
     sourceDomain: 'x.com',
     tags: ['libp2p'],
@@ -255,8 +262,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'MILESTONE',
     eventDate: '2026-06-18T12:00:00.000Z',
-    title: 'The Filecoin network crossed 2,000 PiB of active storage deals, a new all-time high for the protocol.',
-    summary: null,
+    title: 'Filecoin crosses 2,000 PiB of active storage deals',
+    summary:
+      'A new all-time high for the protocol, driven by growth in large-dataset onboarding and renewed enterprise storage deals.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin'],
@@ -272,8 +280,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'FUNDING',
     eventDate: '2026-06-16T08:00:00.000Z',
-    title: 'A Protocol Labs–incubated team closed a seed round to build decentralized compute markets on top of IPFS.',
-    summary: null,
+    title: 'PL-incubated team raises a seed round for decentralized compute',
+    summary:
+      'The round backs a compute marketplace built on top of IPFS, connecting idle hardware with verifiable workloads.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Funding'],
@@ -289,8 +298,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'ANNOUNCEMENT',
     eventDate: '2026-06-14T11:00:00.000Z',
-    title: 'IPFS Camp 2026 dates announced, with a track dedicated to content-addressed AI pipelines.',
-    summary: null,
+    title: 'IPFS Camp 2026 dates announced',
+    summary:
+      'This year’s camp adds a dedicated track on content-addressed AI pipelines alongside the core protocol workshops.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Events'],
@@ -306,8 +316,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'LAUNCH',
     eventDate: '2026-06-11T15:00:00.000Z',
-    title: 'A new retrieval market client shipped, cutting cold-storage retrieval times on Filecoin by ~40%.',
-    summary: null,
+    title: 'New retrieval market client cuts cold-storage times by ~40%',
+    summary:
+      'The client ships smarter deal selection and parallel retrieval, cutting cold-storage retrieval times on Filecoin by roughly 40%.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin'],
@@ -323,8 +334,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'PARTNERSHIP',
     eventDate: '2026-06-08T09:00:00.000Z',
-    title: 'Protocol Labs joined a cross-industry working group on decentralized identity standards.',
-    summary: null,
+    title: 'Protocol Labs joins a decentralized identity working group',
+    summary:
+      'The cross-industry group is drafting shared standards for decentralized identity across networking and storage protocols.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Identity'],
@@ -340,8 +352,9 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     teamLogoUrl: null,
     eventType: 'OTHER',
     eventDate: '2026-06-04T13:00:00.000Z',
-    title: 'Quarterly ecosystem report published, highlighting growth across storage, compute, and networking projects.',
-    summary: null,
+    title: 'Quarterly ecosystem report published',
+    summary:
+      'The report highlights growth across storage, compute, and networking projects, with deep dives into retrieval markets.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Report'],
@@ -351,3 +364,17 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     discussion: { count: 0, latestTopicUrl: null },
   },
 ];
+
+/* Mock upvote counts per news item, keyed by uid (same shape as the newsfeed
+   prototype's UPVOTES). Zeros demo the hidden-zero state — plain "Upvote". */
+export const NEWS_UPVOTES: Record<string, number> = {
+  'news-1': 12,
+  'news-2': 0,
+  'news-3': 5,
+  'news-4': 21,
+  'news-5': 7,
+  'news-6': 3,
+  'news-7': 9,
+  'news-8': 0,
+  'news-9': 2,
+};

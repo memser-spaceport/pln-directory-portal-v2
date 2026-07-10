@@ -2,7 +2,7 @@ import { FOLLOW_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 
-export type FollowAnalyticsSource = 'news-feed' | 'team-profile' | 'teams-directory';
+export type FollowAnalyticsSource = 'news-feed' | 'team-profile' | 'teams-directory' | 'news-rail';
 
 export const useFollowAnalytics = () => {
   const postHogProps = usePostHog();
@@ -23,7 +23,13 @@ export const useFollowAnalytics = () => {
     }
   };
 
-  const onTeamFollowed = (params: { teamUid: string; teamName: string; source: FollowAnalyticsSource }) => {
+  const onTeamFollowed = (params: {
+    teamUid: string;
+    teamName: string;
+    source: FollowAnalyticsSource;
+    position?: number;
+    reason?: string;
+  }) => {
     captureEvent(FOLLOW_ANALYTICS_EVENTS.TEAM_FOLLOWED, params);
   };
 

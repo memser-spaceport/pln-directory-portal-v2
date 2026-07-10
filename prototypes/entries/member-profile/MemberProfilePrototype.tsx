@@ -36,8 +36,6 @@ import contact from '@/components/page/member-details/contact-details/ContactDet
 import repo from '@/components/page/member-details/RepositoriesDetails/components/RepositoriesList/RepositoriesList.module.scss';
 import book from '@/components/page/member-details/BookWithOther/BookWithOther.module.scss';
 
-import { FollowControl } from '../follow-shared/FollowControl';
-import { FollowWhyCard } from '../follow-shared/FollowWhyCard';
 import s from './MemberProfile.module.scss';
 import {
   MOCK_MEMBER,
@@ -47,8 +45,6 @@ import {
   totalInteractions,
   type AffinityRelationship,
 } from './mocks';
-
-const MEMBER_FOLLOWERS = 1283;
 
 // Cast the mock to the production prop types — the real components read only the
 // fields we populate, so this is safe for the prototype.
@@ -65,12 +61,18 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, keyof typeof MOCK_MEMBER> = {
 };
 const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'];
 
+type CardAccent = 'slate' | 'blue';
+const CARD_ACCENTS: { key: CardAccent; label: string }[] = [
+  { key: 'slate', label: 'Slate' },
+  { key: 'blue', label: 'Blue' },
+];
+
 export default function MemberProfilePrototype() {
   // Reusing interactive production components — gate on a mounted flag so SSR ===
   // first client render and we avoid hydration drift.
   const [mounted, setMounted] = useState(false);
   const [scenarioKey, setScenarioKey] = useState(RELATIONSHIP_SCENARIOS[0].key);
-  const [following, setFollowing] = useState(false);
+  const [cardAccent, setCardAccent] = useState<CardAccent>('slate');
 
   useEffect(() => setMounted(true), []);
 
@@ -96,6 +98,19 @@ export default function MemberProfilePrototype() {
             </button>
           ))}
         </div>
+        <span className={s.demoSwitchLabel}>Card accent</span>
+        <div className={s.demoSwitchRow}>
+          {CARD_ACCENTS.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              className={clsx(s.demoSwitchBtn, { [s.active]: a.key === cardAccent })}
+              onClick={() => setCardAccent(a.key)}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className={page.memberDetail}>
@@ -103,38 +118,10 @@ export default function MemberProfilePrototype() {
           <div className={page.content}>
             <BackButton to="/members" />
             <div className={page.memberDetail__container}>
-              <ProfileHeaderCard
-                following={following}
-                count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
-                onToggle={() => setFollowing((v) => !v)}
-              />
-              {/* Inline copy — only shown below tablet-landscape, where the rail is hidden. */}
+              <ProfileHeaderCard />
+              {/* Inline Affinity copy — only shown below tablet-landscape, where the rail is hidden. */}
               <div className={s.affinityMobile}>
-                <FollowWhyCard
-                  name={MOCK_MEMBER.name}
-                  kind="member"
-                  following={following}
-                  count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
-                  onToggle={() => setFollowing((v) => !v)}
-                  socialProof={{ names: ['Juan Benet'], moreCount: 11 }}
-                  suggestions={[
-                    {
-                      id: 'molly',
-                      name: 'Molly Mackinlay',
-                      subtitle: 'Project Lead, IPFS',
-                      kind: 'member',
-                      image: 'https://i.pravatar.cc/96?img=32',
-                    },
-                    {
-                      id: 'david',
-                      name: 'David Dias',
-                      subtitle: 'Research Engineer',
-                      kind: 'member',
-                      image: 'https://i.pravatar.cc/96?img=15',
-                    },
-                  ]}
-                />
-                <AffinityCard relationship={scenario.relationship} empty={scenario.empty} />
+                <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
               </div>
               <OfficeHoursCard />
               <ContactCard />
@@ -151,14 +138,7 @@ export default function MemberProfilePrototype() {
               <BackButton to="/members" />
             </div>
             <div className={s.rail}>
-              <FollowWhyCard
-                name={MOCK_MEMBER.name}
-                kind="member"
-                following={following}
-                count={MEMBER_FOLLOWERS + (following ? 1 : 0)}
-                onToggle={() => setFollowing((v) => !v)}
-              />
-              <AffinityCard relationship={scenario.relationship} empty={scenario.empty} />
+              <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
               <BookWithOtherCard />
             </div>
           </div>
@@ -169,21 +149,9 @@ export default function MemberProfilePrototype() {
 }
 
 /* ---------- Profile header (mirrors ProfileDetails + MemberDetailHeader) ---------- */
-function ProfileHeaderCard({
-  following,
-  count,
-  onToggle,
-}: {
-  following: boolean;
-  count: number;
-  onToggle: () => void;
-}) {
+function ProfileHeaderCard() {
   return (
     <div className={profile.root}>
-      {/* Follow control — added top-right of the real header, nothing else changed. */}
-      <div className={s.followSlot}>
-        <FollowControl name={MOCK_MEMBER.name} kind="member" following={following} count={count} onToggle={onToggle} />
-      </div>
       <div className={h.header}>
         <div className={h.headerProfile}>
           <img className={h.headerProfileImg} src={MOCK_MEMBER.profile} alt={MOCK_MEMBER.name} />
@@ -406,72 +374,115 @@ function BookWithOtherCard() {
 }
 
 /* ---------- Affinity / relationship intelligence card ---------- */
-function AffinityCard({ relationship, empty }: { relationship: AffinityRelationship; empty?: boolean }) {
+function AffinityCard({
+  relationship,
+  empty,
+  accent,
+}: {
+  relationship: AffinityRelationship;
+  empty?: boolean;
+  accent: CardAccent;
+}) {
   const { owner, lastContact, tier, windowMonths, months } = relationship;
   const meta = TIER_META[tier];
   const total = totalInteractions(months);
-  const circleClass = clsx(s.circleIcon, { [s.circleIconMuted]: empty });
+  const isBlue = accent === 'blue';
+  // Slate is the neutral "backstage" identity; blue is the brand-accent variant.
+  const circleClass = clsx(s.circleIcon, { [s.circleIconSlate]: !isBlue, [s.circleIconMuted]: empty });
+
+  // Field values, shared between the slate (icon-row) and blue (Investor-Details
+  // grouped-container) layouts.
+  const ownerValue = empty ? (
+    <NoDataBlock>Not assigned</NoDataBlock>
+  ) : (
+    <span className={s.ownerName}>{owner.name}</span>
+  );
+  const contactValue = empty ? (
+    <NoDataBlock>No contact logged yet</NoDataBlock>
+  ) : (
+    <div className={s.contactBody}>
+      <span className={s.contactWhenPrimary}>{lastContact.date}</span>
+      <span className={s.contactSummary}>{lastContact.summary}</span>
+    </div>
+  );
+  const freqValue = empty ? (
+    <NoDataBlock>No interactions logged yet</NoDataBlock>
+  ) : (
+    <div className={s.freqHeader}>
+      <Badge variant={meta.variant}>{meta.label}</Badge>
+      <span className={s.freqCount}>
+        <strong>{total}</strong> {total === 1 ? 'touchpoint' : 'touchpoints'} in the last {windowMonths} months
+      </span>
+    </div>
+  );
+
+  // The same icon-row blocks serve both variants; on slate the grey block fill
+  // is stripped (scoped in SCSS), on blue it stays — grey blocks on white body,
+  // like the production RelationshipDetails card.
+  const blocks = (
+    <div className={s.blocks}>
+      {/* Relationship owner */}
+      <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
+        <span className={circleClass}>
+          <UsersThreeIcon />
+        </span>
+        <div className={s.blockBody}>
+          <span className={s.blockLabel}>Relationship owner</span>
+          {ownerValue}
+        </div>
+      </DetailsSectionGreyContentContainer>
+
+      {/* Last contact */}
+      <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
+        <span className={circleClass}>
+          <CalendarBlankIcon />
+        </span>
+        <div className={s.blockBody}>
+          <span className={s.blockLabel}>Last contact</span>
+          {contactValue}
+        </div>
+      </DetailsSectionGreyContentContainer>
+
+      {/* Interaction frequency */}
+      <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
+        <span className={circleClass}>
+          <ChartIcon />
+        </span>
+        <div className={clsx(s.blockBody, s.blockBodyLoose)}>
+          <span className={s.blockLabel}>Interaction frequency</span>
+          {freqValue}
+        </div>
+      </DetailsSectionGreyContentContainer>
+    </div>
+  );
+
+  // Blue variant mirrors the Investor Details card: brand-subtle outline,
+  // light-blue banner strip attached to the top (carrying "PL Team only"),
+  // white body with the grey icon blocks.
+  if (isBlue) {
+    return (
+      <DetailsSection classes={{ root: s.internalCardBlue }}>
+        <div className={s.plBanner}>
+          <LockIcon />
+          <span>PL Team only</span>
+        </div>
+        <div className={s.blueBody}>
+          <DetailsSectionHeader title="Relationship" />
+          {blocks}
+        </div>
+      </DetailsSection>
+    );
+  }
 
   return (
-    <DetailsSection>
-      <DetailsSectionHeader title="Relationship" />
-
-      <div className={s.blocks}>
-        {/* Relationship owner */}
-        <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
-          <span className={circleClass}>
-            <UsersThreeIcon />
-          </span>
-          <div className={s.blockBody}>
-            <span className={s.blockLabel}>Relationship owner</span>
-            {empty ? (
-              <NoDataBlock>Not assigned</NoDataBlock>
-            ) : (
-              <div className={s.ownerMeta}>
-                <span className={s.ownerName}>{owner.name}</span>
-              </div>
-            )}
-          </div>
-        </DetailsSectionGreyContentContainer>
-
-        {/* Last contact */}
-        <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
-          <span className={circleClass}>
-            <CalendarBlankIcon />
-          </span>
-          <div className={s.blockBody}>
-            <span className={s.blockLabel}>Last contact</span>
-            {empty ? (
-              <NoDataBlock>No contact logged yet</NoDataBlock>
-            ) : (
-              <div className={s.contactBody}>
-                <span className={s.contactWhenPrimary}>{lastContact.date}</span>
-                <span className={s.contactSummary}>{lastContact.summary}</span>
-              </div>
-            )}
-          </div>
-        </DetailsSectionGreyContentContainer>
-
-        {/* Interaction frequency */}
-        <DetailsSectionGreyContentContainer className={clsx(s.block, s.blockWithIcon)}>
-          <span className={circleClass}>
-            <ChartIcon />
-          </span>
-          <div className={clsx(s.blockBody, s.blockBodyLoose)}>
-            <span className={s.blockLabel}>Interaction frequency</span>
-            {empty ? (
-              <NoDataBlock>No interactions logged yet</NoDataBlock>
-            ) : (
-              <div className={s.freqHeader}>
-                <Badge variant={meta.variant}>{meta.label}</Badge>
-                <span className={s.freqCount}>
-                  <strong>{total}</strong> {total === 1 ? 'touchpoint' : 'touchpoints'} in the last {windowMonths} months
-                </span>
-              </div>
-            )}
-          </div>
-        </DetailsSectionGreyContentContainer>
-      </div>
+    <DetailsSection classes={{ root: s.internalCard }}>
+      <DetailsSectionHeader title="Relationship">
+        <span className={s.internalPill}>
+          <LockIcon />
+          PL Team only
+        </span>
+      </DetailsSectionHeader>
+      {blocks}
     </DetailsSection>
   );
 }
@@ -483,6 +494,17 @@ const ChartIcon = () => (
   <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M12.9062 11.375C12.9062 11.549 12.8371 11.716 12.714 11.839C12.591 11.9621 12.424 12.0312 12.25 12.0312H1.75C1.57595 12.0312 1.40903 11.9621 1.28596 11.839C1.16289 11.716 1.09375 11.549 1.09375 11.375V2.625C1.09375 2.45095 1.16289 2.28403 1.28596 2.16096C1.40903 2.03789 1.57595 1.96875 1.75 1.96875C1.92405 1.96875 2.09097 2.03789 2.21404 2.16096C2.33711 2.28403 2.40625 2.45095 2.40625 2.625V8.03906L4.7857 5.65906C4.84667 5.59788 4.91912 5.54934 4.99888 5.51622C5.07865 5.4831 5.16418 5.46605 5.25055 5.46605C5.33692 5.46605 5.42244 5.4831 5.50221 5.51622C5.58198 5.54934 5.65442 5.59788 5.71539 5.65906L7 6.94531L9.35156 4.59375H8.75C8.57595 4.59375 8.40903 4.52461 8.28596 4.40154C8.16289 4.27847 8.09375 4.11155 8.09375 3.9375C8.09375 3.76345 8.16289 3.59653 8.28596 3.47346C8.40903 3.35039 8.57595 3.28125 8.75 3.28125H10.9375C11.1115 3.28125 11.2785 3.35039 11.4015 3.47346C11.5246 3.59653 11.5938 3.76345 11.5938 3.9375V6.125C11.5937 6.29905 11.5246 6.46597 11.4015 6.58904C11.2785 6.71211 11.1115 6.78125 10.9375 6.78125C10.7635 6.78125 10.5965 6.71211 10.4735 6.58904C10.3504 6.46597 10.2813 6.29905 10.2812 6.125V5.52344L7.4643 8.34094C7.40333 8.40212 7.33088 8.45066 7.25112 8.48378C7.17135 8.51691 7.08582 8.53396 6.99945 8.53396C6.91308 8.53396 6.82756 8.51691 6.74779 8.48378C6.66802 8.45066 6.59558 8.40212 6.53461 8.34094L5.25 7.05469L2.40625 9.89844V10.7188H12.25C12.424 10.7188 12.591 10.7879 12.714 10.911C12.8371 11.034 12.9062 11.201 12.9062 11.375Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+// Local lock icon (no lock exists in @/components/icons) — currentColor so the
+// pill controls its slate tint. Matches the file's inline-icon pattern.
+const LockIcon = () => (
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M12 6.667h-.667V5.333a3.333 3.333 0 0 0-6.666 0v1.334H4c-.736 0-1.333.597-1.333 1.333v5.333c0 .736.597 1.334 1.333 1.334h8c.736 0 1.333-.598 1.333-1.334V8c0-.736-.597-1.333-1.333-1.333Zm-6-1.334a2 2 0 0 1 4 0v1.334H6V5.333Zm2.667 6.334v1a.667.667 0 0 1-1.334 0v-1a1 1 0 1 1 1.334 0Z"
       fill="currentColor"
     />
   </svg>

@@ -23,7 +23,7 @@ const UPDATED_AT = '2026-06-17T12:00:00.000Z';
 const UPDATED_AT_MS = new Date(UPDATED_AT).getTime();
 
 const sampleDraft: SubmitIdeaDraft = {
-  form: { title: 'Need better filters', description: '', tags: [], type: null, stage: null, objective: null },
+  form: { title: 'Need better filters', description: '', tags: [], type: null, stage: null, objectives: [] },
   showCreateObjective: false,
   newObjectiveTitle: '',
 };
@@ -36,7 +36,7 @@ const apiDraft: ApiGantryDraft = {
   tags: [],
   type: null,
   stage: null,
-  objectiveUid: null,
+  objectiveUids: [],
   newObjectiveTitle: null,
   showCreateObjective: false,
   updatedAt: UPDATED_AT,
@@ -149,10 +149,10 @@ describe('field mapping — API → SubmitIdeaDraft', () => {
     expect(result!.form.stage?.label).toBe('Planned');
   });
 
-  it('maps objectiveUid to Option with empty label', async () => {
-    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, objectiveUid: 'obj-123' });
+  it('maps objectiveUids to Option[] with empty labels', async () => {
+    mockFetchGantryDraftFromApi.mockResolvedValueOnce({ ...apiDraft, objectiveUids: ['obj-123'] });
     const result = await readGantryDraft('idea');
-    expect(result!.form.objective).toEqual({ label: '', value: 'obj-123' });
+    expect(result!.form.objectives).toEqual([{ label: '', value: 'obj-123' }]);
   });
 
   it('maps newObjectiveTitle and showCreateObjective', async () => {

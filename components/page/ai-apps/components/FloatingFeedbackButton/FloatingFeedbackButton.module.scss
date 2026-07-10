@@ -1,0 +1,25 @@
+.floatingButton {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.12),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.12);
+
+  &:hover {
+    background: var(--foreground-brand-primary-hover, #1640d6);
+  }
+}

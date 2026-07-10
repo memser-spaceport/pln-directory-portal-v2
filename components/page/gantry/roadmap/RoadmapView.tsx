@@ -41,6 +41,7 @@ import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
 import { useGantryDraftQuery, useGantryDiscardDraftMutation } from '@/services/gantry/hooks/useGantryDraft';
 import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { DiscardDraftDialog } from '@/components/page/gantry/ideas/DiscardDraftDialog';
+import { GantryItemDrawer } from '@/components/page/gantry/GantryItemDrawer/GantryItemDrawer';
 import { RoadmapCard, RoadmapCardDragOverlay } from './RoadmapCard';
 import { RoadmapDropColumn, isRoadmapColumnStage } from './RoadmapDropColumn';
 import { RoadmapFilters, type RoadmapColumnStage } from './RoadmapFilters';
@@ -134,7 +135,7 @@ export function RoadmapView() {
   const pinNote = useGantryPinNote();
 
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
-    useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
+    useRoadmapMobileNav(orderedVisibleColumns, isNarrow, !isLoading && !isError);
   const {
     pinStatusRef,
     pinNotePopover,
@@ -521,8 +522,8 @@ export function RoadmapView() {
               searchText={filters.searchText}
               onSearchTextChange={filters.handleSearchTextChange}
               objectives={objectives}
-              selectedObjective={filters.selectedObjective}
-              onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+              selectedObjectives={filters.selectedObjectives}
+              onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
             />
           </MobileDrawer>
 
@@ -559,8 +560,8 @@ export function RoadmapView() {
             searchText={filters.searchText}
             onSearchTextChange={filters.handleSearchTextChange}
             objectives={objectives}
-            selectedObjective={filters.selectedObjective}
-            onSelectedObjectiveChange={filters.handleSelectedObjectiveChange}
+            selectedObjectives={filters.selectedObjectives}
+            onSelectedObjectivesChange={filters.handleSelectedObjectivesChange}
           />
         }
         content={
@@ -675,6 +676,7 @@ export function RoadmapView() {
       />
 
       {modals}
+      <GantryItemDrawer />
     </div>
   );
 }

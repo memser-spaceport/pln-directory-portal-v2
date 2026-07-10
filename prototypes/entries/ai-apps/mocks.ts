@@ -44,6 +44,8 @@ export const mockAiApps: AiApp[] = [
     host: 'labs.pln',
     port: 443,
     deploymentId: 'dep-1',
+    requiredEnvVars: [],
+    providedEnvVars: [],
     createdAt: '2026-06-18T10:00:00.000Z',
     updatedAt: '2026-06-18T10:00:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii' },
@@ -61,6 +63,8 @@ export const mockAiApps: AiApp[] = [
     host: 'labs.pln',
     port: 443,
     deploymentId: 'dep-2',
+    requiredEnvVars: [],
+    providedEnvVars: [],
     createdAt: '2026-06-12T14:30:00.000Z',
     updatedAt: '2026-06-12T14:30:00.000Z',
     member: { uid: 'm-2', name: 'Daniel Singer' },
@@ -78,6 +82,8 @@ export const mockAiApps: AiApp[] = [
     host: 'labs.pln',
     port: 443,
     deploymentId: 'dep-3',
+    requiredEnvVars: [],
+    providedEnvVars: [],
     createdAt: '2026-06-05T09:15:00.000Z',
     updatedAt: '2026-06-05T09:15:00.000Z',
     member: { uid: 'm-3', name: 'Maria Lopez' },
@@ -131,18 +137,25 @@ export const createModalIntro =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
 
 export const createModalSteps = [
-  { title: 'Download Template', description: 'Click the button below to get your workspace package.' },
   {
-    title: 'Open Locally',
-    description:
-      'Unzip the folder and open it in your preferred setup (Claude Code, Cursor, etc.). If you are migrating an existing app, copy your project files into this folder so your agent can work alongside the included deploy instructions.',
+    title: 'Download the starter kit',
+    description: 'Click the button below to get Starter Kit v1.3 — a ready-to-use workspace for your AI coding tool.',
   },
   {
-    title: 'Build or Migrate',
+    title: 'Open it in your AI tool',
     description:
-      "For a new app, prompt your agent to develop it using the integrated instructions. For an existing app, point your agent at your code and the template's deploy config to wire it into LabOS infra.",
+      'Unzip the folder and open it in Claude Code, Cursor, or similar. For an existing app, copy your project into the app folder so the agent can work with the included deploy instructions.',
   },
-  { title: 'Deploy', description: 'Ask your agent to deploy when ready (for example, "Deploy this to labs").' },
+  {
+    title: 'Describe what to build',
+    description:
+      'Tell your agent what you want. Frontend and backend are both supported — a UI-only page, or an app that talks to data and services (ChatGPT, email, a database, etc.). Your agent handles the technical setup.',
+  },
+  {
+    title: 'Deploy',
+    description:
+      'Say "deploy this app", then: (1) Open the LabOS link your agent gives you, sign in, and click Approve. (2) Optional — if the backend needs access to data or external services, your agent will send a second LabOS link. Enter your secrets (API keys / passwords) there and click Deploy. Never paste keys in chat. When done, open the app from the AI Apps dashboard.',
+  },
 ];
 
 export const createModalSecurityNote =

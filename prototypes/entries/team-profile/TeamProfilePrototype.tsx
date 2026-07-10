@@ -42,8 +42,10 @@ import {
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
   MOCK_NEWS,
+  NEWS_UPVOTES,
   MOCK_FOLLOWERS,
   TEAM_FOLLOWER_COUNT,
+  MOCK_TEAM_DEMO_DAY,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -80,6 +82,17 @@ export default function TeamProfilePrototype() {
       return willFollow;
     });
   };
+
+  // Upvotes: mock base count + your own toggled vote, shared by the rail, the
+  // modal, and the mobile full page so the same story stays in sync.
+  const [votedNews, setVotedNews] = useState<Set<string>>(new Set());
+  const toggleNewsVote = (uid: string) =>
+    setVotedNews((prev) => {
+      const next = new Set(prev);
+      next.has(uid) ? next.delete(uid) : next.add(uid);
+      return next;
+    });
+  const upvotesFor = (uid: string) => (NEWS_UPVOTES[uid] ?? 0) + (votedNews.has(uid) ? 1 : 0);
 
   const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
@@ -143,6 +156,7 @@ export default function TeamProfilePrototype() {
         <div className={shell.teamDetail__Container__details}>
           <TeamDetailsView
             team={team}
+            demoDayParticipation={MOCK_TEAM_DEMO_DAY}
             headerAction={
               view === 'public' ? (
                 <div className={`${local.followHeader} ${local.followClusterMobile}`}>
@@ -226,7 +240,15 @@ export default function TeamProfilePrototype() {
           <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
           <div className={local.newsList}>
             {previewNews.map((item) => (
-              <NewsCardView key={item.uid} item={item} flat hideTeam />
+              <NewsCardView
+                key={item.uid}
+                item={item}
+                flat
+                hideTeam
+                upvotes={upvotesFor(item.uid)}
+                voted={votedNews.has(item.uid)}
+                onToggleUpvote={() => toggleNewsVote(item.uid)}
+              />
             ))}
           </div>
           {hasMore && (
@@ -247,6 +269,9 @@ export default function TeamProfilePrototype() {
           query={newsQuery}
           onQueryChange={setNewsQuery}
           onClose={closeNewsModal}
+          upvotesFor={upvotesFor}
+          votedNews={votedNews}
+          onToggleUpvote={toggleNewsVote}
         />
       ) : (
       <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
@@ -267,7 +292,14 @@ export default function TeamProfilePrototype() {
           {filteredNews.length > 0 ? (
             <div className={local.modalGrid}>
               {filteredNews.map((item) => (
-                <NewsCardView key={item.uid} item={item} hideTeam />
+                <NewsCardView
+                  key={item.uid}
+                  item={item}
+                  hideTeam
+                  upvotes={upvotesFor(item.uid)}
+                  voted={votedNews.has(item.uid)}
+                  onToggleUpvote={() => toggleNewsVote(item.uid)}
+                />
               ))}
             </div>
           ) : (

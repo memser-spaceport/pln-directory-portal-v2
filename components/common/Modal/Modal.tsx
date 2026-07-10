@@ -17,7 +17,15 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = (props) => {
-  const { isOpen, onClose, children, closeOnBackdropClick = true, closeOnEscape = true, overlayClassname, className } = props;
+  const {
+    isOpen,
+    onClose,
+    children,
+    closeOnBackdropClick = true,
+    closeOnEscape = true,
+    overlayClassname,
+    className,
+  } = props;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -25,19 +33,14 @@ export const Modal: React.FC<ModalProps> = (props) => {
   }, []);
 
   useEffect(() => {
+    if (!isOpen || !closeOnEscape || !onClose) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (closeOnEscape && e.key === 'Escape' && isOpen && onClose) {
-        onClose();
-      }
+      if (e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      onClose();
     };
-
-    if (isOpen && closeOnEscape) {
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
   }, [isOpen, onClose, closeOnEscape]);
 
   const handleOverlayClick = (e: React.MouseEvent) => {

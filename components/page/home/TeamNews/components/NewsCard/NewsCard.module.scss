@@ -117,6 +117,25 @@
   overflow: hidden;
 }
 
+.headlineCompact {
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.3px;
+  -webkit-line-clamp: 3;
+}
+
+.compact {
+  gap: 10px;
+
+  &.card {
+    padding: 16px;
+  }
+
+  &.cardFlat {
+    padding: 12px 0;
+  }
+}
+
 .metaLine {
   gap: 6px;
   display: flex;
@@ -137,6 +156,11 @@
   line-height: 16px;
   letter-spacing: -0.2px;
   color: #455468;
+}
+
+.metaCompact {
+  font-size: 11px;
+  line-height: 15px;
 }
 
 .sep {
@@ -176,6 +200,10 @@
   letter-spacing: -0.2px;
 }
 
+.eventLabelCompact {
+  font-size: 11px;
+}
+
 .dotFunding {
   background: #027a48;
 }
@@ -209,4 +237,73 @@
   letter-spacing: -0.2px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+}
+
+.summaryCompact {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// Copied from components/page/gantry/shared/Shared.module.scss's .boost/.boostActive/
+// .boostLabel/.boostDivider (not cross-imported — see this feature's plan doc for why).
+.upvote {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: #1b4dff;
+    color: #1b4dff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.upvoteActive {
+  color: #fff;
+  border-color: transparent;
+  background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+  box-shadow: 0 2px 8px rgba(21, 111, 247, 0.35);
+  background-size: 120%;
+  background-position: center;
+
+  &:hover:not(:disabled) {
+    background-image: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%);
+    filter: brightness(1.03);
+    background-size: 120%;
+    background-position: center;
+  }
+}
+
+.upvoteLabel {
+  line-height: 1;
+}
+
+.upvoteDivider {
+  width: 1px;
+  height: 12px;
+  background: currentColor;
+  opacity: 0.25;
+  flex-shrink: 0;
 }

@@ -373,6 +373,15 @@
   }
 }
 
+.objectiveBadges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 8px;
+  flex-shrink: 0;
+  max-width: 50%;
+}
+
 .objectiveBadge {
   display: inline-flex;
   align-items: center;
@@ -663,7 +672,7 @@
 .mobileTabs {
   flex-shrink: 0;
   background: #f1f5f9;
-  z-index: 10;
+  z-index: 4;
 }
 
 .mobileTab {

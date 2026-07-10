@@ -587,6 +587,14 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
+  TEAM_NEWS_UPVOTE_TOGGLED: 'team-news-upvote-toggled',
+  TEAM_NEWS_UPVOTE_FAILED: 'team-news-upvote-failed',
+  TEAM_NEWS_TEAMS_TO_FOLLOW_VIEWED: 'team-news-teams-to-follow-viewed',
+  TEAM_NEWS_TEAMS_TO_FOLLOW_HIDDEN: 'team-news-teams-to-follow-hidden',
+  TEAM_NEWS_POPULAR_CARD_VIEWED: 'team-news-popular-card-viewed',
+  TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
+  TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED: 'team-news-popular-story-scroll-succeeded',
+  TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED: 'team-news-popular-story-fallback-opened',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {
@@ -776,775 +784,788 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.20 - Newsfeed Upvotes & Discovery',
+    tag: 'New Feature',
+    date: '10, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Upvotes</span> - Upvote team news on the home feed to highlight stories that matter to you.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Discovery cards</span> - Recommended teams to follow and a Popular this week list of the most upvoted news, right alongside the feed.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.19 - Follow Teams',
     tag: 'New Feature',
     date: '3, Jul 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow teams</span> - Follow or unfollow from a team profile to get updates and announcements; their news is prioritized on the home feed.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Following tab</span> - Filter the directory to only the teams you follow.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Follow teams</span> - Follow or unfollow from a team profile to get updates and announcements; their news is prioritized on the home feed.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Following tab</span> - Filter the directory to only the teams you follow.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.18 - Team Profile News',
     tag: 'New Feature',
     date: '26, Jun 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Team profile pages now show a news panel with recent headlines for that team; open the full feed to search and browse every item (full-screen on mobile, modal on desktop).</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Team profile pages now show a news panel with recent headlines for that team; open the full feed to search and browse every item (full-screen on mobile, modal on desktop).</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.17 - Team Spotlights & Network News',
     tag: 'New Feature',
     date: '19, Jun 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">PL Spotlight</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Spotlights</span> - Private pages for invited investors to review a featured team's profile and pitch materials; accept confidentiality terms to unlock the deck, and set up or update your investor profile from the page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Network News alerts</span> - In-app notifications and the daily email digest now surface fresh team news from the home feed.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Listing accuracy</span> - Closed roles are removed from the board when they're no longer posted on a team's careers page.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">PL Spotlight</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Spotlights</span> - Private pages for invited investors to review a featured team's profile and pitch materials; accept confidentiality terms to unlock the deck, and set up or update your investor profile from the page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Network News alerts</span> - In-app notifications and the daily email digest now surface fresh team news from the home feed.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Listing accuracy</span> - Closed roles are removed from the board when they're no longer posted on a team's careers page.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.16 - Quick Actions, Team News & Investor DB',
     tag: 'Improvements',
     date: '29, May 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Quick Actions</span> - Personalized shortcut cards at the top of the logged-in home page based on your role, surfacing Teams, Office Hours, Network Deals, Founder Guides, Job Board, or the member directory.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team News discussions</span> - Start or join a forum conversation directly from any news card; once a thread exists, everyone links to the same discussion.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Quick Actions</span> - Personalized shortcut cards at the top of the logged-in home page based on your role, surfacing Teams, Office Hours, Network Deals, Founder Guides, Job Board, or the member directory.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team News discussions</span> - Start or join a forum conversation directly from any news card; once a thread exists, everyone links to the same discussion.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.15 - LabOS Job Board v1',
     tag: 'New Feature',
     date: '1, May 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Job Alerts</span> - Save one filter combo for a weekly digest, returning to Job Board auto-applies your alert filters.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Job Alerts</span> - Save one filter combo for a weekly digest, returning to Job Board auto-applies your alert filters.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.14 - Job Board',
     tag: 'New Feature',
     date: '24, Apr 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Directory</span> - Browse open roles grouped by team, with search, filters, sorting, and apply links that open each posting in a new tab.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Directory</span> - Browse open roles grouped by team, with search, filters, sorting, and apply links that open each posting in a new tab.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.13 - Demo Day Program View & New Feature Notifications',
     tag: 'Improvements',
     date: '17, Apr 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Partners Demo Day</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Program field</span> - When programs are enabled for a Demo Day, filter by program in the sidebar, see program tags on team cards and in the detail drawer, and choose your program on the founder edit form. Stage filter, sorting, generic tags, extra form fields, and landing logos are hidden for a simpler view.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connect & Invest</span> - Connect and Invest now ask for confirmation before the action is sent.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals & Founder Guides</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">New feature announcements</span> - In-app notifications when there are new capabilities in Deals and Founder Guides (for members who have access).</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Partners Demo Day</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Program field</span> - When programs are enabled for a Demo Day, filter by program in the sidebar, see program tags on team cards and in the detail drawer, and choose your program on the founder edit form. Stage filter, sorting, generic tags, extra form fields, and landing logos are hidden for a simpler view.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connect & Invest</span> - Connect and Invest now ask for confirmation before the action is sent.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals & Founder Guides</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">New feature announcements</span> - In-app notifications when there are new capabilities in Deals and Founder Guides (for members who have access).</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.12 - Founder Guide Comments & Deals Landing',
     tag: 'New Feature',
     date: '14, Apr 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Public landing</span> - Without Deals access, you now see a dedicated landing page with how it works, list-your-product, and sign-in to browse the directory.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Comments</span> - Discuss guides on the article page with threaded replies and likes.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Public landing</span> - Without Deals access, you now see a dedicated landing page with how it works, list-your-product, and sign-in to browse the directory.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Comments</span> - Discuss guides on the article page with threaded replies and likes.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.11 - Team Members Inline Edit & Founder Guides',
     tag: 'Improvements',
     date: '7, Apr 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Members section directly on the team page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a Guide</span> - Suggest topics from Browse Guides and submit a request through a dedicated flow.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Create & read</span> - Markdown editor when creating or editing guides; bug fixes and layout improvements for guide articles (including office hours and author details).</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Members section directly on the team page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a Guide</span> - Suggest topics from Browse Guides and submit a request through a dedicated flow.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Create & read</span> - Markdown editor when creating or editing guides; bug fixes and layout improvements for guide articles (including office hours and author details).</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.10 - Founder Guides, Deals & Team Projects',
     tag: 'New Feature',
     date: '3, Apr 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a deal</span> - Tell the network what you are looking for through a dedicated request flow from the Deals page.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">High-value deals</span> - Filter and sort the deals directory to surface high-value offers.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Projects section directly on the team page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Browse & create</span> - Founder Guides overview, sidebar navigation, and a flow to create and publish guides.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Reading experience</span> - Article view counts, likes, and a way to schedule a meeting with the author through office hours (team or member).</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Request a deal</span> - Tell the network what you are looking for through a dedicated request flow from the Deals page.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">High-value deals</span> - Filter and sort the deals directory to surface high-value offers.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Update the Projects section directly on the team page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Guides</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Browse & create</span> - Founder Guides overview, sidebar navigation, and a flow to create and publish guides.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Reading experience</span> - Article view counts, likes, and a way to schedule a meeting with the author through office hours (team or member).</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.9 - Deals Flows, Focus Areas & Office Hours',
     tag: 'Improvements',
     date: '27, Mar 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">List your product</span> - Submit a deal from the Deals page using a dedicated submission flow.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Report a problem</span> - Flag issues with a deal directly from the deal detail page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams & Focus Areas</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expanded taxonomy</span> - New focus area tags including Digital Human Rights, Economies & Governance, Neurotech, AI & Robotics, and Build Innovation Network, with team filters updated to match.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can update Focus Areas directly on the team page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profiles</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours visibility</span> - The Office Hours section is no longer shown on profiles for members who are not yet approved.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">List your product</span> - Submit a deal from the Deals page using a dedicated submission flow.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Report a problem</span> - Flag issues with a deal directly from the deal detail page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams & Focus Areas</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expanded taxonomy</span> - New focus area tags including Digital Human Rights, Economies & Governance, Neurotech, AI & Robotics, and Build Innovation Network, with team filters updated to match.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can update Focus Areas directly on the team page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profiles</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours visibility</span> - The Office Hours section is no longer shown on profiles for members who are not yet approved.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.8 - Deals Launch & Team Profile Enhancements',
     tag: 'New Feature',
     date: '20, Mar 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deals directory</span> - Browse and discover exclusive deals and offers available to the community.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deal redemption</span> - Redeem offers and track their usage status directly from each deal page.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Edit Membership Source and Community Affiliations directly on the team page.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Community filters</span> - New filter options for Community Affiliations across the directory.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Deals Platform</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deals directory</span> - Browse and discover exclusive deals and offers available to the community.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Deal redemption</span> - Redeem offers and track their usage status directly from each deal page.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Edit Membership Source and Community Affiliations directly on the team page.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Community filters</span> - New filter options for Community Affiliations across the directory.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.7 - Team Profile Enhancements',
     tag: 'Improvements',
     date: '13, Mar 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Auto-populated profiles</span> - New funds now get their profiles auto-filled using publicly available information from their website, saving time during setup.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can now edit profile details, contact information, and fund details directly on the team page without navigating to separate forms.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Workflows</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined team addition</span> - Adding teams to your profile is now more consistent across different forms with an improved inline flow.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Auto-populated profiles</span> - New funds now get their profiles auto-filled using publicly available information from their website, saving time during setup.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline editing</span> - Team leads can now edit profile details, contact information, and fund details directly on the team page without navigating to separate forms.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Workflows</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined team addition</span> - Adding teams to your profile is now more consistent across different forms with an improved inline flow.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.6 - Investor Onboarding & Contact Updates',
     tag: 'Improvements',
     date: '26, Feb 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Onboarding</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile completion drawer</span> - After submitting an investor application, a drawer opens to complete your profile details in one streamlined flow.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Profile & Discovery Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact details</span> - Telegram is no longer required; LinkedIn is now required for member contact information.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Map view on mobile</span> - Tapping an event on the IRL map now properly opens the event detail card.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Focus area rename</span> - "Public Goods" has been renamed to "Economies & Governance" across teams, projects, and home page.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Onboarding</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile completion drawer</span> - After submitting an investor application, a drawer opens to complete your profile details in one streamlined flow.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Profile & Discovery Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact details</span> - Telegram is no longer required; LinkedIn is now required for member contact information.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Map view on mobile</span> - Tapping an event on the IRL map now properly opens the event detail card.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Focus area rename</span> - "Public Goods" has been renamed to "Economies & Governance" across teams, projects, and home page.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.5 - Investor Application & Profile Updates',
     tag: 'Improvements',
     date: '06, Feb 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Application Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">LinkedIn validation</span> - Added LinkedIn URL validation with helpful placeholder and error messages to ensure accurate profile information.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team selection improvements</span> - Enhanced team field with search functionality that only shows dropdown results after typing, plus ability to remove selected teams with a clear action.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Add your team flow</span> - New streamlined flow to add team information directly from the application form.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Application success modal</span> - Added success modal with clear next steps and quick access to log in or open profile after submission.</li>
-      </ul>
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined investor profiles</span> - Newly registered investors now see a cleaner profile view with unnecessary sections hidden, keeping focus on essential information.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bio field placement</span> - Bio field moved to profile header section for better visibility and easier access.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Application Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">LinkedIn validation</span> - Added LinkedIn URL validation with helpful placeholder and error messages to ensure accurate profile information.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team selection improvements</span> - Enhanced team field with search functionality that only shows dropdown results after typing, plus ability to remove selected teams with a clear action.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Add your team flow</span> - New streamlined flow to add team information directly from the application form.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Application success modal</span> - Added success modal with clear next steps and quick access to log in or open profile after submission.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined investor profiles</span> - Newly registered investors now see a cleaner profile view with unnecessary sections hidden, keeping focus on essential information.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bio field placement</span> - Bio field moved to profile header section for better visibility and easier access.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.4 - Forum Activity & Contributors Discovery',
     tag: 'Improvements',
     date: '30, Jan 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum & Contributors Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Activity on profiles</span> - View forum posts and comments directly on member profiles to discover community contributions and engage with discussions.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contributors page updates</span> - Enhanced Contributors page with search by name, filters for Hosts/Speakers/Sponsors, and expanded contributor list including sponsors.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention toolbar button</span> - Added @mention button to the post and comment editor toolbar for easier access to mention other members in forum discussions.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum & Contributors Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Activity on profiles</span> - View forum posts and comments directly on member profiles to discover community contributions and engage with discussions.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contributors page updates</span> - Enhanced Contributors page with search by name, filters for Hosts/Speakers/Sponsors, and expanded contributor list including sponsors.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention toolbar button</span> - Added @mention button to the post and comment editor toolbar for easier access to mention other members in forum discussions.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.3 - IRL Gatherings & Forum Updates',
     tag: 'Improvements',
     date: '26, Jan 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gatherings & Forum Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gathering notifications</span> - Receive in-app notifications for upcoming IRL gatherings and reminders to stay informed about community events happening near you.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">"I'm Going" modal</span> - New streamlined modal to indicate your attendance at IRL Gathering locations with improved edit and delete attendee flows.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention search</span> - Improved @mention search experience in forum posts and comments to make it easier to tag and bring others into conversations.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gatherings & Forum Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">IRL Gathering notifications</span> - Receive in-app notifications for upcoming IRL gatherings and reminders to stay informed about community events happening near you.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">"I'm Going" modal</span> - New streamlined modal to indicate your attendance at IRL Gathering locations with improved edit and delete attendee flows.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum mention search</span> - Improved @mention search experience in forum posts and comments to make it easier to tag and bring others into conversations.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.2 - Forum Engagement & Notifications',
     tag: 'Improvements',
     date: '20, Jan 2026',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">User mentions</span> - Tag and mention other members in forum posts and comments to bring them into conversations.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Nested replies</span> - Reply directly to comments with support for three-level threading to keep discussions organized.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mention notifications</span> - Receive in-app and email notifications when you're mentioned in forum posts or comments.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification UI updates</span> - Improved notification display with clearer unread indicators and better visual organization.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">User mentions</span> - Tag and mention other members in forum posts and comments to bring them into conversations.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Nested replies</span> - Reply directly to comments with support for three-level threading to keep discussions organized.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mention notifications</span> - Receive in-app and email notifications when you're mentioned in forum posts or comments.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification UI updates</span> - Improved notification display with clearer unread indicators and better visual organization.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.1 - Forum Notifications',
     tag: 'Improvements',
     date: '30, Dec 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Engagement Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum notifications</span> - Receive in-app notifications for new forum posts, comments, replies, and trending discussions to stay connected with community conversations.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Engagement Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum notifications</span> - Receive in-app notifications for new forum posts, comments, replies, and trending discussions to stay connected with community conversations.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.5.0 - In-App Notifications & Navigation Updates',
     tag: 'New Feature',
     date: '26, Dec 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications & Navigation Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app notifications</span> - New notifications page and popup menu to stay updated on Demo Day status changes, registration announcements, and other important updates directly within the directory.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Events navigation</span> - Events tab now splits into "Event Schedule" and "IRL Gatherings" for clearer navigation and easier access to different event types.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum post tips</span> - Added helpful tips for writing effective forum posts to improve community engagement and response quality.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications & Navigation Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app notifications</span> - New notifications page and popup menu to stay updated on Demo Day status changes, registration announcements, and other important updates directly within the directory.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Events navigation</span> - Events tab now splits into "Event Schedule" and "IRL Gatherings" for clearer navigation and easier access to different event types.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum post tips</span> - Added helpful tips for writing effective forum posts to improve community engagement and response quality.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.4.2 - Demo Day Updates Notifications',
     tag: 'Improvements',
     date: '17, Dec 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Subscribe CTA</span> - Added a "Subscribe" call-to-action on the Demo Days page.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Settings toggle</span> - New "Receive Demo Day Updates" setting to get notifications for announcements, registration openings, and key date reminders.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Subscribe CTA</span> - Added a "Subscribe" call-to-action on the Demo Days page.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Settings toggle</span> - New "Receive Demo Day Updates" setting to get notifications for announcements, registration openings, and key date reminders.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.4.1 - Sign-In, Support & Filtering Improvements',
     tag: 'Improvements',
     date: '12, Dec 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">User Experience Improvements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother sign-in</span> - Clearer authentication messaging and a more streamlined Google sign-in experience for whitelisted users.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filters refresh</span> - Improved investor filtering on the Members page with new options and more consistent filter behavior.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact Support</span> - New built-in support form with a shareable URL and helpful prefill for logged-in members.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day feedback</span> - Added a "Give Feedback" action for active Demo Days.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Sign-up flow update</span> - Added an optional "Tell us a bit about you" step and improved the Join Now flow.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">User Experience Improvements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother sign-in</span> - Clearer authentication messaging and a more streamlined Google sign-in experience for whitelisted users.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filters refresh</span> - Improved investor filtering on the Members page with new options and more consistent filter behavior.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Contact Support</span> - New built-in support form with a shareable URL and helpful prefill for logged-in members.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day feedback</span> - Added a "Give Feedback" action for active Demo Days.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Sign-up flow update</span> - Added an optional "Tell us a bit about you" step and improved the Join Now flow.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.4.0 - Demo Days Discovery & Profiles',
     tag: 'New Feature',
     date: '02, Dec 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days Expansion</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days landing page</span> - Browse all Demo Days in one place, with dedicated pages for each event.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor profiles</span> - Investor profile is now available for all signed-up users.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Private teams for new members</span> - not approved users can create a private team visible only to them until they are approved.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filtering refinements</span> - Added "Tier: Not assigned" and improved filter display, plus a mobile fix for the Demo Day industry filter overlay.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days Expansion</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Days landing page</span> - Browse all Demo Days in one place, with dedicated pages for each event.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor profiles</span> - Investor profile is now available for all signed-up users.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Private teams for new members</span> - not approved users can create a private team visible only to them until they are approved.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filtering refinements</span> - Added "Tier: Not assigned" and improved filter display, plus a mobile fix for the Demo Day industry filter overlay.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.5 - Navigation & Teams Filters',
     tag: 'Improvements',
     date: '20, Nov 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile navigation redesign</span> - Updated the bottom navigation for a clearer, more ergonomic experience.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Teams page filters</span> - Added new filters to make it easier to find the right teams.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Roles & teams flow</span> - Improved the role and team selection experience and removed the default "Contributor" role.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile navigation redesign</span> - Updated the bottom navigation for a clearer, more ergonomic experience.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Teams page filters</span> - Added new filters to make it easier to find the right teams.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Roles & teams flow</span> - Improved the role and team selection experience and removed the default "Contributor" role.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.4 - Demo Day Wrap-Up & Profile Editing',
     tag: 'Improvements',
     date: '07, Nov 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day & Profile Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day wrap-up</span> - Added a completed Demo Day experience, including an updated banner and a feedback form for investors.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor status</span> - Members can now mark themselves as an investor.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Clearer save state</span> - Inline profile edits now show "No Changes" when there’s nothing new to save.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day & Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day wrap-up</span> - Added a completed Demo Day experience, including an updated banner and a feedback form for investors.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor status</span> - Members can now mark themselves as an investor.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Clearer save state</span> - Inline profile edits now show "No Changes" when there’s nothing new to save.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.3 - Teams Page & Mobile Polish',
     tag: 'Improvements',
     date: '30, Oct 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Usability Improvements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Primary team selection</span> - Added the ability to select a primary team.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Cleaner team profiles</span> - Team pages now hide empty investor sections and display fundraising contact links more clearly.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile improvements</span> - Polished the Active Demo Day page and improved CTA button layouts on mobile.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Usability Improvements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Primary team selection</span> - Added the ability to select a primary team.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Cleaner team profiles</span> - Team pages now hide empty investor sections and display fundraising contact links more clearly.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mobile improvements</span> - Polished the Active Demo Day page and improved CTA button layouts on mobile.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.2 - Fundraising Cards & Filters',
     tag: 'Improvements',
     date: '21, Oct 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Discovery & Filtering Updates</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Introductions CTA</span> - Added a new Send Intro call-to-action with clearer status cues.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filtering</span> - Improved investor filter UX on the Members page.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Fundraising team tiles</span> - Updated fundraising cards to be easier to scan and added a quick website link.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filters & categories</span> - Refreshed the Industries filter UI and added a new Funds category.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Discovery & Filtering Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Introductions CTA</span> - Added a new Send Intro call-to-action with clearer status cues.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor filtering</span> - Improved investor filter UX on the Members page.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Fundraising team tiles</span> - Updated fundraising cards to be easier to scan and added a quick website link.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filters & categories</span> - Refreshed the Industries filter UI and added a new Funds category.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.1 - Demo Day UI Refinements',
     tag: 'Bug fixes',
     date: '20, Oct 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Polish & Fixes</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Stage filtering cleanup</span> - Streamlined stage filters and improved dropdown behavior across the Demo Day experience.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother navigation</span> - Stage tabs now jump to the correct section and scroll to the top for better context.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter input clarity</span> - Updated investor filter interactions to reduce accidental actions when fields are empty.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Polish & Fixes</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Stage filtering cleanup</span> - Streamlined stage filters and improved dropdown behavior across the Demo Day experience.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Smoother navigation</span> - Stage tabs now jump to the correct section and scroll to the top for better context.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter input clarity</span> - Updated investor filter interactions to reduce accidental actions when fields are empty.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.3.0 - Protocol Labs Demo Day Platform',
     tag: 'New Feature',
     date: '15, Oct 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Platform Launch</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Experience</span> - Participating teams can now manage their profiles, upload pitch slides and demo videos, and showcase their fundraising details to potential investors.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Experience</span> - Accredited investors can browse participating teams, view detailed profiles and pitch materials, and connect with founders directly through the platform.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Event Discovery</span> - Public landing page with event information, and invite request functionality for interested participants.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Showcase</span> - Browse and filter through participating startups, view their pitch materials, and discover innovative projects building in the Protocol Labs Network.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day Platform Launch</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Founder Experience</span> - Participating teams can now manage their profiles, upload pitch slides and demo videos, and showcase their fundraising details to potential investors.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Investor Experience</span> - Accredited investors can browse participating teams, view detailed profiles and pitch materials, and connect with founders directly through the platform.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Event Discovery</span> - Public landing page with event information, and invite request functionality for interested participants.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team Showcase</span> - Browse and filter through participating startups, view their pitch materials, and discover innovative projects building in the Protocol Labs Network.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.2.4 - Directory Search & Filter Enhancements',
     tag: 'Improvements',
     date: '25, Sep 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Member Filters Refresh</span> - Improved member directory filters with clearer organization and quicker selection to find the right collaborators faster.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Unified Search Results Expansion</span> - Updated unified search experience with smoother usability and a new show more results option to reveal additional matches without losing context.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Directory Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Member Filters Refresh</span> - Improved member directory filters with clearer organization and quicker selection to find the right collaborators faster.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Unified Search Results Expansion</span> - Updated unified search experience with smoother usability and a new show more results option to reveal additional matches without losing context.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.2.3 - Available to Connect Badge',
     tag: 'Improvements',
     date: '29, Aug 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Status Indicators</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Available to Connect Badge</span> - New visual indicator showing member availability status across member cards, team details, and event attendee lists for easier connection identification.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Status Display</span> - Enhanced member cards with office hours availability badges showing booking counts and connection status for improved networking discovery.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Status Indicators</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Available to Connect Badge</span> - New visual indicator showing member availability status across member cards, team details, and event attendee lists for easier connection identification.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Status Display</span> - Enhanced member cards with office hours availability badges showing booking counts and connection status for improved networking discovery.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.2.2 - Enhanced Member Directory Filters',
     tag: 'Improvements',
     date: '20, Aug 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Filter</span> - New dedicated filter section to find members offering office hours with option to show only members with office hours available.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Role-Based Filtering</span> - Enhanced roles filter allowing users to search and filter members by specific roles like Co-Founder, Founder, and other positions.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Topic Search Integration</span> - Improved search functionality that integrates topic-based filtering with member expertise areas.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Organization</span> - Reorganized filter layout for better usability with clear sections and improved visual hierarchy.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Filter</span> - New dedicated filter section to find members offering office hours with option to show only members with office hours available.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Role-Based Filtering</span> - Enhanced roles filter allowing users to search and filter members by specific roles like Co-Founder, Founder, and other positions.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Topic Search Integration</span> - Improved search functionality that integrates topic-based filtering with member expertise areas.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Filter Organization</span> - Reorganized filter layout for better usability with clear sections and improved visual hierarchy.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.2.1 - Office Hours Experience Improvements',
     tag: 'Improvements',
     date: '15, Aug 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Enhanced Adding/Editing Experience</span> - Improved interface for setting up and managing office hours with better user flow.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Profile Placement</span> - Better positioning and textual descriptions for office hours on member profiles.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Link Status Detection</span> - System now identifies and alerts users when their office hours links aren't working properly.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Click Notifications</span> - Users receive notifications when someone clicks through their email for broken office hours links.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expertise and Interest Fields</span> - Added "I am interested in" and "I can help with" fields to office hours for more meaningful conversations.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Office Hours Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Enhanced Adding/Editing Experience</span> - Improved interface for setting up and managing office hours with better user flow.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Improved Profile Placement</span> - Better positioning and textual descriptions for office hours on member profiles.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Link Status Detection</span> - System now identifies and alerts users when their office hours links aren't working properly.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Click Notifications</span> - Users receive notifications when someone clicks through their email for broken office hours links.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Expertise and Interest Fields</span> - Added "I am interested in" and "I can help with" fields to office hours for more meaningful conversations.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.2.0 - Forum Launch & Navigation Updates',
     tag: 'New Feature',
     date: '01, Aug 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Platform</span> - New forum for network members to share knowledge, ask questions, and discuss topics with categorized posts (General, Launch, Recruiting, Intros).</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Navigation</span> - Forum added to the main navigation menu for easy access to community discussions.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Digest System</span> - Daily and weekly email digests for forum posts with customizable preferences in Account Settings.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post Management</span> - Create and edit forum posts with topic categorization and comment functionality.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification System</span> - Email notifications for post owners and commenters when others reply.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Platform</span> - New forum for network members to share knowledge, ask questions, and discuss topics with categorized posts (General, Launch, Recruiting, Intros).</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum Navigation</span> - Forum added to the main navigation menu for easy access to community discussions.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Email Digest System</span> - Daily and weekly email digests for forum posts with customizable preferences in Account Settings.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Post Management</span> - Create and edit forum posts with topic categorization and comment functionality.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Notification System</span> - Email notifications for post owners and commenters when others reply.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.1.16 - Sign-Up & Verification Enhancements',
     tag: 'Improvements',
     date: '08, Jul 2025',
     shortContent: `
-      <div style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Immediate Profile Access Post Sign-Up</span> - Users can now log in right after signing up, giving them instant access to their profile so they can complete their information without delay.</li>
-        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined LinkedIn Verification</span> - A simplified flow lets users connect their LinkedIn account during onboarding. Once an admin approves the connection, they automatically receive full access.</li>
-      </ul>
-      </div>`,
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Immediate Profile Access Post Sign-Up</span> - Users can now log in right after signing up, giving them instant access to their profile so they can complete their information without delay.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Streamlined LinkedIn Verification</span> - A simplified flow lets users connect their LinkedIn account during onboarding. Once an admin approves the connection, they automatically receive full access.</li>
+        </ul>
+        </div>`,
   },
   {
     title: 'Version 4.1.15 - Recommendations & Onboarding Enhancements',
     tag: 'Improvements',
     date: '02, Jul 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> - Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> - Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> - Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
-      <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> - Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px; line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Connection Recommendations Settings</span> - Added a dedicated section in Account Settings that lets users fine-tune and enable AI-powered connection suggestions.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bi-Monthly Recommendation Emails</span> - Opt-in users now receive connection recommendations via email every two weeks, tailored to their preferences.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Redesigned Sign-Up Form</span> - Introduced a streamlined sign-up experience with an updated layout for quicker and clearer onboarding.</li>
+        <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile Completeness Highlights</span> - Missing fields on member profiles are now visually highlighted, guiding users to complete their information more easily.</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.14 - Directory Enhancements',
     tag: 'Improvements',
     date: '19, Jun 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Onboarding Wizard</span> - Introduced a step-by-step onboarding wizard to guide users through setting up their profile quickly and easily.</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Inline Profile Editing</span> - Users can now edit profile sections directly on the page without navigating to separate forms.</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Profile Widgets</span> - Added new profile widgets for showcasing upcoming events and personalized recommendations.</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Onboarding Wizard</span> - Introduced a step-by-step onboarding wizard to guide users through setting up their profile quickly and easily.</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Inline Profile Editing</span> - Users can now edit profile sections directly on the page without navigating to separate forms.</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Profile Widgets</span> - Added new profile widgets for showcasing upcoming events and personalized recommendations.</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.13 - Directory Enhancements',
     tag: 'Improvements',
     date: '03, Jun 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Unified Search</span> - Introduced a faster, general-purpose search that seamlessly integrates with AI-powered search capabilities.</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">User Contact Visibility</span> - Users can now see what types of contact information are associated with a member without logging in. Actual contact details remain hidden until login</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved AI Search responsiveness and enhanced infinite scroll performance on several pages</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Unified Search</span> - Introduced a faster, general-purpose search that seamlessly integrates with AI-powered search capabilities.</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">User Contact Visibility</span> - Users can now see what types of contact information are associated with a member without logging in. Actual contact details remain hidden until login</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved AI Search responsiveness and enhanced infinite scroll performance on several pages</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.12 - Directory Enhancements',
     tag: 'Improvements',
     date: '19, May 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Automatic Profile Pictures</span> - Uniquely generated avatars for user profiles without that don't have custom images</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">New Contribution Type</span> - Added "Sponsor" status to highlight financial support at events and IRL gatherings</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved load speed and behavior for Members, Team, and Events pages</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Ask Status Management</span> - Team members can now <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/f78df63772f94a6f97e42dc9f82bcf2d?sid=46fe2314-a2ec-469a-824a-46bb23a46651" target="_blank">update Ask</a> statuses (Fully Addressed, Partially Addressed, No Longer Needed, etc.) and document who provided support and how to improve contribution capture</li>
-    <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Automatic Profile Pictures</span> - Uniquely generated avatars for user profiles without that don't have custom images</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">New Contribution Type</span> - Added "Sponsor" status to highlight financial support at events and IRL gatherings</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Performance Optimization</span> - Improved load speed and behavior for Members, Team, and Events pages</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Ask Status Management</span> - Team members can now <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/f78df63772f94a6f97e42dc9f82bcf2d?sid=46fe2314-a2ec-469a-824a-46bb23a46651" target="_blank">update Ask</a> statuses (Fully Addressed, Partially Addressed, No Longer Needed, etc.) and document who provided support and how to improve contribution capture</li>
+      <li><span style="font-size: 14px;line-height:23px; font-weight: 600">Enhanced Member Profiles</span> - Added <a style="text-decoration:underline; color:#156ff7" href="https://www.loom.com/share/a7a44c8914f54f549e22062e94fec66e?sid=ee628226-0183-48a4-973f-1e515c934c5e" target="_blank">new Experience section</a> displaying professional background, past roles, and impact created</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.11 - Directory Enhancements',
     tag: 'Improvements',
     date: '09, Apr 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
-    <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
-    <li>Ability for the event participants to claim their attendance for the past events</li>
-    <li>Ability for IRL Admins to perform user management for related events</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Toronto" target="_blank">IRL Toronto</a>, allowing users to register and manage event entries</li>
+      <li>Enhanced user experience by enabling seamless navigation between PL Events and IRL Gatherings allowing access to both event details and attendee information</li>
+      <li>Ability for the event participants to claim their attendance for the past events</li>
+      <li>Ability for IRL Admins to perform user management for related events</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.10 - Directory Enhancements',
     tag: 'Improvements',
     date: '02, Apr 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
-    <li>Enhanced user experience by enabling cross-module event visibility between PL Events and IRL Gatherings</li>
-    </ul>
-
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Office Hours feedback issue fix where users were required to provide a rating even if they indicated that their meeting did not happen</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Enabled events submission capability for <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/events/irl?location=Dubai" target="_blank">IRL Dubai</a>, allowing users to register and manage event entries</li>
+      <li>Enhanced user experience by enabling cross-module event visibility between PL Events and IRL Gatherings</li>
+      </ul>
+  
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Office Hours feedback issue fix where users were required to provide a rating even if they indicated that their meeting did not happen</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.9 - Aggregated Events',
     tag: 'New Feature',
     date: '28, Mar 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Introduced a new Aggregated Events Page displaying consolidated information from both IRL Gatherings and PL Events, including details about Hosts, Speakers, and their related teams</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Introduced a new Aggregated Events Page displaying consolidated information from both IRL Gatherings and PL Events, including details about Hosts, Speakers, and their related teams</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.8 - Directory Enhancements',
     tag: 'Improvements',
     date: '25, Mar 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Introduced the feedback feature for users to share their thoughts and suggestions</li>
-    <li>Members can now update their bios through the Settings module</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Introduced the feedback feature for users to share their thoughts and suggestions</li>
+      <li>Members can now update their bios through the Settings module</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.7 - Directory Enhancements',
     tag: 'Improvements',
     date: '20, Mar 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Introduced a new feature allowing users to explore more on the IRL Gatherings page using the capabilities of Husky AI</li>
-    <li>IRL Gatherings - Enabling attendees to log their participation in past events</li>
-    <li>Introduced a feature that allows users to effortlessly share conversation threads within the Husky platform</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Introduced a new feature allowing users to explore more on the IRL Gatherings page using the capabilities of Husky AI</li>
+      <li>IRL Gatherings - Enabling attendees to log their participation in past events</li>
+      <li>Introduced a feature that allows users to effortlessly share conversation threads within the Husky platform</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.6 - Protocol Labs Events Enhancements',
     tag: 'Improvements',
     date: '11, Mar 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Redesigned PL Events Interface: An upgraded user interface for Protocol Labs Events, providing a modernized and more intuitive user experience</li>
-    <li>Frontend Event Management: Introducing the capability to submit and manage events directly through the frontend, enhancing usability and optimizing workflows</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Redesigned PL Events Interface: An upgraded user interface for Protocol Labs Events, providing a modernized and more intuitive user experience</li>
+      <li>Frontend Event Management: Introducing the capability to submit and manage events directly through the frontend, enhancing usability and optimizing workflows</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.5 - Directory Enhancements',
     tag: 'Improvements',
     date: '07, Mar 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Team Leads can now add members to their teams and submit sign up requests for new users using the enhanced Settings module</li>
-    <li>Enhanced Husky's chat functionality with support for chat history and threaded conversations</li>
-    </ul>
-
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Team Leads can now add members to their teams and submit sign up requests for new users using the enhanced Settings module</li>
+      <li>Enhanced Husky's chat functionality with support for chat history and threaded conversations</li>
+      </ul>
+  
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.4 - Directory Enhancements',
     tag: 'Improvements',
     date: '21, Feb 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Team Leads can promote or demote team members to Lead roles and remove members using the enhanced Settings module</li>
-    <li>Projects can now be labeled with suitable tags using the new Tagging feature</li>
-    <li>Adding year information to the Events table for improved clarity</li>
-    <li>Better visualization of the Home page's Discover section cards</li>
-    </ul>
-
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Optimized approach in handling the additional details section for Projects while editing and saving changes</li>
-    <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
-    <li>Fixed the error thrown on removing all attendees from a location on the IRL Gatherings</li>
-    </ul>
-
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features & Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Team Leads can promote or demote team members to Lead roles and remove members using the enhanced Settings module</li>
+      <li>Projects can now be labeled with suitable tags using the new Tagging feature</li>
+      <li>Adding year information to the Events table for improved clarity</li>
+      <li>Better visualization of the Home page's Discover section cards</li>
+      </ul>
+  
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Optimized approach in handling the additional details section for Projects while editing and saving changes</li>
+      <li>Filter issue fix on the IRL Gatherings module's Attendees table</li>
+      <li>Fixed the error thrown on removing all attendees from a location on the IRL Gatherings</li>
+      </ul>
+  
+      </div>`,
   },
   {
     title: 'Version 4.1.3 - Improved Event Visualization for IRL Gatherings',
     tag: 'Improvements',
     date: '14, Feb 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <p>You can now submit events directly for specific locations and view them in a structured schedule, making it easier to plan and choose which events to attend.</p>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <p>You can now submit events directly for specific locations and view them in a structured schedule, making it easier to plan and choose which events to attend.</p>
+      </div>`,
   },
   {
     title: 'Version 4.1.2 - Asks feature for Teams',
     tag: 'New Feature',
     date: '31, Jan 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>The 'Asks' feature allows teams to submit requests for their various needs, such as hiring and marketing, thereby streamlining internal processes and improving collaboration. A newly added filter section on the Teams page enables users to refine and manage these requests more efficiently.</li>
-    </ul>
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Fixed the 'Additional Details' section within the project detail page to properly render content around new lines.</li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>The 'Asks' feature allows teams to submit requests for their various needs, such as hiring and marketing, thereby streamlining internal processes and improving collaboration. A newly added filter section on the Teams page enables users to refine and manage these requests more efficiently.</li>
+      </ul>
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Fixed the 'Additional Details' section within the project detail page to properly render content around new lines.</li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 4.1.1 - Search with Husky & other feature updates',
     tag: 'Improvements',
     date: '17, Jan 2025',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/" target="_blank">Use Husky to traverse the network</a></li>
-    </ul>
-
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
-    <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
-    </ul>
-
-    <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Fixed the horizontal scroll issue in the Additional Resources section on the IRL Gatherings page for mobile devices.</li>
-    </ul>
-
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">New Features</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Husky AI is the new LLM-powered chatbot that can respond to your queries for any and all members, teams, and projects within the directory with a faster response time <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/" target="_blank">Use Husky to traverse the network</a></li>
+      </ul>
+  
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Enhancements</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>The process for adding teams to the directory has been revised. Users must now log in and <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/teams/add" target="_blank">submit a team</a> via the Teams landing page. If you see a team that's a good fit, feel free to recommend it to the network.</li>
+      <li>To provide more insights into event information, we have now added the attendee count for every event in the <a style="text-decoration:underline; color:#156ff7" href="https://directory.plnetwork.io/irl" target="_blank">IRL Gatherings page</a>, allowing users to see the number of attendees along with the resources for each event at a quick glance.</li>
+      </ul>
+  
+      <span style="font-size: 14px;line-height:23px; font-weight: 600">Bug Fixes</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Fixed the horizontal scroll issue in the Additional Resources section on the IRL Gatherings page for mobile devices.</li>
+      </ul>
+  
+      </div>`,
   },
   {
     title: 'Version 4.1.0 - Enhanced IRL Gatherings Experience!',
@@ -1552,21 +1573,21 @@ export const ChangeLogList = [
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
     date: '17, Oct 2024',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
-    <br/>
-    <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you're searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
-    <br/>
-    <p>Here's what's new:</p>
-    <br/>
-    <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
-    <br/>
-    <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who's shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
-    <br/>
-    <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
-    <br/>
-    <p> Dive in today and make the most out of your experience with our network!</p>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <p>We are excited to announce a complete overhaul of our IRL Gatherings platform! This revamp brings several key updates designed to make discovering, attending, and engaging with events and their organizers easier.</p>
+      <br/>
+      <p>This new layout is designed to be intuitive, ensuring you can quickly find the events that matter most to you based on your location. Whether you're searching for upcoming events or reflecting on past ones, you will be able to move through the platform with ease.</p>
+      <br/>
+      <p>Here's what's new:</p>
+      <br/>
+      <p><b>Location-Centric Event Grouping</b>: In this new version, all events are now grouped by their respective locations, making it simpler to explore gatherings happening in your area. You can now view a comprehensive list of events happening at any given location, with an easy-to-use interface that allows you to toggle between upcoming and past events. Whether you are looking forward to the next big gathering or want to revisit an event that took place earlier, all the details are at your fingertips.</p>
+      <br/>
+      <p><b>Comprehensive Event Insights</b>: Each event listing now comes with expanded details, including information on the speakers and hosts for specific events. This gives you a better understanding of who will be leading the event, offering insights into their expertise and the topics they will cover. With this update, you will know exactly who's shaping the conversation and experience, allowing you to make more informed decisions about which gatherings to attend.</p>
+      <br/>
+      <p>This revamp transforms the way you explore and engage with IRL gatherings, helping you stay connected with the right events and the right people.</p>
+      <br/>
+      <p> Dive in today and make the most out of your experience with our network!</p>
+      </div>`,
   },
   {
     title: 'Version 4.0.0 -  Introducing the All New Home Page',
@@ -1574,51 +1595,51 @@ export const ChangeLogList = [
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
     date: '27, Sep 2024',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <p style="font-size:16px"><b>New Home Page is LIVE! 🎉</b></p>
-    <br/>
-    <p>We are thrilled to unveil our brand-new Home Page, your gateway to smarter network discovery - Powered by Husky, our homegrown LLM. This update is designed to make your exploration of the network more dynamic, personalized, and engaging.</p>
-    <br/>
-    <p style="font-size:16px; padding-bottom:12px"><b>What's New ?</b></p>
-    <p>With three dynamic sections -  Focus Areas, Discover, and Featured, you will now have everything you need to stay connected, engaged, and ahead of the curve.</p>
-    <br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-
-    <li>
-    <p style="padding-bottom:8px"><b>Focus Areas:</b></p>
-    <p>This section highglights Teams and Projects on the Directory, classified across 4 major focus areas - Digital Human Rights, Public Goods, Advanced Technologies, and Innovation Network, helping you stay laser-focused on the areas that drive success.
-    </p>
-    </li>
-    </br>
-    <li>
-     <p  style="padding-bottom:8px"><b>Discover Section:</b></p>
-    <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it's breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
-    </p>
-    <p style="padding-bottom:8px"><b>Teams:</b> Get insights into the teams that are driving innovation in the network. Explore their roles, contributions, and impact on various projects.</p>
-    <p style="padding-bottom:8px"><b>Projects:</b> Get insights into cutting-edge projects across the network. Track their progress, understand their goals, and find opportunities to contribute.</p>
-    <p><b>IRL Events:</b> Explore various events and whether it's key takeaways, event highlights, or notable discussions, you'll get the scoop on everything that went down so you can stay up to speed, even if you weren't there.</p>
-    </li>
-    </br>
-    <li>
-    <p  style="padding-bottom:8px"><b>Featured Section:</b></p>
-    <p>
-    This section spotlights on the biggest movers and shakers in the network. Whether it's groundbreaking projects, high-impact teams, influential members, or exciting events, this section highlights the most impactful activities across the network.
-    </p>
-    </li>
-    </ul>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <p style="font-size:16px"><b>New Home Page is LIVE! 🎉</b></p>
+      <br/>
+      <p>We are thrilled to unveil our brand-new Home Page, your gateway to smarter network discovery - Powered by Husky, our homegrown LLM. This update is designed to make your exploration of the network more dynamic, personalized, and engaging.</p>
+      <br/>
+      <p style="font-size:16px; padding-bottom:12px"><b>What's New ?</b></p>
+      <p>With three dynamic sections -  Focus Areas, Discover, and Featured, you will now have everything you need to stay connected, engaged, and ahead of the curve.</p>
+      <br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+  
+      <li>
+      <p style="padding-bottom:8px"><b>Focus Areas:</b></p>
+      <p>This section highglights Teams and Projects on the Directory, classified across 4 major focus areas - Digital Human Rights, Public Goods, Advanced Technologies, and Innovation Network, helping you stay laser-focused on the areas that drive success.
+      </p>
+      </li>
+      </br>
+      <li>
+       <p  style="padding-bottom:8px"><b>Discover Section:</b></p>
+      <p style="padding-bottom:8px">This section offers a curated feed of all the latest network happenings. Whether it's breaking news, upcoming events, or project updates-with Husky, you can always go beyond the surface and explore more about -
+      </p>
+      <p style="padding-bottom:8px"><b>Teams:</b> Get insights into the teams that are driving innovation in the network. Explore their roles, contributions, and impact on various projects.</p>
+      <p style="padding-bottom:8px"><b>Projects:</b> Get insights into cutting-edge projects across the network. Track their progress, understand their goals, and find opportunities to contribute.</p>
+      <p><b>IRL Events:</b> Explore various events and whether it's key takeaways, event highlights, or notable discussions, you'll get the scoop on everything that went down so you can stay up to speed, even if you weren't there.</p>
+      </li>
+      </br>
+      <li>
+      <p  style="padding-bottom:8px"><b>Featured Section:</b></p>
+      <p>
+      This section spotlights on the biggest movers and shakers in the network. Whether it's groundbreaking projects, high-impact teams, influential members, or exciting events, this section highlights the most impactful activities across the network.
+      </p>
+      </li>
+      </ul>
+      </div>`,
   },
   {
     title: 'Version 3.0.1 - Office Hours Feedback',
     tag: 'New Feature',
     date: '13, Aug 2024',
     shortContent: `
-    <div style="font-size: 14px; line-height:23px;">
-    <p>Exciting news!</p>
-    <br/>
-    <p>You can now provide feedback for every Office Hour you book by sharing your experiences, suggestions, and insights, helping us improve the network collaboration.</p>
-    <p style="margin-top: 20px"> However, don't worry if you missed providing your feedback. All your missed notifications will be available on your Notifications Page, so you can catch up at your convenience by accessing the page using the bell icon on the top navigation bar.</p>
-    </div>`,
+      <div style="font-size: 14px; line-height:23px;">
+      <p>Exciting news!</p>
+      <br/>
+      <p>You can now provide feedback for every Office Hour you book by sharing your experiences, suggestions, and insights, helping us improve the network collaboration.</p>
+      <p style="margin-top: 20px"> However, don't worry if you missed providing your feedback. All your missed notifications will be available on your Notifications Page, so you can catch up at your convenience by accessing the page using the bell icon on the top navigation bar.</p>
+      </div>`,
   },
 
   {
@@ -1627,13 +1648,13 @@ export const ChangeLogList = [
     releaseType: { name: 'Major Release', icon: '/icons/star-orange.svg' },
     date: '19, Jul 2024',
     shortContent: `<ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
-    <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
-      <ul style="padding-left:32px; list-style: lower-alpha !important; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-        <li>Revamp of UI/UX Design for Account Settings and Registration.</li>
-        <li>Cards displayed per row in the list layout is now dynamic and arranged based on the device's width.</li>
-      </ul>
-    </ul>`,
+      <li>Introducing improved mobile responsiveness and layout adaptability across all devices.</li>
+      <li>We have made a few improvements to the user interface for a more intuitive and visually appealing experience</li>
+        <ul style="padding-left:32px; list-style: lower-alpha !important; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li>Revamp of UI/UX Design for Account Settings and Registration.</li>
+          <li>Cards displayed per row in the list layout is now dynamic and arranged based on the device's width.</li>
+        </ul>
+      </ul>`,
   },
 
   {
@@ -1641,90 +1662,90 @@ export const ChangeLogList = [
     tag: 'Improvements',
     date: '12, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:24px;">
-    Users can now find the Focus Area details on the Teams and Projects detail pages.
-    </p>`,
+      Users can now find the Focus Area details on the Teams and Projects detail pages.
+      </p>`,
   },
   {
     title: 'Version 2.1.2 - Enhancements',
     tag: 'Improvements',
     date: '05, Jul 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-    <span style="font-size: 14px; line-height:23px;">Feel free to connect with your fellow attendees at the events by</span><br/>
-    <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-    <li>Scheduling Office Hours</li>
-    <li>Connecting via Telegram</li>
-    </ul>
-    <span style="font-size: 14px; line-height:23px;">Additionally, your Telegram Handles will be automatically displayed at the IRL events you attend, per the related Privacy Settings.</span>
-    </p>`,
+      <span style="font-size: 14px; line-height:23px;">Feel free to connect with your fellow attendees at the events by</span><br/>
+      <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+      <li>Scheduling Office Hours</li>
+      <li>Connecting via Telegram</li>
+      </ul>
+      <span style="font-size: 14px; line-height:23px;">Additionally, your Telegram Handles will be automatically displayed at the IRL events you attend, per the related Privacy Settings.</span>
+      </p>`,
   },
   {
     title: 'Version 2.1.1 - Enhancements',
     tag: 'Improvements',
     date: '14, Jun 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-    We are excited to introduce office hours for teams. With this option, you can now schedule office hours with other teams to drop in, ask questions, discuss projects, or seek guidance.
-    </p>`,
+      We are excited to introduce office hours for teams. With this option, you can now schedule office hours with other teams to drop in, ask questions, discuss projects, or seek guidance.
+      </p>`,
   },
   {
     title: 'Version 2.1.0 - Enhancements',
     tag: 'Improvements',
     date: '31, May 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-      <span style="font-size: 14px;line-height:23px; font-weight: 600">IRL Gatherings - Enhanced Detail Page View</span><br/>
-      <ul style="padding-left:32px; font-size:14px; line-height:23px; list-style: disc;">
-      <li>A dedicated "Resources" section now lists all important URLs.</li>
-      <li>The "Attendees" section features UI improvements and allows searching by name, team, or project.</li>
-      <li>Attendees can now tag topics of interest and filter others using these tags.</li>
-      </ul>
-      <br/>
-      <span style="font-size: 14px;line-height:23px; font-weight: 600">Updated Authentication Service (for both the Directory & ProtoSphere)</span>
-      <br/>
-      <p style="padding-left: 16px; font-size:14px; line-height:23px;">We have updated our Authentication Service. Please verify and link your directory membership email to a login method of your choice. If you can't remember your membership email, <a style="text-decoration:underline; color:#156ff7" href="https://www.plnetwork.io/contact?showModal=getSupport" target="_blank"> contact us here</a> for assistance.</p>
-      </p>`,
+        <span style="font-size: 14px;line-height:23px; font-weight: 600">IRL Gatherings - Enhanced Detail Page View</span><br/>
+        <ul style="padding-left:32px; font-size:14px; line-height:23px; list-style: disc;">
+        <li>A dedicated "Resources" section now lists all important URLs.</li>
+        <li>The "Attendees" section features UI improvements and allows searching by name, team, or project.</li>
+        <li>Attendees can now tag topics of interest and filter others using these tags.</li>
+        </ul>
+        <br/>
+        <span style="font-size: 14px;line-height:23px; font-weight: 600">Updated Authentication Service (for both the Directory & ProtoSphere)</span>
+        <br/>
+        <p style="padding-left: 16px; font-size:14px; line-height:23px;">We have updated our Authentication Service. Please verify and link your directory membership email to a login method of your choice. If you can't remember your membership email, <a style="text-decoration:underline; color:#156ff7" href="https://www.plnetwork.io/contact?showModal=getSupport" target="_blank"> contact us here</a> for assistance.</p>
+        </p>`,
   },
   {
     title: 'Version 2.0.8 - Introducing Landing Page for IRL Gatherings',
     tag: 'Improvements',
     date: '10, May 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-    We're excited to unveil our new landing page dedicated to IRL Gatherings! Our new landing page serves as a one-stop destination for all upcoming IRL gatherings hosted within our network. Network members can easily navigate through a curated list of events, each accompanied by detailed information and RSVP options.
-    </p>`,
+      We're excited to unveil our new landing page dedicated to IRL Gatherings! Our new landing page serves as a one-stop destination for all upcoming IRL gatherings hosted within our network. Network members can easily navigate through a curated list of events, each accompanied by detailed information and RSVP options.
+      </p>`,
   },
   {
     title: 'Version 2.0.7 - Enhancements to Project module & Member Search',
     tag: 'Improvements',
     date: '30, Apr 2024',
     shortContent: `<div>
-      <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
-      <li>We have added a new filter in Project's page to search projects based on the focus areas that they contribute to.</li>
-      <ul style="padding-left: 16px; font-size: 14px; line-height:23px;">Projects are categorized into one of these categories-
-      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
-      <li>Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
-      <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
-      <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
-      <li>Innovation Network: Projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
-      </ul>
-      </ul>
-      <li>We can add a member as a contributor in Project module and the contribution details would get reflected automatically in the related member details page.</li>
-      <li>In addition to the current capability of searching members by member name & team name, this enhancement will allow the members to be searched using a project name as well. Every member associated with the project as a contributor would be returned in the search result.</li>
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
+        <li>We have added a new filter in Project's page to search projects based on the focus areas that they contribute to.</li>
+        <ul style="padding-left: 16px; font-size: 14px; line-height:23px;">Projects are categorized into one of these categories-
+        <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
+        <li>Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
+        <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
+        <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
+        <li>Innovation Network: Projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
+        </ul>
+        </ul>
+        <li>We can add a member as a contributor in Project module and the contribution details would get reflected automatically in the related member details page.</li>
+        <li>In addition to the current capability of searching members by member name & team name, this enhancement will allow the members to be searched using a project name as well. Every member associated with the project as a contributor would be returned in the search result.</li>
+        </ul></div>`,
   },
   {
     title: 'Version 2.0.6 - Enhanced Edit feature for Teams',
     tag: 'Improvements',
     date: '19, Apr 2024',
     shortContent: `<p style="font-size: 14px; line-height:23px;">
-    Team leads can use this update to make changes to the Focus and Sub focus areas within their teams. Additionally, a quick access feature to submit a support request from the directory has been enabled.
-    </p>`,
+      Team leads can use this update to make changes to the Focus and Sub focus areas within their teams. Additionally, a quick access feature to submit a support request from the directory has been enabled.
+      </p>`,
   },
   {
     title: 'Version 2.0.5 - Enhanced search on Member roles',
     tag: 'Improvements',
     date: '17, Apr 2024',
     shortContent: `<div>
-      <ul style="list-style: disc; font-size: 14px; line-height:23px;">
-      This release is an further improvement on the filters based on member roles which was released as <a style="text-decoration:underline; color:#156ff7" href='#version-2.0.1'>Version 2.0.1</a> on 22, Mar 2024. This feature update enables users to type and search roles they are looking for into the Role filter's search bar.
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px; line-height:23px;">
+        This release is an further improvement on the filters based on member roles which was released as <a style="text-decoration:underline; color:#156ff7" href='#version-2.0.1'>Version 2.0.1</a> on 22, Mar 2024. This feature update enables users to type and search roles they are looking for into the Role filter's search bar.
+        </ul></div>`,
   },
   {
     title: 'Version 2.0.4 - IRL Gatherings',
@@ -1733,52 +1754,52 @@ export const ChangeLogList = [
     date: '12, Apr 2024',
     isBeta: true,
     shortContent: `<div>
-      <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
-      Exciting news! We've rolled out a feature (Beta) that brings detailed participation information to our IRL Gatherings. Network members can now view a list of attendees for upcoming conferences and events, empowering them to see who else is attending and facilitating networking opportunities. With this new feature, network members can now connect with like-minded individuals, plan meetups, and maximize their conference experience.
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
+        Exciting news! We've rolled out a feature (Beta) that brings detailed participation information to our IRL Gatherings. Network members can now view a list of attendees for upcoming conferences and events, empowering them to see who else is attending and facilitating networking opportunities. With this new feature, network members can now connect with like-minded individuals, plan meetups, and maximize their conference experience.
+        </ul></div>`,
   },
   {
     title: 'Version 2.0.3 - Improved Member Search',
     tag: 'Improvements',
     date: '03, Apr 2024',
     shortContent: `<div>
-      <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
-      With this update, in addition to the current capability of searching by member name, this enhancement will allow the members to be searched using a team name as well. Every member of the team would be returned in the search result.
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px;  line-height:23px;">
+        With this update, in addition to the current capability of searching by member name, this enhancement will allow the members to be searched using a team name as well. Every member of the team would be returned in the search result.
+        </ul></div>`,
   },
   {
     title: "Version 2.0.2 - Filters based on Teams' Focus areas",
     tag: 'New Feature',
     date: '29, Mar 2024',
     shortContent: `<div>
-      <ul style="list-style: disc; font-size: 14px;  line-height:23px; padding-left:20px;">
-      <li>Added a new filter in Team's page to search teams based on the focus areas/sub focus areas that they contribute to.</li>
-      <li>Teams are categorized into one of these categories-
-      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
-      <li> Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
-      <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
-      <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
-      <li>Innovation Network: Teams, members, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
-      </ul> 
-      </li>
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px;  line-height:23px; padding-left:20px;">
+        <li>Added a new filter in Team's page to search teams based on the focus areas/sub focus areas that they contribute to.</li>
+        <li>Teams are categorized into one of these categories-
+        <ul style="list-style: lower-alpha; padding:revert; font-size: 14px; line-height:23px">
+        <li> Digital Human Rights: Building a foundation of freedom and safety in the digital age.</li>
+        <li>Public Goods: Creating more efficient and equitable structures for global progress.</li>
+        <li>Advanced Technologies: Ensuring responsible advancement in AI, AR, VR, BCI, and other emerging fields.</li>
+        <li>Innovation Network: Teams, members, and projects that facilitate collaboration, offer technical and financial support to drive research and development.</li>
+        </ul> 
+        </li>
+        </ul></div>`,
   },
   {
     title: 'Version 2.0.1 - Filters based on Member roles',
     tag: 'New Feature',
     date: '22, Mar 2024 ',
     shortContent: `<div id='version-2.0.1'>
-      <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
-      <li>Added a new filter in Member's page to search members based on their role.</li>
-      <li>Roles that are currently supported in the filter are
-      <ul style="list-style: lower-alpha; padding:revert; font-size: 14px;  line-height:23px;">
-      <li>Founder/Co-Founder</li>
-      <li>CEO</li>
-      <li>CTO</li>
-      <li>COO</li>
-      </ul>
-      </li>
-      </ul></div>`,
+        <ul style="list-style: disc; font-size: 14px; line-height:23px; padding-left:20px;">
+        <li>Added a new filter in Member's page to search members based on their role.</li>
+        <li>Roles that are currently supported in the filter are
+        <ul style="list-style: lower-alpha; padding:revert; font-size: 14px;  line-height:23px;">
+        <li>Founder/Co-Founder</li>
+        <li>CEO</li>
+        <li>CTO</li>
+        <li>COO</li>
+        </ul>
+        </li>
+        </ul></div>`,
   },
 ];
 
@@ -2297,4 +2318,16 @@ export const AI_APPS_ANALYTICS = {
   ACCESS_DENIED: 'ai_apps_access_denied',
   IFRAME_LOADED: 'ai_apps_iframe_loaded',
   IFRAME_LOAD_FAILED: 'ai_apps_iframe_load_failed',
+  FEEDBACK_SUBMITTED: 'ai_apps_feedback_submitted',
+  FEEDBACK_SUBMIT_FAILED: 'ai_apps_feedback_submit_failed',
+  FEEDBACK_REVIEW_VIEWED: 'ai_apps_feedback_review_viewed',
+  FEEDBACK_TAB_FILTERED: 'ai_apps_feedback_tab_filtered',
+  FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
+  FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
+  VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
+  SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
+  SECRETS_DEPLOY_CLICKED: 'ai_apps_secrets_deploy_clicked',
+  SECRETS_DEPLOY_SUCCEEDED: 'ai_apps_secrets_deploy_succeeded',
+  SECRETS_DEPLOY_FAILED: 'ai_apps_secrets_deploy_failed',
+  DRAFT_SETUP_VIEWED: 'ai_apps_draft_setup_viewed',
 };

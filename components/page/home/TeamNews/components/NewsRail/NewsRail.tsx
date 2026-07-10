@@ -1,17 +1,24 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
-import { TeamsIcon } from '@/components/core/navbar/components/icons';
+import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
+import type { ISuggestedTeam, ITeamNewsPopularItem } from '@/types/team-news.types';
+
+import { TeamsToFollowCard } from './components/TeamsToFollowCard';
+import { PopularThisWeekCard } from './components/PopularThisWeekCard';
 
 import s from './NewsRail.module.scss';
+
+const FOLLOW_CONFIRM_MS = 2000;
 
 const ArrowRight = () => (
   <svg width="11" height="10" viewBox="0 0 11 10" fill="none" aria-hidden="true">
@@ -42,16 +49,130 @@ interface NewsRailProps {
   /** Fetched server-side (like Settings > Email) so the subscribed/not-subscribed
    * card matches on first paint — no client-side flash while the query resolves. */
   initialDigestSettings?: ForumDigestSettings | null;
+  /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR in
+   * app/home/page.tsx and threaded through TeamNews.tsx. */
+  popularItems?: ITeamNewsPopularItem[];
+  suggestedTeams?: ISuggestedTeam[];
+  isLoadingSuggestedTeams?: boolean;
+  followedTeamUids?: Set<string>;
+  /** Same followedTeamUids/handleFollowToggle TeamNews.tsx already threads to
+   * NewsGroupCard — NewsRail renders as a sibling of the feed within TeamNews.tsx's
+   * own tree, not a separate route, so this is an ordinary prop, not a new store. */
+  onFollowToggle?: (
+    teamUid: string,
+    teamName: string,
+    isCurrentlyFollowing: boolean,
+    source?: FollowAnalyticsSource,
+    meta?: { position?: number; reason?: string },
+  ) => void;
+  /** Threaded straight through to PopularThisWeekCard, unchanged — TeamNews.tsx
+   * is the single caller and always provides it, so there's no fallback here. */
+  onPopularItemClick: (item: ITeamNewsPopularItem, position: number) => void;
 }
 
-/** Static why-follow explainer + a digest subscribe CTA that reuses the same forum-digest mutation as Settings > Email (weekly frequency). */
-export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
+const EMPTY_FOLLOWED_UIDS = new Set<string>();
+
+/** After follow, keep the row visible with a Following checkmark for
+ * FOLLOW_CONFIRM_MS, then drop it so AnimatePresence can play the card exit.
+ * Teams already followed when they first appear are hidden immediately. */
+function useDelayedHideFollowedSuggestions(suggestions: ISuggestedTeam[], followedTeamUids: Set<string>) {
+  const [hiddenUids, setHiddenUids] = useState<Set<string>>(() => new Set());
+  const pendingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const scheduledUidsRef = useRef<Set<string>>(new Set());
+  const seenUnfollowedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      pendingTimersRef.current.forEach((timer) => clearTimeout(timer));
+      pendingTimersRef.current.clear();
+      scheduledUidsRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    for (const team of suggestions) {
+      const isFollowed = followedTeamUids.has(team.uid);
+
+      if (!isFollowed) {
+        seenUnfollowedRef.current.add(team.uid);
+        const timer = pendingTimersRef.current.get(team.uid);
+        if (timer) {
+          clearTimeout(timer);
+          pendingTimersRef.current.delete(team.uid);
+        }
+        scheduledUidsRef.current.delete(team.uid);
+        if (hiddenUids.has(team.uid)) {
+          setHiddenUids((prev) => {
+            if (!prev.has(team.uid)) return prev;
+            const next = new Set(prev);
+            next.delete(team.uid);
+            return next;
+          });
+        }
+        continue;
+      }
+
+      if (hiddenUids.has(team.uid) || scheduledUidsRef.current.has(team.uid)) continue;
+
+      // Already followed when first seen — hide without the confirm delay.
+      if (!seenUnfollowedRef.current.has(team.uid)) {
+        setHiddenUids((prev) => {
+          const next = new Set(prev);
+          next.add(team.uid);
+          return next;
+        });
+        continue;
+      }
+
+      scheduledUidsRef.current.add(team.uid);
+      pendingTimersRef.current.set(
+        team.uid,
+        setTimeout(() => {
+          pendingTimersRef.current.delete(team.uid);
+          setHiddenUids((prev) => {
+            const next = new Set(prev);
+            next.add(team.uid);
+            return next;
+          });
+        }, FOLLOW_CONFIRM_MS),
+      );
+    }
+  }, [suggestions, followedTeamUids, hiddenUids]);
+
+  return useMemo(() => {
+    return suggestions.filter((team) => {
+      if (hiddenUids.has(team.uid)) return false;
+      // Already followed on first sight — hide immediately (no confirm flash).
+      if (
+        followedTeamUids.has(team.uid) &&
+        !seenUnfollowedRef.current.has(team.uid) &&
+        !scheduledUidsRef.current.has(team.uid)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [suggestions, hiddenUids, followedTeamUids]);
+}
+
+/** Teams-to-follow + Popular-this-week (v1) alongside the digest subscribe CTA
+ * (reuses the same forum-digest mutation as Settings > Email, weekly frequency). */
+export function NewsRail({
+  initialDigestSettings = null,
+  popularItems = [],
+  suggestedTeams = [],
+  isLoadingSuggestedTeams = false,
+  followedTeamUids = EMPTY_FOLLOWED_UIDS,
+  onFollowToggle,
+  onPopularItemClick,
+}: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { hasAccess, isLoading: forumAccessLoading } = useForumAccess();
   const analytics = useSettingsAnalytics();
   const showDigest = !currentUser || (!forumAccessLoading && hasAccess);
   const { mutate } = useUpdateForumDigestSettings();
+  const visibleSuggestions = useDelayedHideFollowedSuggestions(suggestedTeams, followedTeamUids);
 
   const defaultSettings = useMemo(
     () => initialDigestSettings ?? buildDefaultDigestSettings(currentUser?.uid ?? ''),
@@ -78,42 +199,67 @@ export function NewsRail({ initialDigestSettings = null }: NewsRailProps) {
     );
   };
 
+  // Whether to mount TeamsToFollowCard lives here (not inside the card itself) so
+  // AnimatePresence can see it disappear from this children array and play the
+  // card's own exit animation instead of it just vanishing — e.g. when the loader
+  // resolves to zero suggestions. `layout` on every card below lets the rest of
+  // the rail smoothly reflow into the space that frees up, rather than jumping.
+  const showTeamsToFollow = Boolean(onFollowToggle) && (isLoadingSuggestedTeams || visibleSuggestions.length > 0);
+  const showPopular = popularItems.length > 0;
+
   return (
     <aside className={s.rail} aria-label="News feed sidebar">
-      <section className={s.whyCard} aria-label="Why follow teams">
-        <span className={s.iconBadge} aria-hidden="true">
-          <TeamsIcon />
-        </span>
-        <p className={s.whyTitle}>Stay in the loop</p>
-        <p className={s.whyBody}>Follow teams to receive updates and announcements.</p>
-      </section>
+      <AnimatePresence initial={false}>
+        {showTeamsToFollow && (
+          <TeamsToFollowCard
+            key="teams-to-follow"
+            suggestions={visibleSuggestions}
+            isLoading={isLoadingSuggestedTeams}
+            followedTeamUids={followedTeamUids}
+            onFollowToggle={onFollowToggle!}
+          />
+        )}
+        {showPopular && (
+          <PopularThisWeekCard key="popular-this-week" items={popularItems} onPopularItemClick={onPopularItemClick} />
+        )}
 
-      {showDigest &&
-        (isSubscribed ? (
-          <section className={s.subscribedCard} aria-label="You're subscribed to the news digest">
-            <span className={s.iconBadge} aria-hidden="true">
-              <MailIcon />
-            </span>
-            <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
-            <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
-            <Link href="/settings/email" className={s.manageLink}>
-              <span>Manage in Settings</span>
-              <ArrowRight />
-            </Link>
-          </section>
-        ) : (
-          <section className={s.digestCard} aria-label="Subscribe to the news digest">
-            <p className={s.digestTitle}>Get notified about network news updates</p>
-            <p className={s.digestBody}>
-              A news digest covering raises, launches, and milestones across the network, straight to your inbox.
-            </p>
-            {isHydrated && (
-              <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
-                <span>Subscribe for Digest</span>
-              </button>
-            )}
-          </section>
-        ))}
+        {showDigest &&
+          (isSubscribed ? (
+            <motion.section
+              key="digest-subscribed"
+              layout
+              className={s.subscribedCard}
+              aria-label="You're subscribed to the news digest"
+            >
+              <span className={s.iconBadge} aria-hidden="true">
+                <MailIcon />
+              </span>
+              <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
+              <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
+              <Link href="/settings/email" className={s.manageLink}>
+                <span>Manage in Settings</span>
+                <ArrowRight />
+              </Link>
+            </motion.section>
+          ) : (
+            <motion.section
+              key="digest-promo"
+              layout
+              className={s.digestCard}
+              aria-label="Subscribe to the news digest"
+            >
+              <p className={s.digestTitle}>Get network news Digest</p>
+              <p className={s.digestBody}>
+                A news digest covering raises, launches, and milestones across the network, straight to your inbox.
+              </p>
+              {isHydrated && (
+                <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
+                  <span>Subscribe</span>
+                </button>
+              )}
+            </motion.section>
+          ))}
+      </AnimatePresence>
     </aside>
   );
 }

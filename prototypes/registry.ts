@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'team-profile',
     title: 'Team profile',
     description:
-      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal.',
+      'Mocked recreation of the team detail page: details, fund details, contact, membership / communities, members, focus areas, and projects — composed from real detail-page components. Public view shows a Follow pill (upvote-style, no count) in the header card\'s top-right corner; team view shows the follower avatar stack + count there, opening the full-list modal. The badges row also carries a "Demo Day F25" participation badge that deep-links to that demo day.',
     category: 'Teams',
     load: () => import('./entries/team-profile/TeamProfilePrototype'),
   },
@@ -84,6 +84,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Member profile page augmented with Affinity CRM context: relationship owner, last contact (date + one-line summary), and an interaction-frequency read (high-touch vs neglected) over the last 6 months. Adds a Follow button + follower count on the right of the header, with a manage-notifications modal.',
     category: 'Members',
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
+  },
+  {
+    key: 'demoday-tag-placements',
+    title: 'Demo Day tag — placement options',
+    description:
+      'Placements + styles for the "participated in Demo Day" indicator on the team profile, switchable by tab: next to the name as a filled code badge, an outlined code badge, a calendar-icon emblem, or a series-tag-style pill; on its own separate row; as a chip in the tags row; or as a row inside the Events/Contributions block.',
+    category: 'Teams',
+    load: () => import('./entries/demoday-tag-placements/DemodayTagPlacementsPrototype'),
   },
   {
     key: 'follow-team',
@@ -150,12 +158,36 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/email-preferences/EmailPreferencesPrototype'),
   },
   {
+    key: 'demoday-past-teams',
+    title: 'Demo Day — past participating teams',
+    description:
+      'The completed (past) Demo Day page with the "Teams That Presented" grid un-hidden: hero, partner logos, the full list of past participating teams (real TeamCards linking to team pages), FAQ, and footer. Only shown for demo days that already happened.',
+    category: 'Demo Day',
+    load: () => import('./entries/demoday-past-teams/DemodayPastTeamsPrototype'),
+  },
+  {
     key: 'ai-apps',
     title: 'AI Apps',
     description:
       'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview — composed from the real page components and SCSS.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
+  },
+  {
+    key: 'ai-apps-feedback',
+    title: 'AI Apps — feedback',
+    description:
+      'Feedback flows on the AI Apps page: give feedback via a floating button or a header button, and a full received-feedback view for app authors and admins, switchable by role.',
+    category: 'AI Apps',
+    load: () => import('./entries/ai-apps-feedback/AiAppsFeedbackPrototype'),
+  },
+  {
+    key: 'ai-apps-secrets',
+    title: 'AI Apps — stored secrets & re-deploy',
+    description:
+      'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
+    category: 'AI Apps',
+    load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

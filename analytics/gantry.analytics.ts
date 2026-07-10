@@ -20,6 +20,8 @@ export const GANTRY_EVENTS = {
   ITEM_REORDERED: 'gantry_item_reordered',
   ITEM_BOOSTED: 'gantry_item_boosted',
   ITEM_UNBOOSTED: 'gantry_item_unboosted',
+  ITEM_DRAWER_OPENED: 'gantry_item_drawer_opened',
+  ITEM_DRAWER_CLOSED: 'gantry_item_drawer_closed',
 } as const;
 
 export function useGantryAnalytics() {
@@ -36,15 +38,24 @@ export function useGantryAnalytics() {
     onIdeasViewed: () => capture(GANTRY_EVENTS.IDEAS_VIEWED),
     onRoadmapViewed: () => capture(GANTRY_EVENTS.ROADMAP_VIEWED),
     onIdeaCreated: (itemUid: string, tags: string[] = [], itemType?: string) =>
-      capture(GANTRY_EVENTS.IDEA_CREATED, { itemUid, tags, tag_count: tags.length, ...(itemType ? { type: itemType } : {}) }),
+      capture(GANTRY_EVENTS.IDEA_CREATED, {
+        itemUid,
+        tags,
+        tag_count: tags.length,
+        ...(itemType ? { type: itemType } : {}),
+      }),
     onItemUpvoted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UPVOTED, { itemUid }),
     onBuildButtonClicked: (itemUid: string) => capture(GANTRY_EVENTS.BUILD_BUTTON_CLICKED, { itemUid }),
     onTagsFiltered: (tags: string[]) => capture(GANTRY_EVENTS.TAGS_FILTERED, { tags, tag_count: tags.length }),
     onTypeFiltered: (types: string[]) => capture(GANTRY_EVENTS.TYPE_FILTERED, { types, type_count: types.length }),
-    onObjectivesFiltered: (objectives: string[]) => capture(GANTRY_EVENTS.OBJECTIVES_FILTERED, { objectives, count: objectives.length }),
+    onObjectivesFiltered: (objectives: string[]) =>
+      capture(GANTRY_EVENTS.OBJECTIVES_FILTERED, { objectives, count: objectives.length }),
     onSearched: (query: string) => capture(GANTRY_EVENTS.SEARCHED, { query, query_length: query.length }),
     onItemReordered: (itemUid: string, stage: string) => capture(GANTRY_EVENTS.ITEM_REORDERED, { itemUid, stage }),
     onItemBoosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_BOOSTED, { itemUid }),
     onItemUnboosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UNBOOSTED, { itemUid }),
+    onItemDrawerOpened: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_DRAWER_OPENED, { itemUid }),
+    onItemDrawerClosed: (itemUid: string, timeOpenMs: number) =>
+      capture(GANTRY_EVENTS.ITEM_DRAWER_CLOSED, { itemUid, timeOpenMs }),
   };
 }

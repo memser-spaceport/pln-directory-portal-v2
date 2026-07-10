@@ -16,6 +16,10 @@ interface Props {
   query: string;
   onQueryChange: (value: string) => void;
   onClose: () => void;
+  /** Upvote state lives in TeamProfilePrototype so rail + feed stay in sync. */
+  upvotesFor: (uid: string) => number;
+  votedNews: Set<string>;
+  onToggleUpvote: (uid: string) => void;
 }
 
 /**
@@ -24,7 +28,17 @@ interface Props {
  * dividers) but lists team news instead of notifications. On desktop the same
  * "View all news" action opens a modal — see TeamProfilePrototype.
  */
-export function NewsFullPageView({ title, count, items, query, onQueryChange, onClose }: Props) {
+export function NewsFullPageView({
+  title,
+  count,
+  items,
+  query,
+  onQueryChange,
+  onClose,
+  upvotesFor,
+  votedNews,
+  onToggleUpvote,
+}: Props) {
   // The page behaves like a route push — lock the body scroll behind it.
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -57,7 +71,14 @@ export function NewsFullPageView({ title, count, items, query, onQueryChange, on
       {items.length > 0 ? (
         <div className={s.newsPageList}>
           {items.map((item) => (
-            <NewsCardView key={item.uid} item={item} hideTeam />
+            <NewsCardView
+              key={item.uid}
+              item={item}
+              hideTeam
+              upvotes={upvotesFor(item.uid)}
+              voted={votedNews.has(item.uid)}
+              onToggleUpvote={() => onToggleUpvote(item.uid)}
+            />
           ))}
         </div>
       ) : (

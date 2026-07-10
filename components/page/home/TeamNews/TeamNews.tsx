@@ -3,6 +3,7 @@
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
+import { flushSync } from 'react-dom';
 
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
@@ -29,6 +30,7 @@ import { hasExistingDiscussion } from './components/NewsCard/components/StartCon
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { clusterByTeam } from './utils/clusterByTeam';
+import { useStoryReveal } from './hooks/useStoryReveal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
@@ -61,6 +63,15 @@ function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): bool
   );
 }
 
+// Shared by filteredItems' useMemo and handlePopularItemClick's synchronous
+// category-mismatch check, so the two never drift into different definitions
+// of "matches" — same rationale as matchesTeamNewsQuery above.
+function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
+  if (categoryId === ALL_CAT) return true;
+  if (categoryId === ACTIVE_DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
+  return item.eventType === categoryId;
+}
+
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
@@ -90,6 +101,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>>(
     () => new Map(),
   );
+
+  // Set by handlePopularItemClick to signal which story a "Popular this week"
+  // click should reveal; read by the NewsGroupCard render below to force that
+  // card's own truncation open, then cleared right after use (see the handler).
+  const [scrollTarget, setScrollTarget] = useState<{ teamUid: string; storyUid: string } | null>(null);
+  const revealStory = useStoryReveal();
 
   const allItems = useMemo(() => {
     const merged = sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items)));
@@ -128,10 +145,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
-    if (activeCategory === ACTIVE_DISCUSSIONS_CAT) {
-      return itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion));
-    }
-    return itemsForActiveTab.filter((i) => i.eventType === activeCategory);
+    return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
   }, [activeCategory, itemsForActiveTab]);
 
   // Narrows filteredItems by team name, story title, summary, or tags —
@@ -328,6 +342,59 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     );
   };
 
+  const handlePopularItemClick = (item: ITeamNewsPopularItem, position: number) => {
+    analytics.onTeamNewsPopularStoryClicked(item, position); // unchanged — fires regardless of outcome below
+
+    const fullItem = allItems.find((i) => i.uid === item.uid);
+    if (!fullItem) {
+      // Expired/removed from the 14-day window since Popular was ranked server-side.
+      // Nothing to scroll to — fall back to the old behavior instead of a dead click.
+      window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Reuse the already-memoized itemsForActiveTab rather than recomputing the
+    // same ALL_TAB-vs-group lookup inline — accurate here, before any of this
+    // handler's own setState calls have applied.
+    const tabMismatch = activeTab !== ALL_TAB && !itemsForActiveTab.some((i) => i.uid === fullItem.uid);
+    const categoryMismatch = activeCategory !== ALL_CAT && !matchesTeamNewsCategory(fullItem, activeCategory);
+    const searchMismatch = query.trim() !== '' && !matchesTeamNewsQuery(fullItem, query.trim().toLowerCase());
+    const filtersChanging = tabMismatch || categoryMismatch || searchMismatch;
+
+    // If filters are already about to reflow substantially, don't also re-derive
+    // clusterByTeam for the *new* filters just to check pageSize precisely —
+    // force-expanding blends into a view that's changing anyway. Otherwise,
+    // sortedClusters (in scope, this render) already reflects the item's real
+    // position, so only expand if it's actually beyond pageSize.
+    const shouldExpandOuter =
+      filtersChanging || sortedClusters.findIndex((c) => c.teamUid === fullItem.teamUid) >= pageSize;
+
+    // flushSync forces this batch of state updates — and every layout effect they
+    // synchronously trigger in children, including NewsGroupCard's own auto-expand
+    // effect — to commit to the DOM before this call returns, so the querySelector
+    // right after is safe without polling.
+    flushSync(() => {
+      if (tabMismatch) setActiveTab(ALL_TAB);
+      if (categoryMismatch) setActiveCategory(ALL_CAT);
+      if (searchMismatch) setQuery('');
+      if (shouldExpandOuter) setExpanded(true);
+      setScrollTarget({ teamUid: fullItem.teamUid, storyUid: fullItem.uid });
+    });
+
+    const selector = `[data-story-uid="${CSS.escape(fullItem.uid)}"]`;
+    if (process.env.NODE_ENV !== 'production') {
+      const matches = document.querySelectorAll(selector);
+      if (matches.length > 1) {
+        console.warn(`[TeamNews] data-story-uid matched ${matches.length} elements for uid ${fullItem.uid}`);
+      }
+    }
+    const el = document.querySelector<HTMLElement>(selector);
+    setScrollTarget(null); // one-shot signal — clear right after use so a later, unrelated remount can't replay it
+
+    if (el) revealStory(el);
+    // else: unexpected — flushSync above should guarantee `el` exists.
+  };
+
   if (isEmpty(allItems)) {
     return (
       <NewsBase>
@@ -402,6 +469,9 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
                     isFollowing={followedTeamUids.has(cluster.teamUid)}
                     onFollowToggle={handleFollowToggle}
                     onUpvoteToggle={handleUpvoteToggle}
+                    autoExpandStoryUid={
+                      scrollTarget?.teamUid === cluster.teamUid ? scrollTarget.storyUid : undefined
+                    }
                   />
                 ))}
               </div>
@@ -422,6 +492,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           isLoadingSuggestedTeams={isLoadingSuggestedTeams}
           followedTeamUids={followedTeamUids}
           onFollowToggle={handleFollowToggle}
+          onPopularItemClick={handlePopularItemClick}
         />
       </div>
     </NewsBase>

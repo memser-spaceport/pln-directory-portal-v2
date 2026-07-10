@@ -5,7 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { ITeamNewsDiscussion, ITeamNewsGroup, ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type {
+  ITeamNewsDiscussion,
+  ITeamNewsGroup,
+  ITeamNewsItem,
+  ITeamNewsPopularItem,
+  TeamNewsEventType,
+} from '@/types/team-news.types';
 
 // TeamNews renders NewsRail, which calls the real useQueryClient() for the
 // digest-subscribe mutation (only useQuery/useMutation are globally mocked in
@@ -703,6 +709,190 @@ describe('TeamNews', () => {
 
       const teamLinks = screen.getAllByRole('link', { name: /Zzz|Team up-/ });
       expect(teamLinks[0]).toHaveTextContent('Zzz');
+    });
+  });
+
+  describe('popular this week — scroll to story', () => {
+    const popularItem = (
+      partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>,
+    ): ITeamNewsPopularItem => ({
+      teamUid: 'team-ai-1',
+      teamName: 'Team ai-1',
+      title: 'Headline ai-1',
+      sourceUrl: 'https://example.com/ai-1',
+      upvoteCount: 5,
+      ...partial,
+    });
+
+    // The rail's own button ("Popular this week") always has role="button";
+    // feed rows have role="link" — that's enough to disambiguate identical
+    // headline text appearing in both places, no need for extra test ids.
+    const getRailButton = (title: string) => screen.getByRole('button', { name: new RegExp(title) });
+    const getFeedHeadline = (title: string) => screen.queryByText(new RegExp(title), { selector: 'h3' });
+
+    it('reveals an already-visible story without changing tab/category/query, and does not navigate', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+
+      expect(mockOnPopularStoryClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 0);
+      expect(openSpy).not.toHaveBeenCalled();
+      expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
+      expect(getFeedHeadline('Headline ai-1')).toBeInTheDocument();
+      expect(getFeedHeadline('Headline ai-1')!.closest('[role="link"]')).toHaveClass('storyHighlighted');
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+      openSpy.mockRestore();
+    });
+
+    it('resets to the All tab and reveals the story when the target is outside the active tab', () => {
+      renderTeamNews(
+        <TeamNews
+          groups={groups}
+          popularItems={[
+            popularItem({ uid: 'dhr-1', teamUid: 'team-dhr-1', teamName: 'Team dhr-1', title: 'Headline dhr-1' }),
+          ]}
+        />,
+      );
+      fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
+      expect(getFeedHeadline('Headline dhr-1')).not.toBeInTheDocument();
+
+      fireEvent.click(getRailButton('Headline dhr-1'));
+
+      expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
+      expect(getFeedHeadline('Headline dhr-1')).toBeInTheDocument();
+    });
+
+    it('resets category to All when the target is excluded by the active category', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
+      fireEvent.click(screen.getByRole('button', { name: /^Launch\b/ })); // narrows to ai-2, excluding ai-1
+      expect(getFeedHeadline('Headline ai-1')).not.toBeInTheDocument();
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+
+      expect(getFeedHeadline('Headline ai-1')).toBeInTheDocument();
+      // Proves category reset to All, not just re-narrowed to Funding.
+      expect(getFeedHeadline('Headline ai-3')).toBeInTheDocument();
+    });
+
+    it('clears an active search query that would exclude the target', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
+      const input = screen.getAllByPlaceholderText('Search by news, teams…')[0];
+      fireEvent.change(input, { target: { value: 'dhr' } });
+      act(() => jest.advanceTimersByTime(700));
+      expect(getFeedHeadline('Headline ai-1')).not.toBeInTheDocument();
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+
+      expect(getFeedHeadline('Headline ai-1')).toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it('expands "Show All" when the target cluster is beyond pageSize', () => {
+      renderTeamNews(
+        <TeamNews
+          groups={groups}
+          pageSize={1}
+          popularItems={[
+            popularItem({ uid: 'dhr-1', teamUid: 'team-dhr-1', teamName: 'Team dhr-1', title: 'Headline dhr-1' }),
+          ]}
+        />,
+      );
+      expect(getFeedHeadline('Headline dhr-1')).not.toBeInTheDocument();
+
+      fireEvent.click(getRailButton('Headline dhr-1'));
+
+      expect(screen.getByRole('button', { name: /Show Less/i })).toBeInTheDocument();
+      expect(getFeedHeadline('Headline dhr-1')).toBeInTheDocument();
+    });
+
+    it("auto-expands only the target story's own card, leaving others untouched", () => {
+      const withTeam = (item: ITeamNewsItem, teamUid: string, teamName: string): ITeamNewsItem => ({
+        ...item,
+        teamUid,
+        teamName,
+      });
+      const acmeItems = [
+        makeItem('acme-0', 'FUNDING', ['AI & Robotics']),
+        makeItem('acme-1', 'LAUNCH', ['AI & Robotics']),
+        makeItem('acme-2', 'PARTNERSHIP', ['AI & Robotics']),
+        makeItem('acme-3', 'MILESTONE', ['AI & Robotics']),
+      ].map((item) => withTeam(item, 'team-acme', 'Acme'));
+      const otherItems = [
+        makeItem('other-0', 'FUNDING', ['AI & Robotics']),
+        makeItem('other-1', 'LAUNCH', ['AI & Robotics']),
+        makeItem('other-2', 'PARTNERSHIP', ['AI & Robotics']),
+        makeItem('other-3', 'MILESTONE', ['AI & Robotics']),
+      ].map((item) => withTeam(item, 'team-other', 'Other'));
+      const cardGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 8, items: [...acmeItems, ...otherItems] }];
+
+      renderTeamNews(
+        <TeamNews
+          groups={cardGroups}
+          popularItems={[
+            popularItem({ uid: 'acme-3', teamUid: 'team-acme', teamName: 'Acme', title: 'Headline acme-3' }),
+          ]}
+        />,
+      );
+      expect(screen.getByRole('button', { name: 'View all 4 updates from Acme' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'View all 4 updates from Other' })).toBeInTheDocument();
+
+      fireEvent.click(getRailButton('Headline acme-3'));
+
+      expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'View all 4 updates from Other' })).toBeInTheDocument();
+      expect(getFeedHeadline('Headline acme-3')).toBeInTheDocument();
+    });
+
+    it('falls back to opening sourceUrl when the target story no longer exists in allItems', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(
+        <TeamNews
+          groups={groups}
+          popularItems={[popularItem({ uid: 'expired-uid', sourceUrl: 'https://example.com/expired' })]}
+        />,
+      );
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+
+      expect(openSpy).toHaveBeenCalledWith('https://example.com/expired', '_blank', 'noopener,noreferrer');
+      openSpy.mockRestore();
+    });
+
+    it('highlights the revealed row and removes the highlight shortly after', () => {
+      jest.useFakeTimers();
+      renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+      const row = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      expect(row).toHaveClass('storyHighlighted');
+
+      act(() => jest.advanceTimersByTime(2000));
+      expect(row).not.toHaveClass('storyHighlighted');
+      jest.useRealTimers();
+    });
+
+    it('supersedes a still-active highlight when a second Popular item is clicked', () => {
+      renderTeamNews(
+        <TeamNews
+          groups={groups}
+          popularItems={[
+            popularItem({ uid: 'ai-1' }),
+            popularItem({ uid: 'ai-2', title: 'Headline ai-2', sourceUrl: 'https://example.com/ai-2' }),
+          ]}
+        />,
+      );
+
+      fireEvent.click(getRailButton('Headline ai-1'));
+      const firstRow = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      expect(firstRow).toHaveClass('storyHighlighted');
+
+      fireEvent.click(getRailButton('Headline ai-2'));
+      const secondRow = getFeedHeadline('Headline ai-2')!.closest('[role="link"]');
+
+      expect(firstRow).not.toHaveClass('storyHighlighted');
+      expect(secondRow).toHaveClass('storyHighlighted');
     });
   });
 });

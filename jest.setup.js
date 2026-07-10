@@ -9,6 +9,24 @@ if (typeof HTMLDialogElement !== 'undefined') {
   HTMLDialogElement.prototype.close = jest.fn();
 }
 
+// jsdom doesn't implement scrollIntoView or matchMedia.
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = jest.fn();
+}
+if (typeof window !== 'undefined') {
+  window.matchMedia =
+    window.matchMedia ||
+    jest.fn().mockImplementation(() => ({
+      matches: false,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      // Legacy MediaQueryList API — framer-motion's initPrefersReducedMotion
+      // still calls these directly.
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    }));
+}
+
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn(),
   revalidateTag: jest.fn(),

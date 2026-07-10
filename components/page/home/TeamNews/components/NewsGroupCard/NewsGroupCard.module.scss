@@ -50,3 +50,27 @@
     text-decoration: underline;
   }
 }
+
+.storyHighlighted {
+  // Bleed the highlight past the row's own edges so the tinted background
+  // clears the text with some breathing room, instead of hugging it — the
+  // matching negative margin keeps the row's actual layout width unchanged.
+  margin: 0 -12px;
+  padding: 16px 12px;
+  border-radius: 8px;
+  animation: storyHighlightPulse 2s ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background: rgba(27, 77, 255, 0.08);
+  }
+}
+
+@keyframes storyHighlightPulse {
+  0% {
+    background: rgba(27, 77, 255, 0.18);
+  }
+  100% {
+    background: rgba(27, 77, 255, 0);
+  }
+}

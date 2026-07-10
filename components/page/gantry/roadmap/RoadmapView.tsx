@@ -135,7 +135,7 @@ export function RoadmapView() {
   const pinNote = useGantryPinNote();
 
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
-    useRoadmapMobileNav(orderedVisibleColumns, isNarrow);
+    useRoadmapMobileNav(orderedVisibleColumns, isNarrow, !isLoading && !isError);
   const {
     pinStatusRef,
     pinNotePopover,

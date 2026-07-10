@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { RoadmapView } from '@/components/page/gantry/roadmap/RoadmapView';
 
 const mockUseGantryItems = jest.fn();
+const mockUseIsNarrow = jest.fn(() => false);
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -91,15 +92,16 @@ jest.mock('@/services/gantry/hooks/useGantryDraft', () => ({
 }));
 
 jest.mock('@/hooks/useIsNarrow', () => ({
-  useIsNarrow: () => false,
+  useIsNarrow: () => mockUseIsNarrow(),
 }));
 
 describe('RoadmapView', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders roadmap columns and cards', () => {
+    mockUseIsNarrow.mockReturnValue(false);
     mockUseGantryItems.mockReturnValue({
       isLoading: false,
       isError: false,
@@ -142,5 +144,57 @@ describe('RoadmapView', () => {
     expect(screen.getAllByText('In Progress').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Shipped').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Ship new onboarding' })).toBeInTheDocument();
+  });
+
+  it('moves the active tab indicator when a swiped-to column becomes visible on mobile', () => {
+    class FakeIntersectionObserver {
+      static instances: FakeIntersectionObserver[] = [];
+      callback: IntersectionObserverCallback;
+      observe = jest.fn();
+      unobserve = jest.fn();
+      disconnect = jest.fn();
+
+      constructor(callback: IntersectionObserverCallback) {
+        this.callback = callback;
+        FakeIntersectionObserver.instances.push(this);
+      }
+    }
+    const originalIntersectionObserver = global.IntersectionObserver;
+    global.IntersectionObserver = FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+
+    mockUseIsNarrow.mockReturnValue(true);
+
+    // Mirror the real mount sequence: the roadmap starts in isLoading (skeleton
+    // columns, no scrollContainerRef/data-stage refs attached) and only renders
+    // the swipeable columns once loading finishes. The observer must be set up
+    // AFTER that transition, not just on first mount.
+    mockUseGantryItems.mockReturnValue({ isLoading: true, isError: false, data: undefined });
+    const { rerender } = render(<RoadmapView />);
+
+    mockUseGantryItems.mockReturnValue({ isLoading: false, isError: false, data: { items: [] } });
+    rerender(<RoadmapView />);
+
+    expect(screen.getByRole('tab', { name: 'Submitted' })).toHaveAttribute('aria-selected', 'true');
+
+    const observer = FakeIntersectionObserver.instances[0];
+    expect(observer).toBeDefined();
+
+    act(() => {
+      observer.callback(
+        [
+          {
+            isIntersecting: true,
+            intersectionRatio: 1,
+            target: { getAttribute: (attr: string) => (attr === 'data-stage' ? 'IN_PROGRESS' : null) },
+          } as unknown as IntersectionObserverEntry,
+        ],
+        observer as unknown as IntersectionObserver,
+      );
+    });
+
+    expect(screen.getByRole('tab', { name: 'In Progress' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Submitted' })).toHaveAttribute('aria-selected', 'false');
+
+    global.IntersectionObserver = originalIntersectionObserver;
   });
 });

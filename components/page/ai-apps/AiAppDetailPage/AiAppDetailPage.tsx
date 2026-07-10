@@ -9,6 +9,7 @@ import { checkAiAppLive } from '@/services/ai-apps/ai-apps.service';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
+import { UpdateSecretsModal } from './components/UpdateSecretsModal';
 
 import s from './AiAppDetailPage.module.scss';
 
@@ -42,7 +43,7 @@ export function AiAppDetailPage(props: Props) {
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
-  const [showSecrets, setShowSecrets] = useState(false);
+  const [isSecretsModalOpen, setIsSecretsModalOpen] = useState(false);
   const [isRedeploying, setIsRedeploying] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
@@ -66,14 +67,11 @@ export function AiAppDetailPage(props: Props) {
     analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
   }, [app, needsSetup, analytics]);
 
-  const handleSecretsToggle = () => {
-    setShowSecrets((wasOpen) => {
-      const next = !wasOpen;
-      if (next && app) {
-        analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
-      }
-      return next;
-    });
+  const handleOpenSecretsModal = () => {
+    if (app) {
+      analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
+    }
+    setIsSecretsModalOpen(true);
   };
 
   useEffect(() => {
@@ -232,16 +230,19 @@ export function AiAppDetailPage(props: Props) {
   return (
     <div className={s.root}>
       {isCreator && requiredEnvVars.length > 0 && (
-        <div className={s.secretsBar}>
-          <button type="button" className={s.secretsToggle} onClick={handleSecretsToggle}>
-            {showSecrets ? 'Hide secrets' : 'Update secrets & redeploy'}
-          </button>
-          {showSecrets && (
-            <div className={s.secretsPanel}>
-              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
-            </div>
-          )}
-        </div>
+        <>
+          <div className={s.secretsBar}>
+            <button type="button" className={s.secretsToggle} onClick={handleOpenSecretsModal}>
+              Update secrets &amp; redeploy
+            </button>
+          </div>
+          <UpdateSecretsModal
+            isOpen={isSecretsModalOpen}
+            onClose={() => setIsSecretsModalOpen(false)}
+            app={app}
+            onDeployingChange={setIsRedeploying}
+          />
+        </>
       )}
       {renderFrameArea()}
       <FloatingFeedbackButton appUid={app.uid} appName={app.name} />

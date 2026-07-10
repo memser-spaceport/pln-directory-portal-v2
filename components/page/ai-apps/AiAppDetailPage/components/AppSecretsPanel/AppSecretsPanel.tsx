@@ -14,6 +14,8 @@ interface Props {
   app: AiApp;
   /** Fires while a deploy is in flight, so the parent can hide the stale iframe. */
   onDeployingChange?: (deploying: boolean) => void;
+  /** Fires after a successful deploy has settled (caches refreshed) — e.g. to close a wrapping modal. */
+  onDeploySuccess?: () => void;
 }
 
 /**
@@ -22,7 +24,7 @@ interface Props {
  * vars start empty and blank means "keep the stored value".
  */
 export function AppSecretsPanel(props: Props) {
-  const { app, onDeployingChange } = props;
+  const { app, onDeployingChange, onDeploySuccess } = props;
 
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
@@ -86,6 +88,9 @@ export function AppSecretsPanel(props: Props) {
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
     ]);
     setDeploying(false);
+    if (!result.error) {
+      onDeploySuccess?.();
+    }
   };
 
   return (
@@ -122,7 +127,11 @@ export function AppSecretsPanel(props: Props) {
         <Button variant="primary" size="m" onClick={onDeploy} disabled={isDeploying}>
           {isDeploying ? 'Deploying…' : 'Deploy'}
         </Button>
-        {isDeploying && <span className={s.deployNote}>The first deploy can take a couple of minutes.</span>}
+        {isDeploying && (
+          <span className={s.deployNote}>
+            {isDraft ? 'The first deploy can take a couple of minutes.' : 'Redeploying can take a couple of minutes.'}
+          </span>
+        )}
       </div>
     </div>
   );

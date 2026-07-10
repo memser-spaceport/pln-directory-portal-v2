@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RoadmapColumnStage } from '../RoadmapFilters';
 
-export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[], isNarrow: boolean) {
+export function useRoadmapMobileNav(
+  orderedVisibleColumns: RoadmapColumnStage[],
+  isNarrow: boolean,
+  isContentReady: boolean,
+) {
   const [activeColumn, setActiveColumn] = useState<RoadmapColumnStage | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const columnRefs = useRef<Map<RoadmapColumnStage, HTMLDivElement>>(new Map());
@@ -35,9 +39,9 @@ export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[],
     prevEffectiveColumnRef.current = effectiveActiveColumn;
   }, [effectiveActiveColumn]);
 
-  // Swipe → tab sync via IntersectionObserver.
+  // Swipe → tab sync via IntersectionObserver
   useEffect(() => {
-    if (!isNarrow || !scrollContainerRef.current) return;
+    if (!isNarrow || !isContentReady || !scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -55,7 +59,7 @@ export function useRoadmapMobileNav(orderedVisibleColumns: RoadmapColumnStage[],
     );
     columnRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [isNarrow, orderedVisibleColumns]);
+  }, [isNarrow, isContentReady, orderedVisibleColumns]);
 
   // Scroll the active tab into view when driven by swipe.
   useEffect(() => {

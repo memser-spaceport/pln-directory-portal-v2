@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import styles from '../components/NewsGroupCard/NewsGroupCard.module.scss';
 
 // Must match .storyHighlighted's animation duration in NewsGroupCard.module.scss.
-const HIGHLIGHT_DURATION_MS = 1100;
+const HIGHLIGHT_DURATION_MS = 2000;
 
 // Scroll a revealed story row into view, briefly highlight it, and move
 // keyboard focus to it. Kept as a plain imperative call (not an effect keyed

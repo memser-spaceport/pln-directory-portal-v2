@@ -9,9 +9,10 @@ if (typeof HTMLDialogElement !== 'undefined') {
   HTMLDialogElement.prototype.close = jest.fn();
 }
 
-// jsdom doesn't implement scrollIntoView or matchMedia.
+// jsdom doesn't implement scrollIntoView, scrollTo, or matchMedia.
 if (typeof Element !== 'undefined') {
   Element.prototype.scrollIntoView = jest.fn();
+  Element.prototype.scrollTo = jest.fn();
 }
 if (typeof window !== 'undefined') {
   window.matchMedia =

@@ -39,7 +39,11 @@ const buildDefaultDigestSettings = (uid: string): ForumDigestSettings => ({
   forumDigestEnabled: false,
   forumDigestFrequency: 7,
   forumDigestForumEnabled: true,
-  forumDigestNewsEnabled: false,
+  // Both content types default to on: this fallback is used as the subscribe
+  // payload when the real settings haven't loaded yet, and a member without
+  // forum access who subscribed with news off would get an empty (never-sent)
+  // digest.
+  forumDigestNewsEnabled: true,
   forumDigestLastSentAt: null,
   memberExternalId: null,
   memberUid: uid,

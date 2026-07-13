@@ -109,7 +109,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
                 variant="flat"
                 analyticsSource="team-profile-rail"
                 onClick={(clicked) => handleCardClick(clicked, index)}
-                onUpvoteToggle={(toggled) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
+                onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
               />
             ))}
           </div>

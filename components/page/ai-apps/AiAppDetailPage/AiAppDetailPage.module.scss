@@ -213,6 +213,12 @@
   &:hover {
     text-decoration: underline;
   }
+
+  &:disabled {
+    color: #94a3b8;
+    cursor: default;
+    text-decoration: none;
+  }
 }
 
 .secretsPanel {

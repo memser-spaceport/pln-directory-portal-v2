@@ -67,6 +67,9 @@ export function AiAppDetailPage(props: Props) {
   }, [app, needsSetup, analytics]);
 
   const handleSecretsToggle = () => {
+    // A deploy in flight owns the panel's error state — collapsing it mid-deploy
+    // would unmount AppSecretsPanel and silently discard a failed-deploy error.
+    if (isRedeploying) return;
     setShowSecrets((wasOpen) => {
       const next = !wasOpen;
       if (next && app) {
@@ -233,7 +236,7 @@ export function AiAppDetailPage(props: Props) {
     <div className={s.root}>
       {isCreator && requiredEnvVars.length > 0 && (
         <div className={s.secretsBar}>
-          <button type="button" className={s.secretsToggle} onClick={handleSecretsToggle}>
+          <button type="button" className={s.secretsToggle} onClick={handleSecretsToggle} disabled={isRedeploying}>
             {showSecrets ? 'Hide secrets' : 'Update secrets & redeploy'}
           </button>
           {showSecrets && (

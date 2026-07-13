@@ -1,7 +1,7 @@
 .floatingButton {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  bottom: 44px;
   z-index: 50;
   display: flex;
   align-items: center;
@@ -22,4 +22,11 @@
   &:hover {
     background: var(--foreground-brand-primary-hover, #1640d6);
   }
+}
+
+// Keeps the button flush with the right edge of AiAppsPage.module.scss's
+// max-width: 1480px content column on wide viewports, instead of drifting to
+// the browser edge; falls back to a plain 24px viewport inset below that width.
+.alignToContent {
+  right: max(24px, calc((100vw - 1480px) / 2 + 24px));
 }

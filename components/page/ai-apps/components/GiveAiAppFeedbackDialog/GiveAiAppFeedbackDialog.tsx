@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
@@ -33,9 +34,11 @@ interface Props {
   /** When provided (app detail page), the app is implicit and no picker is shown. */
   appUid?: string;
   appName?: string;
+  /** Align the popover with the page's max-width content column instead of the viewport edge. */
+  alignToContent?: boolean;
 }
 
-export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Props) {
+export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alignToContent }: Props) {
   const { currentUser } = useCurrentUserStore();
   const { apps, isLoading: isAppsLoading } = useAiApps();
   const { mutate, isPending } = useSubmitAiAppFeedback();
@@ -83,7 +86,12 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName }: Pr
   });
 
   return (
-    <Modal isOpen={isOpen} onClose={onDialogClose} overlayClassname={s.overlay} className={s.modalContainer}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onDialogClose}
+      overlayClassname={clsx(s.overlay, alignToContent && s.overlayAlignToContent)}
+      className={s.modalContainer}
+    >
       <div className={s.root}>
         <div className={s.header}>
           <h2 className={s.title}>Give feedback</h2>

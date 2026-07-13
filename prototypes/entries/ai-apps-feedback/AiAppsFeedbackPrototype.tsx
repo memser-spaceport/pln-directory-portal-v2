@@ -226,6 +226,7 @@ export default function AiAppsFeedbackPrototype() {
           initialAppUid={null}
           currentUserName={currentUser.name}
           onSubmit={handleSubmitFeedback}
+          alignToContent
         />
       )}
     </div>

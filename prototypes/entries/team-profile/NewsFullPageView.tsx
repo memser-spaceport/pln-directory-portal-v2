@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -13,6 +13,8 @@ interface Props {
   title: string;
   count: number;
   items: ITeamNewsItem[];
+  /** When set, scroll to + flash this item on open (rail "Show more"). */
+  focusUid?: string | null;
   query: string;
   onQueryChange: (value: string) => void;
   onClose: () => void;
@@ -32,6 +34,7 @@ export function NewsFullPageView({
   title,
   count,
   items,
+  focusUid,
   query,
   onQueryChange,
   onClose,
@@ -39,6 +42,8 @@ export function NewsFullPageView({
   votedNews,
   onToggleUpvote,
 }: Props) {
+  const listRef = useRef<HTMLDivElement>(null);
+
   // The page behaves like a route push — lock the body scroll behind it.
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -47,6 +52,22 @@ export function NewsFullPageView({
       document.body.style.overflow = prev;
     };
   }, []);
+
+  // Focused open (rail "Show more"): scroll that item into view and flash it.
+  useEffect(() => {
+    if (!focusUid) return;
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-news-uid="${focusUid}"]`);
+    if (!el) return;
+    const raf = requestAnimationFrame(() => {
+      el.scrollIntoView({ block: 'center' });
+      el.classList.add(s.newsHighlight);
+    });
+    const timer = setTimeout(() => el.classList.remove(s.newsHighlight), 1500);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [focusUid]);
 
   return (
     <div className={s.newsPage}>
@@ -69,12 +90,13 @@ export function NewsFullPageView({
       </div>
 
       {items.length > 0 ? (
-        <div className={s.newsPageList}>
+        <div className={s.newsPageList} ref={listRef}>
           {items.map((item) => (
             <NewsCardView
               key={item.uid}
               item={item}
               hideTeam
+              fullSummary
               upvotes={upvotesFor(item.uid)}
               voted={votedNews.has(item.uid)}
               onToggleUpvote={() => onToggleUpvote(item.uid)}

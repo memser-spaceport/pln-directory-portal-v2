@@ -23,7 +23,7 @@ export function FollowButton({ following, onClick, name, disabled, className, si
         onClick={onClick}
         aria-label={following ? `Following ${name}` : `Follow ${name}`}
       >
-        {following && <CheckIcon />}
+        {following ? <CheckIcon /> : <PlusIcon />}
         {following ? 'Following' : 'Follow'}
       </button>
     );

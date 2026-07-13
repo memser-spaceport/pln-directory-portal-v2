@@ -8,17 +8,18 @@ import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppF
 import s from './ViewFeedbackEntryPoint.module.scss';
 
 /**
- * Visible only to Directory admins or members who created at least one AI App.
+ * Visible only to Directory admins or members who created at least one AI App,
+ * and only when there is at least one reviewable feedback item.
  * The badge shows the total count of reviewable feedback, not an "unread" count -
  * there's no backend read-state/unread-tracking endpoint to back that (see
  * docs/plans/2026-07-08-feat-ai-apps-feedback-ui-plan.md, Dependencies & Risks).
  */
 export function ViewFeedbackEntryPoint() {
   const analytics = useAiAppsAnalytics();
-  const { canReview, isLoading } = useAiAppFeedbackReviewAccess();
-  const { feedback } = useAiAppFeedbackList();
+  const { canReview, isLoading: isAccessLoading } = useAiAppFeedbackReviewAccess();
+  const { feedback, isLoading: isFeedbackLoading } = useAiAppFeedbackList();
 
-  if (isLoading || !canReview) {
+  if (isAccessLoading || isFeedbackLoading || !canReview || feedback.length === 0) {
     return null;
   }
 
@@ -29,7 +30,7 @@ export function ViewFeedbackEntryPoint() {
       onClick={() => analytics.onViewFeedbackClicked({ feedbackCount: feedback.length })}
     >
       View feedback
-      {feedback.length > 0 && <span className={s.badge}>{feedback.length > 99 ? '99+' : feedback.length}</span>}
+      <span className={s.badge}>{feedback.length > 99 ? '99+' : feedback.length}</span>
     </Link>
   );
 }

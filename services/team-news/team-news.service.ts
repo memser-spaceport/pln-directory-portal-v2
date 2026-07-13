@@ -31,13 +31,16 @@ export function buildTeamNewsByTeamUrl(teamUid: string, options: FetchTeamNewsBy
 export async function fetchTeamNewsByTeam(
   teamUid: string,
   options: FetchTeamNewsByTeamOptions = {},
+  authToken?: string,
 ): Promise<ITeamNewsByTeamResponse | null> {
   const url = buildTeamNewsByTeamUrl(teamUid, options);
 
   try {
+    // Auth is optional, but without it `viewerHasUpvoted` comes back as the
+    // anonymous view — same convention as the grouped/popular fetchers below.
     const response = await fetch(url, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeader(authToken),
     });
     if (!response.ok) {
       return null;

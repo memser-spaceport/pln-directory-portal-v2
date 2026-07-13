@@ -32,11 +32,6 @@ jest.mock('@/analytics/settings.analytics', () => ({
   }),
 }));
 
-const mockUseForumAccess = jest.fn();
-jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
-  useForumAccess: () => mockUseForumAccess(),
-}));
-
 const mockOnPopularItemClick = jest.fn();
 
 describe('NewsRail', () => {
@@ -44,7 +39,6 @@ describe('NewsRail', () => {
     jest.clearAllMocks();
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: false });
     mockGetForumDigestSettings.mockReturnValue({ data: { forumDigestEnabled: false } });
-    mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
   });
 
   it('does not render the why-follow explainer', () => {
@@ -74,7 +68,6 @@ describe('NewsRail', () => {
 
   it('calls the forum-digest mutation with weekly frequency when an authenticated user subscribes, and fires onForumDigestOptionSelect(source: home-feed) once it succeeds', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
-    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
@@ -102,7 +95,6 @@ describe('NewsRail', () => {
 
   it('fires onForumDigestSaveFailed(source: home-feed) on mutation failure, and does not also fire onForumDigestOptionSelect', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
-    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({
       data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
     });
@@ -118,7 +110,6 @@ describe('NewsRail', () => {
 
   it('shows the subscribed card with a link to Settings once forumDigestEnabled is true, instead of the promo card', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
-    mockUseForumAccess.mockReturnValue({ hasAccess: true, isLoading: false });
     mockGetForumDigestSettings.mockReturnValue({ data: { forumDigestEnabled: true } });
     render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
 
@@ -130,13 +121,12 @@ describe('NewsRail', () => {
     expect(screen.queryByRole('button', { name: 'Subscribe' })).not.toBeInTheDocument();
   });
 
-  it('hides digest cards for authenticated users without forum access', () => {
+  it('shows the digest promo to authenticated users without forum access (news-only digest)', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
-    mockUseForumAccess.mockReturnValue({ hasAccess: false, isLoading: false });
     render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
 
-    expect(screen.queryByText('Get network news Digest')).not.toBeInTheDocument();
-    expect(screen.queryByText("You're subscribed to the Digest")).not.toBeInTheDocument();
+    expect(screen.getByText('Get network news Digest')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 
   it('keeps a followed suggestion visible with Following for 2s, then removes it', () => {

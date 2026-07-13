@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
@@ -39,6 +38,7 @@ const MailIcon = () => (
 const buildDefaultDigestSettings = (uid: string): ForumDigestSettings => ({
   forumDigestEnabled: false,
   forumDigestFrequency: 7,
+  forumDigestForumEnabled: true,
   forumDigestNewsEnabled: false,
   forumDigestLastSentAt: null,
   memberExternalId: null,
@@ -168,9 +168,7 @@ export function NewsRail({
 }: NewsRailProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
-  const { hasAccess, isLoading: forumAccessLoading } = useForumAccess();
   const analytics = useSettingsAnalytics();
-  const showDigest = !currentUser || (!forumAccessLoading && hasAccess);
   const { mutate } = useUpdateForumDigestSettings();
   const visibleSuggestions = useDelayedHideFollowedSuggestions(suggestedTeams, followedTeamUids);
 
@@ -223,42 +221,39 @@ export function NewsRail({
           <PopularThisWeekCard key="popular-this-week" items={popularItems} onPopularItemClick={onPopularItemClick} />
         )}
 
-        {showDigest &&
-          (isSubscribed ? (
-            <motion.section
-              key="digest-subscribed"
-              layout
-              className={s.subscribedCard}
-              aria-label="You're subscribed to the news digest"
-            >
-              <span className={s.iconBadge} aria-hidden="true">
-                <MailIcon />
-              </span>
-              <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
-              <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
-              <Link href="/settings/email" className={s.manageLink}>
-                <span>Manage in Settings</span>
-                <ArrowRight />
-              </Link>
-            </motion.section>
-          ) : (
-            <motion.section
-              key="digest-promo"
-              layout
-              className={s.digestCard}
-              aria-label="Subscribe to the news digest"
-            >
-              <p className={s.digestTitle}>Get network news Digest</p>
-              <p className={s.digestBody}>
-                A news digest covering raises, launches, and milestones across the network, straight to your inbox.
-              </p>
-              {isHydrated && (
-                <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
-                  <span>Subscribe</span>
-                </button>
-              )}
-            </motion.section>
-          ))}
+        {/* The digest CTA is open to everyone — members without forum access
+            get a network-news-only digest (forum posts are suppressed
+            server-side at send time). */}
+        {isSubscribed ? (
+          <motion.section
+            key="digest-subscribed"
+            layout
+            className={s.subscribedCard}
+            aria-label="You're subscribed to the news digest"
+          >
+            <span className={s.iconBadge} aria-hidden="true">
+              <MailIcon />
+            </span>
+            <p className={s.whyTitle}>You&apos;re subscribed to the Digest</p>
+            <p className={s.whyBody}>Change frequency or unsubscribe anytime in Settings.</p>
+            <Link href="/settings/email" className={s.manageLink}>
+              <span>Manage in Settings</span>
+              <ArrowRight />
+            </Link>
+          </motion.section>
+        ) : (
+          <motion.section key="digest-promo" layout className={s.digestCard} aria-label="Subscribe to the news digest">
+            <p className={s.digestTitle}>Get network news Digest</p>
+            <p className={s.digestBody}>
+              A news digest covering raises, launches, and milestones across the network, straight to your inbox.
+            </p>
+            {isHydrated && (
+              <button type="button" className={s.digestBtn} onClick={handleSubscribeClick}>
+                <span>Subscribe</span>
+              </button>
+            )}
+          </motion.section>
+        )}
       </AnimatePresence>
     </aside>
   );

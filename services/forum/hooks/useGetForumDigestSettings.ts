@@ -5,6 +5,7 @@ import { ForumQueryKeys } from '@/services/forum/constants';
 export type ForumDigestSettings = {
   forumDigestEnabled: boolean;
   forumDigestFrequency: 1 | 7;
+  forumDigestForumEnabled: boolean;
   forumDigestNewsEnabled: boolean;
   forumDigestLastSentAt: null;
   memberExternalId: null;

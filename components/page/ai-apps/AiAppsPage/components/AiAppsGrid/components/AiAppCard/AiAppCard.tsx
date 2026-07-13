@@ -28,12 +28,16 @@ export function AiAppCard(props: Props) {
   };
 
   const isDraft = app.status === 'DRAFT';
+  const hasDeployFailed = app.status === 'ERROR';
+  const isDeploying = app.status === 'DEPLOYING';
 
   const body = (
     <>
       <div className={s.nameRow}>
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
+        {hasDeployFailed && <span className={s.errorBadge}>Deploy failed</span>}
+        {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
     </>

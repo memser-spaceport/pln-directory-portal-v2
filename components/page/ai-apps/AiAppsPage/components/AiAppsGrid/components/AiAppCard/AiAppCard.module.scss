@@ -61,6 +61,18 @@
   color: #92400e;
 }
 
+.errorBadge {
+  @extend .draftBadge;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.deployingBadge {
+  @extend .draftBadge;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .description {
   margin: 0;
   color: #475569;

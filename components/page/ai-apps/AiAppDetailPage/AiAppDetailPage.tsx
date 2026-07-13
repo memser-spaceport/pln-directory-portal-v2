@@ -60,6 +60,14 @@ export function AiAppDetailPage(props: Props) {
 
   const requiredEnvVars = app?.requiredEnvVars ?? [];
   const needsSetup = !!app && requiredEnvVars.length > 0 && app.status !== 'READY';
+  // A failed deploy (runner error, or a stuck deploy the backend settled to
+  // ERROR) is surfaced as a full status card — never a broken iframe — with the
+  // error notes and a retry path for the creator/admin.
+  const deployFailed = app?.status === 'ERROR';
+  // An in-flight deploy someone else started (agent redeploy, another admin).
+  // While OUR deploy runs (isRedeploying) the secrets panel owns the UI instead,
+  // so its result/error handling is never unmounted mid-flight.
+  const deployInProgress = app?.status === 'DEPLOYING' && !isRedeploying;
 
   useEffect(() => {
     if (!app || app.status !== 'DRAFT' || !needsSetup || trackedDraftSetupUid.current === app.uid) return;
@@ -153,11 +161,15 @@ export function AiAppDetailPage(props: Props) {
   // for a healthy, running app whose creator opted into updating its secrets
   // (showSecrets) — same centered card either way, so a voluntary redeploy
   // gets the identical experience to a first deploy or a failed one.
-  if (needsSetup || showSecrets) {
+  if (needsSetup || deployFailed || deployInProgress || showSecrets) {
+    // Back link only when the creator opened the card voluntarily over a
+    // healthy app — for a failed/undeployed/deploying app there is nothing
+    // usable behind it to go back to.
+    const cameFromHealthyApp = showSecrets && !needsSetup && !deployFailed && !deployInProgress;
     return (
       <div className={s.setupPage}>
         <div className={s.setupContent}>
-          {!needsSetup && (
+          {cameFromHealthyApp && (
             <button type="button" className={s.backLink} onClick={closeSecrets} disabled={isRedeploying}>
               <ArrowBackIcon width={16} height={16} />
               Back to app
@@ -172,12 +184,22 @@ export function AiAppDetailPage(props: Props) {
             </div>
             {app.description && <p className={s.setupDescription}>{app.description}</p>}
             {app.status === 'ERROR' && app.notes && <p className={s.setupError}>Last deploy failed: {app.notes}</p>}
-            {isCreator ? (
+            {deployInProgress ? (
+              <div className={s.progress}>
+                <div className={s.progressBar}>
+                  <div className={s.progressIndicator} />
+                </div>
+                <p className={s.progressText}>
+                  A deploy is in progress — this page updates automatically once it finishes.
+                </p>
+              </div>
+            ) : isCreator ? (
               <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} onDeploySucceeded={closeSecrets} />
             ) : (
               <p className={s.setupInfo}>
-                This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values
-                and deploy it.
+                {deployFailed
+                  ? `The last deploy of this app failed. Only ${app.member?.name ?? 'its creator'} or an admin can retry it.`
+                  : `This app is not deployed yet. Only ${app.member?.name ?? 'its creator'} can provide the required values and deploy it.`}
               </p>
             )}
           </div>

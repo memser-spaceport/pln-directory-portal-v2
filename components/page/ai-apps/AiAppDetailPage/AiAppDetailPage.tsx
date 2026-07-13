@@ -6,6 +6,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { checkAiAppLive } from '@/services/ai-apps/ai-apps.service';
+import { ArrowBackIcon } from '@/components/icons';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
@@ -143,26 +144,38 @@ export function AiAppDetailPage(props: Props) {
   // login cookie's uid can go stale (e.g. after a dev DB reseed).
   const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
 
-  if (needsSetup) {
+  // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
+  // for a healthy, running app whose creator opted into updating its secrets
+  // (showSecrets) — same centered card either way, so a voluntary redeploy
+  // gets the identical experience to a first deploy or a failed one.
+  if (needsSetup || showSecrets) {
     return (
       <div className={s.setupPage}>
-        <div className={s.setupCard}>
-          <div className={s.setupHeader}>
-            <h1 className={s.setupTitle}>{app.name}</h1>
-            <span className={s.statusBadge} data-status={app.status}>
-              {SETUP_STATUS_LABELS[app.status] ?? app.status}
-            </span>
-          </div>
-          {app.description && <p className={s.setupDescription}>{app.description}</p>}
-          {app.status === 'ERROR' && app.notes && <p className={s.setupError}>Last deploy failed: {app.notes}</p>}
-          {isCreator ? (
-            <AppSecretsPanel app={app} />
-          ) : (
-            <p className={s.setupInfo}>
-              This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values and
-              deploy it.
-            </p>
+        <div className={s.setupContent}>
+          {!needsSetup && (
+            <button type="button" className={s.backLink} onClick={closeSecrets} disabled={isRedeploying}>
+              <ArrowBackIcon width={16} height={16} />
+              Back to app
+            </button>
           )}
+          <div className={s.setupCard}>
+            <div className={s.setupHeader}>
+              <h1 className={s.setupTitle}>{app.name}</h1>
+              <span className={s.statusBadge} data-status={app.status}>
+                {SETUP_STATUS_LABELS[app.status] ?? app.status}
+              </span>
+            </div>
+            {app.description && <p className={s.setupDescription}>{app.description}</p>}
+            {app.status === 'ERROR' && app.notes && <p className={s.setupError}>Last deploy failed: {app.notes}</p>}
+            {isCreator ? (
+              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} onDeploySucceeded={closeSecrets} />
+            ) : (
+              <p className={s.setupInfo}>
+                This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values
+                and deploy it.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     );

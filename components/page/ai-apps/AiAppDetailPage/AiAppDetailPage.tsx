@@ -66,17 +66,17 @@ export function AiAppDetailPage(props: Props) {
     analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
   }, [app, needsSetup, analytics]);
 
-  const handleSecretsToggle = () => {
-    // A deploy in flight owns the panel's error state — collapsing it mid-deploy
+  const openSecrets = () => {
+    if (!app) return;
+    analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
+    setShowSecrets(true);
+  };
+
+  const closeSecrets = () => {
+    // A deploy in flight owns the panel's error state — leaving mid-deploy
     // would unmount AppSecretsPanel and silently discard a failed-deploy error.
     if (isRedeploying) return;
-    setShowSecrets((wasOpen) => {
-      const next = !wasOpen;
-      if (next && app) {
-        analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
-      }
-      return next;
-    });
+    setShowSecrets(false);
   };
 
   useEffect(() => {
@@ -148,7 +148,11 @@ export function AiAppDetailPage(props: Props) {
   // login cookie's uid can go stale (e.g. after a dev DB reseed).
   const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
 
-  if (needsSetup) {
+  // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
+  // for a healthy, running app whose creator opted into updating its secrets
+  // (showSecrets) — same centered card either way, so a voluntary redeploy
+  // gets the identical experience to a first deploy or a failed one.
+  if (needsSetup || showSecrets) {
     return (
       <div className={s.setupPage}>
         <div className={s.setupCard}>
@@ -161,7 +165,14 @@ export function AiAppDetailPage(props: Props) {
           {app.description && <p className={s.setupDescription}>{app.description}</p>}
           {app.status === 'ERROR' && app.notes && <p className={s.setupError}>Last deploy failed: {app.notes}</p>}
           {isCreator ? (
-            <AppSecretsPanel app={app} />
+            <>
+              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} onDeploySucceeded={closeSecrets} />
+              {!needsSetup && (
+                <button type="button" className={s.secretsToggle} onClick={closeSecrets} disabled={isRedeploying}>
+                  Back to app
+                </button>
+              )}
+            </>
           ) : (
             <p className={s.setupInfo}>
               This app is not deployed yet. Only {app.member?.name ?? 'its creator'} can provide the required values and
@@ -236,14 +247,9 @@ export function AiAppDetailPage(props: Props) {
     <div className={s.root}>
       {isCreator && requiredEnvVars.length > 0 && (
         <div className={s.secretsBar}>
-          <button type="button" className={s.secretsToggle} onClick={handleSecretsToggle} disabled={isRedeploying}>
-            {showSecrets ? 'Hide secrets' : 'Update secrets & redeploy'}
+          <button type="button" className={s.secretsToggle} onClick={openSecrets}>
+            Update secrets & redeploy
           </button>
-          {showSecrets && (
-            <div className={s.secretsPanel}>
-              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
-            </div>
-          )}
         </div>
       )}
       {renderFrameArea()}

@@ -149,4 +149,41 @@ describe('AppSecretsPanel', () => {
     await waitFor(() => expect(screen.getByText('Sandbox rejected the key.')).toBeInTheDocument());
     expect(screen.getByPlaceholderText('Enter new value')).toHaveValue('new-secret');
   });
+
+  it('calls onDeploySucceeded only after a successful deploy, once the deploying flag has cleared', async () => {
+    const onDeploySucceeded = jest.fn();
+    const onDeployingChange = jest.fn();
+    mockDeployAiApp.mockResolvedValue({ app: buildApp(), error: null });
+
+    render(
+      <AppSecretsPanel
+        app={buildApp({ status: 'READY', providedEnvVars: ['PERPLEXITY_API_KEY'] })}
+        onDeployingChange={onDeployingChange}
+        onDeploySucceeded={onDeploySucceeded}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Re-deploy' }));
+
+    await waitFor(() => expect(onDeploySucceeded).toHaveBeenCalledTimes(1));
+    // onDeployingChange(false) must have already fired by the time onDeploySucceeded runs.
+    expect(onDeployingChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('does not call onDeploySucceeded when the deploy fails', async () => {
+    const onDeploySucceeded = jest.fn();
+    mockDeployAiApp.mockResolvedValue({ app: null, error: 'Sandbox rejected the key.' });
+
+    render(
+      <AppSecretsPanel
+        app={buildApp({ status: 'READY', providedEnvVars: ['PERPLEXITY_API_KEY'] })}
+        onDeploySucceeded={onDeploySucceeded}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Re-deploy' }));
+
+    await waitFor(() => expect(screen.getByText('Sandbox rejected the key.')).toBeInTheDocument());
+    expect(onDeploySucceeded).not.toHaveBeenCalled();
+  });
 });

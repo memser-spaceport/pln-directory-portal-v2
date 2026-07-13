@@ -14,6 +14,8 @@ interface Props {
   app: AiApp;
   /** Fires while a deploy is in flight, so the parent can hide the stale iframe. */
   onDeployingChange?: (deploying: boolean) => void;
+  /** Fires once a deploy succeeds and the refreshed app record is in the cache. */
+  onDeploySucceeded?: () => void;
 }
 
 /**
@@ -24,7 +26,7 @@ interface Props {
  * stored value".
  */
 export function AppSecretsPanel(props: Props) {
-  const { app, onDeployingChange } = props;
+  const { app, onDeployingChange, onDeploySucceeded } = props;
 
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
@@ -106,6 +108,12 @@ export function AppSecretsPanel(props: Props) {
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
     ]);
     setDeploying(false);
+    // Fire after the flag clears and the cache is fresh, so if the parent uses
+    // this to decide whether to reveal the running app again, it reads the
+    // app's post-deploy status rather than a stale pre-deploy snapshot.
+    if (!result.error) {
+      onDeploySucceeded?.();
+    }
   };
 
   return (

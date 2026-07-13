@@ -51,7 +51,7 @@ export interface GantryItem {
   acceptanceCriteria: string | null;
   stage: GantryStage;
   focusArea: string | null;
-  objective: { uid: string; order: number; title: string } | null;
+  objectives: { uid: string; order: number; title: string }[];
   tags: string[] | null;
   type: GantryItemType | null;
   order: number | null;
@@ -80,7 +80,7 @@ export interface GantryItemListResponse {
 export interface GantryListParams {
   stage?: GantryStage[];
   focusArea?: string;
-  objectiveUid?: string;
+  objectiveUid?: string[];
   sort?: 'default' | 'trending' | 'top_pins' | 'newest';
   tags?: string[];
   type?: string[];
@@ -108,7 +108,7 @@ export interface ApiGantryDraft {
   tags: string[];
   type: string | null;
   stage: string | null;
-  objectiveUid: string | null;
+  objectiveUids: string[];
   newObjectiveTitle: string | null;
   showCreateObjective: boolean;
   updatedAt: string;
@@ -121,7 +121,7 @@ export interface ApiGantryDraftPayload {
   tags?: string[];
   type?: string | null;
   stage?: string | null;
-  objectiveUid?: string | null;
+  objectiveUids?: string[];
   newObjectiveTitle?: string | null;
   showCreateObjective?: boolean;
 }
@@ -131,7 +131,6 @@ export interface UpdateGantryItemPayload {
   description?: string;
   acceptanceCriteria?: string | null;
   focusArea?: string | null;
-  objectiveUid?: string | null;
   externalTrackerUrl?: string | null;
   tags?: string[];
   type?: GantryItemType | null;

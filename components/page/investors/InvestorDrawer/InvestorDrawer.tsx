@@ -372,7 +372,7 @@ export function InvestorDrawer({ access }: Props) {
 
             {(investor.has_path || investor.best_proximity_code) && (
               <div className={s.section}>
-                <h3 className={s.sectionTitle}>Warm paths</h3>
+                <h3 className={s.sectionTitle}>Path</h3>
                 <WarmPathDetail
                   key={investor.investor_id} // remount per investor to reset viewedRef and re-fire trackPathsViewed
                   investorId={investor.investor_id}

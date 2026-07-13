@@ -17,7 +17,7 @@ function draftToApiPayload(variant: SubmitIdeaModalVariant, draft: SubmitIdeaDra
     tags: draft.form.tags?.map((o) => o.value) ?? [],
     type: draft.form.type?.value ?? null,
     stage: draft.form.stage?.value ?? null,
-    objectiveUid: draft.form.objective?.value ?? null,
+    objectiveUids: draft.form.objectives?.map((o) => o.value) ?? [],
     newObjectiveTitle: draft.newObjectiveTitle || null,
     showCreateObjective: draft.showCreateObjective,
   };
@@ -33,7 +33,7 @@ function apiDraftToDraft(api: ApiGantryDraft): SubmitIdeaDraft {
       stage: api.stage
         ? { label: GANTRY_STAGE_LABELS[api.stage as GantryStage] ?? api.stage, value: api.stage }
         : null,
-      objective: api.objectiveUid ? { label: '', value: api.objectiveUid } : null,
+      objectives: (api.objectiveUids ?? []).map((uid) => ({ label: '', value: uid })),
     },
     showCreateObjective: api.showCreateObjective ?? false,
     newObjectiveTitle: api.newObjectiveTitle ?? '',

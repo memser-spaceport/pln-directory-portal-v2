@@ -26,8 +26,14 @@
 
 .header {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+  }
 }
 
 .titleBlock {

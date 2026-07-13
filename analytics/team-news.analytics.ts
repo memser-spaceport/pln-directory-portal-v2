@@ -1,9 +1,9 @@
 import { TEAM_NEWS_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
-import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
-export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal';
+export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal' | 'news-rail';
 
 export const useTeamNewsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -122,6 +122,33 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsUpvoteToggled = (
+    item: ITeamNewsItem,
+    position: number,
+    nextState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_UPVOTE_TOGGLED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      nextState,
+      position,
+      source,
+    });
+  };
+
+  const onTeamNewsPopularStoryClicked = (item: ITeamNewsPopularItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      upvoteCount: item.upvoteCount,
+      position,
+      source: 'news-rail' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onTeamNewsSearch = (
     searchValue: string,
     resultCount: number,
@@ -147,5 +174,7 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,
     onTeamNewsSearch,
+    onTeamNewsUpvoteToggled,
+    onTeamNewsPopularStoryClicked,
   };
 };

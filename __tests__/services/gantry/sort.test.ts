@@ -8,7 +8,7 @@ const baseItem = (overrides: Partial<GantryItem>): GantryItem => ({
   acceptanceCriteria: null,
   stage: 'IDEA',
   focusArea: null,
-  objective: null,
+  objectives: [],
   tags: null,
   type: null,
   order: null,

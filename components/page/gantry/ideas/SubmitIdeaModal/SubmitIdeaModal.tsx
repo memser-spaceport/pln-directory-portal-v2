@@ -3,17 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
+import { useQueryStates } from 'nuqs';
 
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
-import { FormSelect } from '@/components/form/FormSelect';
+import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { IdeaFormFields } from '@/components/page/gantry/shared/IdeaFormFields';
 import { useSubmitIdeaModalStore } from '@/services/gantry/store';
 import { useCreateGantryItem } from '@/services/gantry/hooks/useCreateGantryItem';
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
-import { assignGantryItemObjective } from '@/services/gantry/gantry.service';
+import { assignGantryItemObjectives } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
 import { getSubmitIdeaFormDefaults, SUBMIT_IDEA_MODAL_COPY } from '@/services/gantry/submitIdeaModal';
 import {
@@ -22,6 +22,7 @@ import {
   useGantrySaveDraftMutation,
 } from '@/services/gantry/hooks/useGantryDraft';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
+import { gantryDashboardParsers } from '@/app/gantry/dashboard/searchParams';
 import {
   submitIdeaSchema,
   hasRichTextContent,
@@ -41,7 +42,10 @@ interface Props {
 }
 
 export function SubmitIdeaModal({ objectives = [] }: Props) {
-  const router = useRouter();
+  const [, setDashboardParams] = useQueryStates(gantryDashboardParsers, {
+    history: 'push',
+    shallow: true,
+  });
   const analytics = useGantryAnalytics();
   const { open, variant, actions } = useSubmitIdeaModalStore();
   const copy = SUBMIT_IDEA_MODAL_COPY[variant];
@@ -60,11 +64,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
 
   const hasDraft = !!draftResult && !isSubmitIdeaDraftEmpty(draftResult.data);
 
-  const saveStatus = saveDraftMutation.isPending
-    ? 'saving'
-    : saveDraftMutation.isSuccess
-    ? 'saved'
-    : 'idle';
+  const saveStatus = saveDraftMutation.isPending ? 'saving' : saveDraftMutation.isSuccess ? 'saved' : 'idle';
 
   const methods = useForm<SubmitIdeaFormData>({
     resolver: yupResolver(submitIdeaSchema) as any,
@@ -91,7 +91,14 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     }
     skipSaveRef.current = true;
     if (draftResult && !isSubmitIdeaDraftEmpty(draftResult.data)) {
-      reset(draftResult.data.form);
+      const form = {
+        ...draftResult.data.form,
+        objectives: (draftResult.data.form.objectives ?? []).map((opt) => {
+          const match = objectives.find((o) => o.uid === opt.value);
+          return match ? { label: `O${match.order} · ${match.title}`, value: match.uid } : opt;
+        }),
+      };
+      reset(form);
       setShowCreateObjective(draftResult.data.showCreateObjective ?? false);
       setNewObjectiveTitle(draftResult.data.newObjectiveTitle ?? '');
     } else {
@@ -99,17 +106,22 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
       setShowCreateObjective(false);
       setNewObjectiveTitle('');
     }
-    const id = window.setTimeout(() => { skipSaveRef.current = false; }, 0);
+    const id = window.setTimeout(() => {
+      skipSaveRef.current = false;
+    }, 0);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, variant]);
 
   // Autosave draft while modal is open
-  const toDraft = useCallback((): SubmitIdeaDraft => ({
-    form: getValues(),
-    showCreateObjective,
-    newObjectiveTitle,
-  }), [getValues, showCreateObjective, newObjectiveTitle]);
+  const toDraft = useCallback(
+    (): SubmitIdeaDraft => ({
+      form: getValues(),
+      showCreateObjective,
+      newObjectiveTitle,
+    }),
+    [getValues, showCreateObjective, newObjectiveTitle],
+  );
 
   useEffect(() => {
     if (!open || skipSaveRef.current) return;
@@ -159,15 +171,13 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
       {
         onSuccess: async (created) => {
           const pendingTitle = newObjectiveTitle.trim();
-          if (pendingTitle) {
+          const objectiveUids = data.objectives?.map((o) => o.value) ?? [];
+          if (pendingTitle || objectiveUids.length > 0) {
             try {
-              await assignGantryItemObjective(created.uid, { title: pendingTitle });
-            } catch {
-              // non-fatal
-            }
-          } else if (data.objective?.value) {
-            try {
-              await assignGantryItemObjective(created.uid, { objectiveUid: data.objective.value });
+              await assignGantryItemObjectives(created.uid, {
+                objectiveUids,
+                ...(pendingTitle ? { titles: [pendingTitle] } : {}),
+              });
             } catch {
               // non-fatal
             }
@@ -178,7 +188,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
           setShowCreateObjective(false);
           setNewObjectiveTitle('');
           actions.closeModal();
-          router.push(`/gantry/${created.uid}`);
+          void setDashboardParams({ itemId: created.uid });
         },
       },
     );
@@ -206,23 +216,20 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
               <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
               {canCurate && (
                 <div className={s.objectiveField}>
-                  <FormSelect
-                    name="objective"
-                    label="Objective"
-                    placeholder="Select an objective..."
+                  <FormMultiSelect
+                    name="objectives"
+                    label="Objectives"
+                    placeholder="Select objectives..."
                     options={objectiveOptions}
-                    isClearable
                     menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                    onChange={() => {
-                      setShowCreateObjective(false);
-                      setNewObjectiveTitle('');
-                    }}
                   />
                   {!showCreateObjective ? (
                     <button
                       type="button"
                       className={s.objectiveCreateBtn}
-                      onClick={() => { setShowCreateObjective(true); }}
+                      onClick={() => {
+                        setShowCreateObjective(true);
+                      }}
                     >
                       + New objective
                     </button>

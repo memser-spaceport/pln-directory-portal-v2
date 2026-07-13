@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Select from 'react-select';
-import { useAssignGantryItemObjective } from '@/services/gantry/hooks/useAssignGantryItemObjective';
+import { useAssignGantryItemObjectives } from '@/services/gantry/hooks/useAssignGantryItemObjective';
 import type { GantryItem, GantryObjective } from '@/services/gantry/types';
 import s from './ObjectiveSelector.module.scss';
 
@@ -42,22 +42,20 @@ export function ObjectiveSelector({ item, canCurate, objectives, isLoadingObject
   const [isCreating, setIsCreating] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createError, setCreateError] = useState('');
-  const assign = useAssignGantryItemObjective(item.uid);
+  const assign = useAssignGantryItemObjectives(item.uid);
 
   const options: SelectOption[] = objectives.map((o) => ({
     label: `O${o.order} · ${o.title}`,
     value: o.uid,
   }));
 
-  const currentValue: SelectOption | null = item.objective
-    ? {
-        label: `O${item.objective.order} · ${item.objective.title}`,
-        value: item.objective.uid,
-      }
-    : null;
+  const currentValues: SelectOption[] = (item.objectives ?? []).map((o) => ({
+    label: `O${o.order} · ${o.title}`,
+    value: o.uid,
+  }));
 
-  const handleSelectChange = (option: SelectOption | null) => {
-    assign.mutate(option ? { objectiveUid: option.value } : { objectiveUid: null });
+  const handleSelectChange = (selected: readonly SelectOption[] | null) => {
+    assign.mutate({ objectiveUids: (selected ?? []).map((o) => o.value) });
   };
 
   const handleCreateConfirm = () => {
@@ -65,7 +63,10 @@ export function ObjectiveSelector({ item, canCurate, objectives, isLoadingObject
     if (!title) return;
     setCreateError('');
     assign.mutate(
-      { title },
+      {
+        objectiveUids: (item.objectives ?? []).map((o) => o.uid),
+        titles: [title],
+      },
       {
         onSuccess: () => {
           setIsCreating(false);
@@ -79,33 +80,40 @@ export function ObjectiveSelector({ item, canCurate, objectives, isLoadingObject
   };
 
   if (!canCurate) {
-    if (!item.objective) return null;
+    if (!item.objectives?.length) return null;
     return (
       <div className={s.readOnly}>
-        <span className={s.readOnlyLabel}>Objective</span>
-        <span className={s.badge}>{item.objective.title}</span>
+        <span className={s.readOnlyLabel}>Objectives</span>
+        <div className={s.badgeList}>
+          {item.objectives.map((o) => (
+            <span key={o.uid} className={s.badge}>
+              O{o.order} · {o.title}
+            </span>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className={s.root}>
-      <span className={s.label}>Objective</span>
+      <span className={s.label}>Objectives</span>
 
-      <Select<SelectOption>
+      <Select<SelectOption, true>
+        isMulti
         options={options}
-        value={currentValue}
+        value={currentValues}
         onChange={handleSelectChange}
         isClearable
         isLoading={isLoadingObjectives}
         isDisabled={assign.isPending}
-        placeholder="Select an objective..."
+        placeholder="Select objectives..."
         menuPlacement="auto"
         styles={SELECT_STYLES as any}
       />
 
       {assign.isError && !isCreating && (
-        <p className={s.error}>Failed to update objective. Please try again.</p>
+        <p className={s.error}>Failed to update objectives. Please try again.</p>
       )}
 
       {!isCreating ? (

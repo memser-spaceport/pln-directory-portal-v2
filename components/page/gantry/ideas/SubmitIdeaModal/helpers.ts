@@ -21,9 +21,9 @@ const typeSchema = yup
   .nullable()
   .optional();
 
-const objectiveSchema = yup
-  .object({ label: yup.string().required(), value: yup.string().required() })
-  .nullable()
+const objectivesSchema = yup
+  .array()
+  .of(yup.object({ label: yup.string().required(), value: yup.string().required() }))
   .optional();
 
 export const submitIdeaSchema = yup.object().shape({
@@ -48,7 +48,7 @@ export const submitIdeaSchema = yup.object().shape({
     .optional(),
   tags: tagsSchema,
   type: typeSchema,
-  objective: objectiveSchema,
+  objectives: objectivesSchema,
 });
 
 export const editIdeaSchema = yup.object().shape({
@@ -67,7 +67,7 @@ export interface SubmitIdeaFormData {
   stage?: Option | null;
   tags?: Option[];
   type?: Option | null;
-  objective?: Option | null;
+  objectives?: Option[];
 }
 
 export type SubmitIdeaDraft = {
@@ -84,7 +84,7 @@ export function isSubmitIdeaDraftEmpty(draft: SubmitIdeaDraft): boolean {
     !hasRichTextContent(form.description) &&
     !(form.tags?.length) &&
     !form.type &&
-    !form.objective &&
+    !(form.objectives?.length) &&
     !(newObjectiveTitle ?? '').trim() &&
     !showCreateObjective
   );

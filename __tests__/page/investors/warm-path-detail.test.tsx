@@ -199,6 +199,58 @@ describe('pending corrections display', () => {
   });
 });
 
+describe('WarmPathDetail path warmth and attribution', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows Path warmth % on proximity badge and attribution bullets', () => {
+    mockPaths.mockReturnValue([
+      path({
+        id: 10,
+        rank: 1,
+        score: 0.72,
+        hop_chain: {
+          nodes: [],
+          edges: [],
+          explanation: 'Filecoin ecosystem investor.',
+          attribution_lines: [
+            { source: 'Affinity', text: 'Brad Holden last emailed ~4 months ago (tie 0.10)' },
+            { source: 'LinkedIn', text: 'Lacey and Dan worked at Eniac Ventures (2021–2022)' },
+          ],
+        },
+      }),
+    ]);
+    render(<WarmPathDetail investorId="inv-1" canEdit={false} />);
+    expect(screen.getByText('72%')).toBeInTheDocument();
+    expect(screen.getByText('Best path')).toBeInTheDocument();
+    expect(screen.getByText('How strong this intro route is')).toBeInTheDocument();
+    expect(screen.getByText('Filecoin ecosystem investor.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Affinity: Brad Holden last emailed ~4 months ago (tie 0.10)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('LinkedIn: Lacey and Dan worked at Eniac Ventures (2021–2022)'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'About path warmth' })).not.toBeInTheDocument();
+  });
+
+  it('falls back to explanation when attribution_lines are absent', () => {
+    mockPaths.mockReturnValue([
+      path({
+        id: 10,
+        hop_chain: {
+          nodes: [],
+          edges: [],
+          explanation: 'Legacy blob with Best connector: Brad Holden.',
+        },
+      }),
+    ]);
+    render(<WarmPathDetail investorId="inv-1" canEdit={false} />);
+    expect(screen.getByText('Legacy blob with Best connector: Brad Holden.')).toBeInTheDocument();
+  });
+});
+
 describe('WarmPathDetail contact details toggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -215,7 +267,12 @@ describe('WarmPathDetail contact details toggle', () => {
           explanation: '',
           routeNodes: [{ label: 'Alice', variant: 'member' }],
         },
-        contact: { name: 'Alicia Mer', member_uid: 'alicia-mer', email: 'alicia@modularglobe.xyz' },
+        contact: {
+          name: 'Alicia Mer',
+          member_uid: 'alicia-mer',
+          email: 'alicia@modularglobe.xyz',
+          linkedin_url: 'https://www.linkedin.com/in/alicia-mer',
+        },
       }),
     ]);
     render(<WarmPathDetail investorId="inv-1" canEdit />);
@@ -223,6 +280,10 @@ describe('WarmPathDetail contact details toggle', () => {
     expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
     expect(screen.getByText('alicia@modularglobe.xyz')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'LinkedIn' })).toHaveAttribute(
+      'href',
+      'https://www.linkedin.com/in/alicia-mer',
+    );
     fireEvent.click(screen.getByRole('button', { name: /Contact details/i }));
     expect(screen.queryByText('alicia@modularglobe.xyz')).not.toBeInTheDocument();
   });

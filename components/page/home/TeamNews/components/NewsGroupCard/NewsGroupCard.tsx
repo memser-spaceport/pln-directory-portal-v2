@@ -13,6 +13,7 @@ import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
 import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
+import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsGroupCard.module.scss';
@@ -25,6 +26,7 @@ interface NewsGroupCardProps {
   analyticsSource?: TeamNewsAnalyticsSource;
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
+  onUpvoteToggle?: (item: ITeamNewsItem) => void;
 }
 
 export function NewsGroupCard({
@@ -33,6 +35,7 @@ export function NewsGroupCard({
   analyticsSource = 'home',
   isFollowing = false,
   onFollowToggle,
+  onUpvoteToggle,
 }: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
@@ -45,6 +48,14 @@ export function NewsGroupCard({
       return;
     }
     onFollowToggle?.(cluster.teamUid, cluster.teamName, isFollowing);
+  };
+
+  const handleUpvoteClick = (story: ITeamNewsItem) => {
+    if (!currentUser) {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+      return;
+    }
+    onUpvoteToggle?.(story);
   };
 
   // Memoized: reuses the same string-comparison sort as the rest of the
@@ -114,10 +125,17 @@ export function NewsGroupCard({
                 <span className={newsCardStyles.sep} aria-hidden="true" />
                 <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
               </div>
-              {/* `position` is this story's own index within its card, not the
-                  card's index — see TeamNews.tsx's handleCardClick for the
-                  card-level position used in onTeamNewsCardClicked. */}
-              <StartConversationButton item={story} position={storyIndex} analyticsSource={analyticsSource} />
+              <div className={newsCardStyles.actions}>
+                <UpvoteButton
+                  count={story.upvoteCount ?? 0}
+                  voted={Boolean(story.viewerHasUpvoted)}
+                  onToggle={() => handleUpvoteClick(story)}
+                />
+                {/* `position` is this story's own index within its card, not the
+                    card's index — see TeamNews.tsx's handleCardClick for the
+                    card-level position used in onTeamNewsCardClicked. */}
+                <StartConversationButton item={story} position={storyIndex} analyticsSource={analyticsSource} />
+              </div>
             </div>
           </div>
         );

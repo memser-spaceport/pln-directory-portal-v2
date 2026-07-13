@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import Image from 'next/image';
 
 import s from './ConfirmDialog.module.css';
@@ -14,6 +14,17 @@ interface Props {
 }
 
 export const ConfirmDialog: FC<Props> = ({ title, desc, onClose, isOpen, onConfirm, confirmTitle, disabled }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      onClose();
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [isOpen, onClose]);
+
   return (
     <>
       {isOpen && (

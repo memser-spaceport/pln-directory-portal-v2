@@ -16,6 +16,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/gantry-priority-support/GantryPrioritySupportPrototype'),
   },
   {
+    key: 'gantry-impact-rating',
+    title: 'Gantry — impact rating',
+    description:
+      "A free, unlimited crowd rating of an item's impact on Gantry objectives, shown as a second axis alongside Boost (demand). Two variants: overall score, and overall + optional per-objective.",
+    category: 'Gantry',
+    load: () => import('./entries/gantry-impact-rating/GantryImpactRatingPrototype'),
+  },
+  {
     key: 'gantry-saved-draft-item',
     title: 'Gantry saved draft item',
     description: 'Mocked autosave visibility flow for a single Gantry item draft shown in filters.',
@@ -65,7 +73,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   {
     key: 'warm-path-states',
     title: 'Warm path — states reference',
-    description: 'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
+    description:
+      'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },

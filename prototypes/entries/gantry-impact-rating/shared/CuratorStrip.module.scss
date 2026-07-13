@@ -1,0 +1,122 @@
+.strip {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(27, 77, 255, 0.04);
+  border: 1px dashed rgba(27, 77, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stripLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quadrant {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #fff;
+}
+
+.q_do-first {
+  background: var(--foreground-success-primary, #0a9952);
+}
+
+.q_manage {
+  background: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.q_evangelize {
+  background: var(--foreground-brand-primary, #1b4dff);
+}
+
+.q_backlog {
+  background: var(--foreground-neutral-secondary, #455468);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.dim {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.divider {
+  width: 1px;
+  height: 12px;
+  background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.objectives {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.objectiveRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.objectiveBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.objectiveTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.objectiveAvg {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}

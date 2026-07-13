@@ -1,0 +1,78 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.wrapCompact {
+  gap: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.segments {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.segment {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.segmentActive {
+  background: #fff;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// Selected level gets a value-coded left accent (minor → major).
+.seg_low.segmentActive {
+  box-shadow: inset 3px 0 0 var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.seg_medium.segmentActive {
+  box-shadow: inset 3px 0 0 var(--foreground-brand-primary, #1b4dff);
+}
+
+.seg_high.segmentActive {
+  box-shadow: inset 3px 0 0 var(--foreground-success-primary, #0a9952);
+}
+
+.meta {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.metaDim {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

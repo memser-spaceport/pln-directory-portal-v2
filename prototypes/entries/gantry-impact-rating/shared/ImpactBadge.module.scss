@@ -1,0 +1,38 @@
+// Quiet read-only stat, matching the visual weight of the boost readStat pill
+// (Shared.module.scss) so demand + impact read as sibling signals.
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  cursor: default;
+  white-space: nowrap;
+}
+
+// You've rated → subtle brand tint (same family as the Boosted state, quieter).
+.badgeRated {
+  border-color: rgba(27, 77, 255, 0.24);
+  background: rgba(27, 77, 255, 0.06);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.avg {
+  font-variant-numeric: tabular-nums;
+}
+
+.count {
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-variant-numeric: tabular-nums;
+}
+
+.badgeRated .count {
+  color: rgba(27, 77, 255, 0.65);
+}

@@ -1,6 +1,7 @@
 'use client';
 import { type MouseEvent } from 'react';
 import Link from 'next/link';
+import { clsx } from 'clsx';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -104,7 +105,9 @@ export function AiAppCard(props: Props) {
 
   return (
     <article className={s.root}>
-      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={s.body} onClick={handleCardClick}>
+      {/* stretchedLink expands the hit area to the whole card (the card can't BE
+          the link — the footer holds a nested author link). */}
+      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={clsx(s.body, s.stretchedLink)} onClick={handleCardClick}>
         {body}
       </Link>
       {footer}

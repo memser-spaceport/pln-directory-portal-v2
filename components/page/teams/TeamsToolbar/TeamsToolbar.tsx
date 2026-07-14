@@ -10,7 +10,6 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
 import { useTeamFilterStore } from '@/services/teams';
-import { TeamsScopeTabs } from '@/components/page/teams/TeamsScopeTabs';
 import s from './TeamsToolbar.module.scss';
 
 const TEAMS_SORT_OPTIONS = [

@@ -33,25 +33,6 @@ export async function fetchTeamNewsByTeam(
   options: FetchTeamNewsByTeamOptions = {},
   authToken?: string,
 ): Promise<ITeamNewsByTeamResponse | null> {
-  // TEMP-VERIFY: local visual verification only — REMOVE BEFORE COMMIT
-  {
-    const page = options.page ?? 1;
-    const limit = options.limit ?? TEAM_NEWS_PREVIEW_LIMIT;
-    const q = options.q?.trim().toLowerCase() ?? '';
-    const all = MOCK_TEAM_NEWS_GROUPED_RESPONSE.groups
-      .flatMap((g) => g.items)
-      .filter((i, idx, arr) => arr.findIndex((x) => x.uid === i.uid) === idx)
-      .filter((i) => !q || i.title.toLowerCase().includes(q));
-    return {
-      teamUid,
-      teamName: 'Protocol Labs',
-      page,
-      limit,
-      total: all.length,
-      items: all.slice((page - 1) * limit, page * limit),
-    } as ITeamNewsByTeamResponse;
-  }
-  // eslint-disable-next-line no-unreachable
   const url = buildTeamNewsByTeamUrl(teamUid, options);
 
   try {

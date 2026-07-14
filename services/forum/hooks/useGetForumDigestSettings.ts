@@ -6,6 +6,7 @@ import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 export type ForumDigestSettings = {
   forumDigestEnabled: boolean;
   forumDigestFrequency: 1 | 7;
+  forumDigestForumEnabled: boolean;
   forumDigestNewsEnabled: boolean;
   forumDigestLastSentAt: null;
   memberExternalId: null;

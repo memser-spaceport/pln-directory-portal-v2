@@ -34,7 +34,9 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   const router = useRouter();
   const { isInvestor: v2IsInvestor } = useInvestorAccess();
   const { currentUser } = useCurrentUserStore();
-  const hasDigestAccess = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.read');
+  // The digest itself is available to everyone; forum access only controls
+  // whether the "Forum activity" content type can be enabled inside it.
+  const hasForumAccess = Boolean(currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'forum.read'));
 
   useEffect(() => {
     triggerLoader(false);
@@ -57,7 +59,7 @@ export const EmailPreferencesForm = ({ uid, userInfo, initialData }: Props) => {
   return (
     <div className={s.root}>
       <h5 className={s.title}>Email Preferences</h5>
-      {hasDigestAccess && <ForumDigest userInfo={userInfo} initialData={initialData.settings} />}
+      <ForumDigest userInfo={userInfo} initialData={initialData.settings} hasForumAccess={hasForumAccess} />
       {!v2IsInvestor && <Newsletter userInfo={userInfo} initialData={initialData.memberInfo} />}
       <DemoDayUpdates userInfo={userInfo} initialData={initialData.demoDaySubscription} />
       <InvestorCommunications

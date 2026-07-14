@@ -26,21 +26,29 @@ const options = [
   {
     label: 'No Digest',
     value: 'no_digest',
-    description: 'Don’t receive forum digests by email.',
+    description: 'Don’t receive digest emails.',
   },
   {
     label: 'Daily Digest',
     value: 'daily_digest',
-    description: 'New and trending posts every day.',
+    description: 'A summary of what’s new every day.',
   },
   {
     label: 'Weekly Digest',
     value: 'weekly_digest',
-    description: 'Top discussions and replies every week.',
+    description: 'A summary of what’s new every week.',
   },
 ];
 
-export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; initialData: ForumDigestSettings }) => {
+export const ForumDigest = ({
+  userInfo,
+  initialData,
+  hasForumAccess,
+}: {
+  userInfo: IUserInfo;
+  initialData: ForumDigestSettings;
+  hasForumAccess: boolean;
+}) => {
   const { mutate } = useUpdateForumDigestSettings();
   const { data } = useGetForumDigestSettings(userInfo.uid, initialData);
   const analytics = useSettingsAnalytics();
@@ -161,12 +169,28 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
     analytics.onForumDigestNetworkNewsToggleClicked({ forumDigestNewsEnabled: checked });
   };
 
+  const handleForumChange = (checked: boolean) => {
+    if (!userInfo.uid || !data || !hasForumAccess) {
+      return;
+    }
+
+    mutate({
+      uid: userInfo.uid,
+      payload: {
+        ...data,
+        forumDigestForumEnabled: checked,
+      },
+    });
+
+    analytics.onForumDigestForumActivityToggleClicked({ forumDigestForumEnabled: checked });
+  };
+
   return (
     <div className={s.root}>
-      <div className={s.header}>Forum Digest</div>
+      <div className={s.header}>Digest</div>
       <div className={s.content}>
         <Field.Root className={s.field}>
-          <Field.Label className={clsx(s.label)}>Email me about forum activity:</Field.Label>
+          <Field.Label className={clsx(s.label)}>Email me a digest:</Field.Label>
           <Select
             menuPlacement="auto"
             placeholder="Select frequency"
@@ -267,23 +291,44 @@ export const ForumDigest = ({ userInfo, initialData }: { userInfo: IUserInfo; in
           />
         </Field.Root>
         {data?.forumDigestEnabled && (
-          <div className={s.toggleSection}>
-            <label className={clsx(s.Label, s.toggle)}>
-              Include Network News
-              <Switch.Root
-                className={s.Switch}
-                checked={data?.forumDigestNewsEnabled ?? true}
-                onCheckedChange={handleNewsChange}
-              >
-                <Switch.Thumb className={s.Thumb}>
-                  <div className={s.dot} />
-                </Switch.Thumb>
-              </Switch.Root>
-            </label>
-            <div className={s.desc}>
-              Get the latest news from teams across the network included in your digest email.
+          <>
+            {/* Forum activity is hard-gated on forum access: without it the
+                toggle is rendered disabled and always off, and the backend
+                never includes forum posts in the digest either way. */}
+            <div className={s.toggleSection}>
+              <label className={clsx(s.Label, s.toggle)}>
+                Forum activity
+                <Switch.Root
+                  className={s.Switch}
+                  checked={hasForumAccess && (data?.forumDigestForumEnabled ?? true)}
+                  disabled={!hasForumAccess}
+                  onCheckedChange={handleForumChange}
+                >
+                  <Switch.Thumb className={s.Thumb}>
+                    <div className={s.dot} />
+                  </Switch.Thumb>
+                </Switch.Root>
+              </label>
+              <div className={s.desc}>Discussions, replies, and trending posts from the forum.</div>
             </div>
-          </div>
+            <div className={s.toggleSection}>
+              <label className={clsx(s.Label, s.toggle)}>
+                Network news
+                <Switch.Root
+                  className={s.Switch}
+                  checked={data?.forumDigestNewsEnabled ?? true}
+                  onCheckedChange={handleNewsChange}
+                >
+                  <Switch.Thumb className={s.Thumb}>
+                    <div className={s.dot} />
+                  </Switch.Thumb>
+                </Switch.Root>
+              </label>
+              <div className={s.desc}>
+                Funding, launches, partnerships, and milestones from teams across the network.
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

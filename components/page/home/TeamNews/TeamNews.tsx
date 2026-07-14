@@ -41,7 +41,6 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 import s from './TeamNews.module.scss';
 
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
-import { toast } from '@/components/core/ToastContainer';
 
 // DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
 // a forwarded ref, so this is the only way to read its live (undebounced)
@@ -186,7 +185,6 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     setActiveTab(id);
     setActiveCategory(ALL_CAT);
     setExpanded(false);
-    toast.success('Your details have been updated!', { autoClose: false });
   };
 
   const handleCategory = (id: TeamNewsCategoryId) => {

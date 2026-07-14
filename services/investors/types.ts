@@ -277,6 +277,8 @@ export type ListMembersParams = {
    *  filter to members reachable through that connector across the whole list. */
   connector_labels?: string[];
   connector_labels_contains?: string[];
+  /** Person vs org field partition for connectorLabels. Omit for legacy all-fields OR. */
+  connector_match_kind?: 'person' | 'org';
   /** Facets-based filters: PL member names/uids, founder names/uids, flags. */
   pl_member_uids?: string[];
   founder_uids?: string[];

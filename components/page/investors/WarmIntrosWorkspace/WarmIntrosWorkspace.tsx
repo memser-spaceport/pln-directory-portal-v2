@@ -159,6 +159,10 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const connectorExactLabels =
     filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
   const connectorContainsLabels = filters.wi_connector_contains;
+  const connectorMatchKind =
+    filters.wi_connector_kind === 'person' || filters.wi_connector_kind === 'org'
+      ? filters.wi_connector_kind
+      : undefined;
 
   const pathSource =
     filters.wi_source === 'affinity' || filters.wi_source === 'linkedin' ? filters.wi_source : undefined;
@@ -171,6 +175,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       check_size_range: filters.wi_check_size ? [filters.wi_check_size as CheckSizeRange] : undefined,
       connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
       connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
+      connector_match_kind: connectorMatchKind,
       pl_member_uids: filters.wi_pl_members.length ? filters.wi_pl_members : undefined,
       founder_names: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
       any_founder: filters.wi_any_founder ?? undefined,

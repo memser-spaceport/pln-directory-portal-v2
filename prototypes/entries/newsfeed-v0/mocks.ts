@@ -219,13 +219,34 @@ export interface SuggestedTeam {
   uid: string;
   name: string;
   logo: string | null;
-  reason: string;
+  /** 1-line team description, shown under the name in place of the industry. */
+  description: string;
+  /** Follower-count badge kept beneath the description. */
+  followers: string;
 }
 
 export const SUGGESTED_TEAMS: SuggestedTeam[] = [
-  { uid: 'banyan-storage', name: 'Banyan Storage', logo: '/icons/technology/ipld.svg', reason: 'Storage · 1.2k followers' },
-  { uid: 'helia-labs', name: 'Helia Labs', logo: '/icons/technology/sourcecred.svg', reason: 'Infrastructure · 890 followers' },
-  { uid: 'textile', name: 'Textile', logo: null, reason: 'Networking · 640 followers' },
+  {
+    uid: 'banyan-storage',
+    name: 'Banyan Storage',
+    logo: '/icons/technology/ipld.svg',
+    description: 'Decentralized hot storage for AI-scale datasets',
+    followers: '1.2k followers',
+  },
+  {
+    uid: 'helia-labs',
+    name: 'Helia Labs',
+    logo: '/icons/technology/sourcecred.svg',
+    description: 'Lean, modular IPFS implementation for browsers and Node',
+    followers: '890 followers',
+  },
+  {
+    uid: 'textile',
+    name: 'Textile',
+    logo: null,
+    description: 'Developer tools for building on IPFS and Filecoin',
+    followers: '640 followers',
+  },
 ];
 
 // ---------- Focus Areas section (below the feed on the production home) ----------

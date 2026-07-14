@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 // Page frame only — the completed card sits on a light page background in production.
 // Everything inside reuses the real DemodayCompletedView.module.scss classes.
 .page {
@@ -5,4 +7,10 @@
   width: 100%;
   padding: 0 16px;
   background: var(--background-neutral-subtle, #f1f5f9);
+
+  // The reused DemodayCompletedView content already adds its own 16px gutter on
+  // mobile — drop the frame's padding so the cards don't get a double gutter.
+  @include media.mobile-only {
+    padding: 0;
+  }
 }

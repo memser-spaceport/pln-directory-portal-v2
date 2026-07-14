@@ -1,0 +1,82 @@
+// A numbered 1..N impact scale — every level's word is visible so the rating is
+// unmistakable. Selected level fills brand (DS pill active state).
+.scale {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.scaleBtn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 2px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 2px 6px -3px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: -0.01em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 0.14s ease;
+}
+
+.scaleBtnActive {
+  border-color: var(--action-background-brand-normal, #1b4dff);
+  background: linear-gradient(180deg, rgba(27, 77, 255, 0.09), rgba(27, 77, 255, 0.04));
+  box-shadow: 0 2px 8px -4px rgba(27, 77, 255, 0.22);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px -4px rgba(27, 77, 255, 0.26);
+  }
+
+  .num {
+    background: var(--action-background-brand-normal, #1b4dff);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(27, 77, 255, 0.3);
+    transform: scale(1.06);
+  }
+
+  .word {
+    color: var(--foreground-brand-primary, #1b4dff);
+    font-weight: 600;
+  }
+}

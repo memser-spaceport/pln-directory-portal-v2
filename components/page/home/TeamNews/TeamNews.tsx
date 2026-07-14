@@ -279,15 +279,18 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       isCurrentlyFollowing ? next.delete(teamUid) : next.add(teamUid);
       return next;
     });
+    const revert = () => {
+      setFollowedTeamUids((prev) => {
+        const next = new Set(prev);
+        isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
+        return next;
+      });
+    };
     followMutate(
       { teamUid, action },
       {
         onError: () => {
-          setFollowedTeamUids((prev) => {
-            const next = new Set(prev);
-            isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
-            return next;
-          });
+          revert();
           followAnalytics.onTeamFollowFailed({
             teamUid,
             teamName,
@@ -295,7 +298,14 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
             action,
           });
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // followTeam/unfollowTeam return null on non-OK responses instead of
+          // throwing, so onError only covers network failures — revert on null,
+          // matching useTeamFollowToggle and useToggleTeamFollowInList.
+          if (!data) {
+            revert();
+            return;
+          }
           if (action === 'follow') {
             followAnalytics.onTeamFollowed({ teamUid, teamName, source, ...meta });
           } else {

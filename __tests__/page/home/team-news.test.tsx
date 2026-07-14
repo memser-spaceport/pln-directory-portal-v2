@@ -64,6 +64,13 @@ jest.mock('@/services/team-news/hooks/useTeamNewsUpvoteToggle', () => ({
   useTeamNewsUpvoteToggle: () => ({ mutate: (...a: unknown[]) => mockUpvoteMutate(...a) }),
 }));
 
+// Same reason as above: the follow tests need to simulate the mutation outcome
+// (in particular the null-on-HTTP-failure contract of followTeam/unfollowTeam).
+const mockFollowMutate = jest.fn();
+jest.mock('@/services/follow/hooks/useFollowTeam', () => ({
+  useFollowTeam: () => ({ mutate: (...a: unknown[]) => mockFollowMutate(...a) }),
+}));
+
 const FA_AI = { uid: 'fa-ai', title: 'AI & Robotics' };
 const FA_DHR = { uid: 'fa-dhr', title: 'Digital Human Rights' };
 
@@ -752,6 +759,20 @@ describe('TeamNews', () => {
 
       expect(screen.getByRole('button', { name: 'Follow Zeta' })).toBeInTheDocument();
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']); // still pinned this session
+    });
+
+    it('reverts the button (but not the order) when the server rejects with a null response', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
+      expect(screen.getByRole('button', { name: 'Following Beta' })).toBeInTheDocument();
+
+      // followTeam/unfollowTeam resolve to null on non-OK responses instead of
+      // throwing — simulate that outcome manually (mockFollowMutate is a bare jest.fn()).
+      const options = mockFollowMutate.mock.calls[0][1];
+      act(() => options.onSuccess(null));
+
+      expect(screen.getByRole('button', { name: 'Follow Beta' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']); // frozen order untouched by the revert
     });
 
     it('a fresh mount applies the new follow order (simulates page reload)', () => {

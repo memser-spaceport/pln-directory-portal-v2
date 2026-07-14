@@ -353,6 +353,43 @@ export function WarmPathDetail({ investorId, bestProximityCode, canEdit, investo
 }
 
 function RouteNodeChip({ node }: { node: RouteNode }) {
+  if (node.variant === 'org') {
+    const orgInner = (
+      <>
+        <span className={s.rnAvatarWrap}>
+          {node.logo ? (
+            <img src={node.logo} alt={node.label} className={s.rnAvatarImg} />
+          ) : (
+            <span className={s.rnAvatarInitials}>
+              {node.label
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((w) => w[0]?.toUpperCase() ?? '')
+                .join('')}
+            </span>
+          )}
+        </span>
+        <span className={s.rnLabelCol}>
+          <span className={s.rnLabel}>{node.label}</span>
+        </span>
+        <span className={s.rnUnknown} aria-label="contact unknown">
+          ?
+        </span>
+      </>
+    );
+    if (node.teamUid) {
+      return (
+        <Link href={`/teams/${node.teamUid}`} className={s.rnChip} target="_blank" rel="noopener noreferrer">
+          {orgInner}
+          <span className={s.rnArrow} aria-hidden>
+            ↗
+          </span>
+        </Link>
+      );
+    }
+    return <span className={s.rnChip}>{orgInner}</span>;
+  }
+
   const initials = node.label
     .split(/\s+/)
     .slice(0, 2)
@@ -368,7 +405,10 @@ function RouteNodeChip({ node }: { node: RouteNode }) {
           <span className={s.rnAvatarInitials}>{initials}</span>
         )}
       </span>
-      <span className={s.rnLabel}>{node.label}</span>
+      <span className={s.rnLabelCol}>
+        <span className={s.rnLabel}>{node.label}</span>
+        {node.orgName ? <span className={s.rnOrgName}>{node.orgName}</span> : null}
+      </span>
     </>
   );
 

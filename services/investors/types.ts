@@ -421,10 +421,13 @@ export type RouteNode = {
   label: string;
   role?: string;
   email?: string;
-  variant: 'member' | 'external';
+  variant: 'member' | 'external' | 'org';
   imageUrl?: string;
   linkedin?: string;
   memberUid?: string;
+  orgName?: string;
+  logo?: string;
+  teamUid?: string;
   contacts?: Array<{
     name: string;
     role?: string;

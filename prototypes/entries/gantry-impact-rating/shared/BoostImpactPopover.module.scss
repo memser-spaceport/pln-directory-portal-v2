@@ -1,33 +1,51 @@
-// Only the impact-question additions live here — the popover chrome (backdrop, head,
+// Only the rating-layout additions live here — the popover chrome (backdrop, head,
 // textarea, actions, footer) is reused read-only from production PinNotePopover.module.scss.
 
-// Taller than production's note-only popover (per-objective rows) — never let it run
-// past the viewport.
-.popoverGuard {
+// Wider than production's note-only popover so the 1..5 scale fits on one row; capped height.
+.popover {
+  width: 372px;
+  max-width: calc(100vw - 24px);
   max-height: calc(100vh - 24px);
   overflow-y: auto;
 }
 
-.impactRow {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
+// Lead with the rating ask, larger than the production 14px title.
+.title {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.question {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .objectiveRows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px;
   border-radius: 9px;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.objectiveRowsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 .objectiveRow {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .objectiveLabel {
@@ -55,3 +73,37 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.noteBlock {
+  margin-top: 12px;
+}
+
+// The two DS Buttons split the actions row evenly.
+.actionBtn {
+  flex: 1;
+}
+
+// On narrow screens the anchored popover becomes a bottom sheet: docked full-width to the bottom,
+// rounded top only, ignoring the desktop anchor position. Doubled selector wins over the imported
+// popover chrome + local width without !important.
+.mobileSheet.mobileSheet {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 16px 16px 0 0;
+  animation: sheetUp 0.24s ease-out;
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+

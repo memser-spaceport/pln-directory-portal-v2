@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, SVGProps } from 'react';
 import { clsx } from 'clsx';
 
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
@@ -23,22 +23,30 @@ import roadmap from '@/components/page/gantry/roadmap/Roadmap.module.scss';
 import filterStyles from '@/components/page/gantry/shared/GantryFilters.module.scss';
 import { PrototypeRoadmapFilters } from '../gantry-saved-draft-item/PrototypeRoadmapFilters';
 
+import ideas from '@/components/page/gantry/ideas/Ideas.module.scss';
 import type { MockRoadmapItem } from './mocks';
-import { mockImpactObjectives, mockRoadmapItems } from './mocks';
+import { mockImpactObjectives } from './mocks';
 import { RoadmapImpactCard } from './RoadmapImpactCard';
+import { BoostImpactPopover } from './shared/BoostImpactPopover';
+import type { GantryDraft } from './shared/CreateItemModal';
+import { CreateItemModal } from './shared/CreateItemModal';
+import { ItemDrawer } from './shared/ItemDrawer';
+import { useBoardState } from './shared/useBoardState';
 import s from './GantryImpactRatingPrototype.module.scss';
 
 type Variant = 'overall' | 'per-objective';
 type Viewer = 'member' | 'curator';
-
-const VARIANT_OPTIONS: { id: Variant; label: string }[] = [
-  { id: 'overall', label: 'Overall score' },
-  { id: 'per-objective', label: 'Overall + per objective' },
-];
+import type { GoalMode } from './shared/impact';
 
 const VIEWER_OPTIONS: { id: Viewer; label: string }[] = [
   { id: 'member', label: 'Member' },
-  { id: 'curator', label: 'Curator' },
+  { id: 'curator', label: 'Team-only' },
+];
+
+// The two versions to compare: goal expressed as predefined objectives vs. as free-text user goal.
+const GOAL_OPTIONS: { id: GoalMode; label: string }[] = [
+  { id: 'reasoning', label: 'Reasoning' },
+  { id: 'objectives', label: 'Objectives' },
 ];
 
 function itemMatchesSearch(item: MockRoadmapItem, searchText: string): boolean {
@@ -54,6 +62,21 @@ function itemMatchesSearch(item: MockRoadmapItem, searchText: string): boolean {
     .join(' ')
     .toLowerCase();
   return haystack.includes(query);
+}
+
+// Pencil inside the "Resume draft" button — mirrors the gantry-saved-draft-item prototype.
+function ResumeIcon(props?: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 18 18" fill="none" aria-hidden {...props}>
+      <path
+        d="M11.6 3.4l3 3M4 14h3l7.6-7.6a1.4 1.4 0 0 0 0-2L13.6 3.4a1.4 1.4 0 0 0-2 0L4 11v3z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 function ArrowUpSmallIcon() {
@@ -108,9 +131,14 @@ export default function GantryImpactRatingPrototype() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedObjectives, setSelectedObjectives] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [variant, setVariant] = useState<Variant>('overall');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [draft, setDraft] = useState<GantryDraft | null>(null);
   const [viewer, setViewer] = useState<Viewer>('member');
+  const [goalMode, setGoalMode] = useState<GoalMode>('reasoning');
   const curatorView = viewer === 'curator';
+  // The objectives version rates impact toward each objective; the reasoning version is one score.
+  const variant: Variant = goalMode === 'objectives' ? 'per-objective' : 'overall';
+  const board = useBoardState(variant);
 
   // Client-only: this prototype reuses interactive production components (react-select, mobile nav)
   // whose markup differs pre-hydration. Gating on mount keeps SSR === first paint.
@@ -124,9 +152,10 @@ export default function GantryImpactRatingPrototype() {
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
     useRoadmapMobileNav(visibleColumns, isNarrow, mounted);
 
+  const boardItems = board.items;
   const filteredItems = useMemo(
     () =>
-      mockRoadmapItems.filter((item) => {
+      boardItems.filter((item) => {
         if (!visibleColumns.includes(item.stage as RoadmapColumnStage)) return false;
         if (selectedTags.length > 0 && !selectedTags.every((tag) => item.tags?.includes(tag))) return false;
         if (selectedTypes.length > 0 && (!item.type || !selectedTypes.includes(item.type))) return false;
@@ -134,7 +163,7 @@ export default function GantryImpactRatingPrototype() {
           return false;
         return itemMatchesSearch(item, searchText);
       }),
-    [searchText, selectedObjectives, selectedTags, selectedTypes, visibleColumns],
+    [boardItems, searchText, selectedObjectives, selectedTags, selectedTypes, visibleColumns],
   );
 
   const itemsByStage = useMemo(() => {
@@ -165,9 +194,9 @@ export default function GantryImpactRatingPrototype() {
 
   const boostStatusIndicator = (
     <div className={roadmap.boostStatusWrapper}>
-      <div className={roadmap.boostStatus} aria-label="3 of 3 boosts remaining">
+      <div className={roadmap.boostStatus} aria-label="10 of 10 boosts remaining">
         <ArrowUpSmallIcon />
-        <span className={roadmap.boostStatusText}>3 of 3 boosts left</span>
+        <span className={roadmap.boostStatusText}>10 of 10 boosts left</span>
         <span className={roadmap.boostDots} aria-hidden>
           <span className={roadmap.boostDot} />
           <span className={roadmap.boostDot} />
@@ -177,12 +206,22 @@ export default function GantryImpactRatingPrototype() {
     </div>
   );
 
-  const createButton = <IdeasSubmitButton label="Create Item" onClick={() => undefined} />;
+  const createButton = draft ? (
+    <button type="button" className={ideas.submitButton} onClick={() => setCreateOpen(true)}>
+      <ResumeIcon className={ideas.submitIcon} />
+      Resume draft
+    </button>
+  ) : (
+    <IdeasSubmitButton label="Create Item" onClick={() => setCreateOpen(true)} />
+  );
+
+  const popoverItem = board.popover ? board.items.find((i) => i.uid === board.popover?.uid) : undefined;
+  const drawerItem = board.drawerUid ? board.items.find((i) => i.uid === board.drawerUid) : undefined;
 
   const protoControls = (
     <div className={s.protoBar}>
       <span className={s.protoTag}>Prototype</span>
-      <Segmented label="Impact rating" value={variant} options={VARIANT_OPTIONS} onChange={setVariant} />
+      <Segmented label="Goal" value={goalMode} options={GOAL_OPTIONS} onChange={setGoalMode} />
       <Segmented label="View as" value={viewer} options={VIEWER_OPTIONS} onChange={setViewer} />
     </div>
   );
@@ -210,8 +249,11 @@ export default function GantryImpactRatingPrototype() {
           key={item.uid}
           item={item}
           position={item.order ?? undefined}
-          variant={variant}
+          viewer={board.state[item.uid]}
+          goalMode={goalMode}
           curatorView={curatorView}
+          onToggleBoost={board.toggleBoost}
+          onOpen={board.openDrawer}
         />
       ))
     ) : (
@@ -232,8 +274,8 @@ export default function GantryImpactRatingPrototype() {
             <div className={roadmap.titleSection}>
               <h1 className={roadmap.title}>Gantry</h1>
               <p className={roadmap.subtitle}>
-                Submit what you need, see what we&rsquo;re building. Every card now carries a second signal —{' '}
-                <strong>Impact on goals</strong> — rated in the moment you <strong>Boost</strong>.
+                Submit what you need, see what we&rsquo;re building. Boosting an item means rating its{' '}
+                <strong>impact on company goals</strong> — the score is visible to everyone.
               </p>
             </div>
             <div className={roadmap.actions}>
@@ -366,6 +408,44 @@ export default function GantryImpactRatingPrototype() {
           </div>
         </MobileDrawer>
       )}
+
+      {board.popover && popoverItem && (
+        <BoostImpactPopover
+          pos={{ top: board.popover.top, left: board.popover.left }}
+          objectives={variant === 'per-objective' ? popoverItem.objectives : undefined}
+          onSave={board.savePopoverRating}
+          onCancel={board.cancelPopover}
+        />
+      )}
+
+      {drawerItem && (
+        <ItemDrawer
+          item={drawerItem}
+          viewer={board.state[drawerItem.uid]}
+          goalMode={goalMode}
+          curatorView={curatorView}
+          onToggleBoost={board.toggleBoost}
+          onClose={board.closeDrawer}
+        />
+      )}
+
+      {board.toast && (
+        <div className={s.toast} role="status">
+          <span>{board.toast}</span>
+          <button type="button" className={s.toastClose} onClick={board.dismissToast} aria-label="Dismiss">
+            ×
+          </button>
+        </div>
+      )}
+
+      <CreateItemModal
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onPublish={board.publishItem}
+        draft={draft}
+        onDraftChange={setDraft}
+        goalMode={goalMode}
+      />
     </div>
   );
 }

@@ -420,10 +420,45 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Teams-to-follow rows sit flush with dividers between them, matching the
+   production NewsRail. Drop the card's inter-row gap so each row's own 10px
+   padding sets the rhythm and the border-bottom lands centered between rows. */
+.followRailCard.followRailCard {
+  gap: 0;
+
+  .railTitle {
+    margin-bottom: 4px;
+  }
+}
+
 .railRow {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+}
+
+/* Production's "Teams to follow" button reads "+ Follow": use the DS FollowButton's
+   default variant (the size that renders the + glyph) but strip its full-width,
+   40px-tall, bordered chrome so it stays the same inline blue text button as the
+   compact size. Colour is left to the component's own follow/following classes. */
+.railFollowBtn.railFollowBtn {
+  width: auto;
+  height: auto;
+  padding: 2px 6px;
+  gap: 4px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 18px;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-brand-8, #1b4dff14);
+  }
 }
 
 .railInfo {
@@ -451,6 +486,19 @@
   font-weight: 500;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 1-line team description under the name — reads as content, so it sits a step
+   darker than the follower-count meta below it. */
+.railDesc {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

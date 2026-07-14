@@ -2,51 +2,44 @@
 
 import { clsx } from 'clsx';
 import type { ImpactLevel } from '../mocks';
-import { IMPACT_LABELS, IMPACT_LEVELS } from '../mocks';
+import { IMPACT_LABELS, IMPACT_LEVELS, IMPACT_MAX, IMPACT_VALUE } from '../mocks';
 import s from './ImpactControl.module.scss';
 
 interface Props {
   readonly value: ImpactLevel | null;
   readonly onChange: (next: ImpactLevel) => void;
-  /** Community average (1..3) shown next to the control. */
-  readonly avgImpact: number | null;
-  readonly ratedByCount: number;
-  /** Compact variant for per-objective rows: hides the label + average line. */
-  readonly compact?: boolean;
   readonly label?: string;
 }
 
-export function ImpactControl({ value, onChange, avgImpact, ratedByCount, compact, label }: Props) {
+/**
+ * The one rating control — a numbered 1..N scale (No impact → High impact) so it reads
+ * unmistakably as "rate the impact". Used in the boost popover and the create modal.
+ */
+export function ImpactControl({ value, onChange, label }: Props) {
   return (
-    <div className={clsx(s.wrap, compact && s.wrapCompact)}>
-      {!compact && <span className={s.label}>{label ?? 'Impact on goals'}</span>}
-
-      <div className={s.segments} role="group" aria-label={label ?? 'Impact on goals'}>
-        {IMPACT_LEVELS.map((level) => (
+    <div className={s.scale} role="radiogroup" aria-label={label ?? 'Impact on company goals'}>
+      {IMPACT_LEVELS.map((level) => {
+        const active = value === level;
+        return (
           <button
             key={level}
             type="button"
-            className={clsx(s.segment, s[`seg_${level}`], value === level && s.segmentActive)}
-            aria-pressed={value === level}
+            role="radio"
+            aria-checked={active}
+            aria-label={`${IMPACT_LABELS[level]} — ${IMPACT_VALUE[level]} of ${IMPACT_MAX}`}
+            className={clsx(s.scaleBtn, active && s.scaleBtnActive)}
             onClick={() => onChange(level)}
           >
-            {IMPACT_LABELS[level]}
+            <span className={s.num}>{IMPACT_VALUE[level]}</span>
+            {/* Each word on its own line — keeps "High impact" / "No impact" two lines, aligned with single-word levels. */}
+            <span className={s.word}>
+              {IMPACT_LABELS[level].split(' ').map((w, i) => (
+                <span key={i}>{w}</span>
+              ))}
+            </span>
           </button>
-        ))}
-      </div>
-
-      {!compact && (
-        <span className={s.meta}>
-          {avgImpact !== null ? (
-            <>
-              avg {avgImpact.toFixed(1)}
-              <span className={s.metaDim}> / 3 · {ratedByCount} rated</span>
-            </>
-          ) : (
-            <span className={s.metaDim}>No ratings yet · free &amp; unlimited</span>
-          )}
-        </span>
-      )}
+        );
+      })}
     </div>
   );
 }

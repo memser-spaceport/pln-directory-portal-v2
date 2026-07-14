@@ -1,0 +1,37 @@
+.ring {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.track {
+  stroke: var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+.arc {
+  stroke: var(--action-background-brand-normal, #1b4dff);
+  transition: stroke-dasharray 0.4s ease;
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.value {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.max {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

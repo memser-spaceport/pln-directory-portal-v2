@@ -1,20 +1,22 @@
 'use client';
 
-// Prototype-local copy of the production roadmap card body (per prototypes/README "copy & simplify"),
-// with the new Impact signal: a quiet read-only aggregate badge next to Boost, and the rating itself
-// collected in the post-boost popover (mirroring production's PinNotePopover moment). Reuses
-// production styles + presentational sub-components by import (read-only); production stays untouched.
+// Prototype-local copy of the production roadmap card body (per prototypes/README "copy & simplify").
+// The member-facing card is pixel-pure production: boost is the only signal. Impact renders
+// exclusively in the curator strip (curator view) and is collected via the post-boost popover
+// or the item drawer — both owned by the page. Production files stay untouched.
 
 import { clsx } from 'clsx';
 import { truncateText } from '@/utils/forum';
 import { GantryItemAuthor } from '@/components/page/gantry/shared/GantryItemAuthor';
-import { BoostButton } from '@/components/page/gantry/shared/BoostButton';
+import { BoostToggle } from './shared/BoostToggle';
 import s from '@/components/page/gantry/roadmap/Roadmap.module.scss';
 import type { MockRoadmapItem } from './mocks';
-import { BoostImpactPopover } from './shared/BoostImpactPopover';
+import { IMPACT_MAX } from './mocks';
 import { CuratorStrip } from './shared/CuratorStrip';
-import { ImpactBadge } from './shared/ImpactBadge';
-import { foldObjectiveImpact, useImpactCardState } from './shared/useImpactCardState';
+import { deriveAggregate } from './shared/impact';
+import type { GoalMode } from './shared/impact';
+import type { ItemViewerState } from './shared/useBoardState';
+import c from './RoadmapImpactCard.module.scss';
 
 const CARD_DESCRIPTION_MAX_LENGTH = 160;
 
@@ -49,31 +51,31 @@ function toPlainText(html: string): string {
 interface Props {
   readonly item: MockRoadmapItem;
   readonly position?: number;
-  readonly variant: 'overall' | 'per-objective';
+  readonly viewer: ItemViewerState;
+  readonly goalMode: GoalMode;
   readonly curatorView: boolean;
+  readonly onToggleBoost: (item: MockRoadmapItem, next: boolean, el: HTMLButtonElement) => void;
+  readonly onOpen: (uid: string) => void;
 }
 
-export function RoadmapImpactCard({ item, position, variant, curatorView }: Props) {
-  const {
-    hasBoosted,
-    boostCount,
-    toggleBoost,
-    viewerImpact,
-    objectiveRatings,
-    aggregate,
-    popoverPos,
-    saveRating,
-    skipRating,
-  } = useImpactCardState(item, variant);
-
+export function RoadmapImpactCard({ item, position, viewer, goalMode, curatorView, onToggleBoost, onOpen }: Props) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
   const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
-  const perObjective = item.impact.perObjectiveImpact.map((po) =>
-    foldObjectiveImpact(po, objectiveRatings[po.objectiveUid]),
-  );
+  const aggregate = deriveAggregate(item.impact, viewer.viewerImpact);
 
   return (
-    <article className={s.card}>
+    <article
+      className={s.card}
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(item.uid)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen(item.uid);
+        }
+      }}
+    >
       <div className={s.cardTopRow}>
         <div className={s.cardPositionBadge}>
           {position !== undefined && item.stage !== 'IDEA' && item.stage !== 'SHIPPED' && item.stage !== 'DECLINED' && (
@@ -81,7 +83,7 @@ export function RoadmapImpactCard({ item, position, variant, curatorView }: Prop
           )}
         </div>
         <h3 className={s.cardTitle}>{item.title}</h3>
-        {item.objectives?.length > 0 && (
+        {goalMode === 'objectives' && item.objectives?.length > 0 && (
           <span className={s.objectiveBadges}>
             {item.objectives.map((objective) => (
               <span key={objective.uid} className={s.objectiveBadge}>
@@ -124,17 +126,28 @@ export function RoadmapImpactCard({ item, position, variant, curatorView }: Prop
 
       <div className={s.meta}>
         <GantryItemAuthor author={item.createdBy} backTo={`/gantry/${item.uid}`} />
-        {item.stage !== 'BACKLOG' && (
-          <div className={s.cardActions}>
-            <ImpactBadge aggregate={aggregate} hasRated={viewerImpact !== null} />
-            <BoostButton
-              count={boostCount}
-              hasPinned={hasBoosted}
-              readonly={interactionLocked}
-              onToggle={(next, el) => toggleBoost(next, el)}
-            />
-          </div>
-        )}
+        <div className={c.boostRow}>
+          {item.stage !== 'BACKLOG' && (
+            <div className={s.cardActions}>
+              <BoostToggle
+                hasPinned={viewer.hasBoosted}
+                readonly={interactionLocked}
+                onToggle={(next, el) => onToggleBoost(item, next, el)}
+              />
+            </div>
+          )}
+          {/* Public impact score — everyone sees it, right-aligned opposite the boost. */}
+          <span className={c.impactInline}>
+            {aggregate.impactCount > 0 ? (
+              <>
+                impact <strong>{aggregate.avgImpact!.toFixed(1)}</strong>/{IMPACT_MAX} ({aggregate.impactCount}{' '}
+                {aggregate.impactCount === 1 ? 'boost' : 'boosts'})
+              </>
+            ) : (
+              'Not rated yet'
+            )}
+          </span>
+        </div>
       </div>
 
       {item.stage === 'IN_PROGRESS' && (
@@ -150,21 +163,14 @@ export function RoadmapImpactCard({ item, position, variant, curatorView }: Prop
         </p>
       )}
 
+      {/* Members see the public score inline (above); curators get the rater breakdown (no per-objective). */}
       {curatorView && (
         <CuratorStrip
-          boostCount={boostCount}
           aggregate={aggregate}
-          objectives={variant === 'per-objective' ? item.objectives : undefined}
-          perObjective={variant === 'per-objective' ? perObjective : undefined}
-        />
-      )}
-
-      {popoverPos && (
-        <BoostImpactPopover
-          pos={popoverPos}
-          objectives={variant === 'per-objective' ? item.objectives : undefined}
-          onSave={saveRating}
-          onSkip={skipRating}
+          ratings={item.impact.ratings}
+          viewerRating={viewer.viewerImpact ? { level: viewer.viewerImpact, note: viewer.viewerNote } : null}
+          curator={curatorView}
+          onShowRaters={() => onOpen(item.uid)}
         />
       )}
     </article>

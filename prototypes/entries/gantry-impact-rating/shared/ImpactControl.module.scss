@@ -1,78 +1,82 @@
-.wrap {
+// A numbered 1..N impact scale — every level's word is visible so the rating is
+// unmistakable. Selected level fills brand (DS pill active state).
+.scale {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.scaleBtn {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
-}
-
-.wrapCompact {
-  gap: 0;
-}
-
-.label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.segments {
-  display: inline-flex;
-  padding: 2px;
-  gap: 2px;
-  border-radius: 8px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  align-items: center;
+  gap: 7px;
+  padding: 10px 2px;
+  border-radius: 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-}
-
-.segment {
-  appearance: none;
-  border: none;
-  background: transparent;
+  background: var(--background-base-white, #fff);
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  color: var(--foreground-neutral-secondary, #455468);
-  transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    box-shadow 0.12s ease;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease, background 0.14s ease;
 
   &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
+    transform: translateY(-1px);
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 2px 6px -3px var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
-.segmentActive {
-  background: #fff;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  font-weight: 600;
-  box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-}
-
-// Selected level gets a value-coded left accent (minor → major).
-.seg_low.segmentActive {
-  box-shadow: inset 3px 0 0 var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.seg_medium.segmentActive {
-  box-shadow: inset 3px 0 0 var(--foreground-brand-primary, #1b4dff);
-}
-
-.seg_high.segmentActive {
-  box-shadow: inset 3px 0 0 var(--foreground-success-primary, #0a9952);
-}
-
-.meta {
-  font-size: 11px;
-  line-height: 16px;
+.num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   color: var(--foreground-neutral-secondary, #455468);
+  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
 }
 
-.metaDim {
+.word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: -0.01em;
   color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 0.14s ease;
+}
+
+.scaleBtnActive {
+  border-color: var(--action-background-brand-normal, #1b4dff);
+  background: linear-gradient(180deg, rgba(27, 77, 255, 0.09), rgba(27, 77, 255, 0.04));
+  box-shadow: 0 2px 8px -4px rgba(27, 77, 255, 0.22);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px -4px rgba(27, 77, 255, 0.26);
+  }
+
+  .num {
+    background: var(--action-background-brand-normal, #1b4dff);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(27, 77, 255, 0.3);
+    transform: scale(1.06);
+  }
+
+  .word {
+    color: var(--foreground-brand-primary, #1b4dff);
+    font-weight: 600;
+  }
 }

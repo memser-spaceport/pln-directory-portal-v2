@@ -1,0 +1,96 @@
+@use 'styles/media';
+
+// Mirrors the production TeamCard styling (LogosGrid/components/TeamCard) so
+// this prototype card tracks production, minus the website link.
+.root {
+  text-decoration: none;
+  color: inherit;
+  gap: 8px;
+  display: grid;
+  padding: 16px 15px;
+  grid-template-columns: 32px 1fr;
+
+  // The card is a grid item of the reused .cardsGrid, which has overflow:hidden.
+  // Without min-width:0 the card refuses to shrink below its content's intrinsic
+  // width (the nowrap Follow button + long team names) and gets clipped on the
+  // right — worst on the narrow mobile column.
+  min-width: 0;
+
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nameRow {
+  min-width: 0;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  // On mobile, sit Follow right next to the team name instead of pushing it to
+  // the far edge. The name shrinks (min-width:0 + ellipsis) so Follow tucks in
+  // immediately after it.
+  @include media.mobile-only {
+    justify-content: flex-start;
+  }
+}
+
+.nameGroup {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  // Take only as much space as needed on mobile so Follow sits directly beside
+  // the name rather than being pushed out by a stretched name group.
+  @include media.mobile-only {
+    flex: 0 1 auto;
+  }
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.4px;
+}
+
+.description {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+
+  margin-top: 4px;
+}
+
+// Text-link Follow (tertiary + bell). Never shrink it, and keep it inside the
+// card — no negative margin that would push it into the grid's clip edge.
+.follow {
+  flex-shrink: 0;
+}
+
+// Reuse the shared Badge (default/neutral variant) for the recent-news count;
+// just tighten it to card scale so it stays small and adds no height to the row.
+.newsBadge {
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+}

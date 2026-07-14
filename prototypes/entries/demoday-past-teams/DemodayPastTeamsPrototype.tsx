@@ -8,7 +8,6 @@ import clsx from 'clsx';
 import { Button } from '@/components/common/Button';
 import { LogosGrid } from '@/components/common/LogosGrid';
 import { FAQ } from '@/components/page/demo-day/InvestorPendingView/components/FAQ';
-import { TeamCard } from '@/components/common/LogosGrid/components/TeamCard';
 import {
   faqCompletedItems,
   PRIVACY_POLICY_URL,
@@ -21,6 +20,7 @@ import teamsData from '@/components/common/LogosGrid/teams.json';
 // Reuse the real completed-page styles so this prototype tracks production 1:1.
 import s from '@/components/page/demo-day/DemodayCompletedView/DemodayCompletedView.module.scss';
 
+import { PastTeamCard } from './PastTeamCard';
 import { mockCompletedDemoDay } from './mocks';
 import wrap from './DemodayPastTeamsPrototype.module.scss';
 
@@ -84,7 +84,7 @@ export default function DemodayPastTeamsPrototype() {
           {/* Teams Section — UN-HIDDEN (production wraps this in style={{ display: 'none' }}) */}
           <section className={s.sectionTeams}>
             <div className={s.subtitle}>
-              <h2 className={s.label}>{displayTeams.length} Teams That Presented</h2>
+              <h2 className={s.label}>Participating teams ({displayTeams.length})</h2>
               <p className={s.supportingText}>Innovative startups across AI, web3, crypto, robotics, and neurotech</p>
             </div>
             <div className={s.cards}>
@@ -96,14 +96,12 @@ export default function DemodayPastTeamsPrototype() {
                 <div className={s.cardsGrid}>
                   {displayTeams.length > 0 ? (
                     displayTeams.map((team) => (
-                      <TeamCard
+                      <PastTeamCard
                         key={team.uid}
                         team={{
                           uid: team.uid,
                           name: team.name,
                           logo: team.logo,
-                          stage: team.stage,
-                          website: team.website || '',
                           shortDescription: team.shortDescription,
                         }}
                       />

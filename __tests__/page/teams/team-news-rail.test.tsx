@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { TeamNewsRail } from '@/components/page/team-details/TeamNews/TeamNewsRail';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -7,6 +7,7 @@ import type { ITeamNewsDiscussion, ITeamNewsItem, TeamNewsEventType } from '@/ty
 
 const mockOnCardClicked = jest.fn();
 const mockOnViewAllClicked = jest.fn();
+const mockOnShowMoreClicked = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
 const mockUpvoteMutate = jest.fn();
 const mockUseCurrentUserStore = jest.fn(() => ({ currentUser: { uid: 'm-1' }, isHydrated: true }));
@@ -16,8 +17,26 @@ jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
     onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
+    onTeamNewsShowMoreClicked: (...a: unknown[]) => mockOnShowMoreClicked(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
   }),
+}));
+
+// jsdom has no layout, so the real measured teaser never shows its button
+// here; the stub always does, exposing the onShowMore plumbing. It mirrors the
+// real button's stopPropagation — Show more must not read as a card click.
+jest.mock('@/components/page/home/TeamNews/components/NewsCard/TruncatedSummary', () => ({
+  TruncatedSummary: ({ onShowMore }: { onShowMore: () => void }) => (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onShowMore();
+      }}
+    >
+      Show more
+    </button>
+  ),
 }));
 
 jest.mock('@/services/team-news/hooks/useTeamNewsUpvoteToggle', () => ({
@@ -210,5 +229,64 @@ describe('TeamNewsRail', () => {
     const button = screen.getByRole('button', { name: 'Upvote (0)' });
     expect(button).toHaveTextContent(/^Upvote$/);
     expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+  });
+
+  const summarized = (uid: string): ITeamNewsItem => ({
+    ...makeItem(uid),
+    summary: `A summary long enough to be trimmed for ${uid}.`,
+  });
+
+  const renderRailWithSummaries = (total = 5) =>
+    render(
+      <TeamNewsRail
+        teamUid="team-1"
+        teamName="Protocol Labs"
+        initialData={{
+          teamUid: 'team-1',
+          teamName: 'Protocol Labs',
+          page: 1,
+          limit: 3,
+          total,
+          items: [summarized('news-1'), summarized('news-2')],
+        }}
+      />,
+    );
+
+  it('opens the modal focused on the clicked item via Show more, firing only the show-more event', () => {
+    renderRailWithSummaries();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[0]);
+
+    expect(lastModalProps?.isOpen).toBe(true);
+    expect(lastModalProps?.focusUid).toBe('news-1');
+    expect(mockOnShowMoreClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'news-1' }), 0);
+    expect(mockOnCardClicked).not.toHaveBeenCalled();
+    expect(mockOnViewAllClicked).not.toHaveBeenCalled();
+  });
+
+  it('View all after a prior Show more open is unfocused', () => {
+    renderRailWithSummaries();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[1]);
+    expect(lastModalProps?.focusUid).toBe('news-2');
+
+    act(() => {
+      (lastModalProps?.onClose as () => void)();
+    });
+    expect(lastModalProps?.isOpen).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'View all news (5)' }));
+    expect(lastModalProps?.isOpen).toBe(true);
+    expect(lastModalProps?.focusUid).toBeNull();
+  });
+
+  it('Show more opens the modal even when View all is not rendered (total ≤ preview limit)', () => {
+    renderRailWithSummaries(2);
+
+    expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[0]);
+
+    expect(lastModalProps?.isOpen).toBe(true);
+    expect(lastModalProps?.focusUid).toBe('news-1');
   });
 });

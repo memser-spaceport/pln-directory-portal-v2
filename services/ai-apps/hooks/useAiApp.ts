@@ -10,6 +10,10 @@ export function useAiApp(uid: string) {
     queryFn: () => fetchAiApp(uid),
     staleTime: 5 * 60 * 1000,
     retry: 2,
+    // While a deploy is in flight (e.g. agent-triggered), keep polling so the
+    // page picks up the settled READY/ERROR state — including the backend
+    // marking a stuck deploy as failed — without a manual reload.
+    refetchInterval: (query) => (query.state.data?.status === 'DEPLOYING' ? 5000 : false),
   });
 
   return {

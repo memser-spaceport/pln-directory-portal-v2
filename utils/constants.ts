@@ -306,6 +306,11 @@ export const TOAST_MESSAGES = {
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
   FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
   EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
+  HUSKY_SHARED_LINK_EXPIRED: 'This shared Husky link is no longer available',
+  HUSKY_SHARED_LINK_FAILED: "Couldn't load the shared Husky post. Please try again",
+  OH_FEEDBACK_FAILED: "Couldn't submit your office hours feedback. Please try again",
+  AI_CHAT_FAILED: "Couldn't get an AI response. Please try again",
+  REGISTER_SUBMIT_FAILED: "Couldn't submit your join request. Please try again",
 };
 
 export const AUTH_ANALYTICS = {

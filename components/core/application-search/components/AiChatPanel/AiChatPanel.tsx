@@ -287,7 +287,7 @@ export const AiChatPanel = ({
         analytics.trackAiResponse('success', type, false, question);
       } catch (error) {
         console.error(`Error in ${type} submission:`, error);
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        toast.error(TOAST_MESSAGES.AI_CHAT_FAILED);
         analytics.trackAiResponse('error', type, false, question);
       }
     },

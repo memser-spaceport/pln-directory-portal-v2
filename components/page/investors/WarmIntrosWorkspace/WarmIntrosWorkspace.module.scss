@@ -1,4 +1,4 @@
-@use "styles/media";
+@use 'styles/media';
 
 .root {
   display: flex;
@@ -50,7 +50,6 @@
   }
 }
 
-
 .title {
   margin: 0 0 4px;
   font-size: 18px;
@@ -96,7 +95,6 @@
   letter-spacing: 0.4px;
   color: #455468;
 }
-
 
 .actions {
   display: flex;
@@ -188,7 +186,6 @@
     background: #1a3fd9;
   }
 }
-
 
 .summary {
   margin-top: 12px;
@@ -569,9 +566,15 @@ tbody .checkboxCol {
   background: #fff;
 }
 
-.row:hover .checkboxCol { background: #f8fafc; }
-.rowSelected .checkboxCol { background: #fff; }
-.rowSelected:hover .checkboxCol { background: #f8fafc; }
+.row:hover .checkboxCol {
+  background: #f8fafc;
+}
+.rowSelected .checkboxCol {
+  background: #fff;
+}
+.rowSelected:hover .checkboxCol {
+  background: #f8fafc;
+}
 
 .fitCol {
   width: 60px;
@@ -699,8 +702,12 @@ tbody .checkboxCol {
   }
 }
 
-.frozenNameNoCheckbox { left: 0; }
-.frozenNameWithCheckbox { left: 40px; }
+.frozenNameNoCheckbox {
+  left: 0;
+}
+.frozenNameWithCheckbox {
+  left: 40px;
+}
 
 thead .frozenName {
   top: 0;
@@ -708,9 +715,15 @@ thead .frozenName {
   background: #f8fafc;
 }
 
-.row:hover .frozenName { background: #f8fafc; }
-.rowSelected .frozenName { background: #fff; }
-.rowSelected:hover .frozenName { background: #f8fafc; }
+.row:hover .frozenName {
+  background: #f8fafc;
+}
+.rowSelected .frozenName {
+  background: #fff;
+}
+.rowSelected:hover .frozenName {
+  background: #f8fafc;
+}
 
 /* ── Rows ────────────────────────────────────────────────────── */
 
@@ -720,9 +733,15 @@ thead .frozenName {
   background: #fff;
 }
 
-.row:hover { background: #f8fafc; }
-.rowSelected { background: #fff; }
-.rowSelected:hover { background: #f8fafc; }
+.row:hover {
+  background: #f8fafc;
+}
+.rowSelected {
+  background: #fff;
+}
+.rowSelected:hover {
+  background: #f8fafc;
+}
 
 .td {
   padding: 10px 16px;
@@ -738,6 +757,22 @@ thead .frozenName {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sourceTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+  color: #455468;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
 .nameText {
@@ -822,7 +857,6 @@ thead .frozenName {
   align-items: flex-start;
   gap: 4px;
 }
-
 
 .miniRoute {
   display: flex;
@@ -910,8 +944,6 @@ thead .frozenName {
   min-width: 200px;
 }
 
-
-
 /* Search icon wrapper */
 .searchWrap {
   position: relative;
@@ -929,8 +961,6 @@ thead .frozenName {
   pointer-events: none;
   z-index: 1;
 }
-
-
 
 /* ── Filter bar toggle buttons (Any founder) ─────────────────── */
 

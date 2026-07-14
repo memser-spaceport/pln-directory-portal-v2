@@ -196,6 +196,9 @@ export type OutreachInvestor = {
   /** Total count of computed paths for this investor (for "View all (N)"). */
   path_count?: number;
 
+  /** Distinct path attribution sources (Affinity / LinkedIn) across paths in the list. */
+  path_source_tags?: ('Affinity' | 'LinkedIn')[];
+
   /** Aggregated background + sources ("who is this investor"); null until enriched. */
   enrichment?: InvestorEnrichment | null;
 
@@ -280,6 +283,8 @@ export type ListMembersParams = {
   founder_names?: string[];
   any_founder?: boolean;
   direct_only?: boolean;
+  /** Path data source filter: `affinity` | `linkedin`. Omit for all sources. */
+  path_source?: 'affinity' | 'linkedin';
   page?: number;
   limit?: number;
 };

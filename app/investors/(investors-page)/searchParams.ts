@@ -63,6 +63,8 @@ export const investorsFilterParsers = {
   wi_founder_uids: parseAsArrayOf(parseAsString, ',').withDefault([]),
   /** null = off, true = direct-path only (no intermediary hops). */
   wi_direct_only: parseAsBoolean,
+  /** Path data source: absent/empty = all; `affinity` | `linkedin` (single-select). */
+  wi_source: parseAsString.withDefault(''),
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

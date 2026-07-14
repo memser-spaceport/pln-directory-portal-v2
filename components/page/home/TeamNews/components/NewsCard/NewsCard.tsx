@@ -13,6 +13,7 @@ import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 
 import { StartConversationButton } from './components/StartConversationButton';
 import { UpvoteButton } from './components/UpvoteButton/UpvoteButton';
+import { TruncatedSummary } from './TruncatedSummary';
 
 import s from './NewsCard.module.scss';
 
@@ -31,6 +32,14 @@ interface NewsCardProps {
   upvoteCount?: number;
   viewerHasUpvoted?: boolean;
   onUpvoteToggle?: (item: ITeamNewsItem) => void;
+  /**
+   * Renders a measured two-line teaser with an inline "… Show more" button.
+   * Mounts per-card layout measurement (TruncatedSummary) — rail-only by
+   * design; never pass from modal-sized lists.
+   */
+  onShowMore?: (item: ITeamNewsItem) => void;
+  /** Render the summary in full, overriding the compact two-line clamp (modal feed). */
+  fullSummary?: boolean;
 }
 
 export const NewsCard = ({
@@ -48,6 +57,8 @@ export const NewsCard = ({
   upvoteCount = 0,
   viewerHasUpvoted = false,
   onUpvoteToggle,
+  onShowMore,
+  fullSummary = false,
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -90,6 +101,7 @@ export const NewsCard = ({
     <div
       role="link"
       tabIndex={0}
+      data-story-uid={item.uid}
       className={clsx(
         variant === 'flat' ? s.cardFlat : s.card,
         variant === 'outline' && s.cardOutline,
@@ -125,7 +137,12 @@ export const NewsCard = ({
         </div>
       )}
       <h3 className={clsx(s.headline, compact && s.headlineCompact)}>{item.title}</h3>
-      {item.summary && <p className={clsx(s.summary, compact && s.summaryCompact)}>{item.summary}</p>}
+      {item.summary &&
+        (onShowMore && !fullSummary ? (
+          <TruncatedSummary summary={item.summary} title={item.title} onShowMore={() => onShowMore(item)} />
+        ) : (
+          <p className={clsx(s.summary, compact && !fullSummary && s.summaryCompact)}>{item.summary}</p>
+        ))}
 
       <div className={s.metaLine}>
         <div className={clsx(s.meta, compact && s.metaCompact)}>

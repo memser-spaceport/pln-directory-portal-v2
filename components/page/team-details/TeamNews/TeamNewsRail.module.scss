@@ -144,6 +144,10 @@
 }
 
 .modalBody {
+  // Deterministic offsetParent for the reveal's offsetTop math — without this,
+  // the framer-motion entrance transform is briefly the offsetParent and the
+  // same expression measures from a different origin on cached vs slow opens.
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -279,4 +283,33 @@
   text-align: center;
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;
+}
+
+/* One-shot flash on the item the feed opened to (rail "Show more"), so the
+   click reads as "this card, in full". A box-shadow ring avoids fighting the
+   card's own background/border and reverts to the card's normal shadow when it
+   ends. Applied via data-highlighted by useNewsReveal — duration must match
+   NEWS_HIGHLIGHT_DURATION_MS there. */
+@keyframes newsHighlightRing {
+  0% {
+    box-shadow: 0 0 0 2px var(--foreground-brand-primary, #1b4dff);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(27, 77, 255, 0);
+  }
+}
+
+.modalGrid [data-highlighted],
+.newsPageList [data-highlighted] {
+  animation: newsHighlightRing 1.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modalGrid [data-highlighted],
+  .newsPageList [data-highlighted] {
+    // Static ring for the duration; useNewsReveal removes the attribute after
+    // NEWS_HIGHLIGHT_DURATION_MS either way.
+    animation: none;
+    box-shadow: 0 0 0 2px var(--foreground-brand-primary, #1b4dff);
+  }
 }

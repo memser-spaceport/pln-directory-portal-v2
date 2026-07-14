@@ -69,6 +69,19 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHOW_MORE_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceDomain: item.sourceDomain,
+      sourceUrl: item.sourceUrl,
+      position,
+      source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onTeamNewsCardClicked = (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_CARD_CLICKED, {
       itemUid: item.uid,
@@ -170,6 +183,7 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsCategoryClicked,
     onTeamNewsLoadMoreClicked,
     onTeamNewsViewAllClicked,
+    onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,

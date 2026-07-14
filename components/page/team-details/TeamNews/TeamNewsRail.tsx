@@ -21,15 +21,21 @@ interface TeamNewsRailProps {
 
 export type TeamNewsUpvoteOverlay = Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>;
 
+// One state for the modal so illegal combinations can't exist: closing always
+// drops the focus target, and "View all" after a "Show more" open is unfocused
+// by construction.
+type NewsModalState = { isOpen: false } | { isOpen: true; focusUid: string | null };
+
 export function mergeUpvoteOverlay(items: ITeamNewsItem[], overlay: TeamNewsUpvoteOverlay): ITeamNewsItem[] {
   if (overlay.size === 0) return items;
   return items.map((item) => (overlay.has(item.uid) ? { ...item, ...overlay.get(item.uid) } : item));
 }
 
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<NewsModalState>({ isOpen: false });
   const isMobile = useIsMobile();
-  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsUpvoteToggled } = useTeamNewsAnalytics();
+  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked, onTeamNewsUpvoteToggled } =
+    useTeamNewsAnalytics();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
 
   // The rail reads server-provided `initialData` and the modal has its own
@@ -94,6 +100,17 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
     [onTeamNewsCardClicked],
   );
 
+  // "Show more" on a rail card opens the full feed focused on that item; the
+  // plain "View all" button opens it at the top (focusUid: null). Deliberately
+  // fires neither the card-click nor the view-all event.
+  const handleShowMore = useCallback(
+    (item: ITeamNewsItem, position: number) => {
+      onTeamNewsShowMoreClicked(item, position);
+      setModalState({ isOpen: true, focusUid: item.uid });
+    },
+    [onTeamNewsShowMoreClicked],
+  );
+
   return (
     <>
       <aside className={s.rail}>
@@ -110,6 +127,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
                 analyticsSource="team-profile-rail"
                 onClick={(clicked) => handleCardClick(clicked, index)}
                 onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
+                onShowMore={(clicked) => handleShowMore(clicked, index)}
               />
             ))}
           </div>
@@ -119,7 +137,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
               className={s.viewAll}
               onClick={() => {
                 onTeamNewsViewAllClicked(teamUid, teamName, total);
-                setModalOpen(true);
+                setModalState({ isOpen: true, focusUid: null });
               }}
             >
               View all news ({total})
@@ -129,8 +147,9 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
       </aside>
 
       <TeamNewsModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        isOpen={modalState.isOpen}
+        focusUid={modalState.isOpen ? modalState.focusUid : null}
+        onClose={() => setModalState({ isOpen: false })}
         teamUid={teamUid}
         teamName={teamName}
         total={total}

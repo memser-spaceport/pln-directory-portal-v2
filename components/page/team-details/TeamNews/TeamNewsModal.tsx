@@ -12,10 +12,13 @@ import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './TeamNewsRail';
+import { useNewsReveal } from './useNewsReveal';
 import s from './TeamNewsRail.module.scss';
 
 interface TeamNewsModalProps {
   isOpen: boolean;
+  /** Rail "Show more": scroll to + flash this item once per open. Null opens at the top. */
+  focusUid: string | null;
   onClose: () => void;
   teamUid: string;
   teamName: string;
@@ -28,6 +31,7 @@ interface TeamNewsModalProps {
 
 export function TeamNewsModal({
   isOpen,
+  focusUid,
   onClose,
   teamUid,
   teamName,
@@ -40,6 +44,16 @@ export function TeamNewsModal({
   const debouncedQuery = useDebounce(searchQuery, 300);
   const effectiveQuery = searchQuery === '' ? '' : debouncedQuery;
   const sentinelRef = useRef<HTMLDivElement>(null);
+  // The scrolling element: .modalBody on desktop, the .newsPage overlay on
+  // mobile (.newsPageList doesn't scroll). Only one branch renders, so a single
+  // ref serves both. Both are the cards' offsetParent — required by the
+  // reveal's offsetTop math.
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Reveal at most once per open, attempted or not — items identity churns on
+  // every upvote-overlay merge and page append, and a late page must not yank
+  // the list to a uid the first attempt missed.
+  const revealConsumedRef = useRef(false);
+  const reveal = useNewsReveal();
   const { onTeamNewsCardClicked, onTeamNewsLoadMoreClicked } = useTeamNewsAnalytics();
 
   const {
@@ -74,8 +88,30 @@ export function TeamNewsModal({
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery('');
+      revealConsumedRef.current = false;
     }
   }, [isOpen]);
+
+  const hasFirstPage = !isLoading && items.length > 0;
+
+  useEffect(() => {
+    if (!isOpen || !focusUid || revealConsumedRef.current) return;
+    if (searchQuery !== '') {
+      // Once the user touches search the "Show more" intent is stale — and
+      // keepPreviousData keeps isLoading false over the *previous* query's
+      // items, so a reveal here would flash a card in a list about to be
+      // wholesale replaced. Abandon it for this open.
+      revealConsumedRef.current = true;
+      return;
+    }
+    if (!hasFirstPage) return;
+    revealConsumedRef.current = true;
+    const container = scrollContainerRef.current;
+    const el = container?.querySelector<HTMLElement>(`[data-story-uid="${CSS.escape(focusUid)}"]`);
+    // Not found (item deleted or reordered off page 1): open at the top,
+    // no highlight, no error.
+    if (container && el) reveal(el, container);
+  }, [isOpen, focusUid, hasFirstPage, searchQuery, reveal]);
 
   useEffect(() => {
     if (!isOpen || !fullscreen) return;
@@ -129,6 +165,7 @@ export function TeamNewsModal({
             item={item}
             position={index}
             variant="outline"
+            fullSummary
             analyticsSource="team-profile-modal"
             onClick={(clicked) => handleCardClick(clicked, index)}
             onUpvoteToggle={
@@ -150,7 +187,7 @@ export function TeamNewsModal({
     if (!isOpen) return null;
 
     return (
-      <div className={s.newsPage}>
+      <div className={s.newsPage} ref={scrollContainerRef}>
         <div className={s.newsPageHeader}>
           <div className={s.newsPageTitleRow}>
             <h2 className={s.newsPageTitle}>{teamName} News</h2>
@@ -187,7 +224,9 @@ export function TeamNewsModal({
       <div className={s.modalSearchWrap}>
         <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search news by keyword or type" />
       </div>
-      <div className={s.modalBody}>{feedContent}</div>
+      <div className={s.modalBody} ref={scrollContainerRef}>
+        {feedContent}
+      </div>
     </Modal>
   );
 }

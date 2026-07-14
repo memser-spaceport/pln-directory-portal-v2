@@ -160,7 +160,8 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '0',
+    // Sum of chart.chartData values above (450 + 200 + 500)
+    totalPointsCollected: '1,150',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

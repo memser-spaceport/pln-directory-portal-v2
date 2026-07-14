@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { AppSecretsPanel } from '@/components/page/ai-apps/AiAppDetailPage/components/AppSecretsPanel';
+import { clearSecretsDraft } from '@/components/page/ai-apps/AiAppDetailPage/components/AppSecretsPanel/secretsDraftCache';
 import { deployAiApp, AiApp } from '@/services/ai-apps/ai-apps.service';
 
 const mockInvalidateQueries = jest.fn();
@@ -52,6 +53,7 @@ function buildApp(overrides: Partial<AiApp> = {}): AiApp {
 describe('AppSecretsPanel', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    clearSecretsDraft('app-1');
   });
 
   it('renders a plain required input and a Deploy button for a var with no stored value', () => {
@@ -121,6 +123,15 @@ describe('AppSecretsPanel', () => {
 
     expect(screen.getByText('Enter a value for: PERPLEXITY_API_KEY')).toBeInTheDocument();
     expect(mockDeployAiApp).not.toHaveBeenCalled();
+  });
+
+  it('restores pasted values after the panel remounts', () => {
+    const { unmount } = render(<AppSecretsPanel app={buildApp()} />);
+    fireEvent.change(screen.getByPlaceholderText('Required'), { target: { value: 'sk-pasted' } });
+    unmount();
+
+    render(<AppSecretsPanel app={buildApp()} />);
+    expect(screen.getByPlaceholderText('Required')).toHaveValue('sk-pasted');
   });
 
   it('on success, clears values and editing so the field returns to locked', async () => {

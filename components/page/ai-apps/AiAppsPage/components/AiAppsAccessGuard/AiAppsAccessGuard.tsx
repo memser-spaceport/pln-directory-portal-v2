@@ -15,8 +15,15 @@ export function AiAppsAccessGuard({ children }: Props) {
   const pathname = usePathname();
   const analytics = useAiAppsAnalytics();
   const deniedTracked = useRef(false);
+  // Once we've rendered children, keep them mounted across loading flickers so
+  // in-progress client state (e.g. pasted AI App secrets) is not discarded.
+  const hasGrantedAccess = useRef(false);
   const { permsSet, isLoading, isError } = usePermissions();
   const hasAccess = canViewAiApps(permsSet);
+
+  if (!isLoading && !isError && hasAccess) {
+    hasGrantedAccess.current = true;
+  }
 
   useEffect(() => {
     if (!isLoading && (isError || !hasAccess)) {
@@ -27,6 +34,10 @@ export function AiAppsAccessGuard({ children }: Props) {
       router.replace('/');
     }
   }, [isLoading, isError, hasAccess, router, pathname, analytics]);
+
+  if (hasGrantedAccess.current) {
+    return <>{children}</>;
+  }
 
   if (isLoading || isError || !hasAccess) {
     return null;

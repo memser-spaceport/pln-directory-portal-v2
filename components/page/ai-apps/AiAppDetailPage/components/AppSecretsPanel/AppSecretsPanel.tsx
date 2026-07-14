@@ -1,12 +1,14 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { AiApp, deployAiApp } from '@/services/ai-apps/ai-apps.service';
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
+
+import { clearSecretsDraft, readSecretsDraft, writeSecretsDraft } from './secretsDraftCache';
 
 import s from './AppSecretsPanel.module.scss';
 
@@ -30,13 +32,18 @@ export function AppSecretsPanel(props: Props) {
 
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [editing, setEditing] = useState<Record<string, boolean>>({});
+  const initialDraft = readSecretsDraft(app.uid);
+  const [values, setValues] = useState<Record<string, string>>(initialDraft.values);
+  const [editing, setEditing] = useState<Record<string, boolean>>(initialDraft.editing);
   const [isDeploying, setIsDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Set by cancelEdit, consumed by the Edit button's ref callback once the
   // locked row remounts — moves focus back there instead of losing it to <body>.
   const pendingFocusName = useRef<string | null>(null);
+
+  useEffect(() => {
+    writeSecretsDraft(app.uid, { values, editing });
+  }, [app.uid, values, editing]);
 
   const setDeploying = (deploying: boolean) => {
     setIsDeploying(deploying);
@@ -97,6 +104,7 @@ export function AppSecretsPanel(props: Props) {
       // re-typing or losing their place.
     } else {
       analytics.onSecretsDeploySucceeded({ appUid: app.uid, isDraft });
+      clearSecretsDraft(app.uid);
       setValues({});
       setEditing({});
     }
@@ -173,7 +181,9 @@ export function AppSecretsPanel(props: Props) {
                   id={inputId}
                   className={s.input}
                   type="password"
-                  autoComplete="off"
+                  // new-password discourages browser/password-manager autofill
+                  // from treating these as login fields and clearing siblings.
+                  autoComplete="new-password"
                   autoFocus={isEditing}
                   value={values[name] ?? ''}
                   placeholder={stored ? 'Enter new value' : 'Required'}

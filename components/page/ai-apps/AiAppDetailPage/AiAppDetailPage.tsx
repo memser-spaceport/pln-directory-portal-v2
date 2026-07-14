@@ -132,11 +132,13 @@ export function AiAppDetailPage(props: Props) {
     analytics.onIframeLoaded(app.uid, app.name);
   };
 
-  if (isLoading) {
+  // Don't swap to a loading shell when cached app data is already present —
+  // that would unmount AppSecretsPanel and discard in-progress secret drafts.
+  if (isLoading && !app) {
     return <div className={s.state}>Loading app…</div>;
   }
 
-  if (isError) {
+  if (isError && !app) {
     return <div className={s.state}>Unable to load this app. Please try again later.</div>;
   }
 

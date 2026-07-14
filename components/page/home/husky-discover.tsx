@@ -9,6 +9,7 @@ import cookies from 'js-cookie';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import { getHuskyResponseBySlug, incrementHuskyViewCount } from '@/services/discovery.service';
+import { TOAST_MESSAGES } from '@/utils/constants';
 
 let huskyRecorded = false;
 
@@ -28,7 +29,8 @@ function HuskyDiscover(props: any) {
     dialogRef.current?.close();
     setInitialChats([]);
     if (modalCode === 'husky') {
-      router.push('/');
+      // replace (not push) so Back doesn't return to the modal URL and replay the flow
+      router.replace('/home');
     }
   };
   const increaseViewAndShow = (data: any) => {
@@ -68,24 +70,34 @@ function HuskyDiscover(props: any) {
   }, []);
 
   useEffect(() => {
+    if (modalCode === 'husky' && !huskyShareId) {
+      // malformed share URL — nothing to open, just clean it up
+      router.replace('/home');
+      return;
+    }
     if (modalCode === 'husky' && huskyShareId && huskyShareId === slugId) {
       setLoadingStatus(true);
       getHuskyResponseBySlug(huskyShareId, true)
         .then((result) => {
-          if (result.data && dialogRef.current) {
+          if (result.data) {
             setInitialChats([result.data]);
             if (!huskyRecorded) {
               trackSharedBlog(huskyShareId, 'shareurl', result.data?.question);
             }
             huskyRecorded = true;
-            dialogRef.current.showModal();
+            dialogRef.current?.showModal();
+          } else if (result.status === 404) {
+            toast.error(TOAST_MESSAGES.HUSKY_SHARED_LINK_EXPIRED, { toastId: 'husky-discover' });
+            // strip the dead params so refresh/Back doesn't replay the error
+            router.replace('/home');
           } else {
-            toast.error('Something went wrong');
+            console.error(`Failed to load shared husky post ${huskyShareId} (status ${result.status})`);
+            toast.error(TOAST_MESSAGES.HUSKY_SHARED_LINK_FAILED, { toastId: 'husky-discover' });
           }
         })
         .catch((e) => {
           console.error(e);
-          toast.error('Something went wrong');
+          toast.error(TOAST_MESSAGES.HUSKY_SHARED_LINK_FAILED, { toastId: 'husky-discover' });
         })
         .finally(() => setLoadingStatus(false));
     }

@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
-import { getCookiesFromClient } from '@/utils/third-party.helper';
 
 import { fetchTeamNewsByTeam } from '../team-news.service';
 import { TeamNewsQueryKeys, TEAM_NEWS_MODAL_PAGE_SIZE } from '../constants';
@@ -29,17 +28,11 @@ export function useTeamNewsByTeamInfinite({
     queryKey: [TeamNewsQueryKeys.BY_TEAM, teamUid, search, limit],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      // Pass the viewer's token so `viewerHasUpvoted` reflects them, not the
-      // anonymous view (the server rail fetch does the same via page.tsx).
-      fetchTeamNewsByTeam(
-        teamUid,
-        {
-          page: pageParam as number,
-          limit,
-          q: search || undefined,
-        },
-        getCookiesFromClient().authToken,
-      ).then((data) => {
+      fetchTeamNewsByTeam(teamUid, {
+        page: pageParam as number,
+        limit,
+        q: search || undefined,
+      }).then((data) => {
         if (!data) {
           throw new Error('Failed to fetch team news');
         }
@@ -52,7 +45,10 @@ export function useTeamNewsByTeamInfinite({
     enabled: enabled && !!teamUid,
   });
 
-  const items: ITeamNewsItem[] = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const items: ITeamNewsItem[] = useMemo(
+    () => query.data?.pages.flatMap((page) => page.items) ?? [],
+    [query.data],
+  );
 
   const total = query.data?.pages[0]?.total ?? 0;
 

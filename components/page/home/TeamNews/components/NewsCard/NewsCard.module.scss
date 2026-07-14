@@ -118,27 +118,21 @@
 }
 
 .headlineCompact {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 15px;
+  line-height: 20px;
   letter-spacing: -0.3px;
+  -webkit-line-clamp: 3;
 }
 
-// `compact` is the team-profile treatment (rail + news modal); the homepage
-// never passes it. Values match the team-profile prototype: tighter inner
-// rhythm, 2-line teaser, and room for the wrapped Upvote/Discuss row.
 .compact {
-  gap: 8px;
+  gap: 10px;
 
   &.card {
     padding: 16px;
   }
 
   &.cardFlat {
-    padding: 16px 0 12px;
-  }
-
-  .metaLine {
-    row-gap: 12px;
+    padding: 12px 0;
   }
 }
 
@@ -245,10 +239,9 @@
   -webkit-box-orient: vertical;
 }
 
-// Two-line teaser at the base 14px size, per the team-profile prototype.
 .summaryCompact {
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 .actions {

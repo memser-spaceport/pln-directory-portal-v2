@@ -7,25 +7,12 @@ import type { ITeamNewsDiscussion, ITeamNewsItem, TeamNewsEventType } from '@/ty
 
 const mockOnCardClicked = jest.fn();
 const mockOnViewAllClicked = jest.fn();
-const mockOnUpvoteToggled = jest.fn();
-const mockUpvoteMutate = jest.fn();
-const mockUseCurrentUserStore = jest.fn(() => ({ currentUser: { uid: 'm-1' }, isHydrated: true }));
-let lastModalProps: Record<string, unknown> | null = null;
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
     onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
-    onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
   }),
-}));
-
-jest.mock('@/services/team-news/hooks/useTeamNewsUpvoteToggle', () => ({
-  useTeamNewsUpvoteToggle: () => ({ mutate: mockUpvoteMutate }),
-}));
-
-jest.mock('@/services/auth/store', () => ({
-  useCurrentUserStore: () => mockUseCurrentUserStore(),
 }));
 
 jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
@@ -41,14 +28,12 @@ jest.mock('@/hooks/useIsMobile', () => ({
 }));
 
 jest.mock('@/components/page/team-details/TeamNews/TeamNewsModal', () => ({
-  TeamNewsModal: (props: { isOpen: boolean; fullscreen?: boolean }) => {
-    lastModalProps = props;
-    return props.isOpen ? (
-      <div data-testid={props.fullscreen ? 'team-news-fullpage' : 'team-news-modal'}>
-        {props.fullscreen ? 'Full page open' : 'Modal open'}
+  TeamNewsModal: ({ isOpen, fullscreen }: { isOpen: boolean; fullscreen?: boolean }) =>
+    isOpen ? (
+      <div data-testid={fullscreen ? 'team-news-fullpage' : 'team-news-modal'}>
+        {fullscreen ? 'Full page open' : 'Modal open'}
       </div>
-    ) : null;
-  },
+    ) : null,
 }));
 
 const makeItem = (uid: string): ITeamNewsItem => ({
@@ -157,58 +142,5 @@ describe('TeamNewsRail', () => {
     fireEvent.click(screen.getByRole('button', { name: 'View all news (4)' }));
     expect(mockOnViewAllClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 4);
     expect(screen.getByTestId('team-news-fullpage')).toBeInTheDocument();
-  });
-
-  const renderRailWithOneItem = () =>
-    render(
-      <TeamNewsRail
-        teamUid="team-1"
-        teamName="Protocol Labs"
-        initialData={{
-          teamUid: 'team-1',
-          teamName: 'Protocol Labs',
-          page: 1,
-          limit: 3,
-          total: 1,
-          items: [{ ...makeItem('news-1'), upvoteCount: 0, viewerHasUpvoted: false }],
-        }}
-      />,
-    );
-
-  it('optimistically upvotes, reconciles on success, and shares the overlay with the modal', () => {
-    mockUpvoteMutate.mockImplementation((_action, { onSuccess }) =>
-      onSuccess({ upvoteCount: 5, viewerHasUpvoted: true }),
-    );
-
-    renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
-
-    expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'news-1', isUpvoted: true }, expect.any(Object));
-    // Reconciled with the server's authoritative count.
-    const voted = screen.getByRole('button', { name: 'Remove upvote (5)' });
-    expect(voted).toHaveTextContent('Upvoted');
-    expect(mockOnUpvoteToggled).toHaveBeenCalledWith(
-      expect.objectContaining({ uid: 'news-1' }),
-      0,
-      true,
-      'team-profile-rail',
-    );
-    // The same overlay is handed to the modal so both views stay in sync.
-    expect((lastModalProps?.upvoteOverlay as Map<string, unknown>).get('news-1')).toEqual({
-      viewerHasUpvoted: true,
-      upvoteCount: 5,
-    });
-    expect(lastModalProps?.onUpvoteToggle).toEqual(expect.any(Function));
-  });
-
-  it('reverts the optimistic vote when the mutation fails', () => {
-    mockUpvoteMutate.mockImplementation((_action, { onError }) => onError(new Error('nope')));
-
-    renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
-
-    const button = screen.getByRole('button', { name: 'Upvote (0)' });
-    expect(button).toHaveTextContent(/^Upvote$/);
-    expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
   });
 });

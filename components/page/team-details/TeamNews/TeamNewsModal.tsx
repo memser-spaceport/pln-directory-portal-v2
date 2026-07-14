@@ -1,17 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Modal } from '@/components/common/Modal/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput/SearchInput';
 import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
-import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './TeamNewsRail';
 import s from './TeamNewsRail.module.scss';
 
 interface TeamNewsModalProps {
@@ -21,43 +20,20 @@ interface TeamNewsModalProps {
   teamName: string;
   total: number;
   fullscreen?: boolean;
-  /** Owned by TeamNewsRail so votes stay in sync between the rail and this view. */
-  upvoteOverlay?: TeamNewsUpvoteOverlay;
-  onUpvoteToggle?: (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => void;
 }
 
-export function TeamNewsModal({
-  isOpen,
-  onClose,
-  teamUid,
-  teamName,
-  total,
-  fullscreen = false,
-  upvoteOverlay,
-  onUpvoteToggle,
-}: TeamNewsModalProps) {
+export function TeamNewsModal({ isOpen, onClose, teamUid, teamName, total, fullscreen = false }: TeamNewsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
   const effectiveQuery = searchQuery === '' ? '' : debouncedQuery;
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { onTeamNewsCardClicked, onTeamNewsLoadMoreClicked } = useTeamNewsAnalytics();
 
-  const {
-    items: fetchedItems,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useTeamNewsByTeamInfinite({
+  const { items, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTeamNewsByTeamInfinite({
     teamUid,
     q: effectiveQuery,
     enabled: isOpen,
   });
-
-  const items = useMemo(
-    () => (upvoteOverlay ? mergeUpvoteOverlay(fetchedItems, upvoteOverlay) : fetchedItems),
-    [fetchedItems, upvoteOverlay],
-  );
 
   const handleClose = useCallback(() => {
     onClose();
@@ -131,9 +107,6 @@ export function TeamNewsModal({
             variant="outline"
             analyticsSource="team-profile-modal"
             onClick={(clicked) => handleCardClick(clicked, index)}
-            onUpvoteToggle={
-              onUpvoteToggle ? (toggled) => onUpvoteToggle(toggled, index, 'team-profile-modal') : undefined
-            }
           />
         ))}
       </div>

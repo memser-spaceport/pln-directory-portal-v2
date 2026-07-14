@@ -8,10 +8,15 @@ import { TOAST_MESSAGES } from '@/utils/constants';
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
-      if (query.state.data !== undefined) {
-        console.error(error.message);
+      console.error(`Query failed [${JSON.stringify(query.queryKey)}]:`, error.message);
 
-        toast.error(`${TOAST_MESSAGES.SOMETHING_WENT_WRONG}`);
+      // Toasting is opt-in: background refetch failures of non-critical data
+      // (digest settings, profile status, ...) must degrade silently — the UI
+      // keeps rendering last-known data. Queries that want a user-facing error
+      // set meta.errorToast to true (generic message) or a custom string.
+      const errorToast = query.meta?.errorToast;
+      if (errorToast) {
+        toast.error(typeof errorToast === 'string' ? errorToast : TOAST_MESSAGES.SOMETHING_WENT_WRONG);
       }
     },
   }),

@@ -13,7 +13,6 @@
     top: 32px;
     // Cap the sticky rail to the viewport (32px sticky top + 16px bottom gap)
     // so the news list can scroll independently of the page.
-    max-height: calc(100vh - 48px);
     max-height: calc(100dvh - 48px);
   }
 }

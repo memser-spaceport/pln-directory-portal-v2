@@ -6,7 +6,7 @@ export interface ITeamFollowState {
 export interface ITeamFollower {
   uid: string;
   name: string;
-  image: string | null;
+  imageUrl: string | null;
   role?: string;
 }
 

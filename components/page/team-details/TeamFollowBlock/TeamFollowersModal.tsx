@@ -44,9 +44,7 @@ export function TeamFollowersModal({ teamUid, isOpen, onClose }: TeamFollowersMo
         </div>
       )}
 
-      {!isLoading && (!data || data.items.length === 0) && (
-        <p className={s.empty}>No followers yet.</p>
-      )}
+      {!isLoading && (!data || data.items.length === 0) && <p className={s.empty}>No followers yet.</p>}
 
       {!isLoading && data && data.items.length > 0 && (
         <ul className={s.list}>
@@ -58,7 +56,7 @@ export function TeamFollowersModal({ teamUid, isOpen, onClose }: TeamFollowersMo
                 <Link href={`${PAGE_ROUTES.MEMBERS}/${follower.uid}`} className={s.rowLink} onClick={onClose}>
                   <img
                     className={s.rowAvatar}
-                    src={follower.image || defaultAvatarImage}
+                    src={follower.imageUrl || defaultAvatarImage}
                     alt=""
                     loading="lazy"
                     onError={(e) => {

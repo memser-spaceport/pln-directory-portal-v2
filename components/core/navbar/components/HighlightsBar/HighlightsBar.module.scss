@@ -27,7 +27,8 @@
     }
 
     .wrapper {
-      height: 80px;
+      // min-height so a taller banner grows rather than being clipped
+      min-height: 80px;
       padding: 0;
       gap: 0;
       overflow: hidden;

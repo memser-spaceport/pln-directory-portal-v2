@@ -10,9 +10,17 @@ interface TeamNewsCardProps {
   variant?: 'flat' | 'outline';
   onClick?: (item: ITeamNewsItem) => void;
   analyticsSource: TeamNewsAnalyticsSource;
+  onUpvoteToggle?: (item: ITeamNewsItem) => void;
 }
 
-export function TeamNewsCard({ item, position = 0, variant = 'outline', onClick, analyticsSource }: TeamNewsCardProps) {
+export function TeamNewsCard({
+  item,
+  position = 0,
+  variant = 'outline',
+  onClick,
+  analyticsSource,
+  onUpvoteToggle,
+}: TeamNewsCardProps) {
   return (
     <NewsCard
       item={item}
@@ -22,6 +30,9 @@ export function TeamNewsCard({ item, position = 0, variant = 'outline', onClick,
       variant={variant}
       onClick={onClick}
       analyticsSource={analyticsSource}
+      upvoteCount={item.upvoteCount ?? 0}
+      viewerHasUpvoted={Boolean(item.viewerHasUpvoted)}
+      onUpvoteToggle={onUpvoteToggle}
     />
   );
 }

@@ -88,14 +88,14 @@ const NotHappened = (props: INotHappened) => {
           getAnalyticsNotificationInfo(currentFollowup),
           feedback,
         );
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+        toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
       }
       onClose(false);
     } catch (error) {
       console.error(error);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       onClose(false);
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
     }
   };
 

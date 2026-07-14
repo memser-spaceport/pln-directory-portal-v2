@@ -97,13 +97,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onCloseForm }) => {
           setCurrentStep('success');
           analytics.recordMemberJoinNetworkSave('save-success', bodyData);
         } else {
-          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          if (formResult.status === 409) {
+            toast.error('A join request for this email already exists');
+          } else {
+            toast.error(TOAST_MESSAGES.REGISTER_SUBMIT_FAILED);
+          }
           analytics.recordMemberJoinNetworkSave('save-error', bodyData);
         }
       }
     } catch (err) {
+      console.error(err);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      toast.error(TOAST_MESSAGES.REGISTER_SUBMIT_FAILED);
       analytics.recordMemberJoinNetworkSave('save-error');
     }
   };

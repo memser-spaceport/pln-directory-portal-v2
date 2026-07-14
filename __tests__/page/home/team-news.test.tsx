@@ -712,6 +712,68 @@ describe('TeamNews', () => {
     });
   });
 
+  describe('follow — session-stable ordering (frozen until reload)', () => {
+    const zeta = {
+      ...makeItem('fz-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-zeta',
+      teamName: 'Zeta',
+      isFollowed: true,
+    };
+    const alpha = { ...makeItem('fa-1', 'LAUNCH', ['AI & Robotics']), teamUid: 'team-alpha', teamName: 'Alpha' };
+    const beta = { ...makeItem('fb-1', 'MILESTONE', ['AI & Robotics']), teamUid: 'team-beta', teamName: 'Beta' };
+    // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
+    const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
+
+    const getTeamOrder = () =>
+      screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
+
+    // FollowButton only renders hydrated + signed-in (same setup as the upvotes block).
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('clicking Follow flips the button immediately but does not move the cluster', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
+
+      expect(screen.getByRole('button', { name: 'Following Beta' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']); // order frozen until reload
+    });
+
+    it('clicking Unfollow on a pinned cluster keeps its position (symmetric freeze)', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Following Zeta' }));
+
+      expect(screen.getByRole('button', { name: 'Follow Zeta' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']); // still pinned this session
+    });
+
+    it('a fresh mount applies the new follow order (simulates page reload)', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
+      expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
+      // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh mount
+      // with fresh SSR flags, so unmount and render anew with the server's new truth.
+      unmount();
+
+      const reloadedGroups: ITeamNewsGroup[] = [
+        {
+          focusArea: FA_AI,
+          total: 3,
+          items: [alpha, { ...beta, isFollowed: true }, { ...zeta, isFollowed: false }],
+        },
+      ];
+      renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      expect(getTeamOrder()).toEqual(['Beta', 'Alpha', 'Zeta']);
+    });
+  });
+
   describe('popular this week — scroll to story', () => {
     const popularItem = (
       partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>,

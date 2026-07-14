@@ -118,6 +118,14 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
   );
 
+  // Mount-time snapshot of the followed set, used only by sortedClusters below:
+  // follow/unfollow flips buttons immediately (via the live set above) but must
+  // not reorder the feed mid-session — the new order applies on the next page
+  // load, when this reseeds from fresh SSR data. Setter-less useState so the
+  // snapshot is captured during render (first paint is already sorted) and its
+  // identity never changes; the copy severs aliasing with the live set.
+  const [initialFollowedTeamUids] = useState<ReadonlySet<string>>(() => new Set(followedTeamUids));
+
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
@@ -159,10 +167,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
   const sortedClusters = useMemo(() => {
-    const followed = clusters.filter((c) => followedTeamUids.has(c.teamUid));
-    const unfollowed = clusters.filter((c) => !followedTeamUids.has(c.teamUid));
+    const followed = clusters.filter((c) => initialFollowedTeamUids.has(c.teamUid));
+    const unfollowed = clusters.filter((c) => !initialFollowedTeamUids.has(c.teamUid));
     return [...followed, ...unfollowed];
-  }, [clusters, followedTeamUids]);
+  }, [clusters, initialFollowedTeamUids]);
 
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;

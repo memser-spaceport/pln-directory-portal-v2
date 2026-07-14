@@ -131,34 +131,17 @@
   color: #fff;
 }
 
-// Subtitle container - Figma: 12px
+// Subtitle container - matches .title size so all banner text reads at one size
 .subtitle {
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 400; // Regular
   line-height: normal;
   color: #fff;
-}
-
-// Inline CTA link, sits between the title and the supporting copy
-.ctaLink {
-  align-self: flex-start;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: normal;
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: opacity 0.15s ease;
-
-  &:hover {
-    opacity: 0.8;
-  }
 }
 
 // Bold lead-in within the supporting copy
@@ -198,11 +181,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
+  // min-height so the label is never clipped at the shared 16px text size
+  min-height: 36px;
   padding: 10px 16px;
   border-radius: 58px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 20px;
   text-decoration: none;
@@ -388,26 +372,14 @@
   gap: 8px;
 }
 
-// Mobile Subtitle
+// Mobile Subtitle - matches .mobileTitle size so all banner text reads at one size
 .mobileSubtitle {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 400;
   line-height: normal;
   color: #fff;
-}
-
-// Mobile inline CTA link, sits between the title and the supporting copy
-.mobileCtaLink {
-  align-self: flex-start;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: normal;
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 // Mobile Date
@@ -440,15 +412,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
+  // min-height so the label is never clipped at the shared 14px text size
+  min-height: 32px;
   padding: 10px 16px;
   border-radius: 58px;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   text-decoration: none;
-  white-space: nowrap;
   transition: all 0.15s ease;
   box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
 }

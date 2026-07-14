@@ -17,18 +17,10 @@ interface BannerButton {
   variant: 'primary' | 'secondary';
 }
 
-interface BannerCta {
-  label: string;
-  link: string;
-}
-
 interface BannerContent {
   id: string;
   type: BannerType;
   title: string;
-  // Inline CTA rendered between the title and the supporting copy.
-  // Use this instead of `buttons` when the CTA must precede the copy.
-  cta?: BannerCta;
   // Bold lead-in rendered immediately before `subtitle`.
   subtitleBold?: string;
   subtitle: string;
@@ -49,14 +41,12 @@ export const BANNER_CONTENTS: BannerContent[] = [
     id: 'buyback-auction-july',
     type: 'event',
     title: 'The July Buyback Auction Is Now Live',
-    cta: {
-      label: 'Place Your Bid Now on the Surus Platform',
-      link: 'https://auction-interface.fly.dev/',
-    },
     subtitleBold: 'All bids must be in no later than July 21 at 12 PM ET',
     subtitle: ' for the opportunity to redeem your PLAA in exchange for cash.',
     date: '',
-    buttons: [],
+    buttons: [
+      { label: 'Place Your Bid Now on the Surus Platform', link: 'https://auction-interface.fly.dev/', variant: 'secondary' },
+    ],
   },
 ];
 
@@ -135,7 +125,7 @@ export function PlaaBanner() {
                 {BANNER_CONTENTS.map((item) => {
                   const hasSubtitle = !!(item.subtitle || item.subtitleBold || item.date || item.highlightText);
                   const hasButtons = item.buttons.length > 0;
-                  const titleOnly = !hasSubtitle && !hasButtons && !item.cta;
+                  const titleOnly = !hasSubtitle && !hasButtons;
                   return (
                   <div key={item.id} className={`${styles.emblaSlide} ${titleOnly ? styles.emblaSlideTitleOnly : ''}`}>
                     {/* Icon */}
@@ -151,17 +141,6 @@ export function PlaaBanner() {
                     {/* Text */}
                     <div className={styles.textArea}>
                       <p className={styles.title}>{item.title}</p>
-                      {item.cta && (
-                        <a
-                          href={item.cta.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.ctaLink}
-                          onClick={() => onBannerButtonClicked(item.cta!.label, item.cta!.link)}
-                        >
-                          {item.cta.label}
-                        </a>
-                      )}
                       {hasSubtitle && (
                         <div className={styles.subtitle}>
                           <span>
@@ -246,17 +225,6 @@ export function PlaaBanner() {
               
               {/* Content hidden in compact mode */}
               <div className={styles.mobileHideOnCompact}>
-                {item.cta && (
-                  <a
-                    href={item.cta.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.mobileCtaLink}
-                    onClick={() => onBannerButtonClicked(item.cta!.label, item.cta!.link)}
-                  >
-                    {item.cta.label}
-                  </a>
-                )}
                 <div className={styles.mobileTextGroup}>
                   {item.type === 'event' ? (
                     <p className={styles.mobileSubtitle}>

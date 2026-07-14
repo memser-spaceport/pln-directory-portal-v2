@@ -11,6 +11,14 @@ interface TeamNewsCardProps {
   onClick?: (item: ITeamNewsItem) => void;
   analyticsSource: TeamNewsAnalyticsSource;
   onUpvoteToggle?: (item: ITeamNewsItem) => void;
+  /**
+   * Inline "… Show more" on a truncated summary. Mounts per-card layout
+   * measurement — rail-only by design; never pass from the modal, whose lists
+   * grow 20 per page via infinite scroll.
+   */
+  onShowMore?: (item: ITeamNewsItem) => void;
+  /** Modal feed renders summaries in full (rail teasers are clamped/measured). */
+  fullSummary?: boolean;
 }
 
 export function TeamNewsCard({
@@ -20,6 +28,8 @@ export function TeamNewsCard({
   onClick,
   analyticsSource,
   onUpvoteToggle,
+  onShowMore,
+  fullSummary,
 }: TeamNewsCardProps) {
   return (
     <NewsCard
@@ -33,6 +43,8 @@ export function TeamNewsCard({
       upvoteCount={item.upvoteCount ?? 0}
       viewerHasUpvoted={Boolean(item.viewerHasUpvoted)}
       onUpvoteToggle={onUpvoteToggle}
+      onShowMore={onShowMore}
+      fullSummary={fullSummary}
     />
   );
 }

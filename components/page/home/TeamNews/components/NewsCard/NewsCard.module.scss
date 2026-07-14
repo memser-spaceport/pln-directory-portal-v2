@@ -251,6 +251,73 @@
   overflow: hidden;
 }
 
+// Measured teaser (TruncatedSummary): JS trims to two whole lines and appends
+// an inline "… Show more". display: block overrides .summary's -webkit-box so
+// the inline button flows with the text; the max-height is a safety net if the
+// measurement is a pixel off (two 20px lines — see MAX_HEIGHT = 41).
+.summaryTruncated {
+  display: block;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+// Positioning context for the off-screen measurement gauge.
+.summaryWrap {
+  position: relative;
+}
+
+// Off-screen gauge for the two-line measurement. Must mirror .summary's font
+// metrics exactly (14px/20px/-0.2px) — TruncatedSummary's MAX_HEIGHT = 41
+// depends on it. visibility: hidden, never display: none (offsetHeight would
+// read 0 and truncation would silently disable).
+.summaryMeasure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  contain: layout style;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// Inline "Show more" following the trimmed text + ellipsis. Grey at rest with
+// an underlined label (4px offset); the ellipsis already signals "more", so the
+// label goes brand blue only on hover/focus.
+.showMore {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  vertical-align: baseline;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  // Underline only the label so it reads as a link while staying grey.
+  span {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;

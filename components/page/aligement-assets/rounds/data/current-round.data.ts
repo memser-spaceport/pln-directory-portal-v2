@@ -35,7 +35,7 @@ export const currentRoundData: CurrentRoundData = {
         openInNewTab: false
       },
       {
-        label: 'Check Your PLAA Balance',
+        label: 'Manage your Surus Account',
         url: 'https://app.surus.io/',
         type: 'secondary',
         icon: '/icons/rounds/filecoin.svg',

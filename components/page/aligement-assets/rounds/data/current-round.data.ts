@@ -122,11 +122,11 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI category In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 100,
+    maxValue: 500,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 0 },
-      { name: 'Network Tooling', value: 0 },
+      { name: 'Knowledge', value: 450 },
+      { name: 'Network Tooling', value: 200 },
       { name: 'People/Talent', value: 0 },
       { name: 'Programs', value: 0 },
       { name: 'Projects', value: 0 }

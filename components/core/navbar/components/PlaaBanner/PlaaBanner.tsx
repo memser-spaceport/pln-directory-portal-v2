@@ -42,7 +42,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
     type: 'event',
     title: 'The July Buyback Auction Is Now Live',
     subtitleBold: 'All bids must be in no later than July 21 at 12 PM ET',
-    subtitle: ' for the opportunity to redeem your PLAA in exchange for cash.',
+    subtitle: ' for the opportunity to redeem your PLAA in exchange for USD.',
     date: '',
     buttons: [
       { label: 'Place Your Bid Now on the Surus Platform', link: 'https://auction-interface.fly.dev/', variant: 'secondary' },

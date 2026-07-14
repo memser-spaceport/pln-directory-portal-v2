@@ -1,5 +1,7 @@
 .root {
   margin-bottom: 16px;
+  // Match prior sidebar width driven by the interaction-frequency row.
+  min-width: 292px;
 }
 
 .updateButton {

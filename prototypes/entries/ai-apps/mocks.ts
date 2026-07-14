@@ -182,7 +182,7 @@ export const createModalIntro =
 export const createModalSteps = [
   {
     title: 'Download the starter kit',
-    description: 'Click the button below to get Starter Kit v1.3 - a ready-to-use workspace for your AI coding tool.',
+    description: 'Click the button below to get Starter Kit v1.4 — a ready-to-use workspace for your AI coding tool.',
   },
   {
     title: 'Open it in your AI tool',

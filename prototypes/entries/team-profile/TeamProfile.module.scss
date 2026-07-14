@@ -705,7 +705,9 @@
   max-width: 900px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  /* No gap: the Back-button spacer already offsets the news panel to the team
+     card's top line; a gap here would push it a row lower (misaligned). */
+  gap: 0;
 
   @include media.tablet-landscape {
     width: 340px;
@@ -750,13 +752,84 @@
   letter-spacing: -0.3px;
 }
 
-/* Two-line teaser: production's .summary sets the -webkit-box plumbing but
-   leaves the clamp count to the surface; the rail cuts at 2. Pulled up against
-   the headline (card gap is 14px → effective 8px) so title + teaser read as
-   one block. */
+/* Rail teaser: JS trims it to two whole lines and appends an inline
+   "… Show more" (see NewsCardView), so words are never cut mid-character. Full
+   self-contained type treatment (not layered on production .summary); the
+   max-height is a safety net if the measurement is a pixel off. */
 .newsSummary {
-  -webkit-line-clamp: 2;
+  margin: 0;
+  max-height: 40px; /* two lines at 20px line-height */
   overflow: hidden;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+/* Off-screen gauge for the two-line measurement. Matches .newsSummary's font
+   metrics but wraps freely (no height cap). */
+.summaryMeasure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+/* Positioning context for the off-screen measurement gauge. */
+.newsSummaryWrap {
+  position: relative;
+}
+
+/* Inline "Show more" following the trimmed text + ellipsis (both rendered in
+   NewsCardView). Grey at rest with an underlined label (4px offset, matching
+   the design system's underlined link Button); the ellipsis already signals
+   "more", so the label goes brand blue only on hover — revealing the affordance
+   without competing with the Discuss link. */
+.showMore {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  vertical-align: baseline;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  /* Underline only the label so it reads as a link while staying grey. */
+  span {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* One-shot flash on the item the feed opened to (rail "Show more"), so the click
+   reads as "this card, in full". A box-shadow ring avoids fighting the card's
+   own background/border, and reverts to the card's normal shadow when it ends. */
+@keyframes newsHighlightRing {
+  0% {
+    box-shadow: 0 0 0 2px var(--foreground-brand-primary, #1b4dff);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(27, 77, 255, 0);
+  }
+}
+
+.newsHighlight {
+  animation: newsHighlightRing 1.5s ease-out;
 }
 
 /* Dense inner rhythm. The card is a flex column whose `gap` (production
@@ -820,14 +893,16 @@
   font-size: 14px;
 }
 
-/* Modal-only: single column on mobile, two cards per row once there's room. */
+/* Full-feed list — one column so every item can show its full summary with room
+   to read (the rail's 2-line clamp is dropped here via `fullSummary`). */
 .modalGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 
-  @include media.tablet-portrait {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
+  h3 {
+    -webkit-line-clamp: 3;
   }
 }
 

@@ -206,7 +206,7 @@ async function getPageData(teamId: string) {
           isLoggedIn,
         ),
         getFocusAreas('Team', {}),
-        fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }),
+        fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }, authToken),
         isLoggedIn ? getTeamFollowers(teamId, { authToken }) : Promise.resolve(null),
       ]);
     teamNews = teamNewsResponse;

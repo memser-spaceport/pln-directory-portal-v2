@@ -75,3 +75,8 @@
   line-height: 22px; /* 157.143% */
   letter-spacing: -0.2px;
 }
+
+.Switch[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

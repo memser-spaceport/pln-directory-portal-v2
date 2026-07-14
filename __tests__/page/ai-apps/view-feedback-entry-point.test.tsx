@@ -15,7 +15,11 @@ jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackList', () => ({
 
 describe('ViewFeedbackEntryPoint', () => {
   beforeEach(() => {
-    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
+    mockUseAiAppFeedbackList.mockReturnValue({
+      feedback: [{ uid: 'fb-1' }],
+      isLoading: false,
+      isError: false,
+    });
   });
 
   afterEach(() => {
@@ -39,6 +43,15 @@ describe('ViewFeedbackEntryPoint', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it('renders nothing while feedback is loading', () => {
+    mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: true, isError: false });
+
+    const { container } = render(<ViewFeedbackEntryPoint />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('renders nothing for members who cannot review feedback', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: false, isLoading: false });
 
@@ -47,14 +60,13 @@ describe('ViewFeedbackEntryPoint', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows no badge when there is no feedback yet', () => {
+  it('renders nothing when there is no feedback to view', () => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ canReview: true, isLoading: false });
     mockUseAiAppFeedbackList.mockReturnValue({ feedback: [], isLoading: false, isError: false });
 
-    render(<ViewFeedbackEntryPoint />);
+    const { container } = render(<ViewFeedbackEntryPoint />);
 
-    const link = screen.getByRole('link', { name: 'View feedback' });
-    expect(link).toHaveTextContent('View feedback');
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('shows the total feedback count as a badge (not an "unread" count)', () => {

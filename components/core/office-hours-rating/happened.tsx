@@ -136,7 +136,6 @@ const Happened = (props: IHappened) => {
       const result = await createFeedBack(userInfo?.uid ?? '', currentFollowup?.uid ?? '', authToken ?? '', feedback);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       if (result?.error) {
-        toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
         analytics.onOfficeHoursFeedbackFailed(
           getAnalyticsUserInfo(userInfo),
           getAnalyticsNotificationInfo(currentFollowup),
@@ -145,7 +144,7 @@ const Happened = (props: IHappened) => {
         if (result?.error?.data?.message?.includes('There is no follow-up')) {
           toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
         } else {
-          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
         }
         onClose(false);
         return;
@@ -161,7 +160,7 @@ const Happened = (props: IHappened) => {
     } catch (error) {
       console.error(error);
       onClose(false);
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
     }
   };

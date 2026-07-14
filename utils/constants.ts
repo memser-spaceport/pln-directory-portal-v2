@@ -218,6 +218,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
   FORUM_DIGEST_SAVE_FAILED: 'settings-forum-digest-save-failed',
   FORUM_DIGEST_NETWORK_NEWS_TOGGLE_CLICKED: 'settings-forum-digest-network-news-toggle-clicked',
+  FORUM_DIGEST_FORUM_ACTIVITY_TOGGLE_CLICKED: 'settings-forum-digest-forum-activity-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
@@ -306,6 +307,11 @@ export const TOAST_MESSAGES = {
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
   FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
   EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
+  HUSKY_SHARED_LINK_EXPIRED: 'This shared Husky link is no longer available',
+  HUSKY_SHARED_LINK_FAILED: "Couldn't load the shared Husky post. Please try again",
+  OH_FEEDBACK_FAILED: "Couldn't submit your office hours feedback. Please try again",
+  AI_CHAT_FAILED: "Couldn't get an AI response. Please try again",
+  REGISTER_SUBMIT_FAILED: "Couldn't submit your join request. Please try again",
 };
 
 export const AUTH_ANALYTICS = {
@@ -583,6 +589,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
+  TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',

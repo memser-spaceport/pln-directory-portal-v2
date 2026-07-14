@@ -53,7 +53,7 @@ const UserConfirmation = (props: IUserConfirmation) => {
         if (result?.error?.data?.message?.includes('There is no follow-up')) {
           toast.success(TOAST_MESSAGES.FEEDBACK__ALREADY__RECORDED);
         } else {
-          toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+          toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
         }
       }
 
@@ -71,7 +71,7 @@ const UserConfirmation = (props: IUserConfirmation) => {
       console.error(error);
       document.dispatchEvent(new CustomEvent(EVENTS.TRIGGER_REGISTER_LOADER, { detail: false }));
       onClose(false);
-      toast.error(TOAST_MESSAGES.SOMETHING_WENT_WRONG);
+      toast.error(TOAST_MESSAGES.OH_FEEDBACK_FAILED);
     }
   };
 

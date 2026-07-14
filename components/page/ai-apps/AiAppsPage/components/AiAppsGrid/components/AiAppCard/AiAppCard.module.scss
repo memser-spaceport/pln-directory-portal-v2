@@ -1,4 +1,5 @@
 .root {
+  position: relative; // anchor for .stretchedLink's full-card hit area
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -27,6 +28,14 @@
   gap: 8px;
   text-decoration: none;
   color: inherit;
+}
+
+// Stretch the card link over the whole card (which already shows cursor:pointer),
+// so clicks on the padding/footer/whitespace navigate too — not just the title text.
+.stretchedLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 .nameRow {
@@ -59,6 +68,18 @@
   line-height: 18px;
   background: #fef3c7;
   color: #92400e;
+}
+
+.errorBadge {
+  @extend .draftBadge;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.deployingBadge {
+  @extend .draftBadge;
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 .description {
@@ -118,6 +139,8 @@
 }
 
 .creatorLink {
+  position: relative; // sit above .stretchedLink's overlay so the author link stays clickable
+  z-index: 1;
   font-weight: 600;
   color: #0f172a;
   text-decoration: none;

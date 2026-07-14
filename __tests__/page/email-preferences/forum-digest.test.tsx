@@ -45,11 +45,14 @@ jest.mock('@/services/forum/hooks/useGetForumDigestSettings', () => ({
 
 const mockOnForumDigestOptionSelect = jest.fn();
 const mockOnForumDigestSaveFailed = jest.fn();
+const mockOnForumDigestNetworkNewsToggleClicked = jest.fn();
+const mockOnForumDigestForumActivityToggleClicked = jest.fn();
 jest.mock('@/analytics/settings.analytics', () => ({
   useSettingsAnalytics: () => ({
     onForumDigestOptionSelect: (...a: unknown[]) => mockOnForumDigestOptionSelect(...a),
     onForumDigestSaveFailed: (...a: unknown[]) => mockOnForumDigestSaveFailed(...a),
-    onForumDigestNetworkNewsToggleClicked: jest.fn(),
+    onForumDigestNetworkNewsToggleClicked: (...a: unknown[]) => mockOnForumDigestNetworkNewsToggleClicked(...a),
+    onForumDigestForumActivityToggleClicked: (...a: unknown[]) => mockOnForumDigestForumActivityToggleClicked(...a),
   }),
 }));
 
@@ -58,10 +61,17 @@ const userInfo: IUserInfo = { uid: 'user-1' };
 const baseData: ForumDigestSettings = {
   forumDigestEnabled: false,
   forumDigestFrequency: 7,
+  forumDigestForumEnabled: true,
   forumDigestNewsEnabled: false,
   forumDigestLastSentAt: null,
   memberExternalId: null,
   memberUid: 'user-1',
+};
+
+const enabledData: ForumDigestSettings = {
+  ...baseData,
+  forumDigestEnabled: true,
+  forumDigestNewsEnabled: true,
 };
 
 describe('ForumDigest', () => {
@@ -76,13 +86,13 @@ describe('ForumDigest', () => {
     ['Weekly Digest', 'weekly'],
   ])('%s branch', (optionLabel, attemptedFrequency) => {
     it('calls mutate with the expected payload', () => {
-      render(<ForumDigest userInfo={userInfo} initialData={baseData} />);
+      render(<ForumDigest userInfo={userInfo} initialData={baseData} hasForumAccess />);
       fireEvent.click(screen.getByRole('button', { name: optionLabel }));
       expect(mockMutate).toHaveBeenCalledTimes(1);
     });
 
     it('fires onForumDigestOptionSelect(source: settings) on success, and not onForumDigestSaveFailed', () => {
-      render(<ForumDigest userInfo={userInfo} initialData={baseData} />);
+      render(<ForumDigest userInfo={userInfo} initialData={baseData} hasForumAccess />);
       fireEvent.click(screen.getByRole('button', { name: optionLabel }));
 
       const options = mockMutate.mock.calls[0][1];
@@ -93,7 +103,7 @@ describe('ForumDigest', () => {
     });
 
     it('fires onForumDigestSaveFailed(source: settings) on failure, and not onForumDigestOptionSelect', () => {
-      render(<ForumDigest userInfo={userInfo} initialData={baseData} />);
+      render(<ForumDigest userInfo={userInfo} initialData={baseData} hasForumAccess />);
       fireEvent.click(screen.getByRole('button', { name: optionLabel }));
 
       const options = mockMutate.mock.calls[0][1];
@@ -101,6 +111,67 @@ describe('ForumDigest', () => {
 
       expect(mockOnForumDigestSaveFailed).toHaveBeenCalledWith({ attemptedFrequency, source: 'settings' });
       expect(mockOnForumDigestOptionSelect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('content-type toggles', () => {
+    it('hides both toggles while the digest is off', () => {
+      render(<ForumDigest userInfo={userInfo} initialData={baseData} hasForumAccess />);
+      expect(screen.queryByText('Forum activity')).not.toBeInTheDocument();
+      expect(screen.queryByText('Network news')).not.toBeInTheDocument();
+    });
+
+    it('shows both toggles when the digest is enabled', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+      expect(screen.getByText('Forum activity')).toBeInTheDocument();
+      expect(screen.getByText('Network news')).toBeInTheDocument();
+    });
+
+    it('mutates forumDigestForumEnabled and fires analytics when the forum-activity toggle is clicked', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+
+      fireEvent.click(screen.getByRole('switch', { name: /forum activity/i }));
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        uid: 'user-1',
+        payload: { ...enabledData, forumDigestForumEnabled: false },
+      });
+      expect(mockOnForumDigestForumActivityToggleClicked).toHaveBeenCalledWith({ forumDigestForumEnabled: false });
+    });
+
+    it('mutates forumDigestNewsEnabled and fires analytics when the network-news toggle is clicked', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+
+      fireEvent.click(screen.getByRole('switch', { name: /network news/i }));
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        uid: 'user-1',
+        payload: { ...enabledData, forumDigestNewsEnabled: false },
+      });
+      expect(mockOnForumDigestNetworkNewsToggleClicked).toHaveBeenCalledWith({ forumDigestNewsEnabled: false });
+    });
+
+    it('renders the forum-activity toggle disabled and off for users without forum access, and never mutates it', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess={false} />);
+
+      const forumSwitch = screen.getByRole('switch', { name: /forum activity/i });
+      expect(forumSwitch).toBeDisabled();
+      expect(forumSwitch).not.toBeChecked();
+
+      fireEvent.click(forumSwitch);
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(mockOnForumDigestForumActivityToggleClicked).not.toHaveBeenCalled();
+
+      // Network news still works without forum access.
+      fireEvent.click(screen.getByRole('switch', { name: /network news/i }));
+      expect(mockMutate).toHaveBeenCalledWith({
+        uid: 'user-1',
+        payload: { ...enabledData, forumDigestNewsEnabled: false },
+      });
     });
   });
 });

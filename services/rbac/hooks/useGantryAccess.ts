@@ -26,7 +26,7 @@ export type GantryAccess = {
 
 export function useGantryAccess(): GantryAccess {
   const { currentUser, isHydrated } = useCurrentUserStore();
-  const { data, isPending, isFetching, isError } = useQuery({
+  const { data, isPending, isError } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS, 'gantry'],
     queryFn: fetchMyAccess,
     staleTime: 5 * 60 * 1000,
@@ -36,7 +36,9 @@ export function useGantryAccess(): GantryAccess {
 
   const perms = new Set(data?.effectivePermissions ?? []);
   const isAdmin = perms.has(PERM_ADMIN);
-  const isLoading = !isHydrated || (!!currentUser && (isPending || isFetching));
+  // Same as usePermissions: ignore background isFetching so access guards don't
+  // unmount children (and wipe form state) on window-focus refetch.
+  const isLoading = !isHydrated || (!!currentUser && isPending);
 
   return {
     canView: isAdmin || perms.has(PERM_VIEW),

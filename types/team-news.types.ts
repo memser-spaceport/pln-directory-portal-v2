@@ -41,6 +41,9 @@ export interface ISuggestedTeam {
   name: string;
   logo: string | null;
   reason: string;
+  /** One-line team blurb (same field the teams grid shows). Optional until the
+      follow-suggestions endpoint ships it; the UI falls back to `reason`. */
+  shortDescription?: string | null;
 }
 
 export interface ITeamNewsFollowSuggestionsResponse {

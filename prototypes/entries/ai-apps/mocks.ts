@@ -4,9 +4,9 @@ import type { AiApp } from '@/services/ai-apps/ai-apps.service';
 
 // Prototype-local extension of the production `AiApp` shape. Production has no
 // 1-pager/document field yet; we model it here without touching the real type.
-// `fileUrl` is a blob URL for a freshly-uploaded PDF (viewable in the modal);
-// `previewDataUrl` is the thumbnail (a generated PDF preview for uploads, or a
-// seeded placeholder for the demo). A seeded doc may have only a preview.
+// `fileUrl` is a blob URL for a freshly-uploaded HTML/Markdown file (viewable
+// in the modal); `previewDataUrl` is an optional thumbnail (seeded placeholder
+// for the demo). A seeded doc may have only a preview.
 export interface OnePager {
   fileName: string;
   fileSize: number;
@@ -17,7 +17,7 @@ export interface OnePager {
 export type AiAppWithDoc = AiApp & { onePager?: OnePager };
 
 // A small portrait "PRD page" thumbnail as an inline SVG data-URI, so the
-// seeded 1-pager renders a realistic preview without shipping a binary PDF.
+// seeded 1-pager renders a realistic preview without shipping a binary file.
 function onePagerPlaceholder(title: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 240 320">
     <rect width="240" height="320" fill="#ffffff"/>
@@ -88,10 +88,10 @@ export const mockAiApps: AiAppWithDoc[] = [
     updatedAt: '2026-06-18T10:00:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii' },
     // Seeded 1-pager (preview only) so the "anyone can view" state is visible
-    // out of the box. Uploaded PDFs additionally get a real `fileUrl`.
+    // out of the box. Uploaded files additionally get a real `fileUrl`.
     onePager: {
-      fileName: 'Warm Intro Matcher - PRD.pdf',
-      fileSize: 284_160,
+      fileName: 'Warm Intro Matcher - PRD.md',
+      fileSize: 12_480,
       previewDataUrl: onePagerPlaceholder('Warm Intro Matcher'),
     },
   },
@@ -114,8 +114,8 @@ export const mockAiApps: AiAppWithDoc[] = [
     updatedAt: '2026-06-12T14:30:00.000Z',
     member: { uid: 'm-2', name: 'Daniel Singer' },
     onePager: {
-      fileName: 'Founder Digest - Overview.pdf',
-      fileSize: 198_400,
+      fileName: 'Founder Digest - Overview.html',
+      fileSize: 18_240,
       previewDataUrl: onePagerPlaceholder('Founder Digest'),
     },
   },

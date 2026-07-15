@@ -25,6 +25,20 @@ function revokeOnePagerUrls(doc: OnePager | null): void {
   if (doc.previewDataUrl?.startsWith('blob:')) URL.revokeObjectURL(doc.previewDataUrl);
 }
 
+function onePagerFormatLabel(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  if (ext === 'md' || ext === 'markdown') return 'Markdown';
+  if (ext === 'html' || ext === 'htm') return 'HTML';
+  return ext?.toUpperCase() ?? 'File';
+}
+
+function onePagerFormatBadge(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  if (ext === 'md' || ext === 'markdown') return 'MD';
+  if (ext === 'html' || ext === 'htm') return 'HTML';
+  return ext?.toUpperCase() ?? 'FILE';
+}
+
 export function ManageAppModal(props: Props) {
   const { isOpen, app, onClose, onSave } = props;
 
@@ -37,8 +51,8 @@ export function ManageAppModal(props: Props) {
   // Bumped on Remove so the FileUploader remounts with fresh internal state.
   const [uploaderKey, setUploaderKey] = useState(0);
 
-  // Mock upload: no S3. Keep a local blob URL for viewing and generate a real
-  // first-page thumbnail client-side. Production would POST to a presigned URL.
+  // Mock upload: no S3. Keep a local blob URL for viewing. Production would
+  // POST to a presigned URL.
   const handleUpload = (files: File[]) => {
     const file = files[0];
     if (!file) return;
@@ -46,18 +60,6 @@ export function ManageAppModal(props: Props) {
     const fileUrl = URL.createObjectURL(file);
     revokeOnePagerUrls(onePager);
     setOnePager({ fileName: file.name, fileSize: file.size, fileUrl });
-
-    // Loaded lazily (browser-only): react-pdf touches DOMMatrix at module scope,
-    // which throws during the server render of this prototype.
-    import('@/utils/pdf-preview.utils')
-      .then(({ generatePdfPreview }) => generatePdfPreview(file))
-      .then((previewFile) => {
-        const previewDataUrl = URL.createObjectURL(previewFile);
-        setOnePager((prev) => (prev && prev.fileUrl === fileUrl ? { ...prev, previewDataUrl } : prev));
-      })
-      .catch(() => {
-        /* Thumbnail is best-effort; the file is still viewable without it. */
-      });
   };
 
   const handleRemove = () => {
@@ -120,9 +122,9 @@ export function ManageAppModal(props: Props) {
           </label>
 
           <div className={s.field}>
-            <span className={s.label}>1-pager (PDF)</span>
+            <span className={s.label}>1-pager (HTML or Markdown)</span>
             <p className={s.helpText}>
-              Mock upload only. The PDF is stored in local prototype state and becomes visible to visitors immediately
+              Mock upload only. The file is stored in local prototype state and becomes visible to visitors immediately
               after saving.
             </p>
             {onePager ? (
@@ -131,12 +133,14 @@ export function ManageAppModal(props: Props) {
                   {onePager.previewDataUrl ? (
                     <img className={s.thumbImg} src={onePager.previewDataUrl} alt="" />
                   ) : (
-                    <span className={s.thumbFallback}>PDF</span>
+                    <span className={s.thumbFallback}>{onePagerFormatBadge(onePager.fileName)}</span>
                   )}
                 </div>
                 <div className={s.fileMeta}>
                   <p className={s.fileName}>{onePager.fileName}</p>
-                  <p className={s.fileSize}>PDF - {formatFileSize(onePager.fileSize)}</p>
+                  <p className={s.fileSize}>
+                    {onePagerFormatLabel(onePager.fileName)} - {formatFileSize(onePager.fileSize)}
+                  </p>
                 </div>
                 <button type="button" className={s.removeBtn} onClick={handleRemove}>
                   Remove
@@ -146,8 +150,8 @@ export function ManageAppModal(props: Props) {
               <FileUploader
                 key={uploaderKey}
                 title="Upload a 1-pager"
-                description="PDF up to 10MB. Anyone viewing the app will be able to open it."
-                supportedFormats={['PDF']}
+                description="HTML or Markdown up to 10MB. Anyone viewing the app will be able to open it."
+                supportedFormats={['HTML', 'MD']}
                 maxFiles={1}
                 maxFileSize={10}
                 onUpload={handleUpload}

@@ -178,7 +178,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'ai-apps',
     title: 'AI Apps',
     description:
-      'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview. The creator can edit an app name/description and upload a 1-pager PDF (a PRD) that anyone can open; use the "View as" toggle to switch between the creator and visitor experience.',
+      'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview. The creator can edit an app name/description and upload a 1-pager as HTML or Markdown (a PRD) that anyone can open; use the "View as" toggle to switch between the creator and visitor experience.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
   },

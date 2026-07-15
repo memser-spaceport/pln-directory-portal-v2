@@ -119,13 +119,10 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
   // Autosave draft while modal is open. Impact fields are deliberately NOT persisted:
   // the drafts API's field mapping (ApiGantryDraftPayload) has no slots for them, so a
   // round-trip would silently drop them — and a rating-only draft must not count as content.
-  const toDraft = useCallback(
-    (): SubmitIdeaDraft => {
-      const { impact: _impact, impactReasoning: _impactReasoning, ...form } = getValues();
-      return { form, showCreateObjective, newObjectiveTitle };
-    },
-    [getValues, showCreateObjective, newObjectiveTitle],
-  );
+  const toDraft = useCallback((): SubmitIdeaDraft => {
+    const { impact: _impact, impactReasoning: _impactReasoning, ...form } = getValues();
+    return { form, showCreateObjective, newObjectiveTitle };
+  }, [getValues, showCreateObjective, newObjectiveTitle]);
 
   useEffect(() => {
     if (!open || skipSaveRef.current) return;

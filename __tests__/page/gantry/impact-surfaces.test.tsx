@@ -88,13 +88,23 @@ describe('ImpactDetailSection (drawer/page)', () => {
 
   it('shows the editable own-rating row only to an active booster, read-only when frozen', () => {
     const { rerender } = render(
-      <ImpactDetailSection item={item({ viewerHasPinned: true, viewerImpact: 3 })} canCurate={false} isAuthor={false} frozen={false} />,
+      <ImpactDetailSection
+        item={item({ viewerHasPinned: true, viewerImpact: 3 })}
+        canCurate={false}
+        isAuthor={false}
+        frozen={false}
+      />,
     );
     expect(screen.getByText('Your rating')).toBeInTheDocument();
     expect(screen.getAllByRole('radio')[0]).toBeEnabled();
 
     rerender(
-      <ImpactDetailSection item={item({ viewerHasPinned: true, viewerImpact: 3, stage: 'SHIPPED' })} canCurate={false} isAuthor={false} frozen />,
+      <ImpactDetailSection
+        item={item({ viewerHasPinned: true, viewerImpact: 3, stage: 'SHIPPED' })}
+        canCurate={false}
+        isAuthor={false}
+        frozen
+      />,
     );
     expect(screen.getAllByRole('radio')[0]).toBeDisabled();
 
@@ -104,7 +114,12 @@ describe('ImpactDetailSection (drawer/page)', () => {
 
   it('offers "Add your rating" to a legacy booster with no rating yet', () => {
     render(
-      <ImpactDetailSection item={item({ viewerHasPinned: true, viewerImpact: null })} canCurate={false} isAuthor={false} frozen={false} />,
+      <ImpactDetailSection
+        item={item({ viewerHasPinned: true, viewerImpact: null })}
+        canCurate={false}
+        isAuthor={false}
+        frozen={false}
+      />,
     );
     expect(screen.getByText('Add your rating')).toBeInTheDocument();
   });

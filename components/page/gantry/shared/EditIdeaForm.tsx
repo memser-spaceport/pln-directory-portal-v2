@@ -75,9 +75,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
   return (
     <FormProvider {...methods}>
       <div className={s.root}>
-        <h2 className={s.heading}>
-          {isPreRoadmapStage(item.stage) ? 'Edit submission' : 'Edit item'}
-        </h2>
+        <h2 className={s.heading}>{isPreRoadmapStage(item.stage) ? 'Edit submission' : 'Edit item'}</h2>
         <div className={s.fields}>
           <IdeaFormFields showImpact={showImpact} showReasoning={showReasoning} impactRequired={false} />
         </div>

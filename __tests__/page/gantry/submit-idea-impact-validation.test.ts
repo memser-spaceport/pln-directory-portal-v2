@@ -21,10 +21,7 @@ describe('submitIdeaSchema — impact validation via resolver context', () => {
 
   it('member: rejects without a rating and without reasoning', async () => {
     await expect(validate({ ...baseValues, impact: null, impactReasoning: '' }, memberCtx)).rejects.toMatchObject({
-      errors: expect.arrayContaining([
-        'Rate the impact on company goals',
-        'Explain how this moves company goals',
-      ]),
+      errors: expect.arrayContaining(['Rate the impact on company goals', 'Explain how this moves company goals']),
     });
   });
 

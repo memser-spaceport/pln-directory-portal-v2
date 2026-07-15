@@ -104,7 +104,9 @@ describe('useGantryPin — impact-aware optimistic updates', () => {
     queryClient.setQueryData([GantryQueryKeys.PIN_STATUS], status);
 
     await act(async () => {
-      await result.current.mutateAsync({ uid: 'target', nextIsPinned: true, impact: 3, swapItemUid: 'released' }).catch(() => {});
+      await result.current
+        .mutateAsync({ uid: 'target', nextIsPinned: true, impact: 3, swapItemUid: 'released' })
+        .catch(() => {});
     });
 
     expect(findIn(queryClient, 'target')).toEqual(item('target'));

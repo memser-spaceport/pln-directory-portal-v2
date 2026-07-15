@@ -18,10 +18,7 @@ const tagsSchema = yup
   .of(yup.object({ label: yup.string().required(), value: yup.string().required() }))
   .optional();
 
-const typeSchema = yup
-  .object({ label: yup.string().required(), value: yup.string().required() })
-  .nullable()
-  .optional();
+const typeSchema = yup.object({ label: yup.string().required(), value: yup.string().required() }).nullable().optional();
 
 const objectivesSchema = yup
   .array()
@@ -55,10 +52,7 @@ const impactReasoningSchema = yup
   });
 
 export const submitIdeaSchema = yup.object().shape({
-  title: yup
-    .string()
-    .required('Title is required')
-    .max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
+  title: yup.string().required('Title is required').max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
   description: yup
     .string()
     .optional()
@@ -82,10 +76,7 @@ export const submitIdeaSchema = yup.object().shape({
 });
 
 export const editIdeaSchema = yup.object().shape({
-  title: yup
-    .string()
-    .required('Title is required')
-    .max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
+  title: yup.string().required('Title is required').max(TITLE_MAX_LENGTH, `Max ${TITLE_MAX_LENGTH} characters`),
   description: yup.string().optional(),
   tags: tagsSchema,
   type: typeSchema,
@@ -117,9 +108,9 @@ export function isSubmitIdeaDraftEmpty(draft: SubmitIdeaDraft): boolean {
   return (
     !(form.title ?? '').trim() &&
     !hasRichTextContent(form.description) &&
-    !(form.tags?.length) &&
+    !form.tags?.length &&
     !form.type &&
-    !(form.objectives?.length) &&
+    !form.objectives?.length &&
     !(newObjectiveTitle ?? '').trim() &&
     !showCreateObjective
   );

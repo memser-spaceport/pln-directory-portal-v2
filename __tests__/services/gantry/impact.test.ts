@@ -135,7 +135,13 @@ describe('normalizeGantryItemImpact', () => {
       rawItem({
         impactDistribution: { '1': 0 },
         pins: [
-          { uid: 'pin-1', note: null, createdAt: '', releasedAt: null, member: { uid: 'm', name: 'A', imageUrl: null } },
+          {
+            uid: 'pin-1',
+            note: null,
+            createdAt: '',
+            releasedAt: null,
+            member: { uid: 'm', name: 'A', imageUrl: null },
+          },
           {
             uid: 'pin-2',
             note: 'why now',

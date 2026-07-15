@@ -23,10 +23,7 @@ export function BoostersSection({ item }: { item: GantryItem }) {
   // Use inline pins from the list/detail response when available to avoid N+1 requests.
   // Fall back to the dedicated hook only when pins weren't embedded (e.g. older API responses).
   const inlinePins = item.pins;
-  const { data: fetchedPins, isLoading } = useGantryItemPins(
-    item.uid,
-    !inlinePins && item.pinCount > 0,
-  );
+  const { data: fetchedPins, isLoading } = useGantryItemPins(item.uid, !inlinePins && item.pinCount > 0);
   const pinners: GantryPinner[] = inlinePins ?? fetchedPins ?? [];
   if (!inlinePins && isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
   if (pinners.length === 0) return null;

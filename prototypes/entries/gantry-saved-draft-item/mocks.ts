@@ -90,11 +90,13 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'PLANNED',
     focusArea: null,
-    objectives: [{
-      uid: 'mock-objective-2',
-      order: 2,
-      title: 'Increase roadmap visibility',
-    }],
+    objectives: [
+      {
+        uid: 'mock-objective-2',
+        order: 2,
+        title: 'Increase roadmap visibility',
+      },
+    ],
     tags: ['Directory', 'Back Office'],
     type: 'Enhancement Request',
     order: 1,
@@ -131,11 +133,13 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'IN_PROGRESS',
     focusArea: null,
-    objectives: [{
-      uid: 'mock-objective-1',
-      order: 1,
-      title: 'Improve contributor request flow',
-    }],
+    objectives: [
+      {
+        uid: 'mock-objective-1',
+        order: 1,
+        title: 'Improve contributor request flow',
+      },
+    ],
     tags: ['Gantry', 'Notifications'],
     type: 'New Feature Request',
     order: 1,
@@ -208,11 +212,13 @@ export const mockBoardItems: GantryItem[] = [
     acceptanceCriteria: null,
     stage: 'IDEA',
     focusArea: null,
-    objectives: [{
-      uid: 'mock-objective-1',
-      order: 1,
-      title: 'Improve contributor request flow',
-    }],
+    objectives: [
+      {
+        uid: 'mock-objective-1',
+        order: 1,
+        title: 'Improve contributor request flow',
+      },
+    ],
     tags: ['Gantry', 'Search'],
     type: 'New Feature Request',
     order: null,

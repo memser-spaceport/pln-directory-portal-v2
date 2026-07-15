@@ -31,7 +31,8 @@ const analytics = analyticsMocks as unknown as Parameters<typeof useRoadmapPinAc
 
 const button = () => {
   const el = document.createElement('button');
-  el.getBoundingClientRect = () => ({ top: 100, left: 100, bottom: 120, right: 200, width: 100, height: 20 }) as DOMRect;
+  el.getBoundingClientRect = () =>
+    ({ top: 100, left: 100, bottom: 120, right: 200, width: 100, height: 20 }) as DOMRect;
   return el;
 };
 
@@ -137,7 +138,10 @@ describe('useRoadmapPinActions — rate-first boost flow (impact UI on)', () => 
 
     await act(() => result.current.handlePinToggle('item-1', false, button()));
 
-    expect((pin as { mutateAsync: jest.Mock }).mutateAsync).toHaveBeenCalledWith({ uid: 'item-1', nextIsPinned: false });
+    expect((pin as { mutateAsync: jest.Mock }).mutateAsync).toHaveBeenCalledWith({
+      uid: 'item-1',
+      nextIsPinned: false,
+    });
     expect(result.current.ratePopover).toBeNull();
     expect(analyticsMocks.onItemUnboosted).toHaveBeenCalledWith('item-1');
   });

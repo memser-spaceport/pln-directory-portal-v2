@@ -10,13 +10,7 @@
  * Delete this file (and its call sites) at API cutover.
  */
 import { applyImpactChange, type GantryItemImpactAggregate } from './impact';
-import type {
-  GantryImpactValue,
-  GantryItem,
-  GantryItemListResponse,
-  GantryPinner,
-  GantryPinStatus,
-} from './types';
+import type { GantryImpactValue, GantryItem, GantryItemListResponse, GantryPinner, GantryPinStatus } from './types';
 
 const MOCK_PIN_LIMIT = 10;
 /** How many of the first-seen real items get fixture impact data; the rest exercise the legacy path. */
@@ -72,7 +66,7 @@ function seededAggregate(uid: string): GantryItemImpactAggregate {
   const center = ((hash >> 4) % 3) + 3; // 3..5 — fixtures skew meaningful, like a real board would
   let aggregate: GantryItemImpactAggregate = { avgImpact: null, impactCount: 0, impactDistribution: null };
   for (let i = 0; i < count; i += 1) {
-    const offset = ((hash >> (i % 24)) % 3) - 1; // -1..1 around the center
+    const offset = ((hash >> i % 24) % 3) - 1; // -1..1 around the center
     const value = Math.min(5, Math.max(1, center + offset)) as GantryImpactValue;
     aggregate = applyImpactChange(aggregate, { prev: null, next: value });
   }

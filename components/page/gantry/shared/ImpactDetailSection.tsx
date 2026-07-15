@@ -99,8 +99,7 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
 
   const showAggregate = hasImpactData(item) && item.avgImpact !== null;
   const canEditOwnRating = item.viewerHasPinned; // rating rides the active pin
-  const showReasoning =
-    !!item.authorImpactReasoning && (canCurate || isAuthor) && item.objectives.length === 0;
+  const showReasoning = !!item.authorImpactReasoning && (canCurate || isAuthor) && item.objectives.length === 0;
 
   if (!showAggregate && !canEditOwnRating && !showReasoning) return null;
 
@@ -146,7 +145,12 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
         <div className={s.ownRating}>
           <span className={s.ownRatingLabel}>
             {item.viewerImpact !== null ? 'Your rating' : 'Add your rating'}
-            {frozen && <span className={s.frozenHint}> (locked — item is {item.stage === 'IN_PROGRESS' ? 'in progress' : 'final'})</span>}
+            {frozen && (
+              <span className={s.frozenHint}>
+                {' '}
+                (locked — item is {item.stage === 'IN_PROGRESS' ? 'in progress' : 'final'})
+              </span>
+            )}
           </span>
           <ImpactControl
             value={item.viewerImpact}
@@ -169,9 +173,7 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
         <div className={s.raters}>
           <div className={s.ratersHeader}>
             <LockIcon />
-            <span>
-              {raterRows.length} RATED · TEAM-ONLY
-            </span>
+            <span>{raterRows.length} RATED · TEAM-ONLY</span>
           </div>
           {visibleRaters.map((rater) => {
             const c = avatarColor(rater.name);

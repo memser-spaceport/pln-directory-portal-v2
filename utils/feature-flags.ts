@@ -16,8 +16,9 @@ const gantryImpactMode =
         : 'mock'
       : 'off';
 
-/** Components branch on this only — cutover to the real API never touches UI code. */
+/**
+ * Components branch on this only — cutover to the real API never touches UI code.
+ * The mock gate ('mock' mode) is NOT exported from here: gantry.service.ts computes it from
+ * literal env reads so the bundler can dead-code-eliminate the mock module entirely.
+ */
 export const GANTRY_IMPACT_UI_ENABLED = gantryImpactMode !== 'off';
-
-/** Consumed ONLY by gantry.service.ts mock guards; delete all references at API cutover. */
-export const GANTRY_IMPACT_MOCK = gantryImpactMode === 'mock';

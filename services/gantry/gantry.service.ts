@@ -1,5 +1,4 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import { GANTRY_IMPACT_MOCK } from '@/utils/feature-flags';
 import { normalizeGantryItemImpact, toImpactValue } from './impact';
 import type {
   ApiGantryDraft,
@@ -18,7 +17,18 @@ import type {
   UpdateGantryPinPayload,
 } from './types';
 
-/** Loaded lazily so production bundles (flag off/on) carry no mock bytes. */
+/**
+ * Mock gate computed from LITERAL env reads (not the shared feature-flags export): Next.js
+ * inlines both literals at build time, so when the flag isn't 'mock' the minifier folds this
+ * to `false` and dead-code-eliminates every `impactMock()` branch — no mock chunk is emitted
+ * at all. Must mirror utils/feature-flags.ts (`GANTRY_IMPACT_MOCK`), incl. the prod coercion.
+ */
+// NODE_ENV first: it folds to a literal `false` in production builds, which short-circuits
+// the whole expression statically — with it second, `x && false` can't be folded away.
+const GANTRY_IMPACT_MOCK =
+  process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_GANTRY_IMPACT === 'mock';
+
+/** Loaded lazily so mock code stays out of the main bundle even in mock-mode dev builds. */
 function impactMock() {
   return import('./gantry-impact.mock-data');
 }

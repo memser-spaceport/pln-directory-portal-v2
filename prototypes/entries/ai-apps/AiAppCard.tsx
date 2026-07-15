@@ -1,30 +1,59 @@
 'use client';
 
+import type { KeyboardEvent } from 'react';
+
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 import type { AiAppWithDoc } from './mocks';
+import { AppActionsMenu } from './AppActionsMenu';
 
+// Reuse the same tag style the team-profile prototype uses for the Demo Day tag
+// (TeamCard's "series"/"Pre-seed" pill).
+import tc from '@/components/common/LogosGrid/components/TeamCard/TeamCard.module.scss';
 import s from './AiAppCard.module.scss';
 
 interface Props {
   readonly app: AiAppWithDoc;
   readonly canManage: boolean;
   readonly onSelect: () => void;
-  readonly onManage: () => void;
+  readonly onEdit: () => void;
+  readonly onDeployment: () => void;
+  readonly onDelete: () => void;
+  readonly onViewOnePager: () => void;
 }
 
-export function AiAppCard({ app, canManage, onSelect, onManage }: Props) {
+export function AiAppCard({
+  app,
+  canManage,
+  onSelect,
+  onEdit,
+  onDeployment,
+  onDelete,
+  onViewOnePager,
+}: Props) {
   const isDraft = app.status === 'DRAFT';
   const hasOnePager = !!app.onePager;
+  // Anyone who can see the app gets the "App Details" footer tag to open the
+  // 1-pager. Creators also get the ⋯ manage menu in the corner — the two are
+  // distinct actions (view the doc vs. manage the app).
+  const showOnePagerButton = hasOnePager;
+
+  // The whole card is clickable, so it's a role="button" div (a real <button>
+  // can't wrap the nested "App details" button). Mirror button keyboard support.
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+  };
 
   return (
     <article className={s.root}>
-      <button type="button" className={s.cardButton} onClick={onSelect}>
+      <div className={s.cardButton} role="button" tabIndex={0} onClick={onSelect} onKeyDown={handleKeyDown}>
         <div className={s.body}>
-          <div className={s.nameRow}>
+          <div className={`${s.nameRow} ${canManage ? s.nameRowMenu : ''}`}>
             <h3 className={s.name}>{app.name}</h3>
             {isDraft && <span className={s.draftBadge}>Draft</span>}
-            {hasOnePager && <span className={s.docBadge}>1-pager</span>}
           </div>
           <p className={s.description}>{app.description}</p>
         </div>
@@ -41,15 +70,38 @@ export function AiAppCard({ app, canManage, onSelect, onManage }: Props) {
               </p>
             </div>
           </div>
+
+          {showOnePagerButton && (
+            <button
+              type="button"
+              className={s.detailsButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewOnePager();
+              }}
+              aria-label={`App details for ${app.name}`}
+            >
+              <span className={`${tc.stage} ${s.detailsBadge}`}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M4 1.5h5L13 5.5V13a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 13V3A1.5 1.5 0 0 1 4 1.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M8.5 1.5V6h4.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                </svg>
+                App Details
+              </span>
+            </button>
+          )}
         </div>
-      </button>
+      </div>
 
       {canManage && (
-        <button type="button" className={s.moreButton} onClick={onManage} aria-label={`More actions for ${app.name}`}>
-          <span />
-          <span />
-          <span />
-        </button>
+        <div className={s.actionSlot}>
+          <AppActionsMenu appName={app.name} onEdit={onEdit} onDeployment={onDeployment} onDelete={onDelete} />
+        </div>
       )}
     </article>
   );

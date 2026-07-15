@@ -80,8 +80,10 @@ export const mockAiApps: AiAppWithDoc[] = [
     host: 'labs.pln',
     port: 443,
     deploymentId: 'dep-1',
-    requiredEnvVars: [],
-    providedEnvVars: [],
+    // One stored + one still-needed secret, so "Deployment settings" shows the
+    // full update-secrets-and-redeploy flow out of the box.
+    requiredEnvVars: ['OPENAI_API_KEY', 'DIRECTORY_API_TOKEN'],
+    providedEnvVars: ['OPENAI_API_KEY'],
     createdAt: '2026-06-18T10:00:00.000Z',
     updatedAt: '2026-06-18T10:00:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii' },
@@ -111,6 +113,11 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-06-12T14:30:00.000Z',
     updatedAt: '2026-06-12T14:30:00.000Z',
     member: { uid: 'm-2', name: 'Daniel Singer' },
+    onePager: {
+      fileName: 'Founder Digest - Overview.pdf',
+      fileSize: 198_400,
+      previewDataUrl: onePagerPlaceholder('Founder Digest'),
+    },
   },
   {
     uid: 'app-3',

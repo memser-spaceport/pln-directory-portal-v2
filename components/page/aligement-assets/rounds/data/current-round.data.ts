@@ -35,7 +35,7 @@ export const currentRoundData: CurrentRoundData = {
         openInNewTab: false
       },
       {
-        label: 'Check Your PLAA Balance',
+        label: 'Manage your Surus Account',
         url: 'https://app.surus.io/',
         type: 'secondary',
         icon: '/icons/rounds/filecoin.svg',
@@ -122,14 +122,14 @@ export const currentRoundData: CurrentRoundData = {
   chart: {
     title: 'Total Points Collected Per KPI category In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
-    maxValue: 100,
+    maxValue: 500,
     chartData: [
       { name: 'Brand', value: 0 },
-      { name: 'Knowledge', value: 0 },
-      { name: 'Network Tooling', value: 0 },
+      { name: 'Knowledge', value: 450 },
+      { name: 'Network Tooling', value: 200 },
       { name: 'People/Talent', value: 0 },
       { name: 'Programs', value: 0 },
-      { name: 'Projects', value: 0 }
+      { name: 'Projects', value: 500 }
     ]
   },
 
@@ -160,7 +160,8 @@ export const currentRoundData: CurrentRoundData = {
       'Share a Reusable AI Resource or Tool',
       'Rank Among the Network\'s Most Supportive Members'
     ],
-    totalPointsCollected: '0',
+    // Sum of chart.chartData values above (450 + 200 + 500)
+    totalPointsCollected: '1,150',
     totalTokensAvailable: '10,000',
     numberOfBuybacks: 0
   },

@@ -96,6 +96,15 @@ jest.mock('@tanstack/react-query', () => ({
     mutate: jest.fn(),
     mutateAsync: jest.fn(),
   }),
+  useQueryClient: () => ({
+    getQueryData: jest.fn(),
+    getQueriesData: jest.fn(() => []),
+    setQueryData: jest.fn(),
+    setQueriesData: jest.fn(),
+    cancelQueries: jest.fn(() => Promise.resolve()),
+    invalidateQueries: jest.fn(() => Promise.resolve()),
+    isMutating: jest.fn(() => 1),
+  }),
 }));
 
 jest.mock('nuqs/server', () => {

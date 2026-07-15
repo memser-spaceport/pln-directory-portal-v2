@@ -11,6 +11,15 @@ export enum GantryQueryKeys {
   DRAFT = 'gantry-draft',
 }
 
+/**
+ * Shared by every mutation that writes the ITEMS/ITEM/PIN_STATUS caches (pin, pin update):
+ * the scope serializes them (no interleaved optimistic snapshots), and onSettled uses the
+ * mutationKey with `queryClient.isMutating(...) === 1` to invalidate only when last-standing,
+ * so a settling mutation's refetch never clobbers a still-pending one.
+ */
+export const GANTRY_ITEM_WRITE_MUTATION_KEY = ['gantry-item-write'] as const;
+export const GANTRY_ITEM_WRITE_SCOPE = { id: 'gantry-item-write' } as const;
+
 export const GANTRY_IMPACT_VALUES: readonly GantryImpactValue[] = [1, 2, 3, 4, 5];
 
 export const GANTRY_IMPACT_LABELS: Record<GantryImpactValue, string> = {

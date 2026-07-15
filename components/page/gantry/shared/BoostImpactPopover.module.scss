@@ -1,0 +1,49 @@
+// Only the rating-layout additions live here — the popover chrome (backdrop, head,
+// textarea, actions, footer) is reused from PinNotePopover.module.scss.
+
+// Wider than the note-only popover so the 1..5 scale fits on one row; capped height.
+.popover {
+  width: 372px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+}
+
+// Lead with the rating ask, larger than the note popover's 14px title.
+.title {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.noteBlock {
+  margin-top: 12px;
+}
+
+// The two DS Buttons split the actions row evenly.
+.actionBtn {
+  flex: 1;
+}
+
+// On narrow screens the anchored popover becomes a bottom sheet: docked full-width to the bottom,
+// rounded top only, ignoring the desktop anchor position. Doubled selector wins over the imported
+// popover chrome + local width without !important.
+.mobileSheet.mobileSheet {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 16px 16px 0 0;
+  animation: sheetUp 0.24s ease-out;
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}

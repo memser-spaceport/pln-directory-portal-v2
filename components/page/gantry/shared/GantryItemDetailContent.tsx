@@ -28,6 +28,9 @@ import { GantryItemAuthor } from './GantryItemAuthor';
 import { PinNotePopover } from './PinNotePopover';
 import { BoostImpactPopover } from './BoostImpactPopover';
 import { PinSwapPicker } from './PinSwapPicker';
+import { ImpactDetailSection } from './ImpactDetailSection';
+import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
+import { hasImpactData } from '@/services/gantry/impact';
 import { StageSelector } from './StageSelector';
 import { BuildWithAgentsButton } from './BuildWithAgentsButton';
 import { DeclineIdeaModal } from './DeclineIdeaModal';
@@ -215,10 +218,28 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
               onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
             />
           </div>
-          {access.canCurate && item.pinCount > 0 && (
-            <div className={s.boostArea}>
-              <BoostersSection item={item} />
-            </div>
+          {GANTRY_IMPACT_UI_ENABLED ? (
+            <>
+              <ImpactDetailSection
+                item={item}
+                canCurate={access.canCurate}
+                isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
+                frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+              />
+              {/* Unrated legacy items keep the notes list for curators until ratings exist. */}
+              {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
+                <div className={s.boostArea}>
+                  <BoostersSection item={item} />
+                </div>
+              )}
+            </>
+          ) : (
+            access.canCurate &&
+            item.pinCount > 0 && (
+              <div className={s.boostArea}>
+                <BoostersSection item={item} />
+              </div>
+            )
           )}
         </div>
 

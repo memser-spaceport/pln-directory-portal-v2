@@ -8,7 +8,10 @@ import { Menu } from '@base-ui-components/react/menu';
 import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
+import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
+import { hasImpactData } from '@/services/gantry/impact';
 import { BoostersSection } from '../shared/BoostersSection';
+import { ImpactSummaryStrip } from '../shared/ImpactSummaryStrip';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
 import { BoostButton } from '../shared/BoostButton';
 import { StageBadge } from '../shared/StageBadge';
@@ -165,7 +168,12 @@ function RoadmapCardContent({
         </p>
       )}
 
-      {canCurate && item.pinCount > 0 && <BoostersSection item={item} />}
+      {/* Impact aggregate replaces the notes list; unrated legacy items keep BoostersSection for curators. */}
+      {GANTRY_IMPACT_UI_ENABLED && hasImpactData(item) ? (
+        <ImpactSummaryStrip item={item} canCurate={canCurate} />
+      ) : (
+        canCurate && item.pinCount > 0 && <BoostersSection item={item} />
+      )}
     </>
   );
 }

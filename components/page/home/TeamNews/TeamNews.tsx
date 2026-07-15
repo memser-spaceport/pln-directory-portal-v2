@@ -16,6 +16,7 @@ import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/type
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
   ACTIVE_DISCUSSIONS_CAT,
@@ -41,6 +42,7 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 import s from './TeamNews.module.scss';
 
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
+import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
 
 // DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
 // a forwarded ref, so this is the only way to read its live (undebounced)
@@ -125,6 +127,9 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // identity never changes; the copy severs aliasing with the live set.
   const [initialFollowedTeamUids] = useState<ReadonlySet<string>>(() => new Set(followedTeamUids));
 
+  // Default: Following first when the user follows any teams; otherwise Most popular.
+  const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
+
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
@@ -165,11 +170,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
-  const sortedClusters = useMemo(() => {
-    const followed = clusters.filter((c) => initialFollowedTeamUids.has(c.teamUid));
-    const unfollowed = clusters.filter((c) => !initialFollowedTeamUids.has(c.teamUid));
-    return [...followed, ...unfollowed];
-  }, [clusters, initialFollowedTeamUids]);
+  const sortedClusters = useMemo(
+    () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids),
+    [clusters, sort, initialFollowedTeamUids],
+  );
 
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
@@ -196,6 +200,11 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           : itemsForActiveTab.filter((i) => i.eventType === id).length;
     analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
     setActiveCategory(id);
+    setExpanded(false);
+  };
+
+  const handleSort = (value: string) => {
+    setSort(value as TeamNewsSort);
     setExpanded(false);
   };
 
@@ -444,23 +453,28 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
       <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
 
-      <div className={s.catRow}>
-        {categoriesWithCounts.map((c) => {
-          const isActive = activeCategory === c.id;
-          const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              className={clsx(s.cat, { [s.catActive]: isActive })}
-              onClick={() => handleCategory(c.id)}
-              disabled={isDisabled}
-            >
-              {c.label}
-              {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-            </button>
-          );
-        })}
+      <div className={s.filterBar}>
+        <div className={s.catRow}>
+          {categoriesWithCounts.map((c) => {
+            const isActive = activeCategory === c.id;
+            const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                className={clsx(s.cat, { [s.catActive]: isActive })}
+                onClick={() => handleCategory(c.id)}
+                disabled={isDisabled}
+              >
+                {c.label}
+                {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div className={s.filterActions}>
+          <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+        </div>
       </div>
 
       <div className={s.layout}>

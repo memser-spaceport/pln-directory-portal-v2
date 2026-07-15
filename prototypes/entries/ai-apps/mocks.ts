@@ -86,7 +86,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     providedEnvVars: ['OPENAI_API_KEY'],
     createdAt: '2026-06-18T10:00:00.000Z',
     updatedAt: '2026-06-18T10:00:00.000Z',
-    member: { uid: 'm-1', name: 'Polina Bublii' },
+    member: { uid: 'm-1', name: 'Polina Bublii', image: null },
     // Seeded 1-pager (preview only) so the "anyone can view" state is visible
     // out of the box. Uploaded files additionally get a real `fileUrl`.
     onePager: {
@@ -112,7 +112,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     providedEnvVars: [],
     createdAt: '2026-06-12T14:30:00.000Z',
     updatedAt: '2026-06-12T14:30:00.000Z',
-    member: { uid: 'm-2', name: 'Daniel Singer' },
+    member: { uid: 'm-2', name: 'Daniel Singer', image: null },
     onePager: {
       fileName: 'Founder Digest - Overview.html',
       fileSize: 18_240,
@@ -136,7 +136,7 @@ export const mockAiApps: AiAppWithDoc[] = [
     providedEnvVars: [],
     createdAt: '2026-06-05T09:15:00.000Z',
     updatedAt: '2026-06-05T09:15:00.000Z',
-    member: { uid: 'm-3', name: 'Maria Lopez' },
+    member: { uid: 'm-3', name: 'Maria Lopez', image: null },
   },
 ];
 

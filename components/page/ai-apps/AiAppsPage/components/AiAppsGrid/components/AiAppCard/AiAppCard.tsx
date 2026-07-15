@@ -47,7 +47,13 @@ export function AiAppCard(props: Props) {
   const footer = (
     <div className={s.footer}>
       <div className={s.author}>
-        <img className={s.avatar} src={getDefaultAvatar(app.member.name)} alt="" width={20} height={20} />
+        <img
+          className={s.avatar}
+          src={app.member.image || getDefaultAvatar(app.member.name)}
+          alt=""
+          width={20}
+          height={20}
+        />
         <div className={s.authorText}>
           <p className={s.authorLine}>
             <span className={s.creatorTitle}>by</span>{' '}

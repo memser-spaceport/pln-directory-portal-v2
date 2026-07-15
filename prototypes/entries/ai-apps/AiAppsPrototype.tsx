@@ -11,30 +11,47 @@ import { AiAppCard } from './AiAppCard';
 import { AiAppDetail } from './AiAppDetail';
 import { CreateAiAppModal } from './CreateAiAppModal';
 import { ManageAppModal } from './ManageAppModal';
+import { DeploymentSettingsModal } from './DeploymentSettingsModal';
+import { DeleteAppDialog } from './DeleteAppDialog';
+import { OnePagerViewer } from './OnePagerViewer';
 import { mockAiApps, mockAppPreviews, mockPageCopy, type AiAppWithDoc } from './mocks';
 
 import proto from './AiAppsPrototype.module.scss';
+
+type ActionType = 'edit' | 'deployment' | 'delete';
 
 export default function AiAppsPrototype() {
   const [apps, setApps] = useState<AiAppWithDoc[]>(mockAiApps);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [manageUid, setManageUid] = useState<string | null>(null);
+  // Which tile's ⋯ menu action is open, if any. All management lives on the
+  // tile — the app (detail) page stays a clean preview.
+  const [action, setAction] = useState<{ uid: string; type: ActionType } | null>(null);
+  // The app whose 1-pager a visitor is previewing from the grid, if any.
+  const [viewerUid, setViewerUid] = useState<string | null>(null);
   // Stand-in for auth: production gates editing on `app.canManage` (creator or
   // admin). The toggle lets us demo the creator (editable) vs. visitor
   // (view-only) experience of the same app.
   const [viewAs, setViewAs] = useState<'creator' | 'visitor'>('creator');
 
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
-  const managedApp = apps.find((a) => a.uid === manageUid) ?? null;
+  const actionApp = action ? apps.find((a) => a.uid === action.uid) ?? null : null;
+  const viewerApp = viewerUid ? apps.find((a) => a.uid === viewerUid) ?? null : null;
   const isCreator = viewAs === 'creator';
 
   const updateApp = (updated: AiAppWithDoc) =>
     setApps((prev) => prev.map((a) => (a.uid === updated.uid ? updated : a)));
 
-  const saveManagedApp = (updated: AiAppWithDoc) => {
+  const closeAction = () => setAction(null);
+
+  const saveEdit = (updated: AiAppWithDoc) => {
     updateApp(updated);
-    setManageUid(null);
+    closeAction();
+  };
+
+  const deleteApp = (uid: string) => {
+    setApps((prev) => prev.filter((a) => a.uid !== uid));
+    closeAction();
   };
 
   const roleToggle = (
@@ -77,8 +94,8 @@ export default function AiAppsPrototype() {
   return (
     <div className={proto.shell}>
       {roleToggle}
-      <div className={page.pageFrame}>
-        <div className={page.content}>
+      <div className={`${page.pageFrame} ${proto.frameMobile}`}>
+        <div className={`${page.content} ${proto.contentMobile}`}>
           <div className={page.header}>
             <div className={page.titleBlock}>
               <h1 className={page.title}>{mockPageCopy.title}</h1>
@@ -94,19 +111,30 @@ export default function AiAppsPrototype() {
                 app={app}
                 canManage={isCreator}
                 onSelect={() => setSelectedUid(app.uid)}
-                onManage={() => setManageUid(app.uid)}
+                onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
+                onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
+                onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
+                onViewOnePager={() => setViewerUid(app.uid)}
               />
             ))}
           </div>
 
           <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-          {managedApp && (
-            <ManageAppModal
-              isOpen
-              app={managedApp}
-              onClose={() => setManageUid(null)}
-              onSave={saveManagedApp}
-            />
+
+          {actionApp && action?.type === 'edit' && (
+            <ManageAppModal isOpen app={actionApp} onClose={closeAction} onSave={saveEdit} />
+          )}
+          {actionApp && action?.type === 'deployment' && (
+            <DeploymentSettingsModal isOpen app={actionApp} onClose={closeAction} onRedeploy={updateApp} />
+          )}
+          <DeleteAppDialog
+            isOpen={!!actionApp && action?.type === 'delete'}
+            appName={actionApp?.name ?? ''}
+            onClose={closeAction}
+            onConfirm={() => action && deleteApp(action.uid)}
+          />
+          {viewerApp?.onePager && (
+            <OnePagerViewer isOpen onePager={viewerApp.onePager} onClose={() => setViewerUid(null)} />
           )}
         </div>
       </div>

@@ -1,6 +1,25 @@
+@use 'styles/media';
+
 .shell {
   display: flex;
   flex-direction: column;
+}
+
+// Mobile side padding override. Production insets the page by 16px (frame) +
+// 24px (content) = 40px each side; scoped under .shell to beat those single-
+// class selectors. Net 20px gutters, so the single-column tiles stretch wider.
+.shell .frameMobile {
+  @include media.mobile-only {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.shell .contentMobile {
+  @include media.mobile-only {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 /* Prototype-only affordance to demo creator vs. visitor - not part of the

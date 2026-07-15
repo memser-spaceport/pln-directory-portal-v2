@@ -6,7 +6,6 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { FileUploader } from '@/components/ui/FileUploader/FileUploader';
-import { generatePdfPreview } from '@/utils/pdf-preview.utils';
 import { formatFileSize } from '@/utils/file.utils';
 
 import type { AiAppWithDoc, OnePager } from './mocks';
@@ -48,7 +47,10 @@ export function ManageAppModal(props: Props) {
     revokeOnePagerUrls(onePager);
     setOnePager({ fileName: file.name, fileSize: file.size, fileUrl });
 
-    generatePdfPreview(file)
+    // Loaded lazily (browser-only): react-pdf touches DOMMatrix at module scope,
+    // which throws during the server render of this prototype.
+    import('@/utils/pdf-preview.utils')
+      .then(({ generatePdfPreview }) => generatePdfPreview(file))
       .then((previewFile) => {
         const previewDataUrl = URL.createObjectURL(previewFile);
         setOnePager((prev) => (prev && prev.fileUrl === fileUrl ? { ...prev, previewDataUrl } : prev));

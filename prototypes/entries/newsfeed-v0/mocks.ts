@@ -197,6 +197,38 @@ export const MOCK_GROUPS: ITeamNewsGroup[] = [
   { focusArea: { uid: 'fa-networking', title: 'Networking' }, total: NETWORKING.length, items: NETWORKING },
 ];
 
+/**
+ * Same story, multiple outlets. Keyed by item uid (same pattern as UPVOTES) so
+ * the mock item type stays untouched. When an item has >1 source the feed card
+ * collapses them into one "primary domain +N sources" affordance instead of
+ * rendering a near-duplicate card per outlet. The first entry is the primary
+ * (shown at rest); the rest reveal on expand. Items absent here keep their
+ * single `sourceDomain` exactly as before.
+ */
+export interface NewsSource {
+  domain: string;
+  url: string;
+}
+
+export const SOURCES_BY_UID: Record<string, NewsSource[]> = {
+  // Funding gets picked up widely — the widest aggregation in the feed.
+  n3: [
+    { domain: 'protocol.ai', url: 'https://protocol.ai' },
+    { domain: 'techcrunch.com', url: 'https://techcrunch.com' },
+    { domain: 'theblock.co', url: 'https://theblock.co' },
+  ],
+  // A protocol upgrade covered by the team blog + an industry outlet.
+  n1: [
+    { domain: 'protocol.ai', url: 'https://protocol.ai' },
+    { domain: 'thedefiant.io', url: 'https://thedefiant.io' },
+  ],
+  // Partnership announced jointly, so two outlets carry it.
+  n8: [
+    { domain: 'messari.io', url: 'https://messari.io' },
+    { domain: 'cointelegraph.com', url: 'https://cointelegraph.com' },
+  ],
+};
+
 /** Seed upvote counts per news item ("I'm interested" signal — no backend yet). */
 export const UPVOTES: Record<string, number> = {
   n1: 12,

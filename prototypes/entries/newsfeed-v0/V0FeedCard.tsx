@@ -20,7 +20,8 @@ import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
-import { UPVOTES } from './mocks';
+import { SOURCES_BY_UID, UPVOTES } from './mocks';
+import { SourceList } from './SourceList';
 import { UpvoteButton, type TeamCluster } from './V0NewsCard';
 
 // Same event-color mapping as the grid card.
@@ -119,12 +120,8 @@ export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = fa
                   {EVENT_TYPE_LABEL[story.eventType]}
                 </span>
                 {' · '}
-                {story.sourceDomain && (
-                  <>
-                    <span className={local.sourceDomain}>{story.sourceDomain}</span>
-                    {' · '}
-                  </>
-                )}
+                <SourceList sources={SOURCES_BY_UID[story.uid]} fallbackDomain={story.sourceDomain} />
+                {' · '}
                 {formatTimeAgo(story.eventDate)}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>

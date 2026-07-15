@@ -649,4 +649,285 @@
   gap: 16px;
 }
 
+/* ---------- Multi-source: same story, several outlets ---------- */
+
+/* Anchors the "+N sources" popover; sits inline in the meta line. */
+.sourceMulti {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Bare-text source link (primary domain + popover rows) — quiet until hovered,
+   matching the single-domain .sourceDomain treatment. */
+.sourceLink {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* Compact "N sources" pill (no logo stack) — opens the source list on click. */
+.sourcePill {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.sourcePillCaret {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.12s ease;
+
+  .sourceMulti:hover &,
+  .sourceMulti:focus-within &,
+  [aria-expanded='true'] > & {
+    transform: rotate(180deg);
+  }
+}
+
+/* The revealed list of the remaining outlets. */
+.sourcePopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 8px 20px 0px rgba(15, 23, 42, 0.1);
+
+  /* Hidden until the pill is hovered / focused (or tapped open on touch).
+     visibility:hidden also keeps the links out of the tab order while closed. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s;
+
+  /* Invisible bridge across the 6px gap so moving the cursor from the pill down
+     into the popover doesn't cross a dead zone and dismiss it. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+  }
+
+  .sourceMulti:hover &,
+  .sourceMulti:focus-within &,
+  &.sourcePopoverOpen {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+.sourcePopoverHead {
+  padding: 2px 6px 4px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.sourcePopoverRow.sourcePopoverRow {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 18px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* ---------- Filter row: event-type pills + personalization lens ---------- */
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+
+  /* Let the event-type pills take the row and the actions cluster hold the right
+     edge; on mobile the pills wrap and the actions drop to their own full row. */
+  .catRow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Holds the reused production Sort dropdown, sitting opposite the event-type
+   pills. On mobile the pills wrap above and this drops to the right of its row. */
+.filterActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  @include mobile-only {
+    margin-left: auto;
+  }
+}
+
+/* ---------- Compact quick actions: one chip row ---------- */
+
+.qaHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.qaCompact {
+  margin-bottom: 24px;
+}
+
+.qaChipRow {
+  display: flex;
+  gap: 10px;
+
+  /* Mobile: one horizontally-scrollable line instead of a tall stacked grid —
+     the whole point of the compact treatment. A right-edge fade + scroll-snap
+     signal there's more to swipe (vs. looking like a truncated row), and the
+     last chip peeks past the fade so the affordance is unmistakable. The
+     vertical padding leaves room for the cards' hover lift + shadow. */
+  @include mobile-only {
+    overflow-x: auto;
+    padding: 2px 28px 14px 0; /* right room = fade so the last chip peeks, not clips */
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* Desktop: the full set fits, so wrap rather than scroll (no fade needed). */
+  @include tablet-portrait {
+    flex-wrap: wrap;
+    overflow: visible;
+    padding: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* A mini action-card, not a pill: rounded-rect shape (matched to the icon tile),
+   real depth on hover. Clay / Aboard / Equals language. */
+.qaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 8px 18px 8px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    transform 0.14s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0px 1px 2px rgba(15, 23, 42, 0.06),
+      0px 8px 20px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Icon sits on a soft neutral tile (like an app icon), so each action's own
+   colour reads cleanly instead of being flattened by a brand wash. */
+.qaChipIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  transition: background 0.14s ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.qaChip:hover .qaChipIcon {
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+}
+
+.qaChipLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
 

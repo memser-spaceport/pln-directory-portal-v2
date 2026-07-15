@@ -7,6 +7,18 @@ interface ChartSectionProps {
   data: ChartSectionData;
 }
 
+const Y_AXIS_TICK_COUNT = 10;
+
+/**
+ * Build evenly spaced Y-axis ticks from 0 to maxValue.
+ * Derived rather than hardcoded so the axis always matches the data's scale.
+ */
+function buildYAxisTicks(maxValue: number): number[] {
+  if (!maxValue || maxValue <= 0) return [0];
+  const step = maxValue / Y_AXIS_TICK_COUNT;
+  return Array.from({ length: Y_AXIS_TICK_COUNT + 1 }, (_, i) => Math.round(step * i));
+}
+
 /**
  * ChartSection - Displays bar chart of points collected per KPI pillar
  * @param data - Chart section data from master JSON
@@ -49,7 +61,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                   />
                   <YAxis 
                     domain={[0, data.maxValue]}
-                    ticks={[0, 300, 600, 900, 1200, 1500, 1800, 2100, 2400, 2700, 3000]}
+                    ticks={buildYAxisTicks(data.maxValue)}
                     axisLine={false}
                     tickLine={false}
                     tick={{ 

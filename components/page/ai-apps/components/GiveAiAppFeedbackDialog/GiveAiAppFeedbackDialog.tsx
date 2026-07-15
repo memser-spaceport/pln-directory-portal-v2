@@ -16,7 +16,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
-const MAX_LENGTH = 1000;
+const MAX_LENGTH = 5000;
 
 interface Option {
   label: string;
@@ -89,6 +89,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
     <Modal
       isOpen={isOpen}
       onClose={onDialogClose}
+      closeOnBackdropClick={false}
       overlayClassname={clsx(s.overlay, alignToContent && s.overlayAlignToContent)}
       className={s.modalContainer}
     >

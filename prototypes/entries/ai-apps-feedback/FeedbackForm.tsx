@@ -9,7 +9,7 @@ import type { AiApp } from '@/services/ai-apps/ai-apps.service';
 
 import s from './feedback.module.scss';
 
-const MAX = 1000;
+const MAX = 5000;
 
 interface Props {
   apps: AiApp[];

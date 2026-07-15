@@ -23,9 +23,13 @@ const SETUP_STATUS_LABELS: Record<string, string> = {
   ERROR: 'Deploy failed',
 };
 
-/** Liveness polling cadence: ~3 minutes of 4s probes before giving up. */
+/**
+ * Liveness polling cadence: ~6 minutes of 4s probes before giving up — the
+ * pod-up → domain-registration gap after a deploy has been observed to take
+ * 1–5 minutes, so giving up sooner strands users on "Try again".
+ */
 const LIVENESS_INTERVAL_MS = 4000;
-const LIVENESS_MAX_ATTEMPTS = 45;
+const LIVENESS_MAX_ATTEMPTS = 90;
 
 /**
  * Reachability of the embedded app, gating the iframe. We never mount the

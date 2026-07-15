@@ -2,6 +2,11 @@ export type GantryStage = 'IDEA' | 'BACKLOG' | 'PLANNED' | 'IN_PROGRESS' | 'SHIP
 
 export type GantryItemType = 'Bug Report' | 'Enhancement Request' | 'New Feature Request';
 
+export type GantryImpactValue = 1 | 2 | 3 | 4 | 5;
+
+/** Rating buckets keyed by impact value. The API sends JSON string keys ("1".."5") — normalized at the service parse boundary. */
+export type GantryImpactDistribution = Record<GantryImpactValue, number>;
+
 export interface GantryMemberSummary {
   uid: string;
   name: string;
@@ -39,6 +44,8 @@ export interface GantryPinStatus {
 export interface GantryPinner {
   uid: string;
   note: string | null;
+  /** Booster's impact rating; null for pins placed before the impact feature. */
+  impact: GantryImpactValue | null;
   createdAt: string;
   releasedAt: string | null;
   member: { uid: string; name: string; imageUrl: string | null };
@@ -66,6 +73,16 @@ export interface GantryItem {
   pinCount: number;
   viewerHasPinned: boolean;
   viewerPinNote: string | null;
+  /** Creator's rating — item-level fields, independent of pins: never consume boost budget, survive all pin operations. */
+  authorImpact: GantryImpactValue | null;
+  /** Creator's goal-link reasoning. Server returns it only to curators and the author. */
+  authorImpactReasoning: string | null;
+  avgImpact: number | null;
+  /** Number of impact ratings (not boosts). 0 ⇒ hide all impact UI. */
+  impactCount: number;
+  impactDistribution: GantryImpactDistribution | null;
+  /** The requester's rating on their ACTIVE pin only — null after unboost. */
+  viewerImpact: GantryImpactValue | null;
   pins?: GantryPinner[];
   deletedAt: string | null;
   createdAt: string;
@@ -98,6 +115,9 @@ export interface CreateGantryItemPayload {
   stage?: GantryStage;
   tags?: string[];
   type?: GantryItemType;
+  /** Required by the API once the impact feature is live; optional here so flag-off creates still compile. UI enforces presence. */
+  authorImpact?: GantryImpactValue;
+  authorImpactReasoning?: string;
 }
 
 export interface ApiGantryDraft {
@@ -135,4 +155,12 @@ export interface UpdateGantryItemPayload {
   tags?: string[];
   type?: GantryItemType | null;
   order?: number | null;
+  authorImpact?: GantryImpactValue;
+  authorImpactReasoning?: string;
+}
+
+/** PATCH .../pin — the API requires at least one field; callers enforce it. */
+export interface UpdateGantryPinPayload {
+  impact?: GantryImpactValue;
+  note?: string;
 }

@@ -1,5 +1,7 @@
 import * as yup from 'yup';
 import type { Option } from '@/components/form/FormSelect/types';
+import { GANTRY_IMPACT_REASONING_MAX_LENGTH } from '@/services/gantry/constants';
+import type { GantryImpactValue } from '@/services/gantry/types';
 
 function stripHtml(html: string): string {
   return html
@@ -26,6 +28,32 @@ const objectivesSchema = yup
   .of(yup.object({ label: yup.string().required(), value: yup.string().required() }))
   .optional();
 
+/**
+ * Impact fields are validated via resolver context (`useForm({ context })`), not build-time
+ * flags: `$impactRequired` is the feature flag, `$reasoningRequired` additionally excludes
+ * curators (they assign objectives instead of writing a goal-link reasoning).
+ */
+const impactSchema = yup
+  .number()
+  .nullable()
+  .when('$impactRequired', {
+    is: true,
+    then: (schema) => schema.required('Rate the impact on company goals'),
+  });
+
+const impactReasoningSchema = yup
+  .string()
+  .max(GANTRY_IMPACT_REASONING_MAX_LENGTH, `Max ${GANTRY_IMPACT_REASONING_MAX_LENGTH} characters`)
+  .when('$reasoningRequired', {
+    is: true,
+    then: (schema) =>
+      schema.test(
+        'reasoning-required',
+        'Explain how this moves company goals',
+        (value) => !!value && value.trim().length > 0,
+      ),
+  });
+
 export const submitIdeaSchema = yup.object().shape({
   title: yup
     .string()
@@ -49,6 +77,8 @@ export const submitIdeaSchema = yup.object().shape({
   tags: tagsSchema,
   type: typeSchema,
   objectives: objectivesSchema,
+  impact: impactSchema,
+  impactReasoning: impactReasoningSchema,
 });
 
 export const editIdeaSchema = yup.object().shape({
@@ -59,6 +89,8 @@ export const editIdeaSchema = yup.object().shape({
   description: yup.string().optional(),
   tags: tagsSchema,
   type: typeSchema,
+  impact: impactSchema,
+  impactReasoning: impactReasoningSchema,
 });
 
 export interface SubmitIdeaFormData {
@@ -68,6 +100,9 @@ export interface SubmitIdeaFormData {
   tags?: Option[];
   type?: Option | null;
   objectives?: Option[];
+  /** NOT draft-persisted — the drafts API's field mapping would silently drop them (see toDraft). */
+  impact?: GantryImpactValue | null;
+  impactReasoning?: string;
 }
 
 export type SubmitIdeaDraft = {

@@ -47,5 +47,7 @@ export function getSubmitIdeaFormDefaults(variant: SubmitIdeaModalVariant): Subm
     tags: [],
     type: null,
     objectives: [],
+    impact: null,
+    impactReasoning: '',
   };
 }

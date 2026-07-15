@@ -23,10 +23,11 @@ jest.mock('@tanstack/react-query', () => ({
 
 jest.mock('@/components/page/gantry/shared/flyPin', () => ({ flyPin: jest.fn() }));
 
-const analytics = {
+const analyticsMocks = {
   onItemBoosted: jest.fn(),
   onItemUnboosted: jest.fn(),
-} as never;
+};
+const analytics = analyticsMocks as unknown as Parameters<typeof useRoadmapPinActions>[2];
 
 const button = () => {
   const el = document.createElement('button');
@@ -84,7 +85,7 @@ describe('useRoadmapPinActions — rate-first boost flow (impact UI on)', () => 
       swapItemUid: undefined,
     });
     expect(result.current.ratePopover).toBeNull();
-    expect(analytics.onItemBoosted).toHaveBeenCalledWith('item-1', 4);
+    expect(analyticsMocks.onItemBoosted).toHaveBeenCalledWith('item-1', 4);
   });
 
   it('Save re-checks the cache: a frozen item closes the popover with no mutation', async () => {
@@ -119,7 +120,7 @@ describe('useRoadmapPinActions — rate-first boost flow (impact UI on)', () => 
       note: 'urgent',
       swapItemUid: 'released-item',
     });
-    expect(analytics.onItemBoosted).toHaveBeenCalledWith('item-1', 5);
+    expect(analyticsMocks.onItemBoosted).toHaveBeenCalledWith('item-1', 5);
   });
 
   it('ignores boost clicks and dismissals while a pin mutation is in flight (single-flight)', async () => {
@@ -138,6 +139,6 @@ describe('useRoadmapPinActions — rate-first boost flow (impact UI on)', () => 
 
     expect((pin as { mutateAsync: jest.Mock }).mutateAsync).toHaveBeenCalledWith({ uid: 'item-1', nextIsPinned: false });
     expect(result.current.ratePopover).toBeNull();
-    expect(analytics.onItemUnboosted).toHaveBeenCalledWith('item-1');
+    expect(analyticsMocks.onItemUnboosted).toHaveBeenCalledWith('item-1');
   });
 });

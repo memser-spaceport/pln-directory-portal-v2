@@ -1,7 +1,6 @@
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import { Metadata } from 'next';
 import { getSkillsData } from '@/services/sign-up.service';
-import Script from 'next/script';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { redirect, RedirectType } from 'next/navigation';
 import { SignupWizard } from '@/components/page/sign-up/components/SignupWizard';
@@ -38,15 +37,7 @@ export default async function Page() {
     redirect(`${PAGE_ROUTES.HOME}`, RedirectType.replace);
   }
 
-  return (
-    <>
-      <Script
-        src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
-        strategy="lazyOnload"
-      ></Script>
-      <SignupWizard />
-    </>
-  );
+  return <SignupWizard />;
 }
 
 export const metadata: Metadata = {

@@ -1,4 +1,4 @@
-@use 'styles/media';
+@use '../../../../../../../styles/media';
 
 // Mirrors the production TeamCard styling (LogosGrid/components/TeamCard) so
 // this prototype card tracks production, minus the website link.
@@ -93,4 +93,9 @@
   padding: 0 6px;
   font-size: 11px;
   line-height: 16px;
+}
+
+.defaultLogo {
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
 }

@@ -46,15 +46,15 @@ const item = (overrides: Partial<GantryItem> = {}): GantryItem =>
     ...overrides,
   }) as GantryItem;
 
-describe('ImpactSummaryStrip (board card)', () => {
-  it('shows the public aggregate to everyone; avatar stack only to curators', () => {
-    const { rerender } = render(<ImpactSummaryStrip item={item()} canCurate={false} />);
-    expect(screen.getByText('4.2')).toBeInTheDocument();
-    expect(screen.getByText(/5 ratings/)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Rated by/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/team-only/i)).not.toBeInTheDocument();
+describe('ImpactSummaryStrip (curator-only board-card breakdown)', () => {
+  it('renders the distribution stats and rater avatar stack for curators only', () => {
+    const { container, rerender } = render(<ImpactSummaryStrip item={item()} canCurate={false} />);
+    // The public score is inline in the card meta row (prototype layout) — the strip itself is team-only.
+    expect(container).toBeEmptyDOMElement();
 
     rerender(<ImpactSummaryStrip item={item()} canCurate />);
+    expect(screen.getByText('Team-only')).toBeInTheDocument();
+    expect(screen.getByText('2 Critical · 2 High · 1 Significant')).toBeInTheDocument();
     expect(screen.getByLabelText('Rated by 2 members (team-only)')).toBeInTheDocument();
   });
 

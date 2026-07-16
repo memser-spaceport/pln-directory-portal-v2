@@ -1,6 +1,6 @@
 'use client';
 
-import { GANTRY_IMPACT_MAX } from '@/services/gantry/constants';
+import { GANTRY_IMPACT_LABELS, GANTRY_IMPACT_VALUES } from '@/services/gantry/constants';
 import { hasImpactData } from '@/services/gantry/impact';
 import type { GantryItem } from '@/services/gantry/types';
 import { avatarColor, initials } from './gantryAvatars';
@@ -25,13 +25,22 @@ interface Props {
 }
 
 /**
- * Board-card impact summary: the aggregate score is public; the rater avatar stack is
- * curator-only, built from the already-embedded curator `pins[]` (never a per-card query)
- * plus the author. PURE PROPS — no hooks: cards are unmemoized and re-render on every
- * dnd drag frame. Full rater details live on the item drawer/page.
+ * Curator-only board-card rater breakdown (the PUBLIC score renders inline in the card's
+ * meta row, next to Boost — prototype layout). Shows the rating distribution and the rater
+ * avatar stack, built from the already-embedded curator `pins[]` (never a per-card query)
+ * plus the author. PURE PROPS — no hooks: cards are unmemoized and re-render on every dnd
+ * drag frame. Full rater details live on the item drawer/page.
  */
 export function ImpactSummaryStrip({ item, canCurate }: Props) {
-  if (!hasImpactData(item) || item.avgImpact === null) return null;
+  if (!canCurate || !hasImpactData(item)) return null;
+
+  const distribution = item.impactDistribution;
+  const stats = distribution
+    ? [...GANTRY_IMPACT_VALUES]
+        .reverse()
+        .filter((value) => distribution[value] > 0)
+        .map((value) => `${distribution[value]} ${GANTRY_IMPACT_LABELS[value]}`)
+    : [];
 
   const raterNames = [
     ...(item.authorImpact !== null ? [item.createdBy.name] : []),
@@ -42,15 +51,12 @@ export function ImpactSummaryStrip({ item, canCurate }: Props) {
 
   return (
     <div className={s.strip}>
-      <div className={s.scoreRow}>
-        <span className={s.score}>
-          {item.avgImpact.toFixed(1)}
-          <span className={s.scoreMax}>/{GANTRY_IMPACT_MAX}</span>
+      <div className={s.headerRow}>
+        <span className={s.teamOnly}>
+          <LockIcon />
+          <span>Team-only</span>
         </span>
-        <span className={s.count}>
-          impact · {item.impactCount} rating{item.impactCount === 1 ? '' : 's'}
-        </span>
-        {canCurate && raterNames.length > 0 && (
+        {raterNames.length > 0 && (
           <span className={s.raterStack} aria-label={`Rated by ${raterNames.length} members (team-only)`}>
             {stack.map((name, i) => {
               const c = avatarColor(name);
@@ -69,12 +75,7 @@ export function ImpactSummaryStrip({ item, canCurate }: Props) {
           </span>
         )}
       </div>
-      {canCurate && (
-        <div className={s.teamOnly}>
-          <LockIcon />
-          <span>Rater details · team-only</span>
-        </div>
-      )}
+      {stats.length > 0 && <div className={s.stats}>{stats.join(' · ')}</div>}
     </div>
   );
 }

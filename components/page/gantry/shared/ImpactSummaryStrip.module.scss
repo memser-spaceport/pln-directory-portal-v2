@@ -1,4 +1,4 @@
-// Board-card impact summary: public score row, curator-only rater stack.
+// Curator-only board-card rater breakdown (public score is inline in the card meta row).
 // Token pairs copied from neighboring gantry modules (fallbacks are load-bearing).
 
 .strip {
@@ -10,36 +10,30 @@
   gap: 5px;
 }
 
-.scoreRow {
+// Lock badge (left) + rater avatars (right) share one row to save vertical space.
+.headerRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  min-width: 0;
 }
 
-.score {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-.scoreMax {
-  font-size: 11px;
-  font-weight: 500;
+.teamOnly {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-.count {
-  flex: 1;
-  min-width: 0;
+// The rating distribution as one dim line to keep the strip compact.
+.stats {
   font-size: 12px;
   line-height: 16px;
   color: var(--foreground-neutral-tertiary, #8897ae);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .raterStack {
@@ -68,15 +62,4 @@
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   color: var(--foreground-neutral-secondary, #455468);
   z-index: 0;
-}
-
-.teamOnly {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--foreground-neutral-tertiary, #8897ae);
 }

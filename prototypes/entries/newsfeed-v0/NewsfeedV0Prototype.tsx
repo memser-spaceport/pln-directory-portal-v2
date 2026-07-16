@@ -32,11 +32,12 @@ import { V0FeedCard } from './V0FeedCard';
 import type { TeamCluster } from './V0NewsCard';
 import { FeedRail } from './FeedRail';
 import { QuickActionsMock } from './QuickActionsMock';
-// Compact chip-row variant kept for later — hidden for now (Cards view only).
-// import { CompactQuickActions } from './CompactQuickActions';
-// Reuse the production sort control (base-ui Menu) 1:1 — same "Sort by: … ▾"
-// dropdown used on the Projects/Members toolbars.
+import { MobileQuickActions } from './MobileQuickActions';
+// Reuse the production sort controls 1:1 — the "Sort by: … ▾" dropdown on
+// desktop (Projects/Members toolbars) and the compact "Sort ▾" pill on mobile
+// (the Teams/Members mobile filter pattern).
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import { MobileFeedSort } from './MobileFeedSort';
 import { HeaderSearch } from './HeaderSearch';
 // Production search field, reused 1:1 for the mobile drop-down row.
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -271,7 +272,13 @@ export default function NewsfeedV0Prototype() {
   return (
     <div className={clsx(local.page, styles.home)}>
       <div className={styles.home__cn}>
-        <QuickActionsMock />
+        {/* Desktop: production Cards grid. Mobile: stacked-card scroller. */}
+        <div className={local.qaDesktop}>
+          <QuickActionsMock />
+        </div>
+        <div className={local.qaMobile}>
+          <MobileQuickActions />
+        </div>
 
         <div className={styles.home__cn__teamnews}>
           {isEmpty(allItems) ? (
@@ -326,15 +333,21 @@ export default function NewsfeedV0Prototype() {
                 })}
               </div>
 
-              {/* Single sort control (reused production dropdown) opposite the
-                  event-type pills — Latest / Most popular / Following first. */}
+              {/* Sort control opposite the event-type pills. Desktop: the
+                  "Sort by: …" dropdown. Mobile: the compact "Sort ▾" pill from
+                  the Teams/Members mobile filter pattern. */}
               <div className={local.filterActions}>
-                <SortDropdown
-                  sortByLabel="Sort by:"
-                  options={SORT_OPTIONS}
-                  currentSort={sort}
-                  onSortChange={handleSort}
-                />
+                <span className={local.sortDesktop}>
+                  <SortDropdown
+                    sortByLabel="Sort by:"
+                    options={SORT_OPTIONS}
+                    currentSort={sort}
+                    onSortChange={handleSort}
+                  />
+                </span>
+                <span className={local.sortMobile}>
+                  <MobileFeedSort options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+                </span>
               </div>
             </div>
 

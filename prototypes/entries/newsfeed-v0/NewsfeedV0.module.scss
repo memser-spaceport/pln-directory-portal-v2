@@ -808,7 +808,7 @@
   }
 }
 
-/* Holds the reused production Sort dropdown, sitting opposite the event-type
+/* Holds the reused production Sort control, sitting opposite the event-type
    pills. On mobile the pills wrap above and this drops to the right of its row. */
 .filterActions {
   display: inline-flex;
@@ -820,7 +820,135 @@
   }
 }
 
-/* ---------- Compact quick actions: one chip row ---------- */
+/* "Sort by: …" dropdown on desktop; the compact "Sort ▾" pill on mobile. */
+.sortDesktop {
+  display: inline-flex;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.sortMobile {
+  display: none;
+
+  @include mobile-only {
+    display: inline-flex;
+  }
+}
+
+/* ---------- Quick actions: production Cards on desktop, stacked-card scroller on mobile ---------- */
+
+/* Production grid where there's room; hidden on mobile in favour of .qaMobile. */
+.qaDesktop {
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.qaMobile {
+  display: none;
+
+  @include mobile-only {
+    display: block;
+    margin-bottom: 24px;
+  }
+}
+
+/* Mobile stacked-card row: icon on top, title, subtitle — scrolls horizontally. */
+.mqa {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mqaTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.mqaRow {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 28px 8px 0; /* right room = fade so the next card peeks; bottom = shadow */
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Same surface as the production ActionCards ("previous quick buttons"):
+   white fill + the same subtle shadow + 16px radius. */
+.mqaCard {
+  flex: 0 0 150px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  text-decoration: none;
+  transition: box-shadow 0.15s ease;
+
+  &:active {
+    box-shadow: 0px 2px 8px 0px rgba(14, 15, 17, 0.12);
+  }
+}
+
+/* Reuse the production ActionCard round-icon treatment, sized down for the card. */
+.mqaIcon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: rgba(27, 77, 255, 0.04);
+  color: #1b4dff;
+  box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.mqaCardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin-bottom: 2px; /* keep the description tight to the title */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mqaSub {
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .qaHeader {
   display: flex;

@@ -6,7 +6,13 @@ import { Button } from '@/components/common/Button/Button';
 import { Modal } from '@/components/common/Modal/Modal';
 import { CloseIcon } from '@/components/icons';
 
-import { createModalIntro, createModalSecurityNote, createModalSteps, mockStarterKitVersion } from './mocks';
+import {
+  createModalIntro,
+  createModalSecurityNote,
+  createModalSteps,
+  createModalWhatsNewItems,
+  mockStarterKitVersion,
+} from './mocks';
 
 import s from '@/components/page/ai-apps/AiAppsPage/components/CreateAiAppModal/CreateAiAppModal.module.scss';
 
@@ -48,17 +54,26 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
         </div>
 
         <div className={s.body}>
-          <div className={s.guideHeader}>
+          <div className={s.guide}>
             <p className={s.stepsHeading}>Step-by-Step Guide</p>
             <p className={s.intro}>{createModalIntro}</p>
+            <ol className={s.steps}>
+              {createModalSteps.map((step) => (
+                <li key={step.title}>
+                  <strong>{step.title}:</strong> {step.description}
+                </li>
+              ))}
+            </ol>
           </div>
-          <ol className={s.steps}>
-            {createModalSteps.map((step) => (
-              <li key={step.title}>
-                <strong>{step.title}:</strong> {step.description}
-              </li>
-            ))}
-          </ol>
+
+          <aside className={s.whatsNew} aria-label={`What's new in v${mockStarterKitVersion}`}>
+            <p className={s.whatsNewLabel}>What&apos;s new in v{mockStarterKitVersion}</p>
+            <ul className={s.whatsNewList}>
+              {createModalWhatsNewItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </aside>
         </div>
 
         <div className={s.footer}>
@@ -66,7 +81,9 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
             <span className={s.securityNoteIcon} aria-hidden>
               !
             </span>
-            <p className={s.securityNoteText}>{downloaded ? 'Prototype download created locally.' : createModalSecurityNote}</p>
+            <p className={s.securityNoteText}>
+              {downloaded ? 'Prototype download created locally.' : createModalSecurityNote}
+            </p>
           </div>
           <div className={s.footerActions}>
             <Button size="s" style="border" variant="neutral" onClick={onClose}>

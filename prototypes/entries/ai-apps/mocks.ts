@@ -182,9 +182,16 @@ export const mockPageCopy = {
   description: 'A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.',
 };
 
-// Create-modal copy (prototype-local; overrides the production STEPS constant).
+// Create-modal copy (prototype-local; mirrors production CreateAiAppModal constants).
 export const createModalIntro =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
+
+export const createModalWhatsNewItems = [
+  'Use signed-in PL member context in your app (name, photo, teams, and more)',
+  "Approve your app's name and description before the first deploy",
+  'Optionally add a one-pager after deploy',
+  'Rename, edit description, or update the one-pager anytime through your agent — no redeploy',
+];
 
 export const createModalSteps = [
   {
@@ -199,16 +206,16 @@ export const createModalSteps = [
   {
     title: 'Describe what to build',
     description:
-      'Tell your agent what you want. Frontend and backend are both supported - a UI-only page, or an app that talks to data and services (ChatGPT, email, a database, etc.). Your agent handles the technical setup.',
+      'Tell your agent what you want. Frontend and backend are both supported - a UI-only page, or an app that talks to data and services (ChatGPT, email, a database, etc.). Your app can also use PL member context (name, photo, teams, and more) to personalize for the signed-in user. Your agent handles the technical setup.',
   },
   {
     title: 'Deploy',
     description:
-      'Say "deploy this app", then: (1) Open the LabOS link your agent gives you, sign in, and click Approve. (2) Optional - if the backend needs access to data or external services, your agent will send a second LabOS link. Enter your secrets (API keys / passwords) there and click Deploy. Never paste keys in chat. When done, open the app from the AI Apps dashboard.',
+      'Say "deploy this app", then: (1) Your agent suggests a name and short description — approve them (or ask for changes) before it continues. (2) Open the LabOS link your agent gives you, sign in, and click Approve. (3) Optional — if the backend needs access to data or external services, your agent will send a second LabOS link. Enter your secrets (API keys / passwords) there and click Deploy. Never paste keys in chat. When done, open the app from the AI Apps dashboard.',
   },
 ];
 
 export const createModalSecurityNote =
   'This download is tied to your LabOS account and acts on your behalf. Do not share it with others - anyone with it could deploy apps under your name.';
 
-export const mockStarterKitVersion = '1.3';
+export const mockStarterKitVersion = '1.4';

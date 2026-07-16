@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -9,6 +9,8 @@ import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { FormSelect } from '@/components/form/FormSelect/FormSelect';
 import { CloseIcon, CommentIcon } from '@/components/icons';
 import { toast } from '@/components/core/ToastContainer';
+import { useContactSupport } from '@/components/ContactSupport/hooks/useContactSupport';
+import { useFormDraft } from '@/hooks/useFormDraft';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useSubmitAiAppFeedback } from '@/services/ai-app-feedback/hooks/useSubmitAiAppFeedback';
@@ -17,6 +19,12 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import s from './GiveAiAppFeedbackDialog.module.scss';
 
 const MAX_LENGTH = 5000;
+export const AI_APP_FEEDBACK_DRAFT_KEY = 'form-draft:ai-app-feedback';
+
+export const LABOS_AI_APPS_OPTION = {
+  label: 'LabOS - AI Apps',
+  value: '__labos_ai_apps__',
+} as const;
 
 interface Option {
   label: string;
@@ -28,57 +36,118 @@ interface FormValues {
   message: string;
 }
 
+type FeedbackDraft = {
+  message: string;
+};
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  /** When provided (app detail page), the app is implicit and no picker is shown. */
+  /** When provided (app detail page), preselects this app in the picker. */
   appUid?: string;
   appName?: string;
   /** Align the popover with the page's max-width content column instead of the viewport edge. */
   alignToContent?: boolean;
 }
 
+function getDefaultApp(appUid?: string, appName?: string): Option | null {
+  if (!appUid || !appName) {
+    return null;
+  }
+
+  return { label: appName, value: appUid };
+}
+
 export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alignToContent }: Props) {
   const { currentUser } = useCurrentUserStore();
   const { apps, isLoading: isAppsLoading } = useAiApps();
-  const { mutate, isPending } = useSubmitAiAppFeedback();
+  const { mutate: submitAppFeedback, isPending: isAppFeedbackPending } = useSubmitAiAppFeedback();
+  const { mutate: submitContactSupport, isPending: isContactSupportPending } = useContactSupport();
   const analytics = useAiAppsAnalytics();
 
-  const isPickerMode = !appUid;
-  const appOptions: Option[] = apps.map((app) => ({ label: app.name, value: app.uid }));
+  const appOptions: Option[] = [LABOS_AI_APPS_OPTION, ...apps.map((app) => ({ label: app.name, value: app.uid }))];
 
-  const methods = useForm<FormValues>({ defaultValues: { app: null, message: '' } });
+  const getDefaults = useCallback(
+    (): FormValues => ({ app: getDefaultApp(appUid, appName), message: '' }),
+    [appUid, appName],
+  );
+
+  const methods = useForm<FormValues>({
+    defaultValues: getDefaults(),
+  });
   const { handleSubmit, reset, watch } = methods;
+  const { clearDraft } = useFormDraft<FormValues, FeedbackDraft>({
+    storageKey: AI_APP_FEEDBACK_DRAFT_KEY,
+    enabled: isOpen,
+    methods,
+    getDefaults,
+    toDraft: (form) => ({ message: form.message }),
+    fromDraft: (draft) => ({ ...getDefaults(), message: draft.message }),
+    isEmpty: (draft) => !draft.message.trim(),
+  });
   const messageLength = watch('message').length;
   const isOverLimit = messageLength > MAX_LENGTH;
-  const noAppsToPickFrom = isPickerMode && !isAppsLoading && appOptions.length === 0;
+  const isPending = isAppFeedbackPending || isContactSupportPending;
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const onDialogClose = () => {
-    reset();
+    setSubmitAttempted(false);
+    onClose();
+  };
+
+  const onSubmitSuccess = () => {
+    clearDraft();
+    reset(getDefaults());
     setSubmitAttempted(false);
     onClose();
   };
 
   const onSubmit = handleSubmit(({ app, message }) => {
     setSubmitAttempted(true);
-    const targetAppUid = appUid ?? app?.value;
     const trimmedMessage = message.trim();
 
-    if (!targetAppUid || !trimmedMessage) {
+    if (!app?.value || !trimmedMessage) {
       return;
     }
 
-    mutate(
-      { appUid: targetAppUid, text: trimmedMessage },
+    if (app.value === LABOS_AI_APPS_OPTION.value) {
+      const email = currentUser?.email;
+      const name = currentUser?.name;
+
+      if (!email || !name) {
+        toast.error('Something went wrong. Please try again.');
+        return;
+      }
+
+      submitContactSupport(
+        {
+          topic: 'Give feedback',
+          email,
+          name,
+          message: `AI Apps Feedback: ${trimmedMessage}`,
+          metadata: {
+            logged: Boolean(currentUser),
+            uid: currentUser?.uid || '',
+            page: window.location.toString(),
+          },
+        },
+        {
+          onSuccess: onSubmitSuccess,
+        },
+      );
+      return;
+    }
+
+    submitAppFeedback(
+      { appUid: app.value, text: trimmedMessage },
       {
         onSuccess: () => {
-          analytics.onFeedbackSubmitted(targetAppUid, appName ?? app?.label ?? '');
+          analytics.onFeedbackSubmitted(app.value, app.label);
           toast.success('Thanks for your feedback!');
-          onDialogClose();
+          onSubmitSuccess();
         },
         onError: () => {
-          analytics.onFeedbackSubmitFailed(targetAppUid);
+          analytics.onFeedbackSubmitFailed(app.value);
           toast.error('Something went wrong. Please try again.');
         },
       },
@@ -104,22 +173,15 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
         <div className={s.content}>
           <FormProvider {...methods}>
             <div className={s.form}>
-              {isPickerMode &&
-                (noAppsToPickFrom ? (
-                  <p className={s.emptyState}>No apps available to give feedback on yet.</p>
-                ) : (
-                  <>
-                    <FormSelect
-                      name="app"
-                      label="Which app is this about?"
-                      placeholder="Select an app…"
-                      options={appOptions}
-                      disabled={isAppsLoading}
-                      isRequired
-                    />
-                    {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
-                  </>
-                ))}
+              <FormSelect
+                name="app"
+                label="Which app is this about?"
+                placeholder="Select an app…"
+                options={appOptions}
+                disabled={isAppsLoading}
+                isRequired
+              />
+              {submitAttempted && !watch('app') && <p className={s.fieldError}>Please select an app</p>}
 
               <FormTextArea
                 name="message"
@@ -128,7 +190,6 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
                 maxLength={MAX_LENGTH}
                 showCharCount
                 rows={6}
-                disabled={noAppsToPickFrom}
               />
             </div>
           </FormProvider>
@@ -146,7 +207,7 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
           <Button style="border" variant="neutral" onClick={onDialogClose}>
             Cancel
           </Button>
-          <Button onClick={onSubmit} disabled={isPending || isOverLimit || noAppsToPickFrom}>
+          <Button onClick={onSubmit} disabled={isPending || isOverLimit}>
             {isPending ? 'Sending…' : 'Send feedback'}
           </Button>
         </div>

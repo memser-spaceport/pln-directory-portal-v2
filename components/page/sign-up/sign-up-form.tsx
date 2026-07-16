@@ -1,8 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { isSkipRecaptcha, triggerLoader } from '@/utils/common.utils';
-import { getRecaptchaToken } from '@/services/google-recaptcha.service';
+import { triggerLoader } from '@/utils/common.utils';
 import { toast } from '@/components/core/ToastContainer';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
@@ -34,9 +33,8 @@ import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/
  * )
  *
  * @remarks
- * This component uses Google reCAPTCHA for validation and records analytics events
- * during the sign-up process. It also handles form submission and displays any errors
- * that occur during the process.
+ * This component records analytics events during the sign-up process. It also handles
+ * form submission and displays any errors that occur during the process.
  */
 const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
   const [errors, setErrors] = useState<any>({});
@@ -63,15 +61,6 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
 
     try {
       triggerLoader(true);
-      const reCAPTCHAToken = await getRecaptchaToken();
-
-      // Validating reCAPTCHAToken
-      if ((reCAPTCHAToken.error || !reCAPTCHAToken.token) && !isSkipRecaptcha()) {
-        toast.error('Google reCAPTCHA validation failed. Please try again.');
-        analytics.recordSignUpSave('submit-clicked-captcha-failed', Object.fromEntries(formData.entries()));
-        triggerLoader(false);
-        return;
-      }
 
       // Adding sign-up source to form data
       if (document?.referrer) {
@@ -119,8 +108,7 @@ const SignUpForm = ({ skillsInfo, setSuccessFlag }: any) => {
           formattedObj.imageFile && delete formattedObj.imageFile;
 
           // Submitting form data (Implemented actions to evaluate and submit the request)
-          // const result = await signUpFormAction(formData, reCAPTCHAToken.token);
-          const result = await signUpFormAction(formattedObj, reCAPTCHAToken.token);
+          const result = await signUpFormAction(formattedObj);
 
           if (result?.success) {
             analytics.recordSignUpSave('submit-clicked-success', Object.fromEntries(formData.entries()));

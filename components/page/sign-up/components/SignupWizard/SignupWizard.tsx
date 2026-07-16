@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Cookies from 'js-cookie';
-import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -16,9 +15,7 @@ import { signupSchema } from '@/components/page/sign-up/components/SignupWizard/
 import { FormField } from '@/components/form/FormField';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { ProfileImageInput } from '@/components/page/sign-up/components/ProfileImageInput';
-import { getRecaptchaToken } from '@/services/google-recaptcha.service';
 import { toast } from '@/components/core/ToastContainer';
-import { isSkipRecaptcha } from '@/utils/common.utils';
 import { useSignUpAnalytics } from '@/analytics/sign-up.analytics';
 import { useSignupV2 } from '@/services/signup/hooks/useSignup';
 import { Checkbox } from '@/components/common/Checkbox';
@@ -87,15 +84,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
   const returnTo = searchParams.get('returnTo');
 
   const onSubmit = async (formData: SignupForm) => {
-    const reCAPTCHAToken = await getRecaptchaToken();
-
-    // Validating reCAPTCHAToken
-    if ((reCAPTCHAToken.error || !reCAPTCHAToken.token) && !isSkipRecaptcha()) {
-      toast.error('Google reCAPTCHA validation failed. Please try again.');
-      analytics.recordSignUpSave('submit-clicked-captcha-failed', formData);
-      return;
-    }
-
     analytics.recordSignUpSave('submit-clicked', formData);
 
     const campaign = Cookies.get('utm_campaign') ?? '';
@@ -402,10 +390,6 @@ export const SignupWizard = ({ onClose, signUpSource }: Props) => {
           </FormProvider>
         </div>
       </div>
-      <Script
-        src={`https://www.google.com/recaptcha/api.js?render=${process.env.GOOGLE_SITE_KEY}`}
-        strategy="lazyOnload"
-      ></Script>
     </>
   );
 };

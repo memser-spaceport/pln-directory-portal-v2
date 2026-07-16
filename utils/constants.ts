@@ -2120,7 +2120,6 @@ export const GROUP_TYPES = {
 
 export const SIGN_UP = {
   POLICY_URL: 'https://protocol.ai/legal/',
-  CAPTCHA_URL: 'https://www.google.com/recaptcha/api/siteverify',
 };
 
 export const PROJECT_NAME = 'Protocol Labs Directory';

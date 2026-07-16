@@ -37,10 +37,6 @@
   padding: 0;
   margin: 0;
 }
-
-.grecaptcha-badge {
-  visibility: hidden;
-}
 /* .bioCn__content p {
   padding-bottom: 10px;
 }
@@ -267,7 +263,6 @@ dialog {
   border-radius: 50%;
 }
 
-
 .projectgrid__profile__img {
   height: 36px;
   width: 36px;
@@ -463,7 +458,6 @@ dialog {
 }
 
 @media (min-width: 1024px) {
-
   .projectgrid__profile__img {
     height: 72px !important;
     width: 72px;

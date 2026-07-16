@@ -9,6 +9,7 @@ import type {
   GantryItemListResponse,
   GantryListParams,
   GantryObjective,
+  GantryObjectiveImpacts,
   GantryPinBalance,
   GantryPinner,
   GantryPinStatus,
@@ -210,10 +211,17 @@ export async function fetchGantryObjectives(): Promise<GantryObjective[]> {
 
 export async function addGantryPin(
   uid: string,
-  params?: { note?: string | null; swapItemUid?: string | null; impact?: GantryImpactValue },
+  params?: {
+    note?: string | null;
+    swapItemUid?: string | null;
+    impact?: GantryImpactValue;
+    objectiveImpacts?: GantryObjectiveImpacts;
+  },
 ): Promise<AddPinResult> {
   const body: Record<string, unknown> = { note: params?.note ?? null, swapItemUid: params?.swapItemUid ?? null };
   if (params?.impact !== undefined) body.impact = params.impact;
+  // Proposed contract extension — values exist only when GANTRY_IMPACT_PER_OBJECTIVE_ENABLED.
+  if (params?.objectiveImpacts !== undefined) body.objectiveImpacts = params.objectiveImpacts;
   const res = await customFetch(
     `${ROADMAP_API_URL}/${encodeURIComponent(uid)}/pin`,
     {

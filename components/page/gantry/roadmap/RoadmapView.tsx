@@ -354,6 +354,7 @@ export function RoadmapView() {
         <BoostImpactPopover
           key={ratePopover.uid}
           pos={{ top: ratePopover.top, left: ratePopover.left }}
+          objectives={data?.items.find((i) => i.uid === ratePopover.uid)?.objectives}
           initialImpact={(() => {
             const item = data?.items.find((i) => i.uid === ratePopover.uid);
             if (!item) return null;

@@ -8,6 +8,7 @@ import type {
   GantryImpactValue,
   GantryItem,
   GantryItemListResponse,
+  GantryObjectiveImpacts,
   GantryPinBalance,
   GantryPinStatus,
 } from '../types';
@@ -19,7 +20,14 @@ import type {
  */
 type PinPayload =
   | { uid: string; nextIsPinned: false }
-  | { uid: string; nextIsPinned: true; impact?: GantryImpactValue; note?: string; swapItemUid?: string | null };
+  | {
+      uid: string;
+      nextIsPinned: true;
+      impact?: GantryImpactValue;
+      note?: string;
+      objectiveImpacts?: GantryObjectiveImpacts;
+      swapItemUid?: string | null;
+    };
 
 type PinResult = { item: GantryItem; balance: GantryPinBalance };
 
@@ -59,6 +67,7 @@ async function pinMutationFn(payload: PinPayload): Promise<PinResult> {
       swapItemUid: payload.swapItemUid ?? null,
       note: payload.note ?? null,
       impact: payload.impact,
+      objectiveImpacts: payload.objectiveImpacts,
     });
     if (!result.ok) {
       if (result.error === 'PIN_BALANCE_EXHAUSTED') throw new PinBalanceExhaustedError();

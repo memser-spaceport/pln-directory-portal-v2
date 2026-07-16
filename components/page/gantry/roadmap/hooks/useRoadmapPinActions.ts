@@ -8,6 +8,7 @@ import type {
   GantryImpactValue,
   GantryItem,
   GantryItemListResponse,
+  GantryObjectiveImpacts,
   GantryPinStatus,
   GantryStage,
 } from '@/services/gantry/types';
@@ -32,7 +33,15 @@ const FROZEN_STAGES: readonly GantryStage[] = ['IN_PROGRESS', 'SHIPPED', 'DECLIN
  */
 type BoostFlowState =
   | { step: 'rate'; uid: string; pos: Pos; swapPos: Pos }
-  | { step: 'swap'; uid: string; pos: Pos; swapPos: Pos; impact?: GantryImpactValue; note?: string };
+  | {
+      step: 'swap';
+      uid: string;
+      pos: Pos;
+      swapPos: Pos;
+      impact?: GantryImpactValue;
+      note?: string;
+      objectiveImpacts?: GantryObjectiveImpacts;
+    };
 
 function computeSwapPickerPos(el: HTMLButtonElement): Pos {
   const rect = el.getBoundingClientRect();
@@ -90,7 +99,7 @@ export function useRoadmapPinActions(
 
   const commitBoost = async (
     uid: string,
-    rating: { impact?: GantryImpactValue; note?: string },
+    rating: { impact?: GantryImpactValue; note?: string; objectiveImpacts?: GantryObjectiveImpacts },
     swapItemUid?: string,
   ) => {
     try {
@@ -163,11 +172,21 @@ export function useRoadmapPinActions(
     // Re-read the balance from cache at save time — the render-time prop may be stale.
     const statusNow = queryClient.getQueryData<GantryPinStatus>([GantryQueryKeys.PIN_STATUS]) ?? pinStatus;
     if (statusNow && statusNow.remaining <= 0) {
-      setBoostFlow({ ...boostFlow, step: 'swap', impact: rating.impact, note: rating.note || undefined });
+      setBoostFlow({
+        ...boostFlow,
+        step: 'swap',
+        impact: rating.impact,
+        note: rating.note || undefined,
+        objectiveImpacts: rating.objectiveImpacts,
+      });
       return;
     }
 
-    await commitBoost(uid, { impact: rating.impact, note: rating.note || undefined });
+    await commitBoost(uid, {
+      impact: rating.impact,
+      note: rating.note || undefined,
+      objectiveImpacts: rating.objectiveImpacts,
+    });
   };
 
   const handleBoostCancel = () => {
@@ -182,7 +201,7 @@ export function useRoadmapPinActions(
 
   const handleSwapSelect = async (swapItemUid: string) => {
     if (!boostFlow || boostFlow.step !== 'swap' || pin.isPending) return;
-    const { uid, impact, note } = boostFlow;
+    const { uid, impact, note, objectiveImpacts } = boostFlow;
     if (GANTRY_IMPACT_UI_ENABLED && impact === undefined) {
       // Swap started before a rating was collected (pre-check path) — collect it first.
       setBoostFlow({ ...boostFlow, step: 'rate' });
@@ -190,7 +209,7 @@ export function useRoadmapPinActions(
     }
     setBoostFlow(null);
     try {
-      await pin.mutateAsync({ uid, nextIsPinned: true, impact, note, swapItemUid });
+      await pin.mutateAsync({ uid, nextIsPinned: true, impact, note, objectiveImpacts, swapItemUid });
       analytics.onItemBoosted(uid, impact);
     } catch {
       // Swap failed — rollback applied in onError

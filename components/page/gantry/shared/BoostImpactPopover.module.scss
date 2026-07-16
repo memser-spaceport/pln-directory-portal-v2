@@ -47,3 +47,55 @@
     transform: none;
   }
 }
+
+/* --- Per-objective breakdown (hidden behind GANTRY_IMPACT_PER_OBJECTIVE_ENABLED) --- */
+
+.objectiveRows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 9px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.objectiveRowsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.objectiveRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.objectiveLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+  min-width: 0;
+}
+
+.objectiveBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.objectiveTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

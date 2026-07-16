@@ -6,7 +6,8 @@ import { useIsNarrow } from '@/hooks/useIsNarrow';
 import { Button } from '@/components/common/Button';
 import { PushPinIcon } from '@/components/icons/PushPinIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
-import type { GantryImpactValue } from '@/services/gantry/types';
+import { GANTRY_IMPACT_PER_OBJECTIVE_ENABLED } from '@/utils/feature-flags';
+import type { GantryImpactValue, GantryObjectiveImpacts } from '@/services/gantry/types';
 import { ImpactControl } from './ImpactControl';
 import p from './PinNotePopover.module.scss';
 import s from './BoostImpactPopover.module.scss';
@@ -16,10 +17,14 @@ const MAX_NOTE = 500;
 export interface BoostImpactRating {
   impact: GantryImpactValue;
   note: string;
+  /** Per-objective breakdown — populated only when GANTRY_IMPACT_PER_OBJECTIVE_ENABLED. */
+  objectiveImpacts?: GantryObjectiveImpacts;
 }
 
 interface Props {
   readonly pos: { top: number; left: number };
+  /** The item's assigned objectives — rated individually when the per-objective switch is on. */
+  readonly objectives?: { uid: string; order: number; title: string }[];
   /** Pre-fill for a viewer who already has a rating on this item (e.g. the item's author). */
   readonly initialImpact?: GantryImpactValue | null;
   /** Single-flight: while the pin mutation is committing, Save is disabled and dismissal is a no-op. */
@@ -30,9 +35,11 @@ interface Props {
   readonly onCancel: () => void;
 }
 
-export function BoostImpactPopover({ pos, initialImpact, isSaving, onSave, onCancel }: Props) {
+export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, onSave, onCancel }: Props) {
   const [impact, setImpact] = useState<GantryImpactValue | null>(initialImpact ?? null);
+  const [objectiveImpacts, setObjectiveImpacts] = useState<GantryObjectiveImpacts>({});
   const [note, setNote] = useState('');
+  const ratedObjectives = GANTRY_IMPACT_PER_OBJECTIVE_ENABLED ? (objectives ?? []) : [];
 
   // On narrow screens the anchored popover becomes a bottom sheet (docked, full-width) — no
   // viewport math needed. On desktop, keep it fully on-screen: it grows taller once a rating is
@@ -50,7 +57,14 @@ export function BoostImpactPopover({ pos, initialImpact, isSaving, onSave, onCan
   }, [pos.top, impact, isNarrow]);
 
   const canSave = impact !== null && !isSaving;
-  const save = () => impact !== null && !isSaving && onSave({ impact, note: note.trim() });
+  const save = () =>
+    impact !== null &&
+    !isSaving &&
+    onSave({
+      impact,
+      note: note.trim(),
+      ...(Object.keys(objectiveImpacts).length > 0 ? { objectiveImpacts } : {}),
+    });
   const cancel = () => !isSaving && onCancel();
 
   return (
@@ -75,6 +89,26 @@ export function BoostImpactPopover({ pos, initialImpact, isSaving, onSave, onCan
 
         <div className={p.body}>
           <ImpactControl value={impact} onChange={setImpact} label="Impact on company goals" disabled={isSaving} />
+
+          {ratedObjectives.length > 0 && (
+            <div className={s.objectiveRows}>
+              <span className={s.objectiveRowsLabel}>Break it down by goal (optional)</span>
+              {ratedObjectives.map((obj) => (
+                <div key={obj.uid} className={s.objectiveRow}>
+                  <span className={s.objectiveLabel}>
+                    <span className={s.objectiveBadge}>O{obj.order}</span>
+                    <span className={s.objectiveTitle}>{obj.title}</span>
+                  </span>
+                  <ImpactControl
+                    value={objectiveImpacts[obj.uid] ?? null}
+                    onChange={(next) => setObjectiveImpacts((prev) => ({ ...prev, [obj.uid]: next }))}
+                    label={`Impact on ${obj.title}`}
+                    disabled={isSaving}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* The "why" note appears only after an impact level is picked. */}
           {impact !== null && (

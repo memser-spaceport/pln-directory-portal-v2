@@ -159,8 +159,12 @@ export interface UpdateGantryItemPayload {
   authorImpactReasoning?: string;
 }
 
+/** Optional per-objective breakdown, keyed by objective uid. Proposed contract extension — sent only when GANTRY_IMPACT_PER_OBJECTIVE_ENABLED. */
+export type GantryObjectiveImpacts = Record<string, GantryImpactValue>;
+
 /** PATCH .../pin — the API requires at least one field; callers enforce it. */
 export interface UpdateGantryPinPayload {
   impact?: GantryImpactValue;
   note?: string;
+  objectiveImpacts?: GantryObjectiveImpacts;
 }

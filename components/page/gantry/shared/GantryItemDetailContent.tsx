@@ -319,6 +319,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
         <BoostImpactPopover
           key={ratePopover.uid}
           pos={{ top: ratePopover.top, left: ratePopover.left }}
+          objectives={item.objectives}
           initialImpact={item.viewerImpact ?? (item.createdByUid === currentUser?.uid ? item.authorImpact : null)}
           isSaving={isBoostCommitting}
           onSave={handleBoostRateSave}

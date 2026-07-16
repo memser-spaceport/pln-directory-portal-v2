@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -59,13 +59,23 @@ export function EditAiAppModal({ app, onClose }: Props) {
 
   const [name, setName] = useState(app.name);
   const [description, setDescription] = useState(app.description);
-  const [prd, setPrd] = useState<PrdState | null>(() => (hasPrd(app) ? { kind: 'existing', url: app.prd as string } : null));
+  const [prd, setPrd] = useState<PrdState | null>(() =>
+    hasPrd(app) ? { kind: 'existing', url: app.prd as string } : null,
+  );
   // Bumped on Remove so the FileUploader remounts with fresh internal state.
   const [uploaderKey, setUploaderKey] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const hadInitialPrd = hasPrd(app);
-  const { size: existingPrdSize, isLoading: isLoadingPrdSize } = useAiAppPrdSize(prd?.kind === 'existing' ? prd.url : null);
+  const { size: existingPrdSize, isLoading: isLoadingPrdSize } = useAiAppPrdSize(
+    prd?.kind === 'existing' ? prd.url : null,
+  );
+
+  useEffect(() => {
+    analytics.onEditDetailsOpened(app.uid, app.name);
+    // Open-event only — analytics identity is stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleUpload = (files: File[]) => {
     const file = files[0];

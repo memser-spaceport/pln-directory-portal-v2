@@ -244,6 +244,18 @@ export const useDemoDayAnalytics = () => {
     captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_SHOW_MORE_TEAMS_CLICKED);
   }
 
+  function onCompletedViewTeamCardClicked(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_TEAM_CARD_CLICKED, eventParams);
+  }
+
+  function onCompletedViewTeamFollowed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_TEAM_FOLLOWED, eventParams);
+  }
+
+  function onCompletedViewTeamUnfollowed(eventParams = {}) {
+    captureEvent(DEMO_DAY_ANALYTICS.ON_COMPLETED_VIEW_TEAM_UNFOLLOWED, eventParams);
+  }
+
   function onActiveViewShowMoreLogosClicked() {
     captureEvent(DEMO_DAY_ANALYTICS.ON_ACTIVE_VIEW_SHOW_MORE_LOGOS_CLICKED);
   }
@@ -373,6 +385,9 @@ export const useDemoDayAnalytics = () => {
     onCompletedViewFeedbackSubmitted,
     onCompletedViewShowMoreLogosClicked,
     onCompletedViewShowMoreTeamsClicked,
+    onCompletedViewTeamCardClicked,
+    onCompletedViewTeamFollowed,
+    onCompletedViewTeamUnfollowed,
     onActiveViewShowMoreLogosClicked,
     onInvestorProfileAddDetailsClicked,
     onInvestorProfileNotAnInvestorClicked,

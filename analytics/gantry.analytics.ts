@@ -21,6 +21,7 @@ export const GANTRY_EVENTS = {
   ITEM_BOOSTED: 'gantry_item_boosted',
   ITEM_UNBOOSTED: 'gantry_item_unboosted',
   ITEM_IMPACT_RATED: 'gantry_item_impact_rated',
+  IMPACT_RATINGS_EXPANDED: 'gantry_impact_ratings_expanded',
   ITEM_DRAWER_OPENED: 'gantry_item_drawer_opened',
   ITEM_DRAWER_CLOSED: 'gantry_item_drawer_closed',
 } as const;
@@ -59,6 +60,8 @@ export function useGantryAnalytics() {
     onItemUnboosted: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_UNBOOSTED, { itemUid }),
     onItemImpactRated: (itemUid: string, impact: number, isUpdate: boolean, vehicle: 'create' | 'boost' | 'edit') =>
       capture(GANTRY_EVENTS.ITEM_IMPACT_RATED, { itemUid, impact, isUpdate, vehicle }),
+    onImpactRatingsExpanded: (itemUid: string, impactCount: number) =>
+      capture(GANTRY_EVENTS.IMPACT_RATINGS_EXPANDED, { itemUid, impactCount }),
     onItemDrawerOpened: (itemUid: string) => capture(GANTRY_EVENTS.ITEM_DRAWER_OPENED, { itemUid }),
     onItemDrawerClosed: (itemUid: string, timeOpenMs: number) =>
       capture(GANTRY_EVENTS.ITEM_DRAWER_CLOSED, { itemUid, timeOpenMs }),

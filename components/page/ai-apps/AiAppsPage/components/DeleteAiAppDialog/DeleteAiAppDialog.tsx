@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -25,8 +25,22 @@ export function DeleteAiAppDialog({ app, onClose }: Props) {
   const analytics = useAiAppsAnalytics();
   const { mutateAsync: deleteApp, isPending: isDeleting } = useDeleteAiApp(app.uid);
   const [error, setError] = useState<string | null>(null);
+  const didConfirmRef = useRef(false);
 
   const isDeploying = app.status === 'DEPLOYING';
+
+  useEffect(() => {
+    analytics.onDeleteAppOpened(app.uid, app.name);
+    // Open-event only — analytics identity is stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClose = () => {
+    if (!didConfirmRef.current) {
+      analytics.onDeleteAppCancelled(app.uid, app.name);
+    }
+    onClose();
+  };
 
   const handleConfirm = async () => {
     if (isDeleting) return;
@@ -38,12 +52,13 @@ export function DeleteAiAppDialog({ app, onClose }: Props) {
       analytics.onDeleteAppFailed(app.uid);
       return;
     }
+    didConfirmRef.current = true;
     analytics.onDeleteAppConfirmed(app.uid, app.name);
     onClose();
   };
 
   return (
-    <Modal isOpen onClose={onClose} className={s.modal}>
+    <Modal isOpen onClose={handleClose} className={s.modal}>
       <div className={s.content}>
         <h2 className={s.title}>Delete &ldquo;{app.name}&rdquo;?</h2>
         <p className={s.body}>
@@ -53,7 +68,7 @@ export function DeleteAiAppDialog({ app, onClose }: Props) {
         </p>
         {error && <p className={s.error}>{error}</p>}
         <div className={s.actions}>
-          <Button style="border" variant="neutral" size="s" onClick={onClose} disabled={isDeleting}>
+          <Button style="border" variant="neutral" size="s" onClick={handleClose} disabled={isDeleting}>
             Cancel
           </Button>
           <Button style="fill" variant="error" size="s" onClick={handleConfirm} disabled={isDeleting}>

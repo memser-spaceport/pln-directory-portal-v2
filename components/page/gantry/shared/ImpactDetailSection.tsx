@@ -218,7 +218,16 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, froz
             );
           })}
           {raterRows.length > MAX_RATERS_VISIBLE && (
-            <button type="button" className={s.showAll} onClick={() => setShowAll((v) => !v)}>
+            <button
+              type="button"
+              className={s.showAll}
+              onClick={() => {
+                setShowAll((v) => {
+                  if (!v) analytics.onImpactRatingsExpanded(item.uid, item.impactCount);
+                  return !v;
+                });
+              }}
+            >
               {showAll ? 'Show less' : `Show all ${item.impactCount} ratings & notes`}
             </button>
           )}

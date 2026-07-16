@@ -132,6 +132,7 @@ export function DeploymentSettingsModal({ app, onClose }: Props) {
       // Keep typed values so the user can fix and retry without re-entering.
       setError(result.error);
       setIsSubmitting(false);
+      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft });
       return;
     }
 
@@ -257,7 +258,9 @@ export function DeploymentSettingsModal({ app, onClose }: Props) {
           <div className={s.statusBody}>
             <Spinner />
             <p className={s.statusTitle}>Redeploying {app.name}</p>
-            <p className={s.statusText}>This usually takes a couple of minutes — you can close this and keep working.</p>
+            <p className={s.statusText}>
+              This usually takes a couple of minutes — you can close this and keep working.
+            </p>
           </div>
         )}
 

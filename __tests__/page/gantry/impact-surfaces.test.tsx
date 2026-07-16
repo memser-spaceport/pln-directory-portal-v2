@@ -12,7 +12,7 @@ jest.mock('@/services/gantry/hooks/useGantryItemPins', () => ({
   useGantryItemPins: (...args: unknown[]) => useGantryItemPinsMock(...(args as [])),
 }));
 jest.mock('@/analytics/gantry.analytics', () => ({
-  useGantryAnalytics: () => ({ onItemImpactRated: jest.fn() }),
+  useGantryAnalytics: () => ({ onItemImpactRated: jest.fn(), onImpactRatingsExpanded: jest.fn() }),
 }));
 
 const pinner = (name: string, impact: number | null, note: string | null = null): GantryPinner =>

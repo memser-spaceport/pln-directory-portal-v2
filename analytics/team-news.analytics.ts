@@ -46,6 +46,20 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsSortChanged = (
+    sort: string,
+    previousSort: string,
+    itemCount: number,
+    source: TeamNewsAnalyticsSource = 'home',
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SORT_CHANGED, {
+      sort,
+      previousSort,
+      itemCount,
+      source,
+    });
+  };
+
   const onTeamNewsLoadMoreClicked = (
     currentlyShown: number,
     total: number,
@@ -181,6 +195,7 @@ export const useTeamNewsAnalytics = () => {
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
+    onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
     onTeamNewsViewAllClicked,
     onTeamNewsShowMoreClicked,

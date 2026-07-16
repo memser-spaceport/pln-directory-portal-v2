@@ -5,6 +5,7 @@ import Image from 'next/image';
 import React, { useCallback, MouseEvent } from 'react';
 
 import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 
 import { Badge } from '@/components/common/Badge';
 import { FollowButton } from '@/components/ui/FollowButton';
@@ -23,17 +24,27 @@ export function PastTeamCard(props: Props) {
   const { uid, name, logoUrl, newsCount, shortDescription } = team;
 
   const defaultAvatarImage = useDefaultAvatar(team?.name ?? '');
+  const { onCompletedViewTeamCardClicked } = useDemoDayAnalytics();
 
   const { isPending, isFollowing, toggleFollow } = useFollowDemoDayTeam(team);
 
-  const toggleFollowState = useCallback((e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFollow();
-  }, [toggleFollow]);
+  const toggleFollowState = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFollow();
+    },
+    [toggleFollow],
+  );
 
   return (
-    <a href={`/teams/${uid}`} target="_blank" rel="noopener noreferrer" className={s.root}>
+    <a
+      href={`/teams/${uid}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={s.root}
+      onClick={() => onCompletedViewTeamCardClicked({ teamUid: uid, teamName: name })}
+    >
       <div>
         <Image
           width={32}

@@ -102,6 +102,7 @@ export function AppSecretsPanel(props: Props) {
 
     if (result.error) {
       setError(result.error);
+      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft });
       // Keep `values` and `editing` as-is on failure — an unlocked field stays
       // unlocked with its typed value intact so the user can retry without
       // re-typing or losing their place.

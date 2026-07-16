@@ -204,6 +204,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   };
 
   const handleSort = (value: string) => {
+    analytics.onTeamNewsSortChanged(value, sort, clusters.length);
     setSort(value as TeamNewsSort);
     setExpanded(false);
   };

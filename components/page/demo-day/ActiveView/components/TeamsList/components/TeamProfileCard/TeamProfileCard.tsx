@@ -77,9 +77,9 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     : isAdmin
       ? (canEditTeams ?? true)
       : team.founders.some((founder) => founder.uid === userInfo?.uid);
-  // Spotlight disables the drawer for regular investors — show full description on the card.
+  // Spotlight has a single card and no investor drawer — always show the full description.
   const canOpenDrawer = !pitchSlug || canEdit || isAdmin;
-  const shouldClampDescription = canOpenDrawer;
+  const shouldClampDescription = !canOpenDrawer || !pitchSlug;
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();

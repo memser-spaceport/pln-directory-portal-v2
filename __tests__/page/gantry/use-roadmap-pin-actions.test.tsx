@@ -5,7 +5,6 @@ import type { GantryPinStatus } from '@/services/gantry/types';
 jest.mock('@/utils/feature-flags', () => ({
   USE_ACCESS_CONTROL_V2: false,
   GANTRY_IMPACT_UI_ENABLED: true,
-  GANTRY_IMPACT_MOCK: false,
 }));
 
 // Controllable query client — the hook re-reads item/pin-status state from cache at Save time.

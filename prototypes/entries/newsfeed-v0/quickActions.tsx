@@ -16,6 +16,8 @@ export interface QuickAction {
   title: string;
   short: string;
   description: string;
+  /** Terse subtitle for the compact mobile cards (full `description` truncates there). */
+  shortDescription: string;
   href: string;
 }
 
@@ -46,6 +48,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Teams',
     short: 'Teams',
     description: 'Explore organizations across the network',
+    shortDescription: 'Organizations',
     href: '/teams?priorities=P1%7CP2%7CP3',
   },
   {
@@ -53,6 +56,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Book Office Hours',
     short: 'Office Hours',
     description: 'Connect with experts across the network',
+    shortDescription: 'Meet experts',
     href: '/members?hasOfficeHours=true',
   },
   {
@@ -60,6 +64,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Network Deals',
     short: 'Deals',
     description: 'Exclusive offers for network members',
+    shortDescription: 'Member perks',
     href: '/deals',
   },
   {
@@ -67,6 +72,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Founder Guides',
     short: 'Guides',
     description: 'Resources curated for network founders',
+    shortDescription: 'For founders',
     href: '/founder-guides',
   },
   {
@@ -74,6 +80,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Job Board',
     short: 'Jobs',
     description: 'Find your next role',
+    shortDescription: 'Open roles',
     href: '/jobs',
   },
 ];

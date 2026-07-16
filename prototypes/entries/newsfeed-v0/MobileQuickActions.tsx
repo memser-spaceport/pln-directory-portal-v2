@@ -18,7 +18,7 @@ export function MobileQuickActions() {
           <a key={action.href} href={action.href} className={local.mqaCard}>
             <span className={local.mqaIcon}>{action.icon}</span>
             <span className={local.mqaCardTitle}>{action.title}</span>
-            <span className={local.mqaSub}>{action.description}</span>
+            <span className={local.mqaSub}>{action.shortDescription}</span>
           </a>
         ))}
       </div>

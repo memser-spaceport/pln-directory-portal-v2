@@ -945,10 +945,9 @@
   line-height: 18px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-tertiary, #8897ae);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .qaHeader {

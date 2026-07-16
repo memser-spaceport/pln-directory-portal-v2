@@ -77,8 +77,9 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     : isAdmin
       ? (canEditTeams ?? true)
       : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  // Spotlight disables the drawer for regular investors — show full description on the card.
   const canOpenDrawer = !pitchSlug || canEdit || isAdmin;
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const shouldClampDescription = canOpenDrawer;
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();
@@ -322,13 +323,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     if (event) reportAnalytics.mutate(event);
   };
 
-  // Check if description is truncated
   React.useEffect(() => {
+    if (!shouldClampDescription) {
+      setIsDescriptionTruncated(false);
+      return;
+    }
     if (descriptionRef.current && team.description) {
       const element = descriptionRef.current;
       setIsDescriptionTruncated(element.scrollHeight > element.clientHeight);
     }
-  }, [team.description]);
+  }, [team.description, shouldClampDescription]);
 
   return (
     <div
@@ -426,20 +430,19 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         <div className={s.descriptionSection}>
           <p
             ref={descriptionRef}
-            className={clsx(s.description, { [s.truncated]: isDescriptionTruncated && !isDescriptionExpanded })}
+            className={clsx(s.description, {
+              [s.clamped]: shouldClampDescription,
+              [s.truncated]: shouldClampDescription && isDescriptionTruncated,
+            })}
           >
             {team.description}
           </p>
-          {isDescriptionTruncated && !isDescriptionExpanded && (
+          {shouldClampDescription && isDescriptionTruncated && (
             <button
               className={s.showMoreButton}
               onClick={(e) => {
                 e.stopPropagation();
-                if (canOpenDrawer) {
-                  handleCardClick();
-                } else {
-                  setIsDescriptionExpanded(true);
-                }
+                handleCardClick();
               }}
             >
               Show more

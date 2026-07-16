@@ -144,18 +144,7 @@ export interface UpdateAiAppResult {
   error: string | null;
 }
 
-/** Metadata-only edit — never triggers a redeploy. */
-export async function updateAiApp(uid: string, patch: UpdateAiAppPatch): Promise<UpdateAiAppResult> {
-  const response = await customFetch(
-    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}`,
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    },
-    true,
-  );
-
+async function parseUpdateResponse(response: Response | undefined): Promise<UpdateAiAppResult> {
   if (!response) {
     return { app: null, error: 'Saving failed. Please try again.' };
   }
@@ -177,6 +166,45 @@ export async function updateAiApp(uid: string, patch: UpdateAiAppPatch): Promise
   }
 
   return { app: await response.json(), error: null };
+}
+
+/** Metadata-only edit (including clearing the one-pager with `prd: null`) — never triggers a redeploy. */
+export async function updateAiApp(uid: string, patch: UpdateAiAppPatch): Promise<UpdateAiAppResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    },
+    true,
+  );
+
+  return parseUpdateResponse(response);
+}
+
+export interface UpdateAiAppFileInput {
+  name?: string;
+  description?: string;
+  /** The one-pager file itself — the backend derives `prd` from its contents. */
+  file: File;
+}
+
+/**
+ * Setting or replacing the one-pager goes through multipart, not JSON: the
+ * backend wants the file itself (`-F file=@one-pager.md`), not its text
+ * inlined as `prd`. Never set a Content-Type header here — the browser must
+ * generate the multipart boundary itself (customFetch only adds Authorization).
+ */
+export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput): Promise<UpdateAiAppResult> {
+  const formData = new FormData();
+  if (input.name !== undefined) formData.append('name', input.name);
+  if (input.description !== undefined) formData.append('description', input.description);
+  formData.append('file', input.file);
+
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'PATCH', body: formData }, true);
+
+  return parseUpdateResponse(response);
 }
 
 export interface DeleteAiAppResult {

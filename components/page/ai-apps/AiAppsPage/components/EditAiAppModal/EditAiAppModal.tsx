@@ -8,18 +8,20 @@ import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { FileUploader } from '@/components/ui/FileUploader/FileUploader';
 import { isHtmlDocument } from '@/components/page/ai-apps/components/PrdContent';
-import { AiApp, hasPrd, UpdateAiAppPatch } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
 import { useUpdateAiApp } from '@/services/ai-apps/hooks/useUpdateAiApp';
+import { useUpdateAiAppFile } from '@/services/ai-apps/hooks/useUpdateAiAppFile';
 import { formatFileSize } from '@/utils/file.utils';
 
 import s from './EditAiAppModal.module.scss';
 
-interface PrdDraft {
-  /** The one-pager text that will be PATCHed as `prd`. */
-  text: string;
-  /** Original file name when the text came from an upload this session. */
-  fileName: string | null;
-}
+/**
+ * `existing` mirrors the currently stored one-pager (read-only text, for the
+ * format/size preview — never re-sent to the backend). `file` is a freshly
+ * chosen upload that will PATCH as multipart on save; its content is never
+ * read client-side, only its name/size for the preview card.
+ */
+type PrdState = { kind: 'existing'; text: string } | { kind: 'file'; file: File };
 
 interface Props {
   app: AiApp;
@@ -28,79 +30,77 @@ interface Props {
 
 const PRD_MAX_MB = 1;
 
-function prdFormatBadge(draft: PrdDraft): string {
-  return isHtmlDocument(draft.text) ? 'HTML' : 'MD';
+function prdFormatBadge(state: PrdState): string {
+  if (state.kind === 'existing') {
+    return isHtmlDocument(state.text) ? 'HTML' : 'MD';
+  }
+  const ext = state.file.name.split('.').pop()?.toLowerCase();
+  return ext === 'html' || ext === 'htm' ? 'HTML' : 'MD';
 }
 
-function prdByteSize(text: string): number {
-  return new TextEncoder().encode(text).length;
+function prdByteSize(state: PrdState): number {
+  return state.kind === 'existing' ? new TextEncoder().encode(state.text).length : state.file.size;
 }
 
 /**
- * "Edit details" — name, description, and the optional one-pager. Saves are
- * metadata-only (a plain JSON PATCH): they never trigger a redeploy. The
- * one-pager is stored as MD/HTML *text*; an uploaded file is read client-side
- * into that text, and Remove clears it with an explicit `prd: null`.
+ * "Edit details" — name, description, and the optional one-pager. Plain
+ * metadata saves are a JSON PATCH; setting or replacing the one-pager is a
+ * multipart PATCH carrying the file itself (`-F file=@one-pager.md`) — the
+ * backend derives `prd` from the file's contents, so its bytes are never
+ * read or re-encoded client-side. Removing a one-pager still clears it with
+ * an explicit JSON `prd: null` (multipart can't carry a null).
  *
  * Rendered only while open, so all state seeds fresh from `app` on mount —
  * a list refetch mid-edit can't reset the form.
  */
 export function EditAiAppModal({ app, onClose }: Props) {
   const analytics = useAiAppsAnalytics();
-  const { mutateAsync: saveApp, isPending: isSaving } = useUpdateAiApp(app.uid);
+  const { mutateAsync: savePatch, isPending: isSavingPatch } = useUpdateAiApp(app.uid);
+  const { mutateAsync: saveFile, isPending: isSavingFile } = useUpdateAiAppFile(app.uid);
+  const isSaving = isSavingPatch || isSavingFile;
 
   const [name, setName] = useState(app.name);
   const [description, setDescription] = useState(app.description);
-  const [prd, setPrd] = useState<PrdDraft | null>(() => (hasPrd(app) ? { text: app.prd as string, fileName: null } : null));
+  const [prd, setPrd] = useState<PrdState | null>(() => (hasPrd(app) ? { kind: 'existing', text: app.prd as string } : null));
   // Bumped on Remove so the FileUploader remounts with fresh internal state.
   const [uploaderKey, setUploaderKey] = useState(0);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const initialPrdText = hasPrd(app) ? (app.prd as string) : null;
+  const hadInitialPrd = hasPrd(app);
 
   const handleUpload = (files: File[]) => {
     const file = files[0];
     if (!file) return;
-
-    setUploadError(null);
-    file
-      .text()
-      .then((text) => {
-        if (!text.trim()) {
-          setUploadError('That file is empty.');
-          setUploaderKey((k) => k + 1);
-          return;
-        }
-        setPrd({ text, fileName: file.name });
-      })
-      .catch(() => {
-        setUploadError('Could not read that file. Please try another one.');
-        setUploaderKey((k) => k + 1);
-      });
+    setPrd({ kind: 'file', file });
   };
 
   const handleRemove = () => {
     setPrd(null);
-    setUploadError(null);
     setUploaderKey((k) => k + 1);
   };
 
   const trimmedName = name.trim();
+  const trimmedDescription = description.trim();
   const nameError = trimmedName.length === 0 ? 'Name is required.' : null;
 
   const handleSave = async () => {
     if (nameError || isSaving) return;
 
     setSaveError(null);
-    const patch: UpdateAiAppPatch = { name: trimmedName, description: description.trim() };
-    // Only ship `prd` when it actually changed — null is the explicit
-    // "clear the stored one-pager" signal, so it must not ride along idly.
-    if ((prd?.text ?? null) !== initialPrdText) {
-      patch.prd = prd?.text ?? null;
-    }
 
-    const result = await saveApp(patch);
+    // A freshly chosen file always goes through the multipart route — the
+    // backend reads the one-pager from the file itself, never from JSON text.
+    const result =
+      prd?.kind === 'file'
+        ? await saveFile({ name: trimmedName, description: trimmedDescription, file: prd.file })
+        : await savePatch({
+            name: trimmedName,
+            description: trimmedDescription,
+            // Only ship `prd` when clearing a one-pager that existed before —
+            // an unchanged `existing` one-pager is never re-sent.
+            ...(prd === null && hadInitialPrd ? { prd: null } : {}),
+          });
+
     if (result.error) {
       setSaveError(result.error);
       analytics.onEditDetailsFailed(app.uid);
@@ -162,9 +162,9 @@ export function EditAiAppModal({ app, onClose }: Props) {
                   <span className={s.thumbFallback}>{prdFormatBadge(prd)}</span>
                 </div>
                 <div className={s.fileMeta}>
-                  <p className={s.fileName}>{prd.fileName ?? 'One-pager'}</p>
+                  <p className={s.fileName}>{prd.kind === 'file' ? prd.file.name : 'One-pager'}</p>
                   <p className={s.fileSize}>
-                    {prdFormatBadge(prd) === 'HTML' ? 'HTML' : 'Markdown'} - {formatFileSize(prdByteSize(prd.text))}
+                    {prdFormatBadge(prd) === 'HTML' ? 'HTML' : 'Markdown'} - {formatFileSize(prdByteSize(prd))}
                   </p>
                 </div>
                 <button type="button" className={s.removeBtn} onClick={handleRemove} disabled={isSaving}>
@@ -183,7 +183,6 @@ export function EditAiAppModal({ app, onClose }: Props) {
                 disabled={isSaving}
               />
             )}
-            {uploadError && <p className={s.errorText}>{uploadError}</p>}
           </div>
 
           {saveError && <p className={s.errorText}>{saveError}</p>}

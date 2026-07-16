@@ -1,5 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import { deleteAiApp, fetchAiApp, hasPrd, updateAiApp } from '@/services/ai-apps/ai-apps.service';
+import { deleteAiApp, fetchAiApp, hasPrd, updateAiApp, updateAiAppFile } from '@/services/ai-apps/ai-apps.service';
 
 jest.mock('@/utils/fetch-wrapper', () => ({
   customFetch: jest.fn(),
@@ -74,6 +74,47 @@ describe('updateAiApp', () => {
     const result = await updateAiApp('a1', { name: 'x' });
     expect(result.app).toBeNull();
     expect(result.error).toBeTruthy();
+  });
+});
+
+describe('updateAiAppFile', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('PATCHes multipart with name, description, and the raw file — no Content-Type header', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1' }));
+    const file = new File(['# One pager'], 'one-pager.md', { type: 'text/markdown' });
+
+    const result = await updateAiAppFile('a1', { name: 'New name', description: 'New desc', file });
+
+    expect(result).toEqual({ app: { uid: 'a1' }, error: null });
+    const [url, init] = mockCustomFetch.mock.calls[0];
+    expect(url).toContain('/a1');
+    expect(init).toMatchObject({ method: 'PATCH' });
+    expect((init as RequestInit).headers).toBeUndefined();
+
+    const body = (init as RequestInit).body as FormData;
+    expect(body).toBeInstanceOf(FormData);
+    expect(body.get('name')).toBe('New name');
+    expect(body.get('description')).toBe('New desc');
+    expect(body.get('file')).toBe(file);
+  });
+
+  it('omits name/description from the form when not provided', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1' }));
+    const file = new File(['<html></html>'], 'one-pager.html', { type: 'text/html' });
+
+    await updateAiAppFile('a1', { file });
+
+    const body = (mockCustomFetch.mock.calls[0][1] as RequestInit).body as FormData;
+    expect(body.has('name')).toBe(false);
+    expect(body.has('description')).toBe(false);
+    expect(body.get('file')).toBe(file);
+  });
+
+  it('surfaces the backend message on failure, same as the JSON path', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(413, { message: 'File too large' }));
+    const file = new File(['x'], 'big.md');
+    await expect(updateAiAppFile('a1', { file })).resolves.toEqual({ app: null, error: 'File too large' });
   });
 });
 

@@ -80,7 +80,7 @@ describe('updateAiApp', () => {
 describe('updateAiAppFile', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('PATCHes multipart with name, description, and the raw file — no Content-Type header', async () => {
+  it('PATCHes multipart with name, description, and the file — no Content-Type header', async () => {
     mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1' }));
     const file = new File(['# One pager'], 'one-pager.md', { type: 'text/markdown' });
 
@@ -96,7 +96,8 @@ describe('updateAiAppFile', () => {
     expect(body).toBeInstanceOf(FormData);
     expect(body.get('name')).toBe('New name');
     expect(body.get('description')).toBe('New desc');
-    expect(body.get('file')).toBe(file);
+    const uploaded = body.get('file') as File;
+    expect(uploaded.name).toBe('one-pager.md');
   });
 
   it('omits name/description from the form when not provided', async () => {
@@ -108,7 +109,31 @@ describe('updateAiAppFile', () => {
     const body = (mockCustomFetch.mock.calls[0][1] as RequestInit).body as FormData;
     expect(body.has('name')).toBe(false);
     expect(body.has('description')).toBe(false);
-    expect(body.get('file')).toBe(file);
+    expect((body.get('file') as File).name).toBe('one-pager.html');
+  });
+
+  it('normalizes the file part to application/octet-stream regardless of the browser-detected type', async () => {
+    // The backend 415s on a browser-recognized text/html part but accepts the
+    // octet-stream fallback browsers use for unrecognized extensions (like
+    // .md) — so every upload is forced onto the value that's proven to work.
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1' }));
+    const htmlFile = new File(['<html></html>'], 'one-pager.html', { type: 'text/html' });
+
+    await updateAiAppFile('a1', { file: htmlFile });
+
+    const uploaded = ((mockCustomFetch.mock.calls[0][1] as RequestInit).body as FormData).get('file') as File;
+    expect(uploaded.type).toBe('application/octet-stream');
+  });
+
+  it('preserves the file size/name through the type normalization', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1' }));
+    const file = new File(['<h1>Hello</h1>'], 'one-pager.html', { type: 'text/html' });
+
+    await updateAiAppFile('a1', { file });
+
+    const uploaded = ((mockCustomFetch.mock.calls[0][1] as RequestInit).body as FormData).get('file') as File;
+    expect(uploaded.size).toBe(file.size);
+    expect(uploaded.name).toBe('one-pager.html');
   });
 
   it('surfaces the backend message on failure, same as the JSON path', async () => {

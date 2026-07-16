@@ -26,6 +26,8 @@ export interface AiApp {
   member: {
     uid: string;
     name: string;
+    /** Profile photo URL; null when the member has no photo (UI falls back to a generated avatar). */
+    image: string | null;
   };
 }
 

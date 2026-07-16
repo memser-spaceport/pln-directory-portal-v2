@@ -2337,4 +2337,11 @@ export const AI_APPS_ANALYTICS = {
   SECRETS_DEPLOY_SUCCEEDED: 'ai_apps_secrets_deploy_succeeded',
   SECRETS_DEPLOY_FAILED: 'ai_apps_secrets_deploy_failed',
   DRAFT_SETUP_VIEWED: 'ai_apps_draft_setup_viewed',
+  MANAGE_MENU_OPENED: 'ai_apps_manage_menu_opened',
+  EDIT_DETAILS_SAVED: 'ai_apps_edit_details_saved',
+  EDIT_DETAILS_FAILED: 'ai_apps_edit_details_failed',
+  DEPLOYMENT_SETTINGS_OPENED: 'ai_apps_deployment_settings_opened',
+  DELETE_APP_CONFIRMED: 'ai_apps_delete_app_confirmed',
+  DELETE_APP_FAILED: 'ai_apps_delete_app_failed',
+  APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
 };

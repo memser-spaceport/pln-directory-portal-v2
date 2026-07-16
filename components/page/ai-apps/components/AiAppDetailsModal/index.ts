@@ -1,0 +1,1 @@
+export { AiAppDetailsModal } from './AiAppDetailsModal';

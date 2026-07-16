@@ -11,7 +11,7 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 // The same Follow button dev ships in the production "Teams to follow" rail.
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import { MOCK_FOCUS_AREAS, SUGGESTED_TEAMS, UPVOTES } from './mocks';
 
 interface FeedRailProps {

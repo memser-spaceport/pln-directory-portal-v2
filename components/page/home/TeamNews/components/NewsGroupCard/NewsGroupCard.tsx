@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';

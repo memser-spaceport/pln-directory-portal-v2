@@ -3,7 +3,7 @@ import type { TeamCluster } from '@/types/team-news.types';
 export type TeamNewsSort = 'following' | 'latest' | 'popular';
 
 export const SORT_OPTIONS = [
-  { value: 'following', label: 'Following first' },
+  { value: 'following', label: 'Following' },
   { value: 'latest', label: 'Latest' },
   { value: 'popular', label: 'Most popular' },
 ] as const satisfies ReadonlyArray<{ value: TeamNewsSort; label: string }>;

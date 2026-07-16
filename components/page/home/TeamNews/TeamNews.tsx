@@ -127,7 +127,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // identity never changes; the copy severs aliasing with the live set.
   const [initialFollowedTeamUids] = useState<ReadonlySet<string>>(() => new Set(followedTeamUids));
 
-  // Default: Following first when the user follows any teams; otherwise Most popular.
+  // Default: Following when the user follows any teams; otherwise Most popular.
   const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
 
   const itemsForActiveTab = useMemo(() => {

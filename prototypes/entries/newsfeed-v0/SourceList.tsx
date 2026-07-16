@@ -44,12 +44,18 @@ export function SourceList({ sources, fallbackDomain }: SourceListProps) {
       >
         {sources.length} sources
         <svg className={local.sourcePillCaret} viewBox="0 0 16 16" fill="none" aria-hidden>
-          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M4 6L8 10L12 6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 
       <span className={clsx(local.sourcePopover, expanded && local.sourcePopoverOpen)} role="list">
-        <span className={local.sourcePopoverHead}>Reported by</span>
+        <span className={local.sourcePopoverHead}>Sources</span>
         {sources.map((src) => (
           <button
             key={src.domain}

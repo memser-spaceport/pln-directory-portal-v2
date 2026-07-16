@@ -1,0 +1,25 @@
+// Local extras on top of the reused production RoleRow.module.scss.
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.applyArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  border-radius: 8px;
+  padding: 2px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}

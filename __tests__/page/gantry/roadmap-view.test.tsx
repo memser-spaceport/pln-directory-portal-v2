@@ -63,8 +63,8 @@ jest.mock('@/services/gantry/hooks/useGantryPinStatus', () => ({
   useGantryPinStatus: () => ({ data: undefined, isLoading: false }),
 }));
 
-jest.mock('@/services/gantry/hooks/useGantryPinNote', () => ({
-  useGantryPinNote: () => ({ mutate: jest.fn(), isPending: false }),
+jest.mock('@/services/gantry/hooks/useGantryPinUpdate', () => ({
+  useGantryPinUpdate: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
 jest.mock('@/services/gantry/hooks/useGantryObjectives', () => ({

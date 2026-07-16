@@ -16,6 +16,7 @@ import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { assignGantryItemObjectives } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
 import { getSubmitIdeaFormDefaults, SUBMIT_IDEA_MODAL_COPY } from '@/services/gantry/submitIdeaModal';
+import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import {
   useGantryDiscardDraftMutation,
   useGantryDraftQuery,
@@ -70,6 +71,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     resolver: yupResolver(submitIdeaSchema) as any,
     defaultValues: getSubmitIdeaFormDefaults(variant),
     mode: 'onChange',
+    // Read by the schema's $impactRequired / $reasoningRequired conditions at validation time.
+    context: { impactRequired: GANTRY_IMPACT_UI_ENABLED, reasoningRequired: GANTRY_IMPACT_UI_ENABLED && !canCurate },
   });
 
   const {
@@ -113,15 +116,13 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, variant]);
 
-  // Autosave draft while modal is open
-  const toDraft = useCallback(
-    (): SubmitIdeaDraft => ({
-      form: getValues(),
-      showCreateObjective,
-      newObjectiveTitle,
-    }),
-    [getValues, showCreateObjective, newObjectiveTitle],
-  );
+  // Autosave draft while modal is open. Impact fields are deliberately NOT persisted:
+  // the drafts API's field mapping (ApiGantryDraftPayload) has no slots for them, so a
+  // round-trip would silently drop them — and a rating-only draft must not count as content.
+  const toDraft = useCallback((): SubmitIdeaDraft => {
+    const { impact: _impact, impactReasoning: _impactReasoning, ...form } = getValues();
+    return { form, showCreateObjective, newObjectiveTitle };
+  }, [getValues, showCreateObjective, newObjectiveTitle]);
 
   useEffect(() => {
     if (!open || skipSaveRef.current) return;
@@ -159,6 +160,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     const tags = data.tags?.map((o) => o.value) ?? [];
     const itemType = data.type?.value as GantryItemType | undefined;
 
+    const reasoning = data.impactReasoning?.trim();
     mutate(
       {
         title: data.title.trim(),
@@ -167,6 +169,9 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
         tags,
         ...(itemType ? { type: itemType } : {}),
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
+        // Explicit null-check narrows impact to GantryImpactValue; yup guarantees presence when the flag is on.
+        ...(GANTRY_IMPACT_UI_ENABLED && data.impact != null ? { authorImpact: data.impact } : {}),
+        ...(GANTRY_IMPACT_UI_ENABLED && reasoning ? { authorImpactReasoning: reasoning } : {}),
       },
       {
         onSuccess: async (created) => {
@@ -182,7 +187,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
               // non-fatal
             }
           }
-          analytics.onIdeaCreated(created.uid, tags, itemType);
+          analytics.onIdeaCreated(created.uid, tags, itemType, data.impact ?? undefined);
           discardDraftMutation.mutate();
           reset(getSubmitIdeaFormDefaults('idea'));
           setShowCreateObjective(false);
@@ -213,7 +218,12 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
 
           <div className={dealModalStyles.content}>
             <FormProvider {...methods}>
-              <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
+              <IdeaFormFields
+                canSetStageOnCreate={canSetStageOnCreate}
+                showImpact={GANTRY_IMPACT_UI_ENABLED}
+                showReasoning={!canCurate}
+                requireReasoning={!canCurate}
+              />
               {canCurate && (
                 <div className={s.objectiveField}>
                   <FormMultiSelect

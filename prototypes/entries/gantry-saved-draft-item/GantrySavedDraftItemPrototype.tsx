@@ -24,7 +24,11 @@ import { useRoadmapMobileNav } from '@/components/page/gantry/roadmap/hooks/useR
 import type { SubmitIdeaFormData } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { hasRichTextContent } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { CheckIcon, CloseIcon, PlusIcon } from '@/components/icons';
-import { DEFAULT_ROADMAP_VISIBLE_COLUMNS, GANTRY_STAGE_LABELS, sortRoadmapColumnStages } from '@/services/gantry/constants';
+import {
+  DEFAULT_ROADMAP_VISIBLE_COLUMNS,
+  GANTRY_STAGE_LABELS,
+  sortRoadmapColumnStages,
+} from '@/services/gantry/constants';
 import type { GantryItem, GantryItemType, GantryStage } from '@/services/gantry/types';
 
 // Production roadmap + submit-button styles — reused so the prototype chrome matches 1:1.
@@ -154,6 +158,12 @@ function buildItemFromForm(form: SubmitIdeaFormData, uid: string, order: number)
     pinCount: 0,
     viewerHasPinned: false,
     viewerPinNote: null,
+    authorImpact: null,
+    authorImpactReasoning: null,
+    avgImpact: null,
+    impactCount: 0,
+    impactDistribution: null,
+    viewerImpact: null,
     deletedAt: null,
     createdAt: '2026-06-16T10:30:00.000Z',
     updatedAt: '2026-06-16T10:30:00.000Z',
@@ -184,7 +194,13 @@ const noPinToggle = () => undefined;
 function ArrowUpSmallIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-      <path d="M6 10V2m0 0L2.5 5.5M6 2L9.5 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 10V2m0 0L2.5 5.5M6 2L9.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -280,11 +296,8 @@ export default function GantrySavedDraftItemPrototype() {
   useEffect(() => setMounted(true), []);
 
   const isNarrow = useIsNarrow();
-  const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } = useRoadmapMobileNav(
-    visibleColumns,
-    isNarrow,
-    mounted,
-  );
+  const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
+    useRoadmapMobileNav(visibleColumns, isNarrow, mounted);
 
   const filteredItems = useMemo(
     () =>
@@ -369,7 +382,10 @@ export default function GantrySavedDraftItemPrototype() {
   const publishDraft = (form: SubmitIdeaFormData) => {
     const stage = getStageFromForm(form);
 
-    setItems((current) => [buildItemFromForm(form, `mock-published-${current.length + 1}`, current.length + 1), ...current]);
+    setItems((current) => [
+      buildItemFromForm(form, `mock-published-${current.length + 1}`, current.length + 1),
+      ...current,
+    ]);
     setDraft(null);
     setSaveStatus('idle');
     setVisibleColumns((current) => {
@@ -412,7 +428,9 @@ export default function GantrySavedDraftItemPrototype() {
     <div className={s.draftBanner}>
       <button type="button" className={s.draftBannerMain} onClick={openCreateModal} aria-label="Resume saved draft">
         {/* Real design-system Badge — same component + shared small-badge size as the save status badges. */}
-        <Badge variant="default" className={s.statusBadge}>Draft</Badge>
+        <Badge variant="default" className={s.statusBadge}>
+          Draft
+        </Badge>
         <span className={s.draftBannerInfo}>
           <span className={s.draftBannerTitleRow}>
             <span className={s.draftBannerTitle}>{draftTitle}</span>
@@ -438,7 +456,9 @@ export default function GantrySavedDraftItemPrototype() {
     <div className={s.draftChip}>
       <button type="button" className={s.draftChipMain} onClick={openCreateModal} aria-label="Resume saved draft">
         {/* Real design-system Badge — same component + shared small-badge size as the desktop banner. */}
-        <Badge variant="default" className={s.statusBadge}>Draft</Badge>
+        <Badge variant="default" className={s.statusBadge}>
+          Draft
+        </Badge>
         <span className={s.draftChipTitle}>{draftTitle}</span>
       </button>
       <button type="button" className={s.draftChipDiscard} onClick={requestDiscard} aria-label="Discard draft">
@@ -701,9 +721,7 @@ export default function GantrySavedDraftItemPrototype() {
       <Modal isOpen={confirmDiscardOpen} onClose={() => setConfirmDiscardOpen(false)} className={s.confirmContainer}>
         <div className={s.confirmRoot}>
           <h3 className={s.confirmTitle}>Discard draft?</h3>
-          <p className={s.confirmText}>
-            You&apos;ll lose “{draftTitle}”. This can&apos;t be undone.
-          </p>
+          <p className={s.confirmText}>You&apos;ll lose “{draftTitle}”. This can&apos;t be undone.</p>
           <div className={s.confirmActions}>
             <Button style="border" variant="neutral" onClick={() => setConfirmDiscardOpen(false)}>
               Keep draft

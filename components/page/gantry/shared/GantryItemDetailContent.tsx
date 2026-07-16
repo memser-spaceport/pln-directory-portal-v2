@@ -15,7 +15,7 @@ import { useGantryItem } from '@/services/gantry/hooks/useGantryItem';
 import { useArchiveGantryItem } from '@/services/gantry/hooks/useArchiveGantryItem';
 import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition';
 import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
-import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { useGantryPinUpdate } from '@/services/gantry/hooks/useGantryPinUpdate';
 import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
 import { isPreRoadmapStage } from '@/services/gantry/constants';
 import type { GantryStage } from '@/services/gantry/types';
@@ -26,7 +26,11 @@ import { BoostersSection } from './BoostersSection';
 import { BoostButton } from './BoostButton';
 import { GantryItemAuthor } from './GantryItemAuthor';
 import { PinNotePopover } from './PinNotePopover';
+import { BoostImpactPopover } from './BoostImpactPopover';
 import { PinSwapPicker } from './PinSwapPicker';
+import { ImpactDetailSection } from './ImpactDetailSection';
+import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
+import { hasImpactData } from '@/services/gantry/impact';
 import { StageSelector } from './StageSelector';
 import { BuildWithAgentsButton } from './BuildWithAgentsButton';
 import { DeclineIdeaModal } from './DeclineIdeaModal';
@@ -51,10 +55,20 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
   const archiveMutation = useArchiveGantryItem(uid);
   const transitionMutation = useGantryTransition();
   const pin = useGantryPin();
-  const pinNote = useGantryPinNote();
+  const pinUpdate = useGantryPinUpdate();
   const { data: pinStatus } = useGantryPinStatus(!!currentUser);
-  const { pinNotePopover, handlePinToggle, handlePinNoteSave, swapPickerState, handleSwapSelect, handleSwapDismiss } =
-    useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
+  const {
+    pinNotePopover,
+    handlePinToggle,
+    handlePinNoteSave,
+    ratePopover,
+    handleBoostRateSave,
+    handleBoostCancel,
+    isBoostCommitting,
+    swapPickerState,
+    handleSwapSelect,
+    handleSwapDismiss,
+  } = useRoadmapPinActions(pin, pinUpdate, analytics, pinStatus);
   const isDismissingRef = useRef(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -204,10 +218,29 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
               onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
             />
           </div>
-          {access.canCurate && item.pinCount > 0 && (
-            <div className={s.boostArea}>
-              <BoostersSection item={item} />
-            </div>
+          {GANTRY_IMPACT_UI_ENABLED ? (
+            <>
+              <ImpactDetailSection
+                item={item}
+                canCurate={access.canCurate}
+                isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
+                viewerUid={currentUser?.uid}
+                frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+              />
+              {/* Unrated legacy items keep the notes list for curators until ratings exist. */}
+              {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
+                <div className={s.boostArea}>
+                  <BoostersSection item={item} />
+                </div>
+              )}
+            </>
+          ) : (
+            access.canCurate &&
+            item.pinCount > 0 && (
+              <div className={s.boostArea}>
+                <BoostersSection item={item} />
+              </div>
+            )
           )}
         </div>
 
@@ -281,6 +314,17 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
           uid={pinNotePopover.uid}
           pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
           onSave={handlePinNoteSave}
+        />
+      )}
+      {ratePopover && (
+        <BoostImpactPopover
+          key={ratePopover.uid}
+          pos={{ top: ratePopover.top, left: ratePopover.left }}
+          objectives={item.objectives}
+          initialImpact={item.viewerImpact ?? (item.createdByUid === currentUser?.uid ? item.authorImpact : null)}
+          isSaving={isBoostCommitting}
+          onSave={handleBoostRateSave}
+          onCancel={handleBoostCancel}
         />
       )}
       {swapPickerState && (

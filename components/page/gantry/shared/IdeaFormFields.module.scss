@@ -41,3 +41,30 @@
     line-height: 24px;
   }
 }
+
+.impactBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.impactLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  span {
+    color: var(--foreground-danger-primary, #d92d20);
+  }
+}
+
+.impactError {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-danger-primary, #d92d20);
+}

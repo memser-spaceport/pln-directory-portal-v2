@@ -1,14 +1,22 @@
 'use client';
 
 import { clsx } from 'clsx';
+import { Controller, useFormContext } from 'react-hook-form';
 import { FormField } from '@/components/form/FormField';
 import { FormEditor } from '@/components/form/FormEditor/FormEditor';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect/FormMultiSelect';
-import { GANTRY_CREATE_STAGE_OPTIONS, GANTRY_ITEM_TYPE_OPTIONS, GANTRY_TAG_OPTIONS } from '@/services/gantry/constants';
-import type { GantryStage } from '@/services/gantry/types';
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
+import {
+  GANTRY_CREATE_STAGE_OPTIONS,
+  GANTRY_IMPACT_REASONING_MAX_LENGTH,
+  GANTRY_ITEM_TYPE_OPTIONS,
+  GANTRY_TAG_OPTIONS,
+} from '@/services/gantry/constants';
+import type { GantryImpactValue, GantryStage } from '@/services/gantry/types';
 import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
 import { GantryStageOptionLabel } from './GantryStageOptionLabel';
+import { ImpactControl } from './ImpactControl';
 import formStyles from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import s from './IdeaFormFields.module.scss';
 
@@ -18,6 +26,59 @@ function renderStageOption(stage: GantryStage) {
 
 interface Props {
   readonly canSetStageOnCreate?: boolean;
+  /** Renders the impact rating block (feature-flag gated by the caller). */
+  readonly showImpact?: boolean;
+  /** Renders the goal-link reasoning textarea (members and authors; curators assign objectives instead). */
+  readonly showReasoning?: boolean;
+  /** Marks the rating/reasoning as required (create) vs optional (edit-own of legacy items). */
+  readonly impactRequired?: boolean;
+  readonly requireReasoning?: boolean;
+}
+
+/** Rating + goal-link reasoning, slotted after Description (form-context driven). */
+function ImpactFormBlock({
+  showReasoning,
+  impactRequired,
+  requireReasoning,
+}: {
+  readonly showReasoning: boolean;
+  readonly impactRequired: boolean;
+  readonly requireReasoning: boolean;
+}) {
+  const { control } = useFormContext();
+  return (
+    <div className={s.impactBlock}>
+      <Controller
+        name="impact"
+        control={control}
+        render={({ field, fieldState }) => (
+          <div>
+            <span className={s.impactLabel}>
+              Impact on company goals {impactRequired && <span aria-hidden>*</span>}
+            </span>
+            <ImpactControl
+              value={(field.value as GantryImpactValue | null) ?? null}
+              onChange={field.onChange}
+              label="Impact on company goals"
+            />
+            {fieldState.error && <span className={s.impactError}>{fieldState.error.message}</span>}
+          </div>
+        )}
+      />
+      {showReasoning && (
+        <FormTextArea
+          name="impactReasoning"
+          label="How does this move company goals?"
+          isRequired={requireReasoning}
+          isOptional={!requireReasoning}
+          placeholder="Ex: unblocks onboarding for every new team; our top support theme this quarter…"
+          rows={2}
+          maxLength={GANTRY_IMPACT_REASONING_MAX_LENGTH}
+          showCharCount
+        />
+      )}
+    </div>
+  );
 }
 
 const IDEAS_EDITOR_TOOLBAR: (string | Record<string, unknown>)[][] = [
@@ -27,7 +88,13 @@ const IDEAS_EDITOR_TOOLBAR: (string | Record<string, unknown>)[][] = [
   ['link', 'image'],
 ];
 
-export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
+export function IdeaFormFields({
+  canSetStageOnCreate = false,
+  showImpact = false,
+  showReasoning = false,
+  impactRequired = true,
+  requireReasoning = false,
+}: Props) {
   return (
     <div className={formStyles.form}>
       <div className={clsx(s.titleField, !canSetStageOnCreate && s.titleFieldNeed)}>
@@ -73,6 +140,14 @@ export function IdeaFormFields({ canSetStageOnCreate = false }: Props) {
           showCharCount
         />
       </div>
+
+      {showImpact && (
+        <ImpactFormBlock
+          showReasoning={showReasoning}
+          impactRequired={impactRequired}
+          requireReasoning={requireReasoning}
+        />
+      )}
 
       <FormMultiSelect
         name="tags"

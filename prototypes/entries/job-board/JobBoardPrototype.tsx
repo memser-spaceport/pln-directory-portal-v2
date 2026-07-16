@@ -36,6 +36,7 @@ import contentCss from '@/app/jobs/(jobs-page)/@content/JobsContent.module.scss'
 import { MOCK_JOB_GROUPS } from './mocks';
 import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
+import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard } from './JobTeamGroupCard';
 import s from './JobBoardPrototype.module.scss';
 
@@ -118,6 +119,12 @@ export default function JobBoardPrototype() {
 
   const content = (
     <div className={contentCss.root}>
+      {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
+      <div className={contentCss.mobileHeader}>{titleBlock}</div>
+      <div className={contentCss.mobileFilters}>
+        <JobBoardMobileFilters />
+      </div>
+
       <div className={contentCss.toolbar}>
         <div className={contentCss.titleGroup}>{titleBlock}</div>
         <SortDropdown

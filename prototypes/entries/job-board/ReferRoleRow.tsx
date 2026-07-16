@@ -39,16 +39,20 @@ export function ReferRoleRow({ role, teamName }: ReferRoleRowProps) {
     : {};
 
   return (
-    <div className={rr.root}>
+    <div className={`${rr.root} ${s.row}`}>
       <div className={rr.body}>
-        <a className={`${rr.title} ${s.titleLink}`} {...linkProps}>
-          {roleTitle}
-        </a>
+        <div className={s.titleRow}>
+          <a className={`${rr.title} ${s.titleLink}`} {...linkProps}>
+            {roleTitle}
+          </a>
+          {/* Mobile-only: "New" aligned to the top-right, in line with the role name. */}
+          {showNew && <span className={`${rr.newBadge} ${s.newBadgeMobile}`}>● New</span>}
+        </div>
         {!isEmpty(metaParts) && <div className={rr.meta}>{metaParts.join(' · ')}</div>}
       </div>
 
-      <div className={rr.right}>
-        {showNew && <span className={rr.newBadge}>● New</span>}
+      <div className={`${rr.right} ${s.actions}`}>
+        {showNew && <span className={`${rr.newBadge} ${s.newBadgeDesktop}`}>● New</span>}
         {relative && (
           <span className={rr.relative}>
             <ClockIcon />
@@ -56,11 +60,13 @@ export function ReferRoleRow({ role, teamName }: ReferRoleRowProps) {
           </span>
         )}
 
-        <ReferMenu role={role} teamName={teamName} />
+        <div className={s.actionButtons}>
+          <ReferMenu role={role} teamName={teamName} />
 
-        <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
-          <ArrowIcon />
-        </a>
+          <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
+            <ArrowIcon />
+          </a>
+        </div>
       </div>
     </div>
   );

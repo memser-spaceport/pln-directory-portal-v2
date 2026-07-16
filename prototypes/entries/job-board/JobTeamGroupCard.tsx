@@ -9,8 +9,9 @@ import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
 import { TagsList } from '@/components/common/profile/TagsList';
 import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useGetFocusTags';
 
-// Reuse the production TeamGroupCard styling 1:1.
+// Reuse the production TeamGroupCard styling 1:1, with local mobile overrides.
 import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
+import js from './JobTeamGroupCard.module.scss';
 
 import { ReferRoleRow } from './ReferRoleRow';
 
@@ -36,13 +37,13 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
   const focusTags = useGetFocusTags(team);
 
   return (
-    <article className={s.card}>
+    <article className={`${s.card} ${js.card}`}>
       <header className={s.header}>
-        <div className={s.avatar}>
+        <div className={`${s.avatar} ${js.avatar}`}>
           {team.logoUrl ? (
             <Image src={team.logoUrl} alt={team.name} width={56} height={56} className={s.avatarImage} />
           ) : (
-            <span className={s.avatarInitials}>{teamInitials(team.name)}</span>
+            <span className={`${s.avatarInitials} ${js.avatarInitials}`}>{teamInitials(team.name)}</span>
           )}
         </div>
 

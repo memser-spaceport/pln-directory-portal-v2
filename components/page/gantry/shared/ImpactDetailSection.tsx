@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { clsx } from 'clsx';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import { useGantryPinUpdate } from '@/services/gantry/hooks/useGantryPinUpdate';
-import { GANTRY_IMPACT_LABELS, GANTRY_IMPACT_MAX } from '@/services/gantry/constants';
+import { GANTRY_IMPACT_LABELS, GANTRY_IMPACT_MAX, GANTRY_IMPACT_VALUES } from '@/services/gantry/constants';
 import { hasImpactData } from '@/services/gantry/impact';
 import type { GantryImpactValue, GantryItem, GantryPinner } from '@/services/gantry/types';
 import { avatarColor, initials } from './gantryAvatars';
 import { ImpactControl } from './ImpactControl';
 import s from './ImpactDetailSection.module.scss';
 
-const MAX_RATERS_VISIBLE = 10;
+/** Prototype shows 3 rows before "Show all N ratings & notes" (matches BoostersSection). */
+const MAX_RATERS_VISIBLE = 3;
 
 /** Radial score gauge — brand-colored arc (impact is priority, not quality; never red→green). */
 function ImpactRing({ value, size = 76 }: { readonly value: number; readonly size?: number }) {
@@ -55,39 +57,33 @@ function LockIcon() {
   );
 }
 
-function ImpactBadge({ impact }: { readonly impact: GantryImpactValue | null }) {
-  if (impact === null) return <span className={s.noRating}>No rating</span>;
-  return (
-    <span className={s.impactBadge}>
-      {impact} · {GANTRY_IMPACT_LABELS[impact]}
-    </span>
-  );
-}
-
 interface RaterRow {
   key: string;
   name: string;
   impact: GantryImpactValue | null;
   note: string | null;
   isAuthor: boolean;
+  isViewer: boolean;
 }
 
 interface Props {
   readonly item: GantryItem;
   readonly canCurate: boolean;
   readonly isAuthor: boolean;
+  /** Current member uid — the viewer's own row renders as "You", listed first (prototype). */
+  readonly viewerUid?: string;
   /** Frozen stages (IN_PROGRESS/SHIPPED/DECLINED): the aggregate is locked — no rating edits. */
   readonly frozen: boolean;
 }
 
 /**
- * The item drawer/page impact section: public aggregate (ring + count), the viewer's own
- * editable rating (any active booster — the curator-only rater list is hidden from members,
- * so this row is their affordance), the curator rater list (author + pins, legacy pins as
- * "No rating"), and the author's goal-link reasoning (curator + author, until objectives
- * are assigned).
+ * The item drawer/page impact section: public aggregate (ring + count + distribution line),
+ * the viewer's own editable rating (any active booster — the curator-only rater list is
+ * hidden from members, so this row is their affordance), the curator rater list ("You"
+ * first, name · rating-word inline, note below; legacy pins as "No rating"), and the
+ * author's goal-link reasoning (curator + author, until objectives are assigned).
  */
-export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props) {
+export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, frozen }: Props) {
   const analytics = useGantryAnalytics();
   const pinUpdate = useGantryPinUpdate();
   const [showAll, setShowAll] = useState(false);
@@ -103,6 +99,14 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
 
   if (!showAggregate && !canEditOwnRating && !showReasoning) return null;
 
+  const distribution = item.impactDistribution;
+  const distributionStats = distribution
+    ? [...GANTRY_IMPACT_VALUES]
+        .reverse()
+        .filter((value) => distribution[value] > 0)
+        .map((value) => `${distribution[value]} ${GANTRY_IMPACT_LABELS[value]}`)
+    : [];
+
   const raterRows: RaterRow[] = [
     ...(item.authorImpact !== null
       ? [
@@ -112,13 +116,21 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
             impact: item.authorImpact,
             note: null,
             isAuthor: true,
+            isViewer: !!viewerUid && item.createdByUid === viewerUid,
           },
         ]
       : []),
     ...pins
       .filter((p) => p.releasedAt === null)
-      .map((p) => ({ key: p.uid, name: p.member.name, impact: p.impact, note: p.note, isAuthor: false })),
-  ];
+      .map((p) => ({
+        key: p.uid,
+        name: p.member.name,
+        impact: p.impact,
+        note: p.note,
+        isAuthor: false,
+        isViewer: !!viewerUid && p.member.uid === viewerUid,
+      })),
+  ].sort((a, b) => Number(b.isViewer) - Number(a.isViewer)); // "You" first, rest keeps API order
   const visibleRaters = showAll ? raterRows : raterRows.slice(0, MAX_RATERS_VISIBLE);
 
   const handleOwnRatingChange = (next: GantryImpactValue) => {
@@ -137,6 +149,7 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
             <span className={s.aggregateCount}>
               {item.impactCount} rating{item.impactCount === 1 ? '' : 's'}
             </span>
+            {distributionStats.length > 0 && <span className={s.aggregateStats}>{distributionStats.join(' · ')}</span>}
           </div>
         </div>
       )}
@@ -173,29 +186,40 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, frozen }: Props
         <div className={s.raters}>
           <div className={s.ratersHeader}>
             <LockIcon />
-            <span>{raterRows.length} RATED · TEAM-ONLY</span>
+            <span>
+              {item.impactCount} IMPACT RATING{item.impactCount === 1 ? '' : 'S'} · TEAM-ONLY
+            </span>
           </div>
           {visibleRaters.map((rater) => {
             const c = avatarColor(rater.name);
             return (
               <div key={rater.key} className={s.raterRow}>
                 <span className={s.raterAvatar} style={{ background: c.bg, color: c.text }}>
-                  {initials(rater.name)}
+                  {initials(rater.isViewer ? 'You' : rater.name)}
                 </span>
                 <div className={s.raterInfo}>
                   <span className={s.raterName}>
-                    {rater.name}
+                    {rater.isViewer ? 'You' : rater.name}
                     {rater.isAuthor && <span className={s.authorTag}>Author</span>}
+                    <span className={s.raterRating}>
+                      {' '}
+                      · {rater.impact !== null ? GANTRY_IMPACT_LABELS[rater.impact] : 'No rating'}
+                    </span>
                   </span>
-                  {rater.note && <span className={s.raterNote}>{rater.note}</span>}
+                  {/* Author's "why" lives in the reasoning block, not a pin note — no note line for that row. */}
+                  {!rater.isAuthor &&
+                    (rater.note ? (
+                      <span className={s.raterNote}>{rater.note}</span>
+                    ) : (
+                      <span className={clsx(s.raterNote, s.raterNoNote)}>No note</span>
+                    ))}
                 </div>
-                <ImpactBadge impact={rater.impact} />
               </div>
             );
           })}
           {raterRows.length > MAX_RATERS_VISIBLE && (
             <button type="button" className={s.showAll} onClick={() => setShowAll((v) => !v)}>
-              {showAll ? 'Show less' : `Show all ${raterRows.length} raters`}
+              {showAll ? 'Show less' : `Show all ${item.impactCount} ratings & notes`}
             </button>
           )}
         </div>

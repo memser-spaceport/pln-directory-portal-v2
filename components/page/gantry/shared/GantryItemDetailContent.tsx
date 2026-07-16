@@ -224,6 +224,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
                 item={item}
                 canCurate={access.canCurate}
                 isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
+                viewerUid={currentUser?.uid}
                 frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
               />
               {/* Unrated legacy items keep the notes list for curators until ratings exist. */}

@@ -38,6 +38,14 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+// The rating distribution as one dim line, matching the prototype's aggregate card.
+.aggregateStats {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 /* --- Ring gauge --- */
 
 .ring {
@@ -174,8 +182,15 @@
   gap: 6px;
   font-size: 13px;
   line-height: 18px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// "· Critical" — the rating word rides inline after the name, dim (prototype layout).
+.raterRating {
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
 }
 
 .authorTag {
@@ -194,23 +209,9 @@
   overflow-wrap: break-word;
 }
 
-.impactBadge {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-brand-primary, #1b4dff);
-  white-space: nowrap;
-}
-
-.noRating {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 500;
+.raterNoNote {
+  font-style: italic;
   color: var(--foreground-neutral-tertiary, #8897ae);
-  white-space: nowrap;
 }
 
 .showAll {

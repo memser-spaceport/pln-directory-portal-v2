@@ -77,13 +77,24 @@ describe('ImpactDetailSection (drawer/page)', () => {
     expect(screen.getByText('Ada Author')).toBeInTheDocument();
     expect(screen.getByText('Author')).toBeInTheDocument();
     expect(screen.getByText('Bea Booster')).toBeInTheDocument();
-    expect(screen.getByText('5 · Critical')).toBeInTheDocument();
-    expect(screen.getByText('No rating')).toBeInTheDocument(); // legacy pin
+    expect(screen.getByText('· Critical')).toBeInTheDocument(); // rating word inline after the name (prototype)
+    expect(screen.getByText('· No rating')).toBeInTheDocument(); // legacy pin
+    expect(screen.getByText('No note')).toBeInTheDocument(); // legacy pin without a note
     expect(screen.getByText('why now')).toBeInTheDocument();
+    expect(screen.getByText(/5 IMPACT RATINGS · TEAM-ONLY/)).toBeInTheDocument();
+    expect(screen.getByText('2 Critical · 2 High · 1 Significant')).toBeInTheDocument(); // aggregate distribution line
 
     rerender(<ImpactDetailSection item={item()} canCurate={false} isAuthor={false} frozen={false} />);
     expect(screen.queryByText('Bea Booster')).not.toBeInTheDocument();
     expect(screen.getByText('4.2')).toBeInTheDocument(); // aggregate stays public
+  });
+
+  it('renders the viewer\'s own row as "You", listed first', () => {
+    render(<ImpactDetailSection item={item()} canCurate isAuthor={false} viewerUid="m-Bea Booster" frozen={false} />);
+    const rows = screen.getAllByText(/^(You|Ada Author|Cal Legacy)$/);
+    expect(screen.getByText('You')).toBeInTheDocument();
+    expect(screen.queryByText('Bea Booster')).not.toBeInTheDocument();
+    expect(rows[0]).toHaveTextContent('You');
   });
 
   it('shows the editable own-rating row only to an active booster, read-only when frozen', () => {

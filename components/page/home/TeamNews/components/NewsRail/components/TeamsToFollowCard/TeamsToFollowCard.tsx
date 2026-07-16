@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ISuggestedTeam } from '@/types/team-news.types';
 import { getTeamLogoFallback } from '../../../../utils/getTeamLogoFallback';
 

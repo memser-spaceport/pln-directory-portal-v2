@@ -6,7 +6,7 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';

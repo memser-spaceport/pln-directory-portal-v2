@@ -9,49 +9,40 @@ const baseValues = {
   objectives: [],
 };
 
+const optionalCtx = { impactRequired: false, reasoningRequired: false };
+
 const validate = (
   values: Record<string, unknown>,
   context: { impactRequired: boolean; reasoningRequired: boolean },
 ): Promise<unknown> => submitIdeaSchema.validate(values, { context, abortEarly: false });
 
-describe('submitIdeaSchema — impact validation via resolver context', () => {
-  const memberCtx = { impactRequired: true, reasoningRequired: true };
-  const curatorCtx = { impactRequired: true, reasoningRequired: false };
-  const flagOffCtx = { impactRequired: false, reasoningRequired: false };
-
-  it('member: rejects without a rating and without reasoning', async () => {
-    await expect(validate({ ...baseValues, impact: null, impactReasoning: '' }, memberCtx)).rejects.toMatchObject({
-      errors: expect.arrayContaining(['Rate the impact on company goals', 'Explain how this moves company goals']),
-    });
+describe('submitIdeaSchema — impact optional on create', () => {
+  it('passes without a rating and without reasoning', async () => {
+    await expect(validate({ ...baseValues, impact: null, impactReasoning: '' }, optionalCtx)).resolves.toBeTruthy();
   });
 
-  it('member: whitespace-only reasoning does not pass', async () => {
-    await expect(validate({ ...baseValues, impact: 4, impactReasoning: '   ' }, memberCtx)).rejects.toMatchObject({
-      errors: ['Explain how this moves company goals'],
-    });
+  it('passes with rating only (reasoning skipped)', async () => {
+    await expect(validate({ ...baseValues, impact: 4, impactReasoning: '' }, optionalCtx)).resolves.toBeTruthy();
   });
 
-  it('member: rating + reasoning passes', async () => {
+  it('passes with rating + reasoning', async () => {
     await expect(
-      validate({ ...baseValues, impact: 4, impactReasoning: 'Unblocks onboarding for every new team' }, memberCtx),
+      validate({ ...baseValues, impact: 4, impactReasoning: 'Unblocks onboarding for every new team' }, optionalCtx),
     ).resolves.toBeTruthy();
   });
 
-  it('curator: rating required, reasoning optional', async () => {
-    await expect(validate({ ...baseValues, impact: null, impactReasoning: '' }, curatorCtx)).rejects.toMatchObject({
-      errors: ['Rate the impact on company goals'],
-    });
-    await expect(validate({ ...baseValues, impact: 3, impactReasoning: '' }, curatorCtx)).resolves.toBeTruthy();
-  });
-
-  it('flag off: neither field is required — legacy create unchanged', async () => {
-    await expect(validate({ ...baseValues, impact: null, impactReasoning: '' }, flagOffCtx)).resolves.toBeTruthy();
-  });
-
-  it('reasoning respects the plain-text max length', async () => {
+  it('reasoning respects the plain-text max length when provided', async () => {
     await expect(
-      validate({ ...baseValues, impact: 4, impactReasoning: 'x'.repeat(1001) }, memberCtx),
+      validate({ ...baseValues, impact: 4, impactReasoning: 'x'.repeat(1001) }, optionalCtx),
     ).rejects.toMatchObject({ errors: ['Max 1000 characters'] });
+  });
+
+  it('still enforces required when context asks for it (schema hooks)', async () => {
+    await expect(
+      validate({ ...baseValues, impact: null, impactReasoning: '' }, { impactRequired: true, reasoningRequired: true }),
+    ).rejects.toMatchObject({
+      errors: expect.arrayContaining(['Rate the impact on company goals', 'Explain how this moves company goals']),
+    });
   });
 });
 

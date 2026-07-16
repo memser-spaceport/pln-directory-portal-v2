@@ -38,7 +38,8 @@ type BoostFlowState =
       uid: string;
       pos: Pos;
       swapPos: Pos;
-      impact?: GantryImpactValue;
+      /** Undefined = rating step not completed yet; null = user skipped rating. */
+      impact?: GantryImpactValue | null;
       note?: string;
       objectiveImpacts?: GantryObjectiveImpacts;
     };
@@ -99,19 +100,27 @@ export function useRoadmapPinActions(
 
   const commitBoost = async (
     uid: string,
-    rating: { impact?: GantryImpactValue; note?: string; objectiveImpacts?: GantryObjectiveImpacts },
+    rating: { impact?: GantryImpactValue | null; note?: string; objectiveImpacts?: GantryObjectiveImpacts },
     swapItemUid?: string,
   ) => {
+    const { impact, note, objectiveImpacts } = rating;
     try {
-      await pin.mutateAsync({ uid, nextIsPinned: true, ...rating, swapItemUid });
+      await pin.mutateAsync({
+        uid,
+        nextIsPinned: true,
+        ...(impact != null ? { impact } : {}),
+        note,
+        objectiveImpacts,
+        swapItemUid,
+      });
       setBoostFlow(null);
-      analytics.onItemBoosted(uid, rating.impact);
+      analytics.onItemBoosted(uid, impact ?? undefined);
       flyPin(null, pinStatusRef.current);
       return true;
     } catch (err) {
       if (err instanceof PinBalanceExhaustedError) {
         // Budget gone under us (another tab/device) — carry the entered rating into the swap retry.
-        setBoostFlow((prev) => (prev ? { ...prev, step: 'swap', ...rating } : prev));
+        setBoostFlow((prev) => (prev ? { ...prev, step: 'swap', impact, note, objectiveImpacts } : prev));
       } else {
         setBoostFlow(null);
       }
@@ -209,8 +218,15 @@ export function useRoadmapPinActions(
     }
     setBoostFlow(null);
     try {
-      await pin.mutateAsync({ uid, nextIsPinned: true, impact, note, objectiveImpacts, swapItemUid });
-      analytics.onItemBoosted(uid, impact);
+      await pin.mutateAsync({
+        uid,
+        nextIsPinned: true,
+        ...(impact != null ? { impact } : {}),
+        note,
+        objectiveImpacts,
+        swapItemUid,
+      });
+      analytics.onItemBoosted(uid, impact ?? undefined);
     } catch {
       // Swap failed — rollback applied in onError
     }

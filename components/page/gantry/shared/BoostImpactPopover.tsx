@@ -15,7 +15,7 @@ import s from './BoostImpactPopover.module.scss';
 const MAX_NOTE = 500;
 
 export interface BoostImpactRating {
-  impact: GantryImpactValue;
+  impact: GantryImpactValue | null;
   note: string;
   /** Per-objective breakdown — populated only when GANTRY_IMPACT_PER_OBJECTIVE_ENABLED. */
   objectiveImpacts?: GantryObjectiveImpacts;
@@ -29,7 +29,7 @@ interface Props {
   readonly initialImpact?: GantryImpactValue | null;
   /** Single-flight: while the pin mutation is committing, Save is disabled and dismissal is a no-op. */
   readonly isSaving?: boolean;
-  /** Boosting IS rating — the boost commits only here, with a rating picked. */
+  /** Boost commits here; impact rating is optional. */
   readonly onSave: (rating: BoostImpactRating) => void;
   /** Dismissing without saving cancels the boost entirely (nothing was committed). */
   readonly onCancel: () => void;
@@ -56,9 +56,8 @@ export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, o
     setTop(Math.max(12, Math.min(pos.top, maxTop)));
   }, [pos.top, impact, isNarrow]);
 
-  const canSave = impact !== null && !isSaving;
+  const canSave = !isSaving;
   const save = () =>
-    impact !== null &&
     !isSaving &&
     onSave({
       impact,
@@ -135,7 +134,7 @@ export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, o
             Cancel
           </Button>
           <Button className={s.actionBtn} onClick={save} disabled={!canSave}>
-            {isSaving ? 'Boosting…' : impact !== null ? 'Boost' : 'Pick a rating above'}
+            {isSaving ? 'Boosting…' : 'Boost'}
           </Button>
         </div>
 

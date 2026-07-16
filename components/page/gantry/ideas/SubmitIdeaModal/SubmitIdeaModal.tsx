@@ -71,8 +71,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     resolver: yupResolver(submitIdeaSchema) as any,
     defaultValues: getSubmitIdeaFormDefaults(variant),
     mode: 'onChange',
-    // Read by the schema's $impactRequired / $reasoningRequired conditions at validation time.
-    context: { impactRequired: GANTRY_IMPACT_UI_ENABLED, reasoningRequired: GANTRY_IMPACT_UI_ENABLED && !canCurate },
+    // Impact / reasoning are optional on create; context keeps the yup `.when` hooks inert.
+    context: { impactRequired: false, reasoningRequired: false },
   });
 
   const {
@@ -169,7 +169,6 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
         tags,
         ...(itemType ? { type: itemType } : {}),
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
-        // Explicit null-check narrows impact to GantryImpactValue; yup guarantees presence when the flag is on.
         ...(GANTRY_IMPACT_UI_ENABLED && data.impact != null ? { authorImpact: data.impact } : {}),
         ...(GANTRY_IMPACT_UI_ENABLED && reasoning ? { authorImpactReasoning: reasoning } : {}),
       },
@@ -222,7 +221,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
                 canSetStageOnCreate={canSetStageOnCreate}
                 showImpact={GANTRY_IMPACT_UI_ENABLED}
                 showReasoning={!canCurate}
-                requireReasoning={!canCurate}
+                impactRequired={false}
+                requireReasoning={false}
               />
               {canCurate && (
                 <div className={s.objectiveField}>

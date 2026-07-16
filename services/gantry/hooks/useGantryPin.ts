@@ -14,9 +14,8 @@ import type {
 } from '../types';
 
 /**
- * Unpin never carries a rating. The pinned arm's `impact` is optional only because the
- * flag-off legacy flow shares it — useRoadmapPinActions enforces presence when the impact
- * UI is enabled ("boosting IS rating").
+ * Unpin never carries a rating. Pin `impact` is optional — users may skip rating on boost
+ * (and the flag-off legacy flow omits it entirely).
  */
 type PinPayload =
   | { uid: string; nextIsPinned: false }

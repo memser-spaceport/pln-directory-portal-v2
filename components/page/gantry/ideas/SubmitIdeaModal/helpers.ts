@@ -26,9 +26,8 @@ const objectivesSchema = yup
   .optional();
 
 /**
- * Impact fields are validated via resolver context (`useForm({ context })`), not build-time
- * flags: `$impactRequired` is the feature flag, `$reasoningRequired` additionally excludes
- * curators (they assign objectives instead of writing a goal-link reasoning).
+ * Impact fields are validated via resolver context (`useForm({ context })`).
+ * Create and edit both pass `impactRequired` / `reasoningRequired` as false (optional).
  */
 const impactSchema = yup
   .number()

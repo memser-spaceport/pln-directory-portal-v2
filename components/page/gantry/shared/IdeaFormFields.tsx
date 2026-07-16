@@ -30,7 +30,7 @@ interface Props {
   readonly showImpact?: boolean;
   /** Renders the goal-link reasoning textarea (members and authors; curators assign objectives instead). */
   readonly showReasoning?: boolean;
-  /** Marks the rating/reasoning as required (create) vs optional (edit-own of legacy items). */
+  /** When true, shows required markers / yup required context. Create and edit default to optional. */
   readonly impactRequired?: boolean;
   readonly requireReasoning?: boolean;
 }
@@ -92,7 +92,7 @@ export function IdeaFormFields({
   canSetStageOnCreate = false,
   showImpact = false,
   showReasoning = false,
-  impactRequired = true,
+  impactRequired = false,
   requireReasoning = false,
 }: Props) {
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -32,24 +32,17 @@ interface Props {
 export function AppActionsMenu({ app, onEdit, onDeployment, onDelete }: Props) {
   const analytics = useAiAppsAnalytics();
   const [isOpen, setIsOpen] = useState(false);
-  const [revoked, setRevoked] = useState(false);
 
-  const { app: detail, errorKind } = useAiApp(app.uid, { enabled: isOpen && !revoked });
+  const { app: detail, errorKind } = useAiApp(app.uid, { enabled: isOpen });
 
   // Older API versions omit `canManage` on the detail record; the heuristic
   // that rendered this trigger is then the best signal we have, so default on.
   const confirmedCanManage = detail ? detail.canManage ?? true : null;
-  // 403/404 are authoritative "you can't manage this" answers too.
+  // 403/404 are authoritative "you can't manage this" answers too. Derived,
+  // not stored: rendering null unmounts the trigger AND the open popup.
   const accessDenied = confirmedCanManage === false || errorKind === 'forbidden' || errorKind === 'not-found';
 
-  useEffect(() => {
-    if (accessDenied) {
-      setRevoked(true);
-      setIsOpen(false);
-    }
-  }, [accessDenied]);
-
-  if (revoked) return null;
+  if (accessDenied) return null;
 
   const verifying = confirmedCanManage !== true;
   const verifyFailed = errorKind === 'network';

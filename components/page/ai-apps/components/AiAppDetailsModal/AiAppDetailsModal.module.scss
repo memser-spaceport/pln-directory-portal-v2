@@ -58,6 +58,12 @@
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
+.errorText {
+  margin: auto;
+  font-size: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 // The rendered one-pager sits on a white "document page", echoing the
 // prototype's PDF viewer.
 .page {

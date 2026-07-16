@@ -100,7 +100,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
         <AiAppDetailsModal
           isOpen
           appName={viewerApp.name}
-          prd={viewerApp.prd as string}
+          prdUrl={viewerApp.prd as string}
           onClose={() => setViewerUid(null)}
         />
       )}

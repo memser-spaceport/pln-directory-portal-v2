@@ -7,21 +7,21 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { FileUploader } from '@/components/ui/FileUploader/FileUploader';
-import { isHtmlDocument } from '@/components/page/ai-apps/components/PrdContent';
 import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
 import { useUpdateAiApp } from '@/services/ai-apps/hooks/useUpdateAiApp';
 import { useUpdateAiAppFile } from '@/services/ai-apps/hooks/useUpdateAiAppFile';
+import { useAiAppPrdSize } from '@/services/ai-apps/hooks/useAiAppPrdSize';
 import { formatFileSize } from '@/utils/file.utils';
 
 import s from './EditAiAppModal.module.scss';
 
 /**
- * `existing` mirrors the currently stored one-pager (read-only text, for the
- * format/size preview — never re-sent to the backend). `file` is a freshly
+ * `existing` mirrors the currently stored one-pager: just its S3 URL, for the
+ * format/size preview — never re-sent to the backend. `file` is a freshly
  * chosen upload that will PATCH as multipart on save; its content is never
  * read client-side, only its name/size for the preview card.
  */
-type PrdState = { kind: 'existing'; text: string } | { kind: 'file'; file: File };
+type PrdState = { kind: 'existing'; url: string } | { kind: 'file'; file: File };
 
 interface Props {
   app: AiApp;
@@ -30,16 +30,14 @@ interface Props {
 
 const PRD_MAX_MB = 1;
 
-function prdFormatBadge(state: PrdState): string {
-  if (state.kind === 'existing') {
-    return isHtmlDocument(state.text) ? 'HTML' : 'MD';
-  }
-  const ext = state.file.name.split('.').pop()?.toLowerCase();
-  return ext === 'html' || ext === 'htm' ? 'HTML' : 'MD';
+function isHtmlExtension(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return ext === 'html' || ext === 'htm';
 }
 
-function prdByteSize(state: PrdState): number {
-  return state.kind === 'existing' ? new TextEncoder().encode(state.text).length : state.file.size;
+function prdFormatBadge(state: PrdState): string {
+  const name = state.kind === 'existing' ? state.url.split('?')[0] : state.file.name;
+  return isHtmlExtension(name) ? 'HTML' : 'MD';
 }
 
 /**
@@ -61,12 +59,13 @@ export function EditAiAppModal({ app, onClose }: Props) {
 
   const [name, setName] = useState(app.name);
   const [description, setDescription] = useState(app.description);
-  const [prd, setPrd] = useState<PrdState | null>(() => (hasPrd(app) ? { kind: 'existing', text: app.prd as string } : null));
+  const [prd, setPrd] = useState<PrdState | null>(() => (hasPrd(app) ? { kind: 'existing', url: app.prd as string } : null));
   // Bumped on Remove so the FileUploader remounts with fresh internal state.
   const [uploaderKey, setUploaderKey] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const hadInitialPrd = hasPrd(app);
+  const { size: existingPrdSize, isLoading: isLoadingPrdSize } = useAiAppPrdSize(prd?.kind === 'existing' ? prd.url : null);
 
   const handleUpload = (files: File[]) => {
     const file = files[0];
@@ -164,7 +163,14 @@ export function EditAiAppModal({ app, onClose }: Props) {
                 <div className={s.fileMeta}>
                   <p className={s.fileName}>{prd.kind === 'file' ? prd.file.name : 'One-pager'}</p>
                   <p className={s.fileSize}>
-                    {prdFormatBadge(prd) === 'HTML' ? 'HTML' : 'Markdown'} - {formatFileSize(prdByteSize(prd))}
+                    {prdFormatBadge(prd) === 'HTML' ? 'HTML' : 'Markdown'} -{' '}
+                    {prd.kind === 'file'
+                      ? formatFileSize(prd.file.size)
+                      : isLoadingPrdSize
+                        ? 'Loading size…'
+                        : existingPrdSize !== null
+                          ? formatFileSize(existingPrdSize)
+                          : 'Size unavailable'}
                   </p>
                 </div>
                 <button type="button" className={s.removeBtn} onClick={handleRemove} disabled={isSaving}>

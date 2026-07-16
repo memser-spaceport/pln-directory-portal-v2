@@ -24,7 +24,7 @@ export interface AiApp {
   providedEnvVars: string[];
   /** Server-computed on the detail endpoint: requester is the creator or a directory admin. */
   canManage?: boolean;
-  /** One-pager document as Markdown or HTML text (LAB-2101). Null/absent = no one-pager. */
+  /** URL to the stored one-pager file (Markdown or HTML) in S3 (LAB-2101). Null/absent = no one-pager. */
   prd?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -238,6 +238,52 @@ export async function deleteAiApp(uid: string): Promise<DeleteAiAppResult> {
 /** Single source of truth for "this app has a one-pager" — gates the badge, the viewer, and edit seeding. */
 export function hasPrd(app: Pick<AiApp, 'prd'>): boolean {
   return typeof app.prd === 'string' && app.prd.trim().length > 0;
+}
+
+export interface FetchPrdContentResult {
+  content: string | null;
+  error: string | null;
+}
+
+/**
+ * The `prd` field is a direct S3 URL; the bucket has no CORS policy, so it
+ * can't be fetched from the browser. Routed through our own API so the fetch
+ * happens server-side, with the URL validated there against the expected S3
+ * host/prefix.
+ */
+export async function fetchAiAppPrdContent(prdUrl: string): Promise<FetchPrdContentResult> {
+  try {
+    const response = await fetch(`/api/ai-apps/prd?url=${encodeURIComponent(prdUrl)}`);
+    const body = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return { content: null, error: body?.error ?? 'One-pager could not be loaded' };
+    }
+
+    return { content: body?.content ?? '', error: null };
+  } catch {
+    return { content: null, error: 'One-pager could not be loaded' };
+  }
+}
+
+export interface FetchPrdSizeResult {
+  size: number | null;
+  error: string | null;
+}
+
+/** HEAD-only variant of fetchAiAppPrdContent — used by the edit modal's existing-file preview card. */
+export async function fetchAiAppPrdSize(prdUrl: string): Promise<FetchPrdSizeResult> {
+  try {
+    const response = await fetch(`/api/ai-apps/prd?url=${encodeURIComponent(prdUrl)}`, { method: 'HEAD' });
+    if (!response.ok) {
+      return { size: null, error: 'Could not determine file size' };
+    }
+
+    const contentLength = response.headers.get('content-length');
+    return { size: contentLength ? Number(contentLength) : null, error: null };
+  } catch {
+    return { size: null, error: 'Could not determine file size' };
+  }
 }
 
 export type ConnectStatus = 'pending' | 'approved' | 'denied' | 'expired';

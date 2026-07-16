@@ -35,7 +35,7 @@ const app = (partial: Partial<AiApp> & Pick<AiApp, 'uid'>): AiApp => ({
   appId: 'app-id',
   name: 'App',
   description: 'Description',
-  status: 'DEPLOYED',
+  status: 'READY',
   notes: null,
   url: null,
   httpUrl: null,

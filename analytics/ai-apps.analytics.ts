@@ -61,5 +61,16 @@ export function useAiAppsAnalytics() {
       capture(AI_APPS_ANALYTICS.SECRETS_DEPLOY_SUCCEEDED, params),
     onDraftSetupViewed: (params: { appUid: string; appName: string }) =>
       capture(AI_APPS_ANALYTICS.DRAFT_SETUP_VIEWED, params),
+    onManageMenuOpened: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.MANAGE_MENU_OPENED, { appUid, appName }),
+    onEditDetailsSaved: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_SAVED, { appUid }),
+    onEditDetailsFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_FAILED, { appUid }),
+    onDeploymentSettingsOpened: (params: { appUid: string; isDraft: boolean }) =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_SETTINGS_OPENED, params),
+    onDeleteAppConfirmed: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.DELETE_APP_CONFIRMED, { appUid, appName }),
+    onDeleteAppFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.DELETE_APP_FAILED, { appUid }),
+    onAppDetailsOpened: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.APP_DETAILS_OPENED, { appUid, appName }),
   };
 }

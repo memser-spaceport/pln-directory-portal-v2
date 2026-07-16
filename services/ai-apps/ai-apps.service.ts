@@ -2,13 +2,16 @@ import { customFetch } from '@/utils/fetch-wrapper';
 
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
+/** Keep in sync with the status set the web-api emits (LAB-2101). */
+export type AiAppStatus = 'DRAFT' | 'DEPLOYING' | 'READY' | 'ERROR';
+
 export interface AiApp {
   uid: string;
   memberUid: string;
   appId: string;
   name: string;
   description: string;
-  status: string;
+  status: AiAppStatus;
   notes: string | null;
   url: string | null;
   httpUrl: string | null;
@@ -21,6 +24,8 @@ export interface AiApp {
   providedEnvVars: string[];
   /** Server-computed on the detail endpoint: requester is the creator or a directory admin. */
   canManage?: boolean;
+  /** URL to the stored one-pager file (Markdown or HTML) in S3 (LAB-2101). Null/absent = no one-pager. */
+  prd?: string | null;
   createdAt: string;
   updatedAt: string;
   member: {
@@ -102,14 +107,185 @@ export async function fetchAiApps(): Promise<AiApp[]> {
   return response.json();
 }
 
-export async function fetchAiApp(uid: string): Promise<AiApp | null> {
-  const response = await customFetch(`${AI_APPS_API_URL}/${uid}`, { method: 'GET' }, true);
+/**
+ * Why discriminate: the manage menu must treat "you have no access" (fresh,
+ * authoritative — hide the menu) differently from "the check didn't go through"
+ * (transient — keep the menu, just disabled). A bare null can't express that.
+ */
+export type AiAppFetchErrorKind = 'forbidden' | 'not-found' | 'network';
 
-  if (!response || !response.ok) {
-    return null;
+export interface FetchAiAppResult {
+  app: AiApp | null;
+  errorKind: AiAppFetchErrorKind | null;
+}
+
+export async function fetchAiApp(uid: string): Promise<FetchAiAppResult> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'GET' }, true);
+
+  if (!response) {
+    return { app: null, errorKind: 'network' };
+  }
+  if (!response.ok) {
+    const errorKind: AiAppFetchErrorKind =
+      response.status === 403 ? 'forbidden' : response.status === 404 ? 'not-found' : 'network';
+    return { app: null, errorKind };
   }
 
-  return response.json();
+  return { app: await response.json(), errorKind: null };
+}
+
+export interface UpdateAiAppPatch {
+  name?: string;
+  description?: string;
+  /** MD/HTML text; explicit null clears the stored one-pager. */
+  prd?: string | null;
+}
+
+export interface UpdateAiAppResult {
+  app: AiApp | null;
+  error: string | null;
+}
+
+async function parseUpdateResponse(response: Response | undefined): Promise<UpdateAiAppResult> {
+  if (!response) {
+    return { app: null, error: 'Saving failed. Please try again.' };
+  }
+  if (!response.ok) {
+    let message = 'Saving failed. Please try again.';
+    if (response.status === 404) {
+      message = 'This app no longer exists.';
+    } else {
+      try {
+        const body = await response.json();
+        if (typeof body?.message === 'string' && body.message) {
+          message = body.message;
+        }
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+    }
+    return { app: null, error: message };
+  }
+
+  return { app: await response.json(), error: null };
+}
+
+/** Metadata-only edit (including clearing the one-pager with `prd: null`) — never triggers a redeploy. */
+export async function updateAiApp(uid: string, patch: UpdateAiAppPatch): Promise<UpdateAiAppResult> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    },
+    true,
+  );
+
+  return parseUpdateResponse(response);
+}
+
+export interface UpdateAiAppFileInput {
+  name?: string;
+  description?: string;
+  /** The one-pager file itself — the backend derives `prd` from its contents. */
+  file: File;
+}
+
+/**
+ * Setting or replacing the one-pager goes through multipart, not JSON: the
+ * backend wants the file itself (`-F file=@one-pager.md`), not its text
+ * inlined as `prd`. Never set a Content-Type header here — the browser must
+ * generate the multipart boundary itself (customFetch only adds Authorization).
+ */
+export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput): Promise<UpdateAiAppResult> {
+  const formData = new FormData();
+  if (input.name !== undefined) formData.append('name', input.name);
+  if (input.description !== undefined) formData.append('description', input.description);
+  formData.append('file', input.file);
+
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'PATCH', body: formData }, true);
+
+  return parseUpdateResponse(response);
+}
+
+export interface DeleteAiAppResult {
+  ok: boolean;
+  error: string | null;
+}
+
+/** Removes the app for everyone, including its one-pager and stored secrets. 404 counts as success (already gone). */
+export async function deleteAiApp(uid: string): Promise<DeleteAiAppResult> {
+  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'DELETE' }, true);
+
+  if (!response) {
+    return { ok: false, error: 'Deleting failed. Please try again.' };
+  }
+  if (!response.ok && response.status !== 404) {
+    let message = 'Deleting failed. Please try again.';
+    try {
+      const body = await response.json();
+      if (typeof body?.message === 'string' && body.message) {
+        message = body.message;
+      }
+    } catch {
+      // Non-JSON error body — keep the generic message.
+    }
+    return { ok: false, error: message };
+  }
+
+  return { ok: true, error: null };
+}
+
+/** Single source of truth for "this app has a one-pager" — gates the badge, the viewer, and edit seeding. */
+export function hasPrd(app: Pick<AiApp, 'prd'>): boolean {
+  return typeof app.prd === 'string' && app.prd.trim().length > 0;
+}
+
+export interface FetchPrdContentResult {
+  content: string | null;
+  error: string | null;
+}
+
+/**
+ * The `prd` field is a direct S3 URL; the bucket has no CORS policy, so it
+ * can't be fetched from the browser. Routed through our own API so the fetch
+ * happens server-side, with the URL validated there against the expected S3
+ * host/prefix.
+ */
+export async function fetchAiAppPrdContent(prdUrl: string): Promise<FetchPrdContentResult> {
+  try {
+    const response = await fetch(`/api/ai-apps/prd?url=${encodeURIComponent(prdUrl)}`);
+    const body = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return { content: null, error: body?.error ?? 'One-pager could not be loaded' };
+    }
+
+    return { content: body?.content ?? '', error: null };
+  } catch {
+    return { content: null, error: 'One-pager could not be loaded' };
+  }
+}
+
+export interface FetchPrdSizeResult {
+  size: number | null;
+  error: string | null;
+}
+
+/** HEAD-only variant of fetchAiAppPrdContent — used by the edit modal's existing-file preview card. */
+export async function fetchAiAppPrdSize(prdUrl: string): Promise<FetchPrdSizeResult> {
+  try {
+    const response = await fetch(`/api/ai-apps/prd?url=${encodeURIComponent(prdUrl)}`, { method: 'HEAD' });
+    if (!response.ok) {
+      return { size: null, error: 'Could not determine file size' };
+    }
+
+    const contentLength = response.headers.get('content-length');
+    return { size: contentLength ? Number(contentLength) : null, error: null };
+  } catch {
+    return { size: null, error: 'Could not determine file size' };
+  }
 }
 
 export type ConnectStatus = 'pending' | 'approved' | 'denied' | 'expired';

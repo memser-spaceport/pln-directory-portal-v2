@@ -195,21 +195,12 @@ export interface UpdateAiAppFileInput {
  * backend wants the file itself (`-F file=@one-pager.md`), not its text
  * inlined as `prd`. Never set a Content-Type header here — the browser must
  * generate the multipart boundary itself (customFetch only adds Authorization).
- *
- * The file's own part is forced to `application/octet-stream` regardless of
- * extension: the backend 415s on a browser-recognized `text/html`, but an
- * unrecognized extension like `.md` (browser reports an empty File.type,
- * which the multipart body then serializes as `application/octet-stream`
- * per the Fetch spec) goes through fine. Forcing every upload onto the
- * value that's already proven to work sidesteps that mismatch; the
- * filename (and its extension) still rides along for the backend to use.
  */
 export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput): Promise<UpdateAiAppResult> {
   const formData = new FormData();
   if (input.name !== undefined) formData.append('name', input.name);
   if (input.description !== undefined) formData.append('description', input.description);
-  const uploadFile = new File([input.file], input.file.name, { type: 'application/octet-stream' });
-  formData.append('file', uploadFile);
+  formData.append('file', input.file);
 
   const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'PATCH', body: formData }, true);
 

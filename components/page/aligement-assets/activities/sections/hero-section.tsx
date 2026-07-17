@@ -37,8 +37,8 @@ export default function HeroSection({ data }: HeroSectionProps) {
         <div className="activities-hero__content">
           <h1 className="activities-hero__title">{data.title}</h1>
           <p className="activities-hero__description">{data.description}</p>
-          <p className="activities-hero__note">{data.note}</p>
-          
+          {data.note && <p className="activities-hero__note">{data.note}</p>}
+
           <div className="activities-hero__actions">
             <Link 
               href={ACTIVITY_FORM_URL}

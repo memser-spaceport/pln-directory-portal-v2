@@ -67,6 +67,18 @@
   letter-spacing: -0.3px;
 }
 
+.toggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lockIcon {
+  flex-shrink: 0;
+  cursor: help;
+  opacity: 0.85;
+}
+
 .desc {
   color: var(--foreground-neutral-tertiary, #8897ae);
   font-size: 14px;

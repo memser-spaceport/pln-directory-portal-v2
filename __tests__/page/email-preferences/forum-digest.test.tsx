@@ -161,6 +161,7 @@ describe('ForumDigest', () => {
       const forumSwitch = screen.getByRole('switch', { name: /forum activity/i });
       expect(forumSwitch).toBeDisabled();
       expect(forumSwitch).not.toBeChecked();
+      expect(screen.getAllByRole('img', { name: /requires forum access/i }).length).toBeGreaterThan(0);
 
       fireEvent.click(forumSwitch);
       expect(mockMutate).not.toHaveBeenCalled();
@@ -172,6 +173,13 @@ describe('ForumDigest', () => {
         uid: 'user-1',
         payload: { ...enabledData, forumDigestNewsEnabled: false },
       });
+    });
+
+    it('does not show the forum-access lock when the user has forum access', () => {
+      mockGetForumDigestSettings.mockReturnValue({ data: enabledData });
+      render(<ForumDigest userInfo={userInfo} initialData={enabledData} hasForumAccess />);
+
+      expect(screen.queryByRole('img', { name: /requires forum access/i })).not.toBeInTheDocument();
     });
   });
 });

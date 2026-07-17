@@ -11,6 +11,7 @@ import { clsx } from 'clsx';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import dynamic from 'next/dynamic';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { Tooltip } from '@/components/core/tooltip/tooltip';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 const Select = dynamic(() => import('react-select'), {
@@ -297,7 +298,26 @@ export const ForumDigest = ({
                 never includes forum posts in the digest either way. */}
             <div className={s.toggleSection}>
               <label className={clsx(s.Label, s.toggle)}>
-                Forum activity
+                <span className={s.toggleLabel}>
+                  Forum activity
+                  {!hasForumAccess && (
+                    <Tooltip
+                      asChild
+                      side="top"
+                      align="center"
+                      trigger={
+                        <img
+                          src="/icons/lock-grey.svg"
+                          alt="Requires forum access"
+                          width={14}
+                          height={14}
+                          className={s.lockIcon}
+                        />
+                      }
+                      content="Your account does not have Forum access"
+                    />
+                  )}
+                </span>
                 <Switch.Root
                   className={s.Switch}
                   checked={hasForumAccess && (data?.forumDigestForumEnabled ?? true)}

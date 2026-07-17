@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
 import { useFounderGuidesAccess } from '@/services/access-control/hooks/useFounderGuidesAccess';
 
@@ -24,6 +26,35 @@ export function QuickActions() {
 
   const hasDealsAccess = !!currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'deals.read');
 
+  // Drives the mobile scroll container's left/right edge fade — only fades
+  // the side that still has more cards to reveal. Hooks run unconditionally,
+  // ahead of the loading-guard early-returns below.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [scrollEdges, setScrollEdges] = useState({ canScrollLeft: false, canScrollRight: false });
+
+  const updateScrollEdges = useCallback(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 1;
+    const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+    setScrollEdges((prev) =>
+      prev.canScrollLeft === canScrollLeft && prev.canScrollRight === canScrollRight
+        ? prev
+        : { canScrollLeft, canScrollRight },
+    );
+  }, []);
+
+  // No dependency array: re-checks after every render, so it also catches the
+  // ref attaching once the loading-guard below lets real content mount.
+  useEffect(() => {
+    updateScrollEdges();
+  });
+
+  useEffect(() => {
+    window.addEventListener('resize', updateScrollEdges);
+    return () => window.removeEventListener('resize', updateScrollEdges);
+  }, [updateScrollEdges]);
+
   // For 'others' we defer until OH access resolves, and for 'founder' until
   // Founder Guides access resolves, to prevent a card swap — on the mobile
   // scroll-snap carousel a late-arriving card ahead of ones already swiped
@@ -41,7 +72,19 @@ export function QuickActions() {
     <section className={s.section}>
       <h2 className={s.title}>Quick Actions</h2>
       <p className={s.subtitle}>Quick actions to get the most from your network.</p>
-      <div className={s.grid} role="region" aria-label="Quick actions">
+      <div
+        ref={gridRef}
+        className={s.grid}
+        role="region"
+        aria-label="Quick actions"
+        onScroll={updateScrollEdges}
+        style={
+          {
+            '--fade-left': scrollEdges.canScrollLeft ? '20px' : '0px',
+            '--fade-right': scrollEdges.canScrollRight ? '20px' : '0px',
+          } as CSSProperties
+        }
+      >
         {group === 'pl-infra' && (
           <>
             <ActionCard

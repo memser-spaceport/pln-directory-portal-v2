@@ -63,7 +63,7 @@ export function PastTeamCard(props: Props) {
             <div className={s.name}>{name}</div>
             {newsCount > 0 && (
               <Badge variant="default" className={s.newsBadge}>
-                {newsCount} news
+                {newsCount} updates
               </Badge>
             )}
           </div>

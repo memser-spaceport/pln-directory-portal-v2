@@ -1,3 +1,4 @@
+@use 'styles/mixins';
 @import 'styles/media.scss';
 
 .section {
@@ -29,7 +30,30 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  // Below 640px the grid becomes a horizontally-scrolling, snap-scroll row of
+  // fixed-width cards (partial peek of the next card). It bleeds full-bleed to
+  // the screen edge (negative margin cancels .home__cn's 14px mobile padding);
+  // only the first/last card gets that 14px back, as margin rather than
+  // container padding, so it's honored at max-scroll in every browser.
   @include mobile-only {
-    grid-template-columns: 1fr;
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    margin-inline: -14px;
+    @include mixins.hide-scrollbar;
+
+    > * {
+      flex: 0 0 80%;
+      scroll-snap-align: start;
+    }
+
+    > *:first-child {
+      margin-left: 14px;
+    }
+
+    > *:last-child {
+      margin-right: 14px;
+    }
   }
 }

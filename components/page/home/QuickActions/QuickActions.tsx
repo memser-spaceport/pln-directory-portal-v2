@@ -20,51 +20,45 @@ export function QuickActions() {
   const { currentUser } = useCurrentUserStore();
   const group = detectUserGroup(currentUser?.rbac?.policies);
   const { canViewSupply, canSupply, canViewDemand, canRequestDemand, isLoading: ohLoading } = useOfficeHoursAccess();
-  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+  const { hasAccess: hasFounderGuidesAccess, isLoading: founderGuidesLoading } = useFounderGuidesAccess();
 
   const hasDealsAccess = !!currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'deals.read');
 
-  // For 'others' we defer until OH access resolves to prevent a card swap flicker
+  // For 'others' we defer until OH access resolves, and for 'founder' until
+  // Founder Guides access resolves, to prevent a card swap — on the mobile
+  // scroll-snap carousel a late-arriving card ahead of ones already swiped
+  // past would visibly shift scroll position under the user.
   if (group === 'others' && ohLoading) return null;
+  if (group === 'founder' && founderGuidesLoading) return null;
 
   const hasOhAccess = canViewSupply || canSupply || canViewDemand || canRequestDemand;
 
   const ohCard = (
-    <ActionCard
-      icon={<CalendarBlankIcon />}
-      title="Book Office Hours"
-      description="Connect with experts across the network"
-      href={OH_HREF}
-    />
+    <ActionCard icon={<CalendarBlankIcon />} title="Book Office Hours" description="Meet experts" href={OH_HREF} />
   );
 
   return (
     <section className={s.section}>
       <h2 className={s.title}>Quick Actions</h2>
       <p className={s.subtitle}>Quick actions to get the most from your network.</p>
-      <div className={s.grid}>
+      <div className={s.grid} role="region" aria-label="Quick actions">
         {group === 'pl-infra' && (
           <>
             <ActionCard
               icon={<TeamsIcon />}
               title="Teams"
-              description="Explore organizations across the network"
+              description="Explore organizations"
               href="/teams?priorities=P1%7CP2%7CP3"
             />
             {ohCard}
-            <ActionCard
-              icon={<DealsIcon />}
-              title="Network Deals"
-              description="Exclusive offers for network members"
-              href="/deals"
-            />
+            <ActionCard icon={<DealsIcon />} title="Network Deals" description="Member perks" href="/deals" />
             <ActionCard
               icon={<FoundersGuidesIcon />}
               title="Founder Guides"
-              description="Resources curated for network founders"
+              description="For founders"
               href="/founder-guides"
             />
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
 
@@ -75,19 +69,14 @@ export function QuickActions() {
               <ActionCard
                 icon={<FoundersGuidesIcon />}
                 title="Founder Guides"
-                description="Resources curated for network founders"
+                description="For founders"
                 href="/founder-guides"
               />
             )}
             {hasDealsAccess && (
-              <ActionCard
-                icon={<DealsIcon />}
-                title="Network Deals"
-                description="Exclusive offers for network members"
-                href="/deals"
-              />
+              <ActionCard icon={<DealsIcon />} title="Network Deals" description="Member perks" href="/deals" />
             )}
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
 
@@ -103,7 +92,7 @@ export function QuickActions() {
                 href="/members"
               />
             )}
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
       </div>

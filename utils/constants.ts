@@ -2375,4 +2375,6 @@ export const AI_APPS_ANALYTICS = {
   DELETE_APP_CONFIRMED: 'ai_apps_delete_app_confirmed',
   DELETE_APP_FAILED: 'ai_apps_delete_app_failed',
   APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
+  PRD_OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_prd_open_in_new_tab_clicked',
+  PRD_PAGE_VIEWED: 'ai_apps_prd_page_viewed',
 };

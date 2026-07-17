@@ -1,12 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
-import { checkAiAppLive } from '@/services/ai-apps/ai-apps.service';
-import { ArrowBackIcon } from '@/components/icons';
+import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
+import { checkAiAppLive, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { ArrowBackIcon, DocumentIcon } from '@/components/icons';
+import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
+import {
+  EditAiAppModal,
+  DeploymentSettingsModal,
+  DeleteAiAppDialog,
+  AiAppDetailsModal,
+} from '@/components/page/ai-apps/dynamicActionModals';
 import { FloatingFeedbackButton } from '../components/FloatingFeedbackButton';
 
 import { AppSecretsPanel } from './components/AppSecretsPanel';
@@ -16,6 +26,8 @@ import s from './AiAppDetailPage.module.scss';
 interface Props {
   uid: string;
 }
+
+type Action = 'edit' | 'deployment' | 'delete';
 
 const SETUP_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
@@ -43,12 +55,15 @@ export function AiAppDetailPage(props: Props) {
 
   const { app, isLoading, isError } = useAiApp(uid);
   const { currentUser } = useCurrentUserStore();
+  const { canLikelyManage } = useAiAppManageAccess();
+  const router = useRouter();
   const analytics = useAiAppsAnalytics();
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
-  const [showSecrets, setShowSecrets] = useState(false);
   const [isRedeploying, setIsRedeploying] = useState(false);
+  const [action, setAction] = useState<Action | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   // Bumped by "Try again" to restart the polling effect after it gave up.
   const [retryToken, setRetryToken] = useState(0);
   // Result of the liveness polling, tagged with the generation it probed. A new
@@ -63,14 +78,19 @@ export function AiAppDetailPage(props: Props) {
   }, [app, analytics]);
 
   const requiredEnvVars = app?.requiredEnvVars ?? [];
-  const needsSetup = !!app && requiredEnvVars.length > 0 && app.status !== 'READY';
+  // Genuinely "never deployed" only means DRAFT — DEPLOYING/ERROR have their
+  // own dedicated flags below (which correctly respect `isRedeploying`).
+  // Checking `status !== 'READY'` here too would also catch a DEPLOYING app
+  // between polls of our own voluntary redeploy, bypassing that guard and
+  // yanking into this mandatory branch mid-flight.
+  const needsSetup = !!app && requiredEnvVars.length > 0 && app.status === 'DRAFT';
   // A failed deploy (runner error, or a stuck deploy the backend settled to
   // ERROR) is surfaced as a full status card — never a broken iframe — with the
   // error notes and a retry path for the creator/admin.
   const deployFailed = app?.status === 'ERROR';
   // An in-flight deploy someone else started (agent redeploy, another admin).
-  // While OUR deploy runs (isRedeploying) the secrets panel owns the UI instead,
-  // so its result/error handling is never unmounted mid-flight.
+  // While OUR deploy runs (isRedeploying) the secrets panel or the deployment
+  // settings modal owns the UI instead, so neither is unmounted mid-flight.
   const deployInProgress = app?.status === 'DEPLOYING' && !isRedeploying;
 
   useEffect(() => {
@@ -78,19 +98,6 @@ export function AiAppDetailPage(props: Props) {
     trackedDraftSetupUid.current = app.uid;
     analytics.onDraftSetupViewed({ appUid: app.uid, appName: app.name });
   }, [app, needsSetup, analytics]);
-
-  const openSecrets = () => {
-    if (!app) return;
-    analytics.onSecretsPanelOpened({ appUid: app.uid, isDraft: false });
-    setShowSecrets(true);
-  };
-
-  const closeSecrets = () => {
-    // A deploy in flight owns the panel's error state — leaving mid-deploy
-    // would unmount AppSecretsPanel and silently discard a failed-deploy error.
-    if (isRedeploying) return;
-    setShowSecrets(false);
-  };
 
   useEffect(() => {
     if (isError && uid) {
@@ -164,23 +171,12 @@ export function AiAppDetailPage(props: Props) {
   const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
 
   // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
-  // for a healthy, running app whose creator opted into updating its secrets
-  // (showSecrets) — same centered card either way, so a voluntary redeploy
-  // gets the identical experience to a first deploy or a failed one.
-  if (needsSetup || deployFailed || deployInProgress || showSecrets) {
-    // Back link only when the creator opened the card voluntarily over a
-    // healthy app — for a failed/undeployed/deploying app there is nothing
-    // usable behind it to go back to.
-    const cameFromHealthyApp = showSecrets && !needsSetup && !deployFailed && !deployInProgress;
+  // for a deploy in progress or failed — the top bar's "Deployment settings"
+  // menu item is the only voluntary entry point for a healthy app now.
+  if (needsSetup || deployFailed || deployInProgress) {
     return (
       <div className={s.setupPage}>
         <div className={s.setupContent}>
-          {cameFromHealthyApp && (
-            <button type="button" className={s.backLink} onClick={closeSecrets} disabled={isRedeploying}>
-              <ArrowBackIcon width={16} height={16} />
-              Back to app
-            </button>
-          )}
           <div className={s.setupCard}>
             <div className={s.setupHeader}>
               <h1 className={s.setupTitle}>{app.name}</h1>
@@ -200,7 +196,7 @@ export function AiAppDetailPage(props: Props) {
                 </p>
               </div>
             ) : isCreator ? (
-              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} onDeploySucceeded={closeSecrets} />
+              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
             ) : (
               <p className={s.setupInfo}>
                 {deployFailed
@@ -275,15 +271,57 @@ export function AiAppDetailPage(props: Props) {
 
   return (
     <div className={s.root}>
-      {isCreator && requiredEnvVars.length > 0 && (
-        <div className={s.secretsBar}>
-          <button type="button" className={s.secretsToggle} onClick={openSecrets}>
-            Update secrets & redeploy
-          </button>
+      <div className={s.topBar}>
+        <Link href="/pl-infra/ai-apps" className={s.backLink}>
+          <ArrowBackIcon width={16} height={16} />
+          Back to all
+        </Link>
+        <div className={s.topBarActions}>
+          {hasPrd(app) && (
+            <button
+              type="button"
+              className={s.detailsButton}
+              onClick={() => setShowDetails(true)}
+              aria-label={`App details for ${app.name}`}
+            >
+              <span className={s.detailsBadge}>
+                <DocumentIcon aria-hidden />
+                App Details
+              </span>
+            </button>
+          )}
+          {canLikelyManage(app.member.uid) && (
+            <AppActionsMenu
+              app={app}
+              onEdit={() => setAction('edit')}
+              onDeployment={() => setAction('deployment')}
+              onDelete={() => setAction('delete')}
+            />
+          )}
         </div>
-      )}
+      </div>
       {renderFrameArea()}
       <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
+      {showDetails && (
+        <AiAppDetailsModal
+          isOpen
+          uid={app.uid}
+          appName={app.name}
+          prdUrl={app.prd as string}
+          onClose={() => setShowDetails(false)}
+        />
+      )}
+      {action === 'edit' && <EditAiAppModal app={app} onClose={() => setAction(null)} />}
+      {action === 'deployment' && (
+        <DeploymentSettingsModal app={app} onClose={() => setAction(null)} onDeployingChange={setIsRedeploying} />
+      )}
+      {action === 'delete' && (
+        <DeleteAiAppDialog
+          app={app}
+          onClose={() => setAction(null)}
+          onDeleteSucceeded={() => router.push('/pl-infra/ai-apps')}
+        />
+      )}
     </div>
   );
 }

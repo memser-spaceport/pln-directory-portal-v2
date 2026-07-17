@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 import { AiAppDetailPage } from '@/components/page/ai-apps/AiAppDetailPage';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
@@ -9,7 +9,6 @@ const mockAnalytics = {
   onDraftSetupViewed: jest.fn(),
   onIframeLoadFailed: jest.fn(),
   onIframeLoaded: jest.fn(),
-  onSecretsPanelOpened: jest.fn(),
 };
 
 let mockUseAiAppReturn: { app: AiApp | null; isLoading: boolean; isError: boolean };
@@ -35,32 +34,96 @@ jest.mock('@/components/page/ai-apps/components/FloatingFeedbackButton', () => (
   FloatingFeedbackButton: () => null,
 }));
 
-// AppSecretsPanel's own behavior (locking, deploy flow) is covered by its own
-// test file — here we only need to trigger its callback props to verify how
-// AiAppDetailPage reacts to them.
+// AppSecretsPanel's own behavior is covered by the mandatory-setup-card path
+// only, which this feature doesn't change — a bare stub is enough here.
 jest.mock('@/components/page/ai-apps/AiAppDetailPage/components/AppSecretsPanel', () => ({
-  AppSecretsPanel: ({
-    onDeployingChange,
-    onDeploySucceeded,
+  AppSecretsPanel: () => <div>AppSecretsPanel</div>,
+}));
+
+const mockCanLikelyManage = jest.fn();
+jest.mock('@/services/ai-apps/hooks/useAiAppManageAccess', () => ({
+  useAiAppManageAccess: () => ({ canLikelyManage: mockCanLikelyManage, isDirectoryAdmin: false }),
+}));
+
+jest.mock('@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu', () => ({
+  AppActionsMenu: ({
+    onEdit,
+    onDeployment,
+    onDelete,
   }: {
-    onDeployingChange?: (deploying: boolean) => void;
-    onDeploySucceeded?: () => void;
+    onEdit: () => void;
+    onDeployment: () => void;
+    onDelete: () => void;
   }) => (
     <div>
-      <span>AppSecretsPanel</span>
-      <button type="button" onClick={() => onDeployingChange?.(true)}>
-        Simulate deploy start
-      </button>
+      <span>AppActionsMenu</span>
+      <button onClick={onEdit}>Edit details</button>
+      <button onClick={onDeployment}>Deployment settings</button>
+      <button onClick={onDelete}>Delete app</button>
+    </div>
+  ),
+}));
+
+jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
+  EditAiAppModal: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      <span>EditAiAppModal</span>
+      <button onClick={onClose}>Close edit</button>
+    </div>
+  ),
+  DeploymentSettingsModal: ({
+    onClose,
+    onDeployingChange,
+  }: {
+    onClose: () => void;
+    onDeployingChange?: (deploying: boolean) => void;
+  }) => (
+    <div>
+      <span>DeploymentSettingsModal</span>
+      <button onClick={() => onDeployingChange?.(true)}>Start redeploy</button>
+      <button onClick={() => onDeployingChange?.(false)}>Finish redeploy</button>
+      <button onClick={onClose}>Close deployment</button>
+    </div>
+  ),
+  DeleteAiAppDialog: ({
+    onClose,
+    onDeleteSucceeded,
+  }: {
+    onClose: () => void;
+    onDeleteSucceeded?: () => void;
+  }) => (
+    <div>
+      <span>DeleteAiAppDialog</span>
       <button
-        type="button"
         onClick={() => {
-          onDeploySucceeded?.();
-          onDeployingChange?.(false);
+          onDeleteSucceeded?.();
+          onClose();
         }}
       >
-        Simulate deploy success
+        Confirm delete
       </button>
+      <button onClick={onClose}>Cancel delete</button>
     </div>
+  ),
+  AiAppDetailsModal: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      <span>AiAppDetailsModal</span>
+      <button onClick={onClose}>Close details</button>
+    </div>
+  ),
+}));
+
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn(), prefetch: jest.fn() }),
+}));
+
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -83,89 +146,111 @@ function buildApp(overrides: Partial<AiApp> = {}): AiApp {
     canManage: true,
     createdAt: '2026-07-01T00:00:00.000Z',
     updatedAt: '2026-07-01T00:00:00.000Z',
-    member: { uid: 'member-1', name: 'Ada' },
+    member: { uid: 'member-1', name: 'Ada', image: null },
     ...overrides,
   };
 }
 
 describe('AiAppDetailPage', () => {
+  beforeEach(() => {
+    mockCanLikelyManage.mockReturnValue(true);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the centered setup card (not a collapsible bar) for a DRAFT app', () => {
+  it('renders the centered setup card for a DRAFT app, with no top bar', () => {
     mockUseAiAppReturn = { app: buildApp({ status: 'DRAFT', providedEnvVars: [] }), isLoading: false, isError: false };
 
     render(<AiAppDetailPage uid="app-1" />);
 
     expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Back to app' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /back to ai apps/i })).not.toBeInTheDocument();
   });
 
-  it('shows the "Update secrets & redeploy" entry point for a READY app, and swaps to the full centered card on click', () => {
-    mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+  describe('healthy app top bar', () => {
+    it('renders "Back to AI Apps" pointing at the list route', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
 
-    render(<AiAppDetailPage uid="app-1" />);
+      expect(screen.getByRole('link', { name: /back to ai apps/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
+    });
 
-    expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
-    const trigger = screen.getByRole('button', { name: 'Update secrets & redeploy' });
+    it('shows "App Details" only when the app has a one-pager, and opens the details modal', () => {
+      mockUseAiAppReturn = { app: buildApp({ prd: 'https://bucket.s3.amazonaws.com/ai-app-prds/app-1.md' }), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
 
-    fireEvent.click(trigger);
+      const detailsButton = screen.getByRole('button', { name: /app details for news summarizer/i });
+      fireEvent.click(detailsButton);
+      expect(screen.getByText('AiAppDetailsModal')).toBeInTheDocument();
 
-    expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Back to app' })).toBeInTheDocument();
-    expect(mockAnalytics.onSecretsPanelOpened).toHaveBeenCalledWith({ appUid: 'app-1', isDraft: false });
-  });
+      fireEvent.click(screen.getByText('Close details'));
+      expect(screen.queryByText('AiAppDetailsModal')).not.toBeInTheDocument();
+    });
 
-  it('"Back to app" returns to the running-app view', async () => {
-    mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+    it('hides "App Details" when the app has no one-pager', () => {
+      mockUseAiAppReturn = { app: buildApp({ prd: null }), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
 
-    render(<AiAppDetailPage uid="app-1" />);
+      expect(screen.queryByRole('button', { name: /app details/i })).not.toBeInTheDocument();
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Update secrets & redeploy' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Back to app' }));
+    it('shows the manage menu only when canLikelyManage is true', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      mockCanLikelyManage.mockReturnValue(false);
+      render(<AiAppDetailPage uid="app-1" />);
 
-    expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Update secrets & redeploy' })).toBeInTheDocument());
-  });
+      expect(screen.queryByText('AppActionsMenu')).not.toBeInTheDocument();
+    });
 
-  it('disables "Back to app" while a deploy from the panel is in flight, and it does nothing if clicked', () => {
-    mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+    it('opens EditAiAppModal / DeploymentSettingsModal / DeleteAiAppDialog from the manage menu', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
 
-    render(<AiAppDetailPage uid="app-1" />);
+      fireEvent.click(screen.getByText('Edit details'));
+      expect(screen.getByText('EditAiAppModal')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Close edit'));
+      expect(screen.queryByText('EditAiAppModal')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Update secrets & redeploy' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Simulate deploy start' }));
+      fireEvent.click(screen.getByText('Deployment settings'));
+      expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Close deployment'));
+      expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
 
-    const backButton = screen.getByRole('button', { name: 'Back to app' });
-    expect(backButton).toBeDisabled();
+      fireEvent.click(screen.getByText('Delete app'));
+      expect(screen.getByText('DeleteAiAppDialog')).toBeInTheDocument();
+    });
 
-    fireEvent.click(backButton);
-    expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
-  });
+    it('navigates to the AI Apps list once delete succeeds, not on cancel', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
 
-  it('returns to the running-app view once the panel reports a successful deploy', () => {
-    mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      fireEvent.click(screen.getByText('Delete app'));
+      fireEvent.click(screen.getByText('Cancel delete'));
+      expect(mockPush).not.toHaveBeenCalled();
 
-    render(<AiAppDetailPage uid="app-1" />);
+      fireEvent.click(screen.getByText('Delete app'));
+      fireEvent.click(screen.getByText('Confirm delete'));
+      expect(mockPush).toHaveBeenCalledWith('/pl-infra/ai-apps');
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Update secrets & redeploy' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Simulate deploy success' }));
+    it('starting a redeploy from the menu does not swap the page into the mandatory "Deploying" card', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
 
-    expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Update secrets & redeploy' })).toBeInTheDocument();
-  });
+      fireEvent.click(screen.getByText('Deployment settings'));
+      fireEvent.click(screen.getByText('Start redeploy'));
 
-  it('does not show the secrets entry point for a non-creator viewer', () => {
-    mockUseAiAppReturn = {
-      app: buildApp({ canManage: false, member: { uid: 'someone-else', name: 'Bea' } }),
-      isLoading: false,
-      isError: false,
-    };
+      // Simulate the page's own poll observing the backend flip to DEPLOYING —
+      // without the onDeployingChange fix, this would unmount the modal below.
+      mockUseAiAppReturn = { app: buildApp({ status: 'DEPLOYING' }), isLoading: false, isError: false };
+      rerender(<AiAppDetailPage uid="app-1" />);
 
-    render(<AiAppDetailPage uid="app-1" />);
-
-    expect(screen.queryByRole('button', { name: 'Update secrets & redeploy' })).not.toBeInTheDocument();
+      expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
+      expect(screen.queryByText('Deploying')).not.toBeInTheDocument();
+      expect(screen.getByText('Redeploying the app')).toBeInTheDocument();
+    });
   });
 });

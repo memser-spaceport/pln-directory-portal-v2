@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
@@ -19,6 +19,12 @@ type Phase = 'form' | 'deploying' | 'done';
 interface Props {
   app: AiApp;
   onClose: () => void;
+  /**
+   * Fires while a redeploy started from this modal is in flight, so a parent
+   * page can suppress a competing "app is deploying" view for the duration —
+   * mirrors AppSecretsPanel's prop of the same name/purpose.
+   */
+  onDeployingChange?: (deploying: boolean) => void;
 }
 
 /**
@@ -32,7 +38,7 @@ interface Props {
  * live record, and rows must not remount/lock mid-keystroke under the user.
  * Only `status` is read live, to drive the deploying → done/failed phases.
  */
-export function DeploymentSettingsModal({ app, onClose }: Props) {
+export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Props) {
   const analytics = useAiAppsAnalytics();
   const queryClient = useQueryClient();
 
@@ -81,6 +87,23 @@ export function DeploymentSettingsModal({ app, onClose }: Props) {
       setError(liveNotes ? `Deploy failed: ${liveNotes}` : 'Deploy failed. Please try again.');
     }
   }, [phase, liveStatus, deployObserved, liveNotes]);
+
+  // Include `isSubmitting`, not just `phase` — the redeploy request is fired
+  // synchronously on click (see handleRedeploy), well before `phase` itself
+  // flips to 'deploying' once the response resolves. A parent relying only on
+  // the `phase` transition would have a window where the backend has already
+  // moved the app to DEPLOYING but this callback hasn't fired yet, letting an
+  // independent poller elsewhere race ahead of it.
+  useEffect(() => {
+    onDeployingChange?.(isSubmitting || phase === 'deploying');
+  }, [isSubmitting, phase, onDeployingChange]);
+
+  // Unconditional unmount reset: if this modal is dismissed mid-'deploying'
+  // (its own header close button isn't guarded against that, unlike
+  // AppSecretsPanel's closeSecrets), the effect above never gets a chance to
+  // fire `false` again — without this, a parent's "is a redeploy in flight"
+  // flag would be stranded `true` for the rest of the page's session.
+  useEffect(() => () => onDeployingChange?.(false), [onDeployingChange]);
 
   const onChange = (name: string, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));

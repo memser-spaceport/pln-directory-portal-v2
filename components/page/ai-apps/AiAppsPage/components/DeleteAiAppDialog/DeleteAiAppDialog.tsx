@@ -13,6 +13,8 @@ import s from './DeleteAiAppDialog.module.scss';
 interface Props {
   app: AiApp;
   onClose: () => void;
+  /** Fires once the delete succeeds, after `onClose()` — e.g. to navigate away from a page showing the now-gone app. */
+  onDeleteSucceeded?: () => void;
 }
 
 /**
@@ -21,7 +23,7 @@ interface Props {
  * deliberate, single-purpose action. Single-flight: a second click while the
  * DELETE is in flight is a no-op, and a 404 (already gone) counts as done.
  */
-export function DeleteAiAppDialog({ app, onClose }: Props) {
+export function DeleteAiAppDialog({ app, onClose, onDeleteSucceeded }: Props) {
   const analytics = useAiAppsAnalytics();
   const { mutateAsync: deleteApp, isPending: isDeleting } = useDeleteAiApp(app.uid);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export function DeleteAiAppDialog({ app, onClose }: Props) {
     didConfirmRef.current = true;
     analytics.onDeleteAppConfirmed(app.uid, app.name);
     onClose();
+    onDeleteSucceeded?.();
   };
 
   return (

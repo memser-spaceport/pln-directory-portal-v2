@@ -274,7 +274,7 @@ export function AiAppDetailPage(props: Props) {
       <div className={s.topBar}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
           <ArrowBackIcon width={16} height={16} />
-          Back to AI Apps
+          Back to all
         </Link>
         <div className={s.topBarActions}>
           {hasPrd(app) && (
@@ -313,11 +313,7 @@ export function AiAppDetailPage(props: Props) {
       )}
       {action === 'edit' && <EditAiAppModal app={app} onClose={() => setAction(null)} />}
       {action === 'deployment' && (
-        <DeploymentSettingsModal
-          app={app}
-          onClose={() => setAction(null)}
-          onDeployingChange={setIsRedeploying}
-        />
+        <DeploymentSettingsModal app={app} onClose={() => setAction(null)} onDeployingChange={setIsRedeploying} />
       )}
       {action === 'delete' && (
         <DeleteAiAppDialog

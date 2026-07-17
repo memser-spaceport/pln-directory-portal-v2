@@ -356,14 +356,18 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
       >
         <div className={s.linksWrapper}>
-          {!pitchSlug && team.analyticsReportUrl && (
+          {team.analyticsReportUrl && (
             <Link
               className={s.link}
-              href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
+              href={
+                pitchSlug
+                  ? `/spotlight/${pitchSlug}/analytics-report`
+                  : `/demoday/${slug}/analytics-report/${team.team?.uid}`
+              }
               target="_blank"
               onClick={(e) => e.stopPropagation()}
             >
-              <ChartIcon /> Demo Day Stats
+              <ChartIcon /> {pitchSlug ? 'Spotlight Stats' : 'Demo Day Stats'}
             </Link>
           )}
           {!hideSave && !pitchSlug && (

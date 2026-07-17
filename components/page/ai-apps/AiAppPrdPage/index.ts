@@ -1,0 +1,1 @@
+export { AiAppPrdPage } from './AiAppPrdPage';

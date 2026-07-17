@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
@@ -11,6 +13,7 @@ import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.t
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsModal } from './TeamNewsModal';
+
 import s from './TeamNewsRail.module.scss';
 
 interface TeamNewsRailProps {
@@ -37,6 +40,9 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
   const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked, onTeamNewsUpvoteToggled } =
     useTeamNewsAnalytics();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
+
+  const searchParams = useSearchParams();
+  const highlightSection = searchParams.get('highlight') === 'news';
 
   // The rail reads server-provided `initialData` and the modal has its own
   // infinite query — two data sources for the same stories. Like the homepage
@@ -115,7 +121,11 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
     <>
       <aside className={s.rail}>
         <div className={s.railSpacer} aria-hidden="true" />
-        <div className={s.newsPanel}>
+        <div
+          className={clsx(s.newsPanel, {
+            [s.highlight]: highlightSection,
+          })}
+        >
           <DetailsSectionHeader title={`${teamName} News (${total})`} />
           <div className={s.newsList}>
             {previewItems.map((item, index) => (

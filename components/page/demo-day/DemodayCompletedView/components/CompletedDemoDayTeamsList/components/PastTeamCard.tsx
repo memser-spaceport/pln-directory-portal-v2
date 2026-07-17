@@ -28,6 +28,8 @@ export function PastTeamCard(props: Props) {
 
   const { isPending, isFollowing, toggleFollow } = useFollowDemoDayTeam(team);
 
+  const teamPageUrl = `/teams/${uid}`;
+
   const toggleFollowState = useCallback(
     (e: MouseEvent) => {
       e.preventDefault();
@@ -39,8 +41,8 @@ export function PastTeamCard(props: Props) {
 
   return (
     <a
-      href={`/teams/${uid}`}
       target="_blank"
+      href={teamPageUrl}
       rel="noopener noreferrer"
       className={s.root}
       onClick={() => onCompletedViewTeamCardClicked({ teamUid: uid, teamName: name })}
@@ -62,9 +64,14 @@ export function PastTeamCard(props: Props) {
           <div className={s.nameGroup}>
             <div className={s.name}>{name}</div>
             {newsCount > 0 && (
-              <Badge variant="default" className={s.newsBadge}>
-                {newsCount} updates
-              </Badge>
+              <a
+                target="_blank"
+                href={`${teamPageUrl}?highlight=news`}
+                rel="noopener noreferrer"
+                className={s.newsBadge}
+              >
+                <Badge variant="default">{newsCount} updates</Badge>
+              </a>
             )}
           </div>
 

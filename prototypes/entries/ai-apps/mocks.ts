@@ -189,8 +189,8 @@ export const createModalIntro =
 export const createModalWhatsNewItems = [
   'Use signed-in PL member context in your app (name, photo, teams, and more)',
   "Approve your app's name and description before the first deploy",
-  'Optionally add a one-pager after deploy',
-  'Rename, edit description, or update the one-pager anytime through your agent — no redeploy',
+  'Optionally add a one-pager/PRD after deploy',
+  '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
 ];
 
 export const createModalSteps = [

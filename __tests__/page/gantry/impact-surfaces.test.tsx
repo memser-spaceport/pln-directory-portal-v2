@@ -54,7 +54,7 @@ describe('ImpactSummaryStrip (curator-only board-card breakdown)', () => {
 
     rerender(<ImpactSummaryStrip item={item()} canCurate />);
     expect(screen.getByText('Team-only')).toBeInTheDocument();
-    expect(screen.getByText('2 Critical · 2 High · 1 Significant')).toBeInTheDocument();
+    expect(screen.getByText('2 Transformative · 2 Significant · 1 Moderate')).toBeInTheDocument();
     expect(screen.getByLabelText('Rated by 2 members (team-only)')).toBeInTheDocument();
   });
 
@@ -77,12 +77,12 @@ describe('ImpactDetailSection (drawer/page)', () => {
     expect(screen.getByText('Ada Author')).toBeInTheDocument();
     expect(screen.getByText('Author')).toBeInTheDocument();
     expect(screen.getByText('Bea Booster')).toBeInTheDocument();
-    expect(screen.getByText('· Critical')).toBeInTheDocument(); // rating word inline after the name (prototype)
+    expect(screen.getByText('· Transformative')).toBeInTheDocument(); // rating word inline after the name
     expect(screen.getByText('· No rating')).toBeInTheDocument(); // legacy pin
     expect(screen.getByText('No note')).toBeInTheDocument(); // legacy pin without a note
     expect(screen.getByText('why now')).toBeInTheDocument();
     expect(screen.getByText(/5 IMPACT RATINGS · TEAM-ONLY/)).toBeInTheDocument();
-    expect(screen.getByText('2 Critical · 2 High · 1 Significant')).toBeInTheDocument(); // aggregate distribution line
+    expect(screen.getByText('2 Transformative · 2 Significant · 1 Moderate')).toBeInTheDocument();
 
     rerender(<ImpactDetailSection item={item()} canCurate={false} isAuthor={false} frozen={false} />);
     expect(screen.queryByText('Bea Booster')).not.toBeInTheDocument();
@@ -135,19 +135,12 @@ describe('ImpactDetailSection (drawer/page)', () => {
     expect(screen.getByText('Add your rating')).toBeInTheDocument();
   });
 
-  it('reasoning is visible to curators and the author, hidden once objectives are assigned', () => {
-    const withObjectives = item({ objectives: [{ uid: 'o1', order: 1, title: 'Goal' }] });
-    const { rerender } = render(<ImpactDetailSection item={item()} canCurate={false} isAuthor frozen={false} />);
-    expect(screen.getByText('Moves the onboarding goal directly')).toBeInTheDocument();
-
-    rerender(<ImpactDetailSection item={item()} canCurate={false} isAuthor={false} frozen={false} />);
-    expect(screen.queryByText('Moves the onboarding goal directly')).not.toBeInTheDocument();
-
-    rerender(<ImpactDetailSection item={withObjectives} canCurate isAuthor frozen={false} />);
+  it('does not render author reasoning (lives in the drawer details grid)', () => {
+    render(<ImpactDetailSection item={item()} canCurate isAuthor frozen={false} />);
     expect(screen.queryByText('Moves the onboarding goal directly')).not.toBeInTheDocument();
   });
 
-  it('renders hostile note/reasoning text as literal text, never HTML', () => {
+  it('renders hostile note text as literal text, never HTML', () => {
     const hostile = '<img src=x onerror=alert(1)>';
     const { container } = render(
       <ImpactDetailSection
@@ -158,7 +151,7 @@ describe('ImpactDetailSection (drawer/page)', () => {
       />,
     );
     expect(container.querySelector('img')).toBeNull();
-    expect(screen.getAllByText(hostile).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(hostile)).toBeInTheDocument();
   });
 
   it('never fetches per-item pins when they are embedded (N+1 guard)', () => {

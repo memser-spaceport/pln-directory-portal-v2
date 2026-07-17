@@ -48,7 +48,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: 'Teams',
     short: 'Teams',
     description: 'Explore organizations across the network',
-    shortDescription: 'Organizations',
+    shortDescription: 'Explore organizations',
     href: '/teams?priorities=P1%7CP2%7CP3',
   },
   {

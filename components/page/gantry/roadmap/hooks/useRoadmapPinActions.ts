@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { flyPin } from '@/components/page/gantry/shared/flyPin';
-import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import { PinBalanceExhaustedError } from '@/services/gantry/gantry.service';
 import { GantryQueryKeys } from '@/services/gantry/constants';
 import type {
@@ -131,37 +130,18 @@ export function useRoadmapPinActions(
   const handlePinToggle = async (uid: string, nextIsPinned: boolean, el: HTMLButtonElement) => {
     if (pin.isPending) return; // single-flight: never interleave pin mutations
 
-    if (GANTRY_IMPACT_UI_ENABLED && nextIsPinned) {
-      // Rate first, then commit — nothing is mutated until the popover saves.
+    if (nextIsPinned) {
+      // Rate first (optional), then commit — nothing is mutated until the popover saves.
       setBoostFlow({ step: 'rate', uid, pos: computePopoverPos(el), swapPos: computeSwapPickerPos(el) });
       return;
     }
 
-    // Pre-check: if budget exhausted, open swap picker immediately without a server round-trip.
-    if (nextIsPinned && pinStatus && pinStatus.remaining <= 0) {
-      setBoostFlow({ step: 'swap', uid, pos: computePopoverPos(el), swapPos: computeSwapPickerPos(el) });
-      return;
-    }
-
-    const swapPos = computeSwapPickerPos(el);
-    const pos = computePopoverPos(el);
     try {
       await pin.mutateAsync({ uid, nextIsPinned });
-      if (nextIsPinned) {
-        analytics.onItemBoosted(uid);
-        flyPin(el, pinStatusRef.current);
-        clearNotePopoverTimeout();
-        notePopoverTimeoutRef.current = setTimeout(() => setPinNotePopover({ uid, ...pos }), 200);
-      } else {
-        clearNotePopoverTimeout();
-        analytics.onItemUnboosted(uid);
-      }
-    } catch (err) {
-      // Fallback: server says budget exhausted even though we thought we had room
-      // (e.g. another device pinned something in the meantime).
-      if (err instanceof PinBalanceExhaustedError) {
-        setBoostFlow({ step: 'swap', uid, pos, swapPos });
-      }
+      clearNotePopoverTimeout();
+      analytics.onItemUnboosted(uid);
+    } catch {
+      // Unpin failures roll back via the mutation; nothing else to open.
     }
   };
 
@@ -211,8 +191,8 @@ export function useRoadmapPinActions(
   const handleSwapSelect = async (swapItemUid: string) => {
     if (!boostFlow || boostFlow.step !== 'swap' || pin.isPending) return;
     const { uid, impact, note, objectiveImpacts } = boostFlow;
-    if (GANTRY_IMPACT_UI_ENABLED && impact === undefined) {
-      // Swap started before a rating was collected (pre-check path) — collect it first.
+    if (impact === undefined) {
+      // Swap started before a rating was collected — collect it first.
       setBoostFlow({ ...boostFlow, step: 'rate' });
       return;
     }

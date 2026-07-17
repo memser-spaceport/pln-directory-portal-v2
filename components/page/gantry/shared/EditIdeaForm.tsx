@@ -9,7 +9,6 @@ import { useGantryObjectives } from '@/services/gantry/hooks/useGantryObjectives
 import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { isPreRoadmapStage, tagsToOptions } from '@/services/gantry/constants';
-import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import type { GantryItem, GantryItemType } from '@/services/gantry/types';
 import {
   editIdeaSchema,
@@ -35,7 +34,7 @@ export function EditIdeaForm({ item, onCancel, onSaved }: Props) {
 
   // authorImpact is the AUTHOR's rating: a curator editing someone else's item never touches it.
   const isAuthor = !!currentUser?.uid && item.createdByUid === currentUser.uid;
-  const showImpact = GANTRY_IMPACT_UI_ENABLED && isAuthor;
+  const showImpact = isAuthor;
   // Once objectives are assigned they become the visible goal-link; the reasoning stays stored but hidden.
   const showReasoning = showImpact && item.objectives.length === 0;
 

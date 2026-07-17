@@ -14,8 +14,7 @@ import type {
 } from '../types';
 
 /**
- * Unpin never carries a rating. Pin `impact` is optional — users may skip rating on boost
- * (and the flag-off legacy flow omits it entirely).
+ * Unpin never carries a rating. Pin `impact` is optional — users may skip rating on boost.
  */
 type PinPayload =
   | { uid: string; nextIsPinned: false }

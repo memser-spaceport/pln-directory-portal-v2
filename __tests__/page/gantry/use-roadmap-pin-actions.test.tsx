@@ -2,11 +2,6 @@ import { act, renderHook } from '@testing-library/react';
 import { useRoadmapPinActions } from '@/components/page/gantry/roadmap/hooks/useRoadmapPinActions';
 import type { GantryPinStatus } from '@/services/gantry/types';
 
-jest.mock('@/utils/feature-flags', () => ({
-  USE_ACCESS_CONTROL_V2: false,
-  GANTRY_IMPACT_UI_ENABLED: true,
-}));
-
 // Controllable query client — the hook re-reads item/pin-status state from cache at Save time.
 const cacheState: { item?: unknown; pinStatus?: GantryPinStatus } = {};
 jest.mock('@tanstack/react-query', () => ({

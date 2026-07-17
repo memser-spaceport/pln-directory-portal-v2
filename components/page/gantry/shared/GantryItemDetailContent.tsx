@@ -29,10 +29,8 @@ import { PinNotePopover } from './PinNotePopover';
 import { BoostImpactPopover } from './BoostImpactPopover';
 import { PinSwapPicker } from './PinSwapPicker';
 import { ImpactDetailSection } from './ImpactDetailSection';
-import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import { hasImpactData } from '@/services/gantry/impact';
 import { StageSelector } from './StageSelector';
-import { BuildWithAgentsButton } from './BuildWithAgentsButton';
 import { DeclineIdeaModal } from './DeclineIdeaModal';
 import s from '../GantryDetailPage.module.scss';
 
@@ -218,69 +216,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
               onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
             />
           </div>
-          {GANTRY_IMPACT_UI_ENABLED ? (
-            <>
-              <ImpactDetailSection
-                item={item}
-                canCurate={access.canCurate}
-                isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
-                viewerUid={currentUser?.uid}
-                frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
-              />
-              {/* Unrated legacy items keep the notes list for curators until ratings exist. */}
-              {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
-                <div className={s.boostArea}>
-                  <BoostersSection item={item} />
-                </div>
-              )}
-            </>
-          ) : (
-            access.canCurate &&
-            item.pinCount > 0 && (
-              <div className={s.boostArea}>
-                <BoostersSection item={item} />
-              </div>
-            )
-          )}
         </div>
-
-        {item.tags && item.tags.length > 0 && !isEditMode && (
-          <div className={s.tagsRow}>
-            <span className={s.tagsLabel}>Tags</span>
-            <div className={s.tagsList} aria-label={`Tags: ${item.tags.join(', ')}`}>
-              {item.tags.map((tag) => (
-                <span key={tag} className={s.tagChip}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {item.type && !isEditMode && (
-          <div className={s.tagsRow}>
-            <span className={s.tagsLabel}>Type of request</span>
-            <div className={s.tagsList}>
-              <span className={s.tagChip}>{item.type}</span>
-            </div>
-          </div>
-        )}
-
-        {item.objectives?.length > 0 && !isEditMode && (
-          <div className={s.tagsRow}>
-            <span className={s.tagsLabel}>Objectives</span>
-            <div
-              className={s.tagsList}
-              aria-label={`Objectives: ${item.objectives.map((o) => `O${o.order}`).join(', ')}`}
-            >
-              {item.objectives.map((objective) => (
-                <span key={objective.uid} className={s.objectiveChip}>
-                  O{objective.order} · {objective.title}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className={s.mobileDivider} />
 
@@ -292,19 +228,78 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
             onSaved={() => setIsEditMode(false)}
           />
         ) : (
-          <div className={s.content}>
+          <div className={clsx(s.content, s.contentTight)}>
             {hasRichTextContent(item.description) && (
-              <section className={s.section}>
-                <h2 className={s.sectionTitle}>Description</h2>
-                <QuillContent html={item.description} className={s.richContent} />
-              </section>
+              <div className={s.descriptionBlock}>
+                <span className={s.detailLabel}>Description</span>
+                <QuillContent html={item.description} className={clsx(s.richContent, s.descriptionBody)} />
+              </div>
             )}
-          </div>
-        )}
 
-        {!isEditMode && (
-          <div className={s.footerExtras}>
-            <BuildWithAgentsButton uid={item.uid} onTracked={() => analytics.onBuildButtonClicked(item.uid)} />
+            {(!!item.tags?.length ||
+              !!item.type ||
+              item.objectives?.length > 0 ||
+              (!!item.authorImpactReasoning && item.objectives.length === 0)) && (
+              <div className={s.details}>
+                {item.tags && item.tags.length > 0 && (
+                  <>
+                    <span className={s.detailLabel}>Tags</span>
+                    <div className={s.detailValue} aria-label={`Tags: ${item.tags.join(', ')}`}>
+                      {item.tags.map((tag) => (
+                        <span key={tag} className={s.tagChip}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {item.type && (
+                  <>
+                    <span className={s.detailLabel}>Type</span>
+                    <div className={s.detailValue}>
+                      <span className={s.tagChip}>{item.type}</span>
+                    </div>
+                  </>
+                )}
+                {item.objectives?.length > 0 ? (
+                  <>
+                    <span className={s.detailLabel}>Objectives</span>
+                    <div
+                      className={s.detailValue}
+                      aria-label={`Objectives: ${item.objectives.map((o) => `O${o.order}`).join(', ')}`}
+                    >
+                      {item.objectives.map((objective) => (
+                        <span key={objective.uid} className={s.objectiveChip}>
+                          O{objective.order} · {objective.title}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  item.authorImpactReasoning && (
+                    <>
+                      <span className={s.detailLabel}>Reasoning</span>
+                      <div className={s.detailValue}>
+                        <span className={s.reasoningText}>{item.authorImpactReasoning}</span>
+                      </div>
+                    </>
+                  )
+                )}
+              </div>
+            )}
+
+            <ImpactDetailSection
+              item={item}
+              canCurate={access.canCurate}
+              isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
+              viewerUid={currentUser?.uid}
+              frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+            />
+            {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
+              <div className={s.boostAreaInContent}>
+                <BoostersSection item={item} />
+              </div>
+            )}
           </div>
         )}
       </div>

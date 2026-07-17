@@ -79,11 +79,10 @@ interface Props {
 /**
  * The item drawer/page impact section: public aggregate (ring + count + distribution line),
  * the viewer's own editable rating (any active booster — the curator-only rater list is
- * hidden from members, so this row is their affordance), the curator rater list ("You"
- * first, name · rating-word inline, note below; legacy pins as "No rating"), and the
- * author's goal-link reasoning (curator + author, until objectives are assigned).
+ * hidden from members, so this row is their affordance), and the curator rater list.
+ * Author reasoning lives in the drawer details grid, not here.
  */
-export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, frozen }: Props) {
+export function ImpactDetailSection({ item, canCurate, isAuthor: _isAuthor, viewerUid, frozen }: Props) {
   const analytics = useGantryAnalytics();
   const pinUpdate = useGantryPinUpdate();
   const [showAll, setShowAll] = useState(false);
@@ -95,9 +94,8 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, froz
 
   const showAggregate = hasImpactData(item) && item.avgImpact !== null;
   const canEditOwnRating = item.viewerHasPinned; // rating rides the active pin
-  const showReasoning = !!item.authorImpactReasoning && (canCurate || isAuthor) && item.objectives.length === 0;
 
-  if (!showAggregate && !canEditOwnRating && !showReasoning) return null;
+  if (!showAggregate && !canEditOwnRating) return null;
 
   const distribution = item.impactDistribution;
   const distributionStats = distribution
@@ -174,14 +172,6 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, froz
         </div>
       )}
 
-      {showReasoning && (
-        <div className={s.reasoning}>
-          <span className={s.reasoningLabel}>Author&apos;s goal-link</span>
-          {/* Plain JSX text — never rendered as HTML (XSS rule for free-text fields). */}
-          <p className={s.reasoningText}>{item.authorImpactReasoning}</p>
-        </div>
-      )}
-
       {canCurate && raterRows.length > 0 && (
         <div className={s.raters}>
           <div className={s.ratersHeader}>
@@ -206,7 +196,7 @@ export function ImpactDetailSection({ item, canCurate, isAuthor, viewerUid, froz
                       · {rater.impact !== null ? GANTRY_IMPACT_LABELS[rater.impact] : 'No rating'}
                     </span>
                   </span>
-                  {/* Author's "why" lives in the reasoning block, not a pin note — no note line for that row. */}
+                  {/* Author's "why" lives in the drawer Reasoning row — no pin note line for that row. */}
                   {!rater.isAuthor &&
                     (rater.note ? (
                       <span className={s.raterNote}>{rater.note}</span>

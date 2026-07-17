@@ -16,7 +16,6 @@ import { useGantryAccess } from '@/services/rbac/hooks/useGantryAccess';
 import { assignGantryItemObjectives } from '@/services/gantry/gantry.service';
 import type { GantryItemType, GantryObjective, GantryStage } from '@/services/gantry/types';
 import { getSubmitIdeaFormDefaults, SUBMIT_IDEA_MODAL_COPY } from '@/services/gantry/submitIdeaModal';
-import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import {
   useGantryDiscardDraftMutation,
   useGantryDraftQuery,
@@ -169,8 +168,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
         tags,
         ...(itemType ? { type: itemType } : {}),
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
-        ...(GANTRY_IMPACT_UI_ENABLED && data.impact != null ? { authorImpact: data.impact } : {}),
-        ...(GANTRY_IMPACT_UI_ENABLED && reasoning ? { authorImpactReasoning: reasoning } : {}),
+        ...(data.impact != null ? { authorImpact: data.impact } : {}),
+        ...(reasoning ? { authorImpactReasoning: reasoning } : {}),
       },
       {
         onSuccess: async (created) => {
@@ -219,7 +218,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
             <FormProvider {...methods}>
               <IdeaFormFields
                 canSetStageOnCreate={canSetStageOnCreate}
-                showImpact={GANTRY_IMPACT_UI_ENABLED}
+                showImpact
                 showReasoning={!canCurate}
                 impactRequired={false}
                 requireReasoning={false}

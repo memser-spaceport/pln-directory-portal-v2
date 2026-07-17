@@ -735,7 +735,9 @@
   border: 1px solid rgba(14, 15, 17, 0.12);
   border-radius: 12px;
   padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(14, 15, 17, 0.12), 0 2px 8px rgba(14, 15, 17, 0.06);
+  box-shadow:
+    0 8px 24px rgba(14, 15, 17, 0.12),
+    0 2px 8px rgba(14, 15, 17, 0.06);
   z-index: 11;
 
   @include tablet-landscape {
@@ -893,16 +895,17 @@
   width: 100%;
 }
 
-// "impact 4.7/5 (22 ratings)" — the score reads dim, the value pops.
 .impactInline {
   font-size: 12px;
   line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #374151;
   white-space: nowrap;
+}
 
-  strong {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
+.impactScore {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }

@@ -8,7 +8,6 @@ import { Menu } from '@base-ui-components/react/menu';
 import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
-import { GANTRY_IMPACT_UI_ENABLED } from '@/utils/feature-flags';
 import { hasImpactData } from '@/services/gantry/impact';
 import { GANTRY_IMPACT_MAX } from '@/services/gantry/constants';
 import { BoostersSection } from '../shared/BoostersSection';
@@ -69,7 +68,7 @@ function RoadmapCardContent({
 }: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
   const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
-  const showInlineImpact = GANTRY_IMPACT_UI_ENABLED && hasImpactData(item);
+  const showInlineImpact = hasImpactData(item);
   return (
     <>
       <div className={s.cardTopRow}>
@@ -143,8 +142,8 @@ function RoadmapCardContent({
             {/* Public impact score — everyone sees it, right-aligned opposite the boost (prototype layout). */}
             {showInlineImpact && item.avgImpact !== null && (
               <span className={s.impactInline}>
-                impact <strong>{item.avgImpact.toFixed(1)}</strong>/{GANTRY_IMPACT_MAX} ({item.impactCount}{' '}
-                {item.impactCount === 1 ? 'rating' : 'ratings'})
+                impact <strong className={s.impactScore}>{item.avgImpact.toFixed(1)}</strong>/{GANTRY_IMPACT_MAX} ·{' '}
+                {item.impactCount} {item.impactCount === 1 ? 'rating' : 'ratings'}
               </span>
             )}
           </div>

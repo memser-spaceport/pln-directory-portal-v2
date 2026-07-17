@@ -1,11 +1,11 @@
-// Drawer/page impact section — ring gauge, viewer's own rating, curator rater list, reasoning.
+// Drawer/page impact section — ring gauge, viewer's own rating, curator rater list.
 // Token pairs copied from neighboring gantry modules (fallbacks are load-bearing).
 
 .section {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: 12px;
+  margin-top: 4px;
   padding: 14px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 12px;
@@ -35,15 +35,17 @@
 .aggregateCount {
   font-size: 12px;
   line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 600;
+  color: #374151;
 }
 
-// The rating distribution as one dim line, matching the prototype's aggregate card.
+// Distribution stays a bit quieter than the count; still readable next to Boost-weight meta.
 .aggregateStats {
   margin-top: 2px;
   font-size: 12px;
   line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 /* --- Ring gauge --- */
@@ -73,8 +75,8 @@
 }
 
 .ringValue {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--foreground-neutral-primary, #0a0c11);
 }
@@ -83,7 +85,7 @@
   margin-top: 2px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: #374151;
 }
 
 /* --- Viewer's own rating --- */

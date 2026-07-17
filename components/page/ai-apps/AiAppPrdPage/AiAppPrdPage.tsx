@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Link from 'next/link';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
-import { ArrowBackIcon } from '@/components/icons';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppPrdContent } from '@/services/ai-apps/hooks/useAiAppPrdContent';
 
@@ -27,6 +25,7 @@ const APP_ERROR_MESSAGES: Record<'not-found' | 'forbidden' | 'network', string> 
   network: 'Something went wrong. Please try again.',
 };
 
+/** Renders as a bare document viewer (see isBareRoute) — no site chrome, no in-page back link, just the one-pager. */
 export function AiAppPrdPage({ uid }: Props) {
   const { app, errorKind, isLoading: isAppLoading } = useAiApp(uid);
   const { content, error: prdError, isLoading: isPrdLoading } = useAiAppPrdContent(app?.prd ?? null, {
@@ -46,15 +45,6 @@ export function AiAppPrdPage({ uid }: Props) {
     analytics.onPrdPageViewed(app.uid, app.name);
   }, [state.status, app, analytics]);
 
-  const backLink = (
-    <Link href={`/pl-infra/ai-apps/${encodeURIComponent(uid)}`} className={s.backLink}>
-      <ArrowBackIcon width={16} height={16} />
-      Back to app
-    </Link>
-  );
-
-  const showHeader = state.status !== 'loading' && state.status !== 'app-error' && !!app;
-
   const renderViewport = () => {
     switch (state.status) {
       case 'loading':
@@ -73,12 +63,6 @@ export function AiAppPrdPage({ uid }: Props) {
 
   return (
     <div className={s.root}>
-      {showHeader && (
-        <div className={s.header}>
-          {backLink}
-          <p className={s.title}>{app?.name}</p>
-        </div>
-      )}
       <div className={s.viewport}>{renderViewport()}</div>
     </div>
   );

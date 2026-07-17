@@ -25,15 +25,6 @@ jest.mock('@/components/page/ai-apps/components/PrdViewerBody', () => ({
   ),
 }));
 
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 function buildApp(overrides: Partial<AiApp> = {}): AiApp {
   return {
     uid: 'app-1',
@@ -65,24 +56,22 @@ describe('AiAppPrdPage', () => {
     jest.clearAllMocks();
   });
 
-  it('shows a loading state (no header) while the app is loading', () => {
+  it('shows a loading state while the app is loading', () => {
     mockUseAiAppReturn = { app: null, errorKind: null, isLoading: true };
     mockUseAiAppPrdContentReturn = idlePrdQuery;
 
     render(<AiAppPrdPage uid="app-1" />);
 
     expect(screen.getByTestId('prd-viewer-body')).toHaveTextContent('loading');
-    expect(screen.queryByRole('link', { name: /back to app/i })).not.toBeInTheDocument();
   });
 
-  it.each(['not-found', 'forbidden'])('collapses %s into a generic "not found" message with no header', (errorKind) => {
+  it.each(['not-found', 'forbidden'])('collapses %s into a generic "not found" message', (errorKind) => {
     mockUseAiAppReturn = { app: null, errorKind, isLoading: false };
     mockUseAiAppPrdContentReturn = idlePrdQuery;
 
     render(<AiAppPrdPage uid="app-1" />);
 
     expect(screen.getByText('This app could not be found.')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /back to app/i })).not.toBeInTheDocument();
   });
 
   it('shows a distinct message for a network error', () => {
@@ -94,25 +83,22 @@ describe('AiAppPrdPage', () => {
     expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
   });
 
-  it('shows a distinct empty state (with header) when the app has no prd', () => {
+  it('shows a distinct empty state when the app has no prd', () => {
     mockUseAiAppReturn = { app: buildApp({ prd: null }), errorKind: null, isLoading: false };
     mockUseAiAppPrdContentReturn = idlePrdQuery;
 
     render(<AiAppPrdPage uid="app-1" />);
 
     expect(screen.getByText('This app no longer has a one-pager.')).toBeInTheDocument();
-    expect(screen.getByText('News Summarizer')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /back to app/i })).toHaveAttribute('href', '/pl-infra/ai-apps/app-1');
   });
 
-  it('shows a loading indicator (with header) while the prd content is loading', () => {
+  it('shows a loading indicator while the prd content is loading', () => {
     mockUseAiAppReturn = { app: buildApp(), errorKind: null, isLoading: false };
     mockUseAiAppPrdContentReturn = { content: null, error: null, isLoading: true };
 
     render(<AiAppPrdPage uid="app-1" />);
 
     expect(screen.getByTestId('prd-viewer-body')).toHaveTextContent('loading');
-    expect(screen.getByText('News Summarizer')).toBeInTheDocument();
   });
 
   it('shows the prd content error via PrdViewerBody', () => {
@@ -124,13 +110,14 @@ describe('AiAppPrdPage', () => {
     expect(screen.getByTestId('prd-viewer-body')).toHaveTextContent('One-pager could not be loaded');
   });
 
-  it('renders the content and fires onPrdPageViewed once on success', () => {
+  it('renders the content and fires onPrdPageViewed once on success, with no other chrome', () => {
     mockUseAiAppReturn = { app: buildApp(), errorKind: null, isLoading: false };
     mockUseAiAppPrdContentReturn = { content: '# Hello', error: null, isLoading: false };
 
     const { rerender } = render(<AiAppPrdPage uid="app-1" />);
 
     expect(screen.getByTestId('prd-viewer-body')).toHaveTextContent('# Hello');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(mockAnalytics.onPrdPageViewed).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.onPrdPageViewed).toHaveBeenCalledWith('app-1', 'News Summarizer');
 

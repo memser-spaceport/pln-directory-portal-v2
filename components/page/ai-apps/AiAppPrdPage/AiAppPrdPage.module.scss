@@ -1,44 +1,13 @@
 @use 'styles/media';
 
+// This is a bare route (see isBareRoute) — the site navbar/bottom nav are
+// hidden entirely, so this page owns the full viewport, not the space below
+// a header.
 .root {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--app-header-height));
+  min-height: 100vh;
   width: 100%;
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 20px 24px 0;
-
-  @include media.tablet-landscape {
-    padding: 24px 32px 0;
-  }
-}
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--foreground-neutral-secondary, #455468);
-  text-decoration: none;
-
-  &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
-}
-
-.title {
-  margin: 0;
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .viewport {
@@ -46,7 +15,7 @@
   flex: 1;
   align-items: flex-start;
   justify-content: center;
-  padding: 20px 24px 40px;
+  padding: 40px 24px;
 
   // Same reading-column width as the modal's `.modal` max-width, so the
   // rendered one-pager looks identical whether opened inline or full-page.

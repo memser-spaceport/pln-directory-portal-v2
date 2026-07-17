@@ -24,8 +24,6 @@ export const useTeamPitchAnalytics = () => {
   return {
     onPageOpened: (eventParams: Record<string, unknown> = {}) =>
       captureEvent(TEAM_PITCH_ANALYTICS.ON_PAGE_OPENED, eventParams),
-    onTimeOnPage: (eventParams: Record<string, unknown> = {}) =>
-      captureEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, eventParams),
     onConfidentialityModalSubmitted: (eventParams: Record<string, unknown> = {}) =>
       captureEvent(TEAM_PITCH_ANALYTICS.ON_CONFIDENTIALITY_MODAL_SUBMITTED, eventParams),
     onConfidentialityModalClosed: (eventParams: Record<string, unknown> = {}) =>

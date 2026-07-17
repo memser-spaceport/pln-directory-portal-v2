@@ -1,0 +1,98 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.positioner {
+  outline: 0;
+  z-index: 20;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: 208px;
+  padding: 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+  transform-origin: top right;
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  outline: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  user-select: none;
+
+  &[data-highlighted] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &[data-disabled] {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: default;
+  }
+}
+
+.divider {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.destructive {
+  color: var(--foreground-error-primary, #d21a0e);
+
+  &[data-highlighted] {
+    background: var(--background-error-subtle, rgba(210, 26, 14, 0.06));
+  }
+
+  &[data-disabled] {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+.verifyNote {
+  margin: 4px 0 0;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

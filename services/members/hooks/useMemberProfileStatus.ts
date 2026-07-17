@@ -19,7 +19,11 @@ async function fetcher(uid: string | undefined) {
   );
 
   if (!response?.ok) {
-    throw new Error('Failed to fetch profile status');
+    // Non-critical background data (navbar treats missing status as "nothing to
+    // show") — returning null instead of throwing keeps a 403/5xx on a background
+    // refetch from tripping the global query error handler.
+    console.error(`Failed to fetch profile status (status ${response?.status ?? 'unknown'})`);
+    return null;
   }
 
   const data: MemberProfileStatus = await response.json();

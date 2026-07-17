@@ -35,8 +35,9 @@ import { StageBadge } from '@/components/page/gantry/shared/StageBadge';
 import { Tabs } from '@/components/common/Tabs/Tabs';
 import { MobileDrawer } from '@/components/ui/MobileDrawer/MobileDrawer';
 import FilterCount from '@/components/ui/filter-count';
-import { useGantryPinNote } from '@/services/gantry/hooks/useGantryPinNote';
+import { useGantryPinUpdate } from '@/services/gantry/hooks/useGantryPinUpdate';
 import { PinNotePopover } from '@/components/page/gantry/shared/PinNotePopover';
+import { BoostImpactPopover } from '@/components/page/gantry/shared/BoostImpactPopover';
 import { PinSwapPicker } from '@/components/page/gantry/shared/PinSwapPicker';
 import { useGantryDraftQuery, useGantryDiscardDraftMutation } from '@/services/gantry/hooks/useGantryDraft';
 import { isSubmitIdeaDraftEmpty } from '@/components/page/gantry/ideas/SubmitIdeaModal/helpers';
@@ -132,7 +133,7 @@ export function RoadmapView() {
   const transition = useGantryTransition();
   const reorder = useReorderGantryItem();
   const pin = useGantryPin();
-  const pinNote = useGantryPinNote();
+  const pinUpdate = useGantryPinUpdate();
 
   const { effectiveActiveColumn, scrollContainerRef, columnRefs, tabsWrapperRef, handleTabChange } =
     useRoadmapMobileNav(orderedVisibleColumns, isNarrow, !isLoading && !isError);
@@ -141,10 +142,14 @@ export function RoadmapView() {
     pinNotePopover,
     handlePinToggle,
     handlePinNoteSave,
+    ratePopover,
+    handleBoostRateSave,
+    handleBoostCancel,
+    isBoostCommitting,
     swapPickerState,
     handleSwapSelect,
     handleSwapDismiss,
-  } = useRoadmapPinActions(pin, pinNote, analytics, pinStatus);
+  } = useRoadmapPinActions(pin, pinUpdate, analytics, pinStatus);
 
   const itemsByStage = useMemo(() => {
     const map = Object.fromEntries(orderedVisibleColumns.map((stage) => [stage, [] as GantryItem[]])) as Record<
@@ -343,6 +348,21 @@ export function RoadmapView() {
           uid={pinNotePopover.uid}
           pos={{ top: pinNotePopover.top, left: pinNotePopover.left }}
           onSave={handlePinNoteSave}
+        />
+      )}
+      {ratePopover && (
+        <BoostImpactPopover
+          key={ratePopover.uid}
+          pos={{ top: ratePopover.top, left: ratePopover.left }}
+          objectives={data?.items.find((i) => i.uid === ratePopover.uid)?.objectives}
+          initialImpact={(() => {
+            const item = data?.items.find((i) => i.uid === ratePopover.uid);
+            if (!item) return null;
+            return item.viewerImpact ?? (item.createdByUid === currentUser?.uid ? item.authorImpact : null);
+          })()}
+          isSaving={isBoostCommitting}
+          onSave={handleBoostRateSave}
+          onCancel={handleBoostCancel}
         />
       )}
       {swapPickerState && (

@@ -210,7 +210,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-21T10:00:00.000Z',
     title: 'Protocol Labs announces the next IPFS mainnet upgrade',
     summary:
-      'The upgrade introduces faster content routing and lower retrieval latency, with a phased rollout for node operators starting this quarter.',
+      'The upgrade introduces faster content routing and lower retrieval latency, with a phased rollout for node operators beginning this quarter. A migration guide and updated gateway defaults ship alongside the release.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['IPFS'],
@@ -228,7 +228,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-21T09:00:00.000Z',
     title: 'Filecoin Foundation opens a grants round for verifiable AI storage',
     summary:
-      'The round funds teams building verifiable storage for AI training datasets, with milestones reviewed by the foundation’s research group.',
+      'The round funds teams building verifiable storage for AI training datasets, with milestones reviewed by the foundation’s research group. Selected projects also receive infrastructure credits and integration support from the ecosystem team.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin', 'Grants'],
@@ -246,7 +246,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-20T14:00:00.000Z',
     title: 'libp2p partners with a major L2 on a peer discovery standard',
     summary:
-      'The collaboration standardizes peer discovery across rollup networks so clients can interoperate without custom bootstrap code.',
+      'The collaboration standardizes peer discovery across rollup networks so clients can interoperate without custom bootstrap code. A reference implementation and conformance tests will land in the next libp2p release.',
     sourceUrl: 'https://x.com/libp2p',
     sourceDomain: 'x.com',
     tags: ['libp2p'],
@@ -264,7 +264,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-18T12:00:00.000Z',
     title: 'Filecoin crosses 2,000 PiB of active storage deals',
     summary:
-      'A new all-time high for the protocol, driven by growth in large-dataset onboarding and renewed enterprise storage deals.',
+      'A new all-time high for the protocol, driven by growth in large-dataset onboarding and renewed enterprise storage deals. Storage providers added capacity across three continents to keep pace with demand.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin'],
@@ -282,7 +282,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-16T08:00:00.000Z',
     title: 'PL-incubated team raises a seed round for decentralized compute',
     summary:
-      'The round backs a compute marketplace built on top of IPFS, connecting idle hardware with verifiable workloads.',
+      'The round backs a compute marketplace built on top of IPFS, connecting idle hardware with verifiable workloads. The team plans to open a public testnet later this year and is hiring across protocol and infrastructure roles.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Funding'],
@@ -300,7 +300,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-14T11:00:00.000Z',
     title: 'IPFS Camp 2026 dates announced',
     summary:
-      'This year’s camp adds a dedicated track on content-addressed AI pipelines alongside the core protocol workshops.',
+      'This year’s camp adds a dedicated track on content-addressed AI pipelines alongside the core protocol workshops. Registration opens next month, with travel stipends available for first-time contributors and student teams.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Events'],
@@ -318,7 +318,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-11T15:00:00.000Z',
     title: 'New retrieval market client cuts cold-storage times by ~40%',
     summary:
-      'The client ships smarter deal selection and parallel retrieval, cutting cold-storage retrieval times on Filecoin by roughly 40%.',
+      'The client ships smarter deal selection and parallel retrieval, cutting cold-storage retrieval times on Filecoin by roughly 40%. Operators can enable it behind a feature flag before it becomes the default next quarter.',
     sourceUrl: 'https://x.com/filecoin',
     sourceDomain: 'x.com',
     tags: ['Filecoin'],
@@ -336,7 +336,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-08T09:00:00.000Z',
     title: 'Protocol Labs joins a decentralized identity working group',
     summary:
-      'The cross-industry group is drafting shared standards for decentralized identity across networking and storage protocols.',
+      'The cross-industry group is drafting shared standards for decentralized identity across networking and storage protocols. Protocol Labs will contribute reference tooling and help run interoperability test events.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Identity'],
@@ -354,7 +354,7 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
     eventDate: '2026-06-04T13:00:00.000Z',
     title: 'Quarterly ecosystem report published',
     summary:
-      'The report highlights growth across storage, compute, and networking projects, with deep dives into retrieval markets.',
+      'The report highlights growth across storage, compute, and networking projects, with deep dives into retrieval markets and developer activity. It also outlines research priorities and funding opportunities for the coming quarter.',
     sourceUrl: 'https://x.com/protocollabs',
     sourceDomain: 'x.com',
     tags: ['Report'],

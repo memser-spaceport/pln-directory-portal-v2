@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+
 import { useOfficeHoursAccess } from '@/services/access-control/hooks/useOfficeHoursAccess';
 import { useFounderGuidesAccess } from '@/services/access-control/hooks/useFounderGuidesAccess';
 
@@ -20,51 +22,86 @@ export function QuickActions() {
   const { currentUser } = useCurrentUserStore();
   const group = detectUserGroup(currentUser?.rbac?.policies);
   const { canViewSupply, canSupply, canViewDemand, canRequestDemand, isLoading: ohLoading } = useOfficeHoursAccess();
-  const { hasAccess: hasFounderGuidesAccess } = useFounderGuidesAccess();
+  const { hasAccess: hasFounderGuidesAccess, isLoading: founderGuidesLoading } = useFounderGuidesAccess();
 
   const hasDealsAccess = !!currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'deals.read');
 
-  // For 'others' we defer until OH access resolves to prevent a card swap flicker
+  // Drives the mobile scroll container's left/right edge fade — only fades
+  // the side that still has more cards to reveal. Hooks run unconditionally,
+  // ahead of the loading-guard early-returns below.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [scrollEdges, setScrollEdges] = useState({ canScrollLeft: false, canScrollRight: false });
+
+  const updateScrollEdges = useCallback(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 1;
+    const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+    setScrollEdges((prev) =>
+      prev.canScrollLeft === canScrollLeft && prev.canScrollRight === canScrollRight
+        ? prev
+        : { canScrollLeft, canScrollRight },
+    );
+  }, []);
+
+  // No dependency array: re-checks after every render, so it also catches the
+  // ref attaching once the loading-guard below lets real content mount.
+  useEffect(() => {
+    updateScrollEdges();
+  });
+
+  useEffect(() => {
+    window.addEventListener('resize', updateScrollEdges);
+    return () => window.removeEventListener('resize', updateScrollEdges);
+  }, [updateScrollEdges]);
+
+  // For 'others' we defer until OH access resolves, and for 'founder' until
+  // Founder Guides access resolves, to prevent a card swap — on the mobile
+  // scroll-snap carousel a late-arriving card ahead of ones already swiped
+  // past would visibly shift scroll position under the user.
   if (group === 'others' && ohLoading) return null;
+  if (group === 'founder' && founderGuidesLoading) return null;
 
   const hasOhAccess = canViewSupply || canSupply || canViewDemand || canRequestDemand;
 
   const ohCard = (
-    <ActionCard
-      icon={<CalendarBlankIcon />}
-      title="Book Office Hours"
-      description="Connect with experts across the network"
-      href={OH_HREF}
-    />
+    <ActionCard icon={<CalendarBlankIcon />} title="Book Office Hours" description="Meet experts" href={OH_HREF} />
   );
 
   return (
     <section className={s.section}>
       <h2 className={s.title}>Quick Actions</h2>
       <p className={s.subtitle}>Quick actions to get the most from your network.</p>
-      <div className={s.grid}>
+      <div
+        ref={gridRef}
+        className={s.grid}
+        role="region"
+        aria-label="Quick actions"
+        onScroll={updateScrollEdges}
+        style={
+          {
+            '--fade-left': scrollEdges.canScrollLeft ? '20px' : '0px',
+            '--fade-right': scrollEdges.canScrollRight ? '20px' : '0px',
+          } as CSSProperties
+        }
+      >
         {group === 'pl-infra' && (
           <>
             <ActionCard
               icon={<TeamsIcon />}
               title="Teams"
-              description="Explore organizations across the network"
+              description="Explore organizations"
               href="/teams?priorities=P1%7CP2%7CP3"
             />
             {ohCard}
-            <ActionCard
-              icon={<DealsIcon />}
-              title="Network Deals"
-              description="Exclusive offers for network members"
-              href="/deals"
-            />
+            <ActionCard icon={<DealsIcon />} title="Network Deals" description="Member perks" href="/deals" />
             <ActionCard
               icon={<FoundersGuidesIcon />}
               title="Founder Guides"
-              description="Resources curated for network founders"
+              description="For founders"
               href="/founder-guides"
             />
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
 
@@ -75,19 +112,14 @@ export function QuickActions() {
               <ActionCard
                 icon={<FoundersGuidesIcon />}
                 title="Founder Guides"
-                description="Resources curated for network founders"
+                description="For founders"
                 href="/founder-guides"
               />
             )}
             {hasDealsAccess && (
-              <ActionCard
-                icon={<DealsIcon />}
-                title="Network Deals"
-                description="Exclusive offers for network members"
-                href="/deals"
-              />
+              <ActionCard icon={<DealsIcon />} title="Network Deals" description="Member perks" href="/deals" />
             )}
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
 
@@ -103,7 +135,7 @@ export function QuickActions() {
                 href="/members"
               />
             )}
-            <ActionCard icon={<JobsIcon />} title="Job Board" description="Find your next role" href="/jobs" />
+            <ActionCard icon={<JobsIcon />} title="Job Board" description="Open roles" href="/jobs" />
           </>
         )}
       </div>

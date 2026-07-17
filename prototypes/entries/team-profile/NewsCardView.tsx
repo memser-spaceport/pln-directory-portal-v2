@@ -1,5 +1,7 @@
 'use client';
 
+import { useLayoutEffect, useRef, useState } from 'react';
+
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
@@ -14,8 +16,9 @@ import { UpvoteButton } from '../newsfeed-v0/V0NewsCard';
  * Copy-simplified from the homepage NewsCard. The production card embeds
  * `StartConversationButton`, which is store/forum-access/analytics bound, so we
  * swap it for a plain "Discuss" link and keep everything else identical.
- * On top of production: a smaller rail headline, the summary clamped to two
- * lines, and an Upvote button (newsfeed prototype's) next to Discuss.
+ * On top of production: a smaller rail headline, an Upvote button (newsfeed
+ * prototype's) next to Discuss, and a summary that clamps to two lines in the
+ * rail but renders in full in the "View all" feed (`fullSummary`).
  */
 
 const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
@@ -40,18 +43,89 @@ export function NewsCardView({
   item,
   flat,
   hideTeam,
+  fullSummary,
   upvotes = 0,
   voted = false,
   onToggleUpvote,
+  onShowMore,
 }: {
   item: ITeamNewsItem;
   flat?: boolean;
   hideTeam?: boolean;
+  /** Rail clamps the summary to 2 lines; the full feed renders it in full. */
+  fullSummary?: boolean;
   upvotes?: number;
   voted?: boolean;
   onToggleUpvote?: () => void;
+  /** Rail only: "Show more" opens the full feed focused on this item. */
+  onShowMore?: () => void;
 }) {
   const open = () => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+
+  // Rail only: trim the teaser to two whole lines and append an inline
+  // "… Show more". Measuring against an off-screen gauge lets us cut on a word
+  // boundary, so text is never sliced mid-word the way a fixed-width overlay
+  // would. Re-runs on resize since the gauge width tracks the card.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const gaugeRef = useRef<HTMLDivElement>(null);
+  const [display, setDisplay] = useState(item.summary ?? '');
+  const [truncated, setTruncated] = useState(false);
+
+  useLayoutEffect(() => {
+    if (fullSummary || !item.summary) return;
+    const wrap = wrapRef.current;
+    const gauge = gaugeRef.current;
+    if (!wrap || !gauge) return;
+
+    const MAX_HEIGHT = 41; // two 20px lines (+1px tolerance)
+    const summary = item.summary;
+
+    const fitsWithSuffix = (text: string) => {
+      // Mirror the rendered line exactly so we don't over-reserve: "text… " in
+      // the body weight, then "Show more" as an atomic inline-block at weight
+      // 500 — matching the real button, which can't break across lines.
+      gauge.textContent = `${text}… `;
+      const label = document.createElement('span');
+      label.textContent = 'Show more';
+      label.style.fontWeight = '500';
+      label.style.whiteSpace = 'nowrap';
+      label.style.display = 'inline-block';
+      gauge.appendChild(label);
+      return gauge.offsetHeight <= MAX_HEIGHT;
+    };
+
+    const compute = () => {
+      gauge.style.width = `${wrap.clientWidth}px`;
+
+      gauge.textContent = summary;
+      if (gauge.offsetHeight <= MAX_HEIGHT) {
+        setDisplay(summary);
+        setTruncated(false);
+        return;
+      }
+
+      // Largest whole-word prefix that still fits beside the "… Show more" label.
+      const words = summary.split(' ');
+      let lo = 0;
+      let hi = words.length;
+      let best = 0;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (fitsWithSuffix(words.slice(0, mid).join(' '))) {
+          best = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      setDisplay(words.slice(0, best).join(' ').replace(/[\s,;:]+$/, ''));
+      setTruncated(true);
+    };
+
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [fullSummary, item.summary]);
 
   return (
     // Flat rows reuse production's .cardFlat (transparent, hairline divider
@@ -59,6 +133,7 @@ export function NewsCardView({
     <div
       role="link"
       tabIndex={0}
+      data-news-uid={item.uid}
       className={flat ? `${n.cardFlat} ${s.newsRowTight}` : `${n.card} ${n.cardOutline}`}
       onClick={open}
     >
@@ -76,7 +151,32 @@ export function NewsCardView({
       )}
 
       <h3 className={`${n.headline} ${s.newsHeadline}`}>{item.title}</h3>
-      {item.summary && <p className={`${n.summary} ${s.newsSummary}`}>{item.summary}</p>}
+      {item.summary &&
+        (fullSummary ? (
+          <p className={n.summary}>{item.summary}</p>
+        ) : (
+          <div ref={wrapRef} className={s.newsSummaryWrap}>
+            <p className={s.newsSummary}>
+              {display}
+              {truncated && onShowMore && (
+                <>
+                  {'… '}
+                  <button
+                    type="button"
+                    className={s.showMore}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowMore();
+                    }}
+                  >
+                    <span>Show more</span>
+                  </button>
+                </>
+              )}
+            </p>
+            <div ref={gaugeRef} className={s.summaryMeasure} aria-hidden="true" />
+          </div>
+        ))}
 
       <div className={`${n.metaLine} ${s.newsMetaRow}`}>
         <div className={n.meta}>

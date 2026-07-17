@@ -11,7 +11,7 @@ import { GiveAiAppFeedbackDialog } from '../GiveAiAppFeedbackDialog';
 import s from './FloatingFeedbackButton.module.scss';
 
 interface Props {
-  /** When provided (app detail page), feedback applies to this app and no picker is shown. */
+  /** When provided (app detail page), preselects this app in the feedback picker. */
   appUid?: string;
   appName?: string;
   /** Align the button with the page's max-width content column instead of the viewport edge. */

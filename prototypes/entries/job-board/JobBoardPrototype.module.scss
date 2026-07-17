@@ -1,0 +1,19 @@
+// Layout, toolbar, title and list styling are reused 1:1 from the production
+// JobsContent.module.scss (imported in JobBoardPrototype.tsx). Only the mount gate
+// and the local empty state live here.
+
+.mountGate {
+  min-height: 60vh;
+}
+
+.empty {
+  margin: 8px;
+  padding: 32px 20px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 12px;
+  background: #fff;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+}

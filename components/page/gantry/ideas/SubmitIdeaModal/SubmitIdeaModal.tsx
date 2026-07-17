@@ -70,6 +70,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     resolver: yupResolver(submitIdeaSchema) as any,
     defaultValues: getSubmitIdeaFormDefaults(variant),
     mode: 'onChange',
+    // Impact / reasoning are optional on create; context keeps the yup `.when` hooks inert.
+    context: { impactRequired: false, reasoningRequired: false },
   });
 
   const {
@@ -113,15 +115,13 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, variant]);
 
-  // Autosave draft while modal is open
-  const toDraft = useCallback(
-    (): SubmitIdeaDraft => ({
-      form: getValues(),
-      showCreateObjective,
-      newObjectiveTitle,
-    }),
-    [getValues, showCreateObjective, newObjectiveTitle],
-  );
+  // Autosave draft while modal is open. Impact fields are deliberately NOT persisted:
+  // the drafts API's field mapping (ApiGantryDraftPayload) has no slots for them, so a
+  // round-trip would silently drop them — and a rating-only draft must not count as content.
+  const toDraft = useCallback((): SubmitIdeaDraft => {
+    const { impact: _impact, impactReasoning: _impactReasoning, ...form } = getValues();
+    return { form, showCreateObjective, newObjectiveTitle };
+  }, [getValues, showCreateObjective, newObjectiveTitle]);
 
   useEffect(() => {
     if (!open || skipSaveRef.current) return;
@@ -159,6 +159,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
     const tags = data.tags?.map((o) => o.value) ?? [];
     const itemType = data.type?.value as GantryItemType | undefined;
 
+    const reasoning = data.impactReasoning?.trim();
     mutate(
       {
         title: data.title.trim(),
@@ -167,6 +168,8 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
         tags,
         ...(itemType ? { type: itemType } : {}),
         ...(canSetStageOnCreate && stageValue ? { stage: stageValue } : {}),
+        ...(data.impact != null ? { authorImpact: data.impact } : {}),
+        ...(reasoning ? { authorImpactReasoning: reasoning } : {}),
       },
       {
         onSuccess: async (created) => {
@@ -182,7 +185,7 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
               // non-fatal
             }
           }
-          analytics.onIdeaCreated(created.uid, tags, itemType);
+          analytics.onIdeaCreated(created.uid, tags, itemType, data.impact ?? undefined);
           discardDraftMutation.mutate();
           reset(getSubmitIdeaFormDefaults('idea'));
           setShowCreateObjective(false);
@@ -213,7 +216,13 @@ export function SubmitIdeaModal({ objectives = [] }: Props) {
 
           <div className={dealModalStyles.content}>
             <FormProvider {...methods}>
-              <IdeaFormFields canSetStageOnCreate={canSetStageOnCreate} />
+              <IdeaFormFields
+                canSetStageOnCreate={canSetStageOnCreate}
+                showImpact
+                showReasoning={!canCurate}
+                impactRequired={false}
+                requireReasoning={false}
+              />
               {canCurate && (
                 <div className={s.objectiveField}>
                   <FormMultiSelect

@@ -19,6 +19,7 @@ async function infiniteFetcher(searchParams: TeamsListQueryParams['searchParams'
   const { authToken } = getCookiesFromClient();
   const query = qs.stringify({
     ...searchParams,
+    sort: searchParams.sort?.split(',').map((s: string) => s.toLowerCase()).join(':'),
     investmentFocus: searchParams.investmentFocus?.split('|').filter(Boolean),
     priorities: toPriorityValues(searchParams.priorities),
   });

@@ -10,7 +10,8 @@ import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTe
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import local from './NewsfeedV0.module.scss';
 
-import { FollowButton } from '../follow-shared/FollowButton';
+// The same Follow button dev ships in the production "Teams to follow" rail.
+import { FollowButton } from '@/components/ui/FollowButton';
 import { MOCK_FOCUS_AREAS, SUGGESTED_TEAMS, UPVOTES } from './mocks';
 
 interface FeedRailProps {
@@ -30,7 +31,7 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
 
   return (
     <>
-      <div className={clsx(s.card, local.railCard)}>
+      <div className={clsx(s.card, local.railCard, local.followRailCard)}>
         <h3 className={local.railTitle}>Teams to follow</h3>
         {SUGGESTED_TEAMS.map((team) => (
           <div key={team.uid} className={local.railRow}>
@@ -46,11 +47,11 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
                   following={followedTeams.has(team.uid)}
                   onClick={() => onToggleFollow(team.uid, team.name)}
                   name={team.name}
-                  size="xs"
-                  tertiary
+                  size="default"
+                  className={local.railFollowBtn}
                 />
               </span>
-              <span className={local.railReason}>{team.reason}</span>
+              <span className={local.railDesc}>{team.description}</span>
             </span>
           </div>
         ))}

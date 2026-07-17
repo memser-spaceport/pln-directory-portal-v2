@@ -30,11 +30,34 @@
   letter-spacing: -0.1px;
 }
 
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+
+  .catRow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.filterActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  @include mobile-only {
+    margin-left: auto;
+  }
+}
+
 .catRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 4px;
 }
 
 .cat {

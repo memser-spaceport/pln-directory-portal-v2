@@ -1,0 +1,184 @@
+// Only the impact-readout additions live here — the drawer chrome comes read-only
+// from production (common Drawer + GantryDetailPage.module.scss).
+
+// Section headings sit below the item title — a subsection size, not bigger than the 22px title.
+.sectionTitle.sectionTitle {
+  font-size: 15px;
+  line-height: 22px;
+  letter-spacing: normal;
+}
+
+// Description reads as quiet grey body, not primary text. Doubled selector zeroes the Quill
+// editor's default padding (15px) and drops the body to 14px (production ships 16px), matching
+// the rest of the drawer content.
+.description.description {
+  padding: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.description.description,
+.description.description p {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+// The signature metric gets a light container so it reads as the drawer's focal stat.
+.impactReadout {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+}
+
+.impactMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.impactLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.impactScore {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.impactDim {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Author's expected-impact claim block (in the drawer content, under Description). */
+.authorClaim {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.authorClaimGoalsLabel {
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.authorClaimGoals {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// The author's self-rated level — deliberately quiet (a biased internal signal, not a headline).
+.authorClaimMeta {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.authorClaimNote {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Description as a captioned block — the caption uses the same label style as the grid rows,
+// but sits above the text (a block reads better with the label stacked, not beside it).
+.descriptionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  // Tighten the caption's line box so the description sits close under it.
+  .detailLabel {
+    line-height: 16px;
+  }
+}
+
+// Production .content uses a 20px flex gap between its children; tighten to 12px so the
+// description-to-metadata gap matches the grid's 12px row gap (all gaps even).
+.contentTight.contentTight {
+  gap: 12px;
+}
+
+/* Quiet property group — Tags / Type / goal as one label→value grid (Linear/Jira pattern). */
+.details {
+  display: grid;
+  // Label column hugs its widest label instead of a fixed width, so short labels
+  // ("Tags", "Type") don't leave a big empty gap before the value.
+  grid-template-columns: max-content 1fr;
+  gap: 12px 24px;
+  align-items: baseline;
+}
+
+.detailLabel {
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.detailValue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+// Free-text reasoning reads as body text, not a chip.
+.goalText {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// Objectives version: one row per objective, chip on the left and its rating on the right.
+.objectiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.objectiveListRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.objScore {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Quiet caption so the author's reasoning under the description isn't a mystery paragraph.
+.reasoningLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

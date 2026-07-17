@@ -60,9 +60,7 @@ function mapContact(dto: AnyDto): PathContact {
     role: dto.role as string | undefined,
     email: dto.email as string | undefined,
     image_url: (dto.imageUrl ?? dto.image_url) as string | undefined,
-    linkedin_url: normalizeLinkedInUrl(
-      (dto.linkedinUrl ?? dto.linkedin_url ?? dto.linkedin) as string | undefined,
-    ),
+    linkedin_url: normalizeLinkedInUrl((dto.linkedinUrl ?? dto.linkedin_url ?? dto.linkedin) as string | undefined),
     telegram: dto.telegram as string | undefined,
     member_uid: (dto.memberUid ?? dto.member_uid) as string | undefined,
   };
@@ -80,14 +78,19 @@ function mapOrgConnector(dto: AnyDto): PathOrgConnector {
 }
 
 function mapRouteNode(dto: AnyDto): RouteNode {
+  const rawVariant = (dto.variant ?? 'external') as string;
+  const variant: RouteNode['variant'] = rawVariant === 'member' || rawVariant === 'org' ? rawVariant : 'external';
   return {
     label: (dto.label ?? '') as string,
     role: dto.role as string | undefined,
     email: dto.email as string | undefined,
-    variant: (dto.variant ?? 'external') as 'member' | 'external',
+    variant,
     imageUrl: (dto.imageUrl ?? dto.image_url) as string | undefined,
     linkedin: dto.linkedin as string | undefined,
     memberUid: (dto.memberUid ?? dto.member_uid) as string | undefined,
+    orgName: (dto.orgName ?? dto.org_name) as string | undefined,
+    logo: dto.logo as string | undefined,
+    teamUid: (dto.teamUid ?? dto.team_uid) as string | undefined,
     contacts: (dto.contacts as AnyDto[] | undefined)?.map((c) => ({
       name: (c.name ?? '') as string,
       role: c.role as string | undefined,

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 
@@ -11,9 +12,14 @@ import { ViewFeedbackEntryPoint } from '../components/ViewFeedbackEntryPoint';
 import s from './AiAppsPage.module.scss';
 
 export function AiAppsPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
   const analytics = useAiAppsAnalytics();
   const hasTrackedPageView = useRef(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const openFromUrl = searchParams.get('dialog') === 'addAiApp';
+  const isModalOpen = openFromUrl || manualOpen;
 
   useEffect(() => {
     if (hasTrackedPageView.current) return;
@@ -23,12 +29,19 @@ export function AiAppsPage() {
 
   const handleOpenCreateModal = () => {
     analytics.onCreateModalOpened();
-    setIsModalOpen(true);
+    setManualOpen(true);
   };
 
   const handleCloseCreateModal = () => {
     analytics.onCreateModalClosed();
-    setIsModalOpen(false);
+    setManualOpen(false);
+
+    if (openFromUrl) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('dialog');
+      const qs = params.toString();
+      router.replace(qs ? `?${qs}` : '/pl-infra/ai-apps', { scroll: false });
+    }
   };
 
   return (

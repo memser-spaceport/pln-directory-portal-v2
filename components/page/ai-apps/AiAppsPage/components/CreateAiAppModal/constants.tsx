@@ -21,7 +21,9 @@ export const STEPS: { title: string; description: ReactNode }[] = [
     description: (
       <>
         Tell your agent what you want. <strong>Frontend and backend are both supported</strong> — a UI-only page, or an
-        app that talks to data and services (ChatGPT, email, a database, etc.). Your agent handles the technical setup.
+        app that talks to data and services (ChatGPT, email, a database, etc.). Your app can also use{' '}
+        <strong>PL member context</strong> (name, photo, teams, and more) to personalize for the signed-in user. Your
+        agent handles the technical setup.
       </>
     ),
   },
@@ -31,6 +33,10 @@ export const STEPS: { title: string; description: ReactNode }[] = [
       <>
         Say &quot;deploy this app&quot;, then:
         <ol>
+          <li>
+            Your agent suggests a <strong>name and short description</strong> — approve them (or ask for changes) before
+            it continues.
+          </li>
           <li>Open the LabOS link your agent gives you, sign in, and click Approve.</li>
           <li>
             <em>Optional</em> — if the backend needs access to data or external services, your agent will send a second
@@ -46,6 +52,13 @@ export const STEPS: { title: string; description: ReactNode }[] = [
 
 export const MODAL_INTRO =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
+
+export const MODAL_WHATS_NEW_ITEMS = [
+  'Use signed-in PL member context in your app (name, photo, teams, and more)',
+  "Approve your app's name and description before the first deploy",
+  'Optionally add a one-pager/PRD after deploy',
+  '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+];
 
 export const SECURITY_NOTE =
   'This download is tied to your LabOS account and acts on your behalf. Do not share it with others — anyone with it could deploy apps under your name.';

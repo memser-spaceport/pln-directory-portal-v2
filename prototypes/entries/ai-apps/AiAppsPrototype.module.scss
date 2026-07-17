@@ -1,0 +1,70 @@
+@use 'styles/media';
+
+.shell {
+  display: flex;
+  flex-direction: column;
+}
+
+// Mobile side padding override. Production insets the page by 16px (frame) +
+// 24px (content) = 40px each side; scoped under .shell to beat those single-
+// class selectors. Net 20px gutters, so the single-column tiles stretch wider.
+.shell .frameMobile {
+  @include media.mobile-only {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.shell .contentMobile {
+  @include media.mobile-only {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Prototype-only affordance to demo creator vs. visitor - not part of the
+   production surface. Pinned top-right so it stays out of the app chrome. */
+.roleToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+  margin: 12px 16px 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.roleLabel {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  button {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+    color: var(--foreground-neutral-secondary, #455468);
+    cursor: pointer;
+
+    &[data-active='true'] {
+      background: #ffffff;
+      color: var(--foreground-brand-primary, #1b4dff);
+      box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    }
+  }
+}

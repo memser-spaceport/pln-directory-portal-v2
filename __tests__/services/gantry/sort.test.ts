@@ -23,6 +23,12 @@ const baseItem = (overrides: Partial<GantryItem>): GantryItem => ({
   pinCount: 0,
   viewerHasPinned: false,
   viewerPinNote: null,
+  authorImpact: null,
+  authorImpactReasoning: null,
+  avgImpact: null,
+  impactCount: 0,
+  impactDistribution: null,
+  viewerImpact: null,
   deletedAt: null,
   createdAt: '2026-06-01T12:00:00.000Z',
   updatedAt: '2026-06-01T12:00:00.000Z',
@@ -46,10 +52,7 @@ describe('gantry trending sort', () => {
     const established = baseItem({ uid: 'established', pinCount: 10, createdAt: '2026-06-08T12:00:00.000Z' });
 
     expect(gantryTrendingScore(established, now)).toBeGreaterThan(gantryTrendingScore(fresh, now));
-    expect(sortGantryItemsByTrending([fresh, established]).map((item) => item.uid)).toEqual([
-      'established',
-      'fresh',
-    ]);
+    expect(sortGantryItemsByTrending([fresh, established]).map((item) => item.uid)).toEqual(['established', 'fresh']);
   });
 
   it('boosts recent high-signal items ahead of stale high-count items', () => {

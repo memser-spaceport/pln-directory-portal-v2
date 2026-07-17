@@ -1,0 +1,13 @@
+// Only the impact-specific additions — the section chrome comes read-only from
+// production BoostersSection.module.scss.
+
+.headerStat {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.voteLevel {
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

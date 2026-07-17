@@ -1,0 +1,86 @@
+// Local extras on top of the reused production RoleRow.module.scss.
+@use 'styles/media';
+
+// On phones the production row (title/meta left, actions right) gets crushed —
+// the title/meta wrap over many lines while the actions squish. Stack them: full-
+// width title + meta, then the actions on their own line below.
+.row {
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.actions {
+  @include media.mobile-only {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px 16px;
+  }
+}
+
+// Refer + apply arrow travel together. On mobile they're pushed to the card's
+// right corner, leaving the post time on the left with space between.
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  @include media.mobile-only {
+    margin-left: auto;
+  }
+}
+
+// Title + (mobile) "New" badge on one line: name fills, badge pinned right.
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+// "New" badge: shown in the action line on desktop, moved to the top-right of the
+// card (in line with the role name) on mobile. Only one renders per breakpoint.
+.newBadgeMobile {
+  display: none;
+}
+
+@include media.mobile-only {
+  .titleRow .titleLink {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .newBadgeMobile {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .newBadgeDesktop {
+    display: none;
+  }
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.applyArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  border-radius: 8px;
+  padding: 2px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}

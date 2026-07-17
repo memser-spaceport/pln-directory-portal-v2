@@ -82,6 +82,57 @@ describe('TeamsToFollowCard', () => {
     expect(screen.queryByText(/followers/i)).not.toBeInTheDocument();
   });
 
+  it('links the team name to its profile, opening in a new tab', () => {
+    render(
+      <TeamsToFollowCard
+        suggestions={[team({ uid: 't1', name: 'Banyan Storage' })]}
+        isLoading={false}
+        followedTeamUids={emptyFollowed}
+        onFollowToggle={mockOnFollowToggle}
+      />,
+    );
+    const link = screen.getByRole('link', { name: 'Banyan Storage' });
+    expect(link).toHaveAttribute('href', '/teams/t1');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('prefers the short description as the subtitle when available', () => {
+    render(
+      <TeamsToFollowCard
+        suggestions={[
+          team({
+            uid: 't1',
+            name: 'Banyan Storage',
+            reason: 'Storage · 1.2k followers',
+            shortDescription: 'Decentralized hot storage for large datasets.',
+          }),
+        ]}
+        isLoading={false}
+        followedTeamUids={emptyFollowed}
+        onFollowToggle={mockOnFollowToggle}
+      />,
+    );
+    expect(screen.getByText('Decentralized hot storage for large datasets.')).toBeInTheDocument();
+    expect(screen.queryByText('Storage')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the focus-area reason when the short description is missing or blank', () => {
+    render(
+      <TeamsToFollowCard
+        suggestions={[
+          team({ uid: 't1', name: 'Banyan Storage', shortDescription: '   ' }),
+          team({ uid: 't2', name: 'Other Team', reason: 'Infrastructure · 890 followers' }),
+        ]}
+        isLoading={false}
+        followedTeamUids={emptyFollowed}
+        onFollowToggle={mockOnFollowToggle}
+      />,
+    );
+    expect(screen.getByText('Storage')).toBeInTheDocument();
+    expect(screen.getByText('Infrastructure')).toBeInTheDocument();
+  });
+
   it('redirects to login on follow click when anonymous, without calling onFollowToggle', () => {
     render(
       <TeamsToFollowCard

@@ -1,0 +1,18 @@
+// Local overrides on top of the reused production TeamGroupCard.module.scss.
+// Descendant selectors (.card .avatar) outrank the single-class production rules
+// so these win regardless of stylesheet order.
+@use 'styles/media';
+
+.card .avatar {
+  @include media.mobile-only {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+}
+
+.card .avatarInitials {
+  @include media.mobile-only {
+    font-size: 14px;
+  }
+}

@@ -12,7 +12,7 @@ import { IUserInfo } from '@/types/shared.types';
 import { getTeamPriority, getPriorityLabel } from '@/utils/team.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import { useToggleTeamFollowInList } from '@/services/follow/hooks/useToggleTeamFollowInList';
 
 import s from './TeamGridView.module.scss';

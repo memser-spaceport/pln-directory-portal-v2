@@ -81,7 +81,7 @@ export function useInvestorsAnalytics() {
   );
 
   const trackConnectorLensApplied = useCallback(
-    (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' | 'pl_team' }) => {
+    (params: { nodeLabel: string; kind: 'founder' | 'team' | 'investor' | 'pl_team' | 'fund' }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.CONNECTOR_LENS_APPLIED, params);
     },
     [posthog],

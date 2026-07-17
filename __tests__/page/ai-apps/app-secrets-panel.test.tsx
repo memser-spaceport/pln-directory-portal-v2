@@ -9,6 +9,7 @@ const mockInvalidateQueries = jest.fn();
 const mockAnalytics = {
   onSecretsDeployClicked: jest.fn(),
   onSecretsDeploySucceeded: jest.fn(),
+  onSecretsDeployFailed: jest.fn(),
 };
 
 jest.mock('@tanstack/react-query', () => ({
@@ -159,6 +160,7 @@ describe('AppSecretsPanel', () => {
 
     await waitFor(() => expect(screen.getByText('Sandbox rejected the key.')).toBeInTheDocument());
     expect(screen.getByPlaceholderText('Enter new value')).toHaveValue('new-secret');
+    expect(mockAnalytics.onSecretsDeployFailed).toHaveBeenCalledWith({ appUid: 'app-1', isDraft: false });
   });
 
   it('calls onDeploySucceeded only after a successful deploy, once the deploying flag has cleared', async () => {

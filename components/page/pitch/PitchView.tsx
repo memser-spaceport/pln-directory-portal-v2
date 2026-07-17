@@ -62,8 +62,6 @@ export const PitchView = () => {
   useTimeOnPage({
     enabled: !accessLoading && !!access,
     onTimeReport: (timeSpent, sessionId) => {
-      teamPitchAnalytics.onTimeOnPage({ ...pitchPageProperties, timeSpent, sessionId });
-
       const distinctId = currentUser?.email ?? `pitch-anonymous-${slug}`;
       reportAnalytics.mutate(
         buildEngagementTrackEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, distinctId, getTeamSpotlightPath(slug), slug, {

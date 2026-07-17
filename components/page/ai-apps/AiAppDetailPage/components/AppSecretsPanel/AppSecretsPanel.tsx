@@ -52,6 +52,9 @@ export function AppSecretsPanel(props: Props) {
 
   const provided = new Set(app.providedEnvVars);
   const isDraft = app.status === 'DRAFT';
+  // No env vars to collect — the panel is a plain retry of the stored bundle
+  // (shown after a failed/stuck deploy of a non-secrets app).
+  const isRetry = app.requiredEnvVars.length === 0;
 
   const onChange = (name: string, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -99,6 +102,7 @@ export function AppSecretsPanel(props: Props) {
 
     if (result.error) {
       setError(result.error);
+      analytics.onSecretsDeployFailed({ appUid: app.uid, isDraft });
       // Keep `values` and `editing` as-is on failure — an unlocked field stays
       // unlocked with its typed value intact so the user can retry without
       // re-typing or losing their place.
@@ -127,84 +131,102 @@ export function AppSecretsPanel(props: Props) {
   return (
     <div className={s.root}>
       <p className={s.intro}>
-        {isDraft
-          ? 'This app needs the following values before it can be deployed. They are stored securely on the sandbox and never shown again.'
-          : 'Update one or more values and re-deploy. Stored values are kept unless you edit them.'}
+        {isRetry
+          ? 'Retry deploying the stored app bundle to the sandbox. If the sandbox runner had an outage, retrying once it recovers usually fixes it — but if the app itself fails to build, ask your AI agent to fix it and deploy again.'
+          : isDraft
+            ? 'This app needs the following values before it can be deployed. They are stored securely on the sandbox and never shown again.'
+            : 'Update one or more values and re-deploy. Stored values are kept unless you edit them.'}
       </p>
 
-      <div className={s.fields}>
-        {app.requiredEnvVars.map((name) => {
-          const stored = provided.has(name);
-          const isEditing = !!editing[name];
-          const inputId = `secret-${name}`;
+      {!isRetry && (
+        <div className={s.fields}>
+          {app.requiredEnvVars.map((name) => {
+            const stored = provided.has(name);
+            const isEditing = !!editing[name];
+            const inputId = `secret-${name}`;
 
-          return (
-            <div key={name} className={s.field}>
-              <span className={s.fieldLabelRow}>
-                <label htmlFor={inputId} className={s.fieldName}>
-                  {name}
-                </label>
-                {stored && isEditing && (
-                  <button
-                    type="button"
-                    className={s.inlineLink}
-                    onClick={() => cancelEdit(name)}
+            return (
+              <div key={name} className={s.field}>
+                <span className={s.fieldLabelRow}>
+                  <label htmlFor={inputId} className={s.fieldName}>
+                    {name}
+                  </label>
+                  {stored && isEditing && (
+                    <button
+                      type="button"
+                      className={s.inlineLink}
+                      onClick={() => cancelEdit(name)}
+                      disabled={isDeploying}
+                    >
+                      Cancel — keep stored value
+                    </button>
+                  )}
+                </span>
+
+                {stored && !isEditing ? (
+                  <div className={`${s.input} ${s.lockedInput}`}>
+                    <span className={s.maskedValue} aria-hidden>
+                      ••••••••••••••••
+                    </span>
+                    <button
+                      type="button"
+                      ref={(el) => {
+                        if (el && pendingFocusName.current === name) {
+                          el.focus();
+                          pendingFocusName.current = null;
+                        }
+                      }}
+                      className={s.inlineLink}
+                      onClick={() => startEdit(name)}
+                      disabled={isDeploying}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    id={inputId}
+                    className={s.input}
+                    type="password"
+                    // new-password discourages browser/password-manager autofill
+                    // from treating these as login fields and clearing siblings.
+                    autoComplete="new-password"
+                    autoFocus={isEditing}
+                    value={values[name] ?? ''}
+                    placeholder={stored ? 'Enter new value' : 'Required'}
+                    onChange={(e) => onChange(name, e.target.value)}
                     disabled={isDeploying}
-                  >
-                    Cancel — keep stored value
-                  </button>
+                  />
                 )}
-              </span>
-
-              {stored && !isEditing ? (
-                <div className={`${s.input} ${s.lockedInput}`}>
-                  <span className={s.maskedValue} aria-hidden>
-                    ••••••••••••••••
-                  </span>
-                  <button
-                    type="button"
-                    ref={(el) => {
-                      if (el && pendingFocusName.current === name) {
-                        el.focus();
-                        pendingFocusName.current = null;
-                      }
-                    }}
-                    className={s.inlineLink}
-                    onClick={() => startEdit(name)}
-                    disabled={isDeploying}
-                  >
-                    Edit
-                  </button>
-                </div>
-              ) : (
-                <input
-                  id={inputId}
-                  className={s.input}
-                  type="password"
-                  // new-password discourages browser/password-manager autofill
-                  // from treating these as login fields and clearing siblings.
-                  autoComplete="new-password"
-                  autoFocus={isEditing}
-                  value={values[name] ?? ''}
-                  placeholder={stored ? 'Enter new value' : 'Required'}
-                  onChange={(e) => onChange(name, e.target.value)}
-                  disabled={isDeploying}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {error && <p className={s.error}>{error}</p>}
 
       <div className={s.actions}>
         <Button variant="primary" size="m" onClick={onDeploy} disabled={isDeploying}>
-          {isDeploying ? (isDraft ? 'Deploying…' : 'Re-deploying…') : isDraft ? 'Deploy' : 'Re-deploy'}
+          {isDeploying
+            ? isRetry
+              ? 'Retrying…'
+              : isDraft
+                ? 'Deploying…'
+                : 'Re-deploying…'
+            : isRetry
+              ? 'Retry deploy'
+              : isDraft
+                ? 'Deploy'
+                : 'Re-deploy'}
         </Button>
         {isDeploying && (
           <span className={s.deployNote}>
-            {isDraft ? 'The first deploy can take a couple of minutes.' : 'Restarting the app with the updated values.'}
+            {isRetry
+              ? 'Redeploying the stored bundle — this can take a couple of minutes.'
+              : isDraft
+                ? 'The first deploy can take a couple of minutes.'
+                : 'Restarting the app with the updated values.'}
           </span>
         )}
       </div>

@@ -1,70 +1,89 @@
 import { selectionToConnectorFilter } from '@/components/page/investors/WarmIntrosWorkspace/connectorLensFilters';
 
 describe('selectionToConnectorFilter', () => {
-  it('routes investor selection to connector lens labels, not investorId', () => {
+  it('routes investor selection to person connector labels only', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'investor',
         displayLabel: 'Jane Doe',
-        matchLabels: ['Jane Doe', 'Acme Ventures'],
+        matchLabels: ['Jane Doe'],
       }),
     ).toEqual({
       wi_connector: 'Jane Doe',
-      wi_connector_labels: ['Jane Doe', 'Acme Ventures'],
+      wi_connector_labels: ['Jane Doe'],
       wi_connector_contains: [],
+      wi_connector_kind: 'person',
       investorId: null,
     });
   });
 
-  it('includes contains labels for investor firm matching', () => {
+  it('does not pack firm contains for investor person selection', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'investor',
         displayLabel: 'Josh Baer',
-        matchLabels: ['Josh Baer', 'Capital Factory'],
-        containsLabels: ['Capital Factory'],
+        matchLabels: ['Josh Baer'],
       }),
     ).toEqual({
       wi_connector: 'Josh Baer',
-      wi_connector_labels: ['Josh Baer', 'Capital Factory'],
-      wi_connector_contains: ['Capital Factory'],
+      wi_connector_labels: ['Josh Baer'],
+      wi_connector_contains: [],
+      wi_connector_kind: 'person',
       investorId: null,
     });
   });
 
-  it('includes contains labels for team selection', () => {
+  it('routes fund selection to org connector labels', () => {
+    expect(
+      selectionToConnectorFilter({
+        kind: 'fund',
+        displayLabel: 'Coinbase',
+        matchLabels: ['Coinbase'],
+        containsLabels: ['Coinbase'],
+      }),
+    ).toEqual({
+      wi_connector: 'Coinbase',
+      wi_connector_labels: ['Coinbase'],
+      wi_connector_contains: ['Coinbase'],
+      wi_connector_kind: 'org',
+      investorId: null,
+    });
+  });
+
+  it('routes team selection to org labels without founder names', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'team',
         displayLabel: 'Modular Globe',
-        matchLabels: ['Modular Globe', 'Jane Park'],
+        matchLabels: ['Modular Globe'],
         containsLabels: ['Modular Globe'],
       }),
     ).toEqual({
       wi_connector: 'Modular Globe',
-      wi_connector_labels: ['Modular Globe', 'Jane Park'],
+      wi_connector_labels: ['Modular Globe'],
       wi_connector_contains: ['Modular Globe'],
+      wi_connector_kind: 'org',
       investorId: null,
     });
   });
 
-  it('routes founder selection to exact and team contains labels', () => {
+  it('routes founder selection to person labels only', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'founder',
         displayLabel: 'Alice Founder',
-        matchLabels: ['Alice Founder', 'Modular Globe'],
-        containsLabels: ['Modular Globe'],
+        matchLabels: ['Alice Founder'],
       }),
     ).toEqual({
       wi_connector: 'Alice Founder',
-      wi_connector_labels: ['Alice Founder', 'Modular Globe'],
-      wi_connector_contains: ['Modular Globe'],
+      wi_connector_labels: ['Alice Founder'],
+      wi_connector_contains: [],
+      wi_connector_kind: 'person',
       investorId: null,
     });
   });
 
-  it('routes a PL team member selection to an exact-name connector label (task 04)', () => {
+  it('routes a PL team member selection to an exact-name person connector label', () => {
     expect(
       selectionToConnectorFilter({
         kind: 'pl_team',
@@ -75,6 +94,7 @@ describe('selectionToConnectorFilter', () => {
       wi_connector: 'Brad Holden',
       wi_connector_labels: ['Brad Holden'],
       wi_connector_contains: [],
+      wi_connector_kind: 'person',
       investorId: null,
     });
   });

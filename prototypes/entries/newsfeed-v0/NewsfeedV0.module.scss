@@ -420,10 +420,45 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Teams-to-follow rows sit flush with dividers between them, matching the
+   production NewsRail. Drop the card's inter-row gap so each row's own 10px
+   padding sets the rhythm and the border-bottom lands centered between rows. */
+.followRailCard.followRailCard {
+  gap: 0;
+
+  .railTitle {
+    margin-bottom: 4px;
+  }
+}
+
 .railRow {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+}
+
+/* Production's "Teams to follow" button reads "+ Follow": use the DS FollowButton's
+   default variant (the size that renders the + glyph) but strip its full-width,
+   40px-tall, bordered chrome so it stays the same inline blue text button as the
+   compact size. Colour is left to the component's own follow/following classes. */
+.railFollowBtn.railFollowBtn {
+  width: auto;
+  height: auto;
+  padding: 2px 6px;
+  gap: 4px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 18px;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-brand-8, #1b4dff14);
+  }
 }
 
 .railInfo {
@@ -451,6 +486,19 @@
   font-weight: 500;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 1-line team description under the name — reads as content, so it sits a step
+   darker than the follower-count meta below it. */
+.railDesc {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -599,6 +647,415 @@
   display: inline-flex;
   align-items: center;
   gap: 16px;
+}
+
+/* ---------- Multi-source: same story, several outlets ---------- */
+
+/* Anchors the "+N sources" popover; sits inline in the meta line. */
+.sourceMulti {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Bare-text source link (primary domain + popover rows) — quiet until hovered,
+   matching the single-domain .sourceDomain treatment. */
+.sourceLink {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* Compact "N sources" pill (no logo stack) — opens the source list on click. */
+.sourcePill {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.sourcePillCaret {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.12s ease;
+
+  .sourceMulti:hover &,
+  .sourceMulti:focus-within &,
+  [aria-expanded='true'] > & {
+    transform: rotate(180deg);
+  }
+}
+
+/* The revealed list of the remaining outlets. */
+.sourcePopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 8px 20px 0px rgba(15, 23, 42, 0.1);
+
+  /* Hidden until the pill is hovered / focused (or tapped open on touch).
+     visibility:hidden also keeps the links out of the tab order while closed. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s;
+
+  /* Invisible bridge across the 6px gap so moving the cursor from the pill down
+     into the popover doesn't cross a dead zone and dismiss it. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+  }
+
+  .sourceMulti:hover &,
+  .sourceMulti:focus-within &,
+  &.sourcePopoverOpen {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+.sourcePopoverHead {
+  padding: 2px 6px 4px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.sourcePopoverRow.sourcePopoverRow {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 18px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* ---------- Filter row: event-type pills + personalization lens ---------- */
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+
+  /* Let the event-type pills take the row and the actions cluster hold the right
+     edge; on mobile the pills wrap and the actions drop to their own full row. */
+  .catRow {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Holds the reused production Sort control, sitting opposite the event-type
+   pills. On mobile the pills wrap above and this drops to the right of its row. */
+.filterActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  @include mobile-only {
+    margin-left: auto;
+  }
+}
+
+/* "Sort by: …" dropdown on desktop; the compact "Sort ▾" pill on mobile. */
+.sortDesktop {
+  display: inline-flex;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.sortMobile {
+  display: none;
+
+  @include mobile-only {
+    display: inline-flex;
+  }
+}
+
+/* ---------- Quick actions: production Cards on desktop, stacked-card scroller on mobile ---------- */
+
+/* Production grid where there's room; hidden on mobile in favour of .qaMobile. */
+.qaDesktop {
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.qaMobile {
+  display: none;
+
+  @include mobile-only {
+    display: block;
+    margin-bottom: 24px;
+  }
+}
+
+/* Mobile stacked-card row: icon on top, title, subtitle — scrolls horizontally. */
+.mqa {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mqaTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.mqaRow {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 28px 8px 0; /* right room = fade so the next card peeks; bottom = shadow */
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Same surface as the production ActionCards ("previous quick buttons"):
+   white fill + the same subtle shadow + 16px radius. */
+.mqaCard {
+  flex: 0 0 150px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--background-base-white, #fff);
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  text-decoration: none;
+  transition: box-shadow 0.15s ease;
+
+  &:active {
+    box-shadow: 0px 2px 8px 0px rgba(14, 15, 17, 0.12);
+  }
+}
+
+/* Reuse the production ActionCard round-icon treatment, sized down for the card. */
+.mqaIcon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: rgba(27, 77, 255, 0.04);
+  color: #1b4dff;
+  box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.mqaCardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin-bottom: 2px; /* keep the description tight to the title */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mqaSub {
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qaHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.qaCompact {
+  margin-bottom: 24px;
+}
+
+.qaChipRow {
+  display: flex;
+  gap: 10px;
+
+  /* Mobile: one horizontally-scrollable line instead of a tall stacked grid —
+     the whole point of the compact treatment. A right-edge fade + scroll-snap
+     signal there's more to swipe (vs. looking like a truncated row), and the
+     last chip peeks past the fade so the affordance is unmistakable. The
+     vertical padding leaves room for the cards' hover lift + shadow. */
+  @include mobile-only {
+    overflow-x: auto;
+    padding: 2px 28px 14px 0; /* right room = fade so the last chip peeks, not clips */
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* Desktop: the full set fits, so wrap rather than scroll (no fade needed). */
+  @include tablet-portrait {
+    flex-wrap: wrap;
+    overflow: visible;
+    padding: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* A mini action-card, not a pill: rounded-rect shape (matched to the icon tile),
+   real depth on hover. Clay / Aboard / Equals language. */
+.qaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 8px 18px 8px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    transform 0.14s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow:
+      0px 1px 2px rgba(15, 23, 42, 0.06),
+      0px 8px 20px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Icon sits on a soft neutral tile (like an app icon), so each action's own
+   colour reads cleanly instead of being flattened by a brand wash. */
+.qaChipIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  transition: background 0.14s ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.qaChip:hover .qaChipIcon {
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+}
+
+.qaChipLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 

@@ -1,0 +1,65 @@
+// Curator-only board-card rater breakdown (public score is inline in the card meta row).
+// Token pairs copied from neighboring gantry modules (fallbacks are load-bearing).
+
+.strip {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+// Lock badge (left) + rater avatars (right) share one row to save vertical space.
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.teamOnly {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// The rating distribution as one dim line to keep the strip compact.
+.stats {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.raterStack {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.stackAvatar {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 600;
+  border: 1.5px solid #fff;
+
+  & + & {
+    margin-left: -6px;
+  }
+}
+
+.stackMore {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  z-index: 0;
+}

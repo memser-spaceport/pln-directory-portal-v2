@@ -218,6 +218,7 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   FORUM_DIGEST_OPTION_SELECTED: 'settings-forum-digest-option-selected',
   FORUM_DIGEST_SAVE_FAILED: 'settings-forum-digest-save-failed',
   FORUM_DIGEST_NETWORK_NEWS_TOGGLE_CLICKED: 'settings-forum-digest-network-news-toggle-clicked',
+  FORUM_DIGEST_FORUM_ACTIVITY_TOGGLE_CLICKED: 'settings-forum-digest-forum-activity-toggle-clicked',
   SETTINGS_SUBSCRIBE_TO_DEMO_DAY_UPDATES_CHANGE: 'settings-subscribe-to-demo-day-updates-change',
   SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED: 'settings-demo-day-updates-notification-toggle-clicked',
 };
@@ -306,6 +307,11 @@ export const TOAST_MESSAGES = {
   SELF_INTERACTION_FORBIDDEN: 'Scheduling office hours with yourself is not allowed',
   FAILED_TO_LINK_LINKEDIN: 'Failed to link LinkedIn account',
   EVENT_DELETED_SUCCESSFULLY: 'Event deleted successfully',
+  HUSKY_SHARED_LINK_EXPIRED: 'This shared Husky link is no longer available',
+  HUSKY_SHARED_LINK_FAILED: "Couldn't load the shared Husky post. Please try again",
+  OH_FEEDBACK_FAILED: "Couldn't submit your office hours feedback. Please try again",
+  AI_CHAT_FAILED: "Couldn't get an AI response. Please try again",
+  REGISTER_SUBMIT_FAILED: "Couldn't submit your join request. Please try again",
 };
 
 export const AUTH_ANALYTICS = {
@@ -581,8 +587,10 @@ export const HOME_ANALYTICS_EVENTS = {
 export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_TAB_CLICKED: 'team-news-tab-clicked',
   TEAM_NEWS_CATEGORY_CLICKED: 'team-news-category-clicked',
+  TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
+  TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
@@ -783,6 +791,31 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.21 - Feed Sorting, Digest Controls & Demo Day',
+    tag: 'Improvements',
+    date: '17, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Feed sorting</span> - Sort network news by Following, Latest, or Most popular.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Teams to follow</span> - Suggested teams show a short description, and names link to their profiles.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News cards</span> - Upvote stories and expand longer updates directly on the team profile.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Account Settings</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Digest controls</span> - Toggle Network news and Forum activity separately; members without forum access can still get a news digest.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Past teams</span> - Teams from completed demo days now link through to their profiles.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.20 - Newsfeed Upvotes & Discovery',
     tag: 'New Feature',
@@ -2277,6 +2310,9 @@ export const DEMO_DAY_ANALYTICS = {
   ON_COMPLETED_VIEW_FEEDBACK_SUBMITTED: 'demo-day-completed-view-feedback-submitted',
   ON_COMPLETED_VIEW_SHOW_MORE_LOGOS_CLICKED: 'demo-day-completed-view-show-more-logos-clicked',
   ON_COMPLETED_VIEW_SHOW_MORE_TEAMS_CLICKED: 'demo-day-completed-view-show-more-teams-clicked',
+  ON_COMPLETED_VIEW_TEAM_CARD_CLICKED: 'demo-day-completed-view-team-card-clicked',
+  ON_COMPLETED_VIEW_TEAM_FOLLOWED: 'demo-day-completed-view-team-followed',
+  ON_COMPLETED_VIEW_TEAM_UNFOLLOWED: 'demo-day-completed-view-team-unfollowed',
   ON_ACTIVE_VIEW_SHOW_MORE_LOGOS_CLICKED: 'demo-day-active-view-show-more-logos-clicked',
   ON_INVESTOR_PROFILE_ADD_DETAILS_CLICKED: 'demo-day-investor-profile-add-details-clicked',
   ON_INVESTOR_PROFILE_NOT_AN_INVESTOR_CLICKED: 'demo-day-investor-profile-not-an-investor-clicked',
@@ -2329,4 +2365,14 @@ export const AI_APPS_ANALYTICS = {
   SECRETS_DEPLOY_SUCCEEDED: 'ai_apps_secrets_deploy_succeeded',
   SECRETS_DEPLOY_FAILED: 'ai_apps_secrets_deploy_failed',
   DRAFT_SETUP_VIEWED: 'ai_apps_draft_setup_viewed',
+  MANAGE_MENU_OPENED: 'ai_apps_manage_menu_opened',
+  EDIT_DETAILS_OPENED: 'ai_apps_edit_details_opened',
+  EDIT_DETAILS_SAVED: 'ai_apps_edit_details_saved',
+  EDIT_DETAILS_FAILED: 'ai_apps_edit_details_failed',
+  DEPLOYMENT_SETTINGS_OPENED: 'ai_apps_deployment_settings_opened',
+  DELETE_APP_OPENED: 'ai_apps_delete_app_opened',
+  DELETE_APP_CANCELLED: 'ai_apps_delete_app_cancelled',
+  DELETE_APP_CONFIRMED: 'ai_apps_delete_app_confirmed',
+  DELETE_APP_FAILED: 'ai_apps_delete_app_failed',
+  APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
 };

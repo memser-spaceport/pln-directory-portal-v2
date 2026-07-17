@@ -1,5 +1,5 @@
 import type { Option } from '@/components/form/FormSelect/types';
-import type { GantryItem } from './types';
+import type { GantryImpactValue, GantryItem } from './types';
 
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
@@ -10,6 +10,30 @@ export enum GantryQueryKeys {
   ITEM_PINS = 'gantry-item-pins',
   DRAFT = 'gantry-draft',
 }
+
+/**
+ * Shared by every mutation that writes the ITEMS/ITEM/PIN_STATUS caches (pin, pin update):
+ * the scope serializes them (no interleaved optimistic snapshots), and onSettled uses the
+ * mutationKey with `queryClient.isMutating(...) === 1` to invalidate only when last-standing,
+ * so a settling mutation's refetch never clobbers a still-pending one.
+ */
+export const GANTRY_ITEM_WRITE_MUTATION_KEY = ['gantry-item-write'] as const;
+export const GANTRY_ITEM_WRITE_SCOPE = { id: 'gantry-item-write' } as const;
+
+export const GANTRY_IMPACT_VALUES: readonly GantryImpactValue[] = [1, 2, 3, 4, 5];
+
+export const GANTRY_IMPACT_LABELS: Record<GantryImpactValue, string> = {
+  1: 'Negligible',
+  2: 'Minor',
+  3: 'Moderate',
+  4: 'Significant',
+  5: 'Transformative',
+};
+
+export const GANTRY_IMPACT_MAX = 5;
+
+/** Plain text — length is character count, unlike the rich-text description fields. */
+export const GANTRY_IMPACT_REASONING_MAX_LENGTH = 1000;
 
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
 

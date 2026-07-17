@@ -16,6 +16,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/gantry-priority-support/GantryPrioritySupportPrototype'),
   },
   {
+    key: 'gantry-impact-rating',
+    title: 'Gantry — impact rating',
+    description:
+      "A free, unlimited crowd rating of an item's impact on Gantry objectives, shown as a second axis alongside Boost (demand). Two variants: overall score, and overall + optional per-objective.",
+    category: 'Gantry',
+    load: () => import('./entries/gantry-impact-rating/GantryImpactRatingPrototype'),
+  },
+  {
     key: 'gantry-saved-draft-item',
     title: 'Gantry saved draft item',
     description: 'Mocked autosave visibility flow for a single Gantry item draft shown in filters.',
@@ -65,7 +73,8 @@ export const prototypeRegistry: PrototypeEntry[] = [
   {
     key: 'warm-path-states',
     title: 'Warm path — states reference',
-    description: 'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
+    description:
+      'Dev reference: every node state and warm-path card state in one place, rendered through the real components.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
@@ -169,7 +178,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'ai-apps',
     title: 'AI Apps',
     description:
-      'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview — composed from the real page components and SCSS.',
+      'Mocked recreation of the PL Infra AI Apps page: app grid, the "Create AI App" step-by-step modal, and a detail view embedding a deployed app preview. The creator can edit an app name/description and upload a 1-pager as HTML or Markdown (a PRD) that anyone can open; use the "View as" toggle to switch between the creator and visitor experience.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
   },
@@ -188,6 +197,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
+  },
+  {
+    key: 'job-board',
+    title: 'Job Board',
+    description:
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Filters and sort re-compute the mocked list live.',
+    category: 'Jobs',
+    load: () => import('./entries/job-board/JobBoardPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

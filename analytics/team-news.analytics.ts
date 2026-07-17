@@ -46,6 +46,20 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsSortChanged = (
+    sort: string,
+    previousSort: string,
+    itemCount: number,
+    source: TeamNewsAnalyticsSource = 'home',
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SORT_CHANGED, {
+      sort,
+      previousSort,
+      itemCount,
+      source,
+    });
+  };
+
   const onTeamNewsLoadMoreClicked = (
     currentlyShown: number,
     total: number,
@@ -65,6 +79,19 @@ export const useTeamNewsAnalytics = () => {
       teamUid,
       teamName,
       total,
+      source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
+  const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHOW_MORE_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceDomain: item.sourceDomain,
+      sourceUrl: item.sourceUrl,
+      position,
       source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
     });
   };
@@ -168,8 +195,10 @@ export const useTeamNewsAnalytics = () => {
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
+    onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
     onTeamNewsViewAllClicked,
+    onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,

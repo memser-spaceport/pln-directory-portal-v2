@@ -79,7 +79,7 @@ export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, o
             <PushPinIcon width={16} height={16} />
           </span>
           <div className={p.headText}>
-            <h4 className={clsx(p.title, s.title)}>How much will this move our company goals?</h4>
+            <h4 className={clsx(p.title, s.title)}>Impact to goals</h4>
           </div>
           <button type="button" className={p.closeBtn} onClick={cancel} aria-label="Cancel boost">
             <CloseIcon width={14} height={14} />
@@ -87,7 +87,7 @@ export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, o
         </div>
 
         <div className={p.body}>
-          <ImpactControl value={impact} onChange={setImpact} label="Impact on company goals" disabled={isSaving} />
+          <ImpactControl value={impact} onChange={setImpact} label="Impact to goals" disabled={isSaving} />
 
           {ratedObjectives.length > 0 && (
             <div className={s.objectiveRows}>

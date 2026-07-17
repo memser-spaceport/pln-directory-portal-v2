@@ -34,7 +34,7 @@ const impactSchema = yup
   .nullable()
   .when('$impactRequired', {
     is: true,
-    then: (schema) => schema.required('Rate the impact on company goals'),
+    then: (schema) => schema.required('Rate the impact to goals'),
   });
 
 const impactReasoningSchema = yup
@@ -43,11 +43,7 @@ const impactReasoningSchema = yup
   .when('$reasoningRequired', {
     is: true,
     then: (schema) =>
-      schema.test(
-        'reasoning-required',
-        'Explain how this moves company goals',
-        (value) => !!value && value.trim().length > 0,
-      ),
+      schema.test('reasoning-required', 'Explain why this matters', (value) => !!value && value.trim().length > 0),
   });
 
 export const submitIdeaSchema = yup.object().shape({

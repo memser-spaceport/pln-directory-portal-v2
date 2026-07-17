@@ -23,11 +23,11 @@ export const GANTRY_ITEM_WRITE_SCOPE = { id: 'gantry-item-write' } as const;
 export const GANTRY_IMPACT_VALUES: readonly GantryImpactValue[] = [1, 2, 3, 4, 5];
 
 export const GANTRY_IMPACT_LABELS: Record<GantryImpactValue, string> = {
-  1: 'Minor',
-  2: 'Moderate',
-  3: 'Significant',
-  4: 'High',
-  5: 'Critical',
+  1: 'Negligible',
+  2: 'Minor',
+  3: 'Moderate',
+  4: 'Significant',
+  5: 'Transformative',
 };
 
 export const GANTRY_IMPACT_MAX = 5;

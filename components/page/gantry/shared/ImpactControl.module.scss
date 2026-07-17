@@ -57,13 +57,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 9px;
+  line-height: 11px;
   font-weight: 500;
   text-align: center;
   letter-spacing: -0.01em;
   color: var(--foreground-neutral-tertiary, #8897ae);
   transition: color 0.14s ease;
+  hyphens: auto;
 }
 
 .scaleBtnActive {

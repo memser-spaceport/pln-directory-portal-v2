@@ -46,6 +46,11 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  // Match title/description placeholder tone (#8897ae); FormTextArea default is lighter (#cbd5e1).
+  :global(textarea)::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
 }
 
 .impactLabel {

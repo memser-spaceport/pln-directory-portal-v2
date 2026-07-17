@@ -18,7 +18,7 @@ interface Props {
  */
 export function ImpactControl({ value, onChange, label, disabled }: Props) {
   return (
-    <div className={s.scale} role="radiogroup" aria-label={label ?? 'Impact on company goals'}>
+    <div className={s.scale} role="radiogroup" aria-label={label ?? 'Impact to goals'}>
       {GANTRY_IMPACT_VALUES.map((impact) => {
         const active = value === impact;
         return (

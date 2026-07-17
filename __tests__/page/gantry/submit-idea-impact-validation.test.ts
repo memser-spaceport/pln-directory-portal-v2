@@ -41,7 +41,7 @@ describe('submitIdeaSchema — impact optional on create', () => {
     await expect(
       validate({ ...baseValues, impact: null, impactReasoning: '' }, { impactRequired: true, reasoningRequired: true }),
     ).rejects.toMatchObject({
-      errors: expect.arrayContaining(['Rate the impact on company goals', 'Explain how this moves company goals']),
+      errors: expect.arrayContaining(['Rate the impact to goals', 'Explain why this matters']),
     });
   });
 });

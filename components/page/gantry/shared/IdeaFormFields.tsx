@@ -53,13 +53,11 @@ function ImpactFormBlock({
         control={control}
         render={({ field, fieldState }) => (
           <div>
-            <span className={s.impactLabel}>
-              Impact on company goals {impactRequired && <span aria-hidden>*</span>}
-            </span>
+            <span className={s.impactLabel}>Impact to goals {impactRequired && <span aria-hidden>*</span>}</span>
             <ImpactControl
               value={(field.value as GantryImpactValue | null) ?? null}
               onChange={field.onChange}
-              label="Impact on company goals"
+              label="Impact to goals"
             />
             {fieldState.error && <span className={s.impactError}>{fieldState.error.message}</span>}
           </div>
@@ -68,10 +66,10 @@ function ImpactFormBlock({
       {showReasoning && (
         <FormTextArea
           name="impactReasoning"
-          label="How does this move company goals?"
+          label="Why this matters"
           isRequired={requireReasoning}
           isOptional={!requireReasoning}
-          placeholder="Ex: unblocks onboarding for every new team; our top support theme this quarter…"
+          placeholder="Describe how this creates impact and why — what changes if it gets done?"
           rows={2}
           maxLength={GANTRY_IMPACT_REASONING_MAX_LENGTH}
           showCharCount
@@ -135,7 +133,7 @@ export function IdeaFormFields({
           enableMentions
           simplified
           toolbarConfig={IDEAS_EDITOR_TOOLBAR}
-          minHeight={100}
+          minHeight={80}
           maxLength={DESCRIPTION_MAX_LENGTH}
           showCharCount
         />

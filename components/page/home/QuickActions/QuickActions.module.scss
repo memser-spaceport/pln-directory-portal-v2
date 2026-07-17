@@ -1,3 +1,4 @@
+@use 'styles/mixins';
 @import 'styles/media.scss';
 
 .section {
@@ -29,7 +30,52 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  // Below 640px the grid becomes a horizontally-scrolling, snap-scroll row of
+  // fixed-width cards (~2.5 visible at once, matching the prototype). It
+  // bleeds full-bleed to the screen edge (negative margin cancels .home__cn's
+  // 14px mobile padding); only the first/last card gets that 14px back, as
+  // margin rather than container padding, so it's honored at max-scroll in
+  // every browser. --fade-left/--fade-right (set from JS based on scroll
+  // position) drive an edge fade-out mask hinting more cards are scrollable.
   @include mobile-only {
-    grid-template-columns: 1fr;
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    margin-inline: -14px;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black var(--fade-left, 0px),
+      black calc(100% - var(--fade-right, 0px)),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black var(--fade-left, 0px),
+      black calc(100% - var(--fade-right, 0px)),
+      transparent 100%
+    );
+    @include mixins.hide-scrollbar;
+
+    // Fixed width (not a %) sized to comfortably fit the longest title ("Book
+    // Office Hours", ~152px at this weight/tracking in Inter) plus the card's
+    // 16px side padding, so it never ellipsizes. min-width: 0 overrides the
+    // flex-item default of min-width: auto, which would otherwise let a card
+    // grow past this to fit its unbreakable (white-space: nowrap) text anyway.
+    > * {
+      flex: 0 0 200px;
+      min-width: 0;
+      scroll-snap-align: start;
+    }
+
+    > *:first-child {
+      margin-left: 14px;
+    }
+
+    > *:last-child {
+      margin-right: 14px;
+    }
   }
 }

@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: column;
   max-height: 88vh;
+  background: #ffffff;
 }
 
 .header {
@@ -15,6 +16,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 20px;
+  background: #ffffff;
   border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
@@ -27,6 +29,42 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.openTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
 }
 
 .close {
@@ -50,7 +88,7 @@
   min-height: 520px;
   padding: 20px;
   overflow: auto;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  background: #ffffff;
 }
 
 .pdfFrame {

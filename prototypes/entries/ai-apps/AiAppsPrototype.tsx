@@ -78,6 +78,28 @@ export default function AiAppsPrototype() {
     </div>
   );
 
+  // Management surfaces (edit / deployment / delete / 1-pager) — rendered on
+  // both the grid and the detail page so the detail-page ⋯ menu can open them.
+  const actionSurfaces = (
+    <>
+      {actionApp && action?.type === 'edit' && (
+        <ManageAppModal isOpen app={actionApp} onClose={closeAction} onSave={saveEdit} />
+      )}
+      {actionApp && action?.type === 'deployment' && (
+        <DeploymentSettingsModal isOpen app={actionApp} onClose={closeAction} onRedeploy={updateApp} />
+      )}
+      <DeleteAppDialog
+        isOpen={!!actionApp && action?.type === 'delete'}
+        appName={actionApp?.name ?? ''}
+        onClose={closeAction}
+        onConfirm={() => action && deleteApp(action.uid)}
+      />
+      {viewerApp?.onePager && (
+        <OnePagerViewer isOpen onePager={viewerApp.onePager} onClose={() => setViewerUid(null)} />
+      )}
+    </>
+  );
+
   if (selected) {
     return (
       <div className={proto.shell}>
@@ -86,7 +108,13 @@ export default function AiAppsPrototype() {
           app={selected}
           previewSrcDoc={mockAppPreviews[selected.uid]}
           onBack={() => setSelectedUid(null)}
+          canManage={isCreator}
+          onEdit={() => setAction({ uid: selected.uid, type: 'edit' })}
+          onDeployment={() => setAction({ uid: selected.uid, type: 'deployment' })}
+          onDelete={() => setAction({ uid: selected.uid, type: 'delete' })}
+          onViewOnePager={() => setViewerUid(selected.uid)}
         />
+        {actionSurfaces}
       </div>
     );
   }
@@ -121,21 +149,7 @@ export default function AiAppsPrototype() {
 
           <CreateAiAppModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-          {actionApp && action?.type === 'edit' && (
-            <ManageAppModal isOpen app={actionApp} onClose={closeAction} onSave={saveEdit} />
-          )}
-          {actionApp && action?.type === 'deployment' && (
-            <DeploymentSettingsModal isOpen app={actionApp} onClose={closeAction} onRedeploy={updateApp} />
-          )}
-          <DeleteAppDialog
-            isOpen={!!actionApp && action?.type === 'delete'}
-            appName={actionApp?.name ?? ''}
-            onClose={closeAction}
-            onConfirm={() => action && deleteApp(action.uid)}
-          />
-          {viewerApp?.onePager && (
-            <OnePagerViewer isOpen onePager={viewerApp.onePager} onClose={() => setViewerUid(null)} />
-          )}
+          {actionSurfaces}
         </div>
       </div>
     </div>

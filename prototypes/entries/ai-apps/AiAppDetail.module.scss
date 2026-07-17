@@ -1,3 +1,10 @@
+/* Full-width column: edge-to-edge header on top, centered content below. */
+.page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -8,14 +15,35 @@
   padding: 20px 16px 32px;
 }
 
+/* Full-width header bar spanning the viewport, pinned above the content. */
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @media (max-width: 639px) {
+    padding: 10px 16px;
+  }
+}
+
+/* Right-side action cluster: "App Details" pill + ⋯ manage menu, kept on one
+   line opposite the Back button. */
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 0;
   border: none;
   background: none;
@@ -24,6 +52,10 @@
   font-weight: 500;
   color: var(--foreground-brand-primary, #1b4dff);
   cursor: pointer;
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
     text-decoration: underline;

@@ -792,6 +792,31 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.21 - Feed Sorting, Digest Controls & Demo Day',
+    tag: 'Improvements',
+    date: '17, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Feed sorting</span> - Sort network news by Following, Latest, or Most popular.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Teams to follow</span> - Suggested teams show a short description, and names link to their profiles.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News cards</span> - Upvote stories and expand longer updates directly on the team profile.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Account Settings</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Digest controls</span> - Toggle Network news and Forum activity separately; members without forum access can still get a news digest.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Demo Day</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Past teams</span> - Teams from completed demo days now link through to their profiles.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.20 - Newsfeed Upvotes & Discovery',
     tag: 'New Feature',
     date: '10, Jul 2026',

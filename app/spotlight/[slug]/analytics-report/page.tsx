@@ -5,23 +5,28 @@ import { useRouter, useParams } from 'next/navigation';
 import { useGetTeamPitch } from '@/services/team-pitch/hooks/useGetTeamPitch';
 import { PitchViewSkeleton } from '@/components/page/pitch/PitchViewSkeleton';
 import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export default function SpotlightAnalyticsReportPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params?.slug as string;
-  const { data, isLoading, isError } = useGetTeamPitch(slug);
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  const canFetch = isHydrated && !!currentUser?.uid;
+  const { data, isLoading, isError, isFetched } = useGetTeamPitch(slug, canFetch);
 
   const analyticsReportUrl = data?.teamProfile?.analyticsReportUrl;
+  const isWaiting = !isHydrated || (canFetch && (isLoading || !isFetched));
 
   useEffect(() => {
-    if (isLoading || !slug) return;
-    if (isError || !analyticsReportUrl) {
+    if (!slug || isWaiting) return;
+
+    if (!currentUser?.uid || isError || !analyticsReportUrl) {
       router.replace(getTeamSpotlightPath(slug));
     }
-  }, [analyticsReportUrl, isLoading, isError, router, slug]);
+  }, [analyticsReportUrl, canFetch, currentUser?.uid, isError, isWaiting, router, slug]);
 
-  if (isLoading) {
+  if (isWaiting) {
     return <PitchViewSkeleton />;
   }
 

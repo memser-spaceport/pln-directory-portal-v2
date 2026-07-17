@@ -191,7 +191,12 @@ export function NewsRail({
       return;
     }
 
-    const payload = { ...(data ?? defaultSettings), forumDigestEnabled: true, forumDigestFrequency: 7 as const };
+    const payload = {
+      ...(data ?? defaultSettings),
+      forumDigestEnabled: true,
+      forumDigestFrequency: 7 as const,
+      forumDigestNewsEnabled: true,
+    };
     mutate(
       { uid: currentUser.uid, payload },
       {

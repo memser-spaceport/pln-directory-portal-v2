@@ -66,10 +66,15 @@ describe('NewsRail', () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
 
-  it('calls the forum-digest mutation with weekly frequency when an authenticated user subscribes, and fires onForumDigestOptionSelect(source: home-feed) once it succeeds', () => {
+  it('calls the forum-digest mutation with weekly frequency and news enabled when an authenticated user subscribes, and fires onForumDigestOptionSelect(source: home-feed) once it succeeds', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
     mockGetForumDigestSettings.mockReturnValue({
-      data: { forumDigestEnabled: false, forumDigestFrequency: 7, memberUid: 'user-1' },
+      data: {
+        forumDigestEnabled: false,
+        forumDigestFrequency: 7,
+        forumDigestNewsEnabled: false,
+        memberUid: 'user-1',
+      },
     });
     render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
@@ -77,7 +82,12 @@ describe('NewsRail', () => {
     expect(mockMutate).toHaveBeenCalledWith(
       {
         uid: 'user-1',
-        payload: { forumDigestEnabled: true, forumDigestFrequency: 7, memberUid: 'user-1' },
+        payload: {
+          forumDigestEnabled: true,
+          forumDigestFrequency: 7,
+          forumDigestNewsEnabled: true,
+          memberUid: 'user-1',
+        },
       },
       expect.anything(),
     );
@@ -88,7 +98,12 @@ describe('NewsRail', () => {
     options.onSuccess();
 
     expect(mockOnForumDigestOptionSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ forumDigestEnabled: true, forumDigestFrequency: 7, source: 'home-feed' }),
+      expect.objectContaining({
+        forumDigestEnabled: true,
+        forumDigestFrequency: 7,
+        forumDigestNewsEnabled: true,
+        source: 'home-feed',
+      }),
     );
     expect(mockOnForumDigestSaveFailed).not.toHaveBeenCalled();
   });

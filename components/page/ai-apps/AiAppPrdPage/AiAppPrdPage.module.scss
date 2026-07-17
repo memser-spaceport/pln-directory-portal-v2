@@ -17,13 +17,6 @@
   justify-content: center;
   padding: 40px 24px;
 
-  // Same reading-column width as the modal's `.modal` max-width, so the
-  // rendered one-pager looks identical whether opened inline or full-page.
-  > * {
-    width: 100%;
-    max-width: 760px;
-  }
-
   @include media.tablet-landscape {
     padding: 24px 32px 48px;
   }

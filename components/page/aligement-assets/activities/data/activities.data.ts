@@ -220,14 +220,14 @@ export const activitiesData: ActivitiesData = {
     {
       id: 'rank-supportive-members',
       category: 'Brand',
-      activity: 'Top the leaderboard',
+      activity: 'Top the Leaderboard',
       networkValue: 'Collect bonus points by finishing in the top 5 on the leaderboard in any snapshot period',
       points: '100',
       frequency: 'Repeatable',
       verificationType: 'Auto',
       cta: 'confirm',
       popupContent: {
-        title: 'Top the leaderboard',
+        title: 'Top the Leaderboard',
         overview: `Finishing in the top five on the leaderboard isn't just a personal flex, it's a symbol of dedication to the PL Network and your efforts to make the network stronger.`,
         networkBenefits: 'Creates an additional visible incentive for sustained contribution during each snapshot period.',
         rules: [

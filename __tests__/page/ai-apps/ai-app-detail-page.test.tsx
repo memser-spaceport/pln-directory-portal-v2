@@ -116,6 +116,7 @@ jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn(), prefetch: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 jest.mock('next/link', () => ({

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -57,7 +57,10 @@ export function AiAppDetailPage(props: Props) {
   const { currentUser } = useCurrentUserStore();
   const { canLikelyManage } = useAiAppManageAccess();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const analytics = useAiAppsAnalytics();
+  // Guards the one-shot deep-link open so closing the modal doesn't reopen it.
+  const openedSettingsFromUrl = useRef(false);
   const trackedAppUid = useRef<string | null>(null);
   const trackedDraftSetupUid = useRef<string | null>(null);
   const iframeTracked = useRef<string | null>(null);
@@ -76,6 +79,16 @@ export function AiAppDetailPage(props: Props) {
     trackedAppUid.current = app.uid;
     analytics.onDetailPageViewed(app.uid, app.name);
   }, [app, analytics]);
+
+  // Deep link: `?settings=deployment` opens the Deployment settings modal
+  // straight away (shared with members to edit stored secrets & redeploy).
+  useEffect(() => {
+    if (openedSettingsFromUrl.current) return;
+    if (searchParams.get('settings') === 'deployment') {
+      openedSettingsFromUrl.current = true;
+      setAction('deployment');
+    }
+  }, [searchParams]);
 
   const requiredEnvVars = app?.requiredEnvVars ?? [];
   // Genuinely "never deployed" only means DRAFT — DEPLOYING/ERROR have their
@@ -210,6 +223,19 @@ export function AiAppDetailPage(props: Props) {
     );
   }
 
+  // Close a card action; if the deployment modal was opened via the
+  // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
+  // reopen it.
+  const closeAction = () => {
+    setAction(null);
+    if (searchParams.get('settings')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('settings');
+      const qs = params.toString();
+      router.replace(qs ? `?${qs}` : `/pl-infra/ai-apps/${uid}`, { scroll: false });
+    }
+  };
+
   const renderFrameArea = () => {
     if (isRedeploying) {
       return (
@@ -311,9 +337,9 @@ export function AiAppDetailPage(props: Props) {
           onClose={() => setShowDetails(false)}
         />
       )}
-      {action === 'edit' && <EditAiAppModal app={app} onClose={() => setAction(null)} />}
+      {action === 'edit' && <EditAiAppModal app={app} onClose={closeAction} />}
       {action === 'deployment' && (
-        <DeploymentSettingsModal app={app} onClose={() => setAction(null)} onDeployingChange={setIsRedeploying} />
+        <DeploymentSettingsModal app={app} onClose={closeAction} onDeployingChange={setIsRedeploying} />
       )}
       {action === 'delete' && (
         <DeleteAiAppDialog

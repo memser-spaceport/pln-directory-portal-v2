@@ -887,11 +887,14 @@
 }
 
 // Boost (left) and the public inline impact score (right) share one row under the author.
+// Wraps when the column is too narrow for both — the nowrap impact phrase drops to its
+// own line instead of colliding with the boost pill / bleeding past the card edge.
 .boostRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   width: 100%;
 }
 

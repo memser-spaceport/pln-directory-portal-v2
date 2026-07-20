@@ -92,7 +92,7 @@ export interface TokenExchangeResult {
 export const exchangeToken = async (
   privyToken: string,
   stateUid: string,
-  retries = 3
+  retries = 3,
 ): Promise<TokenExchangeResult> => {
   let lastError: Error | null = null;
 
@@ -137,4 +137,34 @@ export const exchangeToken = async (
     status: 500,
     error: lastError?.message || 'Token exchange failed after retries',
   };
+};
+
+/**
+ * Redeem a short-lived invite login token for directory session tokens
+ */
+export const redeemLoginToken = async (token: string): Promise<TokenExchangeResult> => {
+  try {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/auth/login-token/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+      cache: 'no-store',
+    });
+
+    let data: TokenExchangeResponse | null = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    return { ok: response.ok, data, status: response.status };
+  } catch (err) {
+    return {
+      ok: false,
+      data: null,
+      status: 500,
+      error: (err as Error).message || 'Login token redeem failed',
+    };
+  }
 };

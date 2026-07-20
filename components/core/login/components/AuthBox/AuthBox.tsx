@@ -1,14 +1,14 @@
 'use client';
 
 import { PrivyProvider } from '@privy-io/react-auth';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 
 import useHash from '@/hooks/useHash';
 import { PrivyModals } from '../PrivyModals';
 import { AuthInvalidUser } from '../modals/AuthInvalidUser';
 import { AuthInfo } from '../AuthInfo';
+import { LoginTokenRedeemer } from '../LoginTokenRedeemer';
 
 const PRIVY_CONFIG = {
   appearance: {
@@ -40,6 +40,9 @@ export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
 
   return (
     <PrivyProvider appId={process.env.PRIVY_AUTH_ID as string} config={PRIVY_CONFIG}>
+      <Suspense fallback={null}>
+        <LoginTokenRedeemer isLoggedIn={isLoggedIn} />
+      </Suspense>
       <PrivyModals />
       <AuthInvalidUser />
       {isLoginPopup && <AuthInfo />}

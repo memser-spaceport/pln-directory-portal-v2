@@ -173,7 +173,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
   };
 
   return (
-    <Modal isOpen onClose={onClose} className={s.modal}>
+    <Modal isOpen onClose={onClose} className={s.modal} closeOnBackdropClick={false}>
       <div className={s.content}>
         <div className={s.header}>
           <h2 className={s.title}>Deployment settings</h2>

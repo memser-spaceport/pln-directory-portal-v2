@@ -41,7 +41,7 @@ export function useLeaderboard(roundNumber: number, leaderboardType?: Leaderboar
   return useQuery<LeaderboardApiResponse | null>({
     queryKey: [LeaderboardQueryKeys.ROUND, roundNumber, leaderboardType ?? 'all'],
     queryFn: () => fetchLeaderboard(roundNumber, leaderboardType),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // always refetch on mount — leaderboard must never serve stale
     retry: 1,
   });
 }

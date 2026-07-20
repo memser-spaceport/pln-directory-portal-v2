@@ -79,7 +79,7 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
       : team.founders.some((founder) => founder.uid === userInfo?.uid);
   // Spotlight has a single card and no investor drawer — always show the full description.
   const canOpenDrawer = !pitchSlug || canEdit || isAdmin;
-  const shouldClampDescription = !canOpenDrawer || !pitchSlug;
+  const shouldClampDescription = !pitchSlug;
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();

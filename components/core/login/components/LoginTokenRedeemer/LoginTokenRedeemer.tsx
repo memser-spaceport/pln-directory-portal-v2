@@ -54,6 +54,12 @@ export function LoginTokenRedeemer({ isLoggedIn }: { isLoggedIn: boolean }) {
           delete (formatted.userInfo as { isFirstTimeLogin?: boolean }).isFirstTimeLogin;
         }
         saveSessionTokens(formatted);
+        setIsRedeeming(false);
+        // Let the signing-in modal unmount before showing success toast
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (cancelled) {
+          return;
+        }
         toast.success(TOAST_MESSAGES.LOGIN_MSG);
         Cookies.set('showNotificationPopup', JSON.stringify(true));
         document.dispatchEvent(

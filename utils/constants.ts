@@ -291,7 +291,7 @@ export const PROJECT_ANALYTICS_EVENTS = {
 
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
-  LOGIN_MSG: 'Successfully Logged In',
+  LOGIN_MSG: 'Successfully Signed In',
   LOGGED_IN_MSG: 'You are already logged in',
   SOMETHING_WENT_WRONG: 'Something went wrong',
   DETAILS_ADDED_SUCCESSFULLY: 'Your details have been added successfully',

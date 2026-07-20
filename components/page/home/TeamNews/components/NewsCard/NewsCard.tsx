@@ -10,9 +10,11 @@ import { FollowButton } from '@/components/ui/FollowButton';
 
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
+import { hasNewsSource } from '../../utils/getNewsSources';
 
 import { StartConversationButton } from './components/StartConversationButton';
 import { UpvoteButton } from './components/UpvoteButton/UpvoteButton';
+import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
 
 import s from './NewsCard.module.scss';
@@ -150,10 +152,10 @@ export const NewsCard = ({
             <span className={`${s.eventDot} ${eventTypeDotClassName}`} aria-hidden="true" />
             <span className={clsx(s.eventLabel, compact && s.eventLabelCompact)}>{eventTypeLabel}</span>
           </span>
-          {item.sourceDomain && (
+          {hasNewsSource(item) && (
             <>
               <span className={s.sep} aria-hidden="true" />
-              <span className={s.source}>{item.sourceDomain}</span>
+              <SourceList item={item} position={position} analyticsSource={analyticsSource} compact={compact} />
             </>
           )}
           <span className={s.sep} aria-hidden="true" />

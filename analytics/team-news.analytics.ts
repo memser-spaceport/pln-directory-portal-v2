@@ -104,6 +104,42 @@ export const useTeamNewsAnalytics = () => {
       eventType: item.eventType,
       sourceDomain: item.sourceDomain,
       sourceUrl: item.sourceUrl,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      position,
+      source,
+    });
+  };
+
+  // Fired on explicit click-open of the "N sources" popover only — the CSS
+  // hover preview on pointer devices intentionally doesn't emit (it would fire
+  // on every incidental mouse pass over the meta line).
+  const onTeamNewsSourcesExpanded = (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SOURCES_EXPANDED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      position,
+      source,
+    });
+  };
+
+  const onTeamNewsSourceLinkClicked = (
+    item: ITeamNewsItem,
+    position: number,
+    clicked: { domain: string; url: string },
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SOURCE_LINK_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      clickedDomain: clicked.domain,
+      clickedUrl: clicked.url,
+      isPrimary: clicked.url === item.sourceUrl,
       position,
       source,
     });
@@ -200,6 +236,8 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsViewAllClicked,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
+    onTeamNewsSourcesExpanded,
+    onTeamNewsSourceLinkClicked,
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,
     onTeamNewsSearch,

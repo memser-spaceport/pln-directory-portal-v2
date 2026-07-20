@@ -138,7 +138,16 @@ export function CreateItemModal({ isOpen, onClose, onPublish, draft, onDraftChan
         authorReasoning,
         rating ?? '',
       ].join('|'),
-    [watchedTitle, watchedDescription, watchedStage, watchedTags, watchedType, watchedObjectives, authorReasoning, rating],
+    [
+      watchedTitle,
+      watchedDescription,
+      watchedStage,
+      watchedTags,
+      watchedType,
+      watchedObjectives,
+      authorReasoning,
+      rating,
+    ],
   );
 
   // Dev behavior: anything typed autosaves as the (single) draft after a short debounce.
@@ -169,8 +178,7 @@ export function CreateItemModal({ isOpen, onClose, onPublish, draft, onDraftChan
   }, [fingerprint, isOpen, getValues]);
 
   // Title + the goal for this version + the author's own impact rating (their first boost).
-  const goalOk =
-    goalMode === 'objectives' ? (watchedObjectives?.length ?? 0) > 0 : authorReasoning.trim().length > 0;
+  const goalOk = goalMode === 'objectives' ? (watchedObjectives?.length ?? 0) > 0 : authorReasoning.trim().length > 0;
   const canCreate = watchedTitle.trim().length > 0 && goalOk && rating !== null;
   const hasLiveContent = hasDraftContent(getValues(), authorReasoning, rating);
 
@@ -250,7 +258,7 @@ export function CreateItemModal({ isOpen, onClose, onPublish, draft, onDraftChan
                     <span className={s.subLabel}>
                       How important is it for this goal?<span className={s.required}>*</span>
                     </span>
-                    <ImpactControl value={rating} onChange={setRating} label="Impact on company goals" />
+                    <ImpactControl value={rating} onChange={setRating} label="Impact to goals" />
                   </div>
                 ) : (
                   <>
@@ -267,7 +275,7 @@ export function CreateItemModal({ isOpen, onClose, onPublish, draft, onDraftChan
                       <span className={s.impactLabel}>
                         How important is this for these objectives?<span className={s.required}>*</span>
                       </span>
-                      <ImpactControl value={rating} onChange={setRating} label="Impact on company goals" />
+                      <ImpactControl value={rating} onChange={setRating} label="Impact to goals" />
                     </div>
                   </>
                 )}

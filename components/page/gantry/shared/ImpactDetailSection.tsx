@@ -143,7 +143,7 @@ export function ImpactDetailSection({ item, canCurate, isAuthor: _isAuthor, view
         <div className={s.aggregateRow}>
           <ImpactRing value={item.avgImpact} />
           <div className={s.aggregateText}>
-            <span className={s.aggregateTitle}>Impact on company goals</span>
+            <span className={s.aggregateTitle}>Impact to goals</span>
             <span className={s.aggregateCount}>
               {item.impactCount} rating{item.impactCount === 1 ? '' : 's'}
             </span>

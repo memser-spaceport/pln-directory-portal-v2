@@ -30,7 +30,10 @@ function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
     stats: {
       ...currentRoundData.stats,
       onboardedParticipants: stats.onboardedParticipants,
-      incentivizedActivities: stats.incentivizedActivities,
+      // incentivizedActivities stays hand-curated: the API's activityName set
+      // mixes awards (e.g. "5 Highest Points per Snapshot") with submittable
+      // activities, and the catalog changes per round. Needs an Airtable
+      // activity-catalog table before it can be derived.
       totalPointsCollected: stats.totalPointsCollected.toLocaleString('en-US'),
     },
   };

@@ -236,7 +236,7 @@ export function PrivyModals() {
 
         saveTokens(formattedResult, user as User);
         await loginUser(result);
-        analytics.onDirectoryLoginSuccess();
+        analytics.onDirectoryLoginSuccess({ isAutoLogin: false });
       }
 
       // Handle 403 with email

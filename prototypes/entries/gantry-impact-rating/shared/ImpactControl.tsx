@@ -17,7 +17,7 @@ interface Props {
  */
 export function ImpactControl({ value, onChange, label }: Props) {
   return (
-    <div className={s.scale} role="radiogroup" aria-label={label ?? 'Impact on company goals'}>
+    <div className={s.scale} role="radiogroup" aria-label={label ?? 'Impact to goals'}>
       {IMPACT_LEVELS.map((level) => {
         const active = value === level;
         return (

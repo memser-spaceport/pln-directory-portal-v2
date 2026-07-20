@@ -75,9 +75,7 @@ export function FeedbackPage({ scopedApps, feedback, isAdmin, initialAppFilter, 
   // Ownership signal: whose feedback this is. Stays fixed by role — the filter
   // tabs narrow the table, not the page's identity.
   const title = isAdmin ? 'All app feedback' : 'Feedback on your apps';
-  const subtitle = isAdmin
-    ? 'Every app across the directory.'
-    : 'Only the apps you build — not every app on the page.';
+  const subtitle = isAdmin ? 'Every app across the directory.' : 'Only the apps you build — not every app on the page.';
 
   const tabs = [
     { value: 'all', label: 'All apps', count: feedback.length },
@@ -121,7 +119,7 @@ export function FeedbackPage({ scopedApps, feedback, isAdmin, initialAppFilter, 
     <div className={s.pageWrap}>
       <button type="button" className={s.linkButton} onClick={onBack}>
         <ArrowBackIcon width={16} height={16} />
-        Back to AI Apps
+        Back to all
       </button>
 
       <div className={page.titleBlock}>

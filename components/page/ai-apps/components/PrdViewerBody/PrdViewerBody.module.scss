@@ -1,0 +1,23 @@
+.errorText {
+  margin: auto;
+  font-size: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// The rendered one-pager sits on a white "document page", echoing the
+// prototype's PDF viewer.
+.page {
+  width: 100%;
+  max-width: 760px;
+  padding: 28px 32px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+@media (max-width: 639px) {
+  .page {
+    padding: 20px 16px;
+  }
+}

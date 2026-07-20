@@ -47,52 +47,55 @@ export function useAuthTokens() {
   const postHog = usePostHog();
 
   /**
-   * Saves tokens and user info to cookies after successful authentication
+   * Saves session cookies without requiring a Privy user (e.g. login-token redeem)
    */
-  const saveTokens = useCallback(
-    (response: TokenResponse, user: User) => {
-      const authLinkedAccounts = getLinkedAccounts(user);
+  const saveSessionTokens = useCallback(
+    (response: TokenResponse, linkedAccounts = '') => {
       const accessTokenExpiry = decodeToken(response.accessToken);
       const refreshTokenExpiry = decodeToken(response.refreshToken);
 
-      // Clear stateUid from localStorage
       localStorage.removeItem('stateUid');
 
-      // Set auth token cookie
       Cookies.set('authToken', JSON.stringify(response.accessToken), {
         expires: new Date(accessTokenExpiry.exp * 1000),
         domain: COOKIE_DOMAIN,
       });
 
-      // Set refresh token cookie
       Cookies.set('refreshToken', JSON.stringify(response.refreshToken), {
         expires: new Date(refreshTokenExpiry.exp * 1000),
         path: '/',
         domain: COOKIE_DOMAIN,
       });
 
-      // Set user info cookie
       Cookies.set('userInfo', JSON.stringify(response.userInfo), {
         expires: new Date(accessTokenExpiry.exp * 1000),
         path: '/',
         domain: COOKIE_DOMAIN,
       });
 
-      // Set linked accounts cookie
-      Cookies.set('authLinkedAccounts', JSON.stringify(authLinkedAccounts), {
+      Cookies.set('authLinkedAccounts', JSON.stringify(linkedAccounts), {
         expires: new Date(refreshTokenExpiry.exp * 1000),
         path: '/',
         domain: COOKIE_DOMAIN,
       });
 
-      // Identify user in PostHog
       postHog.identify(response.userInfo.uid, {
         email: response.userInfo.email,
         name: response.userInfo.name,
         uid: response.userInfo.uid,
       });
     },
-    [postHog]
+    [postHog],
+  );
+
+  /**
+   * Saves tokens and user info to cookies after successful authentication
+   */
+  const saveTokens = useCallback(
+    (response: TokenResponse, user: User) => {
+      saveSessionTokens(response, getLinkedAccounts(user));
+    },
+    [saveSessionTokens],
   );
 
   /**
@@ -130,6 +133,7 @@ export function useAuthTokens() {
 
   return {
     saveTokens,
+    saveSessionTokens,
     isLoggedIn,
     getUserInfoFromCookie,
     clearAuthCookies,

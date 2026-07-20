@@ -38,6 +38,9 @@ const PROTOCOL_LABS_INFRA: ITeamNewsItem[] = [
     summary:
       'The upgrade introduces a new content-routing layer that cuts average retrieval latency by roughly a third. Rollout starts with gateway operators in July.',
     sourceDomain: 'protocol.ai',
+    sourceUrl: 'https://protocol.ai/blog/ipfs-mainnet-upgrade',
+    // Exactly 2 sources — the smallest multi-source shape ("2 sources" pill).
+    sourceUrls: ['https://protocol.ai/blog/ipfs-mainnet-upgrade', 'https://www.coindesk.com/tech/ipfs-mainnet-upgrade'],
     discussion: { count: 4, latestTopicUrl: '/forum/t/1' },
     isFollowed: true,
     upvoteCount: 12,
@@ -121,6 +124,17 @@ const LATTICE: ITeamNewsItem[] = [
     title: 'Lattice Compute raises $4.2M seed extension',
     summary:
       'The $4.2M extension was led by existing backers and funds a marketplace matching idle GPU capacity with verifiable workloads.',
+    sourceDomain: 'techcrunch.com',
+    sourceUrl: 'https://techcrunch.com/2026/07/03/lattice-compute-seed-extension',
+    // Funding gets picked up widely — 5 sources exercises the popover's
+    // max-height scroll, and the last entry's long domain its row ellipsis.
+    sourceUrls: [
+      'https://techcrunch.com/2026/07/03/lattice-compute-seed-extension',
+      'https://theblock.co/post/lattice-compute-seed-extension',
+      'https://www.coindesk.com/business/lattice-compute-seed-extension',
+      'https://fortune.com/2026/07/03/lattice-compute-gpu-marketplace',
+      'https://decentralized-infrastructure-weekly.substack.com/p/lattice-compute-seed-extension',
+    ],
     discussion: { count: 2, latestTopicUrl: '/forum/t/3' },
     upvoteCount: 14, // highest count in the fixture set — the clear "Popular this week" #1
     viewerHasUpvoted: true, // demos the viewer-already-upvoted state

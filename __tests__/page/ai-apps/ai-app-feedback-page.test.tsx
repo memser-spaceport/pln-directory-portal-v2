@@ -62,7 +62,7 @@ describe('AiAppFeedbackPage', () => {
 
     render(<AiAppFeedbackPage />);
 
-    expect(screen.getByRole('link', { name: /Back to AI Apps/ })).toHaveAttribute('href', '/pl-infra/ai-apps');
+    expect(screen.getByRole('link', { name: /Back to all/ })).toHaveAttribute('href', '/pl-infra/ai-apps');
   });
 
   it('shows the app-creator heading/subtitle for a non-admin reviewer', () => {

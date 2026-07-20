@@ -28,6 +28,7 @@ export const PitchView = () => {
   const router = useRouter();
   const slug = params.slug as string;
   const prefillEmail = searchParams.get('prefillEmail') ?? undefined;
+  const loginToken = searchParams.get('loginToken');
   const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
 
@@ -88,6 +89,10 @@ export const PitchView = () => {
     if (!prefillEmail || isLoggedIn || access.status === 'CLOSED') {
       return;
     }
+    // Login-token redeem handles auth; do not open Privy until redeem fails
+    if (loginToken) {
+      return;
+    }
 
     const canViewFullDraftPitch =
       access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
@@ -101,7 +106,7 @@ export const PitchView = () => {
 
     loginRedirectAttemptedRef.current = true;
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
-  }, [prefillEmail, isLoggedIn, isHydrated, access, accessLoading, router]);
+  }, [prefillEmail, loginToken, isLoggedIn, isHydrated, access, accessLoading, router]);
 
   const isInvestor = access?.participantType === 'INVESTOR';
 

@@ -229,13 +229,19 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
           />
         ) : (
           <div className={clsx(s.content, s.contentTight)}>
+            <ImpactDetailSection
+              item={item}
+              canCurate={access.canCurate}
+              isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
+              viewerUid={currentUser?.uid}
+              frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+            />
             {hasRichTextContent(item.description) && (
               <div className={s.descriptionBlock}>
                 <span className={s.detailLabel}>Description</span>
                 <QuillContent html={item.description} className={clsx(s.richContent, s.descriptionBody)} />
               </div>
             )}
-
             {(!!item.tags?.length ||
               !!item.type ||
               item.objectives?.length > 0 ||
@@ -288,13 +294,6 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
               </div>
             )}
 
-            <ImpactDetailSection
-              item={item}
-              canCurate={access.canCurate}
-              isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
-              viewerUid={currentUser?.uid}
-              frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
-            />
             {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
               <div className={s.boostAreaInContent}>
                 <BoostersSection item={item} />

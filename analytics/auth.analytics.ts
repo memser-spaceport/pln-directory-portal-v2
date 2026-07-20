@@ -48,8 +48,10 @@ export const useAuthAnalytics = () => {
     captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_INIT, { ...privyUser });
   };
 
-  const onDirectoryLoginSuccess = () => {
-    captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_SUCCESS);
+  const onDirectoryLoginSuccess = (params: { isAutoLogin?: boolean } = {}) => {
+    captureEvent(AUTH_ANALYTICS.AUTH_DIRECTORY_LOGIN_SUCCESS, {
+      isAutoLogin: params.isAutoLogin ?? false,
+    });
   };
 
   const onDirectoryLoginFailure = (privyUser: any) => {

@@ -7,6 +7,7 @@ import { redeemLoginToken } from '@/services/auth.service';
 import { useAuthTokens } from '../../hooks/useAuthTokens';
 import { EVENTS, TOAST_MESSAGES } from '@/utils/constants';
 import { toast } from '@/components/core/ToastContainer';
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
 
 function stripLoginParams(search: string): string {
   const params = new URLSearchParams(search);
@@ -25,6 +26,7 @@ export function LoginTokenRedeemer({ isLoggedIn }: { isLoggedIn: boolean }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { saveSessionTokens } = useAuthTokens();
+  const analytics = useAuthAnalytics();
   const attemptedRef = useRef(false);
   const loginToken = searchParams.get('loginToken');
   const shouldAutoLogin = Boolean(loginToken && !isLoggedIn);
@@ -54,6 +56,7 @@ export function LoginTokenRedeemer({ isLoggedIn }: { isLoggedIn: boolean }) {
           delete (formatted.userInfo as { isFirstTimeLogin?: boolean }).isFirstTimeLogin;
         }
         saveSessionTokens(formatted);
+        analytics.onDirectoryLoginSuccess({ isAutoLogin: true });
         setIsRedeeming(false);
         // Let the signing-in modal unmount before showing success toast
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -79,6 +82,7 @@ export function LoginTokenRedeemer({ isLoggedIn }: { isLoggedIn: boolean }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per loginToken; analytics is stable enough for capture
   }, [isLoggedIn, loginToken, router, saveSessionTokens]);
 
   if (!isRedeeming) {

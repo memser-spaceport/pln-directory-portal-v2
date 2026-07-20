@@ -4,10 +4,7 @@ export const activitiesData: ActivitiesData = {
   hero: {
     title: 'Complete activities, collect points towards PLAA.',
     description: 'Completing the activities below help build and grow the Protocol Labs Network, they also give you points that turn into PLAA each month. Click on any of the activities you see details on how you can contribute to the network and collect points.',
-    note: '',
-    suggestLinkText: 'Have an idea for a new incentivized activity?',
-    suggestLinkHighlight: 'Suggest one here + collect points',
-    hintText: 'Click on an activity to view the full requirements'
+    note: ''
   },
   activities: [
     // ─── Repeatable ───────────────────────────────────────────────────────────

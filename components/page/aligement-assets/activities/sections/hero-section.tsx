@@ -1,31 +1,17 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { ACTIVITY_FORM_URL } from '@/constants/plaa';
-import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-
 interface HeroSectionProps {
   data: {
     title: string;
     description: string;
     note: string;
-    suggestLinkText: string;
-    suggestLinkHighlight: string;
-    hintText: string;
   };
 }
 
 /**
- * HeroSection - Displays the main title, description, and action link for activities page
+ * HeroSection - Displays the main title and description for activities page
  */
 export default function HeroSection({ data }: HeroSectionProps) {
-  const { onActivitiesSuggestLinkClicked } = useAlignmentAssetsAnalytics();
-
-  const handleSuggestClick = () => {
-    onActivitiesSuggestLinkClicked(ACTIVITY_FORM_URL);
-  };
-
   return (
     <>
       <section className="activities-hero">
@@ -33,30 +19,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
           <h1 className="activities-hero__title">{data.title}</h1>
           <p className="activities-hero__description">{data.description}</p>
           {data.note && <p className="activities-hero__note">{data.note}</p>}
-
-          <p className="activities-hero__suggest">
-            {data.suggestLinkText}{' '}
-            <Link 
-              href={ACTIVITY_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="activities-hero__suggest-link"
-              onClick={handleSuggestClick}
-            >
-              {data.suggestLinkHighlight}
-            </Link>
-          </p>
-
-          <div className="activities-hero__hint">
-            <Image 
-              src="/icons/cursor-click.svg" 
-              alt="" 
-              width={24} 
-              height={24} 
-              className="activities-hero__hint-icon"
-            />
-            <span>{data.hintText}</span>
-          </div>
         </div>
       </section>
 
@@ -100,41 +62,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
           font-style: italic;
         }
 
-        .activities-hero__suggest {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 20px;
-          color: #0F172A;
-          margin: 0;
-        }
-
-        .activities-hero__hint {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          background-color: #DBEAFE66;
-          width: 396px;
-          height: 36px;
-          padding: 6px 12px;
-          border-radius: 40px;
-          margin-top: 14px;
-        }
-
-        .activities-hero__hint span {
-          font-family: 'Inter', sans-serif;
-          font-size: 15px;
-          font-weight: 400;
-          line-height: 100%;
-          color: #0F172A;
-          letter-spacing: 0;
-        }
-
-        .activities-hero__hint-icon {
-          width: 24px;
-          height: 24px;
-        }
-
         @media (max-width: 768px) {
           .activities-hero {
             text-align: left;
@@ -149,29 +76,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
             font-size: 20px;
             line-height: 24px;
           }
-
-          .activities-hero__hint {
-            justify-content: flex-start;
-            width: 100%;
-            max-width: 396px;
-          }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        .activities-hero__suggest-link {
-          color: #156ff7;
-          font-weight: 500;
-          font-size: 14px;
-          line-height: 20px;
-          padding-left: 5px;
-          text-decoration: underline;
-          text-underline-position: from-font;
-          text-decoration-skip-ink: none;
-        }
-
-        .activities-hero__suggest-link:hover {
-          text-decoration: none;
         }
       `}</style>
     </>

@@ -97,9 +97,6 @@ export interface ActivitiesData {
     title: string;
     description: string;
     note: string;
-    suggestLinkText: string;
-    suggestLinkHighlight: string;
-    hintText: string;
   };
   activities: Activity[];
 }

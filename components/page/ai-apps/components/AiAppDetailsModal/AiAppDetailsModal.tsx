@@ -54,7 +54,7 @@ export function AiAppDetailsModal({ isOpen, uid, appName, prdUrl, onClose }: Pro
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className={s.modal}>
+    <Modal isOpen={isOpen} onClose={onClose} className={s.modal} closeOnBackdropClick={false}>
       <div className={s.content}>
         <div className={s.header}>
           <p className={s.title}>{appName}</p>

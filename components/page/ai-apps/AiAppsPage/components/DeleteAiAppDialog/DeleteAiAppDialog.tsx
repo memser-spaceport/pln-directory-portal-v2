@@ -61,7 +61,7 @@ export function DeleteAiAppDialog({ app, onClose, onDeleteSucceeded }: Props) {
   };
 
   return (
-    <Modal isOpen onClose={handleClose} className={s.modal}>
+    <Modal isOpen onClose={handleClose} className={s.modal} closeOnBackdropClick={false}>
       <div className={s.content}>
         <h2 className={s.title}>Delete &ldquo;{app.name}&rdquo;?</h2>
         <p className={s.body}>

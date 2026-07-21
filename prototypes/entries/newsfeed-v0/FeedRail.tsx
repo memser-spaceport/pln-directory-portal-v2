@@ -11,7 +11,8 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
-import { MOCK_FOCUS_AREAS, SUGGESTED_TEAMS, UPVOTES } from './mocks';
+import { DigestBanner } from './DigestBanner';
+import { SUGGESTED_TEAMS, UPVOTES, MOCK_FORUM_POSTS } from './mocks';
 
 interface FeedRailProps {
   followedTeams: Set<string>;
@@ -27,6 +28,10 @@ interface FeedRailProps {
  */
 export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailProps) {
   const popular = [...allItems].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
+  // Most-discussed forum threads (engagement = likes + comments).
+  const topDiscussions = [...MOCK_FORUM_POSTS]
+    .sort((a, b) => b.meta.likes + b.meta.comments - (a.meta.likes + a.meta.comments))
+    .slice(0, 3);
 
   return (
     <>
@@ -57,37 +62,13 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
       </div>
 
       <div className={clsx(s.card, local.railCard)}>
-        <h3 className={local.railTitle}>Focus Areas</h3>
-        {MOCK_FOCUS_AREAS.map((area: any) => (
-          <div
-            key={area.title}
-            role="link"
-            tabIndex={0}
-            className={local.railStory}
-            onClick={() => window.open(`/teams?focusAreas=${area.title}`, '_blank')}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                window.open(`/teams?focusAreas=${area.title}`, '_blank');
-              }
-            }}
-          >
-            <span className={local.railStoryTitle}>{area.title}</span>
-            <span className={local.railReason}>
-              {area.teamAncestorFocusAreas.length} teams · {area.projectAncestorFocusAreas.length} projects
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className={clsx(s.card, local.railCard)}>
         <h3 className={local.railTitle}>Popular this week</h3>
         {popular.map((item) => (
           <div
             key={item.uid}
             role="link"
             tabIndex={0}
-            className={local.railStory}
+            className={local.railLinkRow}
             onClick={() => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer')}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -96,13 +77,46 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
               }
             }}
           >
-            <span className={local.railStoryTitle}>{item.title}</span>
-            <span className={local.railReason}>
-              ↑ {UPVOTES[item.uid] ?? 0} · {item.teamName}
+            {item.teamLogoUrl ? (
+              <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+            ) : (
+              <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+            )}
+            <span className={local.railStoryBody}>
+              <span className={local.railStoryTitle}>{item.title}</span>
+              <span className={local.railReason}>
+                ↑ {UPVOTES[item.uid] ?? 0} · {item.teamName}
+              </span>
             </span>
           </div>
         ))}
       </div>
+
+      <div className={clsx(s.card, local.railCard)}>
+        <h3 className={local.railTitle}>From the forum</h3>
+        {topDiscussions.map((post) => (
+          <div
+            key={post.tid}
+            role="link"
+            tabIndex={0}
+            className={local.railStory}
+            onClick={() => window.open(`https://directory.plnetwork.io/forum/${post.tid}`, '_blank', 'noopener,noreferrer')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                window.open(`https://directory.plnetwork.io/forum/${post.tid}`, '_blank', 'noopener,noreferrer');
+              }
+            }}
+          >
+            <span className={local.railStoryTitle}>{post.title}</span>
+            <span className={local.railReason}>
+              {post.meta.comments} comments · {post.meta.likes} likes
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <DigestBanner />
     </>
   );
 }

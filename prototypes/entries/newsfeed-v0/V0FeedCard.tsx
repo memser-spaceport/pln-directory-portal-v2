@@ -21,7 +21,7 @@ import local from './NewsfeedV0.module.scss';
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
 import { UPVOTES } from './mocks';
-import { UpvoteButton, type TeamCluster } from './V0NewsCard';
+import { LikeButton, type TeamCluster } from './V0NewsCard';
 
 // Same event-color mapping as the grid card.
 const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
@@ -39,6 +39,8 @@ interface V0FeedCardProps {
   cluster: TeamCluster;
   following: boolean;
   onToggleFollow: () => void;
+  /** Open the reader (summary + references + share) for a story. */
+  onOpenStory: (story: ITeamNewsItem) => void;
   /** V1 only — V0 ships without the upvote feature. */
   showUpvote?: boolean;
 }
@@ -52,7 +54,7 @@ interface V0FeedCardProps {
 // Show at most this many stories per card; the rest collapse under "+N more".
 const VISIBLE_STORIES = 3;
 
-export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = false }: V0FeedCardProps) {
+export function V0FeedCard({ cluster, following, onToggleFollow, onOpenStory, showUpvote = false }: V0FeedCardProps) {
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState(false);
 
@@ -100,14 +102,14 @@ export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = fa
         return (
           <div
             key={story.uid}
-            role="link"
+            role="button"
             tabIndex={0}
             className={local.feedStory}
-            onClick={() => openSource(story)}
+            onClick={() => onOpenStory(story)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                openSource(story);
+                onOpenStory(story);
               }
             }}
           >
@@ -121,14 +123,34 @@ export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = fa
                 {' · '}
                 {story.sourceDomain && (
                   <>
-                    <span className={local.sourceDomain}>{story.sourceDomain}</span>
+                    {/* The domain jumps straight to the original; the rest of the
+                        story opens the in-app reader. */}
+                    <span
+                      className={local.sourceDomain}
+                      role="link"
+                      tabIndex={0}
+                      title="Open the original source"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openSource(story);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openSource(story);
+                        }
+                      }}
+                    >
+                      {story.sourceDomain}
+                    </span>
                     {' · '}
                   </>
                 )}
                 {formatTimeAgo(story.eventDate)}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
-                {showUpvote && <UpvoteButton count={upvotes} voted={voted} onToggle={() => toggleVote(story.uid)} />}
+                {showUpvote && <LikeButton count={upvotes} liked={voted} onToggle={() => toggleVote(story.uid)} />}
                 {/* Production's StartConversationButton treatment: DS link/primary —
                     brand blue at rest, darkening on hover. (The real component also
                     reads auth + forum access and navigates, out of scope for mocked data.) */}

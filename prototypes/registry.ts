@@ -142,10 +142,18 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-news/HomeNewsPrototype'),
   },
   {
-    key: 'newsfeed-v0',
-    title: 'Newsfeed redesign — v0 quick wins',
+    key: 'job-board',
+    title: 'Job Board',
     description:
-      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a V0 / V1 switch on the feed. Both are the same single-column layout (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates). V0 ships without the right rail or per-story upvotes; V1 adds the follow-suggestions / focus-areas / popular rail and upvoting back.',
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries a share-icon "Refer" control that opens a popover (LinkedIn / X / copy link).',
+    category: 'Jobs',
+    load: () => import('./entries/job-board/JobBoardPrototype'),
+  },
+  {
+    key: 'newsfeed-v0',
+    title: 'Newsfeed redesign',
+    description:
+      'The full production homepage reworked — Quick Actions on top and the "News from the network" feed as a single column (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates, per-story upvotes) beside the follow-suggestions / focus-areas / popular rail. Network forum threads interleave into the feed as their own cards (reusing the production forum list-item), with a "Discussions" category chip that filters to them. Opening a news story shows a Perplexity-Discover-style reader — a full AI-generated article with inline source pills, a stacked "N sources" cluster, and a Share control (copy link, X, LinkedIn).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },

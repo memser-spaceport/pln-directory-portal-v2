@@ -1538,6 +1538,64 @@ $border: var(--border-neutral-subtle, #e5e7eb);
   margin-top: 10px !important;
 }
 
+// Source-attribution evidence lines (LinkedIn / Affinity). The source chip is the
+// leading marker — replacing the disc bullet — so the origin reads at a glance.
+.attrList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.attrLine {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: $text-2;
+
+  & + & {
+    margin-top: 4px;
+  }
+}
+
+.srcChip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px 1px 2px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  color: $text-2;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// Identically sized leading tile for both sources so the chips are a matched
+// pair — LinkedIn shows its logo, Affinity a monogram (no Affinity logo exists).
+.srcChipMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.srcChipMarkAffinity {
+  // Circle, to match LinkedIn's circular logo mark.
+  border-radius: 50%;
+  background: $brand;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 // Path header carries the proximity badge + warmth + the node chain on one row;
 // let it wrap gracefully and sit the chain inline (no top margin).
 .pathHeadWrap {

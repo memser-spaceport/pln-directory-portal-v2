@@ -1,28 +1,24 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Button } from '@/components/common/Button';
 import { ArrowRight } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/components/Icons';
 
 import local from './NewsfeedV0.module.scss';
 
-interface Props {
-  /** Whether this user already gets the digest — drives which banner renders. */
-  subscribed: boolean;
-  onToggle: () => void;
-}
-
 /**
- * Rail module: the network-news email digest, in two states.
+ * Rail module: the network-news email digest, in two states (self-managed).
  *  - Not subscribed → a low-key subscribe banner: soft brand tint, dark
- *    title/subtitle, and a full-width filled-brand "Subscribe" DS
- *    button that carries the emphasis (toned down from the original loud
- *    brand-blue gradient promo).
+ *    title/subtitle, and a full-width filled-brand "Subscribe" DS button.
  *  - Already subscribed → the same banner shape, greyed out, pointing to
  *    Settings (production's real digest control lives in Settings › email
- *    preferences) — no pitch spent on something they already have.
- * Fills the banner-mode rail so the feed section spans the full width.
+ *    preferences).
  */
-export function DigestBanner({ subscribed, onToggle }: Props) {
+export function DigestBanner() {
+  const [subscribed, setSubscribed] = useState(false);
+  const onToggle = () => setSubscribed((v) => !v);
+
   if (subscribed) {
     return (
       <section className={local.digestGrey} aria-label="You're subscribed to the news digest">

@@ -7,60 +7,6 @@
   background: var(--background-neutral-subtle, #f7f8fa);
 }
 
-/* ---------- Prototype-only Current / V0 switcher ---------- */
-
-.switchBar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.switch {
-  display: inline-flex;
-  padding: 2px;
-  border-radius: 9999px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-}
-
-.switchBtn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  padding: 4px 14px;
-  border-radius: 9999px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-
-  &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
-}
-
-.switchBtnActive {
-  background: #ffffff;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow:
-    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
-    0px 2px 4px 0px rgba(15, 23, 42, 0.06);
-}
-
-.switchNote {
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
 /* ---------- Header search: expand-on-click icon ---------- */
 
 /* Sits inline right after the title: N-new badge · search. Grows to fill the
@@ -76,12 +22,6 @@
 
   @include tablet-landscape {
     margin-right: calc(100% / 3 + 4px);
-  }
-}
-
-.headerActionsBanner {
-  @include tablet-landscape {
-    margin-right: 312px; /* 300px rail + 12px gutter, matching .tabsConstrainBanner */
   }
 }
 
@@ -191,11 +131,12 @@
   }
 
   /* Full-width text (per designer call — line length runs ~100+ chars at the
-     widest breakpoint), with a third line since the feed is the reading view.
-     The shared class pulls itself up -6px (tuned to the grid card's 14px gap);
-     here the story's own 8px gap is right. */
+     widest breakpoint). The feed is the reading view, so it shows more of the
+     description than a compact grid card would. The shared class pulls itself
+     up -6px (tuned to the grid card's 14px gap); here the story's own 8px gap
+     is right. */
   .summary {
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 5;
     margin-top: 0;
   }
 }
@@ -254,25 +195,6 @@
   }
 }
 
-.tabsConstrainBanner {
-  @include tablet-landscape {
-    margin-right: 312px; /* 300px rail + 12px gutter */
-  }
-}
-
-/* Banner mode: the digest banner is lighter than the full V1 rail, so it takes
-   a narrower fixed column and the feed card stretches to fill the rest (wider
-   than the strict 2-of-3 grid). */
-.feedLayoutBanner {
-  @include tablet-landscape {
-    grid-template-columns: minmax(0, 1fr) 300px;
-
-    .feedList {
-      grid-column: auto;
-    }
-  }
-}
-
 .feedRail {
   display: flex;
   flex-direction: column;
@@ -298,47 +220,10 @@
   }
 }
 
-.railTitle {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-}
-
-/* Banner-mode rail (Why-follow + Digest): supplementary, so hide it while it's
-   stacked below the feed on narrow screens; it returns as the side column at
-   tablet-landscape. Double class beats .feedRail's base display. */
-.railHideMobile.railHideMobile {
-  display: none;
-
-  @include tablet-landscape {
-    display: flex;
-  }
-}
-
-/* Small grey icon badge atop the rail explainers (why-follow, subscribed digest). */
-.railIconBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-neutral-tertiary, #8897ae);
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-/* ---------- Digest subscribe banner (fills V0's rail) ----------
-   Toned down from the original brand-blue gradient promo: a soft brand tint with
-   a subtle brand border and dark text, so it reads as a quiet rail module rather
-   than a loud ad. The filled-brand DS button carries the emphasis instead. */
+/* ---------- Digest subscribe banner (rail module) ----------
+   A soft brand tint with a subtle brand border and dark text, so it reads as a
+   quiet rail module rather than a loud ad. The filled-brand DS button carries
+   the emphasis. */
 .digestPromo {
   display: flex;
   flex-direction: column;
@@ -382,16 +267,14 @@
   gap: 6px;
 }
 
-/* Subscribed: the same banner shape in a light brand-blue tint — calmer than
-   the vibrant promo gradient, but clearly blue (echoing it), a settled state
-   pointing to Settings rather than pitching. */
+/* Subscribed: the same banner shape, outlined and calmer, pointing to Settings. */
 .digestGrey {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
   border-radius: 12px;
-  background: transparent; /* lightweight: outlined only, no fill */
+  background: transparent;
   border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
 }
 
@@ -402,7 +285,6 @@
   gap: 4px;
 }
 
-/* Small block header, shared by the rail explainers (subscribed digest, why-follow). */
 .railBlockTitle {
   margin: 0;
   font-size: 16px;
@@ -418,6 +300,32 @@
   line-height: 20px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Small grey icon badge atop the subscribed-digest banner. */
+.railIconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.railTitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .railRow {
@@ -496,6 +404,35 @@
   transition: color 0.12s ease;
 }
 
+/* ---------- Interactive rail rows (popular articles + discussions) ----------
+   A leading team logo (articles) or chat-bubble badge (discussions) beside a
+   title/meta column. The badge marks a row as a conversation so discussions
+   read apart from the logo-led article list next to them. */
+.railLinkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+
+  &:hover .railStoryTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.railStoryBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 /* Stop the team-name link from growing (production sets flex:1) so the count
    and follow button sit right next to it. Double class beats production. */
 .teamNameTight.teamNameTight {
@@ -517,12 +454,12 @@
 .summary {
   margin: 0;
   margin-top: -6px; /* bind to the headline (card gap is 14px) */
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 15px;
+  line-height: 24px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -601,4 +538,692 @@
   gap: 16px;
 }
 
+/* ---------- Forum post card (interleaved into the feed) ----------
+   The body reuses the production forum list-item (Posts.module.scss) 1:1; this
+   only lifts its shell to match the surrounding news cards (16px radius, 24px
+   padding, the feed card's shadow) so the mixed column reads as one surface. */
+.forumCard.forumCard {
+  gap: 12px;
+  padding: 24px;
+  border: none;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.12s ease;
 
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.16),
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* Top kicker that tells a discussion apart from a news card in the mixed column. */
+.forumKicker {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.forumKickerLabel {
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Author role/team — production hides this on the forum list; the feed has room
+   for it at tablet-landscape+ (kept hidden on mobile to avoid crowding). */
+.forumPosition {
+  display: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include tablet-landscape {
+    display: block;
+  }
+}
+
+/* Meta stats on the left, Join-discussion action on the right. */
+.forumFooterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  @include mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Undo the production .sub's full-width/top-margin so it shares the footer row. */
+.forumSub.forumSub {
+  width: auto;
+  margin-top: 0;
+  flex: 0 1 auto;
+}
+
+/* ---------- Opened story: reader modal (summary + references + share) ---------- */
+
+.detailModal.detailModal {
+  max-width: 640px;
+}
+
+.detailCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: min(82vh, 760px);
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 12px 32px 0px rgba(15, 23, 42, 0.14);
+
+  @include mobile-only {
+    padding: 20px;
+    max-height: 88vh;
+  }
+}
+
+/* Close button, top-right. */
+.detailClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.detailHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 36px; /* clear the close button */
+  flex-wrap: wrap;
+}
+
+.detailLogo,
+.detailLogoFallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.detailLogoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1b4dff;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  border: none;
+}
+
+.detailTeamName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+  }
+}
+
+.detailMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 26px;
+  }
+}
+
+/* The scrollable middle — summary + references — so head + footer stay put. */
+.detailScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+/* "AI-generated · reviewed across N sources" byline under the title. */
+.detailByline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* Generated article body — one <p> per paragraph, inline source pills at the end. */
+.articleParagraph {
+  margin: 0;
+  font-size: 15px;
+  line-height: 25px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Inline citation cluster following a paragraph's last line. */
+.citeGroup {
+  display: inline;
+  white-space: nowrap;
+}
+
+.citeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 1px 7px 1px 3px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  vertical-align: 2px;
+  text-decoration: none;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+
+  &:hover {
+    background: #ffffff;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.citeLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.citeMore {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Round letter-avatar standing in for a source favicon. */
+.srcAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Expanded sources list (toggled from the footer "N sources" pill). */
+.sourcesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  padding: 10px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f7f8fa);
+}
+
+.sourcesListLabel {
+  padding: 2px 6px 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.srcRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: #ffffff;
+
+    .srcRowArrow {
+      color: var(--foreground-brand-primary, #1b4dff);
+    }
+  }
+}
+
+.srcRowIndex {
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-variant-numeric: tabular-nums;
+}
+
+.srcRowLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.srcRowArrow {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition: color 0.12s ease;
+}
+
+/* Footer: Share on the left, discuss / read-original on the right. */
+.detailFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  flex-wrap: wrap;
+}
+
+.shareWrap {
+  position: relative;
+}
+
+.shareBtn.shareBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Share popover, anchored above the Share button. */
+.shareMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 8px 24px 0px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shareItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.footerLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footerRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Stacked source favicons + "N sources" — toggles the sources list. */
+.sourcesPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--background-base-white, #fff);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: #5e718d;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.srcStack {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Overlap the favicons and ring each one so the stack reads as a cluster. */
+.srcStackAvatar {
+  display: inline-flex;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px var(--background-base-white, #fff);
+
+  & + & {
+    margin-left: -6px;
+  }
+}
+
+/* Square icon buttons (copy link / copy article). */
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: #5e718d;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.detailDiscuss.detailDiscuss {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+
+/* ---------- Full news page (replaces the reader modal) ---------- */
+
+.articlePage {
+  min-height: 100%;
+  background: var(--background-neutral-subtle, #f7f8fa);
+}
+
+/* Centered reading column on desktop; full-width with tighter gutters on mobile. */
+.articleContainer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+
+  @include mobile-only {
+    padding: 14px 14px 48px;
+  }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+/* The white article sheet. */
+.articleSheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 12px 0px rgba(15, 23, 42, 0.06);
+
+  @include mobile-only {
+    padding: 20px;
+    border-radius: 12px;
+    gap: 14px;
+  }
+}
+
+/* On the page the head no longer needs to clear a modal close button. */
+.detailHead {
+  padding-right: 0;
+}
+
+.articleTitle {
+  margin: 0;
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 24px;
+    line-height: 30px;
+    letter-spacing: -0.5px;
+  }
+}
+
+/* Share / copy on the left, discuss on the right — wraps on mobile. */
+.articleActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  flex-wrap: wrap;
+}
+
+.articleBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Share popover variant that opens downward (the page anchors it near the top).
+   Double class beats .shareMenu base bottom positioning. */
+.shareMenuDown.shareMenuDown {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+/* News page body — mirrors the forum post-content type (16/24, primary), laid
+   out as spaced paragraphs so the AI article reads like a forum post. */
+.postBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.postBody p {
+  margin: 0;
+}
+
+/* ---------- News reader modal (the forum post-card reused as the modal card) ---------- */
+
+.readerModal.readerModal {
+  max-width: 640px;
+}
+
+/* Override f.root's centering; make the card scroll and anchor the close button. */
+.readerRoot.readerRoot {
+  position: relative;
+  margin: 0;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Clear the absolute close button on the badge row. */
+.readerHeadPad {
+  padding-right: 36px;
+}
+
+/* ---------- Forum post card, news-styled (author on top) ---------- */
+
+/* Round the person avatar (team logos are rounded-square; people read better round). */
+.forumAvatar.forumAvatar {
+  border-radius: 50%;
+}
+
+/* Author role/team beside the name in the head. */
+.forumByline {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+/* "Discussion" kicker color — violet, distinct from the news event-type colors. */
+.kDiscussion {
+  color: #5925dc;
+}
+
+/* Likes / comments counts in the forum card footer. */
+.forumStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
+}

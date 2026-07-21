@@ -94,6 +94,7 @@ export default function AiAppsFeedbackPrototype() {
         authorUid: currentUser.uid,
         authorName: currentUser.name,
         text,
+        type: 'feature',
         createdAt: new Date().toISOString(),
       },
       ...prev,
@@ -140,20 +141,20 @@ export default function AiAppsFeedbackPrototype() {
   );
 
   // ---- Feedback (full page) view ----
+  // Full-bleed so the DashboardPagesLayout filter rail can sit flush at the page
+  // edge like dev; the demo chrome rides above the two-column layout.
   if (view === 'feedback') {
     return (
-      <div className={page.pageFrame} style={{ paddingTop: 16, paddingBottom: 16 }}>
-        <div className={page.content}>
-          {demoBar}
-          <FeedbackPage
-            scopedApps={scopedApps}
-            feedback={scopedFeedback}
-            isAdmin={role === 'admin'}
-            initialAppFilter={feedbackFilter}
-            onBack={() => setView('grid')}
-          />
-        </div>
-      </div>
+      <>
+        <div className={s.feedbackChrome}>{demoBar}</div>
+        <FeedbackPage
+          scopedApps={scopedApps}
+          feedback={scopedFeedback}
+          isAdmin={role === 'admin'}
+          initialAppFilter={feedbackFilter}
+          onBack={() => setView('grid')}
+        />
+      </>
     );
   }
 

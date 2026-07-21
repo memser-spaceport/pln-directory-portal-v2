@@ -13,9 +13,12 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 // Reuse the production path-card styling so the prototype tracks production.
 import pd from '@/components/page/investors/WarmPathDetail/WarmPathDetail.module.scss';
 import {
+  DATA_SOURCE_LABEL,
   pathChainNodes,
   pathDirectness,
   resolveRoute,
+  routeMediators,
+  type DataSource,
   type ContactPerson,
   type MockInvestor,
   type MockPath,
@@ -83,10 +86,12 @@ function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }
   // Contact details — a secondary button that sits inline at the end of the node
   // chain; clicking it reveals the mediator's contact card below.
   const [contactOpen, setContactOpen] = useState(false);
-  const contactLabel = route.mediator?.known === false ? 'Organization details' : 'Contact details';
+  const meds = routeMediators(route);
+  const contactLabel =
+    meds.length > 1 ? 'Path details' : meds[0]?.known === false ? 'Organization details' : 'Contact details';
   // A single inline toggle at the end of the chain row — the chevron flips and the
   // card reveals/hides below.
-  const contactButton = route.mediator ? (
+  const contactButton = meds.length > 0 ? (
     <button type="button" className={x.contactInlineBtn} onClick={() => setContactOpen((v) => !v)} aria-expanded={contactOpen}>
       <span>{contactLabel}</span>
       <span className={`${x.contactInlineChevron} ${contactOpen ? x.contactInlineChevronOpen : ''}`} aria-hidden>
@@ -115,9 +120,19 @@ function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }
         </button>
       </div>
 
-      {/* Header → description → nodes. The plain-English explanation reads as the
-          caption above the chain. */}
-      {path.explanation && <div className={`${pd.explanation} ${x.explanationSpaced}`}>{path.explanation}</div>}
+      {/* Source-tagged evidence (LinkedIn / Affinity) reads as the caption above
+          the chain — no separate narrative line on top. The source is a leading
+          chip so its origin reads at a glance. */}
+      {path.attribution_lines && path.attribution_lines.length > 0 && (
+        <ul className={x.attrList}>
+          {path.attribution_lines.map((line, i) => (
+            <li key={`${path.id}-attr-${i}`} className={x.attrLine}>
+              <SourceChip source={line.source} />
+              <span>{line.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* The people chain — the unique, scannable part of each path — rendered
           large so the connectors are the card's visual hero. The Contact details
@@ -140,7 +155,7 @@ function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }
       {/* Revealed by the inline Contact details button. Only meaningful when a
           mediator bridges the path — a direct PL connection has no external
           contact to surface. */}
-      {contactOpen && route.mediator && (
+      {contactOpen && meds.length > 0 && (
         <div className={x.contactReveal}>
           <RouteBlocks path={path} />
         </div>
@@ -160,14 +175,39 @@ function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }
   );
 }
 
+// Leading source marker for an evidence line: LinkedIn shows its logo + label;
+// Affinity is a text chip (no Affinity logo exists in the app).
+function SourceChip({ source }: { source: DataSource }) {
+  return (
+    <span className={x.srcChip}>
+      {/* Both sources get an identically sized leading tile so the chips read as
+          a matched pair — LinkedIn shows its logo, Affinity a monogram. */}
+      {source === 'linkedin' ? (
+        <img className={x.srcChipMark} src={getContactLogoByProvider('linkedin')} alt="" width={14} height={14} />
+      ) : (
+        <span className={`${x.srcChipMark} ${x.srcChipMarkAffinity}`} aria-hidden>
+          A
+        </span>
+      )}
+      {DATA_SOURCE_LABEL[source]}
+    </span>
+  );
+}
+
 // Per-node detail for a path's route: the PL side (known person + tie stat, or
 // "not yet identified"), then the mediator if the path is indirect.
 function RouteBlocks({ path }: { path: MockPath }) {
   const route = resolveRoute(path);
-  // Only the mediator's contact is surfaced. Even when we know the PL teammate,
-  // their contact isn't shown — they're reached internally; the tie/recency stat
-  // under the chain already conveys that relationship.
-  return <div className={x.contactBlock}>{route.mediator && <MediatorBlock mediator={route.mediator} />}</div>;
+  // Every intermediary's contact is surfaced, in path order (2–3 stack on a
+  // multi-hop route). The PL teammate isn't shown — they're reached internally;
+  // the tie/recency stat under the chain already conveys that relationship.
+  return (
+    <div className={x.contactBlock}>
+      {routeMediators(route).map((mediator, i) => (
+        <MediatorBlock key={i} mediator={mediator} />
+      ))}
+    </div>
+  );
 }
 
 function MediatorBlock({ mediator }: { mediator: RouteMediator }) {

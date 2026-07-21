@@ -32,6 +32,10 @@ import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
 import { TeamAdminActions } from './TeamAdminActions';
+// Contributions (Events) block + its mocks live in the demoday-tag-placements
+// entry; reuse the recommended "feature" Demo Day treatment here in full context.
+import { EventsContributionsView } from '../demoday-tag-placements/EventsContributionsView';
+import { MOCK_EVENT_GROUPS, MOCK_DEMO_DAY_CONTRIB } from '../demoday-tag-placements/mocks';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 import local from './TeamProfile.module.scss';
@@ -226,6 +230,10 @@ export default function TeamProfilePrototype() {
 
           {/* Projects */}
           <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
+
+          {/* Contributions (Events) — Demo Day reads as a normal event: a
+              "Participant" role row + a plain chip, same weight as Host/Sponsor. */}
+          <EventsContributionsView groups={MOCK_EVENT_GROUPS} demoDay={MOCK_DEMO_DAY_CONTRIB} variant="native" />
         </div>
       </div>
 

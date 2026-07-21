@@ -6,17 +6,16 @@ import isEmpty from 'lodash/isEmpty';
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
-import { ArrowIcon, ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/RoleRow/components/Icons';
+import { ReferMenu } from './components/ReferMenu';
+import { ArrowIcon, ClockIcon } from './components/Icons';
 
-// Reuse the production RoleRow styling 1:1; local extras only for the apply link + refer slot.
-import rr from '@/components/page/jobs/TeamGroupCard/component/RoleRow/RoleRow.module.scss';
 import s from './ReferRoleRow.module.scss';
-
-import { ReferMenu } from './ReferMenu';
+import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 interface ReferRoleRowProps {
   role: IJobRole;
   teamName: string;
+  onClick?: () => void;
 }
 
 /**
@@ -24,7 +23,9 @@ interface ReferRoleRowProps {
  * The whole row is no longer a single <a> (can't nest a button in an anchor):
  * the title + arrow are the apply link, and the ReferMenu sits alongside the meta.
  */
-export function ReferRoleRow({ role, teamName }: ReferRoleRowProps) {
+export function ReferRoleRow(props: ReferRoleRowProps) {
+  const { role, teamName, onClick } = props;
+
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
   const date = getJobDate(role);
@@ -32,29 +33,31 @@ export function ReferRoleRow({ role, teamName }: ReferRoleRowProps) {
   const showNew = isNew(date);
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
-  const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(Boolean);
+  const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(
+    Boolean,
+  );
 
   const linkProps: HTMLProps<HTMLAnchorElement> = applyUrl
-    ? { href: applyUrl, target: '_blank', rel: 'noopener noreferrer' }
+    ? { href: `${applyUrl}?${JOB_QUERY_PARAMS}`, target: '_blank', rel: 'noopener noreferrer', onClick }
     : {};
 
   return (
-    <div className={`${rr.root} ${s.row}`}>
-      <div className={rr.body}>
+    <div className={`${s.root} ${s.row}`}>
+      <div className={s.body}>
         <div className={s.titleRow}>
-          <a className={`${rr.title} ${s.titleLink}`} {...linkProps}>
+          <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
             {roleTitle}
           </a>
           {/* Mobile-only: "New" aligned to the top-right, in line with the role name. */}
-          {showNew && <span className={`${rr.newBadge} ${s.newBadgeMobile}`}>● New</span>}
+          {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
         </div>
-        {!isEmpty(metaParts) && <div className={rr.meta}>{metaParts.join(' · ')}</div>}
+        {!isEmpty(metaParts) && <div className={s.meta}>{metaParts.join(' · ')}</div>}
       </div>
 
-      <div className={`${rr.right} ${s.actions}`}>
-        {showNew && <span className={`${rr.newBadge} ${s.newBadgeDesktop}`}>● New</span>}
+      <div className={`${s.right} ${s.actions}`}>
+        {showNew && <span className={`${s.newBadge} ${s.newBadgeDesktop}`}>● New</span>}
         {relative && (
-          <span className={rr.relative}>
+          <span className={s.relative}>
             <ClockIcon />
             {relative}
           </span>

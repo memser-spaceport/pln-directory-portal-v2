@@ -13,7 +13,7 @@ import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useG
 import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import js from './JobTeamGroupCard.module.scss';
 
-import { ReferRoleRow } from './ReferRoleRow';
+import { ReferRoleRow } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;

@@ -10,7 +10,7 @@ import { TagsList } from '@/components/common/profile/TagsList';
 
 import { useGetFocusTags } from './hooks/useGetFocusTags';
 
-import { RoleRow } from './component/RoleRow';
+import { ReferRoleRow } from './component/ReferRoleRow';
 
 import s from './TeamGroupCard.module.scss';
 
@@ -58,7 +58,8 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
 
       <ul className={s.roleList}>
         {visibleRoles.map((role, idx) => (
-          <RoleRow
+          <ReferRoleRow
+            teamName={team.name}
             key={role.uid}
             role={role}
             onClick={() => {

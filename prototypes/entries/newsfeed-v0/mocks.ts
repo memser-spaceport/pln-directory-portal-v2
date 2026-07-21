@@ -248,7 +248,7 @@ export const UPVOTES: Record<string, number> = {
 
 // ---------- AI-generated article + sources (Perplexity-Discover-style reader) ----------
 
-export interface NewsSource {
+export interface ArticleSource {
   /** Short display label, e.g. 'bbc', 'youtube', 'protocol.ai'. */
   label: string;
   url: string;
@@ -269,7 +269,7 @@ export interface ArticleParagraph {
  */
 export interface NewsArticle {
   paragraphs: ArticleParagraph[];
-  sources: NewsSource[];
+  sources: ArticleSource[];
 }
 
 export const NEWS_ARTICLES: Record<string, NewsArticle> = {

@@ -20,7 +20,7 @@ import { MagicSparklesIcon } from '@/components/icons/MagicSparklesIcon';
 import f from '@/components/page/forum/Post/Post.module.scss';
 import { EVENT_TYPE_LABEL } from './eventMeta';
 import { LikeButton } from './V0NewsCard';
-import { NEWS_ARTICLES, UPVOTES, type NewsArticle, type NewsSource } from './mocks';
+import { NEWS_ARTICLES, UPVOTES, type NewsArticle, type ArticleSource } from './mocks';
 import local from './NewsfeedV0.module.scss';
 
 // Decorative avatar backgrounds (not DS text tokens) — a stable color per source.
@@ -45,7 +45,7 @@ function SourceAvatar({ label, size = 16 }: { label: string; size?: number }) {
 
 /** Inline citation pills at a paragraph's end: 1–2 sources render individually;
  *  3+ collapse into one pill with a "+N" count (e.g. "bbc +2"). */
-function CiteChips({ sources }: { sources: NewsSource[] }) {
+function CiteChips({ sources }: { sources: ArticleSource[] }) {
   if (!sources.length) return null;
 
   if (sources.length > 2) {
@@ -84,7 +84,7 @@ function CiteChips({ sources }: { sources: NewsSource[] }) {
 function articleFor(story: ITeamNewsItem): NewsArticle {
   const explicit = NEWS_ARTICLES[story.uid];
   if (explicit) return explicit;
-  const sources: NewsSource[] = story.sourceDomain ? [{ label: story.sourceDomain, url: story.sourceUrl }] : [];
+  const sources: ArticleSource[] = story.sourceDomain ? [{ label: story.sourceDomain, url: story.sourceUrl }] : [];
   return {
     sources,
     paragraphs: [{ text: story.summary ?? 'No AI summary was generated for this update yet.', cites: sources.length ? [0] : [] }],

@@ -60,7 +60,7 @@ function makeApp(
     appId,
     name,
     description,
-    status: 'deployed',
+    status: 'READY',
     notes: null,
     url: '',
     httpUrl: '',
@@ -71,7 +71,7 @@ function makeApp(
     providedEnvVars: [],
     createdAt,
     updatedAt: createdAt,
-    member: { uid: memberUid, name: memberName },
+    member: { uid: memberUid, name: memberName, image: null },
   };
 }
 

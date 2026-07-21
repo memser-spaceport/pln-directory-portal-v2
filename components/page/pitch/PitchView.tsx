@@ -28,6 +28,7 @@ export const PitchView = () => {
   const router = useRouter();
   const slug = params.slug as string;
   const prefillEmail = searchParams.get('prefillEmail') ?? undefined;
+  const loginToken = searchParams.get('loginToken');
   const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
 
@@ -62,8 +63,6 @@ export const PitchView = () => {
   useTimeOnPage({
     enabled: !accessLoading && !!access,
     onTimeReport: (timeSpent, sessionId) => {
-      teamPitchAnalytics.onTimeOnPage({ ...pitchPageProperties, timeSpent, sessionId });
-
       const distinctId = currentUser?.email ?? `pitch-anonymous-${slug}`;
       reportAnalytics.mutate(
         buildEngagementTrackEvent(TEAM_PITCH_ANALYTICS.ON_TIME_ON_PAGE, distinctId, getTeamSpotlightPath(slug), slug, {
@@ -90,6 +89,10 @@ export const PitchView = () => {
     if (!prefillEmail || isLoggedIn || access.status === 'CLOSED') {
       return;
     }
+    // Login-token redeem handles auth; do not open Privy until redeem fails
+    if (loginToken) {
+      return;
+    }
 
     const canViewFullDraftPitch =
       access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
@@ -103,7 +106,7 @@ export const PitchView = () => {
 
     loginRedirectAttemptedRef.current = true;
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
-  }, [prefillEmail, isLoggedIn, isHydrated, access, accessLoading, router]);
+  }, [prefillEmail, loginToken, isLoggedIn, isHydrated, access, accessLoading, router]);
 
   const isInvestor = access?.participantType === 'INVESTOR';
 

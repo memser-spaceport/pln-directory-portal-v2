@@ -110,6 +110,16 @@
   background: #f1f5f9;
 }
 
+/* Shares the card's width/centering so the back link's left edge lines up
+   with the card below it. */
+.setupContent {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .setupCard {
   width: 100%;
   max-width: 560px;
@@ -185,12 +195,13 @@
   color: #64748b;
 }
 
-.secretsBar {
+.topBar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  /* Horizontal padding mirrors the navbar (NavBar.module.scss), so the toggle
-     and form line up with the header logo. */
+  /* Horizontal padding mirrors the navbar (NavBar.module.scss), so the bar's
+     content lines up with the header logo. */
   padding: 8px 16px;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -200,22 +211,66 @@
   }
 }
 
-.secretsToggle {
-  align-self: flex-start;
-  padding: 4px 0;
-  border: none;
-  background: none;
-  font-size: 13px;
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  font-size: 14px;
   font-weight: 500;
-  color: #156ff7;
-  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
 
   &:hover {
-    text-decoration: underline;
+    color: var(--foreground-neutral-primary, #0a0c11);
   }
 }
 
-.secretsPanel {
-  max-width: 560px;
-  padding-bottom: 8px;
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// Matches AiAppCard's "App Details" button/badge (AiAppCard.module.scss),
+// minus the absolute-positioning bits that only make sense floating over a
+// stretched card link.
+.detailsButton {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 26px;
+  }
+}
+
+.detailsBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: fit-content;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.detailsButton:hover .detailsBadge {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }

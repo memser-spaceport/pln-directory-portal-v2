@@ -1,0 +1,155 @@
+// Align header/footer to the content's 24px padding (same fix the sibling gantry
+// prototype applies to the reused deal-modal chrome).
+.formModal .formPad {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+// A normal form field. Block spacing mirrors the production .objectiveField pattern in
+// this same modal (hairline divider + 16/16 + 8px gap); the label + required marker are
+// copied from production FormField.module.scss (.label / .required).
+// A normal field in the form flow (the form's gap spaces it) — no section divider.
+.impactField {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+// Group heading for the whole "expected impact" ask — owns the required marker.
+.impactLabel {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.required {
+  color: red;
+  margin-left: 0.25rem;
+}
+
+// Quiet sub-labels ("Describe it" / "Rate it") — clearly children of the group heading, so the
+// two inputs read as one claim in two parts rather than two separate fields.
+.subLabel {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Field label for the free-text user goal — matches the production form-field label.
+.userGoalLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.rationale {
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  resize: vertical;
+  min-height: 72px;
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+
+  &::placeholder {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  &:focus {
+    border-color: var(--action-background-brand-normal, #1b4dff);
+    box-shadow: 0 0 0 3px rgba(27, 77, 255, 0.12);
+  }
+}
+
+.rationaleCount {
+  align-self: flex-end;
+  margin-top: -2px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* --- Draft autosave chrome (ported from the gantry-saved-draft-item prototype) --- */
+
+.modalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Shared small-badge size for the save-status badges; the doubled class (0-2-0)
+// beats Badge's own .root font-size without needing a parent scope.
+.statusBadge.statusBadge {
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+// Match the gantry stage-pill green (#0a9952 @ 12% fill) — see memory: project-stage-vs-badge-green.
+.modalTitleRow .statusSaved {
+  background: rgba(10, 153, 82, 0.12);
+  border-color: rgba(10, 153, 82, 0.2);
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.savedIcon {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+/* --- Discard confirmation --- */
+
+.confirmContainer {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0 20px 65px -5px rgba(14, 15, 17, 0.06);
+}
+
+.confirmRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: #fff;
+}
+
+.confirmTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+}
+
+.confirmText {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

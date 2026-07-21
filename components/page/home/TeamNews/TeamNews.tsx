@@ -16,6 +16,7 @@ import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/type
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
   ACTIVE_DISCUSSIONS_CAT,
@@ -41,7 +42,7 @@ import { TeamNewsTabs } from './components/TeamNewsTabs';
 import s from './TeamNews.module.scss';
 
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
-import { toast } from '@/components/core/ToastContainer';
+import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
 
 // DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
 // a forwarded ref, so this is the only way to read its live (undebounced)
@@ -118,6 +119,17 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
   );
 
+  // Mount-time snapshot of the followed set, used only by sortedClusters below:
+  // follow/unfollow flips buttons immediately (via the live set above) but must
+  // not reorder the feed mid-session — the new order applies on the next page
+  // load, when this reseeds from fresh SSR data. Setter-less useState so the
+  // snapshot is captured during render (first paint is already sorted) and its
+  // identity never changes; the copy severs aliasing with the live set.
+  const [initialFollowedTeamUids] = useState<ReadonlySet<string>>(() => new Set(followedTeamUids));
+
+  // Default: Following when the user follows any teams; otherwise Most popular.
+  const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
+
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
@@ -158,11 +170,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
-  const sortedClusters = useMemo(() => {
-    const followed = clusters.filter((c) => followedTeamUids.has(c.teamUid));
-    const unfollowed = clusters.filter((c) => !followedTeamUids.has(c.teamUid));
-    return [...followed, ...unfollowed];
-  }, [clusters, followedTeamUids]);
+  const sortedClusters = useMemo(
+    () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids),
+    [clusters, sort, initialFollowedTeamUids],
+  );
 
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
@@ -178,7 +189,6 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     setActiveTab(id);
     setActiveCategory(ALL_CAT);
     setExpanded(false);
-    toast.success('Your details have been updated!', { autoClose: false });
   };
 
   const handleCategory = (id: TeamNewsCategoryId) => {
@@ -190,6 +200,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           : itemsForActiveTab.filter((i) => i.eventType === id).length;
     analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
     setActiveCategory(id);
+    setExpanded(false);
+  };
+
+  const handleSort = (value: string) => {
+    analytics.onTeamNewsSortChanged(value, sort, clusters.length);
+    setSort(value as TeamNewsSort);
     setExpanded(false);
   };
 
@@ -273,15 +289,18 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       isCurrentlyFollowing ? next.delete(teamUid) : next.add(teamUid);
       return next;
     });
+    const revert = () => {
+      setFollowedTeamUids((prev) => {
+        const next = new Set(prev);
+        isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
+        return next;
+      });
+    };
     followMutate(
       { teamUid, action },
       {
         onError: () => {
-          setFollowedTeamUids((prev) => {
-            const next = new Set(prev);
-            isCurrentlyFollowing ? next.add(teamUid) : next.delete(teamUid);
-            return next;
-          });
+          revert();
           followAnalytics.onTeamFollowFailed({
             teamUid,
             teamName,
@@ -289,7 +308,14 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
             action,
           });
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // followTeam/unfollowTeam return null on non-OK responses instead of
+          // throwing, so onError only covers network failures — revert on null,
+          // matching useTeamFollowToggle and useToggleTeamFollowInList.
+          if (!data) {
+            revert();
+            return;
+          }
           if (action === 'follow') {
             followAnalytics.onTeamFollowed({ teamUid, teamName, source, ...meta });
           } else {
@@ -428,23 +454,28 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
       <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
 
-      <div className={s.catRow}>
-        {categoriesWithCounts.map((c) => {
-          const isActive = activeCategory === c.id;
-          const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              className={clsx(s.cat, { [s.catActive]: isActive })}
-              onClick={() => handleCategory(c.id)}
-              disabled={isDisabled}
-            >
-              {c.label}
-              {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-            </button>
-          );
-        })}
+      <div className={s.filterBar}>
+        <div className={s.catRow}>
+          {categoriesWithCounts.map((c) => {
+            const isActive = activeCategory === c.id;
+            const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                className={clsx(s.cat, { [s.catActive]: isActive })}
+                onClick={() => handleCategory(c.id)}
+                disabled={isDisabled}
+              >
+                {c.label}
+                {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div className={s.filterActions}>
+          <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+        </div>
       </div>
 
       <div className={s.layout}>

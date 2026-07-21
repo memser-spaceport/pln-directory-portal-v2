@@ -13,9 +13,7 @@ describe('buildTeamNewsByTeamUrl', () => {
 
   it('builds the team news URL with pagination and search params', () => {
     const url = buildTeamNewsByTeamUrl('team-1', { page: 2, limit: 20, q: 'funding' });
-    expect(url).toBe(
-      'https://api.example.com/v1/teams/team-1/team-news?page=2&limit=20&q=funding',
-    );
+    expect(url).toBe('https://api.example.com/v1/teams/team-1/team-news?page=2&limit=20&q=funding');
   });
 
   it('omits empty search query', () => {
@@ -60,6 +58,23 @@ describe('fetchTeamNewsByTeam', () => {
       'https://api.example.com/v1/teams/team-1/team-news?page=1&limit=3',
       expect.objectContaining({ cache: 'no-store' }),
     );
+  });
+
+  it('sends no Authorization header without a token', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+    await fetchTeamNewsByTeam('team-1', { page: 1, limit: 3 });
+
+    const headers = fetchMock.mock.calls[0][1].headers as Headers;
+    expect(headers.get('Authorization')).toBeNull();
+    expect(headers.get('Content-Type')).toBe('application/json');
+  });
+
+  it('sends the viewer token as a Bearer Authorization header', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+    await fetchTeamNewsByTeam('team-1', { page: 1, limit: 3 }, 'token-123');
+
+    const headers = fetchMock.mock.calls[0][1].headers as Headers;
+    expect(headers.get('Authorization')).toBe('Bearer token-123');
   });
 
   it('returns null on non-OK response', async () => {

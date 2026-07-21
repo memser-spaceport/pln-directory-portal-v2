@@ -1,0 +1,195 @@
+.root {
+  position: relative;
+  height: 100%;
+}
+
+// The creator's ⋯ menu, vertically centered on the app name's first line
+// (card padding-top 24px + half of the 28px name line-height).
+.actionSlot {
+  position: absolute;
+  top: 26px;
+  right: 14px;
+  z-index: 2;
+}
+
+// Visitor "App Details" action, in flow at the right of the footer row so it
+// sits on the author / deployment-date line. The visual is the DS grey Badge;
+// this button is just the interaction wrapper.
+.detailsButton {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 26px;
+  }
+}
+
+// Layers on top of the reused TeamCard `.stage` tag: reset its card-specific
+// top margin, add room for the leading doc icon, and a hover.
+.detailsBadge {
+  margin-top: 0;
+  gap: 4px;
+  padding: 3px 6px;
+  transition: background 0.15s;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.detailsButton:hover .detailsBadge {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.cardButton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 4px 4px 0 rgba(15, 23, 42, 0.04),
+    0 0 1px 0 rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+
+  &:hover {
+    border-color: rgba(21, 111, 247, 0.26);
+    box-shadow: 0 0 0 2px rgba(21, 111, 247, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// Reserve room for the creator's ⋯ menu so long names ellipsize instead of
+// sliding under it. (Visitors have no corner action — the name gets full width.)
+.nameRowMenu {
+  padding-right: 32px;
+}
+
+.name {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.draftBadge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.description {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.author {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(14, 15, 17, 0.08);
+  margin-top: 2px;
+}
+
+.authorText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.authorLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.creatorTitle {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.creatorName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.deployed {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  color: #94a3b8;
+}

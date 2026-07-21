@@ -2,8 +2,8 @@ import { useMutation } from '@tanstack/react-query';
 import { signUpFormAction } from '@/app/actions/sign-up.actions';
 import { toast } from '@/components/core/ToastContainer';
 
-async function mutation({ payload, reCAPTCHAToken }: { payload: any; reCAPTCHAToken: string | undefined }) {
-  return await signUpFormAction(payload, reCAPTCHAToken);
+async function mutation({ payload }: { payload: any }) {
+  return await signUpFormAction(payload);
 }
 
 export function useSignup() {

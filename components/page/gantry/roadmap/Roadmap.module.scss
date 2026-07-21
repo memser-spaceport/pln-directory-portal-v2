@@ -735,7 +735,9 @@
   border: 1px solid rgba(14, 15, 17, 0.12);
   border-radius: 12px;
   padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(14, 15, 17, 0.12), 0 2px 8px rgba(14, 15, 17, 0.06);
+  box-shadow:
+    0 8px 24px rgba(14, 15, 17, 0.12),
+    0 2px 8px rgba(14, 15, 17, 0.06);
   z-index: 11;
 
   @include tablet-landscape {
@@ -882,4 +884,31 @@
   &:hover {
     background: #f8fafc;
   }
+}
+
+// Boost (left) and the public inline impact score (right) share one row under the author.
+// Wraps when the column is too narrow for both — the nowrap impact phrase drops to its
+// own line instead of colliding with the boost pill / bleeding past the card edge.
+.boostRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: 100%;
+}
+
+.impactInline {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.impactScore {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }

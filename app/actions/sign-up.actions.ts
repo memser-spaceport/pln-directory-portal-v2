@@ -1,11 +1,6 @@
 'use server';
 
-import validateCaptcha from '@/services/google-recaptcha.service';
-import { createMemberRequest, createParticipantRequest } from '@/services/participants-request.service';
-import { saveRegistrationImage } from '@/services/registration.service';
-import { checkEmailDuplicate, formatFormDataToApi, validateSignUpForm } from '@/services/sign-up.service';
-import { cookies } from 'next/headers';
-import { isSkipRecaptcha } from '@/utils/common.utils';
+import { createMemberRequest } from '@/services/participants-request.service';
 
 /**
  * Handles the sign-up form submission action.
@@ -25,21 +20,8 @@ import { isSkipRecaptcha } from '@/utils/common.utils';
  *
  * @throws {Error} If an error occurs during the form submission process.
  */
-export async function signUpFormAction(data: any, recaptchaToken: string | undefined) {
+export async function signUpFormAction(data: any) {
   try {
-    if (!isSkipRecaptcha()) {
-      if (recaptchaToken) {
-        const isCaptchaVerified = await validateCaptcha(recaptchaToken);
-
-        if (isCaptchaVerified && !isCaptchaVerified.success) {
-          console.error(`Captcha verification failed while adding subscriber for user: ${data.email}`);
-          return { success: false, message: 'Captcha verification failed.' };
-        }
-      } else {
-        return { success: false, message: 'Captcha token not found.' };
-      }
-    }
-
     // Create registration request
     const bodyData = {
       participantType: 'MEMBER',

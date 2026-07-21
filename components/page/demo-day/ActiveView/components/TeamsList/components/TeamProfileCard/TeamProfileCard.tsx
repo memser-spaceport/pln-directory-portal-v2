@@ -77,8 +77,9 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     : isAdmin
       ? (canEditTeams ?? true)
       : team.founders.some((founder) => founder.uid === userInfo?.uid);
+  // Spotlight has a single card and no investor drawer — always show the full description.
   const canOpenDrawer = !pitchSlug || canEdit || isAdmin;
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const shouldClampDescription = !pitchSlug;
   const isPrepDemoDayHook = useIsPrepDemoDay();
   const isPrepDemoDay = pitchSlug ? false : isPrepDemoDayHook;
   const demoDayModeHook = useDemoDayMode();
@@ -322,13 +323,16 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
     if (event) reportAnalytics.mutate(event);
   };
 
-  // Check if description is truncated
   React.useEffect(() => {
+    if (!shouldClampDescription) {
+      setIsDescriptionTruncated(false);
+      return;
+    }
     if (descriptionRef.current && team.description) {
       const element = descriptionRef.current;
       setIsDescriptionTruncated(element.scrollHeight > element.clientHeight);
     }
-  }, [team.description]);
+  }, [team.description, shouldClampDescription]);
 
   return (
     <div
@@ -352,14 +356,18 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         }}
       >
         <div className={s.linksWrapper}>
-          {!pitchSlug && team.analyticsReportUrl && (
+          {team.analyticsReportUrl && (
             <Link
               className={s.link}
-              href={`/demoday/${slug}/analytics-report/${team.team?.uid}`}
+              href={
+                pitchSlug
+                  ? `/spotlight/${pitchSlug}/analytics-report`
+                  : `/demoday/${slug}/analytics-report/${team.team?.uid}`
+              }
               target="_blank"
               onClick={(e) => e.stopPropagation()}
             >
-              <ChartIcon /> Demo Day Stats
+              <ChartIcon /> {pitchSlug ? 'Spotlight Stats' : 'Demo Day Stats'}
             </Link>
           )}
           {!hideSave && !pitchSlug && (
@@ -426,20 +434,19 @@ export const TeamProfileCard: React.FC<TeamProfileCardProps> = ({
         <div className={s.descriptionSection}>
           <p
             ref={descriptionRef}
-            className={clsx(s.description, { [s.truncated]: isDescriptionTruncated && !isDescriptionExpanded })}
+            className={clsx(s.description, {
+              [s.clamped]: shouldClampDescription,
+              [s.truncated]: shouldClampDescription && isDescriptionTruncated,
+            })}
           >
             {team.description}
           </p>
-          {isDescriptionTruncated && !isDescriptionExpanded && (
+          {shouldClampDescription && isDescriptionTruncated && (
             <button
               className={s.showMoreButton}
               onClick={(e) => {
                 e.stopPropagation();
-                if (canOpenDrawer) {
-                  handleCardClick();
-                } else {
-                  setIsDescriptionExpanded(true);
-                }
+                handleCardClick();
               }}
             >
               Show more

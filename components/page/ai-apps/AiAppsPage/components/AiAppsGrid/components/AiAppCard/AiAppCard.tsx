@@ -1,21 +1,35 @@
 'use client';
 import { type MouseEvent } from 'react';
 import Link from 'next/link';
+import { clsx } from 'clsx';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { DocumentIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-// import { ArrowUpRightIcon } from '@/components/icons';
-import { AiApp } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
+
+import { AppActionsMenu } from '../../../AppActionsMenu';
 
 import s from './AiAppCard.module.scss';
 
 interface Props {
   app: AiApp;
   onSelect?: () => void;
+  /**
+   * Render the manage ⋯ menu. The caller applies the canManage heuristic
+   * (creator or directory admin); the menu itself confirms against the
+   * detail endpoint when opened.
+   */
+  canManage?: boolean;
+  onEdit?: () => void;
+  onDeployment?: () => void;
+  onDelete?: () => void;
+  /** Open the public App Details (one-pager) viewer. Shown to every viewer when a one-pager exists. */
+  onViewDetails?: () => void;
 }
 
 export function AiAppCard(props: Props) {
-  const { app, onSelect } = props;
+  const { app, onSelect, canManage, onEdit, onDeployment, onDelete, onViewDetails } = props;
   const analytics = useAiAppsAnalytics();
 
   const handleAuthorClick = (e: MouseEvent) => {
@@ -28,12 +42,20 @@ export function AiAppCard(props: Props) {
   };
 
   const isDraft = app.status === 'DRAFT';
+  const hasDeployFailed = app.status === 'ERROR';
+  const isDeploying = app.status === 'DEPLOYING';
+
+  const showManageMenu = !!canManage && !!onEdit && !!onDeployment && !!onDelete;
+  const showDetailsButton = !!onViewDetails && hasPrd(app);
 
   const body = (
     <>
-      <div className={s.nameRow}>
+      {/* Reserve room for the ⋯ menu so long names ellipsize instead of sliding under it. */}
+      <div className={clsx(s.nameRow, { [s.nameRowMenu]: showManageMenu })}>
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
+        {hasDeployFailed && <span className={s.errorBadge}>Deploy failed</span>}
+        {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
     </>
@@ -42,7 +64,13 @@ export function AiAppCard(props: Props) {
   const footer = (
     <div className={s.footer}>
       <div className={s.author}>
-        <img className={s.avatar} src={getDefaultAvatar(app.member.name)} alt="" width={20} height={20} />
+        <img
+          className={s.avatar}
+          src={app.member.image || getDefaultAvatar(app.member.name)}
+          alt=""
+          width={20}
+          height={20}
+        />
         <div className={s.authorText}>
           <p className={s.authorLine}>
             <span className={s.creatorTitle}>by</span>{' '}
@@ -62,48 +90,59 @@ export function AiAppCard(props: Props) {
         </div>
       </div>
 
-      {/* <a
-        href={app.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={s.openButton}
-        onClick={(e) => {
-          e.stopPropagation();
-          analytics.onOpenInNewTabClicked(app.uid, app.name, app.url);
-          if (onSelect) {
-            e.preventDefault();
-            alert('Prototype: would open the deployed app in a new tab.');
-          }
-        }}
-      >
-        Open in new tab
-        <ArrowUpRightIcon className={s.openButtonIcon} width={14} height={14} />
-      </a> */}
+      {showDetailsButton && (
+        <button
+          type="button"
+          className={s.detailsButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails();
+          }}
+          aria-label={`App details for ${app.name}`}
+        >
+          <span className={s.detailsBadge}>
+            <DocumentIcon aria-hidden />
+            App Details
+          </span>
+        </button>
+      )}
+    </div>
+  );
+
+  const actionSlot = showManageMenu && (
+    <div className={s.actionSlot}>
+      <AppActionsMenu app={app} onEdit={onEdit} onDeployment={onDeployment} onDelete={onDelete} />
     </div>
   );
 
   if (onSelect) {
     return (
-      <button
-        type="button"
-        className={s.root}
-        onClick={() => {
-          handleCardClick();
-          onSelect();
-        }}
-      >
-        <div className={s.body}>{body}</div>
-        {footer}
-      </button>
+      <article className={s.root}>
+        <button
+          type="button"
+          className={s.selectButton}
+          onClick={() => {
+            handleCardClick();
+            onSelect();
+          }}
+        >
+          <div className={s.body}>{body}</div>
+          {footer}
+        </button>
+        {actionSlot}
+      </article>
     );
   }
 
   return (
     <article className={s.root}>
-      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={s.body} onClick={handleCardClick}>
+      {/* stretchedLink expands the hit area to the whole card (the card can't BE
+          the link — the footer holds a nested author link). */}
+      <Link href={`/pl-infra/ai-apps/${app.uid}`} className={clsx(s.body, s.stretchedLink)} onClick={handleCardClick}>
         {body}
       </Link>
       {footer}
+      {actionSlot}
     </article>
   );
 }

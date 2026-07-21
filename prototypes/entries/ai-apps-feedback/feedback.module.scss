@@ -127,6 +127,33 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+/* Locked subject row — shown when the app is implied by context. Uses the
+   picker's avatar + name language but reads as a confirmed subject, not a
+   control: muted fill, no border, no caret, not clickable. */
+.subject {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.subjectLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.subjectApp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .picker {
   position: relative;
 }

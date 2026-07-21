@@ -195,7 +195,7 @@ export const PitchSpotlightHero = ({
         return (
           <>
             <p className={s.body}>
-              This is a private spotlight for invited investors. Log in with the email that received your invite to
+              This is a private spotlight for invited investors. Sign in with the email that received your invite to
               confirm access.{' '}
               <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
                 Get in touch
@@ -221,7 +221,7 @@ export const PitchSpotlightHero = ({
             <p className={s.body}>
               Your account is not on the invite list for this spotlight page.
               <br />
-              Please make sure you&apos;re logged in with the email address that received the invitation — you&apos;re
+              Please make sure you&apos;re signed in with the email address that received the invitation — you&apos;re
               currently signed in as{' '}
               {userInfo?.uid && userInfo.email ? (
                 <Link
@@ -291,7 +291,7 @@ export const PitchSpotlightHero = ({
         {showLoginCta && (
           <div className={s.actions}>
             <button type="button" className={s.primaryButton} onClick={handleLogin}>
-              Log in
+              Sign in
             </button>
           </div>
         )}

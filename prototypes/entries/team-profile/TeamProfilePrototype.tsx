@@ -62,7 +62,9 @@ export default function TeamProfilePrototype() {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
   const [newsModalOpen, setNewsModalOpen] = useState(false);
+  const [newsFocusUid, setNewsFocusUid] = useState<string | null>(null);
   const [newsQuery, setNewsQuery] = useState('');
+  const modalListRef = useRef<HTMLDivElement>(null);
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
   const followToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,10 +118,37 @@ export default function TeamProfilePrototype() {
       )
     : displayNews;
 
+  // "Show more" on a rail card opens the full feed focused on that item; plain
+  // "View all" opens it at the top (uid = null).
+  const openNewsFeed = (uid: string | null = null) => {
+    setNewsQuery('');
+    setNewsFocusUid(uid);
+    setNewsModalOpen(true);
+  };
+
   const closeNewsModal = () => {
     setNewsModalOpen(false);
     setNewsQuery('');
+    setNewsFocusUid(null);
   };
+
+  // Desktop: when the feed opens focused on an item, scroll it into view and
+  // flash it so the "Show more" click feels tied to that card. (Mobile handles
+  // its own focus inside NewsFullPageView.)
+  useEffect(() => {
+    if (!newsModalOpen || isMobile || !newsFocusUid) return;
+    const el = modalListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${newsFocusUid}"]`);
+    if (!el) return;
+    const raf = requestAnimationFrame(() => {
+      el.scrollIntoView({ block: 'center' });
+      el.classList.add(local.newsHighlight);
+    });
+    const timer = setTimeout(() => el.classList.remove(local.newsHighlight), 1500);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [newsModalOpen, isMobile, newsFocusUid]);
 
   const focusAreas = useGetFocusAreasToDisplay(MOCK_FOCUS_AREAS, MOCK_TEAM_FOCUS_AREAS);
 
@@ -256,11 +285,12 @@ export default function TeamProfilePrototype() {
                 upvotes={upvotesFor(item.uid)}
                 voted={votedNews.has(item.uid)}
                 onToggleUpvote={() => toggleNewsVote(item.uid)}
+                onShowMore={() => openNewsFeed(item.uid)}
               />
             ))}
           </div>
           {hasMore && (
-            <button type="button" className={local.viewAll} onClick={() => setNewsModalOpen(true)}>
+            <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
               View all news ({displayNews.length})
             </button>
           )}
@@ -274,6 +304,7 @@ export default function TeamProfilePrototype() {
           title={`${team.name} News`}
           count={displayNews.length}
           items={filteredNews}
+          focusUid={newsFocusUid}
           query={newsQuery}
           onQueryChange={setNewsQuery}
           onClose={closeNewsModal}
@@ -298,12 +329,13 @@ export default function TeamProfilePrototype() {
         </div>
         <div className={local.modalBody}>
           {filteredNews.length > 0 ? (
-            <div className={local.modalGrid}>
+            <div className={local.modalGrid} ref={modalListRef}>
               {filteredNews.map((item) => (
                 <NewsCardView
                   key={item.uid}
                   item={item}
                   hideTeam
+                  fullSummary
                   upvotes={upvotesFor(item.uid)}
                   voted={votedNews.has(item.uid)}
                   onToggleUpvote={() => toggleNewsVote(item.uid)}

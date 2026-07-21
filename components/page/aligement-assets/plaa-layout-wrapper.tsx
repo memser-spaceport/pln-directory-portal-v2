@@ -43,6 +43,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
+    'trust-holdings': { activeItem: 'trust-holdings', title: 'Trust & Holdings' },
     'faqs': { activeItem: 'faqs', title: 'FAQ' },
     'disclosure': { activeItem: 'disclosure', title: 'Disclosure' },
   };

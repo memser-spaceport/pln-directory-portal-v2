@@ -120,6 +120,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_any_founder: null,
       wi_founder_uids: null,
       wi_direct_only: null,
+      wi_source: null,
       ...CLEAR_CONNECTOR_LENS,
     });
     setSelectedIds(new Set());
@@ -158,6 +159,13 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
   const connectorExactLabels =
     filters.wi_connector_labels.length > 0 ? filters.wi_connector_labels : connectorLabel ? [connectorLabel] : [];
   const connectorContainsLabels = filters.wi_connector_contains;
+  const connectorMatchKind =
+    filters.wi_connector_kind === 'person' || filters.wi_connector_kind === 'org'
+      ? filters.wi_connector_kind
+      : undefined;
+
+  const pathSource =
+    filters.wi_source === 'affinity' || filters.wi_source === 'linkedin' ? filters.wi_source : undefined;
 
   const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useGetListMembers(
     filters.wi_list_id,
@@ -167,10 +175,12 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       check_size_range: filters.wi_check_size ? [filters.wi_check_size as CheckSizeRange] : undefined,
       connector_labels: connectorExactLabels.length ? connectorExactLabels : undefined,
       connector_labels_contains: connectorContainsLabels.length ? connectorContainsLabels : undefined,
+      connector_match_kind: connectorMatchKind,
       pl_member_uids: filters.wi_pl_members.length ? filters.wi_pl_members : undefined,
       founder_names: filters.wi_founder_uids.length && !filters.wi_any_founder ? filters.wi_founder_uids : undefined,
       any_founder: filters.wi_any_founder ?? undefined,
       direct_only: filters.wi_direct_only ?? undefined,
+      path_source: pathSource,
       limit: PAGE_LIMIT,
     },
     enabled,
@@ -237,7 +247,8 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     filters.wi_founder_uids.length > 0 ||
     !!filters.wi_connector ||
     filters.wi_connector_labels.length > 0 ||
-    filters.wi_connector_contains.length > 0;
+    filters.wi_connector_contains.length > 0 ||
+    !!pathSource;
 
   const filterPills = useMemo(() => {
     const pills: { key: string; label: string; value: string; onRemove: () => void }[] = [];
@@ -305,6 +316,14 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
         onRemove: () => setFilters(CLEAR_CONNECTOR_LENS),
       });
     }
+    if (pathSource) {
+      pills.push({
+        key: 'source',
+        label: 'Source',
+        value: pathSource === 'affinity' ? 'Affinity' : 'LinkedIn',
+        onRemove: () => setFilters({ wi_source: null }),
+      });
+    }
     return pills;
   }, [
     filters.wi_stage,
@@ -314,6 +333,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
     filters.wi_any_founder,
     filters.wi_founder_uids,
     filters.wi_connector,
+    pathSource,
     facets,
     setFilters,
   ]);
@@ -326,6 +346,7 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
       wi_pl_members: null,
       wi_any_founder: null,
       wi_founder_uids: null,
+      wi_source: null,
       ...CLEAR_CONNECTOR_LENS,
     });
     setSelectedIds(new Set());
@@ -403,6 +424,11 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                 {row.original.first_name} {row.original.last_name}
               </span>
               <LabOsBadge profile={row.original.lab_os_profile} variant="icon" />
+              {row.original.path_source_tags?.map((tag) => (
+                <span key={tag} className={s.sourceTag}>
+                  {tag}
+                </span>
+              ))}
             </div>
             {row.original.email && <div className={s.subtle}>{row.original.email}</div>}
           </>
@@ -679,6 +705,20 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                     <span className={s.toggleThumb} />
                   </span>
                 </label>
+                <button
+                  type="button"
+                  className={clsx(s.relChip, pathSource === 'affinity' && s.relChipOn)}
+                  onClick={() => setFilters({ wi_source: pathSource === 'affinity' ? null : 'affinity' })}
+                >
+                  Affinity
+                </button>
+                <button
+                  type="button"
+                  className={clsx(s.relChip, pathSource === 'linkedin' && s.relChipOn)}
+                  onClick={() => setFilters({ wi_source: pathSource === 'linkedin' ? null : 'linkedin' })}
+                >
+                  LinkedIn
+                </button>
                 {REL_FILTERS.map(({ tier, label }) => (
                   <button
                     key={tier}
@@ -800,6 +840,11 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                     <span className={s.cardName}>
                       {inv.first_name} {inv.last_name}
                     </span>
+                    {inv.path_source_tags?.map((tag) => (
+                      <span key={tag} className={s.sourceTag}>
+                        {tag}
+                      </span>
+                    ))}
                     {(inv.best_proximity_code || inv.has_path === false) && (
                       <ProximityCodeBadge
                         code={inv.best_proximity_code}
@@ -838,6 +883,11 @@ export function WarmIntrosWorkspace({ onCountChange }: Props) {
                 <>Finding warm paths for {connectorLabel}…</>
               ) : connectorLabel ? (
                 <>No warm path exists for {connectorLabel} on this list.</>
+              ) : pathSource ? (
+                <>
+                  No members have {pathSource === 'affinity' ? 'Affinity' : 'LinkedIn'} path data — clear the source
+                  filter or try the other source.
+                </>
               ) : (
                 <>No members match the current filters -- adjust the relationship chips.</>
               )}

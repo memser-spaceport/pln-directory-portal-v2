@@ -2,6 +2,15 @@
 
 import { getHeader } from '@/utils/common.utils';
 
+export type DemoDayTeam = {
+  isFollowing: boolean;
+  logoUrl: string | null;
+  name: string;
+  newsCount: number;
+  shortDescription: string;
+  uid: string;
+};
+
 export type DemoDayState = {
   uid: string;
   slugURL?: string;
@@ -28,6 +37,7 @@ export type DemoDayState = {
   teamsCount: number;
   programFieldEnabled?: boolean;
   programFieldOptions?: string[];
+  teams?: DemoDayTeam[];
 };
 
 export const getDemoDayState = async (slug: string, memberUid?: string, authToken?: string) => {

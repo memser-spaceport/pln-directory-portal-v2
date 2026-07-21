@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
@@ -14,6 +14,8 @@ import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
 import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { SourceList } from '../SourceList/SourceList';
+import { hasNewsSource } from '../../utils/getNewsSources';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsGroupCard.module.scss';
@@ -119,6 +121,10 @@ export function NewsGroupCard({
             className={s.storyRow}
             onClick={() => openStory(story)}
             onKeyDown={(e) => {
+              // Only act on keys pressed on the row itself — Enter/Space on a
+              // nested control (Upvote/Discuss/SourceList) must not also open
+              // the article. Same guard as NewsCard's handleKeyDown.
+              if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 openStory(story);
@@ -133,10 +139,10 @@ export function NewsGroupCard({
                   <span className={`${newsCardStyles.eventDot} ${dotClassName}`} aria-hidden="true" />
                   <span className={newsCardStyles.eventLabel}>{label}</span>
                 </span>
-                {story.sourceDomain && (
+                {hasNewsSource(story) && (
                   <>
                     <span className={newsCardStyles.sep} aria-hidden="true" />
-                    <span className={newsCardStyles.source}>{story.sourceDomain}</span>
+                    <SourceList item={story} position={storyIndex} analyticsSource={analyticsSource} />
                   </>
                 )}
                 <span className={newsCardStyles.sep} aria-hidden="true" />

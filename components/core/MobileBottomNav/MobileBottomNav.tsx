@@ -17,6 +17,7 @@ import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
 import { useGetPlInfraNavItems } from '@/components/core/navbar/components/navItems/PLInfraNavItems/hook/useGetPlInfraNavItems';
+import { isBareRoute } from '@/utils/isBareRoute';
 
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -35,6 +36,8 @@ export function MobileBottomNav() {
   const baseMoreItems = useMoreNavItems();
   const moreItems = useMemo(() => [FORUM_LINK, ...baseMoreItems], [baseMoreItems]);
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
+
+  if (isBareRoute(pathname)) return null;
 
   return (
     <div

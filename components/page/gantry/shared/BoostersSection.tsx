@@ -3,30 +3,8 @@
 import { useState } from 'react';
 import { useGantryItemPins } from '@/services/gantry/hooks/useGantryItemPins';
 import type { GantryItem, GantryPinner } from '@/services/gantry/types';
+import { avatarColor, initials } from './gantryAvatars';
 import s from './BoostersSection.module.scss';
-
-const AVATAR_COLORS = [
-  { bg: '#dbeafe', text: '#1d4ed8' },
-  { bg: '#dcfce7', text: '#15803d' },
-  { bg: '#ede9fe', text: '#6d28d9' },
-  { bg: '#fce7f3', text: '#9d174d' },
-  { bg: '#fef3c7', text: '#92400e' },
-  { bg: '#e0f2fe', text: '#0369a1' },
-];
-
-function avatarColor(name: string) {
-  const h = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
-}
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
-}
 
 const MAX_PINNERS_VISIBLE = 3;
 
@@ -45,10 +23,7 @@ export function BoostersSection({ item }: { item: GantryItem }) {
   // Use inline pins from the list/detail response when available to avoid N+1 requests.
   // Fall back to the dedicated hook only when pins weren't embedded (e.g. older API responses).
   const inlinePins = item.pins;
-  const { data: fetchedPins, isLoading } = useGantryItemPins(
-    item.uid,
-    !inlinePins && item.pinCount > 0,
-  );
+  const { data: fetchedPins, isLoading } = useGantryItemPins(item.uid, !inlinePins && item.pinCount > 0);
   const pinners: GantryPinner[] = inlinePins ?? fetchedPins ?? [];
   if (!inlinePins && isLoading) return <div className={s.boostersLoading}>Loading boosters…</div>;
   if (pinners.length === 0) return null;

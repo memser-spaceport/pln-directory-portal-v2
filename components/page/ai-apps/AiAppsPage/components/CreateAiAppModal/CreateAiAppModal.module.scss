@@ -57,26 +57,10 @@
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-}
-
-.guideHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 4px;
-}
-
-.stepsHeading {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: -0.3px;
-  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .intro {
@@ -86,6 +70,56 @@
   line-height: 20px;
   letter-spacing: -0.2px;
   color: #455468;
+}
+
+.whatsNew {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border: 1px solid rgba(14, 15, 17, 0.06);
+}
+
+.whatsNewLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.whatsNewList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: -0.2px;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+}
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepsHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 .steps {

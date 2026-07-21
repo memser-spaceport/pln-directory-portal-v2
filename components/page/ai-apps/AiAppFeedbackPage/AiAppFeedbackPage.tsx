@@ -69,7 +69,7 @@ export function AiAppFeedbackPage() {
       <div className={s.content}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
           <ArrowBackIcon width={16} height={16} />
-          Back to AI Apps
+          Back to all
         </Link>
 
         <div className={s.titleBlock}>
@@ -141,14 +141,20 @@ export function AiAppFeedbackPage() {
                       const submitterName = row.member?.name ?? 'Unknown member';
                       return (
                         <tr key={row.uid}>
-                          <td className={s.appNameCell}>{row.appName}</td>
-                          <td className={s.messageCell}>{row.text}</td>
+                          <td className={s.appNameCell} title={row.appName}>
+                            {row.appName}
+                          </td>
+                          <td title={row.text}>
+                            <div className={s.messageText}>{row.text}</div>
+                          </td>
                           <td>
                             <div className={s.submitter}>
                               <span className={s.avatar} style={{ background: getAvatarColor(submitterName) }}>
                                 {submitterName.charAt(0).toUpperCase()}
                               </span>
-                              <span className={s.submitterName}>{submitterName}</span>
+                              <span className={s.submitterName} title={submitterName}>
+                                {submitterName}
+                              </span>
                             </div>
                           </td>
                           <td className={s.dateCell}>

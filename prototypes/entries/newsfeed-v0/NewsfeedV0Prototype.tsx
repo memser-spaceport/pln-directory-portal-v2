@@ -32,13 +32,19 @@ import { V0FeedCard } from './V0FeedCard';
 import type { TeamCluster } from './V0NewsCard';
 import { FeedRail } from './FeedRail';
 import { QuickActionsMock } from './QuickActionsMock';
+import { MobileQuickActions } from './MobileQuickActions';
+// Reuse the production sort controls 1:1 — the "Sort by: … ▾" dropdown on
+// desktop (Projects/Members toolbars) and the compact "Sort ▾" pill on mobile
+// (the Teams/Members mobile filter pattern).
+import { SortDropdown } from '@/components/common/filters/SortDropdown';
+import { MobileFeedSort } from './MobileFeedSort';
 import { HeaderSearch } from './HeaderSearch';
 // Production search field, reused 1:1 for the mobile drop-down row.
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FollowToast } from '../follow-shared/FollowToast';
 import { NewsReader } from './NewsReader';
 import { ForumPostCard } from './ForumPostCard';
-import { MOCK_GROUPS, MOCK_FORUM_POSTS, type ForumPost } from './mocks';
+import { MOCK_GROUPS, MOCK_FORUM_POSTS, UPVOTES, type ForumPost } from './mocks';
 import local from './NewsfeedV0.module.scss';
 
 const groups = MOCK_GROUPS;
@@ -48,6 +54,22 @@ const PAGE_SIZE = 6;
 type FeedEntry =
   | { kind: 'team'; date: number; cluster: TeamCluster }
   | { kind: 'forum'; date: number; post: ForumPost };
+
+// One personalization axis: sort order. Following is a *ranking* here, not a
+// hard filter — "Following" floats followed teams to the top without
+// hiding the rest, so the network-wide feed stays intact. It's the default, so
+// it leads the list (like Reddit's "Best").
+type Sort = 'latest' | 'popular' | 'following';
+
+const SORT_OPTIONS = [
+  { value: 'following', label: 'Following' },
+  { value: 'latest', label: 'Latest' },
+  { value: 'popular', label: 'Most popular' },
+] as const;
+
+// A cluster's interest score = its most-upvoted story (leads rank the card).
+const clusterUpvotes = (c: TeamCluster) =>
+  [c.lead, ...c.rest].reduce((max, i) => Math.max(max, UPVOTES[i.uid] ?? 0), 0);
 
 // How much each event type matters when picking a cluster's lead story.
 const EVENT_TYPE_WEIGHT: Record<ITeamNewsItem['eventType'], number> = {
@@ -101,15 +123,17 @@ function clusterByTeam(items: ITeamNewsItem[]): TeamCluster[] {
 
 /**
  * Newsfeed redesign (V1). Single-column feed — one card per team, newest first,
- * forum threads interleaved — beside the follow-suggestions / focus-areas /
- * popular rail, with per-story upvotes. Reuses the production shell, cards, and
- * data throughout.
+ * forum threads interleaved — beside the follow-suggestions / popular rail, with
+ * per-story likes. Personalization is a single Sort control (Following / Latest /
+ * Most popular); Quick Actions render as the production card grid on desktop and
+ * a stacked scroller on mobile.
  */
 export default function NewsfeedV0Prototype() {
   // Tabs are base-ui / client-only — gate render so SSR === first client render.
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
+  const [sort, setSort] = useState<Sort>('following');
   const [query, setQuery] = useState('');
   // The opened story (summary + references + share reader). null = closed.
   const [selectedStory, setSelectedStory] = useState<ITeamNewsItem | null>(null);
@@ -197,6 +221,17 @@ export default function NewsfeedV0Prototype() {
 
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
+  // Sort is the only re-ordering axis. "Most popular" ranks by interest;
+  // "Following" floats followed teams to the top (stable, so recency holds
+  // within each group) without dropping anyone; "Latest" leaves order untouched.
+  const lensedClusters = useMemo(() => {
+    if (sort === 'popular') return [...clusters].sort((a, b) => clusterUpvotes(b) - clusterUpvotes(a));
+    if (sort === 'following') {
+      return [...clusters].sort((a, b) => Number(followedTeams.has(b.teamUid)) - Number(followedTeams.has(a.teamUid)));
+    }
+    return clusters;
+  }, [clusters, sort, followedTeams]);
+
   // Forum threads for the active tab (All → all; else matched by focus area),
   // narrowed by the same search. Only interleave under "All categories" — an
   // event-type filter (Funding, Launch, …) has no forum equivalent.
@@ -214,9 +249,10 @@ export default function NewsfeedV0Prototype() {
     );
   }, [activeCategory, activeTab, query]);
 
-  // Interleave team clusters and forum posts into one column, newest-first.
+  // Interleave team clusters and forum posts. Latest sorts by date; other sorts
+  // keep the lensed team order and append forum threads (newest first).
   const feedEntries = useMemo<FeedEntry[]>(() => {
-    const teamEntries: FeedEntry[] = clusters.map((cluster) => {
+    const teamEntries: FeedEntry[] = lensedClusters.map((cluster) => {
       const newest = [cluster.lead, ...cluster.rest].reduce((max, i) => Math.max(max, new Date(i.eventDate).getTime()), 0);
       return { kind: 'team', date: newest, cluster };
     });
@@ -225,8 +261,11 @@ export default function NewsfeedV0Prototype() {
       date: new Date(post.timestamp).getTime(),
       post,
     }));
-    return [...teamEntries, ...forumEntries].sort((a, b) => b.date - a.date);
-  }, [clusters, searchedForum]);
+    if (sort === 'latest') {
+      return [...teamEntries, ...forumEntries].sort((a, b) => b.date - a.date);
+    }
+    return [...teamEntries, ...[...forumEntries].sort((a, b) => b.date - a.date)];
+  }, [lensedClusters, searchedForum, sort]);
 
   const visibleEntries = expanded ? feedEntries : feedEntries.slice(0, PAGE_SIZE);
   const newCount = allItems.length;
@@ -239,6 +278,11 @@ export default function NewsfeedV0Prototype() {
 
   const handleCategory = (id: TeamNewsCategoryId) => {
     setActiveCategory(id);
+    setExpanded(false);
+  };
+
+  const handleSort = (value: string) => {
+    setSort(value as Sort);
     setExpanded(false);
   };
 
@@ -270,99 +314,124 @@ export default function NewsfeedV0Prototype() {
   return (
     <div className={clsx(local.page, styles.home)}>
       <div className={styles.home__cn}>
-        <QuickActionsMock />
+        {/* Desktop: production Cards grid. Mobile: stacked-card scroller. */}
+        <div className={local.qaDesktop}>
+          <QuickActionsMock />
+        </div>
+        <div className={local.qaMobile}>
+          <MobileQuickActions />
+        </div>
 
         <div className={styles.home__cn__teamnews}>
           {isEmpty(allItems) ? (
-          <LocalNewsBase>
-            <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
-          </LocalNewsBase>
-        ) : (
-          <LocalNewsBase
-            headerDetails={
-              <div className={local.headerActions}>
-                {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
-                <HeaderSearch
-                  open={searchOpen}
-                  value={query}
-                  onOpen={openSearch}
-                  onChange={handleSearch}
-                  onBlur={handleFieldBlur}
-                  fieldRef={desktopFieldRef}
-                />
-              </div>
-            }
-          >
-            {/* Mobile only: the header has no room to expand inline, so the field
-                lives here as a permanent full-width row. Hidden on desktop. */}
-            <div className={local.mobileSearchRow}>
-              <SearchInput value={query} onChange={handleSearch} placeholder="Search by team or keyword…" />
-            </div>
-
-            {/* Constrain the tabs' underline to end at the news-card's right edge
-                (reserve the rail column), instead of spanning the full width. */}
-            <div className={local.tabsConstrain}>
-              <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
-            </div>
-
-            <div className={s.catRow}>
-              {categoriesWithCounts.map((c) => {
-                const isActive = activeCategory === c.id;
-                const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={clsx(s.cat, { [s.catActive]: isActive })}
-                    onClick={() => handleCategory(c.id)}
-                    disabled={isDisabled}
-                  >
-                    {c.label}
-                    {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-                  </button>
-                );
-              })}
-            </div>
-
-            {feedEntries.length === 0 ? (
-              <div className={s.empty}>
-                {query.trim() ? `Nothing in the feed matches “${query.trim()}”.` : 'Nothing in this filter.'}
-              </div>
-            ) : (
-              <>
-                <div className={local.feedLayout}>
-                  <div className={local.feedList}>
-                    {visibleEntries.map((entry) =>
-                      entry.kind === 'team' ? (
-                        <V0FeedCard
-                          key={`team-${entry.cluster.teamUid}`}
-                          cluster={entry.cluster}
-                          following={followedTeams.has(entry.cluster.teamUid)}
-                          onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
-                          onOpenStory={setSelectedStory}
-                          showUpvote
-                        />
-                      ) : (
-                        <ForumPostCard key={`forum-${entry.post.tid}`} post={entry.post} />
-                      ),
-                    )}
-                  </div>
-                  {/* The follow-suggestions / focus-areas / popular rail. */}
-                  <aside className={local.feedRail}>
-                    <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
-                  </aside>
+            <LocalNewsBase>
+              <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
+            </LocalNewsBase>
+          ) : (
+            <LocalNewsBase
+              headerDetails={
+                <div className={local.headerActions}>
+                  {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+                  <HeaderSearch
+                    open={searchOpen}
+                    value={query}
+                    onOpen={openSearch}
+                    onChange={handleSearch}
+                    onBlur={handleFieldBlur}
+                    fieldRef={desktopFieldRef}
+                  />
                 </div>
-                {feedEntries.length > PAGE_SIZE && (
-                  <div className={s.showAll}>
-                    <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
-                      {expanded ? 'Show Less' : 'Show All'}
-                    </Button>
+              }
+            >
+              {/* Mobile only: the header has no room to expand inline, so the field
+                lives here as a permanent full-width row. Hidden on desktop. */}
+              <div className={local.mobileSearchRow}>
+                <SearchInput value={query} onChange={handleSearch} placeholder="Search by team or keyword…" />
+              </div>
+
+              {/* Constrain the tabs' underline to end at the news-card's right edge
+                (reserve the rail column), instead of spanning the full width. */}
+              <div className={local.tabsConstrain}>
+                <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+              </div>
+
+              <div className={local.filterBar}>
+                <div className={s.catRow}>
+                  {categoriesWithCounts.map((c) => {
+                    const isActive = activeCategory === c.id;
+                    const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={clsx(s.cat, { [s.catActive]: isActive })}
+                        onClick={() => handleCategory(c.id)}
+                        disabled={isDisabled}
+                      >
+                        {c.label}
+                        {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Sort control opposite the event-type pills. Desktop: the
+                  "Sort by: …" dropdown. Mobile: the compact "Sort ▾" pill from
+                  the Teams/Members mobile filter pattern. */}
+                <div className={local.filterActions}>
+                  <span className={local.sortDesktop}>
+                    <SortDropdown
+                      sortByLabel="Sort by:"
+                      options={SORT_OPTIONS}
+                      currentSort={sort}
+                      onSortChange={handleSort}
+                    />
+                  </span>
+                  <span className={local.sortMobile}>
+                    <MobileFeedSort options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+                  </span>
+                </div>
+              </div>
+
+              {feedEntries.length === 0 ? (
+                <div className={s.empty}>
+                  {query.trim() ? `Nothing in the feed matches “${query.trim()}”.` : 'Nothing in this filter.'}
+                </div>
+              ) : (
+                <>
+                  <div className={local.feedLayout}>
+                    <div className={local.feedList}>
+                      {visibleEntries.map((entry) =>
+                        entry.kind === 'team' ? (
+                          <V0FeedCard
+                            key={`team-${entry.cluster.teamUid}`}
+                            cluster={entry.cluster}
+                            following={followedTeams.has(entry.cluster.teamUid)}
+                            onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
+                            onOpenStory={setSelectedStory}
+                            showUpvote
+                          />
+                        ) : (
+                          <ForumPostCard key={`forum-${entry.post.tid}`} post={entry.post} />
+                        ),
+                      )}
+                    </div>
+                    {/* The follow-suggestions / popular / forum / digest rail. */}
+                    <aside className={local.feedRail}>
+                      <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
+                    </aside>
                   </div>
-                )}
-              </>
-            )}
-          </LocalNewsBase>
-        )}
+                  {feedEntries.length > PAGE_SIZE && (
+                    <div className={s.showAll}>
+                      <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
+                        {expanded ? 'Show Less' : 'Show All'}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </LocalNewsBase>
+          )}
         </div>
       </div>
 

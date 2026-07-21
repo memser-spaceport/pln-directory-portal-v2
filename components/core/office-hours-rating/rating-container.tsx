@@ -117,7 +117,7 @@ const RatingContainer = (props: IRatingContainer) => {
   };
 
   useEffect(() => {
-    async function updateNotification(notification: IFollowUp) {
+    function updateNotification(notification: IFollowUp) {
       setCurrentStep(notification.type);
       setCurrentFollowup(notification);
       if (ratingContainerRef?.current) {
@@ -125,16 +125,14 @@ const RatingContainer = (props: IRatingContainer) => {
       }
     }
 
-    document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
-      console.log(e);
-      console.log(e.detail);
+    const onTriggerRatingPopup = (e: any) => {
       updateNotification(e?.detail?.notification);
-    });
+    };
+
+    document.addEventListener(EVENTS.TRIGGER_RATING_POPUP, onTriggerRatingPopup);
 
     return () => {
-      document.removeEventListener(EVENTS.TRIGGER_RATING_POPUP, (e: any) => {
-        updateNotification(e?.detail?.notification);
-      });
+      document.removeEventListener(EVENTS.TRIGGER_RATING_POPUP, onTriggerRatingPopup);
     };
   }, []);
 

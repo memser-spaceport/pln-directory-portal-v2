@@ -1,6 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
@@ -21,6 +21,8 @@ interface BannerContent {
   id: string;
   type: BannerType;
   title: string;
+  // Bold lead-in rendered immediately before `subtitle`.
+  subtitleBold?: string;
   subtitle: string;
   highlightText?: string;
   date: string;
@@ -30,46 +32,20 @@ interface BannerContent {
 // Shared Confirm Referral link for all bonus-lead items
 const CONFIRM_REFERRAL_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSfuDNC7fGLc5TMhSh1g6IpTXzOkS8Ie-I1QbIxOdqefUKSt3g/viewform';
 
+// Scroll distance (px) after which the mobile banner collapses to title-only
+const COMPACT_SCROLL_OFFSET = 24;
+
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'banner-1',
-    type: 'bonus',
-    title: 'New Activity: Contribute a High-Quality Response to the Forum',
-    subtitle: 'Contribute thoughtful forum responses and collect 100 points per qualifying post.',
+    id: 'buyback-auction-july',
+    type: 'event',
+    title: 'The July Buyback Auction Is Now Live',
+    subtitleBold: 'All bids must be in no later than July 21 at 12 PM ET',
+    subtitle: ' for the opportunity to redeem your PLAA in exchange for USD.',
     date: '',
     buttons: [
-       { label: 'Join the conversation', link: 'https://directory.plnetwork.io/alignment-asset/activities#contribute-forum-response', variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'banner-2',
-    type: 'bonus',
-    title: 'New Activity: Share a Reusable AI Resource or Tool',
-    subtitle: 'Share reusable AI tools or resources with the network and collect 150 points.',
-    date: '',
-    buttons: [
-       { label: 'View details', link: 'https://directory.plnetwork.io/alignment-asset/activities#share-ai-resource', variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'banner-3',
-    type: 'bonus',
-    title: 'New Activity: Rank Among the Network\'s Most Supportive Members',
-    subtitle: 'Top contributors in each snapshot period can now collect bonus points.',
-    date: '',
-    buttons: [
-       { label: 'View bonus points', link: 'https://directory.plnetwork.io/alignment-asset/activities#rank-supportive-members', variant: 'secondary' },
-    ],
-  },
-  {
-    id: 'banner-4',
-    type: 'bonus',
-    title: 'New Feature: Activity Assistant Bot',
-    subtitle: 'Use the new Activity Assistant Bot for your next submission + provide feedback = collect 50 bonus points.',
-    date: '',
-    buttons: [
-       { label: 'Submit and give feedback', link: ' https://directory.plnetwork.io/alignment-asset/', variant: 'secondary' },
+      { label: 'Place Your Bid Now on the Surus Platform', link: 'https://auction-interface.fly.dev/', variant: 'secondary' },
     ],
   },
 ];
@@ -77,8 +53,7 @@ export const BANNER_CONTENTS: BannerContent[] = [
 export function PlaaBanner() {
   const pathname = usePathname();
   const [isCompact, setIsCompact] = useState(false);
-  const mobileBannerWrapperRef = useRef<HTMLDivElement>(null);
-  
+
   const { onBannerCarouselPrevClicked, onBannerCarouselNextClicked, onBannerButtonClicked } = useAlignmentAssetsAnalytics();
   
   // Desktop carousel
@@ -94,34 +69,24 @@ export function PlaaBanner() {
     dragFree: false,
   });
 
-  // Intersection Observer to detect when banner becomes "stuck"
-  // We observe a sentinel placed BEFORE the mobile banner wrapper
+  // Collapse the banner to title-only once the page is scrolled.
+  // The banner sits inside a `position: sticky` header, so a sentinel placed next to
+  // it never leaves the viewport - read the scroll container directly instead.
+  // `body` is the vertical scroller here (globals.scss sets height: 100dvh +
+  // overflow-x: hidden, which forces overflow-y to auto), so window.scrollY stays 0.
   useEffect(() => {
-    const bannerWrapper = mobileBannerWrapperRef.current;
-    if (!bannerWrapper) return;
+    const getScrollOffset = () =>
+      Math.max(document.body?.scrollTop ?? 0, document.documentElement?.scrollTop ?? 0, window.scrollY || 0);
 
-    // Create sentinel and place it BEFORE the banner wrapper
-    const sentinel = document.createElement('div');
-    sentinel.id = 'plaa-scroll-sentinel';
-    sentinel.style.cssText = 'height: 1px; width: 100%; pointer-events: none;';
-    bannerWrapper.parentNode?.insertBefore(sentinel, bannerWrapper);
+    const onScroll = () => setIsCompact(getScrollOffset() > COMPACT_SCROLL_OFFSET);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsCompact(!entry.isIntersecting);
-      },
-      {
-        root: null,
-        rootMargin: `-${getComputedStyle(document.documentElement).getPropertyValue('--app-header-height') || '64px'} 0px 0px 0px`,
-        threshold: 0,
-      }
-    );
+    onScroll();
 
-    observer.observe(sentinel);
+    const targets: Array<EventTarget> = [document.body, document, window];
+    targets.forEach((t) => t.addEventListener('scroll', onScroll, { passive: true }));
 
     return () => {
-      observer.disconnect();
-      sentinel.remove();
+      targets.forEach((t) => t.removeEventListener('scroll', onScroll));
     };
   }, [pathname]);
 
@@ -158,7 +123,7 @@ export function PlaaBanner() {
             <div className={styles.emblaViewport} ref={desktopCarousel.emblaRef}>
               <div className={styles.emblaContainer}>
                 {BANNER_CONTENTS.map((item) => {
-                  const hasSubtitle = !!(item.subtitle || item.date || item.highlightText);
+                  const hasSubtitle = !!(item.subtitle || item.subtitleBold || item.date || item.highlightText);
                   const hasButtons = item.buttons.length > 0;
                   const titleOnly = !hasSubtitle && !hasButtons;
                   return (
@@ -184,7 +149,10 @@ export function PlaaBanner() {
                                 Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
                               </>
                             ) : (
-                              item.subtitle
+                              <>
+                                {item.subtitleBold && <strong className={styles.subtitleStrong}>{item.subtitleBold}</strong>}
+                                {item.subtitle}
+                              </>
                             )}
                           </span>
                           {item.date && (
@@ -221,7 +189,9 @@ export function PlaaBanner() {
           </div>
 
           {/* Pagination */}
-          <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
+          {totalSlides > 1 && (
+            <span className={styles.pagination}>{desktopCarousel.activeIndex + 1}/{totalSlides}</span>
+          )}
 
           {/* Right Arrow - far right */}
           {totalSlides > 1 && (
@@ -232,16 +202,18 @@ export function PlaaBanner() {
         </div>
       </HighlightsBar>
 
-      <div ref={mobileBannerWrapperRef} className={styles.mobileBannerWrapper}>
+      <div className={styles.mobileBannerWrapper}>
         <div className={`${styles.mobileBanner} ${isCompact ? styles.mobileBannerCompact : ''}`}>
       {/* Dots - always visible, positioned at top in compact mode */}
-      <div className={styles.dotsWrapper}>
-        <div className={styles.dots}>
-          {BANNER_CONTENTS.map((_, i) => (
-            <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
-          ))}
+      {totalSlides > 1 && (
+        <div className={styles.dotsWrapper}>
+          <div className={styles.dots}>
+            {BANNER_CONTENTS.map((_, i) => (
+              <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Single carousel - always mounted for consistent swipe */}
       <div className={styles.mobileEmblaViewport} ref={mobileCarousel.emblaRef}>
@@ -256,6 +228,7 @@ export function PlaaBanner() {
                 <div className={styles.mobileTextGroup}>
                   {item.type === 'event' ? (
                     <p className={styles.mobileSubtitle}>
+                      {item.subtitleBold && <strong className={styles.subtitleStrong}>{item.subtitleBold}</strong>}
                       {item.subtitle}{item.date && ` - ${item.date}`}
                     </p>
                   ) : (
@@ -266,27 +239,32 @@ export function PlaaBanner() {
                             Bonus Points Multiplier <span className={styles.highlight}>{item.highlightText}</span> on Key Talent Referrals
                           </>
                         ) : (
-                          item.subtitle
+                          <>
+                            {item.subtitleBold && <strong className={styles.subtitleStrong}>{item.subtitleBold}</strong>}
+                            {item.subtitle}
+                          </>
                         )}
                       </p>
                       {item.date && <p className={styles.mobileDate}>{item.date}</p>}
                     </>
                   )}
                 </div>
-                <div className={styles.mobileButtons}>
-                  {item.buttons.map((btn, i) => (
-                    <a
-                      key={i}
-                      href={btn.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={btn.variant === 'primary' ? styles.mobileBtnPrimary : styles.mobileBtnSecondary}
-                      onClick={() => onBannerButtonClicked(btn.label, btn.link)}
-                    >
-                      {btn.label}
-                    </a>
-                  ))}
-                </div>
+                {item.buttons.length > 0 && (
+                  <div className={styles.mobileButtons}>
+                    {item.buttons.map((btn, i) => (
+                      <a
+                        key={i}
+                        href={btn.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={btn.variant === 'primary' ? styles.mobileBtnPrimary : styles.mobileBtnSecondary}
+                        onClick={() => onBannerButtonClicked(btn.label, btn.link)}
+                      >
+                        {btn.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -294,14 +272,16 @@ export function PlaaBanner() {
       </div>
 
       {/* Pagination with dots - bottom right in full mode */}
-      <div className={styles.mobilePaginationFixed}>
-        <span className={styles.paginationText}>{mobileCarousel.activeIndex + 1}/{totalSlides}</span>
-        <div className={styles.dots}>
-          {BANNER_CONTENTS.map((_, i) => (
-            <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
-          ))}
+      {totalSlides > 1 && (
+        <div className={styles.mobilePaginationFixed}>
+          <span className={styles.paginationText}>{mobileCarousel.activeIndex + 1}/{totalSlides}</span>
+          <div className={styles.dots}>
+            {BANNER_CONTENTS.map((_, i) => (
+              <span key={i} className={`${styles.dot} ${i === mobileCarousel.activeIndex ? styles.dotActive : ''}`} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
         </div>
       </div>
     </>

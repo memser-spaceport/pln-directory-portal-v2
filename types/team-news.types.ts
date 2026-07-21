@@ -16,6 +16,13 @@ export interface ITeamNewsItem {
   summary: string | null;
   sourceUrl: string;
   sourceDomain: string | null;
+  /** Article URLs of every outlet that covered this story, primary first —
+   *  `sourceUrls[0]` is expected to equal `sourceUrl` (the card click always
+   *  trusts `sourceUrl`). Absent or length ≤ 1 means single-source (render
+   *  `sourceDomain` as before). Rendered in API order; display domains are
+   *  derived from the URLs client-side (see getNewsSources). Not sent by the
+   *  API yet; the UI lights up automatically once it is. */
+  sourceUrls?: string[];
   tags: string[];
   focusAreas: string[];
   subFocusAreas: string[];
@@ -41,6 +48,9 @@ export interface ISuggestedTeam {
   name: string;
   logo: string | null;
   reason: string;
+  /** One-line team blurb (same field the teams grid shows). Optional until the
+      follow-suggestions endpoint ships it; the UI falls back to `reason`. */
+  shortDescription?: string | null;
 }
 
 export interface ITeamNewsFollowSuggestionsResponse {

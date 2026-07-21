@@ -46,6 +46,20 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsSortChanged = (
+    sort: string,
+    previousSort: string,
+    itemCount: number,
+    source: TeamNewsAnalyticsSource = 'home',
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SORT_CHANGED, {
+      sort,
+      previousSort,
+      itemCount,
+      source,
+    });
+  };
+
   const onTeamNewsLoadMoreClicked = (
     currentlyShown: number,
     total: number,
@@ -69,6 +83,19 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHOW_MORE_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceDomain: item.sourceDomain,
+      sourceUrl: item.sourceUrl,
+      position,
+      source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onTeamNewsCardClicked = (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_CARD_CLICKED, {
       itemUid: item.uid,
@@ -77,6 +104,42 @@ export const useTeamNewsAnalytics = () => {
       eventType: item.eventType,
       sourceDomain: item.sourceDomain,
       sourceUrl: item.sourceUrl,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      position,
+      source,
+    });
+  };
+
+  // Fired on explicit click-open of the "N sources" popover only — the CSS
+  // hover preview on pointer devices intentionally doesn't emit (it would fire
+  // on every incidental mouse pass over the meta line).
+  const onTeamNewsSourcesExpanded = (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SOURCES_EXPANDED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      position,
+      source,
+    });
+  };
+
+  const onTeamNewsSourceLinkClicked = (
+    item: ITeamNewsItem,
+    position: number,
+    clicked: { domain: string; url: string },
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SOURCE_LINK_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      sourceCount: item.sourceUrls?.length ?? 1,
+      clickedDomain: clicked.domain,
+      clickedUrl: clicked.url,
+      isPrimary: clicked.url === item.sourceUrl,
       position,
       source,
     });
@@ -168,9 +231,13 @@ export const useTeamNewsAnalytics = () => {
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
+    onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
     onTeamNewsViewAllClicked,
+    onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
+    onTeamNewsSourcesExpanded,
+    onTeamNewsSourceLinkClicked,
     onTeamNewsStartConversationClicked,
     onTeamNewsJoinDiscussionClicked,
     onTeamNewsSearch,

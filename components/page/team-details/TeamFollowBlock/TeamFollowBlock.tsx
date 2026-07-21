@@ -20,7 +20,7 @@ const FollowerAvatar = ({ follower, className }: { follower: ITeamFollower; clas
     <img
       key={follower.uid}
       className={className}
-      src={follower.image || defaultAvatarImage}
+      src={follower.imageUrl || defaultAvatarImage}
       alt=""
       loading="lazy"
       onError={(e) => {

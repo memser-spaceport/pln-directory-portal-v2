@@ -20,7 +20,8 @@ import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
-import { UPVOTES } from './mocks';
+import { SOURCES_BY_UID, UPVOTES } from './mocks';
+import { SourceList } from './SourceList';
 import { LikeButton, type TeamCluster } from './V0NewsCard';
 
 // Same event-color mapping as the grid card.
@@ -32,8 +33,6 @@ const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
   MILESTONE: 'kMilestone',
   OTHER: 'kAnnouncement',
 };
-
-const openSource = (item: ITeamNewsItem) => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
 
 interface V0FeedCardProps {
   cluster: TeamCluster;
@@ -121,32 +120,10 @@ export function V0FeedCard({ cluster, following, onToggleFollow, onOpenStory, sh
                   {EVENT_TYPE_LABEL[story.eventType]}
                 </span>
                 {' · '}
-                {story.sourceDomain && (
-                  <>
-                    {/* The domain jumps straight to the original; the rest of the
-                        story opens the in-app reader. */}
-                    <span
-                      className={local.sourceDomain}
-                      role="link"
-                      tabIndex={0}
-                      title="Open the original source"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openSource(story);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          openSource(story);
-                        }
-                      }}
-                    >
-                      {story.sourceDomain}
-                    </span>
-                    {' · '}
-                  </>
-                )}
+                <span onClick={(e) => e.stopPropagation()}>
+                  <SourceList sources={SOURCES_BY_UID[story.uid]} fallbackDomain={story.sourceDomain} />
+                </span>
+                {' · '}
                 {formatTimeAgo(story.eventDate)}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>

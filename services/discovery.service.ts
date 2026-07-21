@@ -70,16 +70,23 @@ export const getHuskyResponseBySlug = async (slug: string, increaseView = false)
       'Content-Type': 'application/json',
     },
   });
-  const output: any = await result.json();
-  if (increaseView) {
-    await incrementHuskyViewCount(slug);
-  }
+  // A 404/5xx body may be HTML or empty — parse only after the ok check, and
+  // never let a malformed body mask the real status.
   if (!result.ok) {
     return {
       isError: true,
       status: result.status,
-      message: output,
+      message: await result.json().catch(() => null),
     };
+  }
+  let output: any;
+  try {
+    output = await result.json();
+  } catch (e) {
+    return { isError: true, status: result.status, message: null };
+  }
+  if (increaseView) {
+    await incrementHuskyViewCount(slug);
   }
 
   return {
@@ -88,7 +95,7 @@ export const getHuskyResponseBySlug = async (slug: string, increaseView = false)
       answer: output.answer,
       answerSourceLinks: output.answerSources,
       answerSourcedFrom: 'none',
-      followupQuestions: output.relatedQuestions.map((v: any) => v.content),
+      followupQuestions: (output.relatedQuestions ?? []).map((v: any) => v.content),
       viewCount: output.viewCount,
       shareCount: output.shareCount,
     },

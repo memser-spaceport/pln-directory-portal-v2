@@ -10,7 +10,7 @@ import s from './WorkspaceTypeahead.module.scss';
 
 /** Chosen typeahead result — all kinds apply the connector-lens table filter. */
 export type UnifiedSelection = {
-  kind: 'founder' | 'team' | 'investor' | 'pl_team';
+  kind: 'founder' | 'team' | 'investor' | 'pl_team' | 'fund';
   displayLabel: string;
   matchLabels: string[];
   containsLabels?: string[];
@@ -77,12 +77,11 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     if (q.length < 2) return [];
     const rows: LocalRow[] = [];
     (teams ?? []).forEach((t) => {
-      const founderNames = t.founders.map((f) => f.name).filter(Boolean);
       if (t.team_name.toLowerCase().includes(q)) {
         rows.push({
           kind: 'team',
           displayLabel: t.team_name,
-          matchLabels: [t.team_name, ...founderNames],
+          matchLabels: [t.team_name],
           containsLabels: [t.team_name],
           sub: 'Portfolio team',
           key: `team-${t.team_id}`,
@@ -93,8 +92,7 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
           rows.push({
             kind: 'founder',
             displayLabel: f.name,
-            matchLabels: [f.name, t.team_name],
-            containsLabels: [t.team_name],
+            matchLabels: [f.name],
             sub: `Founder · ${t.team_name}`,
             key: `founder-${t.team_id}-${f.member_uid || f.name}`,
           });
@@ -117,15 +115,31 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     }));
   }, [term]);
 
+  const fundRows = useMemo(() => {
+    if (!searching) return [] as string[];
+    const seen = new Set<string>();
+    const firms: string[] = [];
+    for (const inv of investorItems) {
+      const firm = inv.firm?.trim();
+      if (!firm) continue;
+      const key = firm.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      firms.push(firm);
+    }
+    return firms;
+  }, [investorItems, searching]);
+
   // Flattened, navigable list — render order: PL team, then founders/teams, then
-  // investors/funds. Indices below derive offsets from this same order.
+  // funds, then investors. Indices below derive offsets from this same order.
   const flat = useMemo(
     () => [
       ...plTeamRows.map((r) => ({ type: 'local' as const, row: r })),
       ...localRows.map((r) => ({ type: 'local' as const, row: r })),
+      ...fundRows.map((firm) => ({ type: 'fund' as const, firm })),
       ...investorItems.map((inv) => ({ type: 'investor' as const, inv })),
     ],
-    [plTeamRows, localRows, investorItems],
+    [plTeamRows, localRows, fundRows, investorItems],
   );
 
   const reset = () => {
@@ -140,12 +154,17 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     if (entry.type === 'local') {
       const { kind, displayLabel, matchLabels, containsLabels } = entry.row;
       onSelect({ kind, displayLabel, matchLabels, containsLabels });
+    } else if (entry.type === 'fund') {
+      const firm = entry.firm;
+      onSelect({
+        kind: 'fund',
+        displayLabel: firm,
+        matchLabels: [firm],
+        containsLabels: firm.length >= 3 ? [firm] : [],
+      });
     } else {
       const displayLabel = `${entry.inv.first_name} ${entry.inv.last_name}`.trim();
-      const firm = entry.inv.firm?.trim();
-      const matchLabels = [displayLabel, firm].filter((l): l is string => !!l);
-      const containsLabels = firm ? [firm] : [];
-      onSelect({ kind: 'investor', displayLabel, matchLabels, containsLabels });
+      onSelect({ kind: 'investor', displayLabel, matchLabels: [displayLabel] });
     }
     reset();
   };
@@ -167,10 +186,9 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
     }
   };
 
-  // Derive localCount from the merged flat array so the investor-segment offset
-  // is always consistent with what flat actually contains, even during the debounce
-  // window when localRows and investorItems reflect different terms.
-  const localCount = flat.filter((e) => e.type === 'local').length;
+  const localCount = plTeamRows.length + localRows.length;
+  const fundCount = fundRows.length;
+  const investorEmpty = searching && !isPending && investorItems.length === 0 && fundRows.length === 0;
 
   return (
     <div className={s.wrap} ref={ref}>
@@ -230,11 +248,27 @@ export function UnifiedSearchSelect({ teams, onSelect }: Props) {
 
           {searching && <div className={s.groupLabel}>Investors / Funds</div>}
           {searching && isPending && <div className={s.hint}>Searching…</div>}
-          {searching && !isPending && investorItems.length === 0 && <div className={s.hint}>No investors found</div>}
+          {investorEmpty && <div className={s.hint}>No investors found</div>}
+          {searching &&
+            !isPending &&
+            fundRows.map((firm, j) => {
+              const idx = localCount + j;
+              return (
+                <div
+                  key={`fund-${firm.toLowerCase()}`}
+                  className={clsx(s.option, idx === hi && s.highlighted)}
+                  onClick={() => pick(idx)}
+                  onMouseEnter={() => setHi(idx)}
+                >
+                  <span className={s.optName}>{firm}</span>
+                  <span className={s.optSub}>Fund</span>
+                </div>
+              );
+            })}
           {searching &&
             !isPending &&
             investorItems.map((inv, j) => {
-              const idx = localCount + j;
+              const idx = localCount + fundCount + j;
               return (
                 <div
                   key={inv.investor_id}

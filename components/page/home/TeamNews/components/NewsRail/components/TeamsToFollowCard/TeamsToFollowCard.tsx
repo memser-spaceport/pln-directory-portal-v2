@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
-import { FollowButton } from '@/components/ui/FollowButton/FollowButton';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ISuggestedTeam } from '@/types/team-news.types';
 import { getTeamLogoFallback } from '../../../../utils/getTeamLogoFallback';
 
@@ -90,7 +90,9 @@ export function TeamsToFollowCard({
       <h3 className={s.railTitle}>Teams to follow</h3>
       {suggestions.map((team, position) => {
         const isFollowing = followedTeamUids.has(team.uid);
-        const reason = stripFollowerCountFromReason(team.reason);
+        // Prefer the team's own one-liner (same field the teams grid shows);
+        // the recommendation reason (focus area) is only the fallback.
+        const subtitle = team.shortDescription?.trim() || stripFollowerCountFromReason(team.reason);
         return (
           <div key={team.uid} className={s.railRow}>
             {team.logo ? (
@@ -100,7 +102,15 @@ export function TeamsToFollowCard({
             )}
             <span className={s.railInfo}>
               <span className={s.railNameRow}>
-                <span className={s.railName}>{team.name}</span>
+                <a
+                  href={`/teams/${team.uid}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.railName}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {team.name}
+                </a>
                 <FollowButton
                   following={isFollowing}
                   onClick={handleFollowClick(team, position)}
@@ -109,7 +119,7 @@ export function TeamsToFollowCard({
                   disabled={isFollowing}
                 />
               </span>
-              {reason ? <span className={s.railReason}>{reason}</span> : null}
+              {subtitle ? <span className={s.railReason}>{subtitle}</span> : null}
             </span>
           </div>
         );

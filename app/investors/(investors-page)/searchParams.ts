@@ -55,6 +55,8 @@ export const investorsFilterParsers = {
   wi_connector_labels: parseAsArrayOf(parseAsString, '|').withDefault([]),
   /** Substring hop-chain node labels (team names embedded in longer labels). */
   wi_connector_contains: parseAsArrayOf(parseAsString, '|').withDefault([]),
+  /** Connector match field partition: person | org. Empty = legacy all-fields OR. */
+  wi_connector_kind: parseAsStringLiteral(['person', 'org'] as const),
   /** PL member UIDs to filter by (from facets). Empty = no filter. */
   wi_pl_members: parseAsArrayOf(parseAsString, ',').withDefault([]),
   /** null = off, true = show any founder. */
@@ -63,6 +65,8 @@ export const investorsFilterParsers = {
   wi_founder_uids: parseAsArrayOf(parseAsString, ',').withDefault([]),
   /** null = off, true = direct-path only (no intermediary hops). */
   wi_direct_only: parseAsBoolean,
+  /** Path data source: absent/empty = all; `affinity` | `linkedin` (single-select). */
+  wi_source: parseAsString.withDefault(''),
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

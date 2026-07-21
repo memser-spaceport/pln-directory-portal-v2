@@ -1,4 +1,5 @@
 .root {
+  position: relative; // anchor for .stretchedLink's full-card hit area
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -27,6 +28,91 @@
   gap: 8px;
   text-decoration: none;
   color: inherit;
+}
+
+// Stretch the card link over the whole card (which already shows cursor:pointer),
+// so clicks on the padding/footer/whitespace navigate too — not just the title text.
+.stretchedLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+// Prototype-style select variant: the card chrome lives on .root, so this
+// button is only a transparent full-card hit area preserving the layout.
+.selectButton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+// The creator's ⋯ menu, vertically centered on the app name's first line
+// (card padding-top 24px + half of the 28px name line-height), floating above
+// the stretched link.
+.actionSlot {
+  position: absolute;
+  top: 26px;
+  right: 14px;
+  z-index: 2;
+}
+
+// Reserve room for the creator's ⋯ menu so long names ellipsize instead of
+// sliding under it. (Visitors have no corner action — the name gets full width.)
+.nameRowMenu {
+  padding-right: 32px;
+}
+
+// Visitor "App Details" action on the footer row; sits above the stretched
+// link like the author link does.
+.detailsButton {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 26px;
+  }
+}
+
+// DS grey pill (TeamCard "stage" tag look) with a leading doc icon and hover.
+.detailsBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: fit-content;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.detailsButton:hover .detailsBadge {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 .nameRow {
@@ -61,6 +147,18 @@
   color: #92400e;
 }
 
+.errorBadge {
+  @extend .draftBadge;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.deployingBadge {
+  @extend .draftBadge;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .description {
   margin: 0;
   color: #475569;
@@ -68,7 +166,7 @@
   font-weight: 400;
   line-height: 20px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -118,6 +216,8 @@
 }
 
 .creatorLink {
+  position: relative; // sit above .stretchedLink's overlay so the author link stays clickable
+  z-index: 1;
   font-weight: 600;
   color: #0f172a;
   text-decoration: none;

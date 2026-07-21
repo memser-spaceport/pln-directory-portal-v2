@@ -37,3 +37,4 @@ export * from './QuestionCircleStrokeIcon';
 export * from './ChartIcon';
 export * from './BookmarkIcon';
 export * from './ConfettiIcon';
+export * from './DocumentIcon';

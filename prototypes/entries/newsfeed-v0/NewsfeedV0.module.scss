@@ -7,7 +7,22 @@
   background: var(--background-neutral-subtle, #f7f8fa);
 }
 
-/* ---------- Prototype-only Current / V0 switcher ---------- */
+/* ---------- Prototype-only interaction-version switcher ---------- */
+
+/* Its own row above the tabs: the two interaction versions (Discuss vs
+   Comments) the prototype demonstrates. Reserves the rail column so the row
+   lines up with the feed card's right edge, matching .tabsConstrainBanner. */
+.versionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  @include tablet-landscape {
+    margin-right: 312px; /* 300px rail + 12px gutter */
+  }
+}
 
 .switchBar {
   display: flex;
@@ -549,6 +564,37 @@
 .teamNameTight.teamNameTight {
   flex: 0 1 auto;
   min-width: 0;
+}
+
+/* Forum post header: the news card's square logo becomes a round member avatar
+   (author on top where a news card shows the team). Double class beats the
+   production .logo border-radius. */
+.authorAvatar.authorAvatar {
+  border-radius: 50%;
+}
+
+/* "· Founder @ Team" role after the author name — quiet meta, truncates before
+   pushing the row. The negative margin tightens it to the name against the
+   head's 12px gap. */
+.authorRole {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: -6px;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Forum category in the meta line — the news card's event label, but neutral
+   (a category isn't an event type, so it doesn't take an event colour). */
+.metaForum {
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 /* Follow sits after the team name, always visible. The tertiary button carries

@@ -229,6 +229,161 @@ export const SOURCES_BY_UID: Record<string, NewsSource[]> = {
   ],
 };
 
+// ---------- Forum posts (interleaved into the feed, news-card style) ----------
+
+/**
+ * A member-authored forum post, rendered in the same card shell as a news story
+ * but with the *author* on top where a news card shows the team. Shape is the
+ * subset of the production forum `Topic` a listing card actually consumes
+ * (author display name / role, title, teaser body, like + comment counts),
+ * plus a `focusArea` so posts slot under the same focus-area tabs as news.
+ */
+export interface ForumPost {
+  uid: string;
+  /** Author display name — shown where a news card shows the team name. */
+  author: string;
+  /** "Founder @ Lattice Compute" — role @ team, exactly as the forum card composes it. */
+  role: string;
+  memberUid: string;
+  title: string;
+  /** Teaser body (plain text — the prototype skips the forum's HTML pipeline). */
+  body: string;
+  /** Forum category label, shown in the meta line where news shows its event type. */
+  category: string;
+  /** Aligns the post with a focus-area tab (same titles as MOCK_GROUPS). */
+  focusArea: string;
+  createdAt: string;
+  tags: string[];
+}
+
+export const FORUM_POSTS: ForumPost[] = [
+  {
+    uid: 'f1',
+    author: 'Mira Chen',
+    role: 'Founder @ Lattice Compute',
+    memberUid: 'mira-chen',
+    title: 'What pricing model actually works for verifiable GPU workloads?',
+    body: 'We are weighing spot-style bidding against fixed per-proof pricing for the testnet. Spot keeps utilization high but makes cost unpredictable for buyers running long jobs. Curious how other compute teams landed on this — did you start fixed and move to a market, or the other way around?',
+    category: 'Compute',
+    focusArea: 'Infrastructure',
+    createdAt: '2026-06-27T18:30:00.000Z',
+    tags: ['compute', 'pricing'],
+  },
+  {
+    uid: 'f2',
+    author: 'Devon Okoro',
+    role: 'Protocol Engineer @ libp2p',
+    memberUid: 'devon-okoro',
+    title: 'Shared DHT for rollup peer discovery — worth standardizing?',
+    body: 'Following the L2 partnership, a few of us sketched a common peer-routing format so rollup nodes can share one DHT instead of each shipping their own. Before we write it up as a spec proposal: who else would adopt this, and what breaks for you if discovery becomes shared infrastructure?',
+    category: 'Networking',
+    focusArea: 'Networking',
+    createdAt: '2026-06-21T09:15:00.000Z',
+    tags: ['libp2p', 'spec'],
+  },
+  {
+    uid: 'f3',
+    author: 'Sasha Rao',
+    role: 'Research Lead @ Filecoin Foundation',
+    memberUid: 'sasha-rao',
+    title: 'Provenance metadata for AI training sets — what should be mandatory?',
+    body: 'As the verifiable-storage grants round opens, we want the metadata schema to be strict enough to be useful but not so heavy nobody fills it in. Leaning toward: source license, collection date, and a content hash as required; everything else optional. What would you add or cut?',
+    category: 'Storage',
+    focusArea: 'Storage',
+    createdAt: '2026-06-25T14:45:00.000Z',
+    tags: ['filecoin', 'ai-data'],
+  },
+  {
+    uid: 'f4',
+    author: 'Priya Nair',
+    role: 'Ecosystem Lead @ Protocol Labs',
+    memberUid: 'priya-nair',
+    title: 'Onboarding flow doubled contributor sign-ups — sharing what changed',
+    body: 'Quick write-up for anyone rebuilding their onboarding: the biggest win was cutting the first-run steps from nine to four and moving grant discovery ahead of profile setup. Happy to share the before/after funnel numbers if useful.',
+    category: 'Community',
+    focusArea: 'Infrastructure',
+    createdAt: '2026-06-19T11:20:00.000Z',
+    tags: ['onboarding', 'grants'],
+  },
+];
+
+// ---------- Comments (mocked; the feed's comment threads read/write these) ----------
+
+export interface FeedComment {
+  uid: string;
+  author: string;
+  role: string;
+  text: string;
+  createdAt: string;
+}
+
+/**
+ * Seed comment threads keyed by the news-story / forum-post uid the comments
+ * hang off. Items absent here open an empty thread ("Be the first to comment").
+ * The prototype appends new comments to a live copy of this map, so posting a
+ * comment sticks for the session.
+ */
+export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
+  n3: [
+    {
+      uid: 'c-n3-1',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Congrats! Is the GPU marketplace going to be permissionless from day one, or gated for the testnet?',
+      createdAt: '2026-06-26T15:10:00.000Z',
+    },
+    {
+      uid: 'c-n3-2',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'Gated for testnet while we harden the proof pipeline, then opening up. Happy to add you to the early cohort.',
+      createdAt: '2026-06-26T16:02:00.000Z',
+    },
+  ],
+  n8: [
+    {
+      uid: 'c-n8-1',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'This is the missing piece for multi-rollup retrieval. Will the reference impl land in the next release or behind a flag?',
+      createdAt: '2026-06-20T15:40:00.000Z',
+    },
+  ],
+  f1: [
+    {
+      uid: 'c-f1-1',
+      author: 'Priya Nair',
+      role: 'Ecosystem Lead @ Protocol Labs',
+      text: 'We started fixed, then moved to a soft market once we had enough supply to keep prices stable. Fixed-first made the early buyer conversations far easier.',
+      createdAt: '2026-06-27T19:05:00.000Z',
+    },
+    {
+      uid: 'c-f1-2',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'Watch out for long jobs getting priced out under spot — a reserved tier alongside the market helped us a lot.',
+      createdAt: '2026-06-27T20:12:00.000Z',
+    },
+  ],
+  f2: [
+    {
+      uid: 'c-f2-1',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'We would adopt a shared DHT immediately. The one thing that breaks for us is custom record TTLs — as long as those stay configurable, count us in.',
+      createdAt: '2026-06-21T10:30:00.000Z',
+    },
+  ],
+};
+
+/** Seed like counts per forum post (same "I like this" signal as the forum). */
+export const FORUM_LIKES: Record<string, number> = {
+  f1: 8,
+  f2: 15,
+  f3: 6,
+  f4: 22,
+};
+
 /** Seed upvote counts per news item ("I'm interested" signal — no backend yet). */
 export const UPVOTES: Record<string, number> = {
   n1: 12,
@@ -245,6 +400,17 @@ export const UPVOTES: Record<string, number> = {
   n12: 3,
   n13: 1,
 };
+
+/**
+ * Base "like" counts for every feed item, news and forum alike — the seed the
+ * fully-functional Like button adds the viewer's own like to. News reuses the
+ * existing per-story counts (V2 renames upvotes → likes); forum posts bring
+ * their own. Keyed by story/post uid.
+ */
+export const BASE_LIKES: Record<string, number> = { ...UPVOTES, ...FORUM_LIKES };
+
+/** Seed comment counts a story/post starts with, derived from the mock threads. */
+export const seedCommentCount = (uid: string): number => COMMENTS_BY_UID[uid]?.length ?? 0;
 
 /** Rail suggestions: teams NOT already in the feed (suggesting what you already read is redundant). */
 export interface SuggestedTeam {

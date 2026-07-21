@@ -20,9 +20,12 @@ import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
-import { SOURCES_BY_UID, UPVOTES } from './mocks';
+import { SOURCES_BY_UID } from './mocks';
+import type { FeedComment } from './mocks';
 import { SourceList } from './SourceList';
-import { UpvoteButton, type TeamCluster } from './V0NewsCard';
+import type { TeamCluster } from './V0NewsCard';
+import { LikeButton, CommentButton } from './FeedActions';
+import { CommentsThread } from './CommentsThread';
 
 // Same event-color mapping as the grid card.
 const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
@@ -34,37 +37,51 @@ const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
   OTHER: 'kAnnouncement',
 };
 
-const openSource = (item: ITeamNewsItem) => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
-
 interface V0FeedCardProps {
   cluster: TeamCluster;
   following: boolean;
   onToggleFollow: () => void;
-  /** V1 only — V0 ships without the upvote feature. */
-  showUpvote?: boolean;
+  /** 'discuss' → Like + Discuss (news keeps its forum jump); 'comments' → Like + inline comments. */
+  interactionMode: 'discuss' | 'comments';
+  likeCount: (uid: string) => number;
+  isLiked: (uid: string) => boolean;
+  onToggleLike: (uid: string) => void;
+  commentsFor: (uid: string) => FeedComment[];
+  onAddComment: (uid: string, text: string) => void;
+  /** Open the story's detail modal (summary + share + sources). */
+  onOpenStory: (story: ITeamNewsItem) => void;
 }
 
 /**
  * Single-column variant: one card per team, but every story inside carries
- * equal weight — same headline size, summary, meta line, and (in V1) its own
- * quiet upvote/comment pair. No lead: with no hierarchy to express, ordering
- * is pure chronology (newest first).
+ * equal weight — same headline size, summary, meta line, and its own quiet
+ * Like control (plus, per the active interaction version, a Discuss link or an
+ * inline comment thread). Clicking a story opens its detail modal.
  */
 // Show at most this many stories per card; the rest collapse under "+N more".
 const VISIBLE_STORIES = 3;
 
-export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = false }: V0FeedCardProps) {
-  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+export function V0FeedCard({
+  cluster,
+  following,
+  onToggleFollow,
+  interactionMode,
+  likeCount,
+  isLiked,
+  onToggleLike,
+  commentsFor,
+  onAddComment,
+  onOpenStory,
+}: V0FeedCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
 
-  const toggleVote = (uid: string) =>
-    setVotedIds((prev) => {
+  const toggleThread = (uid: string) =>
+    setOpenThreads((prev) => {
       const next = new Set(prev);
       next.has(uid) ? next.delete(uid) : next.add(uid);
       return next;
     });
-
-  const upvotesFor = (item: ITeamNewsItem) => (UPVOTES[item.uid] ?? 0) + (votedIds.has(item.uid) ? 1 : 0);
 
   const stories = [cluster.lead, ...cluster.rest].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
@@ -96,19 +113,22 @@ export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = fa
 
       {visibleStories.map((story) => {
         const existing = hasExistingDiscussion(story.discussion);
-        const voted = votedIds.has(story.uid);
-        const upvotes = upvotesFor(story);
+        const threadOpen = openThreads.has(story.uid);
+        const comments = commentsFor(story.uid);
         return (
           <div
             key={story.uid}
             role="link"
             tabIndex={0}
             className={local.feedStory}
-            onClick={() => openSource(story)}
+            onClick={() => onOpenStory(story)}
             onKeyDown={(e) => {
+              // Only the row itself opens the modal — Enter/Space inside the
+              // comment composer must not (it bubbles up to this handler).
+              if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                openSource(story);
+                onOpenStory(story);
               }
             }}
           >
@@ -125,25 +145,43 @@ export function V0FeedCard({ cluster, following, onToggleFollow, showUpvote = fa
                 {formatTimeAgo(story.eventDate)}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
-                {showUpvote && <UpvoteButton count={upvotes} voted={voted} onToggle={() => toggleVote(story.uid)} />}
-                {/* Production's StartConversationButton treatment: DS link/primary —
-                    brand blue at rest, darkening on hover. (The real component also
-                    reads auth + forum access and navigates, out of scope for mocked data.) */}
-                <Button
-                  size="xs"
-                  style="link"
-                  variant="primary"
-                  className={discussStyles.discussLink}
-                  title={
-                    existing ? 'Join the existing forum discussion about this article' : 'Start a conversation on the forum'
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {existing ? 'Join discussion' : 'Discuss'}
-                  <ArrowRight />
-                </Button>
+                <LikeButton
+                  count={likeCount(story.uid)}
+                  liked={isLiked(story.uid)}
+                  onToggle={() => onToggleLike(story.uid)}
+                />
+                {interactionMode === 'comments' ? (
+                  <CommentButton
+                    count={comments.length}
+                    open={threadOpen}
+                    onToggle={() => toggleThread(story.uid)}
+                  />
+                ) : (
+                  /* Production's StartConversationButton treatment: DS link/primary —
+                     brand blue at rest, darkening on hover. (The real component also
+                     reads auth + forum access and navigates, out of scope for mocked data.) */
+                  <Button
+                    size="xs"
+                    style="link"
+                    variant="primary"
+                    className={discussStyles.discussLink}
+                    title={
+                      existing
+                        ? 'Join the existing forum discussion about this article'
+                        : 'Start a conversation on the forum'
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {existing ? 'Join discussion' : 'Discuss'}
+                    <ArrowRight />
+                  </Button>
+                )}
               </span>
             </div>
+
+            {interactionMode === 'comments' && threadOpen && (
+              <CommentsThread comments={comments} onAddComment={(text) => onAddComment(story.uid, text)} />
+            )}
           </div>
         );
       })}

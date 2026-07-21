@@ -12,7 +12,7 @@ import local from './NewsfeedV0.module.scss';
 
 // The same Follow button dev ships in the production "Teams to follow" rail.
 import { FollowButton } from '@/components/ui/FollowButton';
-import { MOCK_FOCUS_AREAS, SUGGESTED_TEAMS, UPVOTES } from './mocks';
+import { SUGGESTED_TEAMS, UPVOTES } from './mocks';
 
 interface FeedRailProps {
   followedTeams: Set<string>;
@@ -52,30 +52,6 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
                 />
               </span>
               <span className={local.railDesc}>{team.description}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className={clsx(s.card, local.railCard)}>
-        <h3 className={local.railTitle}>Focus Areas</h3>
-        {MOCK_FOCUS_AREAS.map((area: any) => (
-          <div
-            key={area.title}
-            role="link"
-            tabIndex={0}
-            className={local.railStory}
-            onClick={() => window.open(`/teams?focusAreas=${area.title}`, '_blank')}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                window.open(`/teams?focusAreas=${area.title}`, '_blank');
-              }
-            }}
-          >
-            <span className={local.railStoryTitle}>{area.title}</span>
-            <span className={local.railReason}>
-              {area.teamAncestorFocusAreas.length} teams · {area.projectAncestorFocusAreas.length} projects
             </span>
           </div>
         ))}

@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import type { PrototypeEntry } from '@/prototypes/types';
+import type { PrototypeListItem } from '@/prototypes/types';
 import s from './PrototypesIndex.module.scss';
 
 type Props = {
-  entry: PrototypeEntry;
+  entry: PrototypeListItem;
 };
 
 export function PrototypeCard({ entry }: Props) {

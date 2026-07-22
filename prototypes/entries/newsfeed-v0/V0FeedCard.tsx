@@ -25,6 +25,7 @@ import type { FeedComment } from './mocks';
 import { SourceList } from './SourceList';
 import type { TeamCluster } from './V0NewsCard';
 import { LikeButton, CommentButton } from './FeedActions';
+import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 
 // Same event-color mapping as the grid card.
@@ -145,6 +146,7 @@ export function V0FeedCard({
                 {formatTimeAgo(story.eventDate)}
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
+                <ShareMenu variant="card" url={story.sourceUrl ?? undefined} />
                 <LikeButton
                   count={likeCount(story.uid)}
                   liked={isLiked(story.uid)}

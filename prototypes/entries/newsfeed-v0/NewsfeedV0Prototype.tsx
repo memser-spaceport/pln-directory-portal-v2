@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FocusEvent } from 'react';
+import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
@@ -20,8 +20,11 @@ import {
 import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
 import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
-import { NewsBase } from '@/components/page/home/TeamNews/components/NewsBase';
-import { TeamNewsTabs } from '@/components/page/home/TeamNews/components/TeamNewsTabs';
+// Reuse the production NewsBase section shell styling 1:1, but with our own
+// heading copy ("Network Updates"). NewsBase is production and hardcodes its
+// title, so we mirror its structure locally instead of editing it.
+import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
+import { NewsTabs } from './NewsTabs';
 
 // Reuse the production feed layout styling 1:1.
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
@@ -50,10 +53,13 @@ import {
   BASE_LIKES,
   COMMENTS_BY_UID,
   SOURCES_BY_UID,
+  MODAL_EXTRA_BY_UID,
+  MODAL_CITED_BODY_BY_UID,
   type ForumPost,
   type FeedComment,
 } from './mocks';
 import { FeedDetailModal, type FeedDetail } from './FeedDetailModal';
+import { ForumPostModal } from './ForumPostModal';
 import local from './NewsfeedV0.module.scss';
 
 const groups = MOCK_GROUPS;
@@ -83,6 +89,7 @@ const MODE_NOTE: Record<InteractionMode, string> = {
   discuss: 'News cards keep a “Discuss” link to the forum. Forum posts show likes only.',
   comments: 'News and forum posts both open an inline comment thread — no “Discuss” link.',
 };
+
 
 // Event kicker colours for the modal, matching the meta-line event palette
 // (NewsfeedV0.module.scss .kFunding/.kLaunch/…).
@@ -157,6 +164,24 @@ type FeedEntry =
  * Sort control; a prototype-level switch flips between the two interaction
  * versions (Discuss link vs. inline Comments).
  */
+/**
+ * Local copy of the production `NewsBase` section shell (same SCSS module) with
+ * the heading changed to "Network Updates". NewsBase is production and hardcodes
+ * its title, so we mirror its structure here rather than editing it.
+ */
+function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
+  return (
+    <section className={nb.section}>
+      <div className={nb.header}>
+        <h2 className={clsx(nb.title, local.sectionTitle)}>Network Updates</h2>
+        {headerDetails}
+      </div>
+      <p className={nb.sub}>Recent shipping, raises, partnerships, and milestones from across the network.</p>
+      {children}
+    </section>
+  );
+}
+
 export default function NewsfeedV0Prototype() {
   // Tabs are base-ui / client-only — gate render so SSR === first client render.
   const [mounted, setMounted] = useState(false);
@@ -180,8 +205,10 @@ export default function NewsfeedV0Prototype() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   // Comments the viewer posts stick for the session, seeded from the mocks.
   const [commentsByUid, setCommentsByUid] = useState<Record<string, FeedComment[]>>(() => ({ ...COMMENTS_BY_UID }));
-  // The story/post whose detail modal is open (null = closed).
+  // The news story whose detail modal is open (null = closed).
   const [detail, setDetail] = useState<FeedDetail | null>(null);
+  // The forum post whose simple-forum-post modal is open (null = closed).
+  const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -240,27 +267,28 @@ export default function NewsfeedV0Prototype() {
       logoUrl: story.teamLogoUrl,
       kicker: EVENT_TYPE_LABEL[story.eventType],
       kickerColor: EVENT_HEX[story.eventType],
-      summary: story.summary,
+      // Modal-only: the fuller article body (short teaser stays on the card).
+      summary: story.summary
+        ? story.summary + (MODAL_EXTRA_BY_UID[story.uid] ? `\n\n${MODAL_EXTRA_BY_UID[story.uid]}` : '')
+        : (MODAL_EXTRA_BY_UID[story.uid] ?? null),
       time: story.eventDate,
       sources: SOURCES_BY_UID[story.uid],
+      citedBody: MODAL_CITED_BODY_BY_UID[story.uid],
+      // Kept for Share (copies the article link) — the modal no longer renders a
+      // "Read full article" link, but a Discuss button instead.
       readUrl: story.sourceUrl ?? undefined,
-      readLabel: 'Read full article',
     });
 
-  const openForumDetail = (post: ForumPost) =>
-    setDetail({
-      id: post.uid,
-      kind: 'forum',
-      title: post.title,
-      name: post.author,
-      sub: post.role,
-      avatarSeed: post.author,
-      kicker: post.category,
-      summary: post.body,
-      time: post.createdAt,
-      readUrl: `/forum`,
-      readLabel: 'Open in forum',
-    });
+  // Discuss version: a forum post lives in the forum, so send the user there
+  // (new tab, so the prototype stays open) rather than opening a modal.
+  // Comments version: open the simple-forum-post modal (with likes + comments).
+  const openForumDetail = (post: ForumPost) => {
+    if (mode === 'discuss') {
+      window.open('/forum', '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setForumDetail(post);
+  };
 
   const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), []);
 
@@ -350,11 +378,20 @@ export default function NewsfeedV0Prototype() {
       ...forumPosts.map((post) => ({ kind: 'forum' as const, post })),
     ];
 
-    return list.sort((a, b) => {
+    const sorted = list.sort((a, b) => {
       if (sort === 'popular' && likesOf(b) !== likesOf(a)) return likesOf(b) - likesOf(a);
       if (sort === 'following' && followedOf(b) !== followedOf(a)) return followedOf(b) - followedOf(a);
       return dateOf(b) - dateOf(a);
     });
+
+    // Surface a forum post as the second item (right after the first team-news
+    // card) so the news + discussion mix reads immediately.
+    const firstNews = sorted.find((e) => e.kind === 'news');
+    const firstForum = sorted.find((e) => e.kind === 'forum');
+    if (firstNews && firstForum) {
+      return [firstNews, firstForum, ...sorted.filter((e) => e !== firstNews && e !== firstForum)];
+    }
+    return sorted;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clusters, forumPosts, sort, followedTeams, likedIds]);
 
@@ -415,11 +452,11 @@ export default function NewsfeedV0Prototype() {
 
         <div className={styles.home__cn__teamnews}>
           {isEmpty(allItems) ? (
-            <NewsBase>
+            <NetworkUpdatesBase>
               <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
-            </NewsBase>
+            </NetworkUpdatesBase>
           ) : (
-            <NewsBase
+            <NetworkUpdatesBase
               headerDetails={
                 <div className={clsx(local.headerActions, local.headerActionsBanner)}>
                   {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
@@ -440,9 +477,10 @@ export default function NewsfeedV0Prototype() {
                 <SearchInput value={query} onChange={handleSearch} placeholder="Search by team, member, or keyword…" />
               </div>
 
-              {/* Prototype-only: switch between the two interaction versions. */}
+              {/* Prototype-only: interaction version + citation style switches. */}
               <div className={local.versionRow}>
                 <div className={local.switchBar}>
+                  <span className={local.switchLabel}>Interactions</span>
                   <div className={local.switch} role="tablist" aria-label="Interaction version">
                     {MODE_OPTIONS.map((opt) => (
                       <button
@@ -464,7 +502,7 @@ export default function NewsfeedV0Prototype() {
               {/* Constrain the tabs' underline to end at the news-card's right edge
                 (reserve the rail column), instead of spanning the full width. */}
               <div className={clsx(local.tabsConstrain, local.tabsConstrainBanner)}>
-                <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+                <NewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
               </div>
 
               <div className={local.filterBar}>
@@ -557,7 +595,7 @@ export default function NewsfeedV0Prototype() {
                   )}
                 </>
               )}
-            </NewsBase>
+            </NetworkUpdatesBase>
           )}
         </div>
       </div>
@@ -568,6 +606,20 @@ export default function NewsfeedV0Prototype() {
         likeCount={detail ? likeCount(detail.id) : 0}
         liked={detail ? isLiked(detail.id) : false}
         onToggleLike={() => detail && toggleLike(detail.id)}
+        citationStyle="superscript"
+        showComments={mode === 'comments'}
+        comments={detail ? commentsFor(detail.id) : []}
+        onAddComment={(text) => detail && addComment(detail.id, text)}
+      />
+
+      <ForumPostModal
+        post={forumDetail}
+        onClose={() => setForumDetail(null)}
+        likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
+        liked={forumDetail ? isLiked(forumDetail.uid) : false}
+        onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
+        comments={forumDetail ? commentsFor(forumDetail.uid) : []}
+        onAddComment={(text) => forumDetail && addComment(forumDetail.uid, text)}
       />
 
       {toast && (

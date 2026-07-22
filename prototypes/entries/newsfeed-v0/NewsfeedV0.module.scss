@@ -14,9 +14,9 @@
    lines up with the feed card's right edge, matching .tabsConstrainBanner. */
 .versionRow {
   display: flex;
-  align-items: center;
-  gap: 12px 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   margin-bottom: 16px;
 
   @include tablet-landscape {
@@ -29,6 +29,16 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* Small label prefixing each prototype switch (Interactions / Citations). */
+.switchLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  min-width: 76px;
 }
 
 .switch {
@@ -892,6 +902,15 @@
   }
 }
 
+/* Four Quick Actions on one line (production grid is repeat(3,1fr)). Double
+   class beats the production .grid; only at tablet-landscape+ where there's room
+   — tablet-portrait keeps production's 2-up. */
+.qaGrid4.qaGrid4 {
+  @include tablet-landscape {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 .qaMobile {
   display: none;
 
@@ -908,13 +927,38 @@
   gap: 12px;
 }
 
+/* Demoted to match the desktop treatment: Quick Actions is a secondary utility
+   strip above the feed hero, not a peer headline. */
 .mqaTitle {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 26px;
-  letter-spacing: -0.4px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Mobile Quick Actions heading + count badge. */
+.mqaTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grey count pill, matching the focus-tab count badges. */
+.mqaCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .mqaRow {
@@ -987,13 +1031,53 @@
 }
 
 .mqaSub {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 12px;
+  line-height: 16px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-tertiary, #8897ae);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---------- Header hierarchy: feed as hero, Quick Actions secondary ---------- */
+
+/* "Network Updates" = the page's primary section header. Local override of the
+   reused NewsBase .title (24→32/500): a step larger + heavier for clear primacy,
+   with an explicit hex fallback. Double class beats the reused module. */
+.sectionTitle.sectionTitle {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include breakpoint-1024 {
+    font-size: 32px;
+    line-height: 42px;
+    letter-spacing: -0.75px;
+  }
+}
+
+/* "Quick Actions" demoted to a quiet secondary label above the hero (production
+   .title is 24/700 with a fallback-less DS token — this fixes both). */
+.qaTitleDemoted.qaTitleDemoted {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  // The section's own gap is 4px and the subtitle (which used to space this from
+  // the cards) is gone — restore breathing room above the card row.
+  margin-bottom: 12px;
+}
+
+/* Quiet the focus-area tabs from 16px → 14px so navigation stops out-shouting
+   the content headings. Applied to the Tabs `tab` + `label` slots via NewsTabs;
+   double class beats the shared Tabs module. */
+.tabQuiet.tabQuiet {
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .qaHeader {

@@ -9,7 +9,7 @@ import type { AiApp } from '@/services/ai-apps/ai-apps.service';
 
 import s from './feedback.module.scss';
 
-const MAX = 5000;
+const MAX = 1000;
 
 interface Props {
   apps: AiApp[];
@@ -34,15 +34,6 @@ export function FeedbackForm({ apps, initialAppUid, currentUserName, onSubmit, o
   const selected = apps.find((a) => a.uid === selectedUid) ?? null;
   const canSend = Boolean(selectedUid) && text.trim().length > 0;
 
-  // When the app is implied by context (opened from an app's page), name it in
-  // the title so the scope is unmistakable even with the app hidden behind the
-  // popover. Falls back to the generic label when the user must still pick.
-  const title = submitted
-    ? 'Feedback sent'
-    : initialAppUid && selected
-      ? `Feedback for ${selected.name}`
-      : 'Give feedback';
-
   const handleSend = () => {
     if (!canSend || !selectedUid) return;
     onSubmit(selectedUid, text.trim());
@@ -52,7 +43,7 @@ export function FeedbackForm({ apps, initialAppUid, currentUserName, onSubmit, o
   return (
     <>
       <div className={s.popoverHeader}>
-        <h2 className={s.popoverTitle}>{title}</h2>
+        <h2 className={s.popoverTitle}>{submitted ? 'Feedback sent' : 'Give feedback'}</h2>
         <button type="button" className={s.popoverClose} onClick={onClose} aria-label="Close">
           <CloseIcon width={18} height={18} />
         </button>
@@ -70,18 +61,8 @@ export function FeedbackForm({ apps, initialAppUid, currentUserName, onSubmit, o
       ) : (
         <>
           <div className={s.popoverBody}>
-            {/* When the app is implied by context, confirm it with a locked
-                subject row (same avatar + name language as the picker, but not
-                a control) instead of re-asking or going silent. */}
-            {initialAppUid && selected ? (
-              <div className={s.subject}>
-                <span className={s.subjectLabel}>About</span>
-                <span className={s.subjectApp}>
-                  <img className={s.optionAvatar} src={getDefaultAvatar(selected.member.name)} alt="" />
-                  <span className={s.optionName}>{selected.name}</span>
-                </span>
-              </div>
-            ) : (
+            {/* App picker — only when the app isn't already implied by context. */}
+            {!initialAppUid && (
               <div className={s.field}>
                 <label className={s.fieldLabel}>Which app is this about?</label>
                 <div className={s.picker}>

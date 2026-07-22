@@ -1,15 +1,23 @@
 'use client';
 
 import clsx from 'clsx';
-import { useEffect, useState } from 'react';
+import { useRef, type ReactNode } from 'react';
+import MarkdownToJSX from 'markdown-to-jsx';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 import { Modal } from '@/components/common/Modal';
+import { Button } from '@/components/common/Button';
+// Reuse the production "Discuss" (StartConversationButton) treatment + arrow, so
+// the modal's Discuss link matches the one on the feed cards 1:1.
+import discussStyles from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/StartConversationButton.module.scss';
+import { ArrowRight } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/components/Icons';
 
-import type { NewsSource } from './mocks';
-import { LikeButton } from './FeedActions';
+import type { NewsSource, FeedComment } from './mocks';
+import { LikeButton, CommentCount } from './FeedActions';
+import { CommentsThread } from './CommentsThread';
+import { ShareMenu } from './ShareMenu';
 import s from './FeedDetailModal.module.scss';
 
 /**
@@ -41,7 +49,12 @@ export interface FeedDetail {
   /** Primary read-out link (news article / forum thread). */
   readUrl?: string;
   readLabel?: string;
+  /** Modal body as markdown with inline `[n](url)` citations (multi-source news only). */
+  citedBody?: string;
 }
+
+/** Whether the modal renders per-claim citations (superscript markers). */
+export type CitationStyle = 'off' | 'superscript';
 
 interface Props {
   detail: FeedDetail | null;
@@ -49,6 +62,11 @@ interface Props {
   likeCount: number;
   liked: boolean;
   onToggleLike: () => void;
+  citationStyle: CitationStyle;
+  /** Comments version: show the thread (see + leave comments) instead of Discuss. */
+  showComments?: boolean;
+  comments?: FeedComment[];
+  onAddComment?: (text: string) => void;
 }
 
 /**
@@ -57,22 +75,24 @@ interface Props {
  * card carries. No production news-detail modal exists — this reuses the common
  * `Modal` shell and the feed's token+fallback palette.
  */
-export function FeedDetailModal({ detail, onClose, likeCount, liked, onToggleLike }: Props) {
-  const [copied, setCopied] = useState(false);
+export function FeedDetailModal({
+  detail,
+  onClose,
+  likeCount,
+  liked,
+  onToggleLike,
+  citationStyle,
+  showComments = false,
+  comments = [],
+  onAddComment,
+}: Props) {
+  const commentsRef = useRef<HTMLDivElement>(null);
 
-  // Reset the "copied" flash whenever a different item opens.
-  useEffect(() => setCopied(false), [detail?.id]);
+  const scrollToComments = () => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const share = () => {
-    const url = detail?.readUrl ?? (typeof window !== 'undefined' ? window.location.href : '');
-    try {
-      void navigator.clipboard?.writeText(url);
-    } catch {
-      /* clipboard unavailable — the flash still signals intent in the prototype */
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // Per-claim citations render only when the story actually has a cited body
+  // (multi-source news) and the viewer hasn't turned them off.
+  const cited = detail?.kind === 'news' && detail.citedBody && citationStyle !== 'off' ? detail.citedBody : null;
 
   const sources = detail?.sources?.length
     ? detail.sources
@@ -80,8 +100,17 @@ export function FeedDetailModal({ detail, onClose, likeCount, liked, onToggleLik
       ? [{ domain: hostOf(detail.readUrl), url: detail.readUrl }]
       : [];
 
+  // Share opens a destination menu (LinkedIn / X / Copy link). Rendered on the
+  // left (Discuss version) or pushed to the far right (Comments version).
+  const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="left" />;
+
   return (
-    <Modal isOpen={Boolean(detail)} onClose={onClose}>
+    <Modal
+      isOpen={Boolean(detail)}
+      onClose={onClose}
+      overlayClassname={s.mobileOverlay}
+      className={s.mobileContainer}
+    >
       {detail && (
         <div className={s.card}>
           <button type="button" className={s.close} aria-label="Close" onClick={onClose}>
@@ -102,23 +131,43 @@ export function FeedDetailModal({ detail, onClose, likeCount, liked, onToggleLik
             </span>
           </div>
 
-          {detail.kicker && (
-            <span className={s.kicker} style={detail.kickerColor ? { color: detail.kickerColor } : undefined}>
-              {detail.kicker}
-            </span>
-          )}
+          <div className={s.body}>
+          <div className={s.kickerRow}>
+            {detail.kicker && (
+              <>
+                <span className={s.kicker} style={detail.kickerColor ? { color: detail.kickerColor } : undefined}>
+                  {detail.kicker}
+                </span>
+                <span className={s.kickerSep} aria-hidden>
+                  ·
+                </span>
+              </>
+            )}
+            <span className={s.kickerTime}>{formatTimeAgo(detail.time)}</span>
+          </div>
 
           <h2 className={s.title}>{detail.title}</h2>
 
-          {detail.summary ? (
+          {cited ? (
+            // Superscript style: `[n](url)` → a raised ¹ marker with a hover/tap
+            // source popover.
+            <div className={s.summaryBody}>
+              <MarkdownToJSX options={{ overrides: { a: { component: SupAnchor } } }}>{cited}</MarkdownToJSX>
+            </div>
+          ) : detail.summary ? (
             <p className={s.summary}>{detail.summary}</p>
           ) : (
             <p className={s.summary}>No summary available for this update yet.</p>
           )}
 
-          <div className={s.metaRow}>
-            <span>{formatTimeAgo(detail.time)}</span>
-          </div>
+          {/* Small disclosure — news summaries are machine-written from the sources
+              (forum posts are the author's own words, so it's news-only). */}
+          {detail.kind === 'news' && detail.summary && (
+            <p className={s.aiNote}>
+              <InfoIcon />
+              This summary was written by AI from the linked sources.
+            </p>
+          )}
 
           {sources.length > 0 && (
             <div className={s.sources}>
@@ -145,19 +194,34 @@ export function FeedDetailModal({ detail, onClose, likeCount, liked, onToggleLik
             </div>
           )}
 
+          {/* Comments version: see + leave comments right in the news modal. */}
+          {detail.kind === 'news' && showComments && (
+            <div ref={commentsRef}>
+              <CommentsThread comments={comments} onAddComment={onAddComment ?? (() => {})} />
+            </div>
+          )}
+          </div>
+
           <div className={s.footer}>
+            {/* Share leads, then Like (+ comment count in the Comments version).
+                Discuss version keeps the Discuss link on the right. */}
             <span className={s.footerActions}>
+              {shareButton}
               <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
-              <button type="button" className={clsx(s.share, copied && s.shareCopied)} onClick={share}>
-                {copied ? <CheckIcon /> : <ShareIcon />}
-                {copied ? 'Link copied' : 'Share'}
-              </button>
+              {showComments && <CommentCount count={comments.length} onClick={scrollToComments} />}
             </span>
-            {detail.readUrl && (
-              <a href={detail.readUrl} target="_blank" rel="noopener noreferrer" className={s.readLink}>
-                {detail.readLabel ?? 'Read full article'}
-                <ArrowIcon />
-              </a>
+            {!showComments && detail.kind === 'news' && (
+              <Button
+                size="xs"
+                style="link"
+                variant="primary"
+                className={discussStyles.discussLink}
+                title="Start a conversation on the forum"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Discuss
+                <ArrowRight />
+              </Button>
             )}
           </div>
         </div>
@@ -165,6 +229,51 @@ export function FeedDetailModal({ detail, onClose, likeCount, liked, onToggleLik
     </Modal>
   );
 }
+
+// Markdown `a` override for the superscript style: a numeric link child (from
+// `[n](url)`) becomes a raised ¹ citation chip; any non-numeric link stays a
+// normal link.
+const SupAnchor = (props: { href?: string; children?: ReactNode }) => {
+  // markdown-to-jsx can hand the link text as an array (e.g. ["1"]), so coerce
+  // before deciding whether this is a numeric citation marker.
+  const raw = Array.isArray(props.children) ? props.children.join('') : props.children;
+  const text = String(raw ?? '').trim();
+  const isNumeric = text !== '' && !Number.isNaN(Number(text));
+  if (!isNumeric) {
+    return (
+      <a href={props.href} target="_blank" rel="noopener noreferrer">
+        {props.children}
+      </a>
+    );
+  }
+  // The source is on the marker: hover (desktop) or tap (mobile → opens the
+  // outlet) reveals which outlet this claim came from, so you never scroll to
+  // the Sources list to decode a citation. Popover modeled on the feed's
+  // SourceList popover.
+  const domain = hostOf(props.href ?? '');
+  return (
+    <span className={s.citeWrap}>
+      <a
+        href={props.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={s.citeLink}
+        aria-label={`Source ${text}: ${domain}`}
+      >
+        <sup className={s.cite}>{text}</sup>
+      </a>
+      <span className={s.citePop} role="tooltip">
+        <img
+          className={s.favicon}
+          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+          alt=""
+          aria-hidden
+        />
+        <span className={s.citePopDomain}>{domain}</span>
+      </span>
+    </span>
+  );
+};
 
 function hostOf(url: string): string {
   try {
@@ -180,25 +289,11 @@ const CloseIcon = () => (
   </svg>
 );
 
-const ShareIcon = () => (
+// Info circle (ⓘ) — the disclosure glyph for the AI-summary note.
+const InfoIcon = () => (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-    <path
-      d="M11.5 5.5a2 2 0 1 0-1.9-2.6L6.4 4.6a2 2 0 1 0 0 2.8l3.2 1.7a2 2 0 1 0 .5-.9L6.9 6.5a2 2 0 0 0 0-.9l3.2-1.7a2 2 0 0 0 1.4.6Z"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-    <path d="M13 4.5 6.25 11.5 3 8.25" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ArrowIcon = () => (
-  <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-    <path d="M4 12L12 4M6 4h6v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M8 7.25v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    <circle cx="8" cy="5.15" r="0.85" fill="currentColor" />
   </svg>
 );

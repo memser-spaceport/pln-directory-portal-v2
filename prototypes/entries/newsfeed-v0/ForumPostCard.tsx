@@ -12,7 +12,8 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 import type { ForumPost, FeedComment } from './mocks';
-import { LikeButton, CommentButton } from './FeedActions';
+import { LikeButton, CommentButton, CommentCount } from './FeedActions';
+import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 
 interface Props {
@@ -80,18 +81,21 @@ export function ForumPostCard({
         <p className={local.summary}>{post.body}</p>
         <div className={local.footer}>
           <span className={local.source}>
-            <span className={local.metaForum}>{post.category}</span>
+            <span className={local.metaForum}>Discussion</span>
             {' · '}
             {formatTimeAgo(post.createdAt)}
           </span>
           <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
+            {/* Discuss version sends you to the forum to act, so the card stays
+                minimal (no Share); the Comments version keeps it. */}
+            {interactionMode === 'comments' && <ShareMenu variant="card" />}
             <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
-            {interactionMode === 'comments' && (
-              <CommentButton
-                count={comments.length}
-                open={threadOpen}
-                onToggle={() => setThreadOpen((v) => !v)}
-              />
+            {interactionMode === 'comments' ? (
+              <CommentButton count={comments.length} open={threadOpen} onToggle={() => setThreadOpen((v) => !v)} />
+            ) : (
+              // Discuss version: a post carries no "Discuss" link (it IS the
+              // discussion), but still shows how much conversation it has.
+              <CommentCount count={comments.length} />
             )}
           </span>
         </div>

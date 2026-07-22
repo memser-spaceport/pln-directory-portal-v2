@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 
-import { LikeIcon, CommentIcon } from './ForumIcons';
+import { LikeIcon, CommentIcon, ViewIcon } from './ForumIcons';
 import s from './FeedActions.module.scss';
 
 /**
@@ -25,8 +25,45 @@ export function LikeButton({ count, liked, onToggle }: { count: number; liked: b
         onToggle();
       }}
     >
-      <LikeIcon /> {count} {count === 1 ? 'Like' : 'Likes'}
+      <LikeIcon /> {count}
     </button>
+  );
+}
+
+/**
+ * Static comment-count meta item (no toggle) — used on forum posts in the
+ * "Discuss" version to show how much conversation a post already has, exactly
+ * like the forum listing card's "N Comments". Same forum `.subItem` styling.
+ */
+export function CommentCount({ count, onClick }: { count: number; onClick?: () => void }) {
+  const inner = (
+    <>
+      <CommentIcon /> {count} {count === 1 ? 'Comment' : 'Comments'}
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={clsx(s.subItem, s.button)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+      >
+        {inner}
+      </button>
+    );
+  }
+  return <span className={s.subItem}>{inner}</span>;
+}
+
+/** Static view-count meta item — the third of the forum's Views · Likes · Comments trio. */
+export function ViewCount({ count }: { count: number }) {
+  return (
+    <span className={s.subItem}>
+      <ViewIcon /> {count.toLocaleString()} {count === 1 ? 'View' : 'Views'}
+    </span>
   );
 }
 

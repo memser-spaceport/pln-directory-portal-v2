@@ -7,16 +7,35 @@
 .thread {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  gap: 22px; /* a bit more air between the comment field and the comments below */
+  margin-top: 16px; /* + the body's 16px gap = 32px above the comment field */
 }
 
 .list {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Quiet expander that caps a long thread ("View all N comments" / "Show fewer"). */
+.viewAll {
+  align-self: flex-start;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: color 0.12s ease;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
 
 .item {
@@ -93,75 +112,52 @@
 }
 
 /* Composer: avatar + growing input + send. */
-.composer {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.field {
+/* Composer input — reproduces the production forum FormField input (50px, its
+   border + focus ring) so it sits beside the reused forum "Comment" button. */
+.forumField {
   flex: 1;
   min-width: 0;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 6px 6px 6px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
-  background: var(--background-base-white, #fff);
-  transition: border-color 0.12s ease;
-
-  &:focus-within {
-    border-color: #5e718d;
-  }
-}
-
-.input {
-  flex: 1;
-  min-width: 0;
-  appearance: none;
-  border: none;
-  background: none;
-  padding: 4px 0;
-  font: inherit;
-  font-size: 14px;
-  line-height: 20px;
+  height: 40px; /* match the Comment button height */
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+  font-family: inherit;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
+  // Ellipsis-truncate the placeholder when it doesn't fit (e.g. narrow mobile).
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &::placeholder {
     color: var(--foreground-neutral-tertiary, #8897ae);
+    text-overflow: ellipsis;
   }
 
   &:focus {
     outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
   }
 }
 
-/* Send: a compact filled-brand pill, disabled (quiet) until there's text. */
-.send {
-  flex-shrink: 0;
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: var(--foreground-brand-primary, #1b4dff);
-  color: #fff;
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  transition:
-    opacity 0.12s ease,
-    filter 0.12s ease;
+/* The app forces all inputs to 16px !important (`.root input`, an anti-iOS-zoom
+   rule). Beat it with a higher-specificity !important so the field text is the
+   requested 14px. */
+.forumField.forumField {
+  font-size: 14px !important;
+}
 
-  &:hover:not(:disabled) {
-    filter: brightness(1.05);
-  }
+/* A bit smaller than the forum's 50px input row, same brand styling. Double
+   class beats the forum `.inline button { height: 50px }` rule. */
+.commentBtn.commentBtn {
+  height: 40px;
+  padding: 0 16px;
+}
 
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+/* Quiet the reused forum brand button while the field is empty. */
+.commentBtnDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

@@ -16,6 +16,7 @@ import { ScorePercentPill } from './ScorePercentPill';
 import { PathProfileChip } from './PathProfileChip';
 import {
   affinityPersonUrl,
+  allReasonDescriptions,
   derivePathProximity,
   explanationFromHopChain,
   parseWarmPathHopChain,
@@ -88,8 +89,15 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
   }, [detail?.paths, row, targetSet]);
 
   const hopChain = useMemo(() => parseWarmPathHopChain(bestPath?.hopChain), [bestPath?.hopChain]);
-
-  const explanation = bestPath?.pathSummary?.explanation?.trim() || explanationFromHopChain(bestPath?.hopChain) || null;
+  const reasonLines = useMemo(
+    () => (hopChain?.reasons?.length ? allReasonDescriptions(hopChain.reasons) : []),
+    [hopChain],
+  );
+  const explanation =
+    reasonLines[0] ||
+    bestPath?.pathSummary?.explanation?.trim() ||
+    explanationFromHopChain(bestPath?.hopChain) ||
+    null;
 
   const hops: WarmPathV2HopNode[] = useMemo(() => {
     if (hopChain?.hops?.length) return hopChain.hops;
@@ -266,7 +274,15 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                       <span className={s.warmth}>Best path</span>
                     </div>
                     <p className={s.warmthSubtitle}>How strong this intro route is</p>
-                    {explanation ? <div className={s.explanation}>{explanation}</div> : null}
+                    {reasonLines.length > 0 ? (
+                      <ul className={s.reasonList}>
+                        {reasonLines.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    ) : explanation ? (
+                      <div className={s.explanation}>{explanation}</div>
+                    ) : null}
                     <div className={s.chainRow}>
                       <PathHopRow hops={hops} imageByUid={imageByUid} onOpen={onOpenMasterProfile} />
                     </div>

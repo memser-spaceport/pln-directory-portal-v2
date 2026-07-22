@@ -45,6 +45,40 @@ export function reasonDescription(reason: unknown): string | null {
   return null;
 }
 
+function reasonSourceType(reason: unknown): string | null {
+  const rec = asRecord(reason);
+  if (!rec) return null;
+  return typeof rec.sourceType === 'string' && rec.sourceType.trim()
+    ? rec.sourceType.trim()
+    : null;
+}
+
+/** Prefer webVerify reasons; otherwise first usable description. */
+export function pickPrimaryReasonDescription(reasons: unknown[]): string | null {
+  let fallback: string | null = null;
+  for (const r of reasons) {
+    const d = reasonDescription(r);
+    if (!d) continue;
+    if (reasonSourceType(r) === 'webVerify') return d;
+    if (!fallback) fallback = d;
+  }
+  return fallback;
+}
+
+export function allReasonDescriptions(reasons: unknown[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const r of reasons) {
+    const d = reasonDescription(r);
+    if (!d) continue;
+    const key = d.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(d);
+  }
+  return out;
+}
+
 function parseHop(raw: unknown): WarmPathV2HopNode | null {
   const rec = asRecord(raw);
   if (!rec) return null;
@@ -109,11 +143,7 @@ export function parseWarmPathHopChain(hopChain: unknown): WarmPathV2HopChain | n
 export function explanationFromHopChain(hopChain: unknown, fallback: string | null = null): string | null {
   const chain = parseWarmPathHopChain(hopChain);
   if (!chain) return fallback;
-  for (const r of chain.reasons) {
-    const d = reasonDescription(r);
-    if (d) return d;
-  }
-  return fallback;
+  return pickPrimaryReasonDescription(chain.reasons) ?? fallback;
 }
 
 export function affinityPersonUrl(affinityPersonId: string): string {

@@ -27,6 +27,7 @@ import { TeamDetailsView } from './TeamDetailsView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
+import { TeamContributionsView, type ContributionsVariant } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
@@ -41,6 +42,7 @@ import {
   MOCK_FOCUS_AREAS,
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
+  MOCK_CONTRIBUTIONS,
   MOCK_NEWS,
   NEWS_UPVOTES,
   MOCK_FOLLOWERS,
@@ -68,6 +70,8 @@ export default function TeamProfilePrototype() {
   // card's top-right corner: public gets the Follow pill, team gets the
   // follower avatar stack + count (opens the full-list modal).
   const [view, setView] = useState<'public' | 'team'>('team');
+  // Demo-only: compare the two role-tag treatments.
+  const [contribVariant, setContribVariant] = useState<ContributionsVariant>('vibrant');
   useEffect(() => setMounted(true), []);
   useEffect(() => () => {
     if (followToastTimer.current) clearTimeout(followToastTimer.current);
@@ -252,6 +256,32 @@ export default function TeamProfilePrototype() {
         <DetailsSection>
           <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
         </DetailsSection>
+
+          {/* Contributions — event-primary tiles; Demo Day featured when present.
+              Demo-only switch between the two role-tag treatments. */}
+          <div className={local.contribLayoutBar}>
+            <span className={local.demoLabel}>Role tags</span>
+            <div className={local.demoSwitch}>
+              {([
+                ['vibrant', 'Vibrant'],
+                ['muted', 'Muted'],
+              ] as [ContributionsVariant, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${local.demoBtn} ${contribVariant === key ? local.demoBtnActive : ''}`}
+                  onClick={() => setContribVariant(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <TeamContributionsView
+            contributions={MOCK_CONTRIBUTIONS}
+            demoDay={MOCK_TEAM_DEMO_DAY}
+            variant={contribVariant}
+          />
 
           {/* Projects */}
           <TeamProjectsView team={team} projects={MOCK_PROJECTS} />

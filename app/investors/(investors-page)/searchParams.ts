@@ -67,6 +67,16 @@ export const investorsFilterParsers = {
   wi_direct_only: parseAsBoolean,
   /** Path data source: absent/empty = all; `affinity` | `linkedin` (single-select). */
   wi_source: parseAsString.withDefault(''),
+
+  // Warm Intros v2 workspace (only used when mode=warm-intros-v2)
+  /** Cohort: neuro-fund-i | gold-co-investors. */
+  wi2_target_set: parseAsStringLiteral(['neuro-fund-i', 'gold-co-investors'] as const).withDefault('neuro-fund-i'),
+  /** Debounced name/email search → API `search`. */
+  wi2_q: parseAsString.withDefault(''),
+  /** PL connector MasterProfile uid → API `connectorProfileUid`. */
+  wi2_connector: parseAsString.withDefault(''),
+  /** Single sector filter → API `sector`. */
+  wi2_sector: parseAsString.withDefault(''),
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

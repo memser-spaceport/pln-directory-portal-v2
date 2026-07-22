@@ -1,0 +1,32 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.yellow {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.red {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.muted {
+  background: #f3f4f6;
+  color: #6b7280;
+}

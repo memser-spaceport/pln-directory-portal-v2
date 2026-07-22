@@ -85,7 +85,7 @@ export async function getWarmIntrosV2Facets(opts: { targetSet?: string } = {}): 
   };
 }
 
-/** Thin wrapper for MasterProfile detail (needed soon for modal; S3-T6). */
+/** GET /v1/master-profiles/:uid — MasterProfile detail for modal / drawer bio. */
 export async function getMasterProfile(uid: string): Promise<MasterProfileDetail | null> {
   const res = await customFetch(`${MASTER_PROFILES_BASE}/${encodeURIComponent(uid)}`, { method: 'GET' }, true);
   if (!res || !res.ok) return null;

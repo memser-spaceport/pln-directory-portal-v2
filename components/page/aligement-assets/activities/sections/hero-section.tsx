@@ -25,22 +25,23 @@ export default function HeroSection({ data }: HeroSectionProps) {
       <style jsx>{`
         .activities-hero {
           width: 100%;
-          text-align: center;
+          text-align: left;
         }
 
         .activities-hero__content {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           gap: 26px;
           max-width: 1124px;
           margin: 0 auto;
         }
 
         .activities-hero__title {
-          font-size: 20px;
+          font-family: 'Inter', sans-serif;
+          font-size: 24px;
           font-weight: 600;
-          line-height: 28px;
+          line-height: 32px;
           color: #16161F;
           margin: 0;
         }
@@ -73,8 +74,8 @@ export default function HeroSection({ data }: HeroSectionProps) {
           }
 
           .activities-hero__title {
-            font-size: 20px;
-            line-height: 24px;
+            font-size: 24px;
+            line-height: 32px;
           }
         }
       `}</style>

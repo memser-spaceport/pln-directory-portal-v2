@@ -8,7 +8,12 @@ export const SORT_OPTIONS = [
   { value: 'popular', label: 'Most popular' },
 ] as const satisfies ReadonlyArray<{ value: TeamNewsSort; label: string }>;
 
-const clusterUpvotes = (c: TeamCluster): number => c.items.reduce((max, i) => Math.max(max, i.upvoteCount ?? 0), 0);
+// Ranks by the caller-provided counts (a mount-time snapshot in TeamNews) rather than
+// the items' live upvoteCount, so optimistic upvotes never reorder the feed mid-session.
+// The item fallback can't fire for TeamNews today (its snapshot covers every uid) but
+// keeps the util total for any future caller.
+const clusterUpvotes = (c: TeamCluster, counts: ReadonlyMap<string, number>): number =>
+  c.items.reduce((max, i) => Math.max(max, counts.get(i.uid) ?? i.upvoteCount ?? 0), 0);
 
 const compareClusterLatest = (a: TeamCluster, b: TeamCluster): number => {
   let aEvent = '';
@@ -38,9 +43,10 @@ export function sortTeamNewsClusters(
   clusters: TeamCluster[],
   sort: TeamNewsSort,
   followedTeamUids: ReadonlySet<string>,
+  upvoteCounts: ReadonlyMap<string, number>,
 ): TeamCluster[] {
   if (sort === 'popular') {
-    return [...clusters].sort((a, b) => clusterUpvotes(b) - clusterUpvotes(a));
+    return [...clusters].sort((a, b) => clusterUpvotes(b, upvoteCounts) - clusterUpvotes(a, upvoteCounts));
   }
 
   if (sort === 'latest') {
@@ -51,6 +57,6 @@ export function sortTeamNewsClusters(
   return [...clusters].sort((a, b) => {
     const followDiff = Number(followedTeamUids.has(b.teamUid)) - Number(followedTeamUids.has(a.teamUid));
     if (followDiff !== 0) return followDiff;
-    return clusterUpvotes(b) - clusterUpvotes(a);
+    return clusterUpvotes(b, upvoteCounts) - clusterUpvotes(a, upvoteCounts);
   });
 }

@@ -97,8 +97,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
   // same way follow state already is (see followedTeamUids below): a local overlay,
-  // applied once in this memo, so every derived view (tabs, clusters, the Popular
-  // rail) reads the same merged item and can never drift out of sync with itself.
+  // merged once into allItems. NOTE the merge currently reaches only allItems-derived
+  // views (the All tab): focus-area tabs read raw group.items (see itemsForActiveTab)
+  // and the Popular rail reads the separate server-ranked popularItems prop, so
+  // neither reflects the overlay — a known gap, tracked separately.
   const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>>(
     () => new Map(),
   );
@@ -126,6 +128,15 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // snapshot is captured during render (first paint is already sorted) and its
   // identity never changes; the copy severs aliasing with the live set.
   const [initialFollowedTeamUids] = useState<ReadonlySet<string>>(() => new Set(followedTeamUids));
+
+  // Same freeze for upvotes: captured while upvoteOverlay is still empty (its initial
+  // state), so these are the server-rendered counts. Drives sorting only — the live
+  // overlay keeps driving the buttons — so an optimistic upvote can never reorder the
+  // feed mid-session; the new ranking applies on the next page load. Seeded from
+  // allItems (not the active tab) so every tab's clusters rank consistently.
+  const [initialUpvoteCounts] = useState<ReadonlyMap<string, number>>(
+    () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
+  );
 
   // Default: Following when the user follows any teams; otherwise Most popular.
   const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
@@ -171,8 +182,8 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
   const sortedClusters = useMemo(
-    () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids),
-    [clusters, sort, initialFollowedTeamUids],
+    () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids, initialUpvoteCounts),
+    [clusters, sort, initialFollowedTeamUids, initialUpvoteCounts],
   );
 
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);

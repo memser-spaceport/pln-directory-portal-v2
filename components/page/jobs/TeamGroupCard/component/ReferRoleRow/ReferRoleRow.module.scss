@@ -1,5 +1,68 @@
 // Local extras on top of the reused production RoleRow.module.scss.
-@use 'styles/media';
+@use '../../../../../../styles/media';
+
+.root {
+  gap: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: #f9fafb;
+
+  text-decoration: none;
+  color: inherit;
+}
+
+.body {
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.meta {
+  color: #455468;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.right {
+  gap: 16px;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.relative {
+  gap: 2px;
+  display: flex;
+  align-items: center;
+
+  font-size: 13px;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.newBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 
 // On phones the production row (title/meta left, actions right) gets crushed —
 // the title/meta wrap over many lines while the actions squish. Stack them: full-

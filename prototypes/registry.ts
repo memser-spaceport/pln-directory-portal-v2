@@ -160,9 +160,9 @@ export const prototypeRegistry: PrototypeEntry[] = [
   },
   {
     key: 'newsfeed-v0',
-    title: 'Newsfeed redesign',
+    title: 'Newsfeed redesign — v0 quick wins',
     description:
-      'The full production homepage reworked — Quick Actions on top and the "News from the network" feed as a single column (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates, per-story upvotes) beside the follow-suggestions / focus-areas / popular rail. Network forum threads interleave into the feed as their own cards (reusing the production forum list-item), with a "Discussions" category chip that filters to them. Opening a news story shows a Perplexity-Discover-style reader — a full AI-generated article with inline source pills, a stacked "N sources" cluster, and a Share control (copy link, X, LinkedIn).',
+      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). Clicking a story opens a detail modal (full summary, Share, source badges). A prototype switch flips between the two interaction versions: "Discuss" (news links to the forum, forum posts show likes only) and "Comments" (both news and posts open an inline comment thread, no Discuss link).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
@@ -205,14 +205,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
-  },
-  {
-    key: 'job-board',
-    title: 'Job Board',
-    description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Filters and sort re-compute the mocked list live.',
-    category: 'Jobs',
-    load: () => import('./entries/job-board/JobBoardPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

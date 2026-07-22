@@ -40,7 +40,7 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-28T16:00:00.000Z',
     title: 'IPFS mainnet upgrade cuts retrieval latency by a third',
     summary:
-      'The upgrade introduces a new content-routing layer that cuts average retrieval latency by roughly a third. Rollout starts with gateway operators in July, with full network adoption expected by Q4. The tiered routing table keeps frequently requested content warm across gateway nodes, so popular objects resolve in a single hop instead of walking the full DHT. Early benchmarks put median cold-fetch times under 600ms, down from about 900ms, with the biggest gains on content already cached near the edge.',
+      'The upgrade introduces a new content-routing layer that cuts average retrieval latency by roughly a third. Rollout starts with gateway operators in July, with full network adoption expected by Q4.',
     sourceDomain: 'protocol.ai',
     discussion: { count: 4, latestTopicUrl: 'https://forum' },
   }),
@@ -52,7 +52,7 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-22T14:30:00.000Z',
     title: 'League of Entropy grows to 24 independent operators',
     summary:
-      'Two new organizations joined the League of Entropy, bringing the beacon to 24 independent operators. The additions improve geographic distribution and raise the quorum safety margin. Both operators run their nodes on independent infrastructure in new regions, reducing the chance that any single outage or jurisdiction can stall the randomness beacon. The League now spans five continents, and the team says onboarding two more operators is already underway.',
+      'Two new organizations joined the League of Entropy, bringing the beacon to 24 independent operators. The additions improve geographic distribution and raise the quorum safety margin.',
     sourceDomain: 'drand.love',
   }),
   // Newer than the Lattice funding item below, but smaller news — demos the
@@ -65,7 +65,7 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-29T10:00:00.000Z',
     title: 'Lattice Compute doubles headcount, opens six roles',
     summary:
-      'Six new roles opened across protocol engineering and developer relations. The team plans to double headcount before the testnet launch this fall. The hires span Rust and Go systems engineers, a developer-advocacy lead, and two roles focused on partner integrations ahead of the public testnet. Leadership says the expansion is funded by the recent seed extension and is meant to keep pace with demand for verifiable-compute capacity.',
+      'Six new roles opened across protocol engineering and developer relations. The team plans to double headcount before the testnet launch this fall.',
   }),
   item({
     uid: 'n3',
@@ -75,8 +75,7 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-26T13:20:00.000Z',
     title: 'Lattice Compute raises $4.2M seed extension',
     summary:
-      'The $4.2M extension was led by existing backers and funds a marketplace matching idle GPU capacity with verifiable workloads. A public testnet is planned for the fall. Buyers pay only for compute they can cryptographically confirm ran as specified, a pitch aimed at teams wary of opaque cloud providers. The round extends Lattice\'s runway into 2027 as it onboards its first batch of capacity providers.',
-    discussion: { count: 2, latestTopicUrl: 'https://forum' },
+      'The $4.2M extension was led by existing backers and funds a marketplace matching idle GPU capacity with verifiable workloads. A public testnet is planned for the fall.',
   }),
   item({
     uid: 'n4',
@@ -86,9 +85,8 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-18T12:00:00.000Z',
     title: 'Network crosses 10,000 contributing builders',
     summary:
-      'Contributor growth nearly doubled year over year, driven by the compute and AI-data tracks. The team credits grants tooling and the new onboarding flow for the jump. Maintainers point to the unified contributor portal — which brings IPFS, Filecoin, and libp2p docs under one roof — as the biggest single driver, lowering the barrier for first-time committers. The milestone caps a year in which the network added more builders than in the previous three combined.',
+      'Contributor growth nearly doubled year over year, driven by the compute and AI-data tracks. The team credits grants tooling and the new onboarding flow for the jump.',
     sourceDomain: 'protocol.ai',
-    discussion: { count: 2, latestTopicUrl: 'https://forum' },
   }),
   // Two more Protocol Labs items (older than n1) so its card carries 5 stories —
   // demoing the "+N more" collapse on the second card in the feed.
@@ -100,9 +98,8 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-15T09:30:00.000Z',
     title: 'Grants program expands to fund open-source AI tooling',
     summary:
-      'A new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k. Applications open in July. The program targets libraries and services that let model builders prove where training data came from and that it has not been tampered with. Reviewers say they will prioritize tooling that plugs into existing ML pipelines over new standalone systems.',
+      'A new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k. Applications open in July.',
     sourceDomain: 'protocol.ai',
-    discussion: { count: 1, latestTopicUrl: 'https://forum' },
   }),
   item({
     uid: 'n13',
@@ -112,7 +109,7 @@ const INFRA: ITeamNewsItem[] = [
     eventDate: '2026-06-12T11:00:00.000Z',
     title: 'New developer portal unifies IPFS, Filecoin, and libp2p docs',
     summary:
-      'The portal brings the three projects’ documentation under one search and navigation, with runnable examples and a shared getting-started path. Developers can now move between IPFS, Filecoin, and libp2p guides without relearning a new layout each time, and every code sample can be run inline. The team says a unified search index was the most requested feature from the contributor survey earlier this year.',
+      'The portal brings the three projects’ documentation under one search and navigation, with runnable examples and a shared getting-started path.',
     sourceDomain: 'protocol.ai',
   }),
 ];
@@ -126,9 +123,8 @@ const STORAGE: ITeamNewsItem[] = [
     eventDate: '2026-06-27T11:00:00.000Z',
     title: 'Grants round opens for verifiable AI-dataset storage',
     summary:
-      'The round offers up to $250k per project for teams building provenance and verifiable-storage tooling for AI training data. Applications close at the end of the month. The Foundation is targeting a growing gap: model builders increasingly need to demonstrate the origin and integrity of their datasets to regulators and customers alike. Staff say several teams have already shared working prototypes in the community forum ahead of the deadline.',
+      'The round offers up to $250k per project for teams building provenance and verifiable-storage tooling for AI training data. Applications close at the end of the month.',
     sourceDomain: 'fil.org',
-    discussion: { count: 3, latestTopicUrl: 'https://forum' },
   }),
   item({
     uid: 'n6',
@@ -138,9 +134,8 @@ const STORAGE: ITeamNewsItem[] = [
     eventDate: '2026-06-24T12:00:00.000Z',
     title: 'Filecoin crosses 2,000 PiB of active storage deals',
     summary:
-      'Active deals crossed 2,000 PiB for the first time, up 18% quarter over quarter. Growth was concentrated in archival datasets from research institutions. Universities and national labs drove much of the increase, moving large genomics and climate datasets into verifiable long-term storage. The Foundation says retrieval reliability held steady even as total committed capacity climbed.',
+      'Active deals crossed 2,000 PiB for the first time, up 18% quarter over quarter. Growth was concentrated in archival datasets from research institutions.',
     sourceDomain: 'fil.org',
-    discussion: { count: 1, latestTopicUrl: 'https://forum' },
   }),
   item({
     uid: 'n7',
@@ -150,9 +145,8 @@ const STORAGE: ITeamNewsItem[] = [
     eventDate: '2026-06-11T15:00:00.000Z',
     title: 'New retrieval client cuts cold-storage reads by 40%',
     summary:
-      'The client parallelizes deal retrieval across providers and verifies pieces as they stream. Early adopters report cold-storage reads dropping from minutes to under thirty seconds. By fetching pieces from multiple providers at once and checking each against its commitment as it arrives, the client removes the single-provider bottleneck that made cold reads slow. The team is releasing it as a drop-in library so existing applications can adopt it without rearchitecting.',
+      'The client parallelizes deal retrieval across providers and verifies pieces as they stream. Early adopters report cold-storage reads dropping from minutes to under thirty seconds.',
     sourceDomain: 'x.com',
-    discussion: { count: 1, latestTopicUrl: 'https://forum' },
   }),
 ];
 
@@ -165,7 +159,7 @@ const NETWORKING: ITeamNewsItem[] = [
     eventDate: '2026-06-20T14:00:00.000Z',
     title: 'libp2p partners with major L2 on peer discovery',
     summary:
-      'The collaboration standardizes peer discovery so rollup nodes can share a common DHT. A joint reference implementation ships with the next libp2p release. Today each network tends to run its own incompatible discovery layer, multiplying connection overhead for operators who span several chains. A draft specification is already under public review, and maintainers are inviting large-DHT operators to weigh in on the migration path.',
+      'The collaboration standardizes peer discovery so rollup nodes can share a common DHT. A joint reference implementation ships with the next libp2p release.',
     discussion: { count: 5, latestTopicUrl: 'https://forum' },
   }),
   item({
@@ -176,7 +170,7 @@ const NETWORKING: ITeamNewsItem[] = [
     eventDate: '2026-06-08T09:00:00.000Z',
     title: 'Protocol Labs joins decentralized identity working group',
     summary:
-      'The group will draft a shared spec for wallet-portable identity across networks. A first public draft is expected at the October summit. The effort aims to let a single identity move between networks without re-provisioning credentials on each one. Participants include wallet vendors and infrastructure teams who have committed engineering time to the working group.',
+      'The group will draft a shared spec for wallet-portable identity across networks. A first public draft is expected at the October summit.',
     sourceDomain: 'protocol.ai',
   }),
   // Intentionally left without a summary — shows the graceful fallback when the
@@ -229,6 +223,288 @@ export const SOURCES_BY_UID: Record<string, NewsSource[]> = {
   ],
 };
 
+// ---------- Forum posts (interleaved into the feed, news-card style) ----------
+
+/**
+ * A member-authored forum post, rendered in the same card shell as a news story
+ * but with the *author* on top where a news card shows the team. Shape is the
+ * subset of the production forum `Topic` a listing card actually consumes
+ * (author display name / role, title, teaser body, like + comment counts),
+ * plus a `focusArea` so posts slot under the same focus-area tabs as news.
+ */
+export interface ForumPost {
+  uid: string;
+  /** Author display name — shown where a news card shows the team name. */
+  author: string;
+  /** "Founder @ Lattice Compute" — role @ team, exactly as the forum card composes it. */
+  role: string;
+  memberUid: string;
+  title: string;
+  /** Teaser body (plain text — the prototype skips the forum's HTML pipeline). */
+  body: string;
+  /** Forum category label, shown in the meta line where news shows its event type. */
+  category: string;
+  /** Aligns the post with a focus-area tab (same titles as MOCK_GROUPS). */
+  focusArea: string;
+  createdAt: string;
+  tags: string[];
+  /** Read count, shown in the forum-post meta trio (Views · Likes · Comments). */
+  views: number;
+}
+
+export const FORUM_POSTS: ForumPost[] = [
+  {
+    uid: 'f1',
+    author: 'Mira Chen',
+    role: 'Founder @ Lattice Compute',
+    memberUid: 'mira-chen',
+    title: 'What pricing model actually works for verifiable GPU workloads?',
+    body: 'We are weighing spot-style bidding against fixed per-proof pricing for the testnet. Spot keeps utilization high but makes cost unpredictable for buyers running long jobs. Curious how other compute teams landed on this — did you start fixed and move to a market, or the other way around?',
+    category: 'Compute',
+    focusArea: 'Infrastructure',
+    createdAt: '2026-06-27T18:30:00.000Z',
+    tags: ['compute', 'pricing'],
+    views: 342,
+  },
+  {
+    uid: 'f2',
+    author: 'Devon Okoro',
+    role: 'Protocol Engineer @ libp2p',
+    memberUid: 'devon-okoro',
+    title: 'Shared DHT for rollup peer discovery — worth standardizing?',
+    body: 'Following the L2 partnership, a few of us sketched a common peer-routing format so rollup nodes can share one DHT instead of each shipping their own. Before we write it up as a spec proposal: who else would adopt this, and what breaks for you if discovery becomes shared infrastructure?',
+    category: 'Networking',
+    focusArea: 'Networking',
+    createdAt: '2026-06-21T09:15:00.000Z',
+    tags: ['libp2p', 'spec'],
+    views: 514,
+  },
+  {
+    uid: 'f3',
+    author: 'Sasha Rao',
+    role: 'Research Lead @ Filecoin Foundation',
+    memberUid: 'sasha-rao',
+    title: 'Provenance metadata for AI training sets — what should be mandatory?',
+    body: 'As the verifiable-storage grants round opens, we want the metadata schema to be strict enough to be useful but not so heavy nobody fills it in. Leaning toward: source license, collection date, and a content hash as required; everything else optional. What would you add or cut?',
+    category: 'Storage',
+    focusArea: 'Storage',
+    createdAt: '2026-06-25T14:45:00.000Z',
+    tags: ['filecoin', 'ai-data'],
+    views: 207,
+  },
+  {
+    uid: 'f4',
+    author: 'Priya Nair',
+    role: 'Ecosystem Lead @ Protocol Labs',
+    memberUid: 'priya-nair',
+    title: 'Onboarding flow doubled contributor sign-ups — sharing what changed',
+    body: 'Quick write-up for anyone rebuilding their onboarding: the biggest win was cutting the first-run steps from nine to four and moving grant discovery ahead of profile setup. Happy to share the before/after funnel numbers if useful.',
+    category: 'Community',
+    focusArea: 'Infrastructure',
+    createdAt: '2026-06-19T11:20:00.000Z',
+    tags: ['onboarding', 'grants'],
+    views: 903,
+  },
+];
+
+// ---------- Comments (mocked; the feed's comment threads read/write these) ----------
+
+export interface FeedComment {
+  uid: string;
+  author: string;
+  role: string;
+  text: string;
+  createdAt: string;
+}
+
+/**
+ * Seed comment threads keyed by the news-story / forum-post uid the comments
+ * hang off. Items absent here open an empty thread ("Be the first to comment").
+ * The prototype appends new comments to a live copy of this map, so posting a
+ * comment sticks for the session.
+ */
+export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
+  n3: [
+    {
+      uid: 'c-n3-1',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Congrats! Is the GPU marketplace going to be permissionless from day one, or gated for the testnet?',
+      createdAt: '2026-06-26T15:10:00.000Z',
+    },
+    {
+      uid: 'c-n3-2',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'Gated for testnet while we harden the proof pipeline, then opening up. Happy to add you to the early cohort.',
+      createdAt: '2026-06-26T16:02:00.000Z',
+    },
+    {
+      uid: 'c-n3-3',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'Congrats on the raise. Curious whether the verifiable-workload proofs will be portable across providers or bespoke per job.',
+      createdAt: '2026-06-26T17:15:00.000Z',
+    },
+    {
+      uid: 'c-n3-4',
+      author: 'Priya Nair',
+      role: 'Ecosystem Lead @ Protocol Labs',
+      text: 'This is a great fit for the compute track — happy to help connect you with a few teams sitting on idle GPU capacity.',
+      createdAt: '2026-06-26T18:40:00.000Z',
+    },
+  ],
+  n8: [
+    {
+      uid: 'c-n8-1',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'This is the missing piece for multi-rollup retrieval. Will the reference impl land in the next release or behind a flag?',
+      createdAt: '2026-06-20T15:40:00.000Z',
+    },
+    {
+      uid: 'c-n8-2',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Behind a flag first, default-on once we have two independent rollups running it in production. Spec draft goes out this week.',
+      createdAt: '2026-06-20T16:05:00.000Z',
+    },
+    {
+      uid: 'c-n8-3',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'We would run it. The shared DHT alone cuts our bootstrap time in half — happy to be one of the early production nodes.',
+      createdAt: '2026-06-20T17:20:00.000Z',
+    },
+    {
+      uid: 'c-n8-4',
+      author: 'Priya Nair',
+      role: 'Ecosystem Lead @ Protocol Labs',
+      text: 'Great to see this standardized rather than every team shipping its own. Is there a working group forming around the spec?',
+      createdAt: '2026-06-20T18:00:00.000Z',
+    },
+    {
+      uid: 'c-n8-5',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'Count Filecoin in for review. The eclipse-resistance guarantees matter a lot for archival retrieval paths.',
+      createdAt: '2026-06-20T19:10:00.000Z',
+    },
+  ],
+  f1: [
+    {
+      uid: 'c-f1-1',
+      author: 'Priya Nair',
+      role: 'Ecosystem Lead @ Protocol Labs',
+      text: 'We started fixed, then moved to a soft market once we had enough supply to keep prices stable. Fixed-first made the early buyer conversations far easier.',
+      createdAt: '2026-06-27T19:05:00.000Z',
+    },
+    {
+      uid: 'c-f1-2',
+      author: 'Sasha Rao',
+      role: 'Research Lead @ Filecoin Foundation',
+      text: 'Watch out for long jobs getting priced out under spot — a reserved tier alongside the market helped us a lot.',
+      createdAt: '2026-06-27T20:12:00.000Z',
+    },
+  ],
+  f2: [
+    {
+      uid: 'c-f2-1',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'We would adopt a shared DHT immediately. The one thing that breaks for us is custom record TTLs — as long as those stay configurable, count us in.',
+      createdAt: '2026-06-21T10:30:00.000Z',
+    },
+  ],
+  f3: [
+    {
+      uid: 'c-f3-1',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Required content hash is a must. I would also make the license field an enum rather than free text — it is the one people get wrong most often.',
+      createdAt: '2026-06-25T16:20:00.000Z',
+    },
+    {
+      uid: 'c-f3-2',
+      author: 'Priya Nair',
+      role: 'Ecosystem Lead @ Protocol Labs',
+      text: 'Agree on keeping it lean. Could collection date be optional with a “best known” fallback? Some archival sets genuinely don’t have it.',
+      createdAt: '2026-06-25T17:05:00.000Z',
+    },
+  ],
+  f4: [
+    {
+      uid: 'c-f4-1',
+      author: 'Mira Chen',
+      role: 'Founder @ Lattice Compute',
+      text: 'Moving grant discovery ahead of profile setup is the insight here. Please do share the funnel numbers — we’re about to redo ours.',
+      createdAt: '2026-06-19T12:40:00.000Z',
+    },
+  ],
+};
+
+/**
+ * Extra body paragraphs shown ONLY in the news detail modal — the feed card
+ * keeps its short two-line teaser, while the modal reads as a fuller article.
+ * Keyed by news-story uid; appended after the item's `summary` (rendered with
+ * pre-line, so the blank line becomes a paragraph break). Items absent here just
+ * show their normal summary in the modal.
+ */
+export const MODAL_EXTRA_BY_UID: Record<string, string> = {
+  n1: 'Under the hood, the routing layer replaces recursive DHT walks with a cached provider index that most gateways can serve from memory, so popular content resolves in a single hop. Early adopters in the gateway program measured p95 retrieval dropping from just over two seconds to roughly 1.3 seconds on cold content.\n\nThe team is publishing a migration guide alongside the release and will run two office-hours sessions for operators before the network-wide rollout. Self-hosted nodes can opt in today behind a config flag; the default flips on once gateway coverage passes 80%.',
+  n2: 'The two newcomers run infrastructure in regions the beacon previously had thin coverage in, shortening the worst-case path for a third of clients and removing a single-jurisdiction dependency from the quorum. The League published updated threshold parameters the same day.',
+  n3: 'The extension keeps the round entirely with existing backers, which the team framed as a signal of conviction rather than a priced-up new round. Proceeds are earmarked for the matching engine that pairs idle GPU supply with verifiable workloads, plus the proving pipeline that lets buyers check work was done correctly without re-running it.\n\nA closed testnet opens to a small cohort of supply partners first, with public sign-ups following in the fall. The team is hiring across protocol engineering and developer relations to support it.',
+  n4: 'Growth was concentrated in the compute and AI-data tracks, where new grants tooling shortened the path from first commit to funded work. The team credits the reworked onboarding flow — which now surfaces open grants before profile setup — for a large share of the jump.\n\nThe milestone comes with a caveat the team was candid about: retention of first-time contributors still trails the network average, and improving that is the focus for the next two quarters.',
+  n5: 'Awards run up to $250k per project and are aimed squarely at provenance and verifiable-storage tooling for AI training data — schema work, content-hash indexing, and license tracking rather than raw capacity. Reviewers will weight projects that commit to open specs and reference implementations.\n\nApplications close at the end of the month, with decisions expected within six weeks. The Foundation is hosting an applicant Q&A and will publish anonymized excerpts from strong proposals afterward.',
+  n6: 'The 2,000 PiB milestone was driven largely by archival datasets from research institutions moving off legacy cold storage, a segment that barely registered a year ago. Deal-making tooling improvements cut the median time-to-first-deal, which the team points to as the real unlock behind the number.\n\nThe Foundation cautioned that active-deal volume is a capacity metric, not a demand one, and said its next reporting update will break out retrieval activity to give a fuller picture of usage.',
+  n7: 'The client parallelizes retrieval across providers and verifies each piece as it streams, so a slow or faulty provider no longer stalls the whole read. In early testing, cold-storage reads dropped from minutes to under thirty seconds for typical dataset sizes.\n\nIt ships as a drop-in library with the same interface as the previous client, and the team is collecting benchmarks from early adopters to tune the provider-selection heuristics before a broader release.',
+  n8: 'The collaboration standardizes peer discovery so rollup nodes across networks can share a common DHT instead of each maintaining its own, cutting bootstrap time and reducing the eclipse-attack surface. A joint reference implementation ships with the next libp2p release.\n\nThe two teams are drafting the record format as an open spec and have invited other rollup teams into the review. Custom record TTLs stay configurable — a point several teams flagged as a hard requirement.',
+  n9: 'The working group will draft a shared spec for wallet-portable identity that travels across networks, so a credential issued in one place can be presented in another without a bespoke integration. Protocol Labs joins as one of several infrastructure contributors.\n\nA first public draft is expected at the October summit, with a reference implementation to follow. The group is deliberately keeping scope narrow at the start — portable identifiers and attestations first, richer credential types later.',
+  n11: 'The six roles span protocol engineering, developer relations, and a first dedicated security hire, reflecting a shift from research prototype toward a network people depend on. The team plans to double headcount before the testnet launch this fall.\n\nHiring is remote-first with a small in-person core, and the team is prioritizing candidates with prior open-source infrastructure experience. Referrals from the network get a fast-tracked first conversation.',
+  n12: 'The new track funds open-source tooling for verifiable AI data and model provenance, with grants up to $150k and a lightweight application aimed at small teams and solo maintainers. Applications open in July.\n\nThe program is explicitly funding unglamorous infrastructure — schema validators, provenance indexers, license-checkers — rather than headline models, on the bet that shared tooling compounds across every team building on the network.',
+  n13: 'The portal brings the IPFS, Filecoin, and libp2p documentation under one search and navigation, with runnable examples and a shared getting-started path so newcomers stop bouncing between three separate sites. Content is versioned and open to community contributions.\n\nThe team is treating this as a living surface: analytics on where readers drop off will drive the next round of edits, and there is an open call for example contributions from teams building in production.',
+};
+
+/**
+ * Modal body authored as markdown with inline `[n](url)` citation links, for the
+ * stories that actually have MULTIPLE sources (n1/n3/n8). `n` is the 1-based
+ * index into SOURCES_BY_UID for that story, so a claim attributes to a specific
+ * outlet — Perplexity / Husky style. Single-source stories are absent here and
+ * render as plain prose (a citation on every sentence of a one-source
+ * announcement is just noise). One markdown source powers both the inline `[n]`
+ * and the superscript rendering.
+ */
+export const MODAL_CITED_BODY_BY_UID: Record<string, string> = {
+  // n1 sources: [1] protocol.ai (team blog), [2] thedefiant.io (industry outlet)
+  n1: `The upgrade introduces a new content-routing layer that cuts average retrieval latency by roughly a third.[1](https://protocol.ai) Rollout starts with gateway operators in July, with full network adoption expected by Q4.[1](https://protocol.ai)
+
+Under the hood, the routing layer replaces recursive DHT walks with a cached provider index that most gateways can serve from memory, so popular content resolves in a single hop.[1](https://protocol.ai) Early adopters in the gateway program measured p95 retrieval dropping from just over two seconds to roughly 1.3 seconds on cold content.[2](https://thedefiant.io)
+
+The team is publishing a migration guide alongside the release and will run two office-hours sessions for operators before the network-wide rollout.[1](https://protocol.ai) Analysts noted the change could meaningfully cut bandwidth costs for large gateway operators.[2](https://thedefiant.io)`,
+
+  // n3 sources: [1] protocol.ai, [2] techcrunch.com, [3] theblock.co
+  n3: `Lattice Compute raised a $4.2M seed extension led by existing backers to fund a marketplace matching idle GPU capacity with verifiable workloads.[2](https://techcrunch.com) The team framed the all-insider round as a signal of conviction rather than a priced-up raise.[3](https://theblock.co)
+
+Proceeds go to the matching engine that pairs idle GPU supply with verifiable workloads, plus the proving pipeline that lets buyers check work was done correctly without re-running it.[1](https://protocol.ai) A public testnet is planned for the fall.[1](https://protocol.ai)
+
+A closed testnet opens to a small cohort of supply partners first, with public sign-ups following later in the year.[1](https://protocol.ai) The company is hiring across protocol engineering and developer relations to support it.[2](https://techcrunch.com)`,
+
+  // n8 sources: [1] messari.io, [2] cointelegraph.com
+  n8: `libp2p is partnering with a major L2 to standardize peer discovery so rollup nodes across networks can share a common DHT instead of each maintaining its own.[1](https://messari.io) A joint reference implementation ships with the next libp2p release.[1](https://messari.io)
+
+The collaboration cuts bootstrap time and reduces the eclipse-attack surface for participating rollups.[2](https://cointelegraph.com) Custom record TTLs stay configurable — a point several teams flagged as a hard requirement.[1](https://messari.io)
+
+The two teams are drafting the record format as an open spec and have invited other rollup teams into the review.[2](https://cointelegraph.com)`,
+};
+
+/** Seed like counts per forum post (same "I like this" signal as the forum). */
+export const FORUM_LIKES: Record<string, number> = {
+  f1: 8,
+  f2: 15,
+  f3: 6,
+  f4: 22,
+};
+
 /** Seed upvote counts per news item ("I'm interested" signal — no backend yet). */
 export const UPVOTES: Record<string, number> = {
   n1: 12,
@@ -246,228 +522,16 @@ export const UPVOTES: Record<string, number> = {
   n13: 1,
 };
 
-// ---------- AI-generated article + sources (Perplexity-Discover-style reader) ----------
-
-export interface ArticleSource {
-  /** Short display label, e.g. 'bbc', 'youtube', 'protocol.ai'. */
-  label: string;
-  url: string;
-}
-
-export interface ArticleParagraph {
-  text: string;
-  /** Indices into the article's `sources`, cited inline at the paragraph end. */
-  cites?: number[];
-}
-
 /**
- * A full AI-written story: several paragraphs, each ending with inline source
- * pills, plus the flat source list rendered as a stacked "N sources" cluster.
- * The feed's short `summary` is the teaser; this is the opened read. Stories
- * without an entry fall back to a one-paragraph article built from their
- * summary + single source (see NewsReaderModal).
+ * Base "like" counts for every feed item, news and forum alike — the seed the
+ * fully-functional Like button adds the viewer's own like to. News reuses the
+ * existing per-story counts (V2 renames upvotes → likes); forum posts bring
+ * their own. Keyed by story/post uid.
  */
-export interface NewsArticle {
-  paragraphs: ArticleParagraph[];
-  sources: ArticleSource[];
-}
+export const BASE_LIKES: Record<string, number> = { ...UPVOTES, ...FORUM_LIKES };
 
-export const NEWS_ARTICLES: Record<string, NewsArticle> = {
-  n1: {
-    sources: [
-      { label: 'protocol.ai', url: 'https://protocol.ai/blog' },
-      { label: 'github', url: 'https://github.com' },
-      { label: 'discuss.ipfs.tech', url: 'https://discuss.ipfs.tech' },
-      { label: 'theblock', url: 'https://theblock.co' },
-      { label: 'youtube', url: 'https://youtube.com' },
-    ],
-    paragraphs: [
-      {
-        text: 'Protocol Labs shipped a major IPFS mainnet upgrade on June 28, introducing a redesigned content-routing layer that the team says cuts average retrieval latency by roughly a third. The release, tagged go-ipfs v0.30, replaces the network\'s flat DHT lookups with a tiered routing table that keeps hot content paths warm across gateway nodes.',
-        cites: [0, 1, 3],
-      },
-      {
-        text: 'Rollout begins with gateway operators in July and is being staged region by region, with full network adoption expected by Q4. Operators running large deployments will be able to opt into the new routing table without downtime, and old and new nodes can coexist during the migration.',
-        cites: [2],
-      },
-      {
-        text: 'Early benchmarks published alongside the release show median fetch times dropping from about 900ms to under 600ms on cold content, with larger gains on popular objects already cached near the edge. Independent operators have begun reproducing the numbers on their own infrastructure.',
-        cites: [4, 1],
-      },
-    ],
-  },
-  n3: {
-    sources: [
-      { label: 'lattice.xyz', url: 'https://lattice.xyz' },
-      { label: 'theblock', url: 'https://theblock.co' },
-      { label: 'crunchbase', url: 'https://crunchbase.com' },
-      { label: 'x', url: 'https://x.com' },
-    ],
-    paragraphs: [
-      {
-        text: 'Lattice Compute has closed a $4.2 million seed extension led by its existing backers, the company confirmed this week. The round funds a marketplace that matches idle GPU capacity with verifiable workloads, letting buyers pay only for compute they can cryptographically confirm was run as specified.',
-        cites: [0, 1, 2],
-      },
-      {
-        text: 'The extension comes as demand for verifiable inference climbs among teams wary of opaque cloud providers. Lattice plans a public testnet in the fall and says the fresh capital extends its runway into 2027 while it onboards its first providers.',
-        cites: [3],
-      },
-    ],
-  },
-  n4: {
-    sources: [
-      { label: 'protocol.ai', url: 'https://protocol.ai/blog' },
-      { label: 'github', url: 'https://github.com' },
-      { label: 'devrel-weekly', url: 'https://devrel.dev' },
-    ],
-    paragraphs: [
-      {
-        text: 'The Protocol Labs network crossed 10,000 contributing builders this month, roughly doubling year over year. The company attributes the surge to its compute and AI-data tracks, along with revamped grants tooling and a streamlined onboarding flow introduced earlier this year.',
-        cites: [0, 1],
-      },
-      {
-        text: 'Maintainers point to the new contributor portal — which unifies IPFS, Filecoin, and libp2p documentation — as a key driver, lowering the barrier for first-time committers. The team expects the pace to hold through the second half of the year.',
-        cites: [2],
-      },
-    ],
-  },
-  n5: {
-    sources: [
-      { label: 'fil.org', url: 'https://fil.org/blog' },
-      { label: 'coindesk', url: 'https://coindesk.com' },
-      { label: 'x', url: 'https://x.com' },
-      { label: 'youtube', url: 'https://youtube.com' },
-    ],
-    paragraphs: [
-      {
-        text: 'The Filecoin Foundation opened a new grants round offering up to $250,000 per project for teams building provenance and verifiable-storage tooling for AI training data. The program targets a growing gap: model builders increasingly need to prove where their datasets came from and that they haven\'t been tampered with.',
-        cites: [0, 1],
-      },
-      {
-        text: 'Applications close at the end of the month. Foundation staff say they are prioritizing tooling that plugs into existing ML pipelines over greenfield storage systems, and several teams have already shared prototypes in the community forum.',
-        cites: [2, 3],
-      },
-    ],
-  },
-  n8: {
-    sources: [
-      { label: 'libp2p.io', url: 'https://libp2p.io/blog' },
-      { label: 'github', url: 'https://github.com' },
-      { label: 'discuss.libp2p.io', url: 'https://discuss.libp2p.io' },
-      { label: 'theblock', url: 'https://theblock.co' },
-    ],
-    paragraphs: [
-      {
-        text: 'libp2p has partnered with a major Layer-2 network to standardize peer discovery, allowing rollup nodes to share a common distributed hash table instead of maintaining separate, incompatible ones. A joint reference implementation will ship with the next libp2p release.',
-        cites: [0, 3],
-      },
-      {
-        text: 'The collaboration aims to reduce the connection overhead that fragments today\'s multi-network deployments. A draft specification is already under public review, and maintainers are inviting operators of large DHTs to weigh in on the migration path before it\'s finalized.',
-        cites: [1, 2],
-      },
-    ],
-  },
-};
-
-// ---------- Forum posts (interleaved into the feed) ----------
-
-export interface ForumPost {
-  tid: string;
-  /** Forum category, shown as the badge on the card. */
-  category: string;
-  title: string;
-  /** Plain-text teaser (production strips markdown/images before display). */
-  teaser: string;
-  author: string;
-  /** null → the card falls back to a generated default avatar. */
-  authorImage: string | null;
-  memberUid: string;
-  /** "Role @Team", or '' when the author has no team role. */
-  position: string;
-  /** Matches a feed tab title so the post shows under the right focus area. */
-  focusArea: string;
-  timestamp: string;
-  meta: { views: number; likes: number; comments: number };
-}
-
-/**
- * Network forum threads that surface in the feed alongside team news. Timestamps
- * are interleaved with the news items so the merged, newest-first ordering is
- * visible. Authored by members (not teams), so they render through the
- * production forum list-item shell rather than a team news card.
- */
-export const MOCK_FORUM_POSTS: ForumPost[] = [
-  {
-    tid: 'f1',
-    category: 'Infrastructure',
-    title: 'How are people handling GPU cost spikes on verifiable-compute workloads?',
-    teaser:
-      'We are seeing 3–4× swings week to week on burst capacity. Curious whether teams are pre-committing to providers, using the new Lattice matching, or just eating the variance. What has actually worked in production?',
-    author: 'Maya Okoye',
-    authorImage: null,
-    memberUid: 'maya-okoye',
-    position: 'Infra Lead @Helia Labs',
-    focusArea: 'Infrastructure',
-    timestamp: '2026-06-27T18:30:00.000Z',
-    meta: { views: 214, likes: 18, comments: 12 },
-  },
-  {
-    tid: 'f2',
-    category: 'Funding',
-    title: 'Seed-extension terms in this market — what are founders actually seeing?',
-    teaser:
-      'With a couple of extensions announced this month, wondering what terms look like right now: flat rounds, small step-ups, SAFE caps? Happy to compare notes privately if that is easier.',
-    author: 'Devon Reyes',
-    authorImage: null,
-    memberUid: 'devon-reyes',
-    position: 'Founder @Banyan Storage',
-    focusArea: 'Storage',
-    timestamp: '2026-06-25T15:10:00.000Z',
-    meta: { views: 340, likes: 27, comments: 21 },
-  },
-  {
-    tid: 'f3',
-    category: 'AI',
-    title: 'Provenance for AI training data — is anyone using the Filecoin grant tooling yet?',
-    teaser:
-      'Ahead of the grants round closing, I would love to hear from teams who have prototyped verifiable-dataset storage. What does the developer experience feel like end to end, and where does it still hurt?',
-    author: 'Priya Nair',
-    authorImage: null,
-    memberUid: 'priya-nair',
-    position: 'ML Engineer @Textile',
-    focusArea: 'Storage',
-    timestamp: '2026-06-23T09:45:00.000Z',
-    meta: { views: 198, likes: 15, comments: 9 },
-  },
-  {
-    tid: 'f4',
-    category: 'Networking',
-    title: 'Shared peer-routing format: migration path for existing DHT deployments?',
-    teaser:
-      'The libp2p partnership news got me thinking about upgrade order. For anyone running a large DHT today, how disruptive is moving to the shared format, and can old and new nodes coexist during rollout?',
-    author: 'Sam Whitfield',
-    authorImage: null,
-    memberUid: 'sam-whitfield',
-    position: 'Protocol Eng @libp2p',
-    focusArea: 'Networking',
-    timestamp: '2026-06-19T20:05:00.000Z',
-    meta: { views: 156, likes: 11, comments: 7 },
-  },
-  {
-    tid: 'f5',
-    category: 'General',
-    title: 'Onboarding new contributors: what finally moved the needle for your team?',
-    teaser:
-      'The network just crossed 10k builders. For teams that grew fast this year — was it grants tooling, better docs, office hours, something else? Trying to rebuild our own onboarding and want to steal what works.',
-    author: 'Lena Fischer',
-    authorImage: null,
-    memberUid: 'lena-fischer',
-    position: 'DevRel @Protocol Labs',
-    focusArea: 'Infrastructure',
-    timestamp: '2026-06-16T13:20:00.000Z',
-    meta: { views: 402, likes: 33, comments: 24 },
-  },
-];
+/** Seed comment counts a story/post starts with, derived from the mock threads. */
+export const seedCommentCount = (uid: string): number => COMMENTS_BY_UID[uid]?.length ?? 0;
 
 /** Rail suggestions: teams NOT already in the feed (suggesting what you already read is redundant). */
 export interface SuggestedTeam {

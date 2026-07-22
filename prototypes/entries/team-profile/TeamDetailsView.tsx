@@ -21,7 +21,7 @@ import s from '@/components/page/team-details/TeamDetails/TeamDetails.module.scs
 import tc from '@/components/common/LogosGrid/components/TeamCard/TeamCard.module.scss';
 import local from './TeamProfile.module.scss';
 
-export type DemoDayParticipation = { title: string; slug: string };
+export type DemoDayParticipation = { title: string; slug: string; date?: string };
 
 /** Where / how the Demo Day participation indicator renders (see the placements prototype).
  *  'none' → rendered elsewhere on the page (e.g. the Events block). */
@@ -66,8 +66,14 @@ export function TeamDetailsView({
 }: Props) {
   const isMobile = useIsMobile();
   const teamName = team?.name ?? '';
-  // Compact code for the name-emblem, e.g. "Demo Day F25" → "DDF25".
-  const demoDayShort = demoDayParticipation ? `DD${demoDayParticipation.title.replace(/^Demo Day\s*/i, '')}` : '';
+  // Compact code for the name-emblem: strip a leading "PL" and the words
+  // "Demo Day" wherever they sit, e.g. "PL Demo Day W26.2" → "DDW26.2".
+  const demoDayShort = demoDayParticipation
+    ? `DD${demoDayParticipation.title
+        .replace(/^PL[\s_]*/i, '')
+        .replace(/demo\s*day\s*/i, '')
+        .trim()}`
+    : '';
   const isNameEmblem =
     demoDayPlacement === 'name-emblem' ||
     demoDayPlacement === 'name-emblem-outlined' ||
@@ -247,7 +253,7 @@ export function DemoDayLinkBadge({
 }
 
 /** Rocket glyph for the Demo Day emblem (no rocket exists in the icon set). */
-const RocketGlyph = () => (
+export const RocketGlyph = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path
       d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09Z"

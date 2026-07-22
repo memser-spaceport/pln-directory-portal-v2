@@ -663,6 +663,15 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
+// Demo-only role-tag switch sitting just above the Contributions section.
+.contribLayoutBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
 /* Two-column layout: team profile (main) + news rail (right) on desktop;
    stacks vertically below tablet-landscape. */
 .layout {

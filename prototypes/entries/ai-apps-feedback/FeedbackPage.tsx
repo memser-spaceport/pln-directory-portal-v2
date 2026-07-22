@@ -227,7 +227,7 @@ export function FeedbackPage({ scopedApps, feedback, isAdmin, initialAppFilter, 
     <div className={s.feedbackContent}>
       <button type="button" className={s.linkButton} onClick={onBack}>
         <ArrowBackIcon width={16} height={16} />
-        Back to all
+        Back to AI Apps
       </button>
 
       <div className={s.headerRow}>

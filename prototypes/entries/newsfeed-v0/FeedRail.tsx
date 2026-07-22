@@ -1,10 +1,12 @@
 'use client';
 
 import clsx from 'clsx';
+import { useState } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
+import { Button } from '@/components/common/Button';
 
 // Reuse the production news-card styling 1:1 (card shell, logo sizes).
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
@@ -12,8 +14,7 @@ import local from './NewsfeedV0.module.scss';
 
 // The same Follow button dev ships in the production "Teams to follow" rail.
 import { FollowButton } from '@/components/ui/FollowButton';
-import { DigestBanner } from './DigestBanner';
-import { SUGGESTED_TEAMS, UPVOTES, MOCK_FORUM_POSTS } from './mocks';
+import { SUGGESTED_TEAMS, UPVOTES } from './mocks';
 
 interface FeedRailProps {
   followedTeams: Set<string>;
@@ -29,10 +30,7 @@ interface FeedRailProps {
  */
 export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailProps) {
   const popular = [...allItems].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
-  // Most-discussed forum threads (engagement = likes + comments).
-  const topDiscussions = [...MOCK_FORUM_POSTS]
-    .sort((a, b) => b.meta.likes + b.meta.comments - (a.meta.likes + a.meta.comments))
-    .slice(0, 3);
+  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <>
@@ -69,7 +67,7 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
             key={item.uid}
             role="link"
             tabIndex={0}
-            className={local.railLinkRow}
+            className={local.railStory}
             onClick={() => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer')}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -78,46 +76,30 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
               }
             }}
           >
-            {item.teamLogoUrl ? (
-              <img className={s.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-            ) : (
-              <div className={s.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-            )}
-            <span className={local.railStoryBody}>
-              <span className={local.railStoryTitle}>{item.title}</span>
-              <span className={local.railReason}>
-                ↑ {UPVOTES[item.uid] ?? 0} · {item.teamName}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className={clsx(s.card, local.railCard)}>
-        <h3 className={local.railTitle}>From the forum</h3>
-        {topDiscussions.map((post) => (
-          <div
-            key={post.tid}
-            role="link"
-            tabIndex={0}
-            className={local.railStory}
-            onClick={() => window.open(`https://directory.plnetwork.io/forum/${post.tid}`, '_blank', 'noopener,noreferrer')}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                window.open(`https://directory.plnetwork.io/forum/${post.tid}`, '_blank', 'noopener,noreferrer');
-              }
-            }}
-          >
-            <span className={local.railStoryTitle}>{post.title}</span>
+            <span className={local.railStoryTitle}>{item.title}</span>
             <span className={local.railReason}>
-              {post.meta.comments} comments · {post.meta.likes} likes
+              ↑ {UPVOTES[item.uid] ?? 0} · {item.teamName}
             </span>
           </div>
         ))}
       </div>
 
-      <DigestBanner />
+      <div className={local.digestPromo}>
+        <div className={local.digestPromoText}>
+          <h3 className={local.digestPromoTitle}>Weekly network digest</h3>
+          <p className={local.digestPromoBody}>
+            The best raises, launches, and discussions from across the network — in your inbox every Monday.
+          </p>
+        </div>
+        <Button
+          style={subscribed ? 'border' : 'fill'}
+          variant={subscribed ? 'neutral' : 'primary'}
+          className={local.digestPromoBtn}
+          onClick={() => setSubscribed((v) => !v)}
+        >
+          {subscribed ? 'Subscribed ✓' : 'Subscribe'}
+        </Button>
+      </div>
     </>
   );
 }

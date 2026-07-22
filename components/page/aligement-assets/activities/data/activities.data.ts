@@ -255,27 +255,6 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
-      id: 'write-blog-article',
-      category: 'Knowledge Sharing',
-      activity: 'Create a Blog Post for the Network',
-      networkValue: 'Write a blog post for the PL Network sharing your expertise and insights',
-      points: '500',
-      frequency: 'Recurring',
-      verificationType: 'Submission',
-      cta: 'submit',
-      popupContent: {
-        title: 'Create a Blog Post for the Network',
-        overview: 'Write a blog post about a key project, insight, or trend relevant to the Protocol Labs network. Submit an idea for approval, draft your post, and incorporate editorial feedback until it meets PL editorial standards. Only published posts are eligible for rewards and appear on protocol.ai/blog.',
-        networkBenefits: 'Turns member expertise into publishable material that can educate the network and external audiences.',
-        rules: [
-          'You must submit an idea for approval before drafting',
-          'You must be willing to incorporate up to two rounds of editorial feedback',
-          'The post must be approved and published',
-          '*If a post does not meet standards after two rounds of edits and is not published, no points are awarded'
-        ]
-      }
-    },
-    {
       id: 'construct-alignment-asset-case-study',
       category: 'Knowledge Sharing',
       activity: 'Write and publish a case study about the Alignment Asset',

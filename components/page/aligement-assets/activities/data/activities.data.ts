@@ -2,8 +2,8 @@ import { ActivitiesData } from '../types';
 
 export const activitiesData: ActivitiesData = {
   hero: {
-    title: 'Complete activities, collect points towards PLAA.',
-    description: 'Completing the activities below help build and grow the Protocol Labs Network, they also give you points that turn into PLAA each month. Click on any of the activities you see details on how you can contribute to the network and collect points.',
+    title: 'Build the Network, Collect PLAA Points',
+    description: `You’re already building the future of the technology and, get exposure to its long term success . Complete the activities below to turn your contributions into PLAA points. Click any activity to view contribution details and learn how you can help grow the Protocol Labs Network.`,
     note: ''
   },
   activities: [
@@ -16,7 +16,7 @@ export const activitiesData: ActivitiesData = {
       points: '250',
       frequency: 'Repeatable',
       verificationType: 'Manual Review',
-      cta: 'submit',
+      cta: 'confirm',
       popupContent: {
         title: 'Thoughtful Responder',
         overview: 'Write a thoughtful, substantive response to an existing LabOS Forum discussion that moves the conversation forward. Strong responses should meet one of the requirements below, but should generally be geared towards creating the opportunity for further and deeper responses.',
@@ -421,6 +421,31 @@ export const activitiesData: ActivitiesData = {
         networkBenefits: 'Support the ongoing design and development of the experiment itself.',
         rules: [
           'Activities that involve advising the Trust on asset management or investment decisions are ineligible'
+        ]
+      }
+    },
+    {
+      id: 'build-ai-app',
+      category: 'Network Tooling',
+      activity: 'Build an AI App',
+      networkValue: 'Deploy an app on LabOS',
+      points: '1000',
+      frequency: 'Recurring',
+      verificationType: 'Manual Review',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Build an AI App',
+        overview: 'Create and deploy a functional AI application using LabOS infrastructure that provides practical value to PL Infra users.',
+        networkBenefits: 'Expands useful network tooling while driving adoption and feedback for LabOS infrastructure.',
+        rules: [
+          'Available to PL Infra members only. Other participants may submit qualifying tools through the Share an AI Resource or Tool You Built activity.',
+          'Create and deploy a functional AI application through LabOS via https://directory.plnetwork.io/pl-infra/ai-apps.',
+          'The application must be useful to the average PL Infra user.',
+          'Include basic documentation and identify any collaborators.',
+          'Applications are reviewed by the PLAA Working Group before points are awarded.'
+        ],
+        links: [
+          { text: 'https://directory.plnetwork.io/pl-infra/ai-apps', url: 'https://directory.plnetwork.io/pl-infra/ai-apps' }
         ]
       }
     },

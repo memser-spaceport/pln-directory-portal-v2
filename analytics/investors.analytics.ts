@@ -102,7 +102,10 @@ export function useInvestorsAnalytics() {
   );
 
   const trackWorkspaceTabChanged = useCallback(
-    (params: { tab: 'warm-intros' | 'all'; previousTab: 'warm-intros' | 'all' }) => {
+    (params: {
+      tab: 'warm-intros' | 'warm-intros-v2' | 'all';
+      previousTab: 'warm-intros' | 'warm-intros-v2' | 'all';
+    }) => {
       posthog?.capture(INVESTORS_ANALYTICS_EVENTS.WORKSPACE_TAB_CHANGED, params);
     },
     [posthog],

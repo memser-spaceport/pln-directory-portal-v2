@@ -731,8 +731,7 @@ describe('TeamNews', () => {
     // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
     const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
 
-    const getTeamOrder = () =>
-      screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
 
     // FollowButton only renders hydrated + signed-in (same setup as the upvotes block).
     beforeEach(() => {
@@ -792,6 +791,93 @@ describe('TeamNews', () => {
       ];
       renderTeamNews(<TeamNews groups={reloadedGroups} />);
       expect(getTeamOrder()).toEqual(['Beta', 'Alpha', 'Zeta']);
+    });
+  });
+
+  describe('upvote — session-stable ordering (frozen until reload)', () => {
+    // No followed items → default sort resolves to 'popular', which ranks clusters
+    // by upvote count. Equal counts keep insertion order (stable sort), so upvoting
+    // Yankee (1 → 2) would rank it above Xray without the mount-time count snapshot.
+    const xray = {
+      ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-xray',
+      teamName: 'Xray',
+      upvoteCount: 1,
+    };
+    const yankee = {
+      ...makeItem('uy-1', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-yankee',
+      teamName: 'Yankee',
+      upvoteCount: 1,
+    };
+    const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 2, items: [xray, yankee] }];
+
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Xray|Yankee)/ }).map((l) => l.textContent);
+    // Both stories start at count 1, so the buttons share a name — index 1 is
+    // Yankee's, matching the rendered [Xray, Yankee] order asserted first.
+    const getYankeeUpvoteButton = () => screen.getAllByRole('button', { name: 'Upvote (1)' })[1];
+
+    // UpvoteButton redirects anonymous clicks to login — sign in (same setup as
+    // the upvotes block above).
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('upvoting flips the button and count immediately but does not move the cluster', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+
+      fireEvent.click(getYankeeUpvoteButton());
+
+      expect(screen.getByRole('button', { name: 'Remove upvote (2)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // order frozen until reload
+
+      // Removing the upvote is symmetric: count drops back, cluster still doesn't move.
+      fireEvent.click(screen.getByRole('button', { name: 'Remove upvote (2)' }));
+      expect(screen.getAllByRole('button', { name: 'Upvote (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+    });
+
+    it('reverts the button (but not the order) when the mutation fails', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(screen.getByRole('button', { name: 'Remove upvote (2)' })).toBeInTheDocument();
+
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onError());
+
+      expect(screen.getAllByRole('button', { name: 'Upvote (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // frozen order untouched by the revert
+    });
+
+    it('reconciling with a different server count updates the button only, never the order', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+
+      // Concurrent voters: server's authoritative count differs from the optimistic +1.
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onSuccess({ viewerHasUpvoted: true, upvoteCount: 7 }));
+
+      expect(screen.getByRole('button', { name: 'Remove upvote (7)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // still ranked by page-load counts
+    });
+
+    it('a fresh mount applies the new count order (simulates page reload)', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+      // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh
+      // mount with fresh SSR counts, so unmount and render anew with the server's truth.
+      unmount();
+
+      const reloadedGroups: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 2, items: [xray, { ...yankee, upvoteCount: 2, viewerHasUpvoted: true }] },
+      ];
+      renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      expect(getTeamOrder()).toEqual(['Yankee', 'Xray']);
     });
   });
 

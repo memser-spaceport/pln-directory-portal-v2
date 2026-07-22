@@ -146,6 +146,10 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     setSelectedProfileUid(investor.profileUid);
   }, []);
 
+  const onOpenProfileUid = useCallback((uid: string) => {
+    setSelectedProfileUid(uid);
+  }, []);
+
   const onViewAllPaths = useCallback((row: WarmIntrosV2PathListItem) => {
     setDrawerRow(row);
   }, []);
@@ -154,14 +158,31 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     setDrawerRow(row);
   }, []);
 
+  const clearSearch = useCallback(() => {
+    setSearchInput('');
+    void setFilters({ wi2_q: null });
+  }, [setFilters]);
+
   return (
     <div className={s.root}>
       <section className={s.builder}>
         <header className={s.builderH}>
-          <h2 className={s.title}>Warm Intros v2</h2>
-          <p className={s.desc}>
-            Who at PL can introduce you — MasterProfile + LLM paths for Neuro and Gold. Pick a list, then filter.
-          </p>
+          <div className={s.builderHMain}>
+            <h2 className={s.title}>Warm Intros v2</h2>
+            <p className={s.desc}>
+              Who at PL can introduce you — MasterProfile + LLM paths for Neuro and Gold. Pick a list, then filter.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={s.howScoredLink}
+            onClick={() => {
+              analytics.trackGlossaryOpened();
+              setGlossaryOpen(true);
+            }}
+          >
+            What do these terms mean?
+          </button>
         </header>
 
         <div className={s.filterBar}>
@@ -185,22 +206,21 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               </span>
               <input
                 className={s.searchInput}
-                type="search"
+                type="text"
+                inputMode="search"
+                autoComplete="off"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search name or email…"
                 aria-label="Search name or email"
               />
-              {searchInput && (
-                <button
-                  type="button"
-                  className={s.searchClear}
-                  onClick={() => setSearchInput('')}
-                  aria-label="Clear search"
-                >
-                  ×
+              {searchInput ? (
+                <button type="button" className={s.searchClear} onClick={clearSearch} aria-label="Clear search">
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+                    <path d="M2 2l6 6M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -238,19 +258,6 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               {exporting ? 'Exporting…' : 'Export CSV'}
             </button>
           </div>
-
-          <div className={clsx(s.filterBarItem, s.glossaryItem)}>
-            <button
-              type="button"
-              className={s.howScoredLink}
-              onClick={() => {
-                analytics.trackGlossaryOpened();
-                setGlossaryOpen(true);
-              }}
-            >
-              What do these terms mean?
-            </button>
-          </div>
         </div>
       </section>
 
@@ -274,6 +281,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
           <WarmIntrosV2Table
             rows={paths}
             onOpenMasterProfile={onOpenMasterProfile}
+            onOpenProfileUid={onOpenProfileUid}
             onViewAllPaths={onViewAllPaths}
             onRowClick={onRowClick}
           />

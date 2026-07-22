@@ -2,40 +2,36 @@
 
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import Image from 'next/image';
+import { PathProfileChip } from './PathProfileChip';
 import { ScorePercentPill } from './ScorePercentPill';
 import s from './WarmIntrosV2Table.module.scss';
 
 interface Props {
   rows: WarmIntrosV2PathListItem[];
   onOpenMasterProfile: (investor: WarmIntrosV2InvestorSummary) => void;
+  onOpenProfileUid: (profileUid: string) => void;
   onViewAllPaths: (row: WarmIntrosV2PathListItem) => void;
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
-}
-
-const PATH_PREVIEW_MAX = 80;
-
-function pathPreview(row: WarmIntrosV2PathListItem): string {
-  const connector = row.bestConnector?.name?.trim();
-  const investor = row.investor?.name?.trim();
-  if (connector && investor) return `${connector} → ${investor}`;
-
-  const explanation = row.pathSummary?.explanation?.trim();
-  if (!explanation) return '—';
-  if (explanation.length <= PATH_PREVIEW_MAX) return explanation;
-  return `${explanation.slice(0, PATH_PREVIEW_MAX - 1)}…`;
 }
 
 function pathCount(row: WarmIntrosV2PathListItem): number {
   return (row.pathSummary?.alternateCount ?? 0) + 1;
 }
 
+function memberAvatarSrc(investor: WarmIntrosV2InvestorSummary | undefined): string | null {
+  if (!investor?.memberUid) return null;
+  return investor.imageUrl?.trim() || getDefaultAvatar(investor.name);
+}
+
 /**
- * Warm Intros v2 results table (S3-T4).
- * Name → MasterProfile modal (S3-T6); View all / row click → investor drawer (S3-T5).
+ * Warm Intros v2 results table.
+ * Path column uses clickable PL connector / investor chips (same language as the drawer).
  */
-export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onViewAllPaths, onRowClick }: Props) {
+export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onOpenProfileUid, onViewAllPaths, onRowClick }: Props) {
   return (
     <div className={s.tableWrap}>
       <table className={s.table}>
@@ -66,7 +62,8 @@ export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onViewAllPaths, o
             const title = investor?.currentTitle?.trim();
             const sectors = (investor?.sectors ?? []) as SectorTag[];
             const count = pathCount(row);
-            const preview = pathPreview(row);
+            const avatarSrc = memberAvatarSrc(investor);
+            const connector = row.bestConnector;
 
             return (
               <tr
@@ -86,18 +83,25 @@ export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onViewAllPaths, o
                 }
               >
                 <td className={s.td}>
-                  <button
-                    type="button"
-                    className={s.nameBtn}
-                    aria-label={`Open profile for ${name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (investor) onOpenMasterProfile(investor);
-                    }}
-                  >
-                    {name}
-                  </button>
-                  {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
+                  <div className={s.investorCell}>
+                    {avatarSrc ? (
+                      <Image className={s.investorAvatar} src={avatarSrc} alt="" width={32} height={32} unoptimized />
+                    ) : null}
+                    <div className={s.investorText}>
+                      <button
+                        type="button"
+                        className={s.nameBtn}
+                        aria-label={`Open profile for ${name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (investor) onOpenMasterProfile(investor);
+                        }}
+                      >
+                        {name}
+                      </button>
+                      {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
+                    </div>
+                  </div>
                 </td>
 
                 <td className={s.td}>
@@ -122,8 +126,30 @@ export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onViewAllPaths, o
 
                 <td className={s.td}>
                   <div className={s.pathCell}>
-                    <div className={s.pathPreview} title={preview}>
-                      {preview}
+                    <div className={s.pathChain}>
+                      {connector ? (
+                        <PathProfileChip
+                          name={connector.name}
+                          profileUid={connector.profileUid}
+                          imageUrl={
+                            connector.memberUid
+                              ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                              : connector.imageUrl
+                          }
+                          onOpen={onOpenProfileUid}
+                        />
+                      ) : (
+                        <span className={s.muted}>—</span>
+                      )}
+                      {connector && investor ? <span className={s.pathArrow}>→</span> : null}
+                      {investor ? (
+                        <PathProfileChip
+                          name={investor.name}
+                          profileUid={investor.profileUid}
+                          imageUrl={avatarSrc}
+                          onOpen={onOpenProfileUid}
+                        />
+                      ) : null}
                     </div>
                     <button
                       type="button"

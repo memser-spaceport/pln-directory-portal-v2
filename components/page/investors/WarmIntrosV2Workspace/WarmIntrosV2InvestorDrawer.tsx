@@ -13,14 +13,16 @@ import { useWarmIntrosV2PathsForInvestor } from '@/services/investors/hooks/useW
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ScorePercentPill } from './ScorePercentPill';
+import { PathProfileChip } from './PathProfileChip';
 import {
   affinityPersonUrl,
+  derivePathProximity,
   explanationFromHopChain,
   parseWarmPathHopChain,
   reasonDescription,
-  scoreToPercent,
   type WarmPathV2HopNode,
 } from './parseWarmPathHopChain';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import s from './WarmIntrosV2InvestorDrawer.module.scss';
 
 interface Props {
@@ -30,40 +32,27 @@ interface Props {
   onOpenMasterProfile: (profileUid: string) => void;
 }
 
-function ProfileChip({
-  name,
-  profileUid,
+function PathHopRow({
+  hops,
+  imageByUid,
   onOpen,
 }: {
-  name: string;
-  profileUid: string;
+  hops: WarmPathV2HopNode[];
+  imageByUid: Map<string, string | null | undefined>;
   onOpen: (uid: string) => void;
 }) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('');
-
-  return (
-    <button type="button" className={s.profileChip} onClick={() => onOpen(profileUid)}>
-      <span className={s.chipAvatar} aria-hidden>
-        {initials || '?'}
-      </span>
-      <span className={s.chipLabel}>{name}</span>
-    </button>
-  );
-}
-
-function PathHopRow({ hops, onOpen }: { hops: WarmPathV2HopNode[]; onOpen: (uid: string) => void }) {
   if (hops.length === 0) return null;
   return (
     <div className={s.chain}>
       {hops.map((hop, i) => (
         <span key={`${hop.profileUid}-${i}`} className={s.node}>
           {i > 0 && <span className={s.arrow}>→</span>}
-          <ProfileChip name={hop.name} profileUid={hop.profileUid} onOpen={onOpen} />
+          <PathProfileChip
+            name={hop.name}
+            profileUid={hop.profileUid}
+            imageUrl={imageByUid.get(hop.profileUid)}
+            onOpen={onOpen}
+          />
         </span>
       ))}
     </div>
@@ -132,7 +121,45 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
   const affinityId = investor?.affinityPersonId?.trim() || null;
   const bio = typeof masterProfile?.bio === 'string' && masterProfile.bio.trim() ? masterProfile.bio.trim() : null;
 
-  // Reset expand when switching rows via key on parent; local state is fine with default true.
+  const imageByUid = useMemo(() => {
+    const map = new Map<string, string | null | undefined>();
+
+    const put = (
+      uid: string | undefined | null,
+      name: string | undefined | null,
+      memberUid?: string | null,
+      imageUrl?: string | null,
+    ) => {
+      if (!uid) return;
+      const trimmed = imageUrl?.trim() || null;
+      if (memberUid) {
+        map.set(uid, trimmed || getDefaultAvatar(name || uid));
+      } else if (trimmed) {
+        map.set(uid, trimmed);
+      } else if (!map.has(uid)) {
+        map.set(uid, null);
+      }
+    };
+
+    if (investor) {
+      put(investor.profileUid, investor.name, investor.memberUid, investor.imageUrl);
+    }
+    if (bestPath?.bestConnector) {
+      const c = bestPath.bestConnector;
+      put(c.profileUid, c.name, c.memberUid, c.imageUrl);
+    }
+    for (const hop of hopChain?.hops ?? []) {
+      put(hop.profileUid, hop.name, hop.memberUid, hop.imageUrl);
+    }
+    for (const alt of alternates) {
+      put(alt.profileUid, alt.name, alt.memberUid, alt.imageUrl);
+    }
+    return map;
+  }, [investor, bestPath?.bestConnector, hopChain?.hops, alternates]);
+
+  const investorAvatarSrc = investor?.memberUid
+    ? investor.imageUrl?.trim() || getDefaultAvatar(name)
+    : investor?.imageUrl?.trim() || null;
 
   return (
     <Drawer isOpen={open} onClose={onClose} width={720}>
@@ -151,6 +178,16 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
               <div className={s.headerTop}>
                 <div className={s.headerWho}>
                   <div className={s.nameRow}>
+                    {investorAvatarSrc ? (
+                      <Image
+                        className={s.headerAvatar}
+                        src={investorAvatarSrc}
+                        alt=""
+                        width={40}
+                        height={40}
+                        unoptimized
+                      />
+                    ) : null}
                     <button
                       type="button"
                       className={s.nameBtn}
@@ -231,7 +268,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                     <p className={s.warmthSubtitle}>How strong this intro route is</p>
                     {explanation ? <div className={s.explanation}>{explanation}</div> : null}
                     <div className={s.chainRow}>
-                      <PathHopRow hops={hops} onOpen={onOpenMasterProfile} />
+                      <PathHopRow hops={hops} imageByUid={imageByUid} onOpen={onOpenMasterProfile} />
                     </div>
                   </div>
 
@@ -248,21 +285,22 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                       {showAlternates ? (
                         <ul className={s.altList}>
                           {alternates.map((alt) => {
-                            const pct = scoreToPercent(alt.score);
+                            const derived = derivePathProximity(alt.score, bestPath.hopCount ?? 1);
+                            const proximityCode = alt.proximityCode ?? derived?.proximityCode ?? null;
+                            const pct = alt.scorePercent ?? derived?.scorePercent ?? null;
+                            const scoreBand = alt.scoreBand ?? derived?.scoreBand;
                             const altReason = Array.isArray(alt.reasons)
                               ? alt.reasons.map(reasonDescription).find(Boolean)
                               : null;
                             return (
-                              <li key={alt.profileUid} className={s.altItem}>
-                                <div className={s.altHead}>
-                                  <ProfileChip
-                                    name={alt.name}
-                                    profileUid={alt.profileUid}
-                                    onOpen={onOpenMasterProfile}
-                                  />
-                                  {pct != null ? <ScorePercentPill scorePercent={pct} /> : null}
+                              <li key={alt.profileUid} className={s.pathItem}>
+                                <div className={s.pathMeta}>
+                                  {proximityCode ? <ProximityCodeBadge code={proximityCode} /> : null}
+                                  {pct != null ? (
+                                    <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} />
+                                  ) : null}
                                 </div>
-                                {altReason ? <div className={s.altReason}>{altReason}</div> : null}
+                                {altReason ? <div className={s.explanation}>{altReason}</div> : null}
                                 <div className={s.chainRow}>
                                   <PathHopRow
                                     hops={[
@@ -277,6 +315,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                                         role: 'investor',
                                       },
                                     ]}
+                                    imageByUid={imageByUid}
                                     onOpen={onOpenMasterProfile}
                                   />
                                 </div>

@@ -15,6 +15,8 @@ export type WarmIntrosV2InvestorSummary = {
   sectors: string[];
   affinityPersonId: string | null;
   memberUid: string | null;
+  /** Directory member photo when linked. */
+  imageUrl?: string | null;
 };
 
 export type WarmIntrosV2ConnectorSummary = {
@@ -23,6 +25,8 @@ export type WarmIntrosV2ConnectorSummary = {
   name: string;
   currentOrg: string | null;
   currentTitle: string | null;
+  memberUid?: string | null;
+  imageUrl?: string | null;
 };
 
 export type WarmIntrosV2PathListItem = {

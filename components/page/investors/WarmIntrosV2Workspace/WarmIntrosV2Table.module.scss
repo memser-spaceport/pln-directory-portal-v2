@@ -49,6 +49,26 @@
   width: 28%;
 }
 
+.investorCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.investorAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #e5e7eb;
+}
+
+.investorText {
+  min-width: 0;
+}
+
 .row {
   cursor: pointer;
   transition: background 0.08s;
@@ -116,18 +136,22 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
 
-.pathPreview {
-  font-size: 13px;
-  color: #0f172a;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.pathChain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   max-width: 100%;
+}
+
+.pathArrow {
+  color: #9ca3af;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .viewAllLink {

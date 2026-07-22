@@ -3,15 +3,34 @@
   display: inline-flex;
 }
 
-// Layout only — border / background / color come from the reused DS Button.
-// Override the DS size's min-width so the text-only button hugs "Refer" (no
-// leftover space from when the icon was present). `.wrap .trigger` outranks the
-// single-class size rule so this wins regardless of stylesheet order.
-.wrap .trigger {
+// Icon-only trigger: mirrors the sibling apply-arrow (subtle, borderless, hover
+// bg) so the two row actions read as a pair.
+.trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
+
+  padding: 2px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+// Keep the icon tinted brand-blue while the popover is open.
+.trigger[aria-expanded='true'] {
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 .popover {

@@ -35,6 +35,12 @@ const RECENCY_OPTIONS: { value: Recency; label: string }[] = [
   { value: '30d', label: 'Last 30 days' },
 ];
 
+const TYPE_CLASS: Record<FeedbackType, string> = {
+  feature: s.typeFeature,
+  bug: s.typeBug,
+  praise: s.typePraise,
+};
+
 const typeLabel = (t: FeedbackType) => FEEDBACK_TYPES.find((x) => x.value === t)?.label ?? t;
 
 function formatDate(iso: string): string {
@@ -274,7 +280,10 @@ export function FeedbackPage({ scopedApps, feedback, isAdmin, initialAppFilter, 
                 {rows.map((r) => (
                   <tr key={r.id} className={s.tr}>
                     <td className={`${s.td} ${s.tdApp}`}>{r.appName}</td>
-                    <td className={`${s.td} ${s.tdText}`}>{r.text}</td>
+                    <td className={`${s.td} ${s.tdText}`}>
+                      <span className={`${s.typeTag} ${TYPE_CLASS[r.type]}`}>{typeLabel(r.type)}</span>
+                      <span>{r.text}</span>
+                    </td>
                     <td className={s.td}>
                       <span className={s.fromCell}>
                         <img className={s.fromAvatar} src={getDefaultAvatar(r.authorName)} alt="" />
@@ -295,6 +304,7 @@ export function FeedbackPage({ scopedApps, feedback, isAdmin, initialAppFilter, 
                     <span className={s.cardApp}>{r.appName}</span>
                     <span className={s.cardDate}>{formatDate(r.createdAt)}</span>
                   </div>
+                  <span className={`${s.typeTag} ${TYPE_CLASS[r.type]}`}>{typeLabel(r.type)}</span>
                   <p className={s.cardText}>{r.text}</p>
                   <div className={s.cardFrom}>
                     <img className={s.fromAvatar} src={getDefaultAvatar(r.authorName)} alt="" />

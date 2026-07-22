@@ -151,6 +151,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-news/HomeNewsPrototype'),
   },
   {
+    key: 'job-board',
+    title: 'Job Board',
+    description:
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries a share-icon "Refer" control that opens a popover (LinkedIn / X / copy link).',
+    category: 'Jobs',
+    load: () => import('./entries/job-board/JobBoardPrototype'),
+  },
+  {
     key: 'newsfeed-v0',
     title: 'Newsfeed redesign — v0 quick wins',
     description:
@@ -197,14 +205,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
-  },
-  {
-    key: 'job-board',
-    title: 'Job Board',
-    description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Filters and sort re-compute the mocked list live.',
-    category: 'Jobs',
-    load: () => import('./entries/job-board/JobBoardPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

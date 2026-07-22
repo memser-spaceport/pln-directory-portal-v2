@@ -1,10 +1,16 @@
 import { PrototypeBanner } from '@/prototypes/components/PrototypeBanner/PrototypeBanner';
 import { getPrototypesByCategory } from '@/prototypes/registry';
-import { PrototypeCard } from './PrototypeCard';
+import type { PrototypeListGroup } from '@/prototypes/types';
+import { PrototypesBrowser } from './PrototypesBrowser';
 import s from './PrototypesIndex.module.scss';
 
 export function PrototypesIndex() {
-  const groups = getPrototypesByCategory();
+  // Strip the non-serializable `load` function before handing the list to the
+  // client-side search/browse component.
+  const groups: PrototypeListGroup[] = getPrototypesByCategory().map((group) => ({
+    category: group.category,
+    items: group.items.map(({ key, title, description, category }) => ({ key, title, description, category })),
+  }));
 
   return (
     <>
@@ -18,19 +24,7 @@ export function PrototypesIndex() {
           </p>
         </header>
 
-        {groups.map((group) => (
-          <section key={group.category} className={s.section}>
-            <h2 className={s.sectionTitle}>
-              {group.category}
-              {group.category === 'Ideation' && <span className={s.sectionDraftNote}>Drafts — work in progress</span>}
-            </h2>
-            <div className={s.grid}>
-              {group.items.map((entry) => (
-                <PrototypeCard key={entry.key} entry={entry} />
-              ))}
-            </div>
-          </section>
-        ))}
+        <PrototypesBrowser groups={groups} />
       </div>
     </>
   );

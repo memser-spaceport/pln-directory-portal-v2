@@ -40,28 +40,6 @@
   flex-shrink: 0;
 }
 
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0;
-  border: none;
-  background: none;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  color: var(--foreground-brand-primary, #1b4dff);
-  cursor: pointer;
-
-  svg {
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .header {
   display: flex;
 }

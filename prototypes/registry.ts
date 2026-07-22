@@ -154,7 +154,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'newsfeed-v0',
     title: 'Newsfeed redesign — v0 quick wins',
     description:
-      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a V0 / V1 switch on the feed. Both are the same single-column layout (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates). V0 ships without the right rail or per-story upvotes; V1 adds the follow-suggestions / focus-areas / popular rail and upvoting back.',
+      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). Clicking a story opens a detail modal (full summary, Share, source badges). A prototype switch flips between the two interaction versions: "Discuss" (news links to the forum, forum posts show likes only) and "Comments" (both news and posts open an inline comment thread, no Discuss link).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },

@@ -33,21 +33,12 @@ const TeamsIcon = () => (
   </svg>
 );
 
-const FoundersGuidesIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M19.25 4.125H13.75C13.2163 4.125 12.69 4.24925 12.2127 4.48791C11.7354 4.72656 11.3202 5.07308 11 5.5C10.6798 5.07308 10.2646 4.72656 9.7873 4.48791C9.30998 4.24925 8.78366 4.125 8.25 4.125H2.75C2.38533 4.125 2.03559 4.26987 1.77773 4.52773C1.51987 4.78559 1.375 5.13533 1.375 5.5V16.5C1.375 16.8647 1.51987 17.2144 1.77773 17.4723C2.03559 17.7301 2.38533 17.875 2.75 17.875H8.25C8.79701 17.875 9.32161 18.0923 9.70841 18.4791C10.0952 18.8659 10.3125 19.3905 10.3125 19.9375C10.3125 20.1198 10.3849 20.2947 10.5139 20.4236C10.6428 20.5526 10.8177 20.625 11 20.625C11.1823 20.625 11.3572 20.5526 11.4861 20.4236C11.6151 20.2947 11.6875 20.1198 11.6875 19.9375C11.6875 19.3905 11.9048 18.8659 12.2916 18.4791C12.6784 18.0923 13.203 17.875 13.75 17.875H19.25C19.6147 17.875 19.9644 17.7301 20.2223 17.4723C20.4801 17.2144 20.625 16.8647 20.625 16.5V5.5C20.625 5.13533 20.4801 4.78559 20.2223 4.52773C19.9644 4.26987 19.6147 4.125 19.25 4.125ZM8.25 16.5H2.75V5.5H8.25C8.79701 5.5 9.32161 5.7173 9.70841 6.10409C10.0952 6.49089 10.3125 7.01549 10.3125 7.5625V17.1875C9.71804 16.7402 8.99396 16.4988 8.25 16.5ZM19.25 16.5H13.75C13.006 16.4988 12.282 16.7402 11.6875 17.1875V7.5625C11.6875 7.01549 11.9048 6.49089 12.2916 6.10409C12.6784 5.7173 13.203 5.5 13.75 5.5H19.25V16.5Z"
-      fill="#1B4DFF"
-    />
-  </svg>
-);
-
 export const QUICK_ACTIONS: QuickAction[] = [
   {
     icon: <TeamsIcon />,
     title: 'Teams',
     short: 'Teams',
-    description: 'Explore organizations across the network',
+    description: 'Explore organizations',
     shortDescription: 'Explore organizations',
     href: '/teams?priorities=P1%7CP2%7CP3',
   },
@@ -55,7 +46,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     icon: <CalendarBlankIcon />,
     title: 'Book Office Hours',
     short: 'Office Hours',
-    description: 'Connect with experts across the network',
+    description: 'Connect with experts',
     shortDescription: 'Meet experts',
     href: '/members?hasOfficeHours=true',
   },
@@ -63,17 +54,9 @@ export const QUICK_ACTIONS: QuickAction[] = [
     icon: <DealsIcon />,
     title: 'Network Deals',
     short: 'Deals',
-    description: 'Exclusive offers for network members',
+    description: 'Exclusive member offers',
     shortDescription: 'Member perks',
     href: '/deals',
-  },
-  {
-    icon: <FoundersGuidesIcon />,
-    title: 'Founder Guides',
-    short: 'Guides',
-    description: 'Resources curated for network founders',
-    shortDescription: 'For founders',
-    href: '/founder-guides',
   },
   {
     icon: <JobsIcon />,

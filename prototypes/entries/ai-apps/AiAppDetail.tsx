@@ -1,12 +1,12 @@
 'use client';
 
-import { ArrowBackIcon } from '@/components/icons';
-
 import type { AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
 
 // Reuse the grid card's "App Details" pill (DS grey Badge + doc icon) verbatim.
 import tc from '@/components/common/LogosGrid/components/TeamCard/TeamCard.module.scss';
+// Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
+import bb from '@/components/ui/BackButton/BackButton.module.scss';
 import card from './AiAppCard.module.scss';
 import s from './AiAppDetail.module.scss';
 
@@ -32,9 +32,17 @@ export function AiAppDetail(props: Props) {
     <div className={s.page}>
       {/* Full-width header bar pinned to the top of the app page. */}
       <header className={s.topBar}>
-        <button type="button" className={s.back} onClick={onBack}>
-          <ArrowBackIcon width={18} height={18} />
-          Back to all
+        <button type="button" className={bb.backBtn} onClick={onBack}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M11 14L5 8L11 2"
+              stroke="#5E718D"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Back
         </button>
 
         {/* Right-side actions, mirroring the grid card: view the 1-pager, plus

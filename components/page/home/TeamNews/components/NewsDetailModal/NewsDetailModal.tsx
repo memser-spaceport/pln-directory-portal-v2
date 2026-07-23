@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 
 import { Modal } from '@/components/common/Modal';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -91,7 +92,8 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
       inertBackground
       closeOnEscape={!shareOpen}
       closeOnBackdropClick={!shareOpen}
-      className={s.modal}
+      overlayClassname={s.mobileOverlay}
+      className={clsx(s.mobileContainer, s.modal)}
     >
       <div className={s.body}>
         <div className={s.head}>

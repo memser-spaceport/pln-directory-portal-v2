@@ -1,11 +1,50 @@
+@use 'styles/media';
+
+// The common Modal is a positioning shell only (centering + blur overlay, no
+// panel surface) — the card look lives here, copied from the newsfeed-v0
+// prototype's FeedDetailModal .card: fixed height with the middle scrolling
+// internally (a 4-paragraph story and a one-liner open the same modal), and a
+// full-screen takeover on mobile. Width comes from the Modal container's
+// max-width: 600px, as in the prototype.
 .modal {
-  width: min(640px, calc(100vw - 24px));
-  max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
+  height: min(560px, 85vh);
+  background: var(--background-base-white, #fff);
+  border-radius: 16px;
+  overflow: hidden; // clip the scrolling body to the rounded corners
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 12px 32px 0px rgba(15, 23, 42, 0.14);
+
+  @include media.mobile-only {
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+// Mobile full-screen takeover (prototype behavior, matching the platform
+// Drawer): the Modal's overlay padding and 600px container cap are overridden
+// via its overlayClassname/className props. Doubled selectors out-specify the
+// shell's own .overlay/.modalContainer rules regardless of module order.
+.mobileOverlay.mobileOverlay {
+  @include media.mobile-only {
+    padding: 0;
+  }
+}
+
+.mobileContainer.mobileContainer {
+  @include media.mobile-only {
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+  }
 }
 
 .body {
+  flex: 1;
+  min-height: 0;
   padding: 20px 24px 16px;
   overflow-y: auto;
   display: flex;

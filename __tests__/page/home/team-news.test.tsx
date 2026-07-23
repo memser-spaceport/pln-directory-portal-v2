@@ -139,14 +139,14 @@ describe('TeamNews', () => {
 
   it('renders the global empty state when there are no items', () => {
     renderTeamNews(<TeamNews groups={[]} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText(/No network news in the last 14 days yet/i)).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
   it('renders the section, tabs with counts, and category chips when populated', () => {
     renderTeamNews(<TeamNews groups={groups} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText('5 new')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toBeInTheDocument();

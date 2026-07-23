@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Activity } from '../types';
-import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { toast } from '@/components/core/ToastContainer';
 
 interface ActivityTableProps {
   activities: Activity[];
@@ -61,10 +62,16 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
     }));
   };
 
-  const handleExternalClick = (e: React.MouseEvent, activity: Activity) => {
+  const handleCtaClick = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation();
-    
-    // Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
+
+    // Confirm CTA: acknowledge with a toast, no navigation.
+    if (activity.cta === 'confirm') {
+      toast.success(ACTIVITY_CONFIRM_TOAST);
+      return;
+    }
+
+    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
     const url = activity.popupContent.ctaLink
       || (!activity.hasFormLink && activity.popupContent.submissionLink ? activity.popupContent.submissionLink.url : null)
       || ACTIVITY_FORM_URL;
@@ -75,7 +82,7 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
       category: activity.category,
       points: activity.points,
     }, url);
-    
+
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -174,10 +181,10 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                               <span>Auto-tracked</span>
                             </>
                           );
-                          if (vType === 'Hybrid') return (
+                          if (vType === 'Manual Review') return (
                             <>
-                              <Image src="/icons/hybrid-icon.svg" alt="Hybrid" width={16} height={16} />
-                              <span>Hybrid</span>
+                              <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
+                              <span>Manual Review</span>
                             </>
                           );
                           return (
@@ -188,11 +195,11 @@ export default function ActivityTable({ activities, onRowClick }: ActivityTableP
                           );
                         })()}
                       </div>
-                      <button 
+                      <button
                         className="activity-card__submit-btn"
-                        onClick={(e) => handleExternalClick(e, activity)}
+                        onClick={(e) => handleCtaClick(e, activity)}
                       >
-                        {activity.popupContent.submitButtonText || 'Submit Activity >'}
+                        {activity.cta === 'confirm' ? 'Confirm' : (activity.popupContent.submitButtonText || 'Submit')}
                       </button>
                     </div>
                   </div>

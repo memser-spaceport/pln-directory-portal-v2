@@ -30,6 +30,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   // { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
+  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
   { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },
@@ -43,25 +44,25 @@ function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRoun
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);
-    
+
     // Call the callback to close mobile menu if provided
     if (onMenuItemClick) {
       onMenuItemClick();
     }
-    
+
     if (isExternal) {
       // Open external links in a new tab
       window.open(url, '_blank', 'noopener,noreferrer');
       return;
     }
-    
+
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
     if (currentPath === url) {
       // Already on this page, no need to navigate or show loader
       return;
     }
-    
+
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
@@ -203,7 +204,7 @@ function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRoun
             .plaa-menu {
               padding: 16px;
             }
-            
+
             .plaa-menu__item {
               width: 93%;
             }

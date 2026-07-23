@@ -42,24 +42,36 @@ a.tile:hover {
   transform: translateY(-1px);
 }
 
-// Featured Demo Day tile: brand gradient fill, white text, leads the grid.
+// Featured Demo Day tile: brand gradient *border* (not a fill), leads the grid.
+// Painted as a masked ::before ring rather than a transparent border — a
+// transparent border + border-box gradient leaves a dark antialiasing fringe on
+// the bright green edge (a thin black line). The ring has no border to fringe.
 .demoTile {
+  position: relative;
   border: none;
-  color: #fff;
-  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  background: #f1f5f9; // grey inner, matching the other tiles
   box-shadow: 0 1px 2px rgba(14, 15, 17, 0.12);
 
-  &:hover {
-    filter: brightness(0.98) saturate(1.04);
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.1px; // ring thickness
+    background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+    // Fill the whole box, then subtract the inside so only the padded ring shows.
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
+}
 
-  .eventName {
-    color: #fff;
-  }
-
-  .eventDate {
-    color: rgba(255, 255, 255, 0.85);
-  }
+// Subtle shimmer on hover; the shared `a.tile:hover` still supplies the lift.
+a.demoTile:hover {
+  filter: brightness(0.98) saturate(1.04);
 }
 
 .roleTags {
@@ -105,10 +117,16 @@ a.tile:hover {
   background: linear-gradient(97.17deg, #94a3b8 6.23%, #7c8aa3 99.44%);
 }
 
-// Demo Day tag on the featured tile: same pill shape, readable on the gradient fill.
+// Demo Day tag on the featured tile: same pill shape, brand gradient fill that
+// echoes the tile's gradient border. Keeps the shared `#ffffff66` hairline from
+// `.roleTag` — a transparent border leaves a dark antialiasing fringe on the
+// bright green edge (visible as a thin black line).
 .roleTagDemo {
   color: #fff;
-  background: rgba(14, 15, 17, 0.18);
+  background: linear-gradient(97.17deg, #1b4dff 6.23%, #4cee8c 99.44%);
+  // Clip the gradient to the padding box so the bright green edge doesn't reach
+  // the pill's antialiased outer edge (which premultiplies to a dark fringe line).
+  background-clip: padding-box;
 
   svg {
     flex: none;

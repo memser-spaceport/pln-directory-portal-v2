@@ -6,7 +6,7 @@ import { useState, type ReactNode } from 'react';
 import { DetailsSection, DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
 import { Modal } from '@/components/common/Modal';
 
-import { RocketGlyph, type DemoDayParticipation } from './TeamDetailsView';
+import { type DemoDayParticipation } from './TeamDetailsView';
 import type { ContributionEvent } from './mocks';
 import s from './TeamContributions.module.scss';
 
@@ -50,10 +50,7 @@ export function TeamContributionsView({ contributions, demoDay, variant = 'vibra
         {demoDay && (
           <DemoLink demoDay={demoDay} className={`${s.tile} ${s.demoTile}`}>
             <div className={s.roleTags}>
-              <span className={`${s.roleTag} ${s.roleTagDemo}`}>
-                <RocketGlyph />
-                Participant
-              </span>
+              <span className={`${s.roleTag} ${s.roleTagDemo}`}>Participant</span>
             </div>
             <div className={s.tileMeta}>
               <span className={s.eventName}>{demoDay.title}</span>

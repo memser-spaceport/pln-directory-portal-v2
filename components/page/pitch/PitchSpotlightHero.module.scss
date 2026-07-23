@@ -34,6 +34,10 @@
   gap: 12px;
   text-align: center;
   width: 100%;
+
+  @include media.mobile-only {
+    gap: 8px;
+  }
 }
 
 .prepLabel {
@@ -57,6 +61,7 @@
     font-size: 28px;
     line-height: 36px;
     letter-spacing: -0.8px;
+    margin-bottom: 6px;
   }
 }
 
@@ -70,17 +75,6 @@
   font-weight: 400;
   line-height: 24px;
   letter-spacing: -0.4px;
-
-  @include media.mobile-only {
-    font-size: 16px;
-    line-height: 22px;
-  }
-}
-
-.description,
-.spotlightLine,
-.body,
-.footer {
   width: 100%;
   text-align: center;
 
@@ -88,6 +82,32 @@
     text-align: left;
     display: inline-block;
     list-style-position: outside;
+  }
+}
+
+.spotlightLine {
+  @include media.mobile-only {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
+
+.description {
+  @include media.mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+.confidentialityNotice {
+  width: 100%;
+
+  @include media.mobile-only {
+    :global(div),
+    :global(p) {
+      font-size: 12px;
+      line-height: 18px;
+    }
   }
 }
 
@@ -105,6 +125,10 @@
 
 .footer {
   margin-top: 8px;
+
+  @include media.mobile-only {
+    margin-top: 0px;
+  }
 }
 
 .divider {

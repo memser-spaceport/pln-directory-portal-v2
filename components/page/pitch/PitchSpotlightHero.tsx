@@ -282,7 +282,15 @@ export const PitchSpotlightHero = ({
           {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft]</p>}
           {variant === 'closedPreview' && <p className={s.prepLabel}>[Closed]</p>}
           <h1 className={s.title}>{title}</h1>
-          {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
+          {description && (
+            <p
+              className={s.description}
+              dangerouslySetInnerHTML={{
+                // Quill stores spaces as &nbsp;, which prevents wrapping and overflows the card.
+                __html: description.replace(/&nbsp;|&#0*160;|&#x0*a0;|\u00A0/gi, ' '),
+              }}
+            />
+          )}
           {renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
@@ -298,12 +306,14 @@ export const PitchSpotlightHero = ({
       </div>
 
       {(variant === 'open' || variant === 'draftPreview' || variant === 'closedPreview') && (
-        <Alert>
-          <p>
-            Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
-            review. DO NOT copy, screenshot, share, or distribute to others.
-          </p>
-        </Alert>
+        <div className={s.confidentialityNotice}>
+          <Alert>
+            <p>
+              Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
+              review. DO NOT copy, screenshot, share, or distribute to others.
+            </p>
+          </Alert>
+        </div>
       )}
 
       {isLoggedIn && userInfo?.uid && (

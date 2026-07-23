@@ -47,10 +47,22 @@ export const Modal: React.FC<ModalProps> = (props) => {
 
   useEffect(() => {
     if (!isOpen || !lockScroll) return;
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    // Hiding the viewport scrollbar widens the content area by the scrollbar's
+    // width and the whole page shifts. Compensate with equivalent body padding
+    // for exactly the locked duration (0 on overlay scrollbars, so a no-op
+    // there). Fixed-position elements would need their own compensation, but
+    // the app's navbar is in normal flow — body padding covers it.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      const computedPaddingRight = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+      document.body.style.paddingRight = `${computedPaddingRight + scrollbarWidth}px`;
+    }
     return () => {
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
     };
   }, [isOpen, lockScroll]);
 

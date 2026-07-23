@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Navbar from '../components/core/navbar/nav-bar';
 import './globals.scss';
 import '../styles/index.scss';
 import StyledJsxRegistry from '../providers/registry';
@@ -15,7 +14,7 @@ import StoreInitializer from '@/providers/StoreInitializer';
 // import { OnboardingFlowTrigger } from '@/components/page/onboarding/components/OnboardingFlowTrigger';
 import PostHogIdentifier from '@/components/page/posthog-identifier';
 import PostLoginRedirectHandler from '@/components/page/recommendations/components/RecommendationsPreloader/PostLoginRedirectHandler';
-import { CompleteYourProfile } from '@/components/core/navbar/components/CompleteYourProfile';
+import { SiteHeader } from '@/components/core/navbar/components/SiteHeader';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
@@ -23,7 +22,6 @@ import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
 import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
-import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import {
   Loader,
   AuthBox,
@@ -77,13 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <StoreInitializer userInfo={userInfo} />
                 <PostHogIdentifier />
                 <ContactSupportUrlSync />
-                <header className="layout__header">
-                  {/* <DemoDayBanner /> */}
-                  {/* <PlaaBanner /> */}
-                  {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
-                  <CompleteYourProfile />
-                  <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />
-                </header>
+                <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
                 <AuthBox isLoggedIn={isLoggedIn} />
                 <ContactSupport userInfo={userInfo} />
                 <DemoDayStats />

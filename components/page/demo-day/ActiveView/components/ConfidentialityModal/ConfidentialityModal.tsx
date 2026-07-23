@@ -36,10 +36,8 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
   const acceptConfidentiality = useAcceptConfidentiality();
   const demoDayAnalytics = useDemoDayAnalytics();
 
-  const handleClose = () => {
+  const handleCloseClick = () => {
     demoDayAnalytics.onConfidentialityModalClosed();
-
-    // Redirect to /members when close button is clicked
     router.push('/members');
   };
 
@@ -51,9 +49,9 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} closeOnBackdropClick={false}>
+    <Modal isOpen={isOpen} closeOnBackdropClick={false} closeOnEscape={false}>
       <div className={s.modal}>
-        <button className={s.closeButton} onClick={handleClose} aria-label="Close">
+        <button className={s.closeButton} onClick={handleCloseClick} aria-label="Close">
           <CloseIcon />
         </button>
 
@@ -67,8 +65,7 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
               <h2 className={s.title}>Confidentiality Agreement</h2>
               <p className={s.body}>
                 Materials presented here are confidential and provided exclusively for your review. Do not copy, share,
-                record, or distribute any materials to others. Any unauthorized disclosure will result in removal from
-                the network.
+                record, or distribute any materials to others.
               </p>
             </div>
 

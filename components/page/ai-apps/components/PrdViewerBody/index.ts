@@ -1,0 +1,1 @@
+export { PrdViewerBody } from './PrdViewerBody';

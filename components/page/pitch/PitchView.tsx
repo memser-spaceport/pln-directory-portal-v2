@@ -8,7 +8,6 @@ import { useGetTeamPitch } from '@/services/team-pitch/hooks/useGetTeamPitch';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer/TeamDetailsDrawer';
 import type { TeamProfile } from '@/services/demo-day/hooks/useGetTeamsList';
-import { PitchConfidentialityModal } from '@/components/page/pitch/PitchConfidentialityModal';
 import { PitchEventHeader } from '@/components/page/pitch/PitchEventHeader';
 import { PitchSpotlightHero } from '@/components/page/pitch/PitchSpotlightHero';
 import { PitchViewSkeleton } from '@/components/page/pitch/PitchViewSkeleton';
@@ -28,6 +27,7 @@ export const PitchView = () => {
   const router = useRouter();
   const slug = params.slug as string;
   const prefillEmail = searchParams.get('prefillEmail') ?? undefined;
+  const loginToken = searchParams.get('loginToken');
   const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
 
@@ -88,6 +88,10 @@ export const PitchView = () => {
     if (!prefillEmail || isLoggedIn || access.status === 'CLOSED') {
       return;
     }
+    // Login-token redeem handles auth; do not open Privy until redeem fails
+    if (loginToken) {
+      return;
+    }
 
     const canViewFullDraftPitch =
       access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT';
@@ -101,7 +105,7 @@ export const PitchView = () => {
 
     loginRedirectAttemptedRef.current = true;
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
-  }, [prefillEmail, isLoggedIn, isHydrated, access, accessLoading, router]);
+  }, [prefillEmail, loginToken, isLoggedIn, isHydrated, access, accessLoading, router]);
 
   const isInvestor = access?.participantType === 'INVESTOR';
 
@@ -164,14 +168,11 @@ export const PitchView = () => {
   }
 
   const teamProfile = pitch?.teamProfile as TeamProfile | undefined;
-  const showConfidentialityModal = isLoggedIn && !access.confidentialityAccepted && !access.isPitchAdmin;
   const canEdit = access.access === 'edit';
   const isOpenInvestorView = isLoggedIn && showInvestorHeader && access.status === 'OPEN';
 
   return (
     <div className={s.root}>
-      {showConfidentialityModal && <PitchConfidentialityModal isOpen pitchSlug={slug} />}
-
       {isOpenInvestorView && <PitchSpotlightHero variant="open" {...spotlightHeroProps} />}
 
       {showAdminHeader && access.status === 'DRAFT' && (

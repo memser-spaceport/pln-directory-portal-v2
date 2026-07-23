@@ -69,7 +69,7 @@ export function AiAppFeedbackPage() {
       <div className={s.content}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
           <ArrowBackIcon width={16} height={16} />
-          Back to AI Apps
+          Back to all
         </Link>
 
         <div className={s.titleBlock}>

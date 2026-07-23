@@ -275,7 +275,7 @@ export default function GantryImpactRatingPrototype() {
               <h1 className={roadmap.title}>Gantry</h1>
               <p className={roadmap.subtitle}>
                 Submit what you need, see what we&rsquo;re building. Boosting an item means rating its{' '}
-                <strong>impact on company goals</strong> — the score is visible to everyone.
+                <strong>Impact to goals</strong> — the score is visible to everyone.
               </p>
             </div>
             <div className={roadmap.actions}>

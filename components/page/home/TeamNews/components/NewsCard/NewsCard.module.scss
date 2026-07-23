@@ -13,7 +13,9 @@
   text-decoration: none;
   color: inherit;
   transition: box-shadow 0.12s ease;
-  overflow: hidden;
+  // No overflow: hidden — the SourceList popover must escape the card bounds.
+  // Children that need clipping do it themselves (headline line-clamp,
+  // teamName ellipsis, logo border-radius).
   cursor: pointer;
 
   &:hover {

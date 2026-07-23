@@ -291,7 +291,7 @@ export const PROJECT_ANALYTICS_EVENTS = {
 
 export const TOAST_MESSAGES = {
   LOGOUT_MSG: 'You have been logged out successfully',
-  LOGIN_MSG: 'Successfully Logged In',
+  LOGIN_MSG: 'Successfully Signed In',
   LOGGED_IN_MSG: 'You are already logged in',
   SOMETHING_WENT_WRONG: 'Something went wrong',
   DETAILS_ADDED_SUCCESSFULLY: 'Your details have been added successfully',
@@ -592,6 +592,8 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
+  TEAM_NEWS_SOURCES_EXPANDED: 'team-news-sources-expanded',
+  TEAM_NEWS_SOURCE_LINK_CLICKED: 'team-news-source-link-clicked',
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
   TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
@@ -2375,4 +2377,6 @@ export const AI_APPS_ANALYTICS = {
   DELETE_APP_CONFIRMED: 'ai_apps_delete_app_confirmed',
   DELETE_APP_FAILED: 'ai_apps_delete_app_failed',
   APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
+  PRD_OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_prd_open_in_new_tab_clicked',
+  PRD_PAGE_VIEWED: 'ai_apps_prd_page_viewed',
 };

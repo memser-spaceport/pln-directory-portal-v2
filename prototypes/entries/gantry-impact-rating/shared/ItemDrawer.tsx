@@ -3,7 +3,7 @@
 // Prototype-local copy of the production item drawer: common Drawer (width 900) wrapping the
 // read view of GantryItemDetailContent, 1:1 markup + classes (GantryDetailPage.module.scss,
 // imported read-only). Data-bound parts (edit/archive/decline, hooks) are dropped; the two
-// prototype additions are the "Impact on company goals" rating section and, for curators,
+// prototype additions are the "Impact to goals" rating section and, for curators,
 // the ImpactVotersSection in the BoostersSection slot.
 
 import { clsx } from 'clsx';
@@ -76,7 +76,7 @@ export function ItemDrawer({ item, viewer, goalMode, curatorView, onToggleBoost,
           <div className={s.impactReadout}>
             {aggregate.impactCount > 0 && <ImpactRing value={aggregate.avgImpact!} max={IMPACT_MAX} />}
             <div className={s.impactMeta}>
-              <span className={s.impactLabel}>Impact on company goals</span>
+              <span className={s.impactLabel}>Impact to goals</span>
               {aggregate.impactCount > 0 ? (
                 <>
                   <span className={s.impactScore}>

@@ -80,5 +80,9 @@ export function useAiAppsAnalytics() {
     onDeleteAppFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.DELETE_APP_FAILED, { appUid }),
     onAppDetailsOpened: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.APP_DETAILS_OPENED, { appUid, appName }),
+    onPrdOpenInNewTabClicked: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.PRD_OPEN_IN_NEW_TAB_CLICKED, { appUid, appName }),
+    onPrdPageViewed: (appUid: string, appName: string) =>
+      capture(AI_APPS_ANALYTICS.PRD_PAGE_VIEWED, { appUid, appName }),
   };
 }

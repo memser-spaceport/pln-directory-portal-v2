@@ -195,7 +195,7 @@ export const PitchSpotlightHero = ({
         return (
           <>
             <p className={s.body}>
-              This is a private spotlight for invited investors. Log in with the email that received your invite to
+              This is a private spotlight for invited investors. Sign in with the email that received your invite to
               confirm access.{' '}
               <button type="button" className={s.inlineLink} onClick={handleGetInTouch}>
                 Get in touch
@@ -221,7 +221,7 @@ export const PitchSpotlightHero = ({
             <p className={s.body}>
               Your account is not on the invite list for this spotlight page.
               <br />
-              Please make sure you&apos;re logged in with the email address that received the invitation — you&apos;re
+              Please make sure you&apos;re signed in with the email address that received the invitation — you&apos;re
               currently signed in as{' '}
               {userInfo?.uid && userInfo.email ? (
                 <Link
@@ -282,7 +282,15 @@ export const PitchSpotlightHero = ({
           {variant === 'draftPreview' && <p className={s.prepLabel}>[Draft]</p>}
           {variant === 'closedPreview' && <p className={s.prepLabel}>[Closed]</p>}
           <h1 className={s.title}>{title}</h1>
-          {description && <p className={s.description} dangerouslySetInnerHTML={{ __html: description }} />}
+          {description && (
+            <p
+              className={s.description}
+              dangerouslySetInnerHTML={{
+                // Quill stores spaces as &nbsp;, which prevents wrapping and overflows the card.
+                __html: description.replace(/&nbsp;|&#0*160;|&#x0*a0;|\u00A0/gi, ' '),
+              }}
+            />
+          )}
           {renderTeamLine()}
           <hr className={s.divider} aria-hidden />
           {renderStateBody()}
@@ -291,20 +299,21 @@ export const PitchSpotlightHero = ({
         {showLoginCta && (
           <div className={s.actions}>
             <button type="button" className={s.primaryButton} onClick={handleLogin}>
-              Log in
+              Sign in
             </button>
           </div>
         )}
       </div>
 
       {(variant === 'open' || variant === 'draftPreview' || variant === 'closedPreview') && (
-        <Alert>
-          <p>
-            Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
-            review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will result in
-            removal from the network.
-          </p>
-        </Alert>
+        <div className={s.confidentialityNotice}>
+          <Alert>
+            <p>
+              Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
+              review. DO NOT copy, screenshot, share, or distribute to others.
+            </p>
+          </Alert>
+        </div>
       )}
 
       {isLoggedIn && userInfo?.uid && (

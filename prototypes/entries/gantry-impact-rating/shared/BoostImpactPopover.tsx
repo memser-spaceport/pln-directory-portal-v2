@@ -76,7 +76,7 @@ export function BoostImpactPopover({ pos, objectives, onSave, onCancel }: Props)
         </div>
 
         <div className={p.body}>
-          <ImpactControl value={overall} onChange={setOverall} label="Impact on company goals" />
+          <ImpactControl value={overall} onChange={setOverall} label="Impact to goals" />
 
           {objectives && objectives.length > 0 && (
             <div className={s.objectiveRows}>

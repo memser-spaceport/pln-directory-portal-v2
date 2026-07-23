@@ -37,12 +37,11 @@ export function AppActionsMenu({ app, onEdit, onDeployment, onDelete }: Props) {
 
   // Older API versions omit `canManage` on the detail record; the heuristic
   // that rendered this trigger is then the best signal we have, so default on.
-  const confirmedCanManage = detail ? detail.canManage ?? true : null;
+  const confirmedCanManage = detail ? (detail.canManage ?? true) : null;
   // 403/404 are authoritative "you can't manage this" answers too. Derived,
   // not stored: rendering null unmounts the trigger AND the open popup.
-  const accessDenied = confirmedCanManage === false || errorKind === 'forbidden' || errorKind === 'not-found';
-
-  if (accessDenied) return null;
+  // const accessDenied = confirmedCanManage === false || errorKind === 'forbidden' || errorKind === 'not-found';
+  // if (accessDenied) return null;
 
   const verifying = confirmedCanManage !== true;
   const verifyFailed = errorKind === 'network';

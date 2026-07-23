@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
 import { hasPrd } from '@/services/ai-apps/ai-apps.service';
+import {
+  EditAiAppModal,
+  DeploymentSettingsModal,
+  DeleteAiAppDialog,
+  AiAppDetailsModal,
+} from '@/components/page/ai-apps/dynamicActionModals';
 
 import { AddAiAppCard } from '../AddAiAppCard';
 
@@ -15,21 +20,6 @@ import { getAddCardVariants, getCardVariants, getContainerVariants } from './AiA
 import { AiAppCard } from './components/AiAppCard';
 
 import s from './AiAppsGrid.module.scss';
-
-// The modals (and the markdown pipeline inside the details viewer) must not
-// ride in the list route's initial chunk — they load on first open.
-const EditAiAppModal = dynamic(() => import('../EditAiAppModal').then((m) => m.EditAiAppModal), { ssr: false });
-const DeploymentSettingsModal = dynamic(
-  () => import('../DeploymentSettingsModal').then((m) => m.DeploymentSettingsModal),
-  { ssr: false },
-);
-const DeleteAiAppDialog = dynamic(() => import('../DeleteAiAppDialog').then((m) => m.DeleteAiAppDialog), {
-  ssr: false,
-});
-const AiAppDetailsModal = dynamic(
-  () => import('@/components/page/ai-apps/components/AiAppDetailsModal').then((m) => m.AiAppDetailsModal),
-  { ssr: false },
-);
 
 type ActionType = 'edit' | 'deployment' | 'delete';
 
@@ -99,6 +89,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
       {viewerApp && hasPrd(viewerApp) && (
         <AiAppDetailsModal
           isOpen
+          uid={viewerApp.uid}
           appName={viewerApp.name}
           prdUrl={viewerApp.prd as string}
           onClose={() => setViewerUid(null)}

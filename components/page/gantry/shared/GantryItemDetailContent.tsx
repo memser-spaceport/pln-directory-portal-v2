@@ -235,7 +235,6 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
                 <QuillContent html={item.description} className={clsx(s.richContent, s.descriptionBody)} />
               </div>
             )}
-
             {(!!item.tags?.length ||
               !!item.type ||
               item.objectives?.length > 0 ||

@@ -659,18 +659,18 @@ describe('TeamNews', () => {
 
     it("toggling upvote on one story does not affect another story's state (overlay is per-item)", () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const buttons = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const buttons = screen.getAllByRole('button', { name: 'Like (0)' });
       expect(buttons).toHaveLength(2);
 
       fireEvent.click(buttons[0]);
 
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Upvote (0)' })).toBeInTheDocument(); // the other story unaffected
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Like (0)' })).toBeInTheDocument(); // the other story unaffected
     });
 
     it('fires onTeamNewsUpvoteToggled analytics once the mutation succeeds', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
 
       expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'up-a', isUpvoted: true }, expect.anything());
@@ -689,14 +689,14 @@ describe('TeamNews', () => {
 
     it('reverts the overlay and does not fire success analytics when the mutation fails', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
 
       const options = mockUpvoteMutate.mock.calls[0][1];
       act(() => options.onError());
 
-      expect(screen.getAllByRole('button', { name: 'Upvote (0)' })).toHaveLength(2);
+      expect(screen.getAllByRole('button', { name: 'Like (0)' })).toHaveLength(2);
       expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
     });
 
@@ -712,7 +712,7 @@ describe('TeamNews', () => {
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
 
-      fireEvent.click(screen.getAllByRole('button', { name: 'Upvote (0)' })[0]);
+      fireEvent.click(screen.getAllByRole('button', { name: 'Like (0)' })[0]);
 
       const teamLinks = screen.getAllByRole('link', { name: /Zzz|Team up-/ });
       expect(teamLinks[0]).toHaveTextContent('Zzz');
@@ -815,7 +815,7 @@ describe('TeamNews', () => {
     const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Xray|Yankee)/ }).map((l) => l.textContent);
     // Both stories start at count 1, so the buttons share a name — index 1 is
     // Yankee's, matching the rendered [Xray, Yankee] order asserted first.
-    const getYankeeUpvoteButton = () => screen.getAllByRole('button', { name: 'Upvote (1)' })[1];
+    const getYankeeUpvoteButton = () => screen.getAllByRole('button', { name: 'Like (1)' })[1];
 
     // UpvoteButton redirects anonymous clicks to login — sign in (same setup as
     // the upvotes block above).
@@ -832,24 +832,24 @@ describe('TeamNews', () => {
 
       fireEvent.click(getYankeeUpvoteButton());
 
-      expect(screen.getByRole('button', { name: 'Remove upvote (2)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // order frozen until reload
 
       // Removing the upvote is symmetric: count drops back, cluster still doesn't move.
-      fireEvent.click(screen.getByRole('button', { name: 'Remove upvote (2)' }));
-      expect(screen.getAllByRole('button', { name: 'Upvote (1)' })).toHaveLength(2);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove like (2)' }));
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
     });
 
     it('reverts the button (but not the order) when the mutation fails', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
       fireEvent.click(getYankeeUpvoteButton());
-      expect(screen.getByRole('button', { name: 'Remove upvote (2)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
 
       const options = mockUpvoteMutate.mock.calls[0][1];
       act(() => options.onError());
 
-      expect(screen.getAllByRole('button', { name: 'Upvote (1)' })).toHaveLength(2);
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // frozen order untouched by the revert
     });
 
@@ -861,7 +861,7 @@ describe('TeamNews', () => {
       const options = mockUpvoteMutate.mock.calls[0][1];
       act(() => options.onSuccess({ viewerHasUpvoted: true, upvoteCount: 7 }));
 
-      expect(screen.getByRole('button', { name: 'Remove upvote (7)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (7)' })).toBeInTheDocument();
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // still ranked by page-load counts
     });
 

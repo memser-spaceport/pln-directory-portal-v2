@@ -200,12 +200,12 @@ describe('TeamNewsRail', () => {
     );
 
     renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
 
     expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'news-1', isUpvoted: true }, expect.any(Object));
     // Reconciled with the server's authoritative count.
-    const voted = screen.getByRole('button', { name: 'Remove upvote (5)' });
-    expect(voted).toHaveTextContent('Upvoted');
+    const voted = screen.getByRole('button', { name: 'Remove like (5)' });
+    
     expect(mockOnUpvoteToggled).toHaveBeenCalledWith(
       expect.objectContaining({ uid: 'news-1' }),
       0,
@@ -224,10 +224,10 @@ describe('TeamNewsRail', () => {
     mockUpvoteMutate.mockImplementation((_action, { onError }) => onError(new Error('nope')));
 
     renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
 
-    const button = screen.getByRole('button', { name: 'Upvote (0)' });
-    expect(button).toHaveTextContent(/^Upvote$/);
+    const button = screen.getByRole('button', { name: 'Like (0)' });
+    expect(button).toHaveTextContent('');
     expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
   });
 

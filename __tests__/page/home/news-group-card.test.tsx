@@ -213,7 +213,7 @@ describe('NewsGroupCard', () => {
   it("renders an Upvote button reflecting the story's upvote state", () => {
     const item = makeItem('a', '2026-05-03T00:00:00.000Z', { viewerHasUpvoted: true, upvoteCount: 5 });
     render(<NewsGroupCard cluster={clusterWith([item])} />);
-    expect(screen.getByRole('button', { name: 'Remove upvote (5)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove like (5)' })).toBeInTheDocument();
   });
 
   it('redirects to login instead of calling onUpvoteToggle when unauthenticated', () => {
@@ -222,7 +222,7 @@ describe('NewsGroupCard', () => {
     const item = makeItem('a', '2026-05-03T00:00:00.000Z');
     render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
   });
@@ -234,7 +234,7 @@ describe('NewsGroupCard', () => {
     const item = makeItem('a', '2026-05-03T00:00:00.000Z');
     render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).toHaveBeenCalledWith(item);
     expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();

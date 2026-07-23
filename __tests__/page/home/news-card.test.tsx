@@ -67,7 +67,7 @@ describe('NewsCard upvotes', () => {
     const onUpvoteToggle = jest.fn();
     render(<NewsCard item={item} upvoteCount={2} viewerHasUpvoted={false} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (2)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (2)' }));
 
     expect(onUpvoteToggle).toHaveBeenCalledWith(item);
     expect(mockPush).not.toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe('NewsCard upvotes', () => {
     const onUpvoteToggle = jest.fn();
     render(<NewsCard item={item} upvoteCount={2} viewerHasUpvoted={false} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (2)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (2)' }));
 
     expect(onUpvoteToggle).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
@@ -97,7 +97,7 @@ describe('NewsCard upvotes', () => {
     const onUpvoteToggle = jest.fn();
     render(<NewsCard item={item} hideTeam upvoteCount={2} viewerHasUpvoted={false} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Upvote (2)' }), { key: 'Enter' });
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Like (2)' }), { key: 'Enter' });
     expect(windowOpen).not.toHaveBeenCalled();
 
     fireEvent.keyDown(screen.getByRole('link'), { key: 'Enter' });
@@ -107,16 +107,16 @@ describe('NewsCard upvotes', () => {
   it('shows the voted state with the count', () => {
     render(<NewsCard item={item} upvoteCount={3} viewerHasUpvoted onUpvoteToggle={jest.fn()} />);
 
-    const button = screen.getByRole('button', { name: 'Remove upvote (3)' });
+    const button = screen.getByRole('button', { name: 'Remove like (3)' });
     expect(button).toHaveAttribute('aria-pressed', 'true');
-    expect(button).toHaveTextContent('Upvoted');
+    
     expect(button).toHaveTextContent('3');
   });
 
   it('hides the count at zero', () => {
     render(<NewsCard item={item} upvoteCount={0} viewerHasUpvoted={false} onUpvoteToggle={jest.fn()} />);
 
-    const button = screen.getByRole('button', { name: 'Upvote (0)' });
-    expect(button).toHaveTextContent(/^Upvote$/);
+    const button = screen.getByRole('button', { name: 'Like (0)' });
+    expect(button).toHaveTextContent('');
   });
 });

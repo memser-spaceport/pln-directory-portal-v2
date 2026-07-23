@@ -113,10 +113,10 @@ describe('NewsCard upvotes', () => {
     expect(button).toHaveTextContent('3');
   });
 
-  it('hides the count at zero', () => {
+  it('shows the count even at zero', () => {
     render(<NewsCard item={item} upvoteCount={0} viewerHasUpvoted={false} onUpvoteToggle={jest.fn()} />);
 
     const button = screen.getByRole('button', { name: 'Like (0)' });
-    expect(button).toHaveTextContent('');
+    expect(button).toHaveTextContent('0');
   });
 });

@@ -4,10 +4,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { UpvoteButton } from '@/components/page/home/TeamNews/components/NewsCard/components/UpvoteButton';
 
 describe('UpvoteButton', () => {
-  it('hides the count when it is 0 (icon-only; title carries the label)', () => {
+  it('shows the count even at 0 (fixed-width digits keep the row from shifting)', () => {
     render(<UpvoteButton count={0} voted={false} onToggle={jest.fn()} />);
     const btn = screen.getByRole('button', { name: 'Like (0)' });
-    expect(btn).not.toHaveTextContent('0');
+    expect(btn).toHaveTextContent('0');
     expect(btn).toHaveAttribute('title', 'Like (0)');
   });
 

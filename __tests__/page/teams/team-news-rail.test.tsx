@@ -227,7 +227,7 @@ describe('TeamNewsRail', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
 
     const button = screen.getByRole('button', { name: 'Like (0)' });
-    expect(button).toHaveTextContent('');
+    expect(button).toHaveTextContent('0');
     expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
   });
 

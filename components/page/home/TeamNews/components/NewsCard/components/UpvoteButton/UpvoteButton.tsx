@@ -27,8 +27,8 @@ interface UpvoteButtonProps {
   onToggle: () => void;
 }
 
-// Count hidden at 0 — a wall of zeros reads as a dead feed; your own vote makes it appear.
-// Icon-only at that point, so the title tooltip carries the label.
+// Count always renders (0 included) with tabular digits, so toggling a like
+// never changes the button's width and the actions row doesn't shift.
 export function UpvoteButton({ count, voted, onToggle }: UpvoteButtonProps) {
   const label = voted ? `Remove like (${count})` : `Like (${count})`;
   return (
@@ -44,7 +44,7 @@ export function UpvoteButton({ count, voted, onToggle }: UpvoteButtonProps) {
       }}
     >
       <LikeIcon />
-      {count > 0 && <span>{count}</span>}
+      <span>{count}</span>
     </button>
   );
 }

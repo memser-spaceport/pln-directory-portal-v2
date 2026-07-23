@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
+import DOMPurify from 'isomorphic-dompurify';
 
 import { Modal } from '@/components/common/Modal';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -29,6 +30,27 @@ interface NewsDetailModalProps {
 }
 
 const TITLE_ID = 'news-detail-modal-title';
+
+// contentHtml comes from the AI enrichment pipeline — the least trusted markup
+// in the app, and the app ships no CSP, so this sanitizer is the only defense
+// layer (same rationale as PrdContent's). Enrichment output is 2–5 paragraphs
+// with inline emphasis and the odd link/list — allow exactly that, nothing else.
+const CONTENT_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: ['p', 'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 'br'],
+  ALLOWED_ATTR: ['href'],
+  ALLOWED_URI_REGEXP: /^https?:/i,
+};
+
+// Registered once at module scope — DOMPurify hooks are global and stack if
+// added per render. Forcing target/rel after sanitizing is the canonical
+// cure53 pattern (before, they'd be stripped). Idempotent alongside the same
+// hook registered by other consumers (PrdContent).
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.hasAttribute('href')) {
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
 
 /** Restores focus for the row that opened the modal. Scoped to role="button" —
  *  NewsCard also stamps data-story-uid, but only feed rows carry the button role.
@@ -79,9 +101,12 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
 
   const { label: eventTypeLabel, dotClassName: eventTypeDotClassName } = getEventTypeConfig(item.eventType);
   const sources = getNewsSourcesWithPrimaryFallback(item);
-  // Richer multi-paragraph content is pending a BE contract (field TBD on
-  // ITeamNewsItem); until it lands the modal renders the feed summary.
-  const content = item.summary;
+  // Rich body from the API where present (older items fall back to the plain
+  // summary until re-enriched server-side). Sanitized — never render raw.
+  const sanitizedContentHtml = useMemo(
+    () => (item.contentHtml ? DOMPurify.sanitize(item.contentHtml, CONTENT_SANITIZE_CONFIG) : null),
+    [item.contentHtml],
+  );
 
   return (
     <Modal
@@ -128,7 +153,11 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
           {item.title}
         </h3>
 
-        {content && <p className={s.content}>{content}</p>}
+        {sanitizedContentHtml ? (
+          <div className={s.content} dangerouslySetInnerHTML={{ __html: sanitizedContentHtml }} />
+        ) : (
+          item.summary && <p className={clsx(s.content, s.contentPlain)}>{item.summary}</p>
+        )}
 
         {sources.length > 0 && (
           <>

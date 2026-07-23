@@ -68,6 +68,43 @@ describe('NewsDetailModal', () => {
     expect(screen.getByRole('button', { name: 'Discuss' })).toBeInTheDocument();
   });
 
+  it('renders sanitized contentHtml paragraphs instead of the summary when present', () => {
+    const item = makeItem({
+      contentHtml: '<p>First paragraph with <strong>bold</strong>.</p><p>Second paragraph.</p>',
+    });
+    render(<NewsDetailModal item={item} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+
+    expect(screen.getByText(/First paragraph with/)).toBeInTheDocument();
+    expect(screen.getByText('bold').tagName).toBe('STRONG');
+    expect(screen.getByText('Second paragraph.')).toBeInTheDocument();
+    // The plain summary is superseded by the rich body.
+    expect(screen.queryByText(/Six new roles opened/)).not.toBeInTheDocument();
+  });
+
+  it('strips scripts, event handlers, and unsafe hrefs from contentHtml', () => {
+    const item = makeItem({
+      contentHtml:
+        '<p>Safe text<script>window.pwned = true;</script></p>' +
+        '<p><img src="x" onerror="window.pwned = true" />after img</p>' +
+        '<p><a href="javascript:alert(1)">bad link</a> <a href="https://example.com/ok">good link</a></p>',
+    });
+    render(<NewsDetailModal item={item} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+
+    expect(screen.getByText(/Safe text/)).toBeInTheDocument();
+    expect(document.querySelector('script')).toBeNull();
+    expect(document.querySelector('img[onerror]')).toBeNull();
+    expect(screen.getByText('bad link')).not.toHaveAttribute('href');
+    const goodLink = screen.getByRole('link', { name: 'good link' });
+    expect(goodLink).toHaveAttribute('href', 'https://example.com/ok');
+    expect(goodLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect((window as unknown as { pwned?: boolean }).pwned).toBeUndefined();
+  });
+
+  it('falls back to the plain summary when contentHtml is absent (not-yet-re-enriched item)', () => {
+    render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+    expect(screen.getByText(/Six new roles opened/)).toBeInTheDocument();
+  });
+
   it('hides the SOURCE section and the AI disclaimer together when no valid source exists', () => {
     const item = makeItem({ sourceUrl: 'not a url', sourceDomain: '', sourceUrls: undefined });
     render(<NewsDetailModal item={item} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);

@@ -88,7 +88,33 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
-  color: #334155;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  // Sanitized contentHtml: paragraphs/lists with inline emphasis.
+  p,
+  ul,
+  ol {
+    margin: 0 0 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    padding-left: 20px;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #156ff7);
+  }
+}
+
+// Plain-summary fallback (no contentHtml yet): the teaser text keeps its
+// line breaks; pre-line would mangle HTML-sourced whitespace, so it lives
+// only on this variant.
+.contentPlain {
   white-space: pre-line;
 }
 

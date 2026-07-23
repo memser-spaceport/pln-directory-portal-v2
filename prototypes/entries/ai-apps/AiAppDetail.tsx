@@ -18,13 +18,14 @@ interface Props {
   canManage: boolean;
   onEdit: () => void;
   onDeployment: () => void;
+  onLogs: () => void;
   onDelete: () => void;
   /** Opens the 1-pager viewer — same action as the card's "App Details" button. */
   onViewOnePager: () => void;
 }
 
 export function AiAppDetail(props: Props) {
-  const { app, previewSrcDoc, onBack, canManage, onEdit, onDeployment, onDelete, onViewOnePager } = props;
+  const { app, previewSrcDoc, onBack, canManage, onEdit, onDeployment, onLogs, onDelete, onViewOnePager } = props;
 
   const hasOnePager = !!app.onePager;
 
@@ -70,7 +71,13 @@ export function AiAppDetail(props: Props) {
             </button>
           )}
           {canManage && (
-            <AppActionsMenu appName={app.name} onEdit={onEdit} onDeployment={onDeployment} onDelete={onDelete} />
+            <AppActionsMenu
+              appName={app.name}
+              onEdit={onEdit}
+              onDeployment={onDeployment}
+              onLogs={onLogs}
+              onDelete={onDelete}
+            />
           )}
         </div>
       </header>

@@ -40,6 +40,7 @@
 .item {
   display: flex;
   align-items: center;
+  gap: 10px;
   width: 100%;
   padding: 9px 10px;
   border: none;
@@ -52,8 +53,19 @@
   color: var(--foreground-neutral-primary, #0a0c11);
   cursor: pointer;
 
+  // The icons are wayfinding, not content — held a step back from the label so
+  // the menu still reads as a list of words rather than a column of glyphs.
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+    svg {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
   }
 }
 
@@ -66,7 +78,17 @@
 .destructive {
   color: var(--foreground-error-primary, #d21a0e);
 
+  // Overrides the muted glyph colour: on the one destructive item the icon
+  // carries the warning too, so it tracks the label instead of greying out.
+  svg {
+    color: inherit;
+  }
+
   &:hover {
     background: var(--background-error-subtle, rgba(210, 26, 14, 0.06));
+
+    svg {
+      color: inherit;
+    }
   }
 }

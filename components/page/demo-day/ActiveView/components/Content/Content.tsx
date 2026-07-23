@@ -103,8 +103,7 @@ export const Content = () => {
           <Alert>
             <p>
               Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
-              review. DO NOT copy, screenshot, share, or distribute to others. Any unauthorized disclosure will result
-              in removal from the network.
+              review. DO NOT copy, screenshot, share, or distribute to others.
             </p>
           </Alert>
         </div>

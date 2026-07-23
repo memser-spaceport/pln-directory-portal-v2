@@ -5,12 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 import type { IJobRole } from '@/types/jobs.types';
 import { Button } from '@/components/common/Button';
 
+import { JOB_QUERY_PARAMS } from '../../constants';
+
 import { getShareText } from './utils/getShareText';
 
-import { LinkIcon, CheckIcon } from './components/Icons';
+import { LinkIcon, CheckIcon, ShareIcon } from './components/Icons';
 
 import s from './ReferMenu.module.scss';
-import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 interface ReferMenuProps {
   role: IJobRole;
@@ -84,17 +85,9 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
 
   return (
     <div className={s.wrap} ref={wrapRef}>
-      <Button
-        style="border"
-        variant="secondary"
-        size="xs"
-        className={s.trigger}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        Refer
-      </Button>
+      <span className={s.trigger} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <ShareIcon />
+      </span>
 
       {open && (
         <div className={s.popover} role="menu">

@@ -10,20 +10,14 @@
   align-items: center;
   justify-content: center;
 
-  padding: 2px;
-  border: none;
-  border-radius: 8px;
-  background: none;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: #8897AE;
   cursor: pointer;
+
+  border-radius: 8px;
+  padding: 2px;
 
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-    color: var(--foreground-neutral-secondary, #455468);
-  }
-
-  svg {
-    display: block;
   }
 }
 

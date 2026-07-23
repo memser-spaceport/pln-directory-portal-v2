@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Modal } from '@/components/common/Modal';
@@ -14,6 +14,7 @@ import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
 import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { NewsShareMenu } from '../NewsShareMenu';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -41,6 +42,12 @@ function restoreFocusToRow(uid: string) {
 export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailModalProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  // While the share popover is open, the Modal's own Escape/backdrop closers
+  // are detached (its capture-phase document listener would otherwise swallow
+  // Escape before the popover ever sees it, and a backdrop mousedown+click
+  // gesture would dismiss both layers at once). First Escape/outside-click
+  // closes the popover; the next one closes the modal.
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Move focus into the dialog on open. A callback ref, not a mount effect:
   // the shared Modal portals its children only after its own client-mount
@@ -76,7 +83,16 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
   const content = item.summary;
 
   return (
-    <Modal isOpen onClose={handleClose} ariaLabelledBy={TITLE_ID} lockScroll inertBackground className={s.modal}>
+    <Modal
+      isOpen
+      onClose={handleClose}
+      ariaLabelledBy={TITLE_ID}
+      lockScroll
+      inertBackground
+      closeOnEscape={!shareOpen}
+      closeOnBackdropClick={!shareOpen}
+      className={s.modal}
+    >
       <div className={s.body}>
         <div className={s.head}>
           {item.teamLogoUrl ? (
@@ -130,6 +146,7 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
       </div>
 
       <div className={s.footer}>
+        <NewsShareMenu item={item} source="news-modal" variant="button" onOpenChange={setShareOpen} />
         {/* Gated on hydration (like the feed rows) so a pre-hydration click on a
             deep-linked modal can't misread a signed-in viewer as a guest. */}
         {isHydrated && (

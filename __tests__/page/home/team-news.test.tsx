@@ -29,6 +29,7 @@ const mockOnTeamNewsSearch = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
+const mockOnShared = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -40,6 +41,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
     onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
     onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
+    onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
   }),
 }));
 
@@ -1000,6 +1002,56 @@ describe('TeamNews', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
       expect(mockOnDetailModalOpened).not.toHaveBeenCalled();
     });
+
+    it('opening the share popover from a row never opens the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('');
+    });
+
+    it('clicking a share menu item never opens the row modal beneath it', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      openSpy.mockRestore();
+    });
+
+    it('Escape with the share popover open closes only the popover; the next Escape closes the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      const dialog = getDialog();
+
+      fireEvent.click(within(dialog).getByRole('button', { name: /^Share/ }));
+      const menu = screen.getByRole('menu');
+
+      fireEvent.keyDown(menu, { key: 'Escape' });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument(); // modal survived the first Escape
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('shares from the modal footer report the news-modal source', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: /^Share/ }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('news=ai-1'));
+      expect(mockOnShared).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 'x', 'news-modal');
+      openSpy.mockRestore();
+    });
   });
 
   describe('popular this week — scroll to story', () => {
@@ -1014,11 +1066,12 @@ describe('TeamNews', () => {
       ...partial,
     });
 
-    // Feed rows are role="button" too now (they open the detail modal) and
-    // share the headline as accessible name — the row carries data-story-uid,
-    // the rail button doesn't, so filter on that.
+    // Feed rows are role="button" too now (they open the detail modal) and use
+    // the headline as accessible name; share triggers are "Share <headline>".
+    // The rail button is the one whose name STARTS with the headline and that
+    // carries no data-story-uid.
     const getRailButton = (title: string) =>
-      screen.getAllByRole('button', { name: new RegExp(title) }).find((el) => !el.hasAttribute('data-story-uid'))!;
+      screen.getAllByRole('button', { name: new RegExp(`^${title}`) }).find((el) => !el.hasAttribute('data-story-uid'))!;
     const getFeedHeadline = (title: string) => screen.queryByText(new RegExp(title), { selector: 'h3' });
 
     it('reveals an already-visible story without changing tab/category/query, and does not navigate', () => {

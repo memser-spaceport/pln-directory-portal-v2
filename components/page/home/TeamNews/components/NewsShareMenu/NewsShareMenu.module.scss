@@ -1,0 +1,92 @@
+.iconTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    background: rgba(14, 15, 17, 0.04);
+    color: #156ff7;
+  }
+}
+
+.buttonTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    border-color: #94a3b8;
+    background: #f8fafc;
+  }
+}
+
+.positioner {
+  outline: 0;
+  z-index: 1100; /* above the news modal overlay */
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+  transform-origin: top right;
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  outline: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-align: left;
+  color: #0a0c11;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-highlighted] {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.itemCopied {
+  color: #0f9f6e;
+}

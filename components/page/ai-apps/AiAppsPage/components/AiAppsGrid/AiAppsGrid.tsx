@@ -53,8 +53,8 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
   const addCardVariants = getAddCardVariants();
   const cardVariants = getCardVariants(!!shouldReduceMotion);
 
-  const actionApp = action ? apps.find((app) => app.uid === action.uid) ?? null : null;
-  const viewerApp = viewerUid ? apps.find((app) => app.uid === viewerUid) ?? null : null;
+  const actionApp = action ? (apps.find((app) => app.uid === action.uid) ?? null) : null;
+  const viewerApp = viewerUid ? (apps.find((app) => app.uid === viewerUid) ?? null) : null;
   const closeAction = () => setAction(null);
 
   const openViewer = (uid: string, name: string) => {
@@ -89,9 +89,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
       </motion.div>
 
       {actionApp && action?.type === 'edit' && <EditAiAppModal app={actionApp} onClose={closeAction} />}
-      {actionApp && action?.type === 'deployment' && (
-        <DeploymentSettingsModal app={actionApp} onClose={closeAction} />
-      )}
+      {actionApp && action?.type === 'deployment' && <DeploymentSettingsModal app={actionApp} onClose={closeAction} />}
       {/* Conditional render is load-bearing: unmounting on close is what aborts
           the modal's in-flight log fetches (its queryFn consumes the signal). */}
       {actionApp && action?.type === 'logs' && <DeploymentLogsModal app={actionApp} onClose={closeAction} />}

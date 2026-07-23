@@ -26,7 +26,10 @@ jest.mock('@/services/ai-apps/hooks/useAiAppLogs', () => ({
   useAiAppLogs: (_uid: string, stream: 'build' | 'runtime') => mockStreams[stream],
 }));
 
-const loaded = (events: FetchAiAppLogsResult['events'], termination: FetchAiAppLogsResult['termination'] = { reason: 'complete' }): HookReturn => ({
+const loaded = (
+  events: FetchAiAppLogsResult['events'],
+  termination: FetchAiAppLogsResult['termination'] = { reason: 'complete' },
+): HookReturn => ({
   result: { events, termination },
   isLoading: false,
   isRefetching: false,

@@ -228,13 +228,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     }
 
     return (
-      <div
-        ref={paneRef}
-        className={`${s.pane} ph-no-capture`}
-        role="region"
-        aria-label="Deployment logs"
-        tabIndex={0}
-      >
+      <div ref={paneRef} className={`${s.pane} ph-no-capture`} role="region" aria-label="Deployment logs" tabIndex={0}>
         {filtered.map((line) => (
           <div key={line.key} className={s.line}>
             <span className={s.message} data-level={line.level ?? undefined}>
@@ -293,12 +287,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
           {stream === 'runtime' && <span className={s.streamNote}>{RUNTIME_WINDOW_LABEL}</span>}
         </div>
 
-        <div
-          className={s.panel}
-          role="tabpanel"
-          id={PANEL_ID}
-          aria-labelledby={`deployment-logs-tab-${stream}`}
-        >
+        <div className={s.panel} role="tabpanel" id={PANEL_ID} aria-labelledby={`deployment-logs-tab-${stream}`}>
           <div className={s.toolbar}>
             <input
               className={`${s.search} ph-no-capture`}

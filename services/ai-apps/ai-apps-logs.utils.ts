@@ -47,9 +47,7 @@ export function formatLogTimestamp(value: unknown): string {
 // than tab, and the bidi/zero-width characters that can visually reorder or
 // hide copied text. Log messages are author-controlled input; they get to be
 // text, not terminal instructions.
-// eslint-disable-next-line no-control-regex
 const ANSI_PATTERN = /\u001B\[[0-9;?]*[ -/]*[@-~]|\u001B[@-_]/g;
-// eslint-disable-next-line no-control-regex
 const CONTROL_PATTERN = /[\u0000-\u0008\u000B-\u001F\u007F]/g;
 const BIDI_PATTERN = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g;
 

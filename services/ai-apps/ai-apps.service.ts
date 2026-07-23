@@ -339,7 +339,11 @@ export async function updateAiAppFile(uid: string, input: UpdateAiAppFileInput):
   if (input.description !== undefined) formData.append('description', input.description);
   formData.append('file', input.file);
 
-  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'PATCH', body: formData }, true);
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}`,
+    { method: 'PATCH', body: formData },
+    true,
+  );
 
   return parseUpdateResponse(response);
 }

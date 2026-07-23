@@ -45,3 +45,14 @@ export function getNewsSources(item: ITeamNewsItem): NewsSourceLink[] {
  *  separator dot, mirroring the old `item.sourceDomain &&` condition. */
 export const hasNewsSource = (item: ITeamNewsItem): boolean =>
   getNewsSources(item).length > 0 || Boolean(item.sourceDomain);
+
+/** Detail-modal variant: most items today carry only the single sourceUrl
+ *  (`sourceUrls` is the pending multi-source API field), and the modal is now
+ *  the only place the article link is reachable from — so fall back to the
+ *  primary URL when the array is absent. Same scheme allowlist applies. */
+export function getNewsSourcesWithPrimaryFallback(item: ITeamNewsItem): NewsSourceLink[] {
+  const links = getNewsSources(item);
+  if (links.length > 0 || !item.sourceUrl || !isSafeHttpUrl(item.sourceUrl)) return links;
+  const domain = item.sourceDomain || deriveDomain(item.sourceUrl);
+  return domain ? [{ domain, url: item.sourceUrl }] : [];
+}

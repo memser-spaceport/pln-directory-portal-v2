@@ -33,6 +33,9 @@ import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { clusterByTeam } from './utils/clusterByTeam';
 import { useStoryReveal } from './hooks/useStoryReveal';
+import { useNewsDeepLink } from './hooks/useNewsDeepLink';
+
+import { NewsDetailModal } from './components/NewsDetailModal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { NewsBase } from './components/NewsBase';
@@ -189,6 +192,27 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
   const newCount = allItems.length;
 
+  // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
+  // validator closes over it). All URL writes are history.replaceState; see
+  // the hook for why router.replace is the wrong tool here.
+  const isValidNewsUid = useCallback((uid: string) => allItems.some((i) => i.uid === uid), [allItems]);
+  const { activeNewsUid, openNews, closeNews, openedViaDeepLink } = useNewsDeepLink({ isValidUid: isValidNewsUid });
+
+  // Resolved fresh each render from overlay-merged allItems so the modal's Like
+  // count can never disagree with the rows; null lookup (an item expired away)
+  // renders nothing rather than a stale copy. Guarded — closed-modal renders
+  // skip the scan; deliberately not memoized (O(hundreds), single-digit µs).
+  const activeNewsItem = activeNewsUid ? (allItems.find((i) => i.uid === activeNewsUid) ?? null) : null;
+
+  // Deep-link opens have no click to ride on — report them once. Ref-guarded
+  // effect with no dependency array, per this file's latest-ref idiom.
+  const deepLinkTrackedRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkTrackedRef.current || !openedViaDeepLink || !activeNewsItem) return;
+    deepLinkTrackedRef.current = true;
+    analytics.onTeamNewsDetailModalOpened(activeNewsItem);
+  });
+
   const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
@@ -228,9 +252,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     setExpanded((v) => !v);
   };
 
-  const handleCardClick = (item: ITeamNewsItem) => {
+  // Single owner of a row click's consequences: analytics (card-clicked with
+  // outcome 'modal', derived in the analytics module) + modal state + URL.
+  const handleStoryOpen = (item: ITeamNewsItem) => {
     const position = visibleClusters.findIndex((c) => c.teamUid === item.teamUid);
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
+    openNews(item.uid);
   };
 
   // "Latest ref" pattern: lets handleSearch read current context synchronously
@@ -490,7 +517,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       </div>
 
       <div className={s.layout}>
-        <div className={s.main}>
+        {/* tabIndex={-1}: focus-restore fallback target when the modal closes and
+            the originating row is gone (deep link to a folded story) — focus must
+            land somewhere in the feed, never on <body>. */}
+        <div className={s.main} data-news-feed-root tabIndex={-1}>
           {searchedItems.length === 0 ? (
             <div className={s.empty}>
               {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
@@ -508,7 +538,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
                   <NewsGroupCard
                     key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
                     cluster={cluster}
-                    onStoryClick={handleCardClick}
+                    onStoryOpen={handleStoryOpen}
                     isFollowing={followedTeamUids.has(cluster.teamUid)}
                     onFollowToggle={handleFollowToggle}
                     onUpvoteToggle={handleUpvoteToggle}
@@ -536,6 +566,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
           onPopularItemClick={handlePopularItemClick}
         />
       </div>
+
+      {/* Conditional mount, no isOpen half-state: the item prop is always the
+          live overlay-merged object. Trades away the exit animation (accepted). */}
+      {activeNewsItem && (
+        <NewsDetailModal item={activeNewsItem} onClose={closeNews} onUpvoteToggle={handleUpvoteToggle} />
+      )}
     </NewsBase>
   );
 };

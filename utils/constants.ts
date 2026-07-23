@@ -592,6 +592,8 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
+  TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
+  TEAM_NEWS_SHARED: 'team-news-shared',
   TEAM_NEWS_SOURCES_EXPANDED: 'team-news-sources-expanded',
   TEAM_NEWS_SOURCE_LINK_CLICKED: 'team-news-source-link-clicked',
   TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',

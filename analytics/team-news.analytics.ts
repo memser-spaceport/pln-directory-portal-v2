@@ -3,7 +3,13 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
-export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal' | 'news-rail';
+export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal' | 'news-rail' | 'news-modal';
+
+/** What a team-news-card-clicked actually did: opened the /home detail modal,
+ *  or navigated to the source article (team-details surfaces). */
+export type TeamNewsCardClickOutcome = 'modal' | 'source';
+
+export type TeamNewsShareNetwork = 'linkedin' | 'x' | 'copy';
 
 export const useTeamNewsAnalytics = () => {
   const postHogProps = usePostHog();
@@ -107,6 +113,11 @@ export const useTeamNewsAnalytics = () => {
       sourceCount: item.sourceUrls?.length ?? 1,
       position,
       source,
+      // The same event name now means "opened the detail modal" on /home but
+      // still "opened the source article" on team-details. Derived here — the
+      // one place that knows source→surface semantics — so dashboards can
+      // split without any call site changing.
+      outcome: (source === 'home' ? 'modal' : 'source') satisfies TeamNewsCardClickOutcome,
     });
   };
 
@@ -185,6 +196,28 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  // Fired only for deep-link opens (trigger is fixed at 'deep-link'): row-click
+  // opens are already captured by team-news-card-clicked with outcome 'modal' —
+  // one event per user action.
+  const onTeamNewsDetailModalOpened = (item: ITeamNewsItem) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_DETAIL_MODAL_OPENED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      trigger: 'deep-link',
+    });
+  };
+
+  const onTeamNewsShared = (item: ITeamNewsItem, network: TeamNewsShareNetwork, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHARED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      network,
+      source,
+    });
+  };
+
   const onTeamNewsUpvoteToggled = (
     item: ITeamNewsItem,
     position: number,
@@ -236,6 +269,8 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsViewAllClicked,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
+    onTeamNewsDetailModalOpened,
+    onTeamNewsShared,
     onTeamNewsSourcesExpanded,
     onTeamNewsSourceLinkClicked,
     onTeamNewsStartConversationClicked,

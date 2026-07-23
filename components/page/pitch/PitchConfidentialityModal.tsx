@@ -58,7 +58,7 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
     );
   };
 
-  const handleClose = () => {
+  const handleCloseClick = () => {
     trackConfidentiality(TEAM_PITCH_ANALYTICS.ON_CONFIDENTIALITY_MODAL_CLOSED, () =>
       teamPitchAnalytics.onConfidentialityModalClosed({ pitchSlug }),
     );
@@ -75,9 +75,9 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} closeOnBackdropClick={false}>
+    <Modal isOpen={isOpen} closeOnBackdropClick={false} closeOnEscape={false}>
       <div className={s.modal}>
-        <button className={s.closeButton} onClick={handleClose} aria-label="Close">
+        <button className={s.closeButton} onClick={handleCloseClick} aria-label="Close">
           <CloseIcon />
         </button>
 

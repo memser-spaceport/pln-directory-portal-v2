@@ -47,10 +47,35 @@ export const Modal: React.FC<ModalProps> = (props) => {
 
   useEffect(() => {
     if (!isOpen || !lockScroll) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    // Hiding the viewport scrollbar widens the content area and the page
+    // shifts. `scrollbar-gutter: stable` on the root keeps the gutter reserved
+    // while overflow is hidden, so layout doesn't change at all — including
+    // centered max-width containers, which body-padding compensation would
+    // still nudge by half the scrollbar width (padding narrows the content box
+    // they re-center in). Both writes land in one synchronous effect, so the
+    // scrollbar disappears and the gutter appears in the same style recalc.
+    const root = document.documentElement;
+    const body = document.body;
+    const previousOverflow = root.style.overflow;
+    const previousGutter = root.style.scrollbarGutter;
+    const previousPaddingRight = body.style.paddingRight;
+    const supportsGutter = typeof CSS !== 'undefined' && CSS.supports?.('scrollbar-gutter: stable');
+    if (supportsGutter) {
+      root.style.scrollbarGutter = 'stable';
+    } else {
+      // Fallback (pre-2024 Safari): pad the body by the scrollbar's width.
+      // No-op with overlay scrollbars (measured width is 0).
+      const scrollbarWidth = window.innerWidth - root.clientWidth;
+      if (scrollbarWidth > 0) {
+        const computedPaddingRight = parseFloat(getComputedStyle(body).paddingRight) || 0;
+        body.style.paddingRight = `${computedPaddingRight + scrollbarWidth}px`;
+      }
+    }
+    root.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previous;
+      root.style.overflow = previousOverflow;
+      root.style.scrollbarGutter = previousGutter;
+      body.style.paddingRight = previousPaddingRight;
     };
   }, [isOpen, lockScroll]);
 

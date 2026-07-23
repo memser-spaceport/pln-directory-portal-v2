@@ -113,13 +113,14 @@ describe('NewsDetailModal', () => {
     expect(screen.queryByText('Source')).not.toBeInTheDocument();
   });
 
-  it('locks body scroll while open and restores the previous value on unmount', () => {
-    document.body.style.overflow = 'auto';
+  it('locks root scroll while open and restores the previous value on unmount', () => {
+    const root = document.documentElement;
+    root.style.overflow = 'auto';
     const { unmount } = render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
-    expect(document.body.style.overflow).toBe('hidden');
+    expect(root.style.overflow).toBe('hidden');
     unmount();
-    expect(document.body.style.overflow).toBe('auto');
-    document.body.style.overflow = '';
+    expect(root.style.overflow).toBe('auto');
+    root.style.overflow = '';
   });
 
   it('moves focus to the close button on open', () => {

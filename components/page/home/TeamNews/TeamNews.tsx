@@ -30,6 +30,7 @@ import {
 import { hasExistingDiscussion } from './components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
+import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { clusterByTeam } from './utils/clusterByTeam';
 import { useStoryReveal } from './hooks/useStoryReveal';
 
@@ -97,10 +98,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
   // same way follow state already is (see followedTeamUids below): a local overlay,
-  // merged once into allItems. NOTE the merge currently reaches only allItems-derived
-  // views (the All tab): focus-area tabs read raw group.items (see itemsForActiveTab)
-  // and the Popular rail reads the separate server-ranked popularItems prop, so
-  // neither reflects the overlay — a known gap, tracked separately.
+  // applied via applyUpvoteOverlay in both allItems and itemsForActiveTab, so every
+  // item-derived view (tabs, clusters, the detail modal) reads the same merged item.
+  // The Popular rail still reads the separate server-ranked popularItems prop and
+  // does not reflect the overlay — accepted staleness, tracked separately.
   const [upvoteOverlay, setUpvoteOverlay] = useState<Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>>(
     () => new Map(),
   );
@@ -111,11 +112,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const [scrollTarget, setScrollTarget] = useState<{ teamUid: string; storyUid: string } | null>(null);
   const revealStory = useStoryReveal();
 
-  const allItems = useMemo(() => {
-    const merged = sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items)));
-    if (upvoteOverlay.size === 0) return merged;
-    return merged.map((item) => (upvoteOverlay.has(item.uid) ? { ...item, ...upvoteOverlay.get(item.uid) } : item));
-  }, [groups, upvoteOverlay]);
+  const allItems = useMemo(
+    () => applyUpvoteOverlay(sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), upvoteOverlay),
+    [groups, upvoteOverlay],
+  );
 
   const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
@@ -144,8 +144,8 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
-    return group?.items ?? [];
-  }, [activeTab, allItems, groups]);
+    return applyUpvoteOverlay(group?.items ?? [], upvoteOverlay);
+  }, [activeTab, allItems, groups, upvoteOverlay]);
 
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length;

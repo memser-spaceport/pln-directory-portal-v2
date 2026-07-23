@@ -84,6 +84,22 @@ describe('getNewsSources', () => {
     expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
   });
 
+  it('drops non-http(s) URLs even when they parse with a hostname', () => {
+    const item = makeItem('a', {
+      sourceUrls: ['javascript://evil.com/%0aalert(1)', 'data://x/payload', SECOND_URL],
+    });
+    expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
+  });
+
+  it('does not let the backend sourceDomain bypass the scheme check on the primary entry', () => {
+    const item = makeItem('a', {
+      sourceUrl: 'javascript:alert(1)',
+      sourceDomain: 'trusted-looking.ai',
+      sourceUrls: ['javascript:alert(1)', SECOND_URL],
+    });
+    expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
+  });
+
   it('returns empty when sourceUrls is absent', () => {
     expect(getNewsSources(makeItem('a'))).toEqual([]);
   });

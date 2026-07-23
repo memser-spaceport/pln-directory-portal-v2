@@ -7,6 +7,18 @@ export interface NewsSourceLink {
   url: string;
 }
 
+// Scheme allowlist, not just "parses as a URL": source URLs come from the AI
+// enrichment pipeline — the least trusted strings on the page — and something
+// like `javascript://host/%0aalert(1)` has a non-empty hostname yet must never
+// become an <a href> or a window.open target.
+function isSafeHttpUrl(url: string): boolean {
+  try {
+    return ['http:', 'https:'].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
 function deriveDomain(url: string): string | null {
   try {
     return new URL(url).hostname.replace(/^www\./, '') || null;
@@ -22,6 +34,7 @@ function deriveDomain(url: string): string | null {
 export function getNewsSources(item: ITeamNewsItem): NewsSourceLink[] {
   const links: NewsSourceLink[] = [];
   for (const url of item.sourceUrls ?? []) {
+    if (!isSafeHttpUrl(url)) continue;
     const domain = url === item.sourceUrl && item.sourceDomain ? item.sourceDomain : deriveDomain(url);
     if (domain) links.push({ domain, url });
   }

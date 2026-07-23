@@ -18,6 +18,7 @@ interface Props {
   readonly onSelect: () => void;
   readonly onEdit: () => void;
   readonly onDeployment: () => void;
+  readonly onLogs: () => void;
   readonly onDelete: () => void;
   readonly onViewOnePager: () => void;
 }
@@ -28,10 +29,22 @@ export function AiAppCard({
   onSelect,
   onEdit,
   onDeployment,
+  onLogs,
   onDelete,
   onViewOnePager,
 }: Props) {
   const isDraft = app.status === 'DRAFT';
+  // Two separate questions. "Did the last deploy fail" decides whether we show a
+  // notice; "is anything serving" decides whether the app reads as unavailable.
+  // An app that rolled back is still working, so it must not look broken.
+  const deployFailed = app.status === 'ERROR';
+  const serving = app.deployment?.serving ?? 'latest';
+  const isUnavailable = serving === 'none';
+  const isStale = deployFailed && serving === 'previous';
+  // A rolled-back app works fine, so only its creator needs telling that the
+  // latest change didn't ship — to a visitor it's an ordinary, working app. An
+  // app with nothing serving is broken for everyone, so everyone sees that.
+  const showNotice = isUnavailable || (isStale && canManage);
   const hasOnePager = !!app.onePager;
   // Anyone who can see the app gets the "App Details" footer tag to open the
   // 1-pager. Creators also get the ⋯ manage menu in the corner — the two are
@@ -48,8 +61,32 @@ export function AiAppCard({
   };
 
   return (
-    <article className={s.root}>
+    <article
+      className={`${s.root} ${isUnavailable ? s.rootFailed : ''} ${showNotice ? s.rootNotice : ''}`}
+    >
       <div className={s.cardButton} role="button" tabIndex={0} onClick={onSelect} onKeyDown={handleKeyDown}>
+        {/* Status banner across the top of the card. It gets its own row rather
+            than a slot in the footer, whose single action slot already belongs
+            to "App Details" — so the two never compete for the same space. */}
+        {showNotice && (
+          <div className={`${s.failStrip} ${isUnavailable ? s.failStripDanger : s.failStripWarning}`}>
+            <span className={s.failStripLabel}>{isUnavailable ? 'Deploy failed' : "Latest deploy didn't ship"}</span>
+            {/* Creator-only — the logs are internal. */}
+            {canManage && (
+              <button
+                type="button"
+                className={s.seeLogsButton}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLogs();
+                }}
+              >
+                See logs
+              </button>
+            )}
+          </div>
+        )}
+
         <div className={s.body}>
           <div className={`${s.nameRow} ${canManage ? s.nameRowMenu : ''}`}>
             <h3 className={s.name}>{app.name}</h3>
@@ -66,7 +103,8 @@ export function AiAppCard({
                 <span className={s.creatorTitle}>by</span> <span className={s.creatorName}>{app.member.name}</span>
               </p>
               <p className={s.deployed}>
-                {isDraft ? 'Draft created' : 'Deployed'} {new Date(app.createdAt).toLocaleDateString()}
+                {isDraft ? 'Draft created' : isUnavailable ? 'Never deployed' : 'Deployed'}{' '}
+                {new Date(app.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -100,7 +138,13 @@ export function AiAppCard({
 
       {canManage && (
         <div className={s.actionSlot}>
-          <AppActionsMenu appName={app.name} onEdit={onEdit} onDeployment={onDeployment} onDelete={onDelete} />
+          <AppActionsMenu
+            appName={app.name}
+            onEdit={onEdit}
+            onDeployment={onDeployment}
+            onLogs={onLogs}
+            onDelete={onDelete}
+          />
         </div>
       )}
     </article>

@@ -91,8 +91,7 @@ export const PitchConfidentialityModal: React.FC<Props> = ({ isOpen, pitchSlug }
               <h2 className={s.title}>Confidentiality Agreement</h2>
               <p className={s.body}>
                 Materials presented here are confidential and provided exclusively for your review. Do not copy, share,
-                record, or distribute any materials to others. Any unauthorized disclosure will result in removal from
-                the network.
+                record, or distribute any materials to others.
               </p>
             </div>
 

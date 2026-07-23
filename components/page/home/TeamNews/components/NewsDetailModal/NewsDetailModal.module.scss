@@ -1,0 +1,164 @@
+@use 'styles/media';
+
+// The common Modal is a positioning shell only (centering + blur overlay, no
+// panel surface) — the card look lives here, copied from the newsfeed-v0
+// prototype's FeedDetailModal .card: fixed height with the middle scrolling
+// internally (a 4-paragraph story and a one-liner open the same modal), and a
+// full-screen takeover on mobile. Width comes from the Modal container's
+// max-width: 600px, as in the prototype.
+.modal {
+  display: flex;
+  flex-direction: column;
+  height: min(560px, 85vh);
+  background: var(--background-base-white, #fff);
+  border-radius: 16px;
+  overflow: hidden; // clip the scrolling body to the rounded corners
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 12px 32px 0px rgba(15, 23, 42, 0.14);
+
+  @include media.mobile-only {
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+// Mobile full-screen takeover (prototype behavior, matching the platform
+// Drawer): the Modal's overlay padding and 600px container cap are overridden
+// via its overlayClassname/className props. Doubled selectors out-specify the
+// shell's own .overlay/.modalContainer rules regardless of module order.
+.mobileOverlay.mobileOverlay {
+  @include media.mobile-only {
+    padding: 0;
+  }
+}
+
+.mobileContainer.mobileContainer {
+  @include media.mobile-only {
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 20px 24px 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #e2e8f0;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  // Sanitized contentHtml: paragraphs/lists with inline emphasis.
+  p,
+  ul,
+  ol {
+    margin: 0 0 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    padding-left: 20px;
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #156ff7);
+  }
+}
+
+// Plain-summary fallback (no contentHtml yet): the teaser text keeps its
+// line breaks; pre-line would mangle HTML-sourced whitespace, so it lives
+// only on this variant.
+.contentPlain {
+  white-space: pre-line;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.sourcesLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.sourceLink {
+  font-size: 13px;
+  color: #156ff7;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footerSpacer {
+  flex: 1;
+}

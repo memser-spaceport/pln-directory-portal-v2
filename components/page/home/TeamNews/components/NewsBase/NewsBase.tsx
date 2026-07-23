@@ -12,7 +12,7 @@ export function NewsBase(props: PropsWithChildren<Props>) {
   return (
     <section className={s.section}>
       <div className={s.header}>
-        <h2 className={s.title}>News from the network</h2>
+        <h2 className={s.title}>Network updates</h2>
         {headerDetails}
       </div>
       <p className={s.sub}>Recent shipping, raises, partnerships, and milestones from across the network.</p>

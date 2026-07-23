@@ -14,6 +14,7 @@ import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
 import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
@@ -24,7 +25,11 @@ const VISIBLE_STORIES = 3;
 
 interface NewsGroupCardProps {
   cluster: TeamCluster;
-  onStoryClick?: (item: ITeamNewsItem) => void;
+  /** Row click/Enter opens the news detail modal — the single owner of
+   *  analytics + modal state + URL sync lives in TeamNews.handleStoryOpen.
+   *  (The old open-the-source-in-a-new-tab behavior moved into the modal's
+   *  SOURCE links; NewsCard — team-details — still opens the source.) */
+  onStoryOpen: (item: ITeamNewsItem) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
@@ -37,7 +42,7 @@ interface NewsGroupCardProps {
 
 export function NewsGroupCard({
   cluster,
-  onStoryClick,
+  onStoryOpen,
   analyticsSource = 'home',
   isFollowing = false,
   onFollowToggle,
@@ -84,8 +89,7 @@ export function NewsGroupCard({
   }, [autoExpandStoryUid, stories, toggleExpanded]);
 
   const openStory = (item: ITeamNewsItem) => {
-    onStoryClick?.(item);
-    window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+    onStoryOpen(item);
   };
 
   return (
@@ -116,14 +120,19 @@ export function NewsGroupCard({
           <div
             key={story.uid}
             data-story-uid={story.uid}
-            role="link"
+            role="button"
+            aria-haspopup="dialog"
+            // Concise accessible name — without it the row's name is its entire
+            // text content (title + summary + meta), which is screen-reader noise
+            // and collides with other buttons in role queries.
+            aria-label={story.title}
             tabIndex={0}
             className={s.storyRow}
             onClick={() => openStory(story)}
             onKeyDown={(e) => {
               // Only act on keys pressed on the row itself — Enter/Space on a
-              // nested control (Upvote/Discuss/SourceList) must not also open
-              // the article. Same guard as NewsCard's handleKeyDown.
+              // nested control (Like/Discuss/SourceList) must not also open
+              // the modal. Same guard as NewsCard's handleKeyDown.
               if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -149,6 +158,7 @@ export function NewsGroupCard({
                 <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
               </div>
               <div className={newsCardStyles.actions}>
+                <NewsShareMenu item={story} source={analyticsSource} />
                 <UpvoteButton
                   count={story.upvoteCount ?? 0}
                   voted={Boolean(story.viewerHasUpvoted)}

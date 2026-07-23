@@ -21,6 +21,10 @@ interface ReferMenuProps {
  * Prototype-only "Refer" control on each job row: a small popover that shares the
  * role to LinkedIn or X via each platform's web share-intent URL, or copies the
  * role link. Uses the mocked applyUrl as the shared link (falls back to the page).
+ *
+ * NOTE: TeamNews's NewsShareMenu is the hardened adaptation of this component
+ * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface
+ * should extract from there, not copy this one again.
  */
 export function ReferMenu({ role, teamName }: ReferMenuProps) {
   const [open, setOpen] = useState(false);

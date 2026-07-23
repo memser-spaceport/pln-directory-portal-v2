@@ -1,0 +1,1 @@
+export { NewsShareMenu } from './NewsShareMenu';

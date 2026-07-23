@@ -134,6 +134,141 @@ export async function fetchAiApp(uid: string): Promise<FetchAiAppResult> {
   return { app: await response.json(), errorKind: null };
 }
 
+/** The two log sources the platform produces: the image build (Kaniko) vs the running app pod. */
+export type AiAppLogStream = 'build' | 'runtime';
+
+/** One CloudWatch log line, proxied verbatim from the sandbox runner. */
+export interface AiAppLogEvent {
+  /** Epoch milliseconds per the contract; treated as unparseable-safe by the UI formatter. */
+  timestamp: number;
+  message: string;
+}
+
+/**
+ * Why the fetch stopped — a discriminated union so "truncated" and "failed"
+ * can never both be claimed for one result. `failed` with a non-empty `events`
+ * means a later page broke: render what loaded, offer a retry.
+ */
+export type AiAppLogsTermination =
+  | { reason: 'complete' }
+  | { reason: 'truncated' }
+  | { reason: 'failed'; errorKind: AiAppFetchErrorKind };
+
+export interface FetchAiAppLogsResult {
+  events: AiAppLogEvent[];
+  termination: AiAppLogsTermination;
+}
+
+/** One request's worth is also the whole v1 budget — the modal shows at most one non-empty page. */
+const AI_APP_LOGS_MAX_LINES = 2000;
+/**
+ * CloudWatch can return empty pages WITH a nextToken over sparse windows, so a
+ * few follow-ups exist purely to skip those. These bounds are the exit for
+ * that quirk — never a mechanism to accumulate more pages.
+ */
+const AI_APP_LOGS_MAX_PAGES = 5;
+const AI_APP_LOGS_TIME_BUDGET_MS = 8_000;
+
+/**
+ * Server ordering is not documented, so display order is enforced here:
+ * ascending by timestamp (stable, so equal/unparseable stamps keep arrival
+ * order). Chronological top-to-bottom is what the bottom-anchored pane expects.
+ */
+function sortLogEvents(events: AiAppLogEvent[]): AiAppLogEvent[] {
+  return [...events].sort((a, b) => {
+    const ta = Number.isFinite(a.timestamp) ? a.timestamp : 0;
+    const tb = Number.isFinite(b.timestamp) ? b.timestamp : 0;
+    return ta - tb;
+  });
+}
+
+/**
+ * Fetch one stream's logs: a single capped request, plus a bounded follow-up
+ * loop that exists only to skip CloudWatch's empty-page-with-token responses.
+ *
+ * Termination rules (unit-tested):
+ * - first NON-EMPTY page → done; `truncated` iff it came with a fresh nextToken
+ *   (more log remains) or the page itself overflowed the cap.
+ * - empty page with no token, or a token equal to the one we sent → `complete`
+ *   (CloudWatch never nulls the token at end-of-stream; a repeated token is the
+ *   real end signal).
+ * - page/time budget exhausted while skipping empties → `truncated`.
+ * - AbortError is RETHROWN, never converted to a result — a cancelled fetch
+ *   must not cache a partial snapshot as success. Any other failure resolves to
+ *   `failed` (with whatever loaded) so the modal never renders blank.
+ */
+export async function fetchAiAppLogs(
+  uid: string,
+  stream: AiAppLogStream,
+  opts: { signal?: AbortSignal; sinceMinutes?: number } = {},
+): Promise<FetchAiAppLogsResult> {
+  const { signal, sinceMinutes } = opts;
+  const startedAt = Date.now();
+  let sentToken: string | undefined;
+
+  const failed = (errorKind: AiAppFetchErrorKind): FetchAiAppLogsResult => ({
+    events: [],
+    termination: { reason: 'failed', errorKind },
+  });
+
+  for (let page = 0; page < AI_APP_LOGS_MAX_PAGES; page++) {
+    const params = new URLSearchParams({ limit: String(AI_APP_LOGS_MAX_LINES) });
+    if (sinceMinutes !== undefined) params.set('sinceMinutes', String(sinceMinutes));
+    if (sentToken !== undefined) params.set('nextToken', sentToken);
+
+    let response: Response | undefined;
+    try {
+      response = await customFetch(
+        `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/logs/${stream}?${params.toString()}`,
+        { method: 'GET', signal },
+        true,
+      );
+    } catch (error) {
+      // Name check, not instanceof: fetch aborts reject with a DOMException,
+      // which is not `instanceof Error` in browsers.
+      if ((error as { name?: string } | null)?.name === 'AbortError') {
+        throw error;
+      }
+      return failed('network');
+    }
+
+    // customFetch resolves undefined only on its logout/refresh-failure paths.
+    if (!response) {
+      return failed('network');
+    }
+    if (!response.ok) {
+      const errorKind: AiAppFetchErrorKind =
+        response.status === 403 ? 'forbidden' : response.status === 404 ? 'not-found' : 'network';
+      return failed(errorKind);
+    }
+
+    const body = await response.json().catch(() => null);
+    const pageEvents: AiAppLogEvent[] = Array.isArray(body?.events)
+      ? body.events.filter((e: unknown): e is AiAppLogEvent => typeof (e as AiAppLogEvent)?.message === 'string')
+      : [];
+    const nextToken: string | undefined = typeof body?.nextToken === 'string' ? body.nextToken : undefined;
+    const tokenAdvanced = !!nextToken && nextToken !== sentToken;
+
+    if (pageEvents.length > 0) {
+      const overflow = pageEvents.length > AI_APP_LOGS_MAX_LINES;
+      return {
+        events: sortLogEvents(overflow ? pageEvents.slice(0, AI_APP_LOGS_MAX_LINES) : pageEvents),
+        termination: tokenAdvanced || overflow ? { reason: 'truncated' } : { reason: 'complete' },
+      };
+    }
+
+    if (!tokenAdvanced) {
+      return { events: [], termination: { reason: 'complete' } };
+    }
+    if (Date.now() - startedAt > AI_APP_LOGS_TIME_BUDGET_MS) {
+      return { events: [], termination: { reason: 'truncated' } };
+    }
+    sentToken = nextToken;
+  }
+
+  return { events: [], termination: { reason: 'truncated' } };
+}
+
 export interface UpdateAiAppPatch {
   name?: string;
   description?: string;

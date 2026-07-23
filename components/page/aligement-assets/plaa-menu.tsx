@@ -12,7 +12,7 @@ import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analyt
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'trust-holdings' | 'faqs' | 'disclosure' | 'feedback';
+export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'kudos' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'trust-holdings' | 'faqs' | 'disclosure' | 'feedback';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -22,12 +22,14 @@ interface PlaaMenuProps {
   onMenuItemClick?: () => void; // Callback to handle menu item clicks (e.g., close mobile menu)
 }
 
-const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean }> = [
+const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean; badge?: 'new' }> = [
   { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
-  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
+  // Kudos hidden from the sidebar for now — restore this entry to re-enable.
+  // { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
+  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
   { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },
@@ -41,25 +43,25 @@ function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRoun
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);
-    
+
     // Call the callback to close mobile menu if provided
     if (onMenuItemClick) {
       onMenuItemClick();
     }
-    
+
     if (isExternal) {
       // Open external links in a new tab
       window.open(url, '_blank', 'noopener,noreferrer');
       return;
     }
-    
+
     // Check if we're already on the target URL
     const currentPath = window.location.pathname;
     if (currentPath === url) {
       // Already on this page, no need to navigate or show loader
       return;
     }
-    
+
     if (window.innerWidth < 1024) {
       triggerLoader(true);
     }
@@ -89,6 +91,7 @@ function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRoun
                 aria-current={activeItem === item.name ? 'page' : undefined}
               >
                 <span className="plaa-menu__item-text">{item.label}</span>
+                {item.badge === 'new' && <span className="plaa-menu__badge">NEW</span>}
                 {item.isExternal && (
                   <Image
                     src="/icons/external-link.svg"
@@ -180,11 +183,27 @@ function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRoun
             font-family: 'Inter', sans-serif;
           }
 
+          /* ---------------------------------------------------------------
+             "NEW" pill — marks a newly launched nav entry (Kudos)
+             --------------------------------------------------------------- */
+          .plaa-menu__badge {
+            margin-left: auto;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #156ff7;
+            background: #e5edff;
+            border-radius: 4px;
+            padding: 2px 5px;
+            line-height: 1;
+            font-family: 'Inter', sans-serif;
+          }
+
           @media (max-width: 768px) {
             .plaa-menu {
               padding: 16px;
             }
-            
+
             .plaa-menu__item {
               width: 93%;
             }

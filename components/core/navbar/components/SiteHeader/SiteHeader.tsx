@@ -22,7 +22,7 @@ export function SiteHeader({ userInfo, isLoggedIn, authToken }: Props) {
   return (
     <header className="layout__header">
       {/* <DemoDayBanner /> */}
-      <PlaaBanner />
+      {/* <PlaaBanner /> */}
       {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
       <CompleteYourProfile />
       <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

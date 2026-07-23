@@ -63,19 +63,27 @@ describe('NewsGroupCard', () => {
   });
 
   it('renders the team header', () => {
-    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
+    render(
+      <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />,
+    );
     expect(screen.getByRole('link', { name: 'Acme' })).toHaveAttribute('href', '/teams/team-1');
   });
 
   it('renders no follow button when onFollowToggle is not provided, even once hydrated', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
-    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
+    render(
+      <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />,
+    );
     expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
   });
 
   it('does not render the follow button before the auth store hydrates, even with onFollowToggle provided', () => {
     render(
-      <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onFollowToggle={jest.fn()} />,
+      <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
+        onFollowToggle={jest.fn()}
+      />,
     );
     expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
   });
@@ -85,6 +93,7 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         onFollowToggle={onFollowToggle}
       />,
@@ -100,6 +109,7 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         isFollowing
         onFollowToggle={onFollowToggle}
@@ -116,6 +126,7 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         onFollowToggle={onFollowToggle}
       />,
@@ -173,7 +184,9 @@ describe('NewsGroupCard', () => {
   });
 
   it('exposes rows as dialog-opening buttons with the title as accessible name', () => {
-    render(<NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={jest.fn()} />);
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={jest.fn()} />,
+    );
     const row = screen.getByRole('button', { name: 'Headline a' });
     expect(row).toHaveAttribute('aria-haspopup', 'dialog');
     expect(row).toHaveAttribute('tabindex', '0');

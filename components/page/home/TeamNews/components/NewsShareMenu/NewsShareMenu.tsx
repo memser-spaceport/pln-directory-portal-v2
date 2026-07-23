@@ -108,11 +108,7 @@ export function NewsShareMenu({ item, source, variant = 'icon', onOpenChange }: 
               <img src="/icons/social-x.svg" alt="" width={18} height={18} aria-hidden="true" />
               Share on X
             </Menu.Item>
-            <Menu.Item
-              className={`${s.item} ${copied ? s.itemCopied : ''}`}
-              closeOnClick={false}
-              onClick={copyLink}
-            >
+            <Menu.Item className={`${s.item} ${copied ? s.itemCopied : ''}`} closeOnClick={false} onClick={copyLink}>
               {copied ? '✓ Link copied!' : 'Copy link'}
             </Menu.Item>
           </Menu.Popup>

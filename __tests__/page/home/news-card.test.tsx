@@ -109,7 +109,7 @@ describe('NewsCard upvotes', () => {
 
     const button = screen.getByRole('button', { name: 'Remove like (3)' });
     expect(button).toHaveAttribute('aria-pressed', 'true');
-    
+
     expect(button).toHaveTextContent('3');
   });
 

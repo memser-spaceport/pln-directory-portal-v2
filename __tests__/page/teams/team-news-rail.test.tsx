@@ -205,7 +205,7 @@ describe('TeamNewsRail', () => {
     expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'news-1', isUpvoted: true }, expect.any(Object));
     // Reconciled with the server's authoritative count.
     const voted = screen.getByRole('button', { name: 'Remove like (5)' });
-    
+
     expect(mockOnUpvoteToggled).toHaveBeenCalledWith(
       expect.objectContaining({ uid: 'news-1' }),
       0,

@@ -1071,7 +1071,9 @@ describe('TeamNews', () => {
     // The rail button is the one whose name STARTS with the headline and that
     // carries no data-story-uid.
     const getRailButton = (title: string) =>
-      screen.getAllByRole('button', { name: new RegExp(`^${title}`) }).find((el) => !el.hasAttribute('data-story-uid'))!;
+      screen
+        .getAllByRole('button', { name: new RegExp(`^${title}`) })
+        .find((el) => !el.hasAttribute('data-story-uid'))!;
     const getFeedHeadline = (title: string) => screen.queryByText(new RegExp(title), { selector: 'h3' });
 
     it('reveals an already-visible story without changing tab/category/query, and does not navigate', () => {

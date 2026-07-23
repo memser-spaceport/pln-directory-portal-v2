@@ -28,7 +28,6 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
   // Kudos hidden from the sidebar for now — restore this entry to re-enable.
   // { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
-  { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },

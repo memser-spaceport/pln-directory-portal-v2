@@ -146,9 +146,22 @@ export type WarmIntrosV2TargetSet = (typeof WARM_INTROS_V2_TARGET_SETS)[number];
 
 export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2TargetSet = 'neuro-fund-i';
 
+/** Display names aligned with v1 InvestorList names. */
 export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2TargetSet, string> = {
-  'neuro-fund-i': 'Neuro',
-  'gold-co-investors': 'Gold',
+  'neuro-fund-i': 'Neuro Fund I LP Pipeline',
+  'gold-co-investors': 'Gold PLC Co-Investors',
+};
+
+/** v1 InvestorList.slug → Warm Intros v2 targetSet. */
+export const WARM_INTROS_V2_TARGET_SET_BY_LIST_SLUG: Record<string, WarmIntrosV2TargetSet> = {
+  'neuro-lp': 'neuro-fund-i',
+  'gold-coinvestors': 'gold-co-investors',
+};
+
+/** Warm Intros v2 targetSet → v1 InvestorList.slug. */
+export const WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET: Record<WarmIntrosV2TargetSet, string> = {
+  'neuro-fund-i': 'neuro-lp',
+  'gold-co-investors': 'gold-coinvestors',
 };
 
 /** Cap for client CSV export fetches. */

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
@@ -8,11 +8,13 @@ import { FilterSelect } from '@/components/common/filters/FilterSelect/FilterSel
 import type { Option } from '@/components/form/FormSelect/types';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
+import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLists';
 import { useWarmIntrosV2Facets } from '@/services/investors/hooks/useWarmIntrosV2Facets';
 import { useWarmIntrosV2Paths } from '@/services/investors/hooks/useWarmIntrosV2Paths';
 import { listWarmIntrosV2Paths } from '@/services/investors/warm-intros-v2.service';
 import {
   WARM_INTROS_V2_CSV_EXPORT_LIMIT,
+  WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET,
   WARM_INTROS_V2_TARGET_SET_LABEL,
   WARM_INTROS_V2_TARGET_SETS,
   type WarmIntrosV2InvestorSummary,
@@ -32,11 +34,6 @@ interface Props {
 
 const PAGE_LIMIT = 50;
 const SEARCH_DEBOUNCE_MS = 300;
-
-const TARGET_SET_OPTIONS: Option[] = WARM_INTROS_V2_TARGET_SETS.map((value) => ({
-  value,
-  label: WARM_INTROS_V2_TARGET_SET_LABEL[value],
-}));
 
 /**
  * Warm Intros v2 workspace: filter bar + polished table + glossary + CSV + investor drawer + MasterProfile modal.
@@ -73,22 +70,58 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
       sector: filters.wi2_sector || undefined,
       rank: 1,
       limit: PAGE_LIMIT,
-      offset: 0,
     }),
     [targetSet, debouncedSearch, filters.wi2_connector, filters.wi2_sector],
   );
 
-  const { data, isLoading, isError, error } = useWarmIntrosV2Paths(listParams);
+  const { data, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useWarmIntrosV2Paths(listParams);
   const { data: facets } = useWarmIntrosV2Facets(targetSet);
+  const { data: lists } = useGetInvestorLists(true);
 
-  const paths = data?.paths ?? [];
-  const total = data?.total ?? paths.length;
+  const paths = useMemo(() => data?.pages.flatMap((p) => p.paths) ?? [], [data]);
+  const total = data?.pages.at(-1)?.total ?? paths.length;
+  const hasRows = paths.length > 0;
+
+  const targetSetOptions = useMemo<Option[]>(() => {
+    return WARM_INTROS_V2_TARGET_SETS.map((value) => {
+      const list = lists?.find((l) => l.slug === WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET[value]);
+      const name = list?.name ?? WARM_INTROS_V2_TARGET_SET_LABEL[value];
+      const count = list?.member_count;
+      const label =
+        typeof count === 'number' ? `${name} · ${count.toLocaleString()} ${count === 1 ? 'member' : 'members'}` : name;
+      return { value, label };
+    });
+  }, [lists]);
+
+  const scrollRootRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    const root = scrollRootRef.current;
+    const sentinel = sentinelRef.current;
+    if (!root || !sentinel || !hasNextPage || !hasRows) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) handleLoadMore();
+      },
+      { root, rootMargin: '80px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore, hasNextPage, hasRows]);
 
   useEffect(() => {
     if (data) onCountChange?.(total);
   }, [data, total, onCountChange]);
 
-  const targetSetValue = TARGET_SET_OPTIONS.find((o) => o.value === targetSet) ?? TARGET_SET_OPTIONS[0];
+  const targetSetValue = targetSetOptions.find((o) => o.value === targetSet) ?? targetSetOptions[0];
 
   const connectorOptions = useMemo<Option[]>(
     () =>
@@ -186,9 +219,9 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
         </header>
 
         <div className={s.filterBar}>
-          <div className={s.filterBarItem} style={{ minWidth: 140 }}>
+          <div className={s.filterBarItem} style={{ minWidth: 280 }}>
             <FilterSelect
-              options={TARGET_SET_OPTIONS}
+              options={targetSetOptions}
               value={targetSetValue}
               placeholder="Investors list"
               aria-label="Investors list"
@@ -284,6 +317,9 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             onOpenProfileUid={onOpenProfileUid}
             onViewAllPaths={onViewAllPaths}
             onRowClick={onRowClick}
+            scrollRootRef={scrollRootRef}
+            sentinelRef={sentinelRef}
+            footer={isFetchingNextPage ? <div className={s.sentinelLoader}>Loading more…</div> : null}
           />
         </div>
       )}

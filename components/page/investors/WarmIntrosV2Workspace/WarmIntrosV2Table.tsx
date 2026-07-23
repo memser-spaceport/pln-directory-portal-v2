@@ -1,11 +1,11 @@
 'use client';
 
+import type { ReactNode, Ref } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
-import Image from 'next/image';
 import { PathProfileChip } from './PathProfileChip';
 import { ScorePercentPill } from './ScorePercentPill';
 import s from './WarmIntrosV2Table.module.scss';
@@ -16,6 +16,11 @@ interface Props {
   onOpenProfileUid: (profileUid: string) => void;
   onViewAllPaths: (row: WarmIntrosV2PathListItem) => void;
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
+  /** Scroll container for infinite-scroll IntersectionObserver root. */
+  scrollRootRef?: Ref<HTMLDivElement>;
+  /** Placed at the bottom of the scrollable table body. */
+  sentinelRef?: Ref<HTMLDivElement>;
+  footer?: ReactNode;
 }
 
 function pathCount(row: WarmIntrosV2PathListItem): number {
@@ -31,9 +36,18 @@ function memberAvatarSrc(investor: WarmIntrosV2InvestorSummary | undefined): str
  * Warm Intros v2 results table.
  * Path column uses clickable PL connector / investor chips (same language as the drawer).
  */
-export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onOpenProfileUid, onViewAllPaths, onRowClick }: Props) {
+export function WarmIntrosV2Table({
+  rows,
+  onOpenMasterProfile,
+  onOpenProfileUid,
+  onViewAllPaths,
+  onRowClick,
+  scrollRootRef,
+  sentinelRef,
+  footer,
+}: Props) {
   return (
-    <div className={s.tableWrap}>
+    <div className={s.tableWrap} ref={scrollRootRef}>
       <table className={s.table}>
         <thead>
           <tr>
@@ -83,24 +97,19 @@ export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onOpenProfileUid,
                 }
               >
                 <td className={s.td}>
-                  <div className={s.investorCell}>
-                    {avatarSrc ? (
-                      <Image className={s.investorAvatar} src={avatarSrc} alt="" width={32} height={32} unoptimized />
-                    ) : null}
-                    <div className={s.investorText}>
-                      <button
-                        type="button"
-                        className={s.nameBtn}
-                        aria-label={`Open profile for ${name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (investor) onOpenMasterProfile(investor);
-                        }}
-                      >
-                        {name}
-                      </button>
-                      {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
-                    </div>
+                  <div className={s.investorText}>
+                    <button
+                      type="button"
+                      className={s.nameBtn}
+                      aria-label={`Open profile for ${name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (investor) onOpenMasterProfile(investor);
+                      }}
+                    >
+                      {name}
+                    </button>
+                    {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
                   </div>
                 </td>
 
@@ -169,6 +178,8 @@ export function WarmIntrosV2Table({ rows, onOpenMasterProfile, onOpenProfileUid,
           })}
         </tbody>
       </table>
+      <div ref={sentinelRef} className={s.sentinel} />
+      {footer}
     </div>
   );
 }

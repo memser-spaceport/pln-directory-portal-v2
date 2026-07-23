@@ -66,7 +66,7 @@ export const currentRoundData: CurrentRoundData = {
         text: 'Your PLAA amount depends on participation within each category: when more people contribute, the PLAA pool is more widely distributed; when activity is lower in a category, more PLAA is available per contributor.'
       },
       {
-        text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Blog Creation, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new activity assistant bot streamlines most submissions, though some activities will still require submission via a Google form or manual updates. We\'ll continue updating as new submissions come in and are working toward more automations this year.'
+        text: 'Some categories update in real time, while others rely on participants submitting information. Consequently, the point totals may not always reflect the most recent activity — especially for activities such as Custom Incentive Experiments, Talent Referrals, Curate X Spaces, and Referral Program submissions. Our new activity assistant bot streamlines most submissions, though some activities will still require submission via a Google form or manual updates. We\'ll continue updating as new submissions come in and are working toward more automations this year.'
       },
       {
         text: 'Each round represents a single monthly snapshot period. View the PLAA allocations and activity levels for the current round below. You can also view the point-to-PLAA conversion results across previous rounds {previousRounds}.',
@@ -140,25 +140,29 @@ export const currentRoundData: CurrentRoundData = {
     onboardedParticipants: 63,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
     incentivizedActivities: [
-      'Curate X Spaces',
+      'Thoughtful Responder',
+      'Quick Conversationalist',
       'Host Office Hours',
-      'Create a Blog for the Network',
-      'Complete or Update Your PL Directory Profile',
-      'Design a Custom Incentive Experiment',
-      'Contribute Your Compensation Data',
-      'Talent Referral Program',
-      'Create an Incentivized Activity',
-      'Network Introductions',
-      'Referral Program',
-      'Survey Completion',
-      'Alignment Asset Program Contributions',
-      'Distinguished Network Contributions',
+      'Make a Network Introduction',
+      'High Value Connector',
+      'Attend an IRL Gathering',
+      'Complete a PLAA Survey',
+      'Give Excellent Survey Feedback',
+      'Complete a Survey',
+      'Refer New Alignment Asset Participants',
+      'Top the Leaderboard',
+      'Host or Co-Host an X Space',
+      'Write and publish a case study about the Alignment Asset',
+      'Refer a Potential Team Member to a PL Network Org',
+      'Propose a New Activity for the PLAA',
       'Help Organize an Event',
-      'Construct an Alignment Asset Case Study',
-      'Respond to an IRL Gathering',
-      'Contribute a High-Quality Response to the Forum',
-      'Share a Reusable AI Resource or Tool',
-      'Rank Among the Network\'s Most Supportive Members'
+      'Highlight an Outstanding Network Contribution',
+      'Share an AI Resource or Tool You Built',
+      'Contribute to the Alignment Asset Program',
+      'Build an AI App',
+      'Setup Your PL Directory Profile',
+      'Share Compensation Data',
+      'Design a Custom Incentive Experiment'
     ],
     // Sum of chart.chartData values above (450 + 200 + 500)
     totalPointsCollected: '1,150',

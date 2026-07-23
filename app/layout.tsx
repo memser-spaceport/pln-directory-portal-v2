@@ -79,7 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <ContactSupportUrlSync />
                 <header className="layout__header">
                   {/* <DemoDayBanner /> */}
-                  <PlaaBanner />
+                  {/* <PlaaBanner /> */}
                   {/*<SubscribeToRecoomendations userInfo={userInfo} />*/}
                   <CompleteYourProfile />
                   <Navbar isLoggedIn={isLoggedIn} userInfo={userInfo} authToken={authToken} />

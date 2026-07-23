@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import HeroSection from './sections/hero-section';
 import ActivityTable from './sections/activity-table';
 import ActivityDetailModal from './sections/activity-detail-modal';
@@ -14,18 +13,30 @@ import useHash from '@/hooks/useHash';
 /**
  * ActivitiesComponent - Main component for displaying activities and points collection
  * Uses data from ./data/activities.data.ts
+ *
+ * The open activity modal is derived directly from the URL hash (`#<activity-id>`),
+ * so opening a deeplink renders the page with that activity's modal already open.
+ * Row clicks and the close button update the hash (and notify listeners) instead of
+ * holding separate modal state, keeping the URL as the single source of truth.
  */
 export default function ActivitiesComponent() {
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { onActivitiesRowClicked, onActivitiesModalClosed } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('activities');
-  
-  // Track if we're programmatically updating the hash to avoid triggering hash listener
-  const isUpdatingHashRef = useRef(false);
-  
-  // Get current hash from URL
+
+  // Derive the open activity from the URL hash rather than syncing it into state.
   const hash = useHash();
+  const activityId = hash ? (hash.startsWith('#') ? hash.slice(1) : hash) : null;
+  const selectedActivity =
+    activityId && activityId !== 'login'
+      ? activitiesData.activities.find((a) => a.id === activityId) ?? null
+      : null;
+  const isModalOpen = selectedActivity !== null;
+
+  // Update the hash and notify useHash (pushState alone doesn't emit 'hashchange').
+  const updateHash = (newHash: string) => {
+    window.history.pushState(null, '', newHash || window.location.pathname + window.location.search);
+    window.dispatchEvent(new Event('hashchange'));
+  };
 
   const handleRowClick = (activity: Activity) => {
     onActivitiesRowClicked({
@@ -34,15 +45,7 @@ export default function ActivitiesComponent() {
       category: activity.category,
       points: activity.points,
     });
-    setSelectedActivity(activity);
-    setIsModalOpen(true);
-    
-    // Update URL hash
-    isUpdatingHashRef.current = true;
-    window.history.pushState(null, '', `#${activity.id}`);
-    setTimeout(() => {
-      isUpdatingHashRef.current = false;
-    }, 0);
+    updateHash(`#${activity.id}`);
   };
 
   const handleCloseModal = () => {
@@ -54,46 +57,8 @@ export default function ActivitiesComponent() {
         points: selectedActivity.points,
       });
     }
-    setIsModalOpen(false);
-    setSelectedActivity(null);
-    
-    // Remove hash from URL
-    isUpdatingHashRef.current = true;
-    window.history.pushState(null, '', window.location.pathname + window.location.search);
-    isUpdatingHashRef.current = false;
+    updateHash('');
   };
-
-  useEffect(() => {
-    // Ignore if we're programmatically updating the hash
-    if (isUpdatingHashRef.current) {
-      return;
-    }
-    
-    if (hash) {
-      // Remove '#' prefix if present
-      const activityId = hash.startsWith('#') ? hash.slice(1) : hash;
-
-      if (activityId === 'login') {
-        setIsModalOpen(false);
-        setSelectedActivity(null);
-        return;
-      }
-
-      const activity = activitiesData.activities.find(a => a.id === activityId);
-
-      if (activity) {
-        setSelectedActivity(activity);
-        setIsModalOpen(true);
-      } else {
-        setIsModalOpen(false);
-        setSelectedActivity(null);
-      }
-    } else {
-      // No hash, close modal if open
-      setIsModalOpen(false);
-      setSelectedActivity(null);
-    }
-  }, [hash]);
 
   return (
     <>
@@ -102,7 +67,7 @@ export default function ActivitiesComponent() {
         <HeroSection data={activitiesData.hero} />
 
         {/* Activities Table */}
-        <ActivityTable 
+        <ActivityTable
           activities={activitiesData.activities}
           onRowClick={handleRowClick}
         />
@@ -112,7 +77,7 @@ export default function ActivitiesComponent() {
       </div>
 
       {/* Activity Detail Modal */}
-      <ActivityDetailModal 
+      <ActivityDetailModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         activity={selectedActivity}
@@ -136,5 +101,3 @@ export default function ActivitiesComponent() {
     </>
   );
 }
-
-

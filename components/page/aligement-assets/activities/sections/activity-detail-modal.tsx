@@ -7,7 +7,8 @@ import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { Activity, PopupLink } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-import { ACTIVITY_FORM_URL } from '@/constants/plaa';
+import { ACTIVITY_FORM_URL, ACTIVITY_CONFIRM_TOAST } from '@/constants/plaa';
+import { toast } from '@/components/core/ToastContainer';
 
 interface ActivityDetailModalProps {
   isOpen: boolean;
@@ -24,7 +25,8 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
   if (!activity) return null;
 
   const { popupContent } = activity;
-  
+  const pointsAwarded = popupContent.pointsAwarded;
+
   // Combine submissionLink with links array for rendering
   const allLinks = popupContent.links || (popupContent.submissionLink ? [popupContent.submissionLink] : []);
 
@@ -37,19 +39,25 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
     }, linkText, url);
   };
 
-  const handleSubmitBtnClick = () => {
-    // Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
+  const handleCtaClick = () => {
+    // Confirm CTA: acknowledge with a toast, no navigation.
+    if (activity.cta === 'confirm') {
+      toast.success(ACTIVITY_CONFIRM_TOAST);
+      return;
+    }
+
+    // Submit CTA: open the submission form. Priority: ctaLink > submissionLink > ACTIVITY_FORM_URL
     const url = popupContent.ctaLink
       || (!activity.hasFormLink && popupContent.submissionLink ? popupContent.submissionLink.url : null)
       || ACTIVITY_FORM_URL;
-    
+
     onActivitiesModalLinkClicked({
       activityId: activity.id,
       activityName: activity.activity,
       category: activity.category,
       points: activity.points,
     }, 'Submit Activity Button', url);
-    
+
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -148,9 +156,49 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
               <h3 className="activity-modal__subtitle">{popupContent.subtitle}</h3>
             )}
             
-            <p className="activity-modal__description">
-              {renderTextWithLinks(popupContent.description, allLinks)}
-            </p>
+            {popupContent.description && (
+              <p className="activity-modal__description">
+                {renderTextWithLinks(popupContent.description, allLinks)}
+              </p>
+            )}
+
+            {popupContent.overview && (
+              <div className="activity-modal__sections">
+                <section className="activity-modal__section">
+                  <h3 className="activity-modal__section-title">👀 Overview</h3>
+                  {popupContent.overview.split('\n\n').map((para, index) => (
+                    <p key={index} className="activity-modal__description">
+                      {renderTextWithLinks(para, allLinks)}
+                    </p>
+                  ))}
+                </section>
+
+                {popupContent.networkBenefits && (
+                  <section className="activity-modal__section">
+                    <h3 className="activity-modal__section-title">🤝 Network Benefits</h3>
+                    <p className="activity-modal__description">
+                      {renderTextWithLinks(popupContent.networkBenefits, allLinks)}
+                    </p>
+                  </section>
+                )}
+
+                {popupContent.rules && popupContent.rules.length > 0 && (
+                  <section className="activity-modal__section">
+                    <h3 className="activity-modal__section-title">📏 Rules</h3>
+                    <p className="activity-modal__description">
+                      Participants must complete the activity as described and meet the activity-specific eligibility requirements:
+                    </p>
+                    <ol className="activity-modal__rules">
+                      {popupContent.rules.map((rule, index) => (
+                        <li key={index} className="activity-modal__rule">
+                          {renderTextWithLinks(rule, allLinks)}
+                        </li>
+                      ))}
+                    </ol>
+                  </section>
+                )}
+              </div>
+            )}
 
             {popupContent.requirements && popupContent.requirements.length > 0 && (
               <ul className="activity-modal__requirements">
@@ -173,13 +221,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
             )}
 
             {/* Points Awarded Section */}
-            {(popupContent.pointsAwarded.items.length > 0 || popupContent.categories) && (
+            {pointsAwarded && (pointsAwarded.items.length > 0 || popupContent.categories) && (
               <div className="activity-modal__points">
-                <h3 className="activity-modal__points-title">{popupContent.pointsAwarded.title}</h3>
-                
-                {popupContent.pointsAwarded.subtitle && popupContent.pointsAwarded.subtitle.length > 0 && (
+                <h3 className="activity-modal__points-title">{pointsAwarded.title}</h3>
+
+                {pointsAwarded.subtitle && pointsAwarded.subtitle.length > 0 && (
                   <div className="activity-modal__points-subtitle">
-                    {popupContent.pointsAwarded.subtitle.map((item, index) => (
+                    {pointsAwarded.subtitle.map((item, index) => (
                       <div key={index} className="activity-modal__points-item">
                         {item.value ? (
                           <><strong>{item.label}:</strong> {item.value}</>
@@ -191,13 +239,13 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                   </div>
                 )}
                 
-                {popupContent.pointsAwarded.description && (
-                  <p className="activity-modal__points-description">{popupContent.pointsAwarded.description}</p>
+                {pointsAwarded.description && (
+                  <p className="activity-modal__points-description">{pointsAwarded.description}</p>
                 )}
-                
-                {popupContent.pointsAwarded.items.length > 0 && (
+
+                {pointsAwarded.items.length > 0 && (
                   <ul className="activity-modal__points-list">
-                    {popupContent.pointsAwarded.items.map((item, index) => {
+                    {pointsAwarded.items.map((item, index) => {
                       const boldLabel = item.boldLabel !== false;
                       return (
                       <li key={index} className="activity-modal__points-item">
@@ -301,10 +349,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                     <span>Auto-tracked</span>
                   </>
                 );
-                if (vType === 'Hybrid') return (
+                if (vType === 'Manual Review') return (
                   <>
-                    <Image src="/icons/hybrid-icon.svg" alt="Hybrid" width={16} height={16} />
-                    <span>Hybrid</span>
+                    <Image src="/icons/hybrid-icon.svg" alt="Manual Review" width={16} height={16} />
+                    <span>Manual Review</span>
                   </>
                 );
                 return (
@@ -315,8 +363,10 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
                 );
               })()}
             </div>
-            <button className="activity-modal__submit-btn" onClick={handleSubmitBtnClick}>
-              {popupContent.submitButtonText || (activity.hasFormLink ? 'Submit Activity >' : (popupContent.submissionLink ? 'Read & Submit >' : 'Submit Activity >'))}
+            <button className="activity-modal__submit-btn" onClick={handleCtaClick}>
+              {activity.cta === 'confirm'
+                ? 'Confirm'
+                : (popupContent.submitButtonText || (activity.hasFormLink ? 'Submit Activity >' : (popupContent.submissionLink ? 'Read & Submit >' : 'Submit')))}
             </button>
           </div>
         </div>
@@ -405,6 +455,41 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }: Activ
           color: #475569;
           margin: 0;
           white-space: pre-wrap;
+        }
+
+        .activity-modal__sections {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .activity-modal__section {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .activity-modal__section-title {
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 20px;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .activity-modal__rules {
+          list-style: decimal;
+          padding-left: 20px;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .activity-modal__rule {
+          font-size: 14px;
+          line-height: 22px;
+          color: #475569;
         }
 
         .activity-modal__submission-note-title {

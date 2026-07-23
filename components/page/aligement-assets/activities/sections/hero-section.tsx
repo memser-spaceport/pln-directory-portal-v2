@@ -1,101 +1,47 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { ACTIVITY_FORM_URL } from '@/constants/plaa';
-import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
-
 interface HeroSectionProps {
   data: {
     title: string;
     description: string;
     note: string;
-    submitButtonLabel: string;
-    suggestLinkText: string;
-    suggestLinkHighlight: string;
-    hintText: string;
   };
 }
 
 /**
- * HeroSection - Displays the main title, description, and action buttons for activities page
+ * HeroSection - Displays the main title and description for activities page
  */
 export default function HeroSection({ data }: HeroSectionProps) {
-  const { onActivitiesSubmitBtnClicked, onActivitiesSuggestLinkClicked } = useAlignmentAssetsAnalytics();
-
-  const handleSubmitClick = () => {
-    onActivitiesSubmitBtnClicked(ACTIVITY_FORM_URL);
-  };
-
-  const handleSuggestClick = () => {
-    onActivitiesSuggestLinkClicked(ACTIVITY_FORM_URL);
-  };
-
   return (
     <>
       <section className="activities-hero">
         <div className="activities-hero__content">
           <h1 className="activities-hero__title">{data.title}</h1>
           <p className="activities-hero__description">{data.description}</p>
-          <p className="activities-hero__note">{data.note}</p>
-          
-          <div className="activities-hero__actions">
-            <Link 
-              href={ACTIVITY_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="activities-hero__submit-btn"
-              onClick={handleSubmitClick}
-            >
-              {data.submitButtonLabel}
-            </Link>
-          </div>
-
-          <p className="activities-hero__suggest">
-            {data.suggestLinkText}{' '}
-            <Link 
-              href={ACTIVITY_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="activities-hero__suggest-link"
-              onClick={handleSuggestClick}
-            >
-              {data.suggestLinkHighlight}
-            </Link>
-          </p>
-
-          <div className="activities-hero__hint">
-            <Image 
-              src="/icons/cursor-click.svg" 
-              alt="" 
-              width={24} 
-              height={24} 
-              className="activities-hero__hint-icon"
-            />
-            <span>{data.hintText}</span>
-          </div>
+          {data.note && <p className="activities-hero__note">{data.note}</p>}
         </div>
       </section>
 
       <style jsx>{`
         .activities-hero {
           width: 100%;
-          text-align: center;
+          text-align: left;
         }
 
         .activities-hero__content {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           gap: 26px;
           max-width: 1124px;
           margin: 0 auto;
         }
 
         .activities-hero__title {
-          font-size: 20px;
+          font-family: 'Inter', sans-serif;
+          font-size: 24px;
           font-weight: 600;
-          line-height: 28px;
+          line-height: 32px;
           color: #16161F;
           margin: 0;
         }
@@ -117,45 +63,6 @@ export default function HeroSection({ data }: HeroSectionProps) {
           font-style: italic;
         }
 
-        .activities-hero__actions {
-          margin-top: 8px;
-        }
-
-        .activities-hero__suggest {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 20px;
-          color: #0F172A;
-          margin: 0;
-        }
-
-        .activities-hero__hint {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          background-color: #DBEAFE66;
-          width: 396px;
-          height: 36px;
-          padding: 6px 12px;
-          border-radius: 40px;
-          margin-top: 14px;
-        }
-
-        .activities-hero__hint span {
-          font-family: 'Inter', sans-serif;
-          font-size: 15px;
-          font-weight: 400;
-          line-height: 100%;
-          color: #0F172A;
-          letter-spacing: 0;
-        }
-
-        .activities-hero__hint-icon {
-          width: 24px;
-          height: 24px;
-        }
-
         @media (max-width: 768px) {
           .activities-hero {
             text-align: left;
@@ -167,59 +74,8 @@ export default function HeroSection({ data }: HeroSectionProps) {
           }
 
           .activities-hero__title {
-            font-size: 20px;
-            line-height: 24px;
-          }
-
-          .activities-hero__hint {
-            justify-content: flex-start;
-            width: 100%;
-            max-width: 396px;
-          }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        .activities-hero__submit-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          height: 40px;
-          padding: 10px 24px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          line-height: 20px;
-          color: white;
-          background-color: #156ff7;
-          text-decoration: none;
-          cursor: pointer;
-          transition: background-color 0.15s ease;
-          box-shadow: 0px 1px 1px 0px rgba(15, 23, 42, 0.08);
-        }
-
-        .activities-hero__submit-btn:hover {
-          background-color: #1d4ed8;
-        }
-
-        .activities-hero__suggest-link {
-          color: #156ff7;
-          font-weight: 500;
-          font-size: 14px;
-          line-height: 20px;
-          padding-left: 5px;
-          text-decoration: underline;
-          text-underline-position: from-font;
-          text-decoration-skip-ink: none;
-        }
-
-        .activities-hero__suggest-link:hover {
-          text-decoration: none;
-        }
-
-        @media (max-width: 768px) {
-          .activities-hero__submit-btn {
-            width: 100%;
+            font-size: 24px;
+            line-height: 32px;
           }
         }
       `}</style>

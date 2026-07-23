@@ -71,6 +71,14 @@ export function useAiAppsAnalytics() {
     onEditDetailsFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_FAILED, { appUid }),
     onDeploymentSettingsOpened: (params: { appUid: string; isDraft: boolean }) =>
       capture(AI_APPS_ANALYTICS.DEPLOYMENT_SETTINGS_OPENED, params),
+    // Logs events carry uids/streams/counts ONLY — never log message text or
+    // search queries, which can contain secrets and member PII.
+    onDeploymentLogsOpened: (appUid: string, appName: string, source: 'menu' | 'failure-strip') =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_OPENED, { appUid, appName, source }),
+    onDeploymentLogsTabSwitched: (appUid: string, stream: 'build' | 'runtime') =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_TAB_SWITCHED, { appUid, stream }),
+    onDeploymentLogsExported: (appUid: string, stream: 'build' | 'runtime', rowCount: number) =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_EXPORTED, { appUid, stream, rowCount }),
     onDeleteAppOpened: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.DELETE_APP_OPENED, { appUid, appName }),
     onDeleteAppCancelled: (appUid: string, appName: string) =>

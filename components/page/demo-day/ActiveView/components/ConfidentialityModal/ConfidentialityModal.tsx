@@ -36,10 +36,8 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
   const acceptConfidentiality = useAcceptConfidentiality();
   const demoDayAnalytics = useDemoDayAnalytics();
 
-  const handleClose = () => {
+  const handleCloseClick = () => {
     demoDayAnalytics.onConfidentialityModalClosed();
-
-    // Redirect to /members when close button is clicked
     router.push('/members');
   };
 
@@ -51,9 +49,9 @@ export const ConfidentialityModal: React.FC<ConfidentialityModalProps> = ({ isOp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} closeOnBackdropClick={false}>
+    <Modal isOpen={isOpen} closeOnBackdropClick={false} closeOnEscape={false}>
       <div className={s.modal}>
-        <button className={s.closeButton} onClick={handleClose} aria-label="Close">
+        <button className={s.closeButton} onClick={handleCloseClick} aria-label="Close">
           <CloseIcon />
         </button>
 

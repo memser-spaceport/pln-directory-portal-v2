@@ -3,7 +3,7 @@ import { ActivitiesData } from '../types';
 export const activitiesData: ActivitiesData = {
   hero: {
     title: 'Build the Network, Collect PLAA Points',
-    description: `You’re already contributing to the growth of the Protocol Labs Network. Complete the activities below to have your contributions recognized as PLAA points—a way to track and celebrate your participation in the community. Click any activity to view details and discover new ways to get involved.`,
+    description: `You’re already contributing to the growth of the Protocol Labs Network. Complete the activities below to have your contributions recognized as PLAA points—a way to track and recognize your participation in the community. Click any activity to view details and discover new ways to get involved.`,
     note: ''
   },
   activities: [

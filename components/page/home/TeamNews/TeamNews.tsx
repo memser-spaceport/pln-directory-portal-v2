@@ -27,7 +27,7 @@ import {
   type TeamNewsCategoryId,
 } from './constants';
 
-import { hasExistingDiscussion } from './components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
+import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';

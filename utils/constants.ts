@@ -596,8 +596,6 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_SHARED: 'team-news-shared',
   TEAM_NEWS_SOURCES_EXPANDED: 'team-news-sources-expanded',
   TEAM_NEWS_SOURCE_LINK_CLICKED: 'team-news-source-link-clicked',
-  TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
-  TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
   TEAM_NEWS_UPVOTE_TOGGLED: 'team-news-upvote-toggled',
   TEAM_NEWS_UPVOTE_FAILED: 'team-news-upvote-failed',

@@ -14,7 +14,6 @@ import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
-import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 
@@ -187,8 +186,6 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
             onToggle={handleUpvoteClick}
           />
         )}
-        <span className={s.footerSpacer} />
-        <StartConversationButton item={item} position={0} analyticsSource="news-modal" />
       </div>
     </Modal>
   );

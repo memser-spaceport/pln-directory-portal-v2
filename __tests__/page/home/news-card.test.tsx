@@ -15,10 +15,6 @@ jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => mockUseCurrentUserStore(),
 }));
 
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: () => <button type="button">Discuss</button>,
-}));
-
 jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '4d ago',
 }));
@@ -60,7 +56,6 @@ describe('NewsCard upvotes', () => {
     render(<NewsCard item={item} upvoteCount={2} viewerHasUpvoted={false} />);
 
     expect(screen.queryByRole('button', { name: /Upvote/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Discuss' })).toBeInTheDocument();
   });
 
   it('renders the upvote button and forwards the toggle for a signed-in viewer', () => {

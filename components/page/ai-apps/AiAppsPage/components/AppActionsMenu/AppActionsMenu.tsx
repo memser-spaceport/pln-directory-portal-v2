@@ -16,6 +16,8 @@ interface Props {
   onEdit: () => void;
   /** Called when "Deployment settings" is chosen. */
   onDeployment: () => void;
+  /** Called when "Deployment logs" is chosen. */
+  onLogs: () => void;
   /** Called when "Delete app" is chosen. */
   onDelete: () => void;
 }
@@ -29,9 +31,13 @@ interface Props {
  * entirely; a failed check only degrades to disabled items — it must never
  * yank the menu out from under the pointer.
  */
-export function AppActionsMenu({ app, onEdit, onDeployment, onDelete }: Props) {
+export function AppActionsMenu({ app, onEdit, onDeployment, onLogs, onDelete }: Props) {
   const analytics = useAiAppsAnalytics();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Gated here, not in the parents, so grid and detail page can't drift:
+  // a DRAFT has never built, so it has no logs to show.
+  const showLogsItem = app.status !== 'DRAFT';
 
   const { app: detail, errorKind } = useAiApp(app.uid, { enabled: isOpen });
 
@@ -69,6 +75,11 @@ export function AppActionsMenu({ app, onEdit, onDeployment, onDelete }: Props) {
             <Menu.Item className={s.item} disabled={verifying} onClick={onDeployment}>
               Deployment settings
             </Menu.Item>
+            {showLogsItem && (
+              <Menu.Item className={s.item} disabled={verifying} onClick={onLogs}>
+                Deployment logs
+              </Menu.Item>
+            )}
             <div className={s.divider} role="separator" />
             <Menu.Item className={`${s.item} ${s.destructive}`} disabled={verifying} onClick={onDelete}>
               Delete app

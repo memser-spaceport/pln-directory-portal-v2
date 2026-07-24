@@ -64,6 +64,64 @@
   z-index: 2;
 }
 
+// Failure notice across the card's top edge — full-bleed via negative margins
+// against .root's 24px padding. A sibling of the card's <Link>/<button> (its
+// "See logs" button must not nest inside them), floated above the stretched
+// link so the button stays clickable.
+.failStrip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 28px;
+  margin: -24px -24px 0;
+  padding: 0 24px;
+  border-radius: 12px 12px 0 0;
+  background: #fef2f2;
+}
+
+.failStripLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #b91c1c;
+
+  // The badge's dot, kept so severity isn't carried by color alone at a glance.
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.seeLogsButton {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The strip adds a 28px row + the root's 16px gap above the name row, so the
+// ⋯ menu drops by (28 + 16 - 24 + 26) to stay centered on the name line.
+.rootWithStrip .actionSlot {
+  top: 46px;
+}
+
 // Reserve room for the creator's ⋯ menu so long names ellipsize instead of
 // sliding under it. (Visitors have no corner action — the name gets full width.)
 .nameRowMenu {
@@ -145,12 +203,6 @@
   line-height: 18px;
   background: #fef3c7;
   color: #92400e;
-}
-
-.errorBadge {
-  @extend .draftBadge;
-  background: #fef2f2;
-  color: #b91c1c;
 }
 
 .deployingBadge {

@@ -24,12 +24,14 @@ interface Props {
   onEdit?: () => void;
   onDeployment?: () => void;
   onDelete?: () => void;
+  /** Open the deployment-logs modal; `source` says which affordance was used. */
+  onLogs?: (source: 'menu' | 'failure-strip') => void;
   /** Open the public App Details (one-pager) viewer. Shown to every viewer when a one-pager exists. */
   onViewDetails?: () => void;
 }
 
 export function AiAppCard(props: Props) {
-  const { app, onSelect, canManage, onEdit, onDeployment, onDelete, onViewDetails } = props;
+  const { app, onSelect, canManage, onEdit, onDeployment, onDelete, onLogs, onViewDetails } = props;
   const analytics = useAiAppsAnalytics();
 
   const handleAuthorClick = (e: MouseEvent) => {
@@ -47,6 +49,10 @@ export function AiAppCard(props: Props) {
 
   const showManageMenu = !!canManage && !!onEdit && !!onDeployment && !!onDelete;
   const showDetailsButton = !!onViewDetails && hasPrd(app);
+  // The strip took over the old inline "Deploy failed" badge's job — everyone
+  // sees it; only managers get its "See logs" link.
+  const showFailureStrip = hasDeployFailed;
+  const showSeeLogs = showFailureStrip && !!canManage && !!onLogs;
 
   const body = (
     <>
@@ -54,11 +60,24 @@ export function AiAppCard(props: Props) {
       <div className={clsx(s.nameRow, { [s.nameRowMenu]: showManageMenu })}>
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
-        {hasDeployFailed && <span className={s.errorBadge}>Deploy failed</span>}
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>
     </>
+  );
+
+  // A direct child of .root, never nested in the card's <Link>/<button> —
+  // link-inside-link is invalid HTML and breaks keyboard/SR semantics. It sits
+  // above the stretched-link overlay like .actionSlot does.
+  const failureStrip = showFailureStrip && (
+    <div className={s.failStrip}>
+      <span className={s.failStripLabel}>Deploy failed</span>
+      {showSeeLogs && (
+        <button type="button" className={s.seeLogsButton} onClick={() => onLogs('failure-strip')}>
+          See logs
+        </button>
+      )}
+    </div>
   );
 
   const footer = (
@@ -111,13 +130,20 @@ export function AiAppCard(props: Props) {
 
   const actionSlot = showManageMenu && (
     <div className={s.actionSlot}>
-      <AppActionsMenu app={app} onEdit={onEdit} onDeployment={onDeployment} onDelete={onDelete} />
+      <AppActionsMenu
+        app={app}
+        onEdit={onEdit}
+        onDeployment={onDeployment}
+        onLogs={() => onLogs?.('menu')}
+        onDelete={onDelete}
+      />
     </div>
   );
 
   if (onSelect) {
     return (
-      <article className={s.root}>
+      <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip })}>
+        {failureStrip}
         <button
           type="button"
           className={s.selectButton}
@@ -135,7 +161,8 @@ export function AiAppCard(props: Props) {
   }
 
   return (
-    <article className={s.root}>
+    <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip })}>
+      {failureStrip}
       {/* stretchedLink expands the hit area to the whole card (the card can't BE
           the link — the footer holds a nested author link). */}
       <Link href={`/pl-infra/ai-apps/${app.uid}`} className={clsx(s.body, s.stretchedLink)} onClick={handleCardClick}>

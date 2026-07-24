@@ -2379,4 +2379,7 @@ export const AI_APPS_ANALYTICS = {
   APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
   PRD_OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_prd_open_in_new_tab_clicked',
   PRD_PAGE_VIEWED: 'ai_apps_prd_page_viewed',
+  DEPLOYMENT_LOGS_OPENED: 'ai_apps_deployment_logs_opened',
+  DEPLOYMENT_LOGS_TAB_SWITCHED: 'ai_apps_deployment_logs_tab_switched',
+  DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
 };

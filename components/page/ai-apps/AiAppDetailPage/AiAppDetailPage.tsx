@@ -14,6 +14,7 @@ import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/
 import {
   EditAiAppModal,
   DeploymentSettingsModal,
+  DeploymentLogsModal,
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
@@ -27,7 +28,7 @@ interface Props {
   uid: string;
 }
 
-type Action = 'edit' | 'deployment' | 'delete';
+type Action = 'edit' | 'deployment' | 'logs' | 'delete';
 
 const SETUP_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
@@ -321,6 +322,10 @@ export function AiAppDetailPage(props: Props) {
               app={app}
               onEdit={() => setAction('edit')}
               onDeployment={() => setAction('deployment')}
+              onLogs={() => {
+                analytics.onDeploymentLogsOpened(app.uid, app.name, 'menu');
+                setAction('logs');
+              }}
               onDelete={() => setAction('delete')}
             />
           )}
@@ -341,6 +346,9 @@ export function AiAppDetailPage(props: Props) {
       {action === 'deployment' && (
         <DeploymentSettingsModal app={app} onClose={closeAction} onDeployingChange={setIsRedeploying} />
       )}
+      {/* Conditional render is load-bearing: unmounting on close aborts the
+          modal's in-flight log fetches (its queryFn consumes the signal). */}
+      {action === 'logs' && <DeploymentLogsModal app={app} onClose={closeAction} />}
       {action === 'delete' && (
         <DeleteAiAppDialog
           app={app}

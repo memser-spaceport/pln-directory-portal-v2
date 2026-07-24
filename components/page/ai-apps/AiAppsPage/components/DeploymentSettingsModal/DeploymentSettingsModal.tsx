@@ -169,6 +169,11 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setReplacing({});
     // Refresh both caches right away — the list poll only starts once it can
     // see a DEPLOYING app, and the detail query drives this modal's phases.
+    // Logs are dropped (not just invalidated) so a reopened logs modal shows a
+    // loader for this deploy, never the previous deploy's lines under the new
+    // status chip. (Agent-triggered redeploys skip this path — the logs hook's
+    // staleTime: 0 refetch-on-open is the safety net there.)
+    queryClient.removeQueries({ queryKey: [AiAppsQueryKeys.AI_APP_LOGS, app.uid] });
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),

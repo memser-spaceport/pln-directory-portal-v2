@@ -91,7 +91,6 @@ const MODE_NOTE: Record<CommentsMode, string> = {
   without: 'News and posts show Like and Share only — no comment thread.',
 };
 
-
 // Event kicker colours for the modal, matching the meta-line event palette
 // (NewsfeedV0.module.scss .kFunding/.kLaunch/…).
 const EVENT_HEX: Record<TeamNewsEventType, string> = {
@@ -154,9 +153,7 @@ function clusterByTeam(items: ITeamNewsItem[]): TeamCluster[] {
 }
 
 // A unified feed entry: either a team's news cluster or a single forum post.
-type FeedEntry =
-  | { kind: 'news'; cluster: TeamCluster }
-  | { kind: 'forum'; post: ForumPost };
+type FeedEntry = { kind: 'news'; cluster: TeamCluster } | { kind: 'forum'; post: ForumPost };
 
 /**
  * Newsfeed redesign. Single-column feed mixing team news clusters and member
@@ -284,10 +281,10 @@ export default function NewsfeedV0Prototype() {
   // (new tab, so the prototype stays open) rather than opening a modal.
   // Comments version: open the simple-forum-post modal (with likes + comments).
   const openForumDetail = (post: ForumPost) => {
-    if (mode === 'discuss') {
-      window.open('/forum', '_blank', 'noopener,noreferrer');
-      return;
-    }
+    // if (mode === 'discuss') {
+    //   window.open('/forum', '_blank', 'noopener,noreferrer');
+    //   return;
+    // }
     setForumDetail(post);
   };
 

@@ -46,7 +46,10 @@
 
 .positioner {
   outline: 0;
-  z-index: 1100; /* above the news modal overlay */
+  // The popup portals to <body>, so it stacks against the news modal's
+  // overlay (components/common/Modal, z-index 9999) — anything lower leaves
+  // the menu open but invisible behind the overlay's backdrop.
+  z-index: 10000;
 }
 
 .popup {

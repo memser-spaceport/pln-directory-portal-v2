@@ -8,7 +8,7 @@
   border: none;
   border-radius: 6px;
   background: none;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #455468);
   cursor: pointer;
 
   &:hover,
@@ -18,29 +18,38 @@
   }
 }
 
+// Quiet icon+"Share" trigger for the modal footer — same weight and treatment
+// as the Like button beside it (forum meta-item styling, see NewsCard's
+// .upvote), per prototype PR #2688.
 .buttonTrigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  color: #0f172a;
+  gap: 4px;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
   cursor: pointer;
 
   &:hover,
   &[data-popup-open] {
-    border-color: #94a3b8;
-    background: #f8fafc;
+    filter: brightness(0.8);
   }
 }
 
 .positioner {
   outline: 0;
-  z-index: 1100; /* above the news modal overlay */
+  // The popup portals to <body>, so it stacks against the news modal's
+  // overlay (components/common/Modal, z-index 9999) — anything lower leaves
+  // the menu open but invisible behind the overlay's backdrop.
+  z-index: 10000;
 }
 
 .popup {
@@ -52,7 +61,10 @@
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
-  transform-origin: top right;
+  // Base UI computes the origin from the rendered side/align (the popup can
+  // open up or down depending on the `side` prop and collision flips) — a
+  // hardcoded corner would scale the entrance animation from the wrong edge.
+  transform-origin: var(--transform-origin);
   transition:
     transform 150ms,
     opacity 150ms;

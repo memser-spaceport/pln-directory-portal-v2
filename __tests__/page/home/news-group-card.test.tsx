@@ -8,10 +8,13 @@ jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '2d ago',
 }));
 
-const mockStartConversationButton = jest.fn();
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: (props: { position: number }) => {
-    mockStartConversationButton(props);
+// Captures the per-story `position` prop (story index within the card, not the
+// card's index) — SourceList is the remaining per-story consumer now that the
+// Discuss button is gone.
+const mockSourceList = jest.fn();
+jest.mock('@/components/page/home/TeamNews/components/SourceList/SourceList', () => ({
+  SourceList: (props: { position: number }) => {
+    mockSourceList(props);
     return null;
   },
 }));
@@ -199,7 +202,7 @@ describe('NewsGroupCard', () => {
       makeItem('c', '2026-05-01T00:00:00.000Z'),
     ];
     render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith(items)} />);
-    const positions = mockStartConversationButton.mock.calls.map(([props]) => props.position);
+    const positions = mockSourceList.mock.calls.map(([props]) => props.position);
     expect(positions).toEqual([0, 1, 2]);
   });
 

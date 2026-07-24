@@ -24,9 +24,13 @@ function ShareIcon() {
 interface NewsShareMenuProps {
   item: ITeamNewsItem;
   source: TeamNewsAnalyticsSource;
-  /** 'icon' — glyph-only trigger for feed rows; 'button' — bordered "Share"
+  /** 'icon' — glyph-only trigger for feed rows; 'button' — quiet icon+"Share"
    *  trigger for the modal footer. One component, one popup, two triggers. */
   variant?: 'icon' | 'button';
+  /** Which side of the trigger the popup opens on. The modal footer sits at
+   *  the bottom edge of a clipped card, so it opens 'top'; feed rows keep the
+   *  default 'bottom'. Base UI still collision-flips when there's no room. */
+  side?: 'top' | 'bottom';
   /** Fires on every popup transition (base-ui guarantees self-initiated closes
    *  report too). The modal uses it to gate its own Escape/backdrop close so
    *  one gesture never dismisses both layers. */
@@ -40,7 +44,7 @@ interface NewsShareMenuProps {
  *  extract from THIS component, not ReferMenu.
  *  The /home?news= URL construction is this component's only home-page
  *  coupling — make the link a prop before reusing it elsewhere. */
-export function NewsShareMenu({ item, source, variant = 'icon', onOpenChange }: NewsShareMenuProps) {
+export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom', onOpenChange }: NewsShareMenuProps) {
   const analytics = useTeamNewsAnalytics();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -98,7 +102,7 @@ export function NewsShareMenu({ item, source, variant = 'icon', onOpenChange }: 
         {variant === 'button' && <span>Share</span>}
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className={s.positioner} align="end" sideOffset={6}>
+        <Menu.Positioner className={s.positioner} side={side} align="end" sideOffset={6}>
           <Menu.Popup className={s.popup} onClick={(e) => e.stopPropagation()}>
             <Menu.Item className={s.item} onClick={() => share('linkedin')}>
               <img src="/icons/social-linkedin.svg" alt="" width={18} height={18} aria-hidden="true" />

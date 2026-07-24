@@ -156,46 +156,6 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsStartConversationClicked = (
-    item: ITeamNewsItem,
-    position: number,
-    wasAnonymous: boolean,
-    source: TeamNewsAnalyticsSource,
-  ) => {
-    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_START_CONVERSATION_CLICKED, {
-      itemUid: item.uid,
-      teamUid: item.teamUid,
-      teamName: item.teamName,
-      eventType: item.eventType,
-      sourceDomain: item.sourceDomain,
-      sourceUrl: item.sourceUrl,
-      position,
-      wasAnonymous,
-      source,
-    });
-  };
-
-  const onTeamNewsJoinDiscussionClicked = (
-    item: ITeamNewsItem,
-    position: number,
-    wasAnonymous: boolean,
-    source: TeamNewsAnalyticsSource,
-  ) => {
-    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_JOIN_DISCUSSION_CLICKED, {
-      itemUid: item.uid,
-      teamUid: item.teamUid,
-      teamName: item.teamName,
-      eventType: item.eventType,
-      sourceDomain: item.sourceDomain,
-      sourceUrl: item.sourceUrl,
-      forumTopicUrl: item.discussion.latestTopicUrl,
-      discussionCount: item.discussion.count,
-      position,
-      wasAnonymous,
-      source,
-    });
-  };
-
   // Fired only for deep-link opens (trigger is fixed at 'deep-link'): row-click
   // opens are already captured by team-news-card-clicked with outcome 'modal' —
   // one event per user action.
@@ -273,8 +233,6 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsShared,
     onTeamNewsSourcesExpanded,
     onTeamNewsSourceLinkClicked,
-    onTeamNewsStartConversationClicked,
-    onTeamNewsJoinDiscussionClicked,
     onTeamNewsSearch,
     onTeamNewsUpvoteToggled,
     onTeamNewsPopularStoryClicked,

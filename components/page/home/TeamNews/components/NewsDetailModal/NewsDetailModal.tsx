@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import DOMPurify from 'isomorphic-dompurify';
 
 import { Modal } from '@/components/common/Modal';
+import { CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
@@ -14,7 +15,6 @@ import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
-import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 
@@ -118,10 +118,12 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
       closeOnEscape={!shareOpen}
       closeOnBackdropClick={!shareOpen}
       overlayClassname={s.mobileOverlay}
-      className={clsx(s.mobileContainer, s.modal)}
+      className={clsx(s.container, s.modal)}
     >
-      <div className={s.body}>
-        <div className={s.head}>
+      {/* Sticky header: team identity on the left, standardized close button
+          on the right — pinned above the scrolling body. */}
+      <div className={s.head}>
+        <div className={s.headIdentity}>
           {item.teamLogoUrl ? (
             <img className={newsCardStyles.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
           ) : (
@@ -135,11 +137,13 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
           >
             {item.teamName}
           </a>
-          <button ref={focusOnAttach} type="button" className={s.close} aria-label="Close" onClick={handleClose}>
-            ✕
-          </button>
         </div>
+        <button ref={focusOnAttach} type="button" className={s.closeButton} aria-label="Close" onClick={handleClose}>
+          <CloseIcon width={20} height={20} color="#0a0c11" />
+        </button>
+      </div>
 
+      <div className={s.body}>
         <div className={newsCardStyles.meta}>
           <span className={newsCardStyles.eventType}>
             <span className={`${newsCardStyles.eventDot} ${eventTypeDotClassName}`} aria-hidden="true" />
@@ -177,18 +181,18 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
       </div>
 
       <div className={s.footer}>
-        <NewsShareMenu item={item} source="news-modal" variant="button" onOpenChange={setShareOpen} />
-        {/* Gated on hydration (like the feed rows) so a pre-hydration click on a
-            deep-linked modal can't misread a signed-in viewer as a guest. */}
-        {isHydrated && (
-          <UpvoteButton
-            count={item.upvoteCount ?? 0}
-            voted={Boolean(item.viewerHasUpvoted)}
-            onToggle={handleUpvoteClick}
-          />
-        )}
-        <span className={s.footerSpacer} />
-        <StartConversationButton item={item} position={0} analyticsSource="news-modal" />
+        <span className={s.footerActions}>
+          <NewsShareMenu item={item} source="news-modal" variant="button" side="top" onOpenChange={setShareOpen} />
+          {/* Gated on hydration (like the feed rows) so a pre-hydration click on a
+              deep-linked modal can't misread a signed-in viewer as a guest. */}
+          {isHydrated && (
+            <UpvoteButton
+              count={item.upvoteCount ?? 0}
+              voted={Boolean(item.viewerHasUpvoted)}
+              onToggle={handleUpvoteClick}
+            />
+          )}
+        </span>
       </div>
     </Modal>
   );

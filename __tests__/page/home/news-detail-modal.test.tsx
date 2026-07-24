@@ -12,10 +12,6 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: () => <button type="button">Discuss</button>,
-}));
-
 jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '2d ago',
 }));
@@ -65,7 +61,16 @@ describe('NewsDetailModal', () => {
     expect(screen.getByText(/written by AI from the linked sources/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'example.com' })).toHaveAttribute('href', 'https://example.com/story');
     expect(screen.getByRole('button', { name: 'Like (4)' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Discuss' })).toBeInTheDocument();
+  });
+
+  it('renders footer actions in Share then Like order with no Discuss affordance', () => {
+    render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+
+    const share = screen.getByRole('button', { name: /^Share / });
+    const like = screen.getByRole('button', { name: 'Like (4)' });
+    // Share precedes Like in DOM order (both right-aligned via the footer).
+    expect(share.compareDocumentPosition(like) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText('Discuss')).not.toBeInTheDocument();
   });
 
   it('renders sanitized contentHtml paragraphs instead of the summary when present', () => {
@@ -141,6 +146,22 @@ describe('NewsDetailModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(feedRoot).toHaveFocus();
     feedRoot.remove();
+  });
+
+  it('Escape closes the share popover first and the modal only on the next press', () => {
+    const onClose = jest.fn();
+    render(<NewsDetailModal item={makeItem()} onClose={onClose} onUpvoteToggle={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^Share / }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // While the popover is open the modal's own Escape closer is detached —
+    // one keypress must never dismiss both layers.
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('routes anonymous Likes to #login with the news deep link, without toggling', () => {

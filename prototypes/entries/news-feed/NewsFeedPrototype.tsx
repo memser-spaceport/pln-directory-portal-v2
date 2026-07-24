@@ -14,7 +14,7 @@ import {
   CATEGORIES,
   type TeamNewsCategoryId,
 } from '@/components/page/home/TeamNews/constants';
-import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
+import { hasExistingDiscussion } from '@/components/page/home/TeamNews/utils/hasExistingDiscussion';
 import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
 import { NewsBase } from '@/components/page/home/TeamNews/components/NewsBase';

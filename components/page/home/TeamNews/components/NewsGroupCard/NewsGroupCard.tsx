@@ -12,7 +12,6 @@ import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
-import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
@@ -131,7 +130,7 @@ export function NewsGroupCard({
             onClick={() => openStory(story)}
             onKeyDown={(e) => {
               // Only act on keys pressed on the row itself — Enter/Space on a
-              // nested control (Like/Discuss/SourceList) must not also open
+              // nested control (Like/Share/SourceList) must not also open
               // the modal. Same guard as NewsCard's handleKeyDown.
               if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
@@ -164,10 +163,6 @@ export function NewsGroupCard({
                   voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
-                {/* `position` is this story's own index within its card, not the
-                    card's index — see TeamNews.tsx's handleCardClick for the
-                    card-level position used in onTeamNewsCardClicked. */}
-                <StartConversationButton item={story} position={storyIndex} analyticsSource={analyticsSource} />
               </div>
             </div>
           </div>

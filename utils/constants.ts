@@ -592,10 +592,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
+  TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
+  TEAM_NEWS_SHARED: 'team-news-shared',
   TEAM_NEWS_SOURCES_EXPANDED: 'team-news-sources-expanded',
   TEAM_NEWS_SOURCE_LINK_CLICKED: 'team-news-source-link-clicked',
-  TEAM_NEWS_START_CONVERSATION_CLICKED: 'team-news-start-conversation-clicked',
-  TEAM_NEWS_JOIN_DISCUSSION_CLICKED: 'team-news-join-discussion-clicked',
   TEAM_NEWS_SEARCH_REQUESTED: 'team-news-search-requested',
   TEAM_NEWS_UPVOTE_TOGGLED: 'team-news-upvote-toggled',
   TEAM_NEWS_UPVOTE_FAILED: 'team-news-upvote-failed',
@@ -793,6 +793,22 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.22 - News Sharing & Job Referrals',
+    tag: 'New Feature',
+    date: '24, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News detail</span> - Open a story in a modal to read more, like it, and share via link, LinkedIn, or X.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer a role</span> - Share open roles with your network via copy link, LinkedIn, or X.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.21 - Feed Sorting, Digest Controls & Demo Day',
     tag: 'Improvements',
@@ -2379,4 +2395,7 @@ export const AI_APPS_ANALYTICS = {
   APP_DETAILS_OPENED: 'ai_apps_app_details_opened',
   PRD_OPEN_IN_NEW_TAB_CLICKED: 'ai_apps_prd_open_in_new_tab_clicked',
   PRD_PAGE_VIEWED: 'ai_apps_prd_page_viewed',
+  DEPLOYMENT_LOGS_OPENED: 'ai_apps_deployment_logs_opened',
+  DEPLOYMENT_LOGS_TAB_SWITCHED: 'ai_apps_deployment_logs_tab_switched',
+  DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
 };

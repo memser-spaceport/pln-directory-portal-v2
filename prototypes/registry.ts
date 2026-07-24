@@ -151,10 +151,18 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/home-news/HomeNewsPrototype'),
   },
   {
+    key: 'job-board',
+    title: 'Job Board',
+    description:
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries a share-icon "Refer" control that opens a popover (LinkedIn / X / copy link).',
+    category: 'Jobs',
+    load: () => import('./entries/job-board/JobBoardPrototype'),
+  },
+  {
     key: 'newsfeed-v0',
     title: 'Newsfeed redesign — v0 quick wins',
     description:
-      'The full production homepage copied 1:1 — Quick Actions on top, the "News from the network" feed, and the Focus Areas carousel below — with a V0 / V1 switch on the feed. Both are the same single-column layout (one card per team, newest first, AI summary, source chip with favicon, compact rows for the team\'s other updates). V0 ships without the right rail or per-story upvotes; V1 adds the follow-suggestions / focus-areas / popular rail and upvoting back.',
+      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). A prototype switch flips between two versions: "With comments" (news and posts carry an inline comment thread) and "Without comments" (Like + Share only). Clicking a story opens an enlarged detail modal with the standardized modal chrome (sticky header + close, full summary, Share, source badges, and comments in the with-comments version).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
@@ -197,14 +205,6 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
-  },
-  {
-    key: 'job-board',
-    title: 'Job Board',
-    description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Filters and sort re-compute the mocked list live.',
-    category: 'Jobs',
-    load: () => import('./entries/job-board/JobBoardPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

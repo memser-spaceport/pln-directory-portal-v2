@@ -17,7 +17,7 @@ import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
 import { QuickActions } from '@/components/page/home/QuickActions';
-import { NewsLoginRedirect, TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
+import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
@@ -55,7 +55,6 @@ export default async function Home() {
       </div>
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
-      <NewsLoginRedirect />
       <AutoMarkNewsNotification />
     </>
   );

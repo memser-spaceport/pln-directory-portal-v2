@@ -14,6 +14,11 @@ export interface ITeamNewsItem {
   eventDate: string;
   title: string;
   summary: string | null;
+  /** Rich HTML body for the detail modal (2–5 paragraphs, e.g. `<p>…</p>`).
+   *  For not-yet-re-enriched items the API falls back to `<p>{summary}</p>`.
+   *  Enrichment-pipeline output — must be sanitized before rendering (see
+   *  NewsDetailModal). `summary` stays the plain-text teaser for cards. */
+  contentHtml?: string;
   sourceUrl: string;
   sourceDomain: string | null;
   /** Article URLs of every outlet that covered this story, primary first —

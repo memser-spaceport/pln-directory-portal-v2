@@ -27,11 +27,16 @@ import { TeamDetailsView } from './TeamDetailsView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
+import { TeamContributionsView, type ContributionsVariant } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
 import { TeamAdminActions } from './TeamAdminActions';
+// Contributions (Events) block + its mocks live in the demoday-tag-placements
+// entry; reuse the recommended "feature" Demo Day treatment here in full context.
+import { EventsContributionsView } from '../demoday-tag-placements/EventsContributionsView';
+import { MOCK_EVENT_GROUPS, MOCK_DEMO_DAY_CONTRIB } from '../demoday-tag-placements/mocks';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 import local from './TeamProfile.module.scss';
@@ -41,6 +46,7 @@ import {
   MOCK_FOCUS_AREAS,
   MOCK_TEAM_FOCUS_AREAS,
   MOCK_PROJECTS,
+  MOCK_CONTRIBUTIONS,
   MOCK_NEWS,
   NEWS_UPVOTES,
   MOCK_FOLLOWERS,
@@ -68,6 +74,8 @@ export default function TeamProfilePrototype() {
   // card's top-right corner: public gets the Follow pill, team gets the
   // follower avatar stack + count (opens the full-list modal).
   const [view, setView] = useState<'public' | 'team'>('team');
+  // Demo-only: compare the two role-tag treatments.
+  const [contribVariant, setContribVariant] = useState<ContributionsVariant>('vibrant');
   useEffect(() => setMounted(true), []);
   useEffect(() => () => {
     if (followToastTimer.current) clearTimeout(followToastTimer.current);
@@ -253,8 +261,38 @@ export default function TeamProfilePrototype() {
           <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
         </DetailsSection>
 
+          {/* Contributions — event-primary tiles; Demo Day featured when present.
+              Demo-only switch between the two role-tag treatments. */}
+          <div className={local.contribLayoutBar}>
+            <span className={local.demoLabel}>Role tags</span>
+            <div className={local.demoSwitch}>
+              {([
+                ['vibrant', 'Vibrant'],
+                ['muted', 'Muted'],
+              ] as [ContributionsVariant, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${local.demoBtn} ${contribVariant === key ? local.demoBtnActive : ''}`}
+                  onClick={() => setContribVariant(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <TeamContributionsView
+            contributions={MOCK_CONTRIBUTIONS}
+            demoDay={MOCK_TEAM_DEMO_DAY}
+            variant={contribVariant}
+          />
+
           {/* Projects */}
           <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
+
+          {/* Contributions (Events) — Demo Day reads as a normal event: a
+              "Participant" role row + a plain chip, same weight as Host/Sponsor. */}
+          <EventsContributionsView groups={MOCK_EVENT_GROUPS} demoDay={MOCK_DEMO_DAY_CONTRIB} variant="native" />
         </div>
       </div>
 

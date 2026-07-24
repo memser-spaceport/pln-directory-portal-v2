@@ -15,6 +15,11 @@ export const DeploymentSettingsModal = dynamic(
     ),
   { ssr: false },
 );
+export const DeploymentLogsModal = dynamic(
+  () =>
+    import('@/components/page/ai-apps/AiAppsPage/components/DeploymentLogsModal').then((m) => m.DeploymentLogsModal),
+  { ssr: false },
+);
 export const DeleteAiAppDialog = dynamic(
   () => import('@/components/page/ai-apps/AiAppsPage/components/DeleteAiAppDialog').then((m) => m.DeleteAiAppDialog),
   { ssr: false },

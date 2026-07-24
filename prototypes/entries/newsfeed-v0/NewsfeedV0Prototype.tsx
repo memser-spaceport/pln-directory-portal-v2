@@ -3,9 +3,9 @@
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FocusEvent } from 'react';
+import type { FocusEvent, PropsWithChildren, ReactNode } from 'react';
 
-import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
 import { Button } from '@/components/common/Button';
 
@@ -17,11 +17,14 @@ import {
   CATEGORIES,
   type TeamNewsCategoryId,
 } from '@/components/page/home/TeamNews/constants';
-import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
+import { hasExistingDiscussion } from '@/components/page/home/TeamNews/utils/hasExistingDiscussion';
 import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
-import { NewsBase } from '@/components/page/home/TeamNews/components/NewsBase';
-import { TeamNewsTabs } from '@/components/page/home/TeamNews/components/TeamNewsTabs';
+// Reuse the production NewsBase section shell styling 1:1, but with our own
+// heading copy ("Network Updates"). NewsBase is production and hardcodes its
+// title, so we mirror its structure locally instead of editing it.
+import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
+import { NewsTabs } from './NewsTabs';
 
 // Reuse the production feed layout styling 1:1.
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
@@ -29,6 +32,7 @@ import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
 import styles from '@/app/home/page.module.css';
 
 import { V0FeedCard } from './V0FeedCard';
+import { ForumPostCard } from './ForumPostCard';
 import type { TeamCluster } from './V0NewsCard';
 import { FeedRail } from './FeedRail';
 import { QuickActionsMock } from './QuickActionsMock';
@@ -42,8 +46,20 @@ import { HeaderSearch } from './HeaderSearch';
 // Production search field, reused 1:1 for the mobile drop-down row.
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FollowToast } from '../follow-shared/FollowToast';
-import { MOCK_GROUPS, UPVOTES } from './mocks';
-import type { TeamCluster as Cluster } from './V0NewsCard';
+import { EVENT_TYPE_LABEL } from './eventMeta';
+import {
+  MOCK_GROUPS,
+  FORUM_POSTS,
+  BASE_LIKES,
+  COMMENTS_BY_UID,
+  SOURCES_BY_UID,
+  MODAL_EXTRA_BY_UID,
+  MODAL_CITED_BODY_BY_UID,
+  type ForumPost,
+  type FeedComment,
+} from './mocks';
+import { FeedDetailModal, type FeedDetail } from './FeedDetailModal';
+import { ForumPostModal } from './ForumPostModal';
 import local from './NewsfeedV0.module.scss';
 
 const groups = MOCK_GROUPS;
@@ -61,8 +77,30 @@ const SORT_OPTIONS = [
   { value: 'popular', label: 'Most popular' },
 ] as const;
 
-// A cluster's interest score = its most-upvoted story (leads rank the card).
-const clusterUpvotes = (c: Cluster) => [c.lead, ...c.rest].reduce((max, i) => Math.max(max, UPVOTES[i.uid] ?? 0), 0);
+// The two versions the prototype demonstrates: news + posts with an inline
+// comment thread, or without any comment affordance (Like + Share only).
+type CommentsMode = 'with' | 'without';
+
+const MODE_OPTIONS: Array<{ value: CommentsMode; label: string }> = [
+  { value: 'without', label: 'Without comments' },
+  { value: 'with', label: 'With comments' },
+];
+
+const MODE_NOTE: Record<CommentsMode, string> = {
+  with: 'News and posts open an inline comment thread (Like · Share · Comments).',
+  without: 'News and posts show Like and Share only — no comment thread.',
+};
+
+// Event kicker colours for the modal, matching the meta-line event palette
+// (NewsfeedV0.module.scss .kFunding/.kLaunch/…).
+const EVENT_HEX: Record<TeamNewsEventType, string> = {
+  FUNDING: '#027a48',
+  LAUNCH: '#1849a9',
+  PARTNERSHIP: '#5925dc',
+  ANNOUNCEMENT: '#475467',
+  MILESTONE: '#b54708',
+  OTHER: '#475467',
+};
 
 // How much each event type matters when picking a cluster's lead story.
 const EVENT_TYPE_WEIGHT: Record<ITeamNewsItem['eventType'], number> = {
@@ -114,18 +152,41 @@ function clusterByTeam(items: ITeamNewsItem[]): TeamCluster[] {
   });
 }
 
+// A unified feed entry: either a team's news cluster or a single forum post.
+type FeedEntry = { kind: 'news'; cluster: TeamCluster } | { kind: 'forum'; post: ForumPost };
+
 /**
- * Newsfeed redesign. Single-column feed (one card per team) with the
- * follow-suggestions / focus-areas / popular right rail and per-story upvotes.
- * Personalization is a single Sort control (Following / Latest / Most
- * popular); Quick Actions can render compact or as the production card grid.
+ * Newsfeed redesign. Single-column feed mixing team news clusters and member
+ * forum posts (author on top, same card style), with a follow-suggestions /
+ * popular rail and fully-functional per-item likes. Personalization is a single
+ * Sort control; a prototype-level switch flips between the two interaction
+ * versions (Discuss link vs. inline Comments).
  */
+/**
+ * Local copy of the production `NewsBase` section shell (same SCSS module) with
+ * the heading changed to "Network Updates". NewsBase is production and hardcodes
+ * its title, so we mirror its structure here rather than editing it.
+ */
+function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
+  return (
+    <section className={nb.section}>
+      <div className={nb.header}>
+        <h2 className={clsx(nb.title, local.sectionTitle)}>Network Updates</h2>
+        {headerDetails}
+      </div>
+      <p className={nb.sub}>Recent shipping, raises, partnerships, and milestones from across the network.</p>
+      {children}
+    </section>
+  );
+}
+
 export default function NewsfeedV0Prototype() {
   // Tabs are base-ui / client-only — gate render so SSR === first client render.
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
+  const [commentsMode, setCommentsMode] = useState<CommentsMode>('without');
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -136,6 +197,16 @@ export default function NewsfeedV0Prototype() {
   const desktopFieldRef = useRef<HTMLDivElement>(null);
   const [followedTeams, setFollowedTeams] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+
+  // Fully-functional likes: the viewer's likes live here (added on top of each
+  // item's seed count), shared by every card and the detail modal.
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  // Comments the viewer posts stick for the session, seeded from the mocks.
+  const [commentsByUid, setCommentsByUid] = useState<Record<string, FeedComment[]>>(() => ({ ...COMMENTS_BY_UID }));
+  // The news story whose detail modal is open (null = closed).
+  const [detail, setDetail] = useState<FeedDetail | null>(null);
+  // The forum post whose simple-forum-post modal is open (null = closed).
+  const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -158,6 +229,63 @@ export default function NewsfeedV0Prototype() {
       }
       return next;
     });
+  };
+
+  const toggleLike = (uid: string) =>
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      next.has(uid) ? next.delete(uid) : next.add(uid);
+      return next;
+    });
+
+  const likeCount = (uid: string) => (BASE_LIKES[uid] ?? 0) + (likedIds.has(uid) ? 1 : 0);
+  const isLiked = (uid: string) => likedIds.has(uid);
+  const commentsFor = (uid: string) => commentsByUid[uid] ?? [];
+
+  const addComment = (uid: string, text: string) =>
+    setCommentsByUid((prev) => {
+      const existing = prev[uid] ?? [];
+      const comment: FeedComment = {
+        uid: `c-${uid}-${existing.length + 1}`,
+        author: 'You',
+        role: 'Member @ Protocol Labs',
+        text,
+        // Fixed timestamp — the prototype has no clock; "just now" reads right.
+        createdAt: new Date().toISOString(),
+      };
+      return { ...prev, [uid]: [...existing, comment] };
+    });
+
+  const openStoryDetail = (story: ITeamNewsItem) =>
+    setDetail({
+      id: story.uid,
+      kind: 'news',
+      title: story.title,
+      name: story.teamName,
+      logoUrl: story.teamLogoUrl,
+      kicker: EVENT_TYPE_LABEL[story.eventType],
+      kickerColor: EVENT_HEX[story.eventType],
+      // Modal-only: the fuller article body (short teaser stays on the card).
+      summary: story.summary
+        ? story.summary + (MODAL_EXTRA_BY_UID[story.uid] ? `\n\n${MODAL_EXTRA_BY_UID[story.uid]}` : '')
+        : (MODAL_EXTRA_BY_UID[story.uid] ?? null),
+      time: story.eventDate,
+      sources: SOURCES_BY_UID[story.uid],
+      citedBody: MODAL_CITED_BODY_BY_UID[story.uid],
+      // Kept for Share (copies the article link) — the modal no longer renders a
+      // "Read full article" link, but a Discuss button instead.
+      readUrl: story.sourceUrl ?? undefined,
+    });
+
+  // Discuss version: a forum post lives in the forum, so send the user there
+  // (new tab, so the prototype stays open) rather than opening a modal.
+  // Comments version: open the simple-forum-post modal (with likes + comments).
+  const openForumDetail = (post: ForumPost) => {
+    // if (mode === 'discuss') {
+    //   window.open('/forum', '_blank', 'noopener,noreferrer');
+    //   return;
+    // }
+    setForumDetail(post);
   };
 
   const allItems = useMemo(() => sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), []);
@@ -211,19 +339,62 @@ export default function NewsfeedV0Prototype() {
 
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
-  // Sort is the only re-ordering axis. "Most popular" ranks by interest;
-  // "Following" floats followed teams to the top (stable, so recency holds
-  // within each group) without dropping anyone; "Latest" leaves order untouched.
-  const lensedClusters = useMemo(() => {
-    if (sort === 'popular') return [...clusters].sort((a, b) => clusterUpvotes(b) - clusterUpvotes(a));
-    if (sort === 'following') {
-      return [...clusters].sort((a, b) => Number(followedTeams.has(b.teamUid)) - Number(followedTeams.has(a.teamUid)));
-    }
-    return clusters;
-  }, [clusters, sort, followedTeams]);
+  // Forum posts join the feed on the "All" event-type filter only (a post has no
+  // event type, so an event filter necessarily excludes it). Scoped to the active
+  // focus-area tab, then narrowed by the same free-text search.
+  const forumPosts = useMemo(() => {
+    if (activeCategory !== ALL_CAT) return [];
+    const scoped = activeTab === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeTab);
+    const q = query.trim().toLowerCase();
+    if (!q) return scoped;
+    return scoped.filter(
+      (p) =>
+        p.author.toLowerCase().includes(q) ||
+        p.title.toLowerCase().includes(q) ||
+        p.body.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [activeCategory, activeTab, query]);
 
-  const visibleClusters = expanded ? lensedClusters : lensedClusters.slice(0, PAGE_SIZE);
-  const newCount = allItems.length;
+  // Merge news clusters + forum posts into one list, then apply the sort lens.
+  // A cluster's date/likes = its strongest story; a post's = its own. "Following"
+  // floats followed teams up (forum posts rank as unfollowed), "Most popular" by
+  // likes, "Latest" by recency — each with recency as the tie-break.
+  const entries = useMemo<FeedEntry[]>(() => {
+    const clusterDate = (c: TeamCluster) =>
+      Math.max(...[c.lead, ...c.rest].map((i) => new Date(i.eventDate).getTime()));
+    const clusterLikes = (c: TeamCluster) => Math.max(...[c.lead, ...c.rest].map((i) => likeCount(i.uid)));
+
+    const dateOf = (e: FeedEntry) =>
+      e.kind === 'news' ? clusterDate(e.cluster) : new Date(e.post.createdAt).getTime();
+    const likesOf = (e: FeedEntry) => (e.kind === 'news' ? clusterLikes(e.cluster) : likeCount(e.post.uid));
+    const followedOf = (e: FeedEntry) => (e.kind === 'news' && followedTeams.has(e.cluster.teamUid) ? 1 : 0);
+
+    const list: FeedEntry[] = [
+      ...clusters.map((cluster) => ({ kind: 'news' as const, cluster })),
+      ...forumPosts.map((post) => ({ kind: 'forum' as const, post })),
+    ];
+
+    const sorted = list.sort((a, b) => {
+      if (sort === 'popular' && likesOf(b) !== likesOf(a)) return likesOf(b) - likesOf(a);
+      if (sort === 'following' && followedOf(b) !== followedOf(a)) return followedOf(b) - followedOf(a);
+      return dateOf(b) - dateOf(a);
+    });
+
+    // Surface a forum post as the second item (right after the first team-news
+    // card) so the news + discussion mix reads immediately.
+    const firstNews = sorted.find((e) => e.kind === 'news');
+    const firstForum = sorted.find((e) => e.kind === 'forum');
+    if (firstNews && firstForum) {
+      return [firstNews, firstForum, ...sorted.filter((e) => e !== firstNews && e !== firstForum)];
+    }
+    return sorted;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clusters, forumPosts, sort, followedTeams, likedIds]);
+
+  const visibleEntries = expanded ? entries : entries.slice(0, PAGE_SIZE);
+  const newCount = allItems.length + FORUM_POSTS.length;
 
   const handleTab = (id: string) => {
     setActiveTab(id);
@@ -279,13 +450,13 @@ export default function NewsfeedV0Prototype() {
 
         <div className={styles.home__cn__teamnews}>
           {isEmpty(allItems) ? (
-            <NewsBase>
+            <NetworkUpdatesBase>
               <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
-            </NewsBase>
+            </NetworkUpdatesBase>
           ) : (
-            <NewsBase
+            <NetworkUpdatesBase
               headerDetails={
-                <div className={local.headerActions}>
+                <div className={clsx(local.headerActions, local.headerActionsBanner)}>
                   {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
                   <HeaderSearch
                     open={searchOpen}
@@ -301,13 +472,35 @@ export default function NewsfeedV0Prototype() {
               {/* Mobile only: the header has no room to expand inline, so the field
                 lives here as a permanent full-width row. Hidden on desktop. */}
               <div className={local.mobileSearchRow}>
-                <SearchInput value={query} onChange={handleSearch} placeholder="Search by team or keyword…" />
+                <SearchInput value={query} onChange={handleSearch} placeholder="Search by team, member, or keyword…" />
+              </div>
+
+              {/* Prototype-only: toggle the comments version on/off. */}
+              <div className={local.versionRow}>
+                <div className={local.switchBar}>
+                  <span className={local.switchLabel}>Comments</span>
+                  <div className={local.switch} role="tablist" aria-label="Comments version">
+                    {MODE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={commentsMode === opt.value}
+                        className={clsx(local.switchBtn, commentsMode === opt.value && local.switchBtnActive)}
+                        onClick={() => setCommentsMode(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className={local.switchNote}>{MODE_NOTE[commentsMode]}</span>
+                </div>
               </div>
 
               {/* Constrain the tabs' underline to end at the news-card's right edge
                 (reserve the rail column), instead of spanning the full width. */}
-              <div className={local.tabsConstrain}>
-                <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+              <div className={clsx(local.tabsConstrain, local.tabsConstrainBanner)}>
+                <NewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
               </div>
 
               <div className={local.filterBar}>
@@ -348,31 +541,51 @@ export default function NewsfeedV0Prototype() {
                 </div>
               </div>
 
-              {searchedItems.length === 0 ? (
+              {entries.length === 0 ? (
                 <div className={s.empty}>
-                  {query.trim() ? `No network news matches “${query.trim()}”.` : 'No network news in this filter.'}
+                  {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
                 </div>
               ) : (
                 <>
-                  <div className={local.feedLayout}>
+                  <div className={clsx(local.feedLayout, local.feedLayoutBanner)}>
                     <div className={local.feedList}>
-                      {visibleClusters.map((cluster) => (
-                        <V0FeedCard
-                          key={cluster.teamUid}
-                          cluster={cluster}
-                          following={followedTeams.has(cluster.teamUid)}
-                          onToggleFollow={() => toggleFollow(cluster.teamUid, cluster.teamName)}
-                          showUpvote
-                        />
-                      ))}
+                      {visibleEntries.map((entry) =>
+                        entry.kind === 'news' ? (
+                          <V0FeedCard
+                            key={`news-${entry.cluster.teamUid}`}
+                            cluster={entry.cluster}
+                            following={followedTeams.has(entry.cluster.teamUid)}
+                            onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
+                            showComments={commentsMode === 'with'}
+                            likeCount={likeCount}
+                            isLiked={isLiked}
+                            onToggleLike={toggleLike}
+                            commentsFor={commentsFor}
+                            onAddComment={addComment}
+                            onOpenStory={openStoryDetail}
+                          />
+                        ) : (
+                          <ForumPostCard
+                            key={`forum-${entry.post.uid}`}
+                            post={entry.post}
+                            showComments={commentsMode === 'with'}
+                            likeCount={likeCount(entry.post.uid)}
+                            liked={isLiked(entry.post.uid)}
+                            onToggleLike={() => toggleLike(entry.post.uid)}
+                            comments={commentsFor(entry.post.uid)}
+                            onAddComment={(text) => addComment(entry.post.uid, text)}
+                            onOpenDetail={() => openForumDetail(entry.post)}
+                          />
+                        ),
+                      )}
                     </div>
-                    {/* Follow-suggestions / focus-areas / popular rail in the reserved column. */}
+                    {/* Follow-suggestions / popular rail in the reserved column. */}
                     <aside className={local.feedRail}>
                       <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
                     </aside>
                   </div>
-                  {lensedClusters.length > PAGE_SIZE && (
-                    <div className={s.showAll}>
+                  {entries.length > PAGE_SIZE && (
+                    <div className={clsx(s.showAll, local.showAllConstrain)}>
                       <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
                         {expanded ? 'Show Less' : 'Show All'}
                       </Button>
@@ -380,10 +593,32 @@ export default function NewsfeedV0Prototype() {
                   )}
                 </>
               )}
-            </NewsBase>
+            </NetworkUpdatesBase>
           )}
         </div>
       </div>
+
+      <FeedDetailModal
+        detail={detail}
+        onClose={() => setDetail(null)}
+        likeCount={detail ? likeCount(detail.id) : 0}
+        liked={detail ? isLiked(detail.id) : false}
+        onToggleLike={() => detail && toggleLike(detail.id)}
+        citationStyle="superscript"
+        showComments={commentsMode === 'with'}
+        comments={detail ? commentsFor(detail.id) : []}
+        onAddComment={(text) => detail && addComment(detail.id, text)}
+      />
+
+      <ForumPostModal
+        post={forumDetail}
+        onClose={() => setForumDetail(null)}
+        likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
+        liked={forumDetail ? isLiked(forumDetail.uid) : false}
+        onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
+        comments={forumDetail ? commentsFor(forumDetail.uid) : []}
+        onAddComment={(text) => forumDetail && addComment(forumDetail.uid, text)}
+      />
 
       {toast && (
         <FollowToast>

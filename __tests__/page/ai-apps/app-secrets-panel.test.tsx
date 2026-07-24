@@ -14,7 +14,7 @@ const mockAnalytics = {
 
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
-  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries, removeQueries: jest.fn() }),
 }));
 
 jest.mock('@/analytics/ai-apps.analytics', () => ({

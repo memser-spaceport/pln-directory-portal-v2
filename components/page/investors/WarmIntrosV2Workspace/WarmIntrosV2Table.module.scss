@@ -1,0 +1,168 @@
+.tableWrap {
+  overflow: auto;
+  max-height: min(70vh, 720px);
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.sentinel {
+  height: 1px;
+}
+
+.sentinelLoader {
+  padding: 12px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 960px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.colInvestor {
+  width: 22%;
+}
+
+.colTeam {
+  width: 18%;
+}
+
+.colSector {
+  width: 18%;
+}
+
+.colProximity {
+  width: 14%;
+}
+
+.colPath {
+  width: 28%;
+}
+
+.investorText {
+  min-width: 0;
+}
+
+.row {
+  cursor: pointer;
+  transition: background 0.08s;
+  background: #fff;
+}
+
+.row:hover {
+  background: #f8fafc;
+}
+
+.td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.nameBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1b4dff;
+  line-height: 1.4;
+  text-align: left;
+
+  &:hover {
+    color: #1a3fd9;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.subtle {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamCell {
+  font-weight: 500;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muted {
+  color: #9ca3af;
+}
+
+.proximityCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pathCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pathChain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.pathArrow {
+  color: #9ca3af;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.viewAllLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1b4dff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: #1a3fd9;
+  }
+}

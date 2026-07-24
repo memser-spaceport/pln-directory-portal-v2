@@ -1,0 +1,1 @@
+export { NewsDetailModal } from './NewsDetailModal';

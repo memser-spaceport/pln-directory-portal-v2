@@ -22,9 +22,9 @@ export default function InvestorsFiltersContent() {
     return mounted ? <FiltersPanelSkeletonLoader /> : null;
   }
 
-  // Warm Intros carries its own filter UI in the workspace, so the side rail is
-  // hidden there. (Lists IA: the old co-investors tab is retired.)
-  const isWarmIntros = filters.mode === 'warm-intros';
+  // Warm Intros (v1 + v2) carry their own filter UI in the workspace, so the
+  // side rail is hidden there. (Lists IA: the old co-investors tab is retired.)
+  const isWarmIntros = filters.mode === 'warm-intros' || filters.mode === 'warm-intros-v2';
   if (!access.canView || isWarmIntros) {
     return null;
   }

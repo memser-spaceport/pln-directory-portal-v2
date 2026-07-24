@@ -127,33 +127,6 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-/* Locked subject row — shown when the app is implied by context. Uses the
-   picker's avatar + name language but reads as a confirmed subject, not a
-   control: muted fill, no border, no caret, not clickable. */
-.subject {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-}
-
-.subjectLabel {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.subjectApp {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
 .picker {
   position: relative;
 }
@@ -540,21 +513,103 @@
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
-/* ---------- feedback page (full view) ---------- */
-.pageWrap {
+/* ---------- feedback page (full view) — DashboardPagesLayout shell ---------- */
+/* Demo chrome rides above the flush-left rail + content two-column layout. */
+.feedbackChrome {
+  padding: 16px 24px;
+  background: #f1f5f9;
+}
+
+/* The content column's inner wrapper (back button, title, table). Constrained for
+   readability; padded on small screens — the layout supplies padding ≥1024px. */
+.feedbackContent {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  max-width: 1080px;
+  padding: 20px 16px;
+
+  @media (min-width: 1024px) {
+    padding: 0;
+  }
+
+  // Give the table more room on large screens — widen the content column so the
+  // feedback/from/date columns breathe instead of staying pinned at 1080px.
+  @media (min-width: 1440px) {
+    max-width: 1360px;
+  }
+
+  @media (min-width: 1760px) {
+    max-width: 1600px;
+  }
 }
 
-.pageToolbar {
+/* The app list inside the FilterSection — the dev checkbox rows stack with no
+   extra gap (each row carries its own min-height + padding); scroll internally
+   once the roster gets long. */
+.filterList {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  // Full-width divider under the whole toolbar (tabs + export), to the table edge.
-  // Tabs stretch to the line; the export button sits centered above it (investors pattern).
-  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  flex-direction: column;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+
+  @include media.mobile-only {
+    max-height: 240px;
+  }
+}
+
+.filterEmpty {
+  padding: 12px 2px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Reset affordance, mirroring the rail's "Clear All". */
+.clearBtn {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+/* Below the layout's rail breakpoint (1024px) the flush-left rail is hidden —
+   the same facet stacks above the table instead. */
+.mobileFilter {
+  display: block;
+  margin-bottom: 4px;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+}
+
+/* Title + count, transcribed from the dev members toolbar: the count sits inline
+   with the title, in parentheses, baseline-aligned and muted (14px/400). */
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.titleCount {
+  flex: none;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
 .pageCard {
@@ -690,6 +745,40 @@
 .tdText {
   min-width: 320px;
   color: var(--foreground-neutral-secondary, #455468);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+/* Triage tag on each note — a compact pill tinted by type. Colour + label (never
+   colour alone), on the DS semantic tokens: brand / error / success. */
+.typeTag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+}
+
+.typeFeature {
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: rgba(27, 77, 255, 0.1);
+}
+
+.typeBug {
+  color: var(--foreground-error-primary, #d21a0e);
+  background: rgba(210, 26, 14, 0.1);
+}
+
+.typePraise {
+  color: var(--foreground-success-primary, #0a9952);
+  background: rgba(10, 153, 82, 0.1);
 }
 
 .fromCell {

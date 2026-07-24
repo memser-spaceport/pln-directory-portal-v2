@@ -2,7 +2,11 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { SourceList } from '@/components/page/home/TeamNews/components/SourceList/SourceList';
-import { getNewsSources, hasNewsSource } from '@/components/page/home/TeamNews/utils/getNewsSources';
+import {
+  getNewsSources,
+  getNewsSourcesWithPrimaryFallback,
+  hasNewsSource,
+} from '@/components/page/home/TeamNews/utils/getNewsSources';
 import { NewsCard } from '@/components/page/home/TeamNews/components/NewsCard/NewsCard';
 import { NewsGroupCard } from '@/components/page/home/TeamNews/components/NewsGroupCard/NewsGroupCard';
 import type { ITeamNewsItem, TeamCluster, TeamNewsEventType } from '@/types/team-news.types';
@@ -21,10 +25,6 @@ jest.mock('@/analytics/team-news.analytics', () => ({
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'm-1' }, isHydrated: true }),
-}));
-
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: () => <button type="button">Discuss</button>,
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -84,8 +84,40 @@ describe('getNewsSources', () => {
     expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
   });
 
+  it('drops non-http(s) URLs even when they parse with a hostname', () => {
+    const item = makeItem('a', {
+      sourceUrls: ['javascript://evil.com/%0aalert(1)', 'data://x/payload', SECOND_URL],
+    });
+    expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
+  });
+
+  it('does not let the backend sourceDomain bypass the scheme check on the primary entry', () => {
+    const item = makeItem('a', {
+      sourceUrl: 'javascript:alert(1)',
+      sourceDomain: 'trusted-looking.ai',
+      sourceUrls: ['javascript:alert(1)', SECOND_URL],
+    });
+    expect(getNewsSources(item)).toEqual([{ domain: 'techcrunch.com', url: SECOND_URL }]);
+  });
+
   it('returns empty when sourceUrls is absent', () => {
     expect(getNewsSources(makeItem('a'))).toEqual([]);
+  });
+});
+
+describe('getNewsSourcesWithPrimaryFallback', () => {
+  it('falls back to the single sourceUrl when sourceUrls is absent (pending API field)', () => {
+    expect(getNewsSourcesWithPrimaryFallback(makeItem('a'))).toEqual([{ domain: 'protocol.ai', url: PRIMARY_URL }]);
+  });
+
+  it('prefers the sourceUrls list when present', () => {
+    const item = makeItem('a', { sourceUrls: TWO_SOURCE_URLS });
+    expect(getNewsSourcesWithPrimaryFallback(item)).toEqual(getNewsSources(item));
+  });
+
+  it('refuses an unsafe-scheme primary even with a backend sourceDomain', () => {
+    const item = makeItem('a', { sourceUrl: 'javascript:alert(1)', sourceDomain: 'trusted.ai' });
+    expect(getNewsSourcesWithPrimaryFallback(item)).toEqual([]);
   });
 });
 
@@ -231,27 +263,30 @@ describe('NewsGroupCard with a multi-source story', () => {
     teamLogoUrl: null,
     items: [story],
   };
+  const onStoryOpen = jest.fn();
 
   it('shows the pill in the story row', () => {
-    render(<NewsGroupCard cluster={cluster} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
     expect(screen.getByRole('button', { name: /2 sources/i })).toBeInTheDocument();
   });
 
   it('does not open the story when the pill is activated by keyboard or click', () => {
-    render(<NewsGroupCard cluster={cluster} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
     const pill = screen.getByRole('button', { name: /2 sources/i });
 
     fireEvent.keyDown(pill, { key: 'Enter' });
     fireEvent.keyDown(pill, { key: ' ' });
     fireEvent.click(pill);
 
-    expect(windowOpenSpy).not.toHaveBeenCalled();
+    expect(onStoryOpen).not.toHaveBeenCalled();
   });
 
   it('still opens the story on Enter pressed on the row itself', () => {
-    render(<NewsGroupCard cluster={cluster} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
     const row = document.querySelector('[data-story-uid="a"]') as HTMLElement;
     fireEvent.keyDown(row, { key: 'Enter' });
-    expect(windowOpenSpy).toHaveBeenCalledWith(PRIMARY_URL, '_blank', 'noopener,noreferrer');
+    expect(onStoryOpen).toHaveBeenCalledWith(story);
+    // Rows no longer navigate to the source — that moved into the modal.
+    expect(windowOpenSpy).not.toHaveBeenCalled();
   });
 });

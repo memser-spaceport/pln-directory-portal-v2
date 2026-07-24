@@ -21,6 +21,11 @@ export enum InvestorsQueryKeys {
   SAVED_VIEWS = 'investors-saved-views',
   PATHS_FOR_TARGET = 'investors-paths-for-target',
   CONNECTOR_MATCHES = 'investors-connector-matches',
+  // Warm Intros v2 (MasterProfile / WarmPathV2)
+  WARM_INTROS_V2_PATHS = 'investors-warm-intros-v2-paths',
+  WARM_INTROS_V2_FACETS = 'investors-warm-intros-v2-facets',
+  WARM_INTROS_V2_PATHS_FOR_INVESTOR = 'investors-warm-intros-v2-paths-for-investor',
+  MASTER_PROFILE = 'investors-master-profile',
   // Lists IA
   INVESTOR_LISTS = 'investors-lists',
   LIST_MEMBERS = 'investors-list-members',
@@ -286,5 +291,5 @@ export const INVESTOR_TAB_LABEL: Record<InvestorTab, string> = {
 
 // `mode` toggles the Warm Intros workspace in place of the All Investors table.
 // Kept as a string-literal union for the nuqs parser.
-export const CO_INVESTOR_MODE_VALUES = ['list', 'warm-intros'] as const;
+export const CO_INVESTOR_MODE_VALUES = ['list', 'warm-intros', 'warm-intros-v2'] as const;
 export type CoInvestorMode = (typeof CO_INVESTOR_MODE_VALUES)[number];

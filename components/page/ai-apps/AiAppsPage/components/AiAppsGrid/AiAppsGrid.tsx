@@ -10,6 +10,7 @@ import { hasPrd } from '@/services/ai-apps/ai-apps.service';
 import {
   EditAiAppModal,
   DeploymentSettingsModal,
+  DeploymentLogsModal,
   DeleteAiAppDialog,
   AiAppDetailsModal,
 } from '@/components/page/ai-apps/dynamicActionModals';
@@ -21,7 +22,7 @@ import { AiAppCard } from './components/AiAppCard';
 
 import s from './AiAppsGrid.module.scss';
 
-type ActionType = 'edit' | 'deployment' | 'delete';
+type ActionType = 'edit' | 'deployment' | 'logs' | 'delete';
 
 interface Props {
   onOpenCreateModal: () => void;
@@ -52,13 +53,18 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
   const addCardVariants = getAddCardVariants();
   const cardVariants = getCardVariants(!!shouldReduceMotion);
 
-  const actionApp = action ? apps.find((app) => app.uid === action.uid) ?? null : null;
-  const viewerApp = viewerUid ? apps.find((app) => app.uid === viewerUid) ?? null : null;
+  const actionApp = action ? (apps.find((app) => app.uid === action.uid) ?? null) : null;
+  const viewerApp = viewerUid ? (apps.find((app) => app.uid === viewerUid) ?? null) : null;
   const closeAction = () => setAction(null);
 
   const openViewer = (uid: string, name: string) => {
     analytics.onAppDetailsOpened(uid, name);
     setViewerUid(uid);
+  };
+
+  const openLogs = (app: (typeof apps)[number], source: 'menu' | 'failure-strip') => {
+    analytics.onDeploymentLogsOpened(app.uid, app.name, source);
+    setAction({ uid: app.uid, type: 'logs' });
   };
 
   return (
@@ -74,6 +80,7 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
               canManage={canLikelyManage(app.member.uid)}
               onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
               onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
+              onLogs={(source) => openLogs(app, source)}
               onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
               onViewDetails={() => openViewer(app.uid, app.name)}
             />
@@ -82,9 +89,10 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
       </motion.div>
 
       {actionApp && action?.type === 'edit' && <EditAiAppModal app={actionApp} onClose={closeAction} />}
-      {actionApp && action?.type === 'deployment' && (
-        <DeploymentSettingsModal app={actionApp} onClose={closeAction} />
-      )}
+      {actionApp && action?.type === 'deployment' && <DeploymentSettingsModal app={actionApp} onClose={closeAction} />}
+      {/* Conditional render is load-bearing: unmounting on close is what aborts
+          the modal's in-flight log fetches (its queryFn consumes the signal). */}
+      {actionApp && action?.type === 'logs' && <DeploymentLogsModal app={actionApp} onClose={closeAction} />}
       {actionApp && action?.type === 'delete' && <DeleteAiAppDialog app={actionApp} onClose={closeAction} />}
       {viewerApp && hasPrd(viewerApp) && (
         <AiAppDetailsModal

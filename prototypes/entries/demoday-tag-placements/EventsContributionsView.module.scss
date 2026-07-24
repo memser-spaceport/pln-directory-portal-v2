@@ -1,61 +1,298 @@
 @use 'styles/media';
 
-.rows {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Single bordered card wrapping the role rows — matches production
+   `.root__irlCrbts` (border + 8px radius; rows split by bottom borders). */
+.card {
+  width: 100%;
+  border: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
+/* One role row. Desktop: role col on the left + events on the right, split by a
+   bottom border. Mobile stacks the role above its events (matches production's
+   column flip). */
 .row {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-
-  @include media.mobile-only {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-.roleLabel {
-  min-width: 84px;
-  padding-top: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  @include media.mobile-only {
-    padding-top: 0;
-  }
-}
-
-.events {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.eventCard {
-  display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
-  background: var(--transparent-dark-2-percent, rgba(14, 15, 17, 0.02));
+  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+  }
 }
 
-.eventName {
+.rowLast {
+  border-bottom: none;
+}
+
+/* Role label column: icon + role name. Right border only on desktop, like prod. */
+.roleCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include media.tablet-landscape {
+    width: 160px;
+    flex-shrink: 0;
+    padding: 15px 20px;
+    border-right: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  }
+
+  img {
+    flex: none;
+  }
+}
+
+/* Participant role icon — built in the exact style of the production Host /
+   Sponsor / Attendee role icons (a 20×20 rounded gradient tile with a white
+   hairline + white glyph). Just needs to hold its size in the flex role column,
+   like the <img> role icons do. */
+.roleIcon {
+  flex: none;
+}
+
+/* Event chips wrap area. */
+.eventArea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  padding: 0 15px 15px;
+
+  @include media.tablet-landscape {
+    padding: 15px;
+  }
+}
+
+/* Event chip — production `.root__irlCrbts__col__event__cnt`: rounded, gray
+   border + fill, name (14) over a small date. */
+.eventChip {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 40px;
+  max-width: 115px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-neutral-muted, #cbd5e1);
+  border-radius: 4px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  text-decoration: none;
+  // Static Host/Sponsor chips aren't interactive here — no false affordance.
+  cursor: default;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+/* Upcoming events — production's blue→teal "active" accent (gradient ring over a
+   faint gradient wash). This is the same gradient language Demo Day borrows. */
+.eventChipActive {
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(66, 125, 255, 0.06), rgba(68, 213, 187, 0.06)) padding-box,
+    linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
+}
+
+.eventName {
+  width: 93px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .eventDate {
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 14px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* NATIVE variant — the Demo Day chip reads as a normal event chip: identical
+   shape, border and fill to the Host/Sponsor chips. The only difference is honest
+   and functional — it's the one chip that links out (to the Demo Day) — so it
+   carries a pointer cursor and a quiet hover (border darkens + a 1px lift). No
+   colour, gradient or weight change signals "special"; parity is the point. */
+.demoDayChip {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--foreground-neutral-tertiary, #8897ae);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------- FEATURE variant (recommended) ---------------- */
+/* Full-width highlighted row pinned to the top of the card: rocket emblem, title
+   + role·cohort meta, trailing arrow. Faint gradient wash + a gradient left rule
+   so it leads the contributions without shouting. */
+.featureRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px 14px 18px;
+  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  text-decoration: none;
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(27, 77, 255, 0.05) 0%, rgba(76, 238, 140, 0.05) 100%);
+  transition: filter 0.15s ease;
+
+  // gradient left rule — the "spine" that marks the row as the flagship.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #1b4dff 0%, #4cee8c 100%);
+  }
+
+  &:hover {
+    filter: brightness(0.99);
+
+    .featureArrow {
+      transform: translateX(2px);
+    }
+  }
+}
+
+/* Rocket in a filled gradient tile — the anchor mark for the row. */
+.featureEmblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.12);
+}
+
+.featureText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.featureTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.featureMeta {
   font-size: 12px;
   line-height: 16px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.featureArrow {
+  display: inline-flex;
+  flex: none;
+  color: var(--foreground-brand-primary, #1b4dff);
+  transition: transform 0.15s ease;
+}
+
+/* ---------------- BANNER variant ---------------- */
+/* Distinct gradient strip ABOVE the events table — a program milestone adjacent
+   to the IRL events, not folded into them. Also the cleanest empty-case surface. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.12);
+  transition: filter 0.15s ease;
+
+  &:hover {
+    filter: brightness(0.98) saturate(1.03);
+
+    .bannerCta svg {
+      transform: translateX(2px);
+    }
+  }
+}
+
+.bannerEmblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.bannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bannerTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-shadow: 0 1px 1px rgba(14, 15, 17, 0.18);
+}
+
+.bannerMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.bannerCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-shadow: 0 1px 1px rgba(14, 15, 17, 0.18);
+
+  svg {
+    transition: transform 0.15s ease;
+  }
+
+  @include media.mobile-only {
+    // Keep the label from crowding on tiny screens — arrow carries the affordance.
+    span {
+      display: none;
+    }
+  }
 }

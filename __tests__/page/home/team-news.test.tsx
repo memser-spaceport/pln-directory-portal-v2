@@ -28,6 +28,8 @@ const mockOnCardClicked = jest.fn();
 const mockOnTeamNewsSearch = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
+const mockOnDetailModalOpened = jest.fn();
+const mockOnShared = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -38,7 +40,21 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsSearch: (...a: unknown[]) => mockOnTeamNewsSearch(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
     onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
+    onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
+    onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
   }),
+}));
+
+// The global jest.setup.js mock returns a NEW object with fresh jest.fn()s on
+// every useRouter() call — it records nothing across renders. This file needs
+// stable spies (the anon #login push) and a useSearchParams that reflects the
+// real jsdom URL, because useNewsDeepLink writes via window.history.replaceState
+// and reads the params back (Next syncs the two in production).
+const mockRouterPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: (...a: unknown[]) => mockRouterPush(...a), replace: jest.fn(), prefetch: jest.fn() }),
+  usePathname: () => '/home',
+  useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -116,18 +132,21 @@ describe('TeamNews', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
+    // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
+    // ?news= param written by one test can't open the modal in the next.
+    window.history.replaceState(null, '', '/home');
   });
 
   it('renders the global empty state when there are no items', () => {
     renderTeamNews(<TeamNews groups={[]} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText(/No network news in the last 14 days yet/i)).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
   it('renders the section, tabs with counts, and category chips when populated', () => {
     renderTeamNews(<TeamNews groups={groups} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText('5 new')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toBeInTheDocument();
@@ -227,7 +246,7 @@ describe('TeamNews', () => {
 
   it('reports analytics when a card is clicked', () => {
     renderTeamNews(<TeamNews groups={groups} />);
-    const card = screen.getByText(/Headline ai-1/).closest('[role="link"]');
+    const card = screen.getByText(/Headline ai-1/).closest('[role="button"]');
     expect(card).toBeInTheDocument();
     fireEvent.click(within(card! as HTMLElement).getByText(/Headline ai-1/));
     expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
@@ -659,18 +678,18 @@ describe('TeamNews', () => {
 
     it("toggling upvote on one story does not affect another story's state (overlay is per-item)", () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const buttons = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const buttons = screen.getAllByRole('button', { name: 'Like (0)' });
       expect(buttons).toHaveLength(2);
 
       fireEvent.click(buttons[0]);
 
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Upvote (0)' })).toBeInTheDocument(); // the other story unaffected
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Like (0)' })).toBeInTheDocument(); // the other story unaffected
     });
 
     it('fires onTeamNewsUpvoteToggled analytics once the mutation succeeds', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
 
       expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'up-a', isUpvoted: true }, expect.anything());
@@ -689,14 +708,14 @@ describe('TeamNews', () => {
 
     it('reverts the overlay and does not fire success analytics when the mutation fails', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
 
       const options = mockUpvoteMutate.mock.calls[0][1];
       act(() => options.onError());
 
-      expect(screen.getAllByRole('button', { name: 'Upvote (0)' })).toHaveLength(2);
+      expect(screen.getAllByRole('button', { name: 'Like (0)' })).toHaveLength(2);
       expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
     });
 
@@ -712,7 +731,7 @@ describe('TeamNews', () => {
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
 
-      fireEvent.click(screen.getAllByRole('button', { name: 'Upvote (0)' })[0]);
+      fireEvent.click(screen.getAllByRole('button', { name: 'Like (0)' })[0]);
 
       const teamLinks = screen.getAllByRole('link', { name: /Zzz|Team up-/ });
       expect(teamLinks[0]).toHaveTextContent('Zzz');
@@ -731,8 +750,7 @@ describe('TeamNews', () => {
     // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
     const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
 
-    const getTeamOrder = () =>
-      screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
 
     // FollowButton only renders hydrated + signed-in (same setup as the upvotes block).
     beforeEach(() => {
@@ -795,6 +813,247 @@ describe('TeamNews', () => {
     });
   });
 
+  describe('upvote — session-stable ordering (frozen until reload)', () => {
+    // No followed items → default sort resolves to 'popular', which ranks clusters
+    // by upvote count. Equal counts keep insertion order (stable sort), so upvoting
+    // Yankee (1 → 2) would rank it above Xray without the mount-time count snapshot.
+    const xray = {
+      ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-xray',
+      teamName: 'Xray',
+      upvoteCount: 1,
+    };
+    const yankee = {
+      ...makeItem('uy-1', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-yankee',
+      teamName: 'Yankee',
+      upvoteCount: 1,
+    };
+    const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 2, items: [xray, yankee] }];
+
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Xray|Yankee)/ }).map((l) => l.textContent);
+    // Both stories start at count 1, so the buttons share a name — index 1 is
+    // Yankee's, matching the rendered [Xray, Yankee] order asserted first.
+    const getYankeeUpvoteButton = () => screen.getAllByRole('button', { name: 'Like (1)' })[1];
+
+    // UpvoteButton redirects anonymous clicks to login — sign in (same setup as
+    // the upvotes block above).
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('upvoting flips the button and count immediately but does not move the cluster', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+
+      fireEvent.click(getYankeeUpvoteButton());
+
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // order frozen until reload
+
+      // Removing the upvote is symmetric: count drops back, cluster still doesn't move.
+      fireEvent.click(screen.getByRole('button', { name: 'Remove like (2)' }));
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+    });
+
+    it('reverts the button (but not the order) when the mutation fails', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
+
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onError());
+
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // frozen order untouched by the revert
+    });
+
+    it('reconciling with a different server count updates the button only, never the order', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+
+      // Concurrent voters: server's authoritative count differs from the optimistic +1.
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onSuccess({ viewerHasUpvoted: true, upvoteCount: 7 }));
+
+      expect(screen.getByRole('button', { name: 'Remove like (7)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // still ranked by page-load counts
+    });
+
+    it('a fresh mount applies the new count order (simulates page reload)', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+      // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh
+      // mount with fresh SSR counts, so unmount and render anew with the server's truth.
+      unmount();
+
+      const reloadedGroups: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 2, items: [xray, { ...yankee, upvoteCount: 2, viewerHasUpvoted: true }] },
+      ];
+      renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      expect(getTeamOrder()).toEqual(['Yankee', 'Xray']);
+    });
+  });
+
+  describe('news detail modal + deep link (?news=<uid>)', () => {
+    const getDialog = () => screen.getByRole('dialog');
+
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('opens the modal on row click, writes ?news= synchronously, and never window.opens', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      const dialog = getDialog();
+      expect(within(dialog).getByRole('heading', { name: 'Headline ai-1' })).toBeInTheDocument();
+      expect(window.location.search).toBe('?news=ai-1'); // history.replaceState is synchronous
+      expect(openSpy).not.toHaveBeenCalled();
+      expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
+      openSpy.mockRestore();
+    });
+
+    it('preserves unrelated query params (utm) across open and close', () => {
+      window.history.replaceState(null, '', '/home?utm_source=li');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(window.location.search).toContain('utm_source=li');
+      expect(window.location.search).toContain('news=ai-1');
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Close' }));
+      expect(window.location.search).toBe('?utm_source=li');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('closes on Escape and strips only the news param', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(getDialog()).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('');
+    });
+
+    it('shows the source links inside the modal (they left the row click)', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      const link = within(getDialog()).getByRole('link', { name: 'example.com' });
+      expect(link).toHaveAttribute('href', 'https://example.com/ai-1');
+      expect(link).toHaveAttribute('target', '_blank');
+    });
+
+    it('keeps the modal Like and the feed row in sync through the shared overlay', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
+
+      expect(within(getDialog()).getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+      // The originating feed row reads the same overlay-merged item.
+      const row = screen.getByRole('button', { name: 'Headline ai-1' });
+      expect(within(row).getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+    });
+
+    it('anonymous Like in the modal pushes a #login URL that carries the news param', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+      window.history.replaceState(null, '', '/home?news=ai-1');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login');
+    });
+
+    it('a valid deep link opens the modal on first render and reports the deep-link open once', () => {
+      window.history.replaceState(null, '', '/home?news=dhr-1');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      expect(within(getDialog()).getByRole('heading', { name: 'Headline dhr-1' })).toBeInTheDocument();
+      expect(mockOnDetailModalOpened).toHaveBeenCalledTimes(1);
+      expect(mockOnDetailModalOpened).toHaveBeenCalledWith(expect.objectContaining({ uid: 'dhr-1' }));
+    });
+
+    it('an unknown uid renders the plain feed and silently strips the param', () => {
+      window.history.replaceState(null, '', '/home?news=expired-uid&utm_source=li');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('?utm_source=li');
+      expect(mockOnDetailModalOpened).not.toHaveBeenCalled();
+    });
+
+    it('row clicks never report a deep-link modal open', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(mockOnDetailModalOpened).not.toHaveBeenCalled();
+    });
+
+    it('opening the share popover from a row never opens the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('');
+    });
+
+    it('clicking a share menu item never opens the row modal beneath it', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      openSpy.mockRestore();
+    });
+
+    it('Escape with the share popover open closes only the popover; the next Escape closes the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      const dialog = getDialog();
+
+      fireEvent.click(within(dialog).getByRole('button', { name: /^Share/ }));
+      const menu = screen.getByRole('menu');
+
+      fireEvent.keyDown(menu, { key: 'Escape' });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument(); // modal survived the first Escape
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('shares from the modal footer report the news-modal source', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: /^Share/ }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('news=ai-1'));
+      expect(mockOnShared).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 'x', 'news-modal');
+      openSpy.mockRestore();
+    });
+  });
+
   describe('popular this week — scroll to story', () => {
     const popularItem = (
       partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>,
@@ -807,10 +1066,14 @@ describe('TeamNews', () => {
       ...partial,
     });
 
-    // The rail's own button ("Popular this week") always has role="button";
-    // feed rows have role="link" — that's enough to disambiguate identical
-    // headline text appearing in both places, no need for extra test ids.
-    const getRailButton = (title: string) => screen.getByRole('button', { name: new RegExp(title) });
+    // Feed rows are role="button" too now (they open the detail modal) and use
+    // the headline as accessible name; share triggers are "Share <headline>".
+    // The rail button is the one whose name STARTS with the headline and that
+    // carries no data-story-uid.
+    const getRailButton = (title: string) =>
+      screen
+        .getAllByRole('button', { name: new RegExp(`^${title}`) })
+        .find((el) => !el.hasAttribute('data-story-uid'))!;
     const getFeedHeadline = (title: string) => screen.queryByText(new RegExp(title), { selector: 'h3' });
 
     it('reveals an already-visible story without changing tab/category/query, and does not navigate', () => {
@@ -823,7 +1086,7 @@ describe('TeamNews', () => {
       expect(openSpy).not.toHaveBeenCalled();
       expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
       expect(getFeedHeadline('Headline ai-1')).toBeInTheDocument();
-      expect(getFeedHeadline('Headline ai-1')!.closest('[role="link"]')).toHaveClass('storyHighlighted');
+      expect(getFeedHeadline('Headline ai-1')!.closest('[role="button"]')).toHaveClass('storyHighlighted');
       expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
       openSpy.mockRestore();
     });
@@ -948,7 +1211,7 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
 
       fireEvent.click(getRailButton('Headline ai-1'));
-      const row = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      const row = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(row).toHaveClass('storyHighlighted');
 
       act(() => jest.advanceTimersByTime(2000));
@@ -968,11 +1231,11 @@ describe('TeamNews', () => {
       );
 
       fireEvent.click(getRailButton('Headline ai-1'));
-      const firstRow = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      const firstRow = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(firstRow).toHaveClass('storyHighlighted');
 
       fireEvent.click(getRailButton('Headline ai-2'));
-      const secondRow = getFeedHeadline('Headline ai-2')!.closest('[role="link"]');
+      const secondRow = getFeedHeadline('Headline ai-2')!.closest('[role="button"]');
 
       expect(firstRow).not.toHaveClass('storyHighlighted');
       expect(secondRow).toHaveClass('storyHighlighted');

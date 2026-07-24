@@ -23,6 +23,18 @@ import type {
 /** A target list (Lists IA). The workspace operates over one list at a time. */
 export type ListRef = { id: string; name: string };
 
+/** Prototype-only record-provenance dimension for the "Source" filter. */
+export type DataSource = 'linkedin' | 'affinity';
+export const DATA_SOURCE_LABEL: Record<DataSource, string> = {
+  linkedin: 'LinkedIn',
+  affinity: 'Affinity',
+};
+
+/** A source-tagged "why this path is warm" evidence bullet — mirrors production's
+ *  `PathHopChain.attribution_lines` (`{ source, text }`). Kept separate from the
+ *  route narrative in `explanation`, which excludes source attribution. */
+export type AttributionLine = { source: DataSource; text: string };
+
 /** A link to a team a person belongs to. A connector can be in several teams. */
 export type TeamLink = { name: string; teamUid?: string; logo?: string };
 
@@ -101,7 +113,14 @@ export type RoutePl =
 export type RouteMediator =
   | { known: false; team: TeamLink }
   | (ContactPerson & { known: true; team?: TeamLink });
-export type PathRoute = { pl: RoutePl; mediator?: RouteMediator };
+export type PathRoute = {
+  pl: RoutePl;
+  /** Single-hop bridge (PL → mediator → investor). */
+  mediator?: RouteMediator;
+  /** Multi-hop bridge — an ordered chain of 2–3 intermediaries between PL and
+   *  the investor. When set it supersedes `mediator`. */
+  mediators?: RouteMediator[];
+};
 
 export type MockPath = {
   id: number;
@@ -112,6 +131,10 @@ export type MockPath = {
   score: number;
   connector_type: PathConnectorType;
   explanation: string;
+  /** Source-tagged evidence bullets (LinkedIn / Affinity), rendered under the
+   *  narrative `explanation` in the drawer path card — mirrors production's
+   *  `PathHopChain.attribution_lines`. */
+  attribution_lines?: AttributionLine[];
   /** Hop-chain: PL → company(ies) → investor. Kept for connector-lens search;
    *  the route is now rendered people-first (see `contact` / `orgConnector`). */
   chain: ChainNode[];
@@ -192,6 +215,10 @@ export type MockInvestor = {
   // ── Extra fields rendered only in the detail drawer (issue: same drawer on tap) ──
   email_status: EmailStatus;
   source: InvestorSource;
+  /** Prototype-only: which upstream system this record was ingested from —
+   *  drives the All / LinkedIn / Affinity "Source" filter. LinkedIn = enrichment
+   *  scrape; Affinity = the LP CRM (also carries lp_stage / relationship owner). */
+  data_source?: DataSource;
   /** Affinity: LP funnel stage (e.g. "Target / Enriched", "2+ Meetings Held") —
    *  shown as a status pill in the header pill row. */
   lp_stage?: string;
@@ -331,6 +358,14 @@ export function resolveRoute(path: MockPath): PathRoute {
   return { pl: { known: false }, mediator };
 }
 
+/** The ordered mediator chain of a route, normalized: an authored multi-hop
+ *  `mediators` array wins; otherwise the single `mediator` (empty for a direct
+ *  PL → investor tie). Every hop-count consumer reads through this so the chain,
+ *  the "Direct" label, and the drawer can never disagree. */
+export function routeMediators(route: PathRoute): RouteMediator[] {
+  return route.mediators ?? (route.mediator ? [route.mediator] : []);
+}
+
 function personRouteNode(p: ContactPerson, extra?: Partial<RouteNode>): RouteNode {
   return { label: p.name, memberUid: p.memberUid, variant: p.memberUid ? 'member' : 'external', ...extra };
 }
@@ -347,7 +382,9 @@ function plRouteNode(pl: RoutePl): RouteNode {
 export function pathChainNodes(path: MockPath, inv: MockInvestor): RouteNode[] {
   const route = resolveRoute(path);
   const nodes: RouteNode[] = [plRouteNode(route.pl)];
-  if (route.mediator) nodes.push(route.mediator.known ? personRouteNode(route.mediator) : teamRouteNode(route.mediator.team));
+  // Each intermediary becomes a node — two nodes when direct, three when one
+  // mediator bridges, four/five across a 2–3 hop chain.
+  routeMediators(route).forEach((m) => nodes.push(m.known ? personRouteNode(m) : teamRouteNode(m.team)));
   nodes.push(investorNode(inv));
   return nodes;
 }
@@ -356,8 +393,8 @@ export function pathChainNodes(path: MockPath, inv: MockInvestor): RouteNode[] {
  *  in between, no mediator = a direct PL → investor tie. Derived from the route
  *  so the word can never disagree with the chain. */
 export function pathDirectness(path: MockPath): 'Direct' | '' {
-  // Only flag the special "direct" case; the chain itself conveys the hop.
-  return resolveRoute(path).mediator ? '' : 'Direct';
+  // Only flag the special "direct" case; the chain itself conveys the hops.
+  return routeMediators(resolveRoute(path)).length === 0 ? 'Direct' : '';
 }
 
 // ── Connector-case path factory ─────────────────────────────────────────────
@@ -379,6 +416,10 @@ function fourCasePaths(firstName: string, firm: string, leadWithOrg = false): Mo
     score: 0.86,
     connector_type: 'F',
     explanation: `Alicia Mer (Modular Globe, PL portfolio) knows ${firstName} well and can broker a warm intro.`,
+    attribution_lines: [
+      { source: 'linkedin', text: `Alicia Mer and ${firstName} share a mutual connection on LinkedIn.` },
+      { source: 'affinity', text: `Modular Globe appears in ${firstName}'s Affinity deal history.` },
+    ],
     chain: [PL, team('Modular Globe', 'modular-globe', '/icons/technology/filecoin.svg'), firmOrg],
     contact: {
       name: 'Alicia Mer',
@@ -401,6 +442,9 @@ function fourCasePaths(firstName: string, firm: string, leadWithOrg = false): Mo
     score: 0.5,
     connector_type: 'VC',
     explanation: `We don't know who at Pico Ventures can connect yet — they co-invest with ${firm}, so reach out to the team and ask for the right partner.`,
+    attribution_lines: [
+      { source: 'affinity', text: `Pico Ventures co-invested with ${firm} across 2 rounds (Affinity deal history).` },
+    ],
     chain: [PL, org('Pico Ventures', `${LOGOS}/Multicoin.svg`), firmOrg],
     orgConnector: {
       name: 'Pico Ventures',
@@ -418,6 +462,9 @@ function fourCasePaths(firstName: string, firm: string, leadWithOrg = false): Mo
     score: 0.42,
     connector_type: 'VC',
     explanation: `James Whitfield at Electric Capital has co-invested alongside ${firm}. He is not in the PL network, so reach out directly.`,
+    attribution_lines: [
+      { source: 'linkedin', text: `James Whitfield lists a co-investment with ${firm} on LinkedIn — not in the PL network.` },
+    ],
     chain: [PL, org('Electric Capital', `${LOGOS}/ElectricCapital.svg`), firmOrg],
     contact: {
       name: 'James Whitfield',
@@ -458,6 +505,10 @@ function plConnectorPath(pl: ContactPerson, inv: MockInvestor): MockPath {
     score: 0.9,
     connector_type: 'PL',
     explanation: `${pl.name} on the PL investment team is in direct contact with ${inv.first_name} — ask them to make the intro.`,
+    attribution_lines: [
+      { source: 'linkedin', text: `${pl.name} and ${inv.first_name} ${inv.last_name} are 1st-degree connections on LinkedIn.` },
+      { source: 'affinity', text: `${inv.first_name} is logged in Affinity — last touch ~2 weeks ago.` },
+    ],
     chain: [PL, org(inv.firm, `${LOGOS}/Framework.svg`)],
     route: { pl: { known: true, ...pl, tie: 0.6, lastContact: '~2 weeks ago' } },
     contact: pl,
@@ -512,6 +563,10 @@ function founderPath(f: ContactPerson, inv: MockInvestor): MockPath {
     score: 0.72,
     connector_type: 'F',
     explanation: `${f.name} (${t?.name ?? 'PL portfolio'}) knows ${inv.first_name} and can broker a warm intro.`,
+    attribution_lines: [
+      { source: 'linkedin', text: `${f.name} and ${inv.first_name} ${inv.last_name} share a mutual connection on LinkedIn.` },
+      { source: 'affinity', text: `${t?.name ?? "The founder's company"} appears in ${inv.first_name}'s Affinity deal history.` },
+    ],
     chain: [PL, ...(t?.teamUid ? [team(t.name, t.teamUid, t.logo)] : []), org(inv.firm, `${LOGOS}/Framework.svg`)],
     contact: f,
   };
@@ -572,6 +627,10 @@ const BASE_MEMBERS: MockInvestor[] = [
         connector_type: 'PL',
         explanation:
           'Brad Holden on the PL partnerships team has been in direct contact with Lena — ask him to make the intro. Direct PL tie, no mediator needed.',
+        attribution_lines: [
+          { source: 'linkedin', text: 'Brad Holden and Lena Hoffmann both attended Princeton University — overlap period unverified on LinkedIn.' },
+          { source: 'affinity', text: '3 meetings logged with Lena since Jan 2026; last email ~3 weeks ago.' },
+        ],
         chain: [PL, org('Catalyst Bio', `${LOGOS}/Archetype.svg`)],
         // CASE D1 — PL known → Investor (direct). We know the name (Daniel) but
         // he has no LabOS profile, so the chip is name-only. Carries the tie stat.
@@ -1358,6 +1417,191 @@ const BASE_MEMBERS: MockInvestor[] = [
       },
     ],
   },
+  {
+    // ── 2-HOP example: PL → founder → co-investor firm → investor ─────────────
+    investor_id: 'inv-nadia',
+    first_name: 'Nadia',
+    last_name: 'Volkov',
+    email: 'nadia@meridiancap.com',
+    email_status: 'verified',
+    source: 'Pitchbook',
+    data_source: 'affinity',
+    linkedin_url: 'https://www.linkedin.com/in/nadia-volkov',
+    firm_domain: 'meridiancap.com',
+    geo_focus: 'US / EU',
+    fund_thesis: 'Seed-to-A frontier compute and neurotech infrastructure.',
+    aum_range: '500M-1B',
+    lab_os_profile: null,
+    outreach: { touches: 2, opened: 1, clicked: 0, registered: 0, first_sent_date: '2026-02-18', last_sent_date: '2026-03-20' },
+    firm: 'Meridian Capital',
+    title: 'Partner',
+    sector_tags: ['neurotech', 'infrastructure'],
+    stage_focus: 'seed',
+    check_size_range: '1M-5M',
+    investor_type: 'fund',
+    engagement_tier: 'T3_opened',
+    relationship: 'engaged',
+    best_proximity_code: 'VC+2A',
+    has_path: true,
+    list_ids: ['neuro-lp'],
+    paths: [
+      {
+        id: 1201,
+        rank: 1,
+        proximity_code: 'VC+2A',
+        caliber_confidence: 0.74,
+        score: 0.71,
+        connector_type: 'VC',
+        explanation:
+          'Two hops out: Marc Johnson (PL) can tap Alicia Mer (Modular Globe, PL portfolio), who co-invested with Fenwick Partners — Fenwick backs Meridian and can pass a warm note to Nadia.',
+        attribution_lines: [
+          { source: 'linkedin', text: 'Alicia Mer and Nadia Volkov are 2nd-degree on LinkedIn via Fenwick Partners — no direct connection confirmed.' },
+          { source: 'affinity', text: 'Fenwick Partners co-invested with Modular Globe across 2 rounds (Affinity deal history).' },
+        ],
+        chain: [
+          PL,
+          team('Modular Globe', 'modular-globe', '/icons/technology/filecoin.svg'),
+          org('Fenwick Partners', `${LOGOS}/BlueYard.svg`),
+          org('Meridian Capital', `${LOGOS}/Framework.svg`),
+        ],
+        // PL known → founder (known person) → firm (person unknown) → investor.
+        route: {
+          pl: {
+            known: true,
+            name: 'Marc Johnson',
+            role: 'Partner · Protocol Labs',
+            email: 'marc@protocol.ai',
+            linkedin: 'marc-johnson',
+            tie: 0.55,
+            lastContact: '~1 month ago',
+          },
+          mediators: [
+            {
+              known: true,
+              name: 'Alicia Mer',
+              role: 'CEO & Co-founder',
+              email: 'alicia@modularglobe.xyz',
+              linkedin: 'alicia-mer',
+              telegram: 'aliciamer',
+              memberUid: 'alicia-mer',
+              team: { name: 'Modular Globe', teamUid: 'modular-globe' },
+            },
+            { known: false, team: { name: 'Fenwick Partners' } },
+          ],
+        },
+      },
+      {
+        id: 1202,
+        rank: 2,
+        proximity_code: 'VC+1B',
+        caliber_confidence: 0.6,
+        score: 0.55,
+        connector_type: 'VC',
+        explanation: 'Nina Brandt (Multicoin Capital) co-invested with Meridian and can make a direct one-hop intro.',
+        chain: [PL, org('Multicoin Capital', `${LOGOS}/Multicoin.svg`), org('Meridian Capital', `${LOGOS}/Framework.svg`)],
+        contact: {
+          name: 'Nina Brandt',
+          role: 'GP',
+          email: 'nina@multicoin.capital',
+          linkedin: 'nina-brandt',
+          memberUid: 'nina-brandt',
+          teams: [{ name: 'Multicoin Capital', teamUid: 'multicoin-capital' }],
+        },
+      },
+    ],
+  },
+  {
+    // ── 3-HOP example: PL → founder → firm → partner → investor ───────────────
+    investor_id: 'inv-ravi',
+    first_name: 'Ravi',
+    last_name: 'Menon',
+    email: 'ravi@summitbridge.vc',
+    email_status: 'catch_all',
+    source: 'RootData',
+    data_source: 'linkedin',
+    linkedin_url: 'https://www.linkedin.com/in/ravi-menon',
+    firm_domain: 'summitbridge.vc',
+    geo_focus: 'Asia / US',
+    fund_thesis: 'Series A climate, energy, and deep-tech hardware.',
+    aum_range: '1B+',
+    lab_os_profile: null,
+    outreach: { touches: 1, opened: 1, clicked: 0, registered: 0, first_sent_date: '2026-03-02', last_sent_date: '2026-03-02' },
+    firm: 'Summit Bridge Ventures',
+    title: 'General Partner',
+    sector_tags: ['climate', 'frontier-tech'],
+    stage_focus: 'series-a',
+    check_size_range: '5M+',
+    investor_type: 'fund',
+    engagement_tier: 'T3_opened',
+    relationship: 'engaged',
+    best_proximity_code: 'VC+3B',
+    has_path: true,
+    list_ids: ['neuro-lp'],
+    paths: [
+      {
+        id: 1301,
+        rank: 1,
+        proximity_code: 'VC+3B',
+        caliber_confidence: 0.46,
+        score: 0.43,
+        connector_type: 'VC',
+        explanation:
+          'Three hops out, but every link is real: Lacey Wisdom (PL) → Priya Anand (Tidal Energy, PL portfolio) → Talia Rosen (Polychain, a shared co-investor) → Owen Park (CoinFund), who sits on a board with Ravi at Summit Bridge.',
+        attribution_lines: [
+          { source: 'linkedin', text: 'Owen Park and Ravi Menon both list a Summit Bridge Ventures advisory role on LinkedIn.' },
+          { source: 'affinity', text: 'Polychain and CoinFund co-invested alongside Summit Bridge on 3 deals (Affinity).' },
+        ],
+        chain: [
+          PL,
+          team('Tidal Energy', 'tidal-energy', '/icons/technology/drand.svg'),
+          org('Polychain Capital', `${LOGOS}/PolychainCapital.svg`),
+          org('CoinFund', `${LOGOS}/CoinFund.svg`),
+          org('Summit Bridge Ventures', `${LOGOS}/Framework.svg`),
+        ],
+        // PL known → founder → co-investor partner → co-investor GP → investor.
+        route: {
+          pl: {
+            known: true,
+            name: 'Lacey Wisdom',
+            role: 'Partnerships Lead · Protocol Labs',
+            email: 'lacey@protocol.ai',
+            linkedin: 'lacey-wisdom',
+            tie: 0.48,
+            lastContact: '~3 months ago',
+          },
+          mediators: [
+            {
+              known: true,
+              name: 'Priya Anand',
+              role: 'CEO & Founder',
+              email: 'priya@tidalenergy.co',
+              telegram: 'priyaanand',
+              memberUid: 'priya-anand',
+              team: { name: 'Tidal Energy', teamUid: 'tidal-energy' },
+            },
+            {
+              known: true,
+              name: 'Talia Rosen',
+              role: 'Partner · Polychain Capital',
+              email: 'talia@polychain.capital',
+              linkedin: 'talia-rosen',
+              memberUid: 'talia-rosen',
+              team: { name: 'Polychain Capital', teamUid: 'polychain-capital' },
+            },
+            {
+              known: true,
+              name: 'Owen Park',
+              role: 'General Partner · CoinFund',
+              email: 'owen@coinfund.io',
+              linkedin: 'owen-park',
+              memberUid: 'owen-park',
+              team: { name: 'CoinFund', teamUid: 'coinfund' },
+            },
+          ],
+        },
+      },
+    ],
+  },
 ];
 
 // Standardize: every investor that has a path shows the three connector cases
@@ -1370,7 +1614,7 @@ const BASE_MEMBERS: MockInvestor[] = [
 const ORG_LEAD_ROWS = new Set(['inv-lukas']);
 // These investors carry hand-authored routes that demonstrate the six PL/mediator
 // states — they must KEEP their own paths, not get the generic factory ones.
-const SHOWCASE_ROWS = new Set(['inv-lena', 'inv-marcus', 'inv-soren', 'inv-priya', 'inv-hannah', 'inv-dmitri']);
+const SHOWCASE_ROWS = new Set(['inv-lena', 'inv-marcus', 'inv-soren', 'inv-priya', 'inv-hannah', 'inv-dmitri', 'inv-nadia', 'inv-ravi']);
 // Demo-only: give every investor multiple emails + teams so the "+N more" pattern
 // is visible on any drawer (real data would come from the API). Derived from the
 // investor's own name/firm, with a varied extra affiliation per investor. Any
@@ -1425,7 +1669,9 @@ function seedContacts(inv: MockInvestor, i: number): MockInvestor {
   // "In LabOS" is a rare signal — only investors authored with a member profile
   // (Lena, Soren) keep it. Everyone else is null → no pill anywhere.
   const lab_os_profile = inv.lab_os_profile ?? null;
-  return { ...inv, emails, teams, lp_stage, last_contact, relationship_owner, lab_os_profile };
+  // Split the roster ~half / half so the Source filter has a real spread.
+  const data_source: DataSource = inv.data_source ?? (i % 2 === 0 ? 'linkedin' : 'affinity');
+  return { ...inv, emails, teams, lp_stage, last_contact, relationship_owner, lab_os_profile, data_source };
 }
 
 // Generic (non-showcase) rows are rebuilt so Feature 1 has real data: a named PL
@@ -1508,7 +1754,7 @@ export function directConnector(inv: MockInvestor): ConnCell | null {
   for (const p of inv.paths) {
     if (p.connector_type === 'F') continue;
     const route = resolveRoute(p);
-    if (route.pl.known && !route.mediator) return { person: route.pl, proximity: p.proximity_code };
+    if (route.pl.known && routeMediators(route).length === 0) return { person: route.pl, proximity: p.proximity_code };
   }
   return null;
 }
@@ -1524,8 +1770,9 @@ export function hopConnectors(inv: MockInvestor): HopBroker[] {
   const out: HopBroker[] = [];
   const seen = new Set<string>();
   for (const p of inv.paths) {
-    const med = resolveRoute(p).mediator;
-    if (!med) continue; // no intermediary → that's the Direct column
+    const meds = routeMediators(resolveRoute(p));
+    if (meds.length === 0) continue; // no intermediary → that's the Direct column
+    const med = meds[0]; // the first broker you reach on the path
     if (med.known) {
       if (seen.has(med.name)) continue;
       seen.add(med.name);

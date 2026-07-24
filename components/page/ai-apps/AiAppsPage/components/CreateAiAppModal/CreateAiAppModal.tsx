@@ -6,7 +6,7 @@ import { CloseIcon } from '@/components/icons';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { AI_APPS_STARTER_KIT_VERSION } from '@/services/ai-apps/constants';
 
-import { MODAL_INTRO, MODAL_WHATS_NEW_ITEMS, STEPS } from './constants';
+import { MODAL_INTRO, MODAL_WHATS_NEW_SECTIONS, STEPS } from './constants';
 
 import { handleDownloadKit } from './utils/handleDownloadKit';
 
@@ -52,13 +52,17 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
             </ol>
           </div>
 
-          <aside className={s.whatsNew} aria-label={`What's new in v${AI_APPS_STARTER_KIT_VERSION}`}>
-            <p className={s.whatsNewLabel}>What&apos;s new in v{AI_APPS_STARTER_KIT_VERSION}</p>
-            <ul className={s.whatsNewList}>
-              {MODAL_WHATS_NEW_ITEMS.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+          <aside className={s.whatsNew} aria-label="What's new">
+            {MODAL_WHATS_NEW_SECTIONS.map((section) => (
+              <div key={section.version} className={s.whatsNewSection}>
+                <p className={s.whatsNewLabel}>What&apos;s new in v{section.version}</p>
+                <ul className={s.whatsNewList}>
+                  {section.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </aside>
         </div>
 

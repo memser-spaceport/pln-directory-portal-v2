@@ -23,8 +23,11 @@ export const RUNTIME_WINDOW_LABEL = 'last 24 hours';
 
 /**
  * One stream's logs for the deployment-logs modal, paged by the runner's
- * `nextToken`: the first page loads on open, further pages load as the reader
- * scrolls (`loadMore`), and `hasMore` doubles as the "log continues" signal.
+ * `nextToken`: the first page loads on open, further pages load via the
+ * modal's explicit "Load newer logs" button (`loadMore` — MANUAL by design:
+ * the runner pages forward, so appended lines sort in above the reader and
+ * every scroll-based auto-load heuristic turns into a request loop). `hasMore`
+ * doubles as the "log continues" signal.
  *
  * The modal must be conditionally rendered (`action && <Modal/>`), never kept
  * mounted behind an isOpen prop: abort-on-close works because unmounting drops
@@ -70,12 +73,7 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
       .sort((a, b) => logTimestampSortValue(b.timestamp) - logTimestampSortValue(a.timestamp));
   }, [query.data]);
 
-  // A step can legitimately return zero events WITH a token (skip budget spent
-  // on CloudWatch's sparse-window quirk). The modal must not auto-chain off
-  // that — it downgrades to the manual "Load more" button so a pathological
-  // stream of empty pages can't turn the scroll sentinel into a request loop.
   const pages = query.data?.pages;
-  const lastPageHadEvents = !!pages && pages.length > 0 && pages[pages.length - 1].events.length > 0;
 
   return {
     events,
@@ -91,7 +89,6 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
     loadMoreFailed: !!query.data && query.isError,
     isLoading: query.isLoading,
     hasMore: !!query.hasNextPage,
-    canAutoLoad: !!query.hasNextPage && lastPageHadEvents,
     isLoadingMore: query.isFetchingNextPage,
     loadMore: () => {
       if (query.hasNextPage && !query.isFetchingNextPage) void query.fetchNextPage();

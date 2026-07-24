@@ -69,17 +69,19 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
  * one per deploy attempt) and Runtime (the pod's stdout/stderr over a
  * retention window). One NEWEST-FIRST table per stream — every loaded line is
  * sorted latest-on-top — paged by the runner's nextToken: the first page loads
- * on open, more load as the reader scrolls near the bottom (with a manual
- * "Load more" fallback).
+ * on open, further pages load ONLY via the explicit "Load newer logs" button.
  *
  * The runner pages FORWARD (observed: page 1 is the window's oldest chunk), so
  * later pages carry NEWER lines and the sort slots them in at the top; the top
  * row is the newest loaded line, and the log's true tail only once every page
  * is in. A backend `order=desc`/tail-read option is the real fix and is on the
- * asks list. Forward paging is also why auto-loading is armed by USER SCROLLS
- * only — an append re-triggering the loader (the sentinel never leaves the
- * viewport when new rows sort in above it) would chain-fetch the entire window.
- * Refresh restarts from page 1; live tailing stays out of v1.
+ * asks list. Forward paging is also why loading more is a MANUAL button (at
+ * the top, where the loaded lines appear) and never automatic: every
+ * scroll-position heuristic gets defeated when appends land above the reader —
+ * an IntersectionObserver sentinel never un-triggers, and browser scroll
+ * anchoring re-fires scroll events while preserving distance-to-bottom — and
+ * each false trigger chain-fetches the entire window. Refresh restarts from
+ * page 1; live tailing stays out of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -135,20 +137,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     pane.scrollTop = 0;
     // `lines` is the render trigger: anchor once the first page's rows exist.
   }, [lines, stream, active.pageCount]);
-
-  // Auto-load on USER scroll near the bottom — never on content changes.
-  // Scroll events only fire for real scrolling, so an appended page can't
-  // re-trigger the loader by itself (with forward paging, new rows sort in
-  // ABOVE the reader and the bottom of the pane stays the bottom — an
-  // intersection-observer sentinel here chain-fetches the whole window).
-  // Stays inert during search (results only cover loaded lines) and when the
-  // hook says manual-only (canAutoLoad false — an empty page with a token).
-  const handlePaneScroll = () => {
-    const pane = paneRef.current;
-    if (!pane || !active.canAutoLoad || active.loadMoreFailed || query.trim()) return;
-    const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 200;
-    if (nearBottom) active.loadMore(); // loadMore self-guards against re-entry
-  };
 
   useEffect(
     () => () => {
@@ -229,6 +217,9 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     },
   ];
 
+  // At the TOP of the table: with forward paging + newest-first sorting the
+  // loaded lines appear right here, so the affordance sits where its result
+  // shows up.
   const loadMoreRow = active.hasMore && !query.trim() && (
     <tr className={s.loadMoreRow}>
       <td colSpan={2}>
@@ -240,10 +231,10 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </button>
           </span>
         ) : active.isLoadingMore ? (
-          <span className={s.loadMoreHint}>Loading more logs…</span>
+          <span className={s.loadMoreHint}>Loading newer logs…</span>
         ) : (
           <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
-            Load more logs
+            Load newer logs
           </button>
         )}
       </td>
@@ -303,7 +294,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <div className={s.stateBlock}>
           <p className={s.stateTitle}>No lines in this part of the log yet.</p>
           <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
-            {active.isLoadingMore ? 'Loading…' : 'Load more logs'}
+            {active.isLoadingMore ? 'Loading…' : 'Load newer logs'}
           </Button>
         </div>
       );
@@ -329,7 +320,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         role="region"
         aria-label="Deployment logs"
         tabIndex={0}
-        onScroll={handlePaneScroll}
       >
         <table className={s.table}>
           <thead>
@@ -339,6 +329,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </tr>
           </thead>
           <tbody>
+            {loadMoreRow}
             {filtered.map((line) => (
               <tr key={line.key} className={line.level ? s[line.level] : undefined}>
                 <td className={s.messageCell}>
@@ -358,7 +349,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 </td>
               </tr>
             ))}
-            {loadMoreRow}
           </tbody>
         </table>
       </div>
@@ -447,7 +437,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {active.hasMore && ' · newest loaded first — scroll to load the rest'}
+            {active.hasMore && ' · newer lines available'}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

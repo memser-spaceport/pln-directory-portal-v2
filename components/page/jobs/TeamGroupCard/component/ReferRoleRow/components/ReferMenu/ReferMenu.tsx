@@ -3,11 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { IJobRole } from '@/types/jobs.types';
-import { Button } from '@/components/common/Button';
 
 import { JOB_QUERY_PARAMS } from '../../constants';
-
-import { getShareText } from './utils/getShareText';
 
 import { LinkIcon, CheckIcon, ShareIcon } from './components/Icons';
 
@@ -60,7 +57,7 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
 
   const share = (network: 'linkedin' | 'x') => {
     const url = getJobLink();
-    const text = getShareText(role, teamName);
+    const text = `Referring a great role - ${role.roleTitle} at ${teamName}. Know someone perfect for it?`;
 
     const encodedUrl = encodeURIComponent(url);
 
@@ -69,7 +66,7 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
         ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
         : `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
 
-    window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=640');
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
     setOpen(false);
   };
 

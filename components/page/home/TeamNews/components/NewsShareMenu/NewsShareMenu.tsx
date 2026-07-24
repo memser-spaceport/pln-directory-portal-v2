@@ -9,6 +9,7 @@ import type { ITeamNewsItem } from '@/types/team-news.types';
 import { buildShareIntentUrl, type ShareIntentNetwork } from '../../utils/buildShareIntentUrl';
 
 import s from './NewsShareMenu.module.scss';
+import { CheckIcon } from '@/components/icons';
 
 function ShareIcon() {
   return (
@@ -104,6 +105,7 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
       <Menu.Portal>
         <Menu.Positioner className={s.positioner} side={side} align="end" sideOffset={6}>
           <Menu.Popup className={s.popup} onClick={(e) => e.stopPropagation()}>
+            <div className={s.popupTitle}>Share</div>
             <Menu.Item className={s.item} onClick={() => share('linkedin')}>
               <img src="/icons/social-linkedin.svg" alt="" width={18} height={18} aria-hidden="true" />
               Share on LinkedIn
@@ -113,7 +115,24 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
               Share on X
             </Menu.Item>
             <Menu.Item className={`${s.item} ${copied ? s.itemCopied : ''}`} closeOnClick={false} onClick={copyLink}>
-              {copied ? '✓ Link copied!' : 'Copy link'}
+              {copied ? (
+                <span className={s.inline}>
+                  <CheckIcon width={14} height={14} /> Link copied
+                </span>
+              ) : (
+                <span className={s.inline}>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path
+                      d="M8.5 11.5a3 3 0 0 0 4.24 0l2.3-2.3a3 3 0 1 0-4.24-4.24l-1.1 1.1M11.5 8.5a3 3 0 0 0-4.24 0l-2.3 2.3a3 3 0 1 0 4.24 4.24l1.1-1.1"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                  Copy link
+                </span>
+              )}
             </Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>

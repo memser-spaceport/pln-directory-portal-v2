@@ -76,6 +76,16 @@
   }
 }
 
+.popupTitle {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin: 4px 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
 .item {
   display: flex;
   align-items: center;
@@ -97,6 +107,12 @@
   &[data-highlighted] {
     background: rgba(14, 15, 17, 0.04);
   }
+}
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .itemCopied {

@@ -221,21 +221,25 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
 
   // The last row: InfiniteScroll auto-loads as the reader nears it; the
   // button is the keyboard fallback, and Retry takes over on a failed page.
+  // Against a backend that ignored order=desc (pagesNewestFirst false) the
+  // labels drop the "earlier" claim — forward pages actually bring newer
+  // lines — and only the manual button remains.
+  const loadMoreLabel = active.pagesNewestFirst ? 'Load earlier logs' : 'Load more logs';
   const loadMoreRow = active.hasMore && !query.trim() && (
     <tr className={s.loadMoreRow}>
       <td colSpan={2}>
         {active.loadMoreFailed ? (
           <span className={s.loadMoreFailed}>
-            Couldn’t load earlier lines.{' '}
+            Couldn’t load more lines.{' '}
             <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
               Retry
             </button>
           </span>
         ) : active.isLoadingMore ? (
-          <span className={s.loadMoreHint}>Loading earlier logs…</span>
+          <span className={s.loadMoreHint}>Loading…</span>
         ) : (
           <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
-            Load earlier logs
+            {loadMoreLabel}
           </button>
         )}
       </td>
@@ -295,7 +299,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <div className={s.stateBlock}>
           <p className={s.stateTitle}>No lines in this part of the log yet.</p>
           <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
-            {active.isLoadingMore ? 'Loading…' : 'Load earlier logs'}
+            {active.isLoadingMore ? 'Loading…' : loadMoreLabel}
           </Button>
         </div>
       );
@@ -328,7 +332,11 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <InfiniteScroll
           scrollableTarget="deployment-logs-scroll"
           dataLength={filtered.length}
-          hasMore={active.hasMore && !query.trim() && !active.loadMoreFailed}
+          // pagesNewestFirst guards against a backend without order=desc: it
+          // ignores the param and serves forward pages, where scroll-loading
+          // chain-fetches (appends land above the reader and the bottom
+          // trigger never releases). Manual paging only in that case.
+          hasMore={active.hasMore && active.pagesNewestFirst && !query.trim() && !active.loadMoreFailed}
           next={active.loadMore}
           loader={null}
           style={{ overflow: 'unset' }}
@@ -450,7 +458,8 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {active.hasMore && ' · newest first — scroll for earlier logs'}
+            {active.hasMore &&
+              (active.pagesNewestFirst ? ' · newest first — scroll for earlier logs' : ' · more lines available')}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

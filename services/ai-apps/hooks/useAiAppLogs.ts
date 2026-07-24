@@ -81,9 +81,39 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
 
   const pages = query.data?.pages;
 
+  // Did the server actually honor order=desc? A backend without the desc
+  // feature silently ignores the param and serves FORWARD pages — each later
+  // page then carries NEWER lines, which makes scroll-triggered loading
+  // unsafe (appends land above the reader and the bottom trigger never
+  // releases, chain-fetching the window). Descending pages are strictly
+  // older: every line of page N must be <= the oldest line of page N-1.
+  const pagesNewestFirst = useMemo(() => {
+    if (!pages) return true;
+    let previousOldest = Infinity;
+    for (const page of pages) {
+      if (page.events.length === 0) continue;
+      let pageNewest = -Infinity;
+      let pageOldest = Infinity;
+      for (const event of page.events) {
+        const value = logTimestampSortValue(event.timestamp);
+        if (value > pageNewest) pageNewest = value;
+        if (value < pageOldest) pageOldest = value;
+      }
+      if (pageNewest > previousOldest) return false;
+      previousOldest = pageOldest;
+    }
+    return true;
+  }, [pages]);
+
   return {
     events,
     pageCount: pages?.length ?? 0,
+    /**
+     * False = the backend ignored order=desc (feature not deployed there yet).
+     * The modal must not auto-load on scroll then — manual paging only — and
+     * the loaded lines are the window's OLDEST chunk, not the true tail.
+     */
+    pagesNewestFirst,
     /** Set only when the query has no data at all — the whole-body error states. */
     errorKind:
       !query.data && query.isError

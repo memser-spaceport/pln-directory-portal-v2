@@ -19,6 +19,7 @@ type HookReturn = {
   loadMoreFailed: boolean;
   isLoading: boolean;
   hasMore: boolean;
+  pagesNewestFirst: boolean;
   isLoadingMore: boolean;
   loadMore: jest.Mock;
   refresh: jest.Mock;
@@ -37,6 +38,7 @@ const loaded = (events: AiAppLogEvent[] | null, extra: Partial<HookReturn> = {})
   loadMoreFailed: false,
   isLoading: false,
   hasMore: false,
+  pagesNewestFirst: true,
   isLoadingMore: false,
   loadMore: jest.fn(),
   refresh: jest.fn().mockResolvedValue(undefined),
@@ -150,11 +152,22 @@ describe('DeploymentLogsModal', () => {
     expect(mockStreams.runtime.loadMore).toHaveBeenCalledTimes(1);
   });
 
+  it('degrades to a neutral manual button when the backend ignored order=desc', () => {
+    mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, pagesNewestFirst: false });
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+
+    // No "earlier" claim (forward pages actually bring newer lines) and no
+    // scroll hint — auto-load is disarmed against legacy backends.
+    expect(screen.getByRole('button', { name: /load more logs/i })).toBeInTheDocument();
+    expect(screen.queryByText(/scroll for earlier logs/)).not.toBeInTheDocument();
+    expect(screen.getByText(/more lines available/)).toBeInTheDocument();
+  });
+
   it('offers an inline retry when loading an earlier page failed', () => {
     mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, loadMoreFailed: true });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
-    expect(screen.getByText(/couldn’t load earlier lines/i)).toBeInTheDocument();
+    expect(screen.getByText(/couldn’t load more lines/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
     expect(mockStreams.runtime.loadMore).toHaveBeenCalled();
   });

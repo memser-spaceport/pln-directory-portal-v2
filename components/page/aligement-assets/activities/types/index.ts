@@ -26,7 +26,16 @@ export interface RequirementItem {
 export interface ActivityPopupContent {
   title: string;
   subtitle?: string;
-  description: string;
+  description?: string;
+  /**
+   * Structured long-form copy for the new activity set.
+   * When `overview` is present the modal renders the
+   * 👀 Overview / 🤝 Network Benefits / 📏 Rules layout instead of the
+   * legacy points-tier layout. Paragraphs are separated by `\n\n`.
+   */
+  overview?: string;
+  networkBenefits?: string;
+  rules?: string[];
   submitButtonText?: string;
   requirements?: RequirementItem[];
   submissionNoteTitle?: string;
@@ -34,7 +43,7 @@ export interface ActivityPopupContent {
   submissionLink?: PopupLink;
   ctaLink?: string;
   links?: PopupLink[];
-  pointsAwarded: {
+  pointsAwarded?: {
     title: string;
     subtitle?: Array<{
       label: string;
@@ -72,7 +81,12 @@ export interface Activity {
   networkValue: string;
   points: string;
   frequency?: 'Repeatable' | 'Recurring' | 'One-Time';
-  verificationType?: 'Auto' | 'Submission' | 'Hybrid';
+  verificationType?: 'Auto' | 'Submission' | 'Manual Review';
+  /**
+   * CTA behavior: `submit` opens the PLAA form in a new tab;
+   * `confirm` fires the confirmation toast without navigating.
+   */
+  cta?: 'submit' | 'confirm';
   isAutoTracked?: boolean;
   hasFormLink?: boolean;
   popupContent: ActivityPopupContent;
@@ -83,10 +97,6 @@ export interface ActivitiesData {
     title: string;
     description: string;
     note: string;
-    submitButtonLabel: string;
-    suggestLinkText: string;
-    suggestLinkHighlight: string;
-    hintText: string;
   };
   activities: Activity[];
 }

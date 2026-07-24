@@ -26,7 +26,9 @@ export const getLeaderboard = async (
         'Content-Type': 'application/json',
         ...(authHeader ? { Authorization: authHeader } : {}),
       },
-      next: { revalidate: 300, tags: ['plaa-leaderboard', `plaa-leaderboard-round-${roundNumber}`] },
+      // No Data Cache: with an Authorization header Next skips caching anyway,
+      // and the unauth path must not pin a stale (or 401) response. Always fresh.
+      cache: 'no-store',
     });
 
     if (!response.ok) {

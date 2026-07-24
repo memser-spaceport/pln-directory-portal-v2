@@ -13,20 +13,20 @@ import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tok
 import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
-import {
-  getPastRoundLeaderboardEntries,
-  LeaderboardApiResponse,
-} from '@/services/plaa/leaderboard.utils';
+import { getPastRoundLeaderboardEntries } from '@/services/plaa/leaderboard.utils';
+import { useLeaderboard } from '@/services/plaa/hooks/useLeaderboard';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
-  /** Raw leaderboard API response; PAST_ROUND entries are used for this round's table */
-  leaderboardResponse?: LeaderboardApiResponse;
 }
 
-export default function PastRoundComponent({ pastRoundData, leaderboardResponse }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
+
+  // Leaderboard API is auth-gated, so fetch it client-side with the user's token
+  // (these pages are statically generated and have no request cookie at build time).
+  const { data: leaderboardResponse } = useLeaderboard(data.meta.roundNumber);
 
   const resolvedLeaderboard: LeaderboardEntry[] = useMemo(() => {
     if (leaderboardResponse?.entries?.length) {

@@ -29,7 +29,8 @@ describe('SiteHeader', () => {
     render(<SiteHeader {...props} />);
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
-    expect(screen.getByTestId('plaa-banner')).toBeInTheDocument();
+    // PlaaBanner is intentionally disabled on this release branch (#2667).
+    expect(screen.queryByTestId('plaa-banner')).not.toBeInTheDocument();
     expect(screen.getByTestId('complete-your-profile')).toBeInTheDocument();
   });
 

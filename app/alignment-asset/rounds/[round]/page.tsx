@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { pastRoundsRegistry } from '@/components/page/aligement-assets/rounds/data/past-rounds-registry';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
-import { getLeaderboard } from '@/services/plaa/leaderboard.service';
 import styles from './page.module.css';
 
 interface PastRoundPageProps {
@@ -29,11 +28,9 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
   const pastRoundData = pastRoundsRegistry[roundNumber];
   if (!pastRoundData) notFound();
 
-  const { data: leaderboardResponse } = await getLeaderboard(roundNumber);
-
   return (
     <div className={styles.pastRound}>
-      <PastRoundComponent pastRoundData={pastRoundData} leaderboardResponse={leaderboardResponse} />
+      <PastRoundComponent pastRoundData={pastRoundData} />
     </div>
   );
 }

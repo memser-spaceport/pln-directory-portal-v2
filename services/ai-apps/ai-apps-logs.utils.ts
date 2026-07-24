@@ -55,3 +55,14 @@ const BIDI_PATTERN = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g;
 export function stripLogControlSequences(message: string): string {
   return message.replace(ANSI_PATTERN, '').replace(CONTROL_PATTERN, '').replace(BIDI_PATTERN, '');
 }
+
+// Kubernetes CRI log framing: "<RFC3339Nano> <stdout|stderr> <F|P> <payload>".
+// The runner passes pod lines through with this prefix intact; the event's own
+// `timestamp` already carries the moment, so rendering the prefix would print
+// every timestamp twice. Only the exact framing shape is stripped — anything
+// else stays untouched.
+const CRI_PREFIX_PATTERN = /^\d{4}-\d{2}-\d{2}T\S+ (stdout|stderr) [FP] /;
+
+export function stripCriLogPrefix(message: string): string {
+  return message.replace(CRI_PREFIX_PATTERN, '');
+}

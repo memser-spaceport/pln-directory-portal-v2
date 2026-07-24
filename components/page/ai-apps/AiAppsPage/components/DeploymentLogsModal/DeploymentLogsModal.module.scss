@@ -197,15 +197,15 @@
   color: var(--foreground-brand-primary, #1b4dff);
 }
 
-.pane {
+/* Table transcribed from the prototype (prototypes/entries/ai-apps/
+   DeploymentLogsModal.module.scss) — literal values kept, full-bleed against
+   the panel's 24px padding. */
+.tableWrap {
   flex: 1;
   min-height: 200px;
-  overflow-y: auto;
-  padding: 8px 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  font-family: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  overflow: auto;
+  margin: 0 -24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
@@ -213,59 +213,123 @@
   }
 }
 
-.line {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  justify-content: space-between;
-  padding: 2px 0;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 10px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--foreground-neutral-secondary, #455468);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 24px;
+    border-bottom: 1px solid rgba(27, 56, 96, 0.06);
+    font-size: 14px;
+    line-height: 22px;
+    vertical-align: top;
+  }
+
+  tbody tr:hover td {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  // Message takes all the slack; the timestamp is a fixed, right-aligned rail.
+  th:last-child,
+  td:last-child {
+    width: 156px;
+  }
 }
 
-.message {
-  min-width: 0;
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--foreground-neutral-primary, #0a0c11);
+.messageCell {
+  color: var(--foreground-neutral-secondary, #455468);
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
-
-  &[data-level='error'] {
-    color: var(--foreground-danger-primary, #d92d20);
-  }
-
-  &[data-level='warn'] {
-    color: var(--foreground-warning-primary, #b54708);
-  }
 }
 
+.messageText {
+  color: inherit;
+  white-space: pre-wrap;
+}
+
+// Only warnings and errors get a marker — quiet rows stay quiet, so the things
+// worth noticing are the only things that interrupt the scan.
 .levelDot {
   display: inline-block;
   width: 6px;
   height: 6px;
-  margin-right: 6px;
+  margin-right: 8px;
   border-radius: 50%;
-  background: currentColor;
-  vertical-align: middle;
+  vertical-align: 0.15em;
+  background: var(--foreground-neutral-tertiary, #8897ae);
 }
 
-/* Dimmed, fixed-width, never wrapping — the message is the content, the time is context. */
-.time {
-  flex-shrink: 0;
-  font-size: 11px;
-  line-height: 18px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-variant-numeric: tabular-nums;
+.timeCell {
+  display: flex;
+  gap: 8px;
   white-space: nowrap;
+  // Fixed-width digits so timestamps align down the column — the reason to
+  // reach for monospace, without the second typeface.
+  font-variant-numeric: tabular-nums;
+}
+
+.date {
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.time {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Level accents — success needs none; a clean line is the expected case. */
+.warn {
+  .levelDot {
+    background: var(--foreground-warning-primary, #b45309);
+  }
+
+  .messageCell {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.error {
+  td {
+    background: rgba(210, 26, 14, 0.04);
+  }
+
+  .levelDot {
+    background: var(--foreground-error-primary, #d21a0e);
+  }
+
+  .messageCell {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 500;
+  }
 }
 
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-height: 200px;
-  padding: 14px 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
+  margin: 0 -24px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .skeletonRow {
@@ -281,9 +345,9 @@
   gap: 10px;
   min-height: 200px;
   justify-content: center;
-  padding: 24px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
+  margin: 0 -24px;
+  padding: 32px 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   text-align: center;
 }
 
@@ -308,15 +372,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 12px;
-  padding: 16px 24px;
+  padding: 14px 24px;
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
 }
 
 .count {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 13px;
+  line-height: 20px;
   color: var(--foreground-neutral-tertiary, #8897ae);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-secondary, #455468);
+  }
 }
 
 .srOnly {
@@ -341,6 +409,23 @@
   .panel,
   .footer {
     padding-inline: 16px;
+  }
+
+  // Full-bleed pieces track the panel's narrower mobile padding.
+  .tableWrap,
+  .skeleton,
+  .stateBlock {
+    margin: 0 -16px;
+  }
+
+  .table th,
+  .table td {
+    padding-inline: 16px;
+  }
+
+  .table th:last-child,
+  .table td:last-child {
+    width: auto;
   }
 
   .toolbar {

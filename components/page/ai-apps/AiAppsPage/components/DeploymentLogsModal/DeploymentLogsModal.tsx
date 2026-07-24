@@ -7,7 +7,12 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
 import { AiApp, AiAppLogStream, FetchAiAppLogsResult } from '@/services/ai-apps/ai-apps.service';
-import { deriveLogLevel, formatLogTimestamp, stripLogControlSequences } from '@/services/ai-apps/ai-apps-logs.utils';
+import {
+  deriveLogLevel,
+  formatLogTimestamp,
+  stripCriLogPrefix,
+  stripLogControlSequences,
+} from '@/services/ai-apps/ai-apps-logs.utils';
 import { useAiAppLogs, RUNTIME_WINDOW_LABEL } from '@/services/ai-apps/hooks/useAiAppLogs';
 
 import s from './DeploymentLogsModal.module.scss';
@@ -25,23 +30,36 @@ interface PreparedLine {
   text: string;
   searchText: string;
   level: 'error' | 'warn' | null;
+  /** "Jul 23" — empty when the raw value didn't parse. */
+  date: string;
+  /** "14:24:24", or the raw value verbatim when unparseable. */
+  clock: string;
+  /** Full "Jul 23 14:24:24" (or raw) — the export line's prefix. */
   time: string;
 }
 
 /**
- * Prepared once per loaded snapshot: control-sequence stripping, level
+ * Prepared once per loaded snapshot: prefix/control-sequence stripping, level
  * derivation, and timestamp formatting never run per keystroke or per render.
+ * The CRI framing is stripped because the event's own timestamp already fills
+ * the table's second column — keeping it would print every time twice.
  */
 function prepareLines(result: FetchAiAppLogsResult | null): PreparedLine[] {
   if (!result) return [];
   return result.events.map((event, i) => {
-    const text = stripLogControlSequences(event.message);
+    const text = stripLogControlSequences(stripCriLogPrefix(event.message));
+    const time = formatLogTimestamp(event.timestamp);
+    // formatLogTimestamp yields "MMM d HH:mm:ss" for anything parseable; a raw
+    // fallback value stays whole and rides in the clock slot.
+    const parts = /^[A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}:\d{2}$/.test(time) ? time.split(' ') : null;
     return {
       key: `${event.timestamp}-${i}`,
       text,
       searchText: text.toLowerCase(),
       level: deriveLogLevel(text),
-      time: formatLogTimestamp(event.timestamp),
+      date: parts ? `${parts[0]} ${parts[1]}` : '',
+      clock: parts ? parts[2] : time,
+      time,
     };
   });
 }
@@ -227,22 +245,45 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
       );
     }
 
+    // The prototype's two-column table: message takes the slack, the timestamp
+    // is a fixed right rail split into a muted date and a dark clock.
     return (
-      <div ref={paneRef} className={`${s.pane} ph-no-capture`} role="region" aria-label="Deployment logs" tabIndex={0}>
-        {filtered.map((line) => (
-          <div key={line.key} className={s.line}>
-            <span className={s.message} data-level={line.level ?? undefined}>
-              {line.level && (
-                <>
-                  <span className={s.levelDot} aria-hidden />
-                  <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
-                </>
-              )}
-              {line.text}
-            </span>
-            <span className={s.time}>{line.time}</span>
-          </div>
-        ))}
+      <div
+        ref={paneRef}
+        className={`${s.tableWrap} ph-no-capture`}
+        role="region"
+        aria-label="Deployment logs"
+        tabIndex={0}
+      >
+        <table className={s.table}>
+          <thead>
+            <tr>
+              <th scope="col">Message</th>
+              <th scope="col">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((line) => (
+              <tr key={line.key} className={line.level ? s[line.level] : undefined}>
+                <td className={s.messageCell}>
+                  {line.level && (
+                    <>
+                      <span className={s.levelDot} aria-hidden />
+                      <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
+                    </>
+                  )}
+                  <span className={s.messageText}>{line.text}</span>
+                </td>
+                <td>
+                  <span className={s.timeCell}>
+                    {line.date && <span className={s.date}>{line.date}</span>}
+                    <span className={s.time}>{line.clock}</span>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -320,7 +361,15 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
 
         <div className={s.footer}>
           <span className={s.count}>
-            {query.trim() ? `${filtered.length} of ${lines.length} lines` : `${lines.length} lines`}
+            {query.trim() ? (
+              <>
+                Showing <strong>{filtered.length}</strong> of {lines.length} events
+              </>
+            ) : (
+              <>
+                <strong>{lines.length}</strong> events
+              </>
+            )}
             {truncated && ' · log truncated to the 2,000-line limit'}
             {' · times in your local time'}
           </span>

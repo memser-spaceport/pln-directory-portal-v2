@@ -98,7 +98,10 @@ describe('DeploymentLogsModal', () => {
     fireEvent.change(search, { target: { value: 'npm' } });
     expect(screen.queryByText('Step 1/5 : FROM node:20')).not.toBeInTheDocument();
     expect(screen.getByText('npm install completed')).toBeInTheDocument();
-    expect(screen.getByText(/1 of 2 lines/)).toBeInTheDocument();
+    // The count is split by a <strong>, so match on the whole span's text.
+    expect(
+      screen.getByText((_, el) => el?.tagName === 'SPAN' && /Showing 1 of 2 events/.test(el.textContent ?? '')),
+    ).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: 'zzz' } });
     fireEvent.click(screen.getByRole('button', { name: /clear search/i }));

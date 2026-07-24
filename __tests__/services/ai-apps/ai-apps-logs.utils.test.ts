@@ -1,4 +1,9 @@
-import { deriveLogLevel, formatLogTimestamp, stripLogControlSequences } from '@/services/ai-apps/ai-apps-logs.utils';
+import {
+  deriveLogLevel,
+  formatLogTimestamp,
+  stripCriLogPrefix,
+  stripLogControlSequences,
+} from '@/services/ai-apps/ai-apps-logs.utils';
 
 describe('deriveLogLevel', () => {
   it.each([
@@ -60,5 +65,20 @@ describe('stripLogControlSequences', () => {
 
   it('leaves ordinary text untouched', () => {
     expect(stripLogControlSequences('Step 1/5 : FROM node:20')).toBe('Step 1/5 : FROM node:20');
+  });
+});
+
+describe('stripCriLogPrefix', () => {
+  it('removes the Kubernetes CRI framing (timestamp, stream, tag)', () => {
+    expect(stripCriLogPrefix('2026-07-23T14:24:23.877622179Z stdout F Server listening at http://127.0.0.1:3001')).toBe(
+      'Server listening at http://127.0.0.1:3001',
+    );
+    expect(stripCriLogPrefix('2026-07-23T14:24:23.037076488Z stderr P partial line')).toBe('partial line');
+  });
+
+  it('leaves lines without the exact framing untouched', () => {
+    expect(stripCriLogPrefix('Step 1/5 : FROM node:20')).toBe('Step 1/5 : FROM node:20');
+    expect(stripCriLogPrefix('2026-07-23 something stdout-ish')).toBe('2026-07-23 something stdout-ish');
+    expect(stripCriLogPrefix('stdout F no leading timestamp')).toBe('stdout F no leading timestamp');
   });
 });

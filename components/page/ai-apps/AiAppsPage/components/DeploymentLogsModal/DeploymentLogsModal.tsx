@@ -67,14 +67,19 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
 /**
  * Read-only troubleshooting view of an app's two log sources: Build (finite,
  * one per deploy attempt) and Runtime (the pod's stdout/stderr over a
- * retention window). One NEWEST-FIRST table per stream — the latest lines are
- * why the modal was opened, so they're at the top on arrival — paged by the
- * runner's nextToken: the first page loads on open, EARLIER history loads as
- * the reader scrolls past the sentinel (with a manual "Load earlier" fallback).
- * Assumes the runner reads CloudWatch from the tail (GetLogEvents' default);
- * the hook's global re-sort keeps display coherent if it doesn't, but the
- * "earlier below" promise then needs the backend ordering answer. Refresh
- * restarts from page 1; live tailing stays out of v1.
+ * retention window). One NEWEST-FIRST table per stream — every loaded line is
+ * sorted latest-on-top — paged by the runner's nextToken: the first page loads
+ * on open, more load as the reader scrolls near the bottom (with a manual
+ * "Load more" fallback).
+ *
+ * The runner pages FORWARD (observed: page 1 is the window's oldest chunk), so
+ * later pages carry NEWER lines and the sort slots them in at the top; the top
+ * row is the newest loaded line, and the log's true tail only once every page
+ * is in. A backend `order=desc`/tail-read option is the real fix and is on the
+ * asks list. Forward paging is also why auto-loading is armed by USER SCROLLS
+ * only — an append re-triggering the loader (the sentinel never leaves the
+ * viewport when new rows sort in above it) would chain-fetch the entire window.
+ * Refresh restarts from page 1; live tailing stays out of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -115,7 +120,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   }, [lines, query]);
 
   const paneRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLTableRowElement>(null);
   const buildTabRef = useRef<HTMLButtonElement>(null);
   const runtimeTabRef = useRef<HTMLButtonElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,30 +136,19 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     // `lines` is the render trigger: anchor once the first page's rows exist.
   }, [lines, stream, active.pageCount]);
 
-  // Auto-load when the sentinel row scrolls into view. The observer calls
-  // through a ref so it never holds a stale closure, and it stays inert when
-  // the hook says manual-only (canAutoLoad false — e.g. an empty page with a
-  // token, where auto-chaining could loop).
-  const autoLoadRef = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    autoLoadRef.current = active.canAutoLoad && !active.loadMoreFailed ? active.loadMore : null;
-  });
-
-  useEffect(() => {
+  // Auto-load on USER scroll near the bottom — never on content changes.
+  // Scroll events only fire for real scrolling, so an appended page can't
+  // re-trigger the loader by itself (with forward paging, new rows sort in
+  // ABOVE the reader and the bottom of the pane stays the bottom — an
+  // intersection-observer sentinel here chain-fetches the whole window).
+  // Stays inert during search (results only cover loaded lines) and when the
+  // hook says manual-only (canAutoLoad false — an empty page with a token).
+  const handlePaneScroll = () => {
     const pane = paneRef.current;
-    const sentinel = sentinelRef.current;
-    if (!pane || !sentinel || typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) autoLoadRef.current?.();
-      },
-      { root: pane, rootMargin: '120px' },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-    // Re-attach when the sentinel (re)mounts: tab switches and load-all both
-    // swap the table subtree.
-  }, [stream, lines, active.hasMore]);
+    if (!pane || !active.canAutoLoad || active.loadMoreFailed || query.trim()) return;
+    const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 200;
+    if (nearBottom) active.loadMore(); // loadMore self-guards against re-entry
+  };
 
   useEffect(
     () => () => {
@@ -237,20 +230,20 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   ];
 
   const loadMoreRow = active.hasMore && !query.trim() && (
-    <tr ref={sentinelRef} className={s.loadMoreRow}>
+    <tr className={s.loadMoreRow}>
       <td colSpan={2}>
         {active.loadMoreFailed ? (
           <span className={s.loadMoreFailed}>
-            Couldn’t load earlier lines.{' '}
+            Couldn’t load more lines.{' '}
             <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
               Retry
             </button>
           </span>
         ) : active.isLoadingMore ? (
-          <span className={s.loadMoreHint}>Loading earlier logs…</span>
+          <span className={s.loadMoreHint}>Loading more logs…</span>
         ) : (
           <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
-            Load earlier logs
+            Load more logs
           </button>
         )}
       </td>
@@ -310,7 +303,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <div className={s.stateBlock}>
           <p className={s.stateTitle}>No lines in this part of the log yet.</p>
           <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
-            {active.isLoadingMore ? 'Loading…' : 'Load earlier logs'}
+            {active.isLoadingMore ? 'Loading…' : 'Load more logs'}
           </Button>
         </div>
       );
@@ -336,6 +329,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         role="region"
         aria-label="Deployment logs"
         tabIndex={0}
+        onScroll={handlePaneScroll}
       >
         <table className={s.table}>
           <thead>
@@ -453,7 +447,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {active.hasMore && ' · newest first — scroll for earlier logs'}
+            {active.hasMore && ' · newest loaded first — scroll to load the rest'}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

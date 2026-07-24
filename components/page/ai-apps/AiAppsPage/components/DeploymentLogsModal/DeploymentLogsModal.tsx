@@ -6,7 +6,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
-import { AiApp, AiAppLogStream, FetchAiAppLogsResult } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, AiAppLogEvent, AiAppLogStream } from '@/services/ai-apps/ai-apps.service';
 import {
   deriveLogLevel,
   formatLogTimestamp,
@@ -44,9 +44,9 @@ interface PreparedLine {
  * The CRI framing is stripped because the event's own timestamp already fills
  * the table's second column — keeping it would print every time twice.
  */
-function prepareLines(result: FetchAiAppLogsResult | null): PreparedLine[] {
-  if (!result) return [];
-  return result.events.map((event, i) => {
+function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
+  if (!events) return [];
+  return events.map((event, i) => {
     const text = stripLogControlSequences(stripCriLogPrefix(event.message));
     const time = formatLogTimestamp(event.timestamp);
     // formatLogTimestamp yields "MMM d HH:mm:ss" for anything parseable; a raw
@@ -67,10 +67,12 @@ function prepareLines(result: FetchAiAppLogsResult | null): PreparedLine[] {
 /**
  * Read-only troubleshooting view of an app's two log sources: Build (finite,
  * one per deploy attempt) and Runtime (the pod's stdout/stderr over a
- * retention window). One scrollable chronological pane per stream — log lines
- * are never paginated — loaded bottom-anchored because failures live at the
- * end. Data changes only on open and on the explicit Refresh button; live
- * tailing is deliberately out of v1.
+ * retention window). One chronological table per stream, paged by the runner's
+ * nextToken: the first page loads on open, further pages load as the reader
+ * scrolls past the sentinel (infinite scroll, with a manual "Load more"
+ * fallback). When the whole log fits in one page the view bottom-anchors —
+ * failures live at the end; when more remains it starts at the top, reading
+ * oldest → newest. Refresh restarts from page 1; live tailing stays out of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -92,15 +94,16 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   );
   const [query, setQuery] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
-  // Both streams load on open — the tab counts need them; each is one request.
+  // Both streams load their first page on open — the tab counts need them.
   const build = useAiAppLogs(app.uid, 'build', { enabled: true });
   const runtime = useAiAppLogs(app.uid, 'runtime', { enabled: true });
   const active = stream === 'build' ? build : runtime;
 
-  const buildLines = useMemo(() => prepareLines(build.result), [build.result]);
-  const runtimeLines = useMemo(() => prepareLines(runtime.result), [runtime.result]);
+  const buildLines = useMemo(() => prepareLines(build.events), [build.events]);
+  const runtimeLines = useMemo(() => prepareLines(runtime.events), [runtime.events]);
   const lines = stream === 'build' ? buildLines : runtimeLines;
 
   const filtered = useMemo(() => {
@@ -110,16 +113,47 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   }, [lines, query]);
 
   const paneRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLTableRowElement>(null);
   const buildTabRef = useRef<HTMLButtonElement>(null);
   const runtimeTabRef = useRef<HTMLButtonElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Bottom-anchor whenever the visible snapshot changes (load, refresh, tab
-  // switch) — the newest lines are the reason the modal was opened.
+  // Anchor only while the FIRST page is showing: bottom when it's the whole
+  // log (failures live at the end), top when more pages remain (read oldest →
+  // newest, scroll to load). Appended pages never move the scroll position —
+  // re-anchoring after an append would pin the sentinel in view and turn it
+  // into a request loop.
   useEffect(() => {
     const pane = paneRef.current;
-    if (pane) pane.scrollTop = pane.scrollHeight;
-  }, [lines, stream]);
+    if (!pane || active.pageCount !== 1) return;
+    pane.scrollTop = active.hasMore ? 0 : pane.scrollHeight;
+    // `lines` is the render trigger: anchor once the first page's rows exist.
+  }, [lines, stream, active.pageCount, active.hasMore]);
+
+  // Auto-load when the sentinel row scrolls into view. The observer calls
+  // through a ref so it never holds a stale closure, and it stays inert when
+  // the hook says manual-only (canAutoLoad false — e.g. an empty page with a
+  // token, where auto-chaining could loop).
+  const autoLoadRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    autoLoadRef.current = active.canAutoLoad && !active.loadMoreFailed ? active.loadMore : null;
+  });
+
+  useEffect(() => {
+    const pane = paneRef.current;
+    const sentinel = sentinelRef.current;
+    if (!pane || !sentinel || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) autoLoadRef.current?.();
+      },
+      { root: pane, rootMargin: '120px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+    // Re-attach when the sentinel (re)mounts: tab switches and load-all both
+    // swap the table subtree.
+  }, [stream, lines, active.hasMore]);
 
   useEffect(
     () => () => {
@@ -144,8 +178,12 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     (next === 'build' ? buildTabRef : runtimeTabRef).current?.focus();
   };
 
+  // Refresh restarts both streams from page 1 — a plain refetch would replay
+  // every page the reader had scrolled through.
   const handleRefresh = () => {
-    Promise.allSettled([build.refetch(), runtime.refetch()]).then(() => {
+    setIsRefreshing(true);
+    Promise.allSettled([build.refresh(), runtime.refresh()]).then(() => {
+      setIsRefreshing(false);
       setAnnouncement('Logs refreshed');
     });
   };
@@ -171,10 +209,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     );
   };
 
-  const isRefreshing = build.isRefetching || runtime.isRefetching;
-  const failed = active.result?.termination.reason === 'failed' ? active.result.termination : null;
-  const truncated = active.result?.termination.reason === 'truncated';
-  const isEmpty = !!active.result && active.result.events.length === 0 && !failed;
+  const isEmpty = !!active.events && active.events.length === 0 && !active.hasMore && !active.errorKind;
 
   const statusChip =
     app.status === 'ERROR'
@@ -183,13 +218,45 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         ? { label: 'Deploying', className: s.statusDeploying }
         : { label: 'Live', className: s.statusLive };
 
-  const tabs: { key: AiAppLogStream; label: string; count: number | null; ref: typeof buildTabRef }[] = [
-    { key: 'build', label: 'Build', count: build.result ? buildLines.length : null, ref: buildTabRef },
-    { key: 'runtime', label: 'Runtime', count: runtime.result ? runtimeLines.length : null, ref: runtimeTabRef },
+  const tabs: { key: AiAppLogStream; label: string; count: string | null; ref: typeof buildTabRef }[] = [
+    // A trailing + marks "more pages remain" — the count is lines loaded, not the log's size.
+    {
+      key: 'build',
+      label: 'Build',
+      count: build.events ? `${buildLines.length}${build.hasMore ? '+' : ''}` : null,
+      ref: buildTabRef,
+    },
+    {
+      key: 'runtime',
+      label: 'Runtime',
+      count: runtime.events ? `${runtimeLines.length}${runtime.hasMore ? '+' : ''}` : null,
+      ref: runtimeTabRef,
+    },
   ];
 
+  const loadMoreRow = active.hasMore && !query.trim() && (
+    <tr ref={sentinelRef} className={s.loadMoreRow}>
+      <td colSpan={2}>
+        {active.loadMoreFailed ? (
+          <span className={s.loadMoreFailed}>
+            Couldn’t load more lines.{' '}
+            <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
+              Retry
+            </button>
+          </span>
+        ) : active.isLoadingMore ? (
+          <span className={s.loadMoreHint}>Loading more…</span>
+        ) : (
+          <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
+            Load more
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+
   const renderBody = () => {
-    if (active.isLoading) {
+    if (active.isLoading || isRefreshing) {
       return (
         <div className={s.skeleton} aria-hidden>
           {Array.from({ length: 8 }, (_, i) => (
@@ -199,19 +266,19 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
       );
     }
 
-    // Whole-stream failure (or an unexpected throw surfaced by React Query).
-    if ((failed && active.result?.events.length === 0) || (!active.result && active.isError)) {
-      const copy =
-        failed?.errorKind === 'forbidden'
-          ? { title: 'You don’t have access to logs for this app.', hint: null }
-          : failed?.errorKind === 'not-found'
-            ? { title: 'Logs for this app could not be found.', hint: null }
-            : { title: 'Unable to load logs. Please try again later.', hint: null };
+    // Whole-stream failure — nothing loaded at all.
+    if (active.errorKind) {
+      const title =
+        active.errorKind === 'forbidden'
+          ? 'You don’t have access to logs for this app.'
+          : active.errorKind === 'not-found'
+            ? 'Logs for this app could not be found.'
+            : 'Unable to load logs. Please try again later.';
       return (
         <div className={s.stateBlock}>
-          <p className={s.stateTitle}>{copy.title}</p>
-          {failed?.errorKind !== 'forbidden' && failed?.errorKind !== 'not-found' && (
-            <Button style="border" variant="neutral" size="s" onClick={() => active.refetch()}>
+          <p className={s.stateTitle}>{title}</p>
+          {active.errorKind === 'network' && (
+            <Button style="border" variant="neutral" size="s" onClick={() => active.refresh()}>
               Retry
             </Button>
           )}
@@ -230,6 +297,19 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
               ? 'Logs may have expired from retention, or no build has produced output yet.'
               : `Only the ${RUNTIME_WINDOW_LABEL} of runtime output is shown.`}
           </p>
+        </div>
+      );
+    }
+
+    // A step can come back empty while the log continues (sparse window) —
+    // offer the cursor to the reader instead of a dead end.
+    if (lines.length === 0 && active.hasMore) {
+      return (
+        <div className={s.stateBlock}>
+          <p className={s.stateTitle}>No lines in this part of the log yet.</p>
+          <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
+            {active.isLoadingMore ? 'Loading…' : 'Load more'}
+          </Button>
         </div>
       );
     }
@@ -282,6 +362,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 </td>
               </tr>
             ))}
+            {loadMoreRow}
           </tbody>
         </table>
       </div>
@@ -334,7 +415,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
               className={`${s.search} ph-no-capture`}
               type="search"
               value={query}
-              placeholder="Search logs"
+              placeholder={active.hasMore ? 'Search loaded logs' : 'Search logs'}
               aria-label="Search deployment logs"
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -363,14 +444,14 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
           <span className={s.count}>
             {query.trim() ? (
               <>
-                Showing <strong>{filtered.length}</strong> of {lines.length} events
+                Showing <strong>{filtered.length}</strong> of {lines.length} loaded events
               </>
             ) : (
               <>
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {truncated && ' · log truncated to the 2,000-line limit'}
+            {active.hasMore && ' · scroll to load more'}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

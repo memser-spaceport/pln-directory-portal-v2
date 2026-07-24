@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 import { DeploymentLogsModal } from '@/components/page/ai-apps/AiAppsPage/components/DeploymentLogsModal';
-import { AiApp, FetchAiAppLogsResult } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, AiAppFetchErrorKind, AiAppLogEvent } from '@/services/ai-apps/ai-apps.service';
 
 const mockAnalytics = {
   onDeploymentLogsTabSwitched: jest.fn(),
@@ -13,11 +13,16 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
 }));
 
 type HookReturn = {
-  result: FetchAiAppLogsResult | null;
+  events: AiAppLogEvent[] | null;
+  pageCount: number;
+  errorKind: AiAppFetchErrorKind | null;
+  loadMoreFailed: boolean;
   isLoading: boolean;
-  isRefetching: boolean;
-  isError: boolean;
-  refetch: jest.Mock;
+  hasMore: boolean;
+  canAutoLoad: boolean;
+  isLoadingMore: boolean;
+  loadMore: jest.Mock;
+  refresh: jest.Mock;
 };
 
 let mockStreams: Record<'build' | 'runtime', HookReturn>;
@@ -26,15 +31,18 @@ jest.mock('@/services/ai-apps/hooks/useAiAppLogs', () => ({
   useAiAppLogs: (_uid: string, stream: 'build' | 'runtime') => mockStreams[stream],
 }));
 
-const loaded = (
-  events: FetchAiAppLogsResult['events'],
-  termination: FetchAiAppLogsResult['termination'] = { reason: 'complete' },
-): HookReturn => ({
-  result: { events, termination },
+const loaded = (events: AiAppLogEvent[] | null, extra: Partial<HookReturn> = {}): HookReturn => ({
+  events,
+  pageCount: events ? 1 : 0,
+  errorKind: null,
+  loadMoreFailed: false,
   isLoading: false,
-  isRefetching: false,
-  isError: false,
-  refetch: jest.fn(),
+  hasMore: false,
+  canAutoLoad: false,
+  isLoadingMore: false,
+  loadMore: jest.fn(),
+  refresh: jest.fn().mockResolvedValue(undefined),
+  ...extra,
 });
 
 function buildApp(overrides: Partial<AiApp> = {}): AiApp {
@@ -100,7 +108,7 @@ describe('DeploymentLogsModal', () => {
     expect(screen.getByText('npm install completed')).toBeInTheDocument();
     // The count is split by a <strong>, so match on the whole span's text.
     expect(
-      screen.getByText((_, el) => el?.tagName === 'SPAN' && /Showing 1 of 2 events/.test(el.textContent ?? '')),
+      screen.getByText((_, el) => el?.tagName === 'SPAN' && /Showing 1 of 2 loaded events/.test(el.textContent ?? '')),
     ).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: 'zzz' } });
@@ -109,7 +117,7 @@ describe('DeploymentLogsModal', () => {
   });
 
   it('renders a dedicated forbidden state without a retry button', () => {
-    mockStreams.runtime = loaded([], { reason: 'failed', errorKind: 'forbidden' });
+    mockStreams.runtime = loaded(null, { errorKind: 'forbidden' });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
     expect(screen.getByText(/don’t have access to logs/i)).toBeInTheDocument();
@@ -117,12 +125,12 @@ describe('DeploymentLogsModal', () => {
   });
 
   it('renders a retryable error state on network failure', () => {
-    mockStreams.runtime = loaded([], { reason: 'failed', errorKind: 'network' });
+    mockStreams.runtime = loaded(null, { errorKind: 'network' });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
     expect(screen.getByText(/unable to load logs/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
-    expect(mockStreams.runtime.refetch).toHaveBeenCalled();
+    expect(mockStreams.runtime.refresh).toHaveBeenCalled();
   });
 
   it('shows the neutral windowed empty state for runtime — never a "never ran" claim', () => {
@@ -134,22 +142,31 @@ describe('DeploymentLogsModal', () => {
     expect(screen.queryByText(/never ran/i)).not.toBeInTheDocument();
   });
 
-  it('notes truncation only when the fetch actually truncated', () => {
-    const { unmount } = render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
-    expect(screen.queryByText(/truncated/)).not.toBeInTheDocument();
-    unmount();
-
-    mockStreams.runtime = loaded([line(3, 'x')], { reason: 'truncated' });
+  it('marks continuation with a +count, a scroll hint, and a Load more row', () => {
+    mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, canAutoLoad: true });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
-    expect(screen.getByText(/log truncated to the 2,000-line limit/)).toBeInTheDocument();
+
+    expect(screen.getByRole('tab', { name: /runtime/i })).toHaveTextContent('1+');
+    expect(screen.getByText(/scroll to load more/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /load more/i }));
+    expect(mockStreams.runtime.loadMore).toHaveBeenCalled();
   });
 
-  it('Refresh refetches both streams', () => {
+  it('offers an inline retry when loading a later page failed', () => {
+    mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, loadMoreFailed: true });
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+
+    expect(screen.getByText(/couldn’t load more lines/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
+    expect(mockStreams.runtime.loadMore).toHaveBeenCalled();
+  });
+
+  it('Refresh restarts both streams from page 1', () => {
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
     fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
-    expect(mockStreams.build.refetch).toHaveBeenCalled();
-    expect(mockStreams.runtime.refetch).toHaveBeenCalled();
+    expect(mockStreams.build.refresh).toHaveBeenCalled();
+    expect(mockStreams.runtime.refresh).toHaveBeenCalled();
   });
 
   it('Export copies the filtered lines and reports only the row count to analytics', async () => {

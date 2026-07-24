@@ -296,6 +296,41 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+/* The infinite-scroll sentinel row: crossing it auto-loads the next page; the
+   button is the keyboard / no-IntersectionObserver fallback. */
+.loadMoreRow td {
+  padding: 12px 24px;
+  text-align: center;
+  border-bottom: none;
+}
+
+.loadMoreBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.loadMoreHint {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.loadMoreFailed {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 /* Level accents — success needs none; a clean line is the expected case. */
 .warn {
   .levelDot {

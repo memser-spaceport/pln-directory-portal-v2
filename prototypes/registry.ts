@@ -162,7 +162,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'newsfeed-v0',
     title: 'Newsfeed redesign — v0 quick wins',
     description:
-      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). Clicking a story opens a detail modal (full summary, Share, source badges). A prototype switch flips between the two interaction versions: "Discuss" (news links to the forum, forum posts show likes only) and "Comments" (both news and posts open an inline comment thread, no Discuss link).',
+      'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). A prototype switch flips between two versions: "With comments" (news and posts carry an inline comment thread) and "Without comments" (Like + Share only). Clicking a story opens an enlarged detail modal with the standardized modal chrome (sticky header + close, full summary, Share, source badges, and comments in the with-comments version).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },

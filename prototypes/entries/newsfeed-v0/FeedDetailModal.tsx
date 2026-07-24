@@ -8,11 +8,11 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 import { Modal } from '@/components/common/Modal';
-import { Button } from '@/components/common/Button';
-// Reuse the production "Discuss" (StartConversationButton) treatment + arrow, so
-// the modal's Discuss link matches the one on the feed cards 1:1.
-import discussStyles from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/StartConversationButton.module.scss';
-import { ArrowRight } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/components/Icons';
+import { CloseIcon } from '@/components/icons';
+// Reuse the production modal chrome (sticky header divider, rounded close button,
+// scrolling content, sticky footer) 1:1 — the same shell the Gantry "Create item"
+// modal standardizes on — so this detail modal matches the rest of the app.
+import dealModal from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 
 import type { NewsSource, FeedComment } from './mocks';
 import { LikeButton, CommentCount } from './FeedActions';
@@ -63,7 +63,7 @@ interface Props {
   liked: boolean;
   onToggleLike: () => void;
   citationStyle: CitationStyle;
-  /** Comments version: show the thread (see + leave comments) instead of Discuss. */
+  /** Show the inline comment thread + count (the "with comments" version). */
   showComments?: boolean;
   comments?: FeedComment[];
   onAddComment?: (text: string) => void;
@@ -82,7 +82,7 @@ export function FeedDetailModal({
   liked,
   onToggleLike,
   citationStyle,
-  showComments = false,
+  showComments = true,
   comments = [],
   onAddComment,
 }: Props) {
@@ -100,35 +100,39 @@ export function FeedDetailModal({
       ? [{ domain: hostOf(detail.readUrl), url: detail.readUrl }]
       : [];
 
-  // Share opens a destination menu (LinkedIn / X / Copy link). Rendered on the
-  // left (Discuss version) or pushed to the far right (Comments version).
-  const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="left" />;
+  // Share opens a destination menu (LinkedIn / X / Copy link). The footer actions
+  // are right-aligned, so the menu right-aligns too — it opens upward and inward,
+  // never off the clipped card edge.
+  const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="right" />;
 
   return (
     <Modal
       isOpen={Boolean(detail)}
       onClose={onClose}
       overlayClassname={s.mobileOverlay}
-      className={s.mobileContainer}
+      className={s.container}
     >
       {detail && (
         <div className={s.card}>
-          <button type="button" className={s.close} aria-label="Close" onClick={onClose}>
-            <CloseIcon />
-          </button>
-
-          <div className={s.head}>
-            {detail.avatarSeed ? (
-              <img className={clsx(s.logo, s.avatar)} src={getDefaultAvatar(detail.avatarSeed)} alt="" />
-            ) : detail.logoUrl ? (
-              <img className={s.logo} src={detail.logoUrl} alt="" />
-            ) : (
-              <div className={s.logoFallback}>{getTeamLogoFallback(detail.name)}</div>
-            )}
-            <span className={s.headText}>
-              <span className={s.name}>{detail.name}</span>
-              {detail.sub && <span className={s.sub}>{detail.sub}</span>}
-            </span>
+          {/* Sticky header: author/team identity on the left, standardized close
+              button on the right, with the shared bottom divider. */}
+          <div className={clsx(dealModal.header, s.head)}>
+            <div className={s.headIdentity}>
+              {detail.avatarSeed ? (
+                <img className={clsx(s.logo, s.avatar)} src={getDefaultAvatar(detail.avatarSeed)} alt="" />
+              ) : detail.logoUrl ? (
+                <img className={s.logo} src={detail.logoUrl} alt="" />
+              ) : (
+                <div className={s.logoFallback}>{getTeamLogoFallback(detail.name)}</div>
+              )}
+              <span className={s.headText}>
+                <span className={s.name}>{detail.name}</span>
+                {detail.sub && <span className={s.sub}>{detail.sub}</span>}
+              </span>
+            </div>
+            <button type="button" className={dealModal.closeButton} aria-label="Close" onClick={onClose}>
+              <CloseIcon width={20} height={20} color="#0a0c11" />
+            </button>
           </div>
 
           <div className={s.body}>
@@ -194,7 +198,7 @@ export function FeedDetailModal({
             </div>
           )}
 
-          {/* Comments version: see + leave comments right in the news modal. */}
+          {/* "With comments" version: see + leave comments right in the news modal. */}
           {detail.kind === 'news' && showComments && (
             <div ref={commentsRef}>
               <CommentsThread comments={comments} onAddComment={onAddComment ?? (() => {})} />
@@ -202,27 +206,15 @@ export function FeedDetailModal({
           )}
           </div>
 
-          <div className={s.footer}>
-            {/* Share leads, then Like (+ comment count in the Comments version).
-                Discuss version keeps the Discuss link on the right. */}
+          <div className={clsx(dealModal.footer, s.footer)}>
+            {/* Share leads, then Like and the comment count. */}
             <span className={s.footerActions}>
               {shareButton}
               <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
-              {showComments && <CommentCount count={comments.length} onClick={scrollToComments} />}
+              {detail.kind === 'news' && showComments && (
+                <CommentCount count={comments.length} onClick={scrollToComments} />
+              )}
             </span>
-            {!showComments && detail.kind === 'news' && (
-              <Button
-                size="xs"
-                style="link"
-                variant="primary"
-                className={discussStyles.discussLink}
-                title="Start a conversation on the forum"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Discuss
-                <ArrowRight />
-              </Button>
-            )}
           </div>
         </div>
       )}
@@ -282,12 +274,6 @@ function hostOf(url: string): string {
     return url;
   }
 }
-
-const CloseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-    <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
 
 // Info circle (ⓘ) — the disclosure glyph for the AI-summary note.
 const InfoIcon = () => (

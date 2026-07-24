@@ -14,7 +14,12 @@
   }
 }
 
-.mobileContainer.mobileContainer {
+/* Larger than the platform's default 600px centered container — the news detail
+   modal carries a full summary, sources, and a comment thread, so it gets more
+   room. Full-screen on mobile (matching the platform Drawer). */
+.container.container {
+  max-width: 680px;
+
   @include mobile-only {
     max-width: none;
     width: 100%;
@@ -29,7 +34,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: min(560px, 85vh);
+  height: min(680px, 88vh);
   background: var(--background-base-white, #fff);
   border-radius: 16px;
   overflow: hidden; /* clip the scrolling body to the rounded corners */
@@ -54,55 +59,37 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 4px 24px 16px;
+  padding: 20px 24px 16px;
 
   @include mobile-only {
-    padding: 4px 20px 16px;
+    padding: 18px 20px 16px;
   }
 }
 
-.close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: inline-flex;
+/* Author / team header — logo (news) or round avatar (forum) + name + subline,
+   with the standardized close button opposite. Sticky above the scrolling body
+   (border-bottom + flex-shrink come from the reused dealModal.header). */
+.head.head {
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: none;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
+  padding: 16px 20px 16px 24px;
 
-  &:hover {
-    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
-    color: var(--foreground-neutral-primary, #0a0c11);
+  @include mobile-only {
+    padding: 14px 16px 14px 20px;
   }
 }
 
-/* Author / team header — logo (news) or round avatar (forum) + name + subline.
-   Pinned above the scrolling body. */
-.head {
+/* Logo + name group on the left of the header. */
+.headIdentity {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-shrink: 0;
-  padding: 24px 56px 14px 24px; /* right room clears the close button */
-
-  @include mobile-only {
-    padding: 20px 52px 12px 20px;
-  }
+  min-width: 0;
 }
 
 .logo,
 .logoFallback {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   border-radius: 8px;
   object-fit: cover;
@@ -387,20 +374,19 @@
   flex-shrink: 0;
 }
 
-/* Footer: like + share on the left, Discuss on the right of a hairline.
-   Pinned below the scrolling body. */
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Footer: share + like + comment count, right-aligned to match the feed card's
+   action cluster. Sticky below the scrolling body (border-top + flex-shrink come
+   from the reused dealModal.footer). */
+.footer.footer {
+  justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
-  flex-shrink: 0;
-  padding: 14px 24px 20px;
-  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  /* Quiet icon+text actions are short, so the band needs more vertical padding
+     than a button-filled footer to avoid looking thin. */
+  padding: 18px 24px;
 
   @include mobile-only {
-    padding: 14px 20px 20px;
+    padding: 16px 20px;
   }
 }
 
@@ -415,36 +401,4 @@
   display: inline-flex;
   align-items: center;
   gap: 16px;
-}
-
-/* Layout for the DS Button used as the Share action (the DS button root doesn't
-   lay out an icon + label itself). Sizes both the img glyph and the inline check
-   svg, and keeps "Link copied" on one line so the button doesn't grow a second
-   row on the copied state. */
-.shareBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-
-  svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-  }
-}
-
-/* DS share glyph (public/icons/share-blue.svg). */
-.shareIcon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
-
-/* Copied cue: turn the button (border + text + check) success-green without the
-   DS success variant (which reads as a dark box in this context). Double class
-   beats the DS Button's own border/variant classes. */
-.shareBtnCopied.shareBtnCopied {
-  color: var(--foreground-success-primary, #0a9952);
-  border-color: var(--foreground-success-primary, #0a9952);
 }

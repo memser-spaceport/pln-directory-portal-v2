@@ -6,14 +6,10 @@ import { useState } from 'react';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 
-import { Button } from '@/components/common/Button';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
-import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
-import { ArrowRight } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/components/Icons';
 
 // Reuse the production news-card styling 1:1.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
-import discussStyles from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/StartConversationButton.module.scss';
 // Reuse the production Job Board "View all N …" expander styling 1:1.
 import jobsCss from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import local from './NewsfeedV0.module.scss';
@@ -42,8 +38,8 @@ interface V0FeedCardProps {
   cluster: TeamCluster;
   following: boolean;
   onToggleFollow: () => void;
-  /** 'discuss' → Like + Discuss (news keeps its forum jump); 'comments' → Like + inline comments. */
-  interactionMode: 'discuss' | 'comments';
+  /** 'with comments' → Like + Share + inline comments; false → Like + Share only. */
+  showComments: boolean;
   likeCount: (uid: string) => number;
   isLiked: (uid: string) => boolean;
   onToggleLike: (uid: string) => void;
@@ -56,8 +52,7 @@ interface V0FeedCardProps {
 /**
  * Single-column variant: one card per team, but every story inside carries
  * equal weight — same headline size, summary, meta line, and its own quiet
- * Like control (plus, per the active interaction version, a Discuss link or an
- * inline comment thread). Clicking a story opens its detail modal.
+ * Like + inline-comments controls. Clicking a story opens its detail modal.
  */
 // Show at most this many stories per card; the rest collapse under "+N more".
 const VISIBLE_STORIES = 3;
@@ -66,7 +61,7 @@ export function V0FeedCard({
   cluster,
   following,
   onToggleFollow,
-  interactionMode,
+  showComments,
   likeCount,
   isLiked,
   onToggleLike,
@@ -113,7 +108,6 @@ export function V0FeedCard({
       </div>
 
       {visibleStories.map((story) => {
-        const existing = hasExistingDiscussion(story.discussion);
         const threadOpen = openThreads.has(story.uid);
         const comments = commentsFor(story.uid);
         return (
@@ -152,36 +146,17 @@ export function V0FeedCard({
                   liked={isLiked(story.uid)}
                   onToggle={() => onToggleLike(story.uid)}
                 />
-                {interactionMode === 'comments' ? (
+                {showComments && (
                   <CommentButton
                     count={comments.length}
                     open={threadOpen}
                     onToggle={() => toggleThread(story.uid)}
                   />
-                ) : (
-                  /* Production's StartConversationButton treatment: DS link/primary —
-                     brand blue at rest, darkening on hover. (The real component also
-                     reads auth + forum access and navigates, out of scope for mocked data.) */
-                  <Button
-                    size="xs"
-                    style="link"
-                    variant="primary"
-                    className={discussStyles.discussLink}
-                    title={
-                      existing
-                        ? 'Join the existing forum discussion about this article'
-                        : 'Start a conversation on the forum'
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {existing ? 'Join discussion' : 'Discuss'}
-                    <ArrowRight />
-                  </Button>
                 )}
               </span>
             </div>
 
-            {interactionMode === 'comments' && threadOpen && (
+            {showComments && threadOpen && (
               <CommentsThread comments={comments} onAddComment={(text) => onAddComment(story.uid, text)} />
             )}
           </div>

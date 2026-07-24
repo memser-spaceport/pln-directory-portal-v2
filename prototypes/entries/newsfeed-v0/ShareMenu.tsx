@@ -3,12 +3,10 @@
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components/common/Button';
 import { ShareIcon } from './ForumIcons';
 
 // Reuse the forum ReferMenu popover styling 1:1 (wrap / popover / item / title).
 import rs from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu/ReferMenu.module.scss';
-import fdm from './FeedDetailModal.module.scss';
 import fa from './FeedActions.module.scss';
 import local from './ShareMenu.module.scss';
 
@@ -72,32 +70,21 @@ export function ShareMenu({ url, variant, align = 'right' }: Props) {
 
   return (
     <div className={rs.wrap} ref={wrapRef} onClick={(e) => e.stopPropagation()}>
-      {variant === 'modal' ? (
-        <Button
-          size="s"
-          style="border"
-          variant="secondary"
-          className={fdm.shareBtn}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <ShareIcon />
-          Share
-        </Button>
-      ) : (
-        <button
-          type="button"
-          className={clsx(fa.subItem, fa.button)}
-          aria-label="Share"
-          title="Share"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <ShareIcon />
-        </button>
-      )}
+      {/* Both variants use the quiet forum meta-item styling so Share sits at the
+          same weight as Like/Comment. The modal has room for the "Share" label;
+          the card stays icon-only. */}
+      <button
+        type="button"
+        className={clsx(fa.subItem, fa.button)}
+        aria-label="Share"
+        title="Share"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <ShareIcon />
+        {variant === 'modal' && 'Share'}
+      </button>
 
       {open && (
         <div className={clsx(rs.popover, variant === 'modal' && local.up, align === 'left' && local.alignLeft)} role="menu">

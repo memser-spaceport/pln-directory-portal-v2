@@ -7,10 +7,10 @@
   background: var(--background-neutral-subtle, #f7f8fa);
 }
 
-/* ---------- Prototype-only interaction-version switcher ---------- */
+/* ---------- Prototype-only comments-version switcher ---------- */
 
-/* Its own row above the tabs: the two interaction versions (Discuss vs
-   Comments) the prototype demonstrates. Reserves the rail column so the row
+/* Its own row above the tabs: the two versions the prototype demonstrates
+   (With comments vs Without comments). Reserves the rail column so the row
    lines up with the feed card's right edge, matching .tabsConstrainBanner. */
 .versionRow {
   display: flex;
@@ -31,7 +31,7 @@
   flex-wrap: wrap;
 }
 
-/* Small label prefixing each prototype switch (Interactions / Citations). */
+/* Small label prefixing the prototype switch. */
 .switchLabel {
   font-size: 12px;
   font-weight: 600;
@@ -280,6 +280,15 @@
 }
 
 .tabsConstrainBanner {
+  @include tablet-landscape {
+    margin-right: 312px; /* 300px rail + 12px gutter */
+  }
+}
+
+/* "Show All" sits below the feed+rail grid, so left as-is it centers across the
+   full width and drifts right of the feed column. Reserve the rail so it centers
+   to the feed column instead — same 312px offset the tabs/banner use. */
+.showAllConstrain {
   @include tablet-landscape {
     margin-right: 312px; /* 300px rail + 12px gutter */
   }

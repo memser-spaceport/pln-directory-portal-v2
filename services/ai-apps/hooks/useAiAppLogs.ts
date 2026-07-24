@@ -57,10 +57,21 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
     refetchOnWindowFocus: false,
   });
 
-  const events = useMemo<AiAppLogEvent[] | null>(
-    () => (query.data ? query.data.pages.flatMap((page) => page.events) : null),
-    [query.data],
-  );
+  // Newest-first across ALL loaded pages. Each page arrives pre-sorted; the
+  // global re-sort is a cheap idempotent no-op when the runner reads from the
+  // tail (CloudWatch GetLogEvents' default — later pages are strictly older),
+  // and it keeps the display coherent if the runner turns out to page forward
+  // instead (the open ordering question with backend).
+  const events = useMemo<AiAppLogEvent[] | null>(() => {
+    if (!query.data) return null;
+    return query.data.pages
+      .flatMap((page) => page.events)
+      .sort((a, b) => {
+        const ta = Number.isFinite(a.timestamp) ? a.timestamp : 0;
+        const tb = Number.isFinite(b.timestamp) ? b.timestamp : 0;
+        return tb - ta;
+      });
+  }, [query.data]);
 
   // A step can legitimately return zero events WITH a token (skip budget spent
   // on CloudWatch's sparse-window quirk). The modal must not auto-chain off

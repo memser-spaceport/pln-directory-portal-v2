@@ -178,14 +178,15 @@ const AI_APP_LOGS_TIME_BUDGET_MS = 8_000;
 
 /**
  * Server ordering is not documented, so display order is enforced per page:
- * ascending by timestamp (stable, so equal/unparseable stamps keep arrival
- * order). Chronological top-to-bottom is what the log table expects.
+ * DESCENDING by timestamp (stable, so equal/unparseable stamps keep arrival
+ * order). The log table reads newest-first — the latest lines are why the
+ * modal was opened — and scrolling down loads earlier history.
  */
 function sortLogEvents(events: AiAppLogEvent[]): AiAppLogEvent[] {
   return [...events].sort((a, b) => {
     const ta = Number.isFinite(a.timestamp) ? a.timestamp : 0;
     const tb = Number.isFinite(b.timestamp) ? b.timestamp : 0;
-    return ta - tb;
+    return tb - ta;
   });
 }
 

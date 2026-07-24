@@ -32,7 +32,7 @@ describe('fetchAiAppLogsPage', () => {
     mockCustomFetch.mockResolvedValue(jsonResponse(200, { events: [event(1), event(2)] }));
 
     await expect(fetchAiAppLogsPage('a1', 'build')).resolves.toEqual({
-      events: [event(1), event(2)],
+      events: [event(2), event(1)],
       nextToken: undefined,
     });
     expect(mockCustomFetch).toHaveBeenCalledTimes(1);
@@ -54,11 +54,11 @@ describe('fetchAiAppLogsPage', () => {
     expect(mockCustomFetch.mock.calls[0][0]).toContain('nextToken=cursor-1');
   });
 
-  it('sorts events ascending by timestamp regardless of server order', async () => {
+  it('sorts events newest-first by timestamp regardless of server order', async () => {
     mockCustomFetch.mockResolvedValue(jsonResponse(200, { events: [event(30), event(10), event(20)] }));
 
     const page = await fetchAiAppLogsPage('a1', 'runtime');
-    expect(page.events.map((e) => e.timestamp)).toEqual([10, 20, 30]);
+    expect(page.events.map((e) => e.timestamp)).toEqual([30, 20, 10]);
   });
 
   it('treats a repeated nextToken on an empty page as end-of-stream (CloudWatch never nulls it)', async () => {
@@ -150,7 +150,7 @@ describe('fetchAiAppLogsPage', () => {
     );
 
     const page = await fetchAiAppLogsPage('a1', 'build');
-    expect(page.events).toEqual([event(1), event(3)]);
+    expect(page.events).toEqual([event(3), event(1)]);
   });
 
   it('sends limit always, sinceMinutes only when provided, and passes the signal through', async () => {

@@ -67,12 +67,14 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
 /**
  * Read-only troubleshooting view of an app's two log sources: Build (finite,
  * one per deploy attempt) and Runtime (the pod's stdout/stderr over a
- * retention window). One chronological table per stream, paged by the runner's
- * nextToken: the first page loads on open, further pages load as the reader
- * scrolls past the sentinel (infinite scroll, with a manual "Load more"
- * fallback). When the whole log fits in one page the view bottom-anchors —
- * failures live at the end; when more remains it starts at the top, reading
- * oldest → newest. Refresh restarts from page 1; live tailing stays out of v1.
+ * retention window). One NEWEST-FIRST table per stream — the latest lines are
+ * why the modal was opened, so they're at the top on arrival — paged by the
+ * runner's nextToken: the first page loads on open, EARLIER history loads as
+ * the reader scrolls past the sentinel (with a manual "Load earlier" fallback).
+ * Assumes the runner reads CloudWatch from the tail (GetLogEvents' default);
+ * the hook's global re-sort keeps display coherent if it doesn't, but the
+ * "earlier below" promise then needs the backend ordering answer. Refresh
+ * restarts from page 1; live tailing stays out of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -118,17 +120,17 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   const runtimeTabRef = useRef<HTMLButtonElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Anchor only while the FIRST page is showing: bottom when it's the whole
-  // log (failures live at the end), top when more pages remain (read oldest →
-  // newest, scroll to load). Appended pages never move the scroll position —
+  // Newest-first: the top of the table IS the latest line, so the view always
+  // starts (and re-starts on tab switch / refresh) at the top. Only the first
+  // page anchors — appended history never moves the scroll position, because
   // re-anchoring after an append would pin the sentinel in view and turn it
   // into a request loop.
   useEffect(() => {
     const pane = paneRef.current;
     if (!pane || active.pageCount !== 1) return;
-    pane.scrollTop = active.hasMore ? 0 : pane.scrollHeight;
+    pane.scrollTop = 0;
     // `lines` is the render trigger: anchor once the first page's rows exist.
-  }, [lines, stream, active.pageCount, active.hasMore]);
+  }, [lines, stream, active.pageCount]);
 
   // Auto-load when the sentinel row scrolls into view. The observer calls
   // through a ref so it never holds a stale closure, and it stays inert when
@@ -239,16 +241,16 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
       <td colSpan={2}>
         {active.loadMoreFailed ? (
           <span className={s.loadMoreFailed}>
-            Couldn’t load more lines.{' '}
+            Couldn’t load earlier lines.{' '}
             <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
               Retry
             </button>
           </span>
         ) : active.isLoadingMore ? (
-          <span className={s.loadMoreHint}>Loading more…</span>
+          <span className={s.loadMoreHint}>Loading earlier logs…</span>
         ) : (
           <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
-            Load more
+            Load earlier logs
           </button>
         )}
       </td>
@@ -308,7 +310,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <div className={s.stateBlock}>
           <p className={s.stateTitle}>No lines in this part of the log yet.</p>
           <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
-            {active.isLoadingMore ? 'Loading…' : 'Load more'}
+            {active.isLoadingMore ? 'Loading…' : 'Load earlier logs'}
           </Button>
         </div>
       );
@@ -451,7 +453,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {active.hasMore && ' · scroll to load more'}
+            {active.hasMore && ' · newest first — scroll for earlier logs'}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

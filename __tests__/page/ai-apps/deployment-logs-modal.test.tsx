@@ -142,21 +142,21 @@ describe('DeploymentLogsModal', () => {
     expect(screen.queryByText(/never ran/i)).not.toBeInTheDocument();
   });
 
-  it('marks continuation with a +count, a scroll hint, and a Load more row', () => {
+  it('marks continuation with a +count, a scroll hint, and a Load earlier row', () => {
     mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, canAutoLoad: true });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
     expect(screen.getByRole('tab', { name: /runtime/i })).toHaveTextContent('1+');
-    expect(screen.getByText(/scroll to load more/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /load more/i }));
+    expect(screen.getByText(/newest first — scroll for earlier logs/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /load earlier logs/i }));
     expect(mockStreams.runtime.loadMore).toHaveBeenCalled();
   });
 
-  it('offers an inline retry when loading a later page failed', () => {
+  it('offers an inline retry when loading an earlier page failed', () => {
     mockStreams.runtime = loaded([line(3, 'x')], { hasMore: true, loadMoreFailed: true });
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
 
-    expect(screen.getByText(/couldn’t load more lines/i)).toBeInTheDocument();
+    expect(screen.getByText(/couldn’t load earlier lines/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
     expect(mockStreams.runtime.loadMore).toHaveBeenCalled();
   });

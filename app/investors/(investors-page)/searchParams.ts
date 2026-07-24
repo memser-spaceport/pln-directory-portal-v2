@@ -11,8 +11,8 @@ import { CO_INVESTOR_MODE_VALUES, INVESTOR_TAB_VALUES } from '@/services/investo
 export const investorsFilterParsers = {
   // Top-level + sub-navigation
   tab: parseAsStringLiteral(INVESTOR_TAB_VALUES).withDefault('all'),
-  /** Workspace mode: 'warm-intros' (v1, default) | 'warm-intros-v2' | 'list' (All Investors). */
-  mode: parseAsStringLiteral(CO_INVESTOR_MODE_VALUES).withDefault('warm-intros'),
+  /** Workspace mode: 'warm-intros-v2' (default) | 'warm-intros' (v1) | 'list' (All Investors). */
+  mode: parseAsStringLiteral(CO_INVESTOR_MODE_VALUES).withDefault('warm-intros-v2'),
 
   // Shared filters across tabs
   q: parseAsString.withDefault(''),

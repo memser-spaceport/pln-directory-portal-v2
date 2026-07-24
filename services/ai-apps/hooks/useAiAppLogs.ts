@@ -22,12 +22,11 @@ const RUNTIME_WINDOW_MINUTES = 24 * 60;
 export const RUNTIME_WINDOW_LABEL = 'last 24 hours';
 
 /**
- * One stream's logs for the deployment-logs modal, paged by the runner's
- * `nextToken`: the first page loads on open, further pages load via the
- * modal's explicit "Load newer logs" button (`loadMore` — MANUAL by design:
- * the runner pages forward, so appended lines sort in above the reader and
- * every scroll-based auto-load heuristic turns into a request loop). `hasMore`
- * doubles as the "log continues" signal.
+ * One stream's logs for the deployment-logs modal, requested with
+ * `order=desc`: page 1 is the log's true tail (the web-api assembles the
+ * newest-first view — the runner itself only pages forward) and each
+ * `loadMore` walks EARLIER into history via the server's offset cursor.
+ * `hasMore` doubles as the "history continues" signal.
  *
  * The modal must be conditionally rendered (`action && <Modal/>`), never kept
  * mounted behind an isOpen prop: abort-on-close works because unmounting drops
@@ -61,15 +60,22 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
     refetchOnWindowFocus: false,
   });
 
-  // Newest-first across ALL loaded pages. Each page arrives pre-sorted; the
-  // global re-sort is a cheap idempotent no-op when the runner reads from the
-  // tail (CloudWatch GetLogEvents' default — later pages are strictly older),
-  // and it keeps the display coherent if the runner turns out to page forward
-  // instead (the open ordering question with backend).
+  // Newest-first across ALL loaded pages. With order=desc, later pages are
+  // strictly older, so the global re-sort is a cheap idempotent safety net.
+  // The dedupe guards against cursor drift: the server's offset cursor is
+  // relative to the newest line, so lines arriving between two page requests
+  // (after its 15s walk cache expires) can shift the window and repeat a line.
   const events = useMemo<AiAppLogEvent[] | null>(() => {
     if (!query.data) return null;
+    const seen = new Set<string>();
     return query.data.pages
       .flatMap((page) => page.events)
+      .filter((event) => {
+        const key = `${event.timestamp}|${event.message}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
       .sort((a, b) => logTimestampSortValue(b.timestamp) - logTimestampSortValue(a.timestamp));
   }, [query.data]);
 

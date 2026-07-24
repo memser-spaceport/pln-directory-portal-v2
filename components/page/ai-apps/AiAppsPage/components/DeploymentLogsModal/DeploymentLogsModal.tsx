@@ -67,21 +67,20 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
 /**
  * Read-only troubleshooting view of an app's two log sources: Build (finite,
  * one per deploy attempt) and Runtime (the pod's stdout/stderr over a
- * retention window). One NEWEST-FIRST table per stream — every loaded line is
- * sorted latest-on-top — paged by the runner's nextToken: the first page loads
- * on open, further pages load ONLY via the explicit "Load newer logs" button.
+ * retention window). One NEWEST-FIRST table per stream: the backend's
+ * `order=desc` mode serves the log's true tail as page 1 (it assembles the
+ * newest-first view server-side — the runner itself only pages forward), and
+ * each further page walks EARLIER into history. The latest line is therefore
+ * at the top on open, and scrolling toward the bottom auto-loads earlier
+ * lines via an IntersectionObserver sentinel (manual "Load earlier logs"
+ * button as the keyboard / no-IO fallback).
  *
- * The runner pages FORWARD (observed: page 1 is the window's oldest chunk), so
- * later pages carry NEWER lines and the sort slots them in at the top; the top
- * row is the newest loaded line, and the log's true tail only once every page
- * is in. A backend `order=desc`/tail-read option is the real fix and is on the
- * asks list. Forward paging is also why loading more is a MANUAL button (at
- * the top, where the loaded lines appear) and never automatic: every
- * scroll-position heuristic gets defeated when appends land above the reader —
- * an IntersectionObserver sentinel never un-triggers, and browser scroll
- * anchoring re-fires scroll events while preserving distance-to-bottom — and
- * each false trigger chain-fetches the entire window. Refresh restarts from
- * page 1; live tailing stays out of v1.
+ * The sentinel is only safe BECAUSE pages arrive newest-to-oldest: an
+ * appended page's older lines sort in BELOW the reader, pushing the sentinel
+ * out of view until they scroll again. (With forward paging this exact
+ * sentinel chain-fetched entire windows — appends landed above the reader and
+ * it never un-triggered. Don't revisit without that history.) Refresh
+ * restarts from page 1; live tailing stays out of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -122,6 +121,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   }, [lines, query]);
 
   const paneRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLTableRowElement>(null);
   const buildTabRef = useRef<HTMLButtonElement>(null);
   const runtimeTabRef = useRef<HTMLButtonElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -137,6 +137,31 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     pane.scrollTop = 0;
     // `lines` is the render trigger: anchor once the first page's rows exist.
   }, [lines, stream, active.pageCount]);
+
+  // Auto-load earlier history when the sentinel row scrolls into view. Calls
+  // through a ref so the observer never holds a stale closure; inert while a
+  // page fetch is failed (the inline Retry takes over) or a search is active
+  // (results only cover loaded lines).
+  const autoLoadRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    autoLoadRef.current = !active.loadMoreFailed && !query.trim() ? active.loadMore : null;
+  });
+
+  useEffect(() => {
+    const pane = paneRef.current;
+    const sentinel = sentinelRef.current;
+    if (!pane || !sentinel || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) autoLoadRef.current?.();
+      },
+      { root: pane, rootMargin: '120px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+    // Re-attach when the sentinel (re)mounts — tab switches and end-of-log
+    // both swap the table subtree.
+  }, [stream, lines, active.hasMore]);
 
   useEffect(
     () => () => {
@@ -217,24 +242,23 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     },
   ];
 
-  // At the TOP of the table: with forward paging + newest-first sorting the
-  // loaded lines appear right here, so the affordance sits where its result
-  // shows up.
+  // The last row: crossing it auto-loads earlier history (which appends right
+  // below the reader); the button is the keyboard / no-IO fallback.
   const loadMoreRow = active.hasMore && !query.trim() && (
-    <tr className={s.loadMoreRow}>
+    <tr ref={sentinelRef} className={s.loadMoreRow}>
       <td colSpan={2}>
         {active.loadMoreFailed ? (
           <span className={s.loadMoreFailed}>
-            Couldn’t load more lines.{' '}
+            Couldn’t load earlier lines.{' '}
             <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
               Retry
             </button>
           </span>
         ) : active.isLoadingMore ? (
-          <span className={s.loadMoreHint}>Loading newer logs…</span>
+          <span className={s.loadMoreHint}>Loading earlier logs…</span>
         ) : (
           <button type="button" className={s.loadMoreBtn} onClick={active.loadMore}>
-            Load newer logs
+            Load earlier logs
           </button>
         )}
       </td>
@@ -294,7 +318,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
         <div className={s.stateBlock}>
           <p className={s.stateTitle}>No lines in this part of the log yet.</p>
           <Button style="border" variant="neutral" size="s" onClick={active.loadMore}>
-            {active.isLoadingMore ? 'Loading…' : 'Load newer logs'}
+            {active.isLoadingMore ? 'Loading…' : 'Load earlier logs'}
           </Button>
         </div>
       );
@@ -329,7 +353,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             </tr>
           </thead>
           <tbody>
-            {loadMoreRow}
             {filtered.map((line) => (
               <tr key={line.key} className={line.level ? s[line.level] : undefined}>
                 <td className={s.messageCell}>
@@ -349,6 +372,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 </td>
               </tr>
             ))}
+            {loadMoreRow}
           </tbody>
         </table>
       </div>
@@ -437,7 +461,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
                 <strong>{lines.length}</strong> events
               </>
             )}
-            {active.hasMore && ' · newer lines available'}
+            {active.hasMore && ' · newest first — scroll for earlier logs'}
             {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>

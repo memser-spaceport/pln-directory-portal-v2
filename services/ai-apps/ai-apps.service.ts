@@ -216,7 +216,11 @@ export async function fetchAiAppLogsPage(
   let sentToken = opts.nextToken;
 
   for (let skip = 0; skip < AI_APP_LOGS_MAX_SKIPS; skip++) {
-    const params = new URLSearchParams({ limit: String(AI_APP_LOGS_PAGE_SIZE) });
+    // order=desc: the web-api assembles the newest-first view (the runner only
+    // pages forward) — page 1 is the log's true tail and nextToken walks
+    // EARLIER into history. Desc responses are allowlisted {events, nextToken}
+    // with numeric timestamps.
+    const params = new URLSearchParams({ order: 'desc', limit: String(AI_APP_LOGS_PAGE_SIZE) });
     if (sinceMinutes !== undefined) params.set('sinceMinutes', String(sinceMinutes));
     if (sentToken !== undefined) params.set('nextToken', sentToken);
 

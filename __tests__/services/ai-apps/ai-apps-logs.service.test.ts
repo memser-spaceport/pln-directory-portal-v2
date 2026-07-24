@@ -175,6 +175,7 @@ describe('fetchAiAppLogsPage', () => {
     await fetchAiAppLogsPage('a1', 'runtime', { signal: controller.signal, sinceMinutes: 1440 });
     const [url, init] = mockCustomFetch.mock.calls[0];
     expect(url).toContain('/a1/runtime-logs?');
+    expect(url).toContain('order=desc');
     expect(url).toContain('limit=');
     expect(url).toContain('sinceMinutes=1440');
     expect((init as RequestInit).signal).toBe(controller.signal);

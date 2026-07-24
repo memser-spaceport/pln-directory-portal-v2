@@ -148,6 +148,22 @@ describe('NewsDetailModal', () => {
     feedRoot.remove();
   });
 
+  it('Escape closes the share popover first and the modal only on the next press', () => {
+    const onClose = jest.fn();
+    render(<NewsDetailModal item={makeItem()} onClose={onClose} onUpvoteToggle={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^Share / }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // While the popover is open the modal's own Escape closer is detached —
+    // one keypress must never dismiss both layers.
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('routes anonymous Likes to #login with the news deep link, without toggling', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     const onUpvoteToggle = jest.fn();

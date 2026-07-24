@@ -1,6 +1,7 @@
 'use client';
 
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { Modal } from '@/components/common/Modal/Modal';
@@ -72,15 +73,17 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
  * newest-first view server-side — the runner itself only pages forward), and
  * each further page walks EARLIER into history. The latest line is therefore
  * at the top on open, and scrolling toward the bottom auto-loads earlier
- * lines via an IntersectionObserver sentinel (manual "Load earlier logs"
- * button as the keyboard / no-IO fallback).
+ * lines via react-infinite-scroll-component (the house pattern — see
+ * JobsContent, TeamList, OutreachInvestorTable), with a manual "Load earlier
+ * logs" row as the keyboard / retry fallback.
  *
- * The sentinel is only safe BECAUSE pages arrive newest-to-oldest: an
- * appended page's older lines sort in BELOW the reader, pushing the sentinel
- * out of view until they scroll again. (With forward paging this exact
- * sentinel chain-fetched entire windows — appends landed above the reader and
- * it never un-triggered. Don't revisit without that history.) Refresh
- * restarts from page 1; live tailing stays out of v1.
+ * Scroll-triggered loading is only safe BECAUSE pages arrive newest-to-oldest:
+ * an appended page's older lines sort in BELOW the reader, so the bottom
+ * threshold un-triggers until they scroll again. (Under the old forward
+ * paging, bottom-triggered loaders chain-fetched entire windows — appends
+ * landed above the reader and the trigger never released. Don't revisit
+ * without that history.) Refresh restarts from page 1; live tailing stays out
+ * of v1.
  *
  * Must be conditionally rendered by the parent (`action && <Modal/>`): closing
  * unmounts it, which is what aborts an in-flight fetch (the queryFn consumes
@@ -121,7 +124,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   }, [lines, query]);
 
   const paneRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLTableRowElement>(null);
   const buildTabRef = useRef<HTMLButtonElement>(null);
   const runtimeTabRef = useRef<HTMLButtonElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -137,31 +139,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     pane.scrollTop = 0;
     // `lines` is the render trigger: anchor once the first page's rows exist.
   }, [lines, stream, active.pageCount]);
-
-  // Auto-load earlier history when the sentinel row scrolls into view. Calls
-  // through a ref so the observer never holds a stale closure; inert while a
-  // page fetch is failed (the inline Retry takes over) or a search is active
-  // (results only cover loaded lines).
-  const autoLoadRef = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    autoLoadRef.current = !active.loadMoreFailed && !query.trim() ? active.loadMore : null;
-  });
-
-  useEffect(() => {
-    const pane = paneRef.current;
-    const sentinel = sentinelRef.current;
-    if (!pane || !sentinel || typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) autoLoadRef.current?.();
-      },
-      { root: pane, rootMargin: '120px' },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-    // Re-attach when the sentinel (re)mounts — tab switches and end-of-log
-    // both swap the table subtree.
-  }, [stream, lines, active.hasMore]);
 
   useEffect(
     () => () => {
@@ -242,10 +219,10 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     },
   ];
 
-  // The last row: crossing it auto-loads earlier history (which appends right
-  // below the reader); the button is the keyboard / no-IO fallback.
+  // The last row: InfiniteScroll auto-loads as the reader nears it; the
+  // button is the keyboard fallback, and Retry takes over on a failed page.
   const loadMoreRow = active.hasMore && !query.trim() && (
-    <tr ref={sentinelRef} className={s.loadMoreRow}>
+    <tr className={s.loadMoreRow}>
       <td colSpan={2}>
         {active.loadMoreFailed ? (
           <span className={s.loadMoreFailed}>
@@ -336,45 +313,57 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
     }
 
     // The prototype's two-column table: message takes the slack, the timestamp
-    // is a fixed right rail split into a muted date and a dark clock.
+    // is a fixed right rail split into a muted date and a dark clock. The
+    // tableWrap div stays the scroll container; InfiniteScroll only watches it
+    // (style overflow:unset per house usage) and fires `next` near its bottom.
     return (
       <div
         ref={paneRef}
+        id="deployment-logs-scroll"
         className={`${s.tableWrap} ph-no-capture`}
         role="region"
         aria-label="Deployment logs"
         tabIndex={0}
       >
-        <table className={s.table}>
-          <thead>
-            <tr>
-              <th scope="col">Message</th>
-              <th scope="col">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((line) => (
-              <tr key={line.key} className={line.level ? s[line.level] : undefined}>
-                <td className={s.messageCell}>
-                  {line.level && (
-                    <>
-                      <span className={s.levelDot} aria-hidden />
-                      <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
-                    </>
-                  )}
-                  <span className={s.messageText}>{line.text}</span>
-                </td>
-                <td>
-                  <span className={s.timeCell}>
-                    {line.date && <span className={s.date}>{line.date}</span>}
-                    <span className={s.time}>{line.clock}</span>
-                  </span>
-                </td>
+        <InfiniteScroll
+          scrollableTarget="deployment-logs-scroll"
+          dataLength={filtered.length}
+          hasMore={active.hasMore && !query.trim() && !active.loadMoreFailed}
+          next={active.loadMore}
+          loader={null}
+          style={{ overflow: 'unset' }}
+        >
+          <table className={s.table}>
+            <thead>
+              <tr>
+                <th scope="col">Message</th>
+                <th scope="col">Timestamp</th>
               </tr>
-            ))}
-            {loadMoreRow}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((line) => (
+                <tr key={line.key} className={line.level ? s[line.level] : undefined}>
+                  <td className={s.messageCell}>
+                    {line.level && (
+                      <>
+                        <span className={s.levelDot} aria-hidden />
+                        <span className={s.srOnly}>{line.level === 'error' ? 'Error: ' : 'Warning: '}</span>
+                      </>
+                    )}
+                    <span className={s.messageText}>{line.text}</span>
+                  </td>
+                  <td>
+                    <span className={s.timeCell}>
+                      {line.date && <span className={s.date}>{line.date}</span>}
+                      <span className={s.time}>{line.clock}</span>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {loadMoreRow}
+            </tbody>
+          </table>
+        </InfiniteScroll>
       </div>
     );
   };

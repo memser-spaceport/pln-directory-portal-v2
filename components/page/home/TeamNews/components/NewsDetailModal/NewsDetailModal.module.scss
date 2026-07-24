@@ -2,14 +2,16 @@
 
 // The common Modal is a positioning shell only (centering + blur overlay, no
 // panel surface) — the card look lives here, copied from the newsfeed-v0
-// prototype's FeedDetailModal .card: fixed height with the middle scrolling
-// internally (a 4-paragraph story and a one-liner open the same modal), and a
-// full-screen takeover on mobile. Width comes from the Modal container's
-// max-width: 600px, as in the prototype.
+// prototype's FeedDetailModal: fixed height with the middle scrolling
+// internally (a 4-paragraph story and a one-liner open the same modal), a
+// sticky header/footer chrome transcribed from SubmitDealModal (the shell the
+// Gantry "Create item" modal standardizes on — values copied, not imported,
+// to keep TeamNews decoupled from the deals page), and a full-screen takeover
+// on mobile.
 .modal {
   display: flex;
   flex-direction: column;
-  height: min(560px, 85vh);
+  height: min(680px, 88vh);
   background: var(--background-base-white, #fff);
   border-radius: 16px;
   overflow: hidden; // clip the scrolling body to the rounded corners
@@ -25,8 +27,8 @@
 }
 
 // Mobile full-screen takeover (prototype behavior, matching the platform
-// Drawer): the Modal's overlay padding and 600px container cap are overridden
-// via its overlayClassname/className props. Doubled selectors out-specify the
+// Drawer): the Modal's overlay padding and container cap are overridden via
+// its overlayClassname/className props. Doubled selectors out-specify the
 // shell's own .overlay/.modalContainer rules regardless of module order.
 .mobileOverlay.mobileOverlay {
   @include media.mobile-only {
@@ -34,11 +36,57 @@
   }
 }
 
-.mobileContainer.mobileContainer {
+// Wider than the shell's default 600px centered container — the news detail
+// modal carries a full summary and sources, so it gets more room. One class
+// owns both the desktop cap and the mobile reset so the two never race on
+// specificity.
+.container.container {
+  max-width: 680px;
+
   @include media.mobile-only {
     max-width: none;
     width: 100%;
     height: 100dvh;
+  }
+}
+
+// Sticky header: team identity on the left, standardized close button on the
+// right. Pinned above the scrolling body.
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px 16px 24px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    padding: 14px 16px 14px 20px;
+  }
+}
+
+// Logo + name group on the left of the header.
+.headIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 9999px;
+  background: rgba(14, 15, 17, 0.04);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
   }
 }
 
@@ -49,30 +97,10 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
+  gap: 16px;
 
-.head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.close {
-  margin-left: auto;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:hover {
-    background: #e2e8f0;
+  @include media.mobile-only {
+    padding: 18px 20px 16px;
   }
 }
 
@@ -119,7 +147,9 @@
 }
 
 .disclaimer {
-  margin: 0;
+  // Pulled up tight to the summary above it — the body's 16px gap is too
+  // loose for a footnote (same treatment as the prototype's .aiNote).
+  margin: -8px 0 0;
   font-size: 12px;
   color: #94a3b8;
 }
@@ -151,14 +181,27 @@
   }
 }
 
+// Sticky footer: share + like, right-aligned to match the feed card's action
+// cluster. Pinned below the scrolling body. Quiet icon+text actions are
+// short, so the band gets more vertical padding than a button-filled footer
+// to avoid looking thin.
 .footer {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
-  padding: 12px 24px;
-  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    padding: 16px 20px;
+  }
 }
 
-.footerSpacer {
-  flex: 1;
+.footerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
 }

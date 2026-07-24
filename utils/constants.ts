@@ -794,6 +794,22 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.22 - News Sharing & Job Referrals',
+    tag: 'New Feature',
+    date: '24, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News detail</span> - Open a story in a modal to read more, like it, and share via link, LinkedIn, or X.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer a role</span> - Share open roles with your network via copy link, LinkedIn, or X.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.21 - Feed Sorting, Digest Controls & Demo Day',
     tag: 'Improvements',
     date: '17, Jul 2026',

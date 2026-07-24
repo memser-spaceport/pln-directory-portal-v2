@@ -17,10 +17,10 @@ import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import s from './page.module.scss';
 
 // Lists IA: Co-investors tab retired (now the relationship filter on All
-// Investors). IA = Warm Intros (v1) + Warm Intros v2 + All Investors.
+// Investors). IA = Warm Intros v2 (default) + Warm Intros v1 + All Investors.
 const VISUAL_TABS = [
-  { value: 'warm-intros', label: 'Warm Intros' },
   { value: 'warm-intros-v2', label: 'Warm Intros v2' },
+  { value: 'warm-intros', label: 'Warm Intros' },
   { value: 'all', label: 'All Investors' },
 ];
 

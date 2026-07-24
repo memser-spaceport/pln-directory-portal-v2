@@ -629,17 +629,29 @@ export const mockPageCopy = {
 export const createModalIntro =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
 
-export const createModalWhatsNewItems = [
-  'Use signed-in PL member context in your app (name, photo, teams, and more)',
-  "Approve your app's name and description before the first deploy",
-  'Optionally add a one-pager/PRD after deploy',
-  '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+export const createModalWhatsNewSections = [
+  {
+    version: '1.5',
+    items: [
+      'Your agent can fetch build and runtime logs to diagnose failed deploys and runtime errors',
+      '(Via UI) View build and runtime logs from your app’s actions menu — no agent needed',
+    ],
+  },
+  {
+    version: '1.4',
+    items: [
+      'Use signed-in PL member context in your app (name, photo, teams, and more)',
+      "Approve your app's name and description before the first deploy",
+      'Optionally add a one-pager/PRD after deploy',
+      '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+    ],
+  },
 ];
 
 export const createModalSteps = [
   {
     title: 'Download the starter kit',
-    description: 'Click the button below to get Starter Kit v1.4 — a ready-to-use workspace for your AI coding tool.',
+    description: 'Click the button below to get Starter Kit v1.5 — a ready-to-use workspace for your AI coding tool.',
   },
   {
     title: 'Open it in your AI tool',
@@ -661,4 +673,4 @@ export const createModalSteps = [
 export const createModalSecurityNote =
   'This download is tied to your LabOS account and acts on your behalf. Do not share it with others - anyone with it could deploy apps under your name.';
 
-export const mockStarterKitVersion = '1.4';
+export const mockStarterKitVersion = '1.5';

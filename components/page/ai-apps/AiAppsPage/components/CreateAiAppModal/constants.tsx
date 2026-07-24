@@ -53,11 +53,23 @@ export const STEPS: { title: string; description: ReactNode }[] = [
 export const MODAL_INTRO =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
 
-export const MODAL_WHATS_NEW_ITEMS = [
-  'Use signed-in PL member context in your app (name, photo, teams, and more)',
-  "Approve your app's name and description before the first deploy",
-  'Optionally add a one-pager/PRD after deploy',
-  '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
+  {
+    version: '1.5',
+    items: [
+      'Your agent can fetch build and runtime logs to diagnose failed deploys and runtime errors',
+      '(Via UI) View build and runtime logs from your app’s actions menu — no agent needed',
+    ],
+  },
+  {
+    version: '1.4',
+    items: [
+      'Use signed-in PL member context in your app (name, photo, teams, and more)',
+      "Approve your app's name and description before the first deploy",
+      'Optionally add a one-pager/PRD after deploy',
+      '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+    ],
+  },
 ];
 
 export const SECURITY_NOTE =

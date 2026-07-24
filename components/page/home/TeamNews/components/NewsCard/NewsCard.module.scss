@@ -327,10 +327,12 @@
   flex-shrink: 0;
 }
 
-// Forum LikesButton styling, copied verbatim per the newsfeed-v0 prototype
+// Forum LikesButton styling, copied per the newsfeed-v0 prototype
 // (components/page/forum/LikesButton/LikesButton.module.scss — its .subItem +
-// .button + .liked, flattened): a borderless meta-row item, tertiary gray at
-// rest, dimmed on hover, brand blue when liked.
+// .button + .liked, flattened): a borderless meta-row item, dimmed on hover,
+// brand blue when liked. Rest color is one step darker than the forum's
+// tertiary default so the action reads as actionable, not quiet meta text
+// (prototype PR #2688).
 .upvote {
   display: flex;
   align-items: center;
@@ -345,7 +347,7 @@
   // font-size and override the forum-matching 12px below.
   font-family: inherit;
 
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

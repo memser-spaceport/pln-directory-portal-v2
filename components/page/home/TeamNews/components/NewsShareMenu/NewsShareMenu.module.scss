@@ -8,7 +8,7 @@
   border: none;
   border-radius: 6px;
   background: none;
-  color: #64748b;
+  color: var(--foreground-neutral-secondary, #455468);
   cursor: pointer;
 
   &:hover,

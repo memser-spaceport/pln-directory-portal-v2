@@ -218,8 +218,10 @@ export async function fetchAiAppLogs(
 
     let response: Response | undefined;
     try {
+      // Member-JWT routes (creator-or-directory-admin, enforced server-side).
+      // The agent's deploy-token routes live at /logs/{stream} — not these.
       response = await customFetch(
-        `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/logs/${stream}?${params.toString()}`,
+        `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/${stream}-logs?${params.toString()}`,
         { method: 'GET', signal },
         true,
       );

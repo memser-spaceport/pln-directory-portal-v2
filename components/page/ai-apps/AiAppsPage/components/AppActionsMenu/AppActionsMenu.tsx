@@ -7,7 +7,6 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { MenuIcon } from '@/components/icons';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
-import { AI_APPS_LOGS_ENABLED } from '@/utils/feature-flags';
 
 import s from './AppActionsMenu.module.scss';
 
@@ -36,10 +35,9 @@ export function AppActionsMenu({ app, onEdit, onDeployment, onLogs, onDelete }: 
   const analytics = useAiAppsAnalytics();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Gated here, not in the parents, so grid and detail page can't drift: a
-  // DRAFT has never built, so it has no logs to show; the flag stays off until
-  // the backend accepts owner/admin tokens on the logs endpoints.
-  const showLogsItem = AI_APPS_LOGS_ENABLED && app.status !== 'DRAFT';
+  // Gated here, not in the parents, so grid and detail page can't drift:
+  // a DRAFT has never built, so it has no logs to show.
+  const showLogsItem = app.status !== 'DRAFT';
 
   const { app: detail, errorKind } = useAiApp(app.uid, { enabled: isOpen });
 

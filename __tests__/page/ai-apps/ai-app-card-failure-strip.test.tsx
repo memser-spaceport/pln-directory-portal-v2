@@ -4,14 +4,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { AiAppCard } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsGrid/components/AiAppCard';
 import { AiApp } from '@/services/ai-apps/ai-apps.service';
 
-const mockFlags = { logs: true };
-jest.mock('@/utils/feature-flags', () => ({
-  ...jest.requireActual('@/utils/feature-flags'),
-  get AI_APPS_LOGS_ENABLED() {
-    return mockFlags.logs;
-  },
-}));
-
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({ onCardClicked: jest.fn(), onAuthorClicked: jest.fn() }),
 }));
@@ -48,7 +40,6 @@ const manageHandlers = {
 describe('AiAppCard failure strip', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFlags.logs = true;
   });
 
   it('replaces the inline badge with one strip — never two "Deploy failed" indicators', () => {
@@ -75,14 +66,6 @@ describe('AiAppCard failure strip', () => {
     expect(seeLogs.closest('a')).toBeNull();
     // Its only button ancestor is itself — not the card's select button.
     expect(seeLogs.parentElement?.closest('button')).toBeNull();
-  });
-
-  it('keeps the plain error badge and no strip while the flag is off', () => {
-    mockFlags.logs = false;
-    render(<AiAppCard app={buildApp()} canManage {...manageHandlers} onLogs={jest.fn()} />);
-
-    expect(screen.getAllByText('Deploy failed')).toHaveLength(1);
-    expect(screen.queryByRole('button', { name: /see logs/i })).not.toBeInTheDocument();
   });
 
   it('shows no strip for healthy apps', () => {

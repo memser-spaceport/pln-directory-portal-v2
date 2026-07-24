@@ -7,7 +7,6 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
-import { AI_APPS_LOGS_ENABLED } from '@/utils/feature-flags';
 
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
@@ -50,9 +49,9 @@ export function AiAppCard(props: Props) {
 
   const showManageMenu = !!canManage && !!onEdit && !!onDeployment && !!onDelete;
   const showDetailsButton = !!onViewDetails && hasPrd(app);
-  // The strip replaces the inline errorBadge — never both. Everyone sees the
-  // strip (same information the badge carried); only managers get its link.
-  const showFailureStrip = hasDeployFailed && AI_APPS_LOGS_ENABLED;
+  // The strip took over the old inline "Deploy failed" badge's job — everyone
+  // sees it; only managers get its "See logs" link.
+  const showFailureStrip = hasDeployFailed;
   const showSeeLogs = showFailureStrip && !!canManage && !!onLogs;
 
   const body = (
@@ -61,7 +60,6 @@ export function AiAppCard(props: Props) {
       <div className={clsx(s.nameRow, { [s.nameRowMenu]: showManageMenu })}>
         <h3 className={s.name}>{app.name}</h3>
         {isDraft && <span className={s.draftBadge}>Draft</span>}
-        {hasDeployFailed && !showFailureStrip && <span className={s.errorBadge}>Deploy failed</span>}
         {isDeploying && <span className={s.deployingBadge}>Deploying</span>}
       </div>
       <p className={s.description}>{app.description}</p>

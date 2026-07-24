@@ -1,4 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import { logTimestampSortValue } from '@/services/ai-apps/ai-apps-logs.utils';
 
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
@@ -181,13 +182,11 @@ const AI_APP_LOGS_TIME_BUDGET_MS = 8_000;
  * DESCENDING by timestamp (stable, so equal/unparseable stamps keep arrival
  * order). The log table reads newest-first — the latest lines are why the
  * modal was opened — and scrolling down loads earlier history.
+ * logTimestampSortValue does the comparing: the runner has been seen sending
+ * string timestamps, and a numbers-only comparator silently no-ops on those.
  */
 function sortLogEvents(events: AiAppLogEvent[]): AiAppLogEvent[] {
-  return [...events].sort((a, b) => {
-    const ta = Number.isFinite(a.timestamp) ? a.timestamp : 0;
-    const tb = Number.isFinite(b.timestamp) ? b.timestamp : 0;
-    return tb - ta;
-  });
+  return [...events].sort((a, b) => logTimestampSortValue(b.timestamp) - logTimestampSortValue(a.timestamp));
 }
 
 /**

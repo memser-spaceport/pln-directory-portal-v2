@@ -25,6 +25,25 @@ const LOG_TIME_FORMAT = new Intl.DateTimeFormat('en-GB', {
 });
 
 /**
+ * Sortable epoch-ms for a log event's timestamp. The contract says number, but
+ * the runner envelope passes through verbatim and has been seen delivering
+ * strings — which the display formatter tolerates while a numbers-only sort
+ * silently no-ops (every value compares as 0 and server order leaks through).
+ * Handles finite numbers, ISO strings, and numeric strings; anything else
+ * sorts as 0.
+ */
+export function logTimestampSortValue(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value !== '') {
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed)) return parsed;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return 0;
+}
+
+/**
  * Epoch-ms → viewer-local "Jul 23 14:02:05". Anything unparseable renders as
  * its raw value — never "Invalid Date" (the contract promises numbers, but the
  * runner envelope is passed through verbatim and is not to be trusted).

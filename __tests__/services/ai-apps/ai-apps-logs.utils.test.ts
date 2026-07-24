@@ -1,6 +1,7 @@
 import {
   deriveLogLevel,
   formatLogTimestamp,
+  logTimestampSortValue,
   stripCriLogPrefix,
   stripLogControlSequences,
 } from '@/services/ai-apps/ai-apps-logs.utils';
@@ -65,6 +66,20 @@ describe('stripLogControlSequences', () => {
 
   it('leaves ordinary text untouched', () => {
     expect(stripLogControlSequences('Step 1/5 : FROM node:20')).toBe('Step 1/5 : FROM node:20');
+  });
+});
+
+describe('logTimestampSortValue', () => {
+  it.each([
+    [1784791854487, 1784791854487],
+    ['2026-07-23T07:30:54.000Z', Date.parse('2026-07-23T07:30:54.000Z')],
+    ['1784791854487', 1784791854487],
+    ['not a date', 0],
+    [NaN, 0],
+    [null, 0],
+    [undefined, 0],
+  ])('maps %j to %d', (input, expected) => {
+    expect(logTimestampSortValue(input)).toBe(expected);
   });
 });
 

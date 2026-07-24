@@ -61,6 +61,21 @@ describe('fetchAiAppLogsPage', () => {
     expect(page.events.map((e) => e.timestamp)).toEqual([30, 20, 10]);
   });
 
+  it('sorts newest-first even when the runner sends string timestamps (seen in the wild)', async () => {
+    mockCustomFetch.mockResolvedValue(
+      jsonResponse(200, {
+        events: [
+          { timestamp: '2026-07-23T07:30:54.000Z', message: 'older iso' },
+          { timestamp: '2026-07-23T07:31:01.000Z', message: 'newer iso' },
+          { timestamp: '1784791899999', message: 'numeric string, newest' },
+        ],
+      }),
+    );
+
+    const page = await fetchAiAppLogsPage('a1', 'runtime');
+    expect(page.events.map((e) => e.message)).toEqual(['numeric string, newest', 'newer iso', 'older iso']);
+  });
+
   it('treats a repeated nextToken on an empty page as end-of-stream (CloudWatch never nulls it)', async () => {
     mockCustomFetch
       .mockResolvedValueOnce(jsonResponse(200, { events: [], nextToken: 'tok' }))

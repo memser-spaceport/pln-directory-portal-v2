@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AiAppsQueryKeys } from '@/services/ai-apps/constants';
+import { logTimestampSortValue } from '@/services/ai-apps/ai-apps-logs.utils';
 import {
   fetchAiAppLogsPage,
   AiAppFetchErrorKind,
@@ -66,11 +67,7 @@ export function useAiAppLogs(uid: string, stream: AiAppLogStream, options: { ena
     if (!query.data) return null;
     return query.data.pages
       .flatMap((page) => page.events)
-      .sort((a, b) => {
-        const ta = Number.isFinite(a.timestamp) ? a.timestamp : 0;
-        const tb = Number.isFinite(b.timestamp) ? b.timestamp : 0;
-        return tb - ta;
-      });
+      .sort((a, b) => logTimestampSortValue(b.timestamp) - logTimestampSortValue(a.timestamp));
   }, [query.data]);
 
   // A step can legitimately return zero events WITH a token (skip budget spent

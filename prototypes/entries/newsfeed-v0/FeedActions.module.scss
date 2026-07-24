@@ -9,7 +9,9 @@
   align-items: center;
   gap: 4px;
 
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  // Darker than the forum's tertiary default so the Like / Share / Comment
+  // affordances read as actionable (secondary), not quiet meta text.
+  color: var(--foreground-neutral-secondary, #455468);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;

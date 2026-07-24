@@ -77,17 +77,18 @@ const SORT_OPTIONS = [
   { value: 'popular', label: 'Most popular' },
 ] as const;
 
-// The two interaction versions the prototype demonstrates (the "2 versions").
-type InteractionMode = 'discuss' | 'comments';
+// The two versions the prototype demonstrates: news + posts with an inline
+// comment thread, or without any comment affordance (Like + Share only).
+type CommentsMode = 'with' | 'without';
 
-const MODE_OPTIONS: Array<{ value: InteractionMode; label: string }> = [
-  { value: 'discuss', label: 'Discuss' },
-  { value: 'comments', label: 'Comments' },
+const MODE_OPTIONS: Array<{ value: CommentsMode; label: string }> = [
+  { value: 'without', label: 'Without comments' },
+  { value: 'with', label: 'With comments' },
 ];
 
-const MODE_NOTE: Record<InteractionMode, string> = {
-  discuss: 'News cards keep a “Discuss” link to the forum. Forum posts show likes only.',
-  comments: 'News and forum posts both open an inline comment thread — no “Discuss” link.',
+const MODE_NOTE: Record<CommentsMode, string> = {
+  with: 'News and posts open an inline comment thread (Like · Share · Comments).',
+  without: 'News and posts show Like and Share only — no comment thread.',
 };
 
 
@@ -188,7 +189,7 @@ export default function NewsfeedV0Prototype() {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
-  const [mode, setMode] = useState<InteractionMode>('discuss');
+  const [commentsMode, setCommentsMode] = useState<CommentsMode>('without');
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -477,25 +478,25 @@ export default function NewsfeedV0Prototype() {
                 <SearchInput value={query} onChange={handleSearch} placeholder="Search by team, member, or keyword…" />
               </div>
 
-              {/* Prototype-only: interaction version + citation style switches. */}
+              {/* Prototype-only: toggle the comments version on/off. */}
               <div className={local.versionRow}>
                 <div className={local.switchBar}>
-                  <span className={local.switchLabel}>Interactions</span>
-                  <div className={local.switch} role="tablist" aria-label="Interaction version">
+                  <span className={local.switchLabel}>Comments</span>
+                  <div className={local.switch} role="tablist" aria-label="Comments version">
                     {MODE_OPTIONS.map((opt) => (
                       <button
                         key={opt.value}
                         type="button"
                         role="tab"
-                        aria-selected={mode === opt.value}
-                        className={clsx(local.switchBtn, mode === opt.value && local.switchBtnActive)}
-                        onClick={() => setMode(opt.value)}
+                        aria-selected={commentsMode === opt.value}
+                        className={clsx(local.switchBtn, commentsMode === opt.value && local.switchBtnActive)}
+                        onClick={() => setCommentsMode(opt.value)}
                       >
                         {opt.label}
                       </button>
                     ))}
                   </div>
-                  <span className={local.switchNote}>{MODE_NOTE[mode]}</span>
+                  <span className={local.switchNote}>{MODE_NOTE[commentsMode]}</span>
                 </div>
               </div>
 
@@ -558,7 +559,7 @@ export default function NewsfeedV0Prototype() {
                             cluster={entry.cluster}
                             following={followedTeams.has(entry.cluster.teamUid)}
                             onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
-                            interactionMode={mode}
+                            showComments={commentsMode === 'with'}
                             likeCount={likeCount}
                             isLiked={isLiked}
                             onToggleLike={toggleLike}
@@ -570,7 +571,7 @@ export default function NewsfeedV0Prototype() {
                           <ForumPostCard
                             key={`forum-${entry.post.uid}`}
                             post={entry.post}
-                            interactionMode={mode}
+                            showComments={commentsMode === 'with'}
                             likeCount={likeCount(entry.post.uid)}
                             liked={isLiked(entry.post.uid)}
                             onToggleLike={() => toggleLike(entry.post.uid)}
@@ -587,7 +588,7 @@ export default function NewsfeedV0Prototype() {
                     </aside>
                   </div>
                   {entries.length > PAGE_SIZE && (
-                    <div className={s.showAll}>
+                    <div className={clsx(s.showAll, local.showAllConstrain)}>
                       <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
                         {expanded ? 'Show Less' : 'Show All'}
                       </Button>
@@ -607,7 +608,7 @@ export default function NewsfeedV0Prototype() {
         liked={detail ? isLiked(detail.id) : false}
         onToggleLike={() => detail && toggleLike(detail.id)}
         citationStyle="superscript"
-        showComments={mode === 'comments'}
+        showComments={commentsMode === 'with'}
         comments={detail ? commentsFor(detail.id) : []}
         onAddComment={(text) => detail && addComment(detail.id, text)}
       />

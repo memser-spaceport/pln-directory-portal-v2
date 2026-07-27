@@ -1,8 +1,5 @@
 import { feedEntryKey, mergeFeedEntries, type FeedEntry } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
-import {
-  filterFeedForumPosts,
-  matchesFeedForumPost,
-} from '@/components/page/home/TeamNews/utils/matchesFeedForumPost';
+import { filterFeedForumPosts, matchesFeedForumPost } from '@/components/page/home/TeamNews/utils/matchesFeedForumPost';
 import { sortTeamNewsClusters, type TeamNewsSort } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
 import { ALL_CAT, ALL_TAB } from '@/components/page/home/TeamNews/constants';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
@@ -193,7 +190,10 @@ describe('mergeFeedEntries', () => {
 });
 
 describe('filterFeedForumPosts / matchesFeedForumPost', () => {
-  const POSTS = [post('fp_infra', 1, '2026-07-01', ['Infrastructure']), post('fp_net', 2, '2026-07-02', ['Networking'])];
+  const POSTS = [
+    post('fp_infra', 1, '2026-07-01', ['Infrastructure']),
+    post('fp_net', 2, '2026-07-02', ['Networking']),
+  ];
 
   it('returns nothing outside the All category pill (posts have no event type)', () => {
     expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: 'FUNDING', query: '' })).toEqual([]);
@@ -202,9 +202,9 @@ describe('filterFeedForumPosts / matchesFeedForumPost', () => {
 
   it('scopes to the focus-area tab, always including the All tab', () => {
     expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: ALL_CAT, query: '' })).toHaveLength(2);
-    expect(
-      filterFeedForumPosts(POSTS, { tab: 'Networking', category: ALL_CAT, query: '' }).map((p) => p.uid),
-    ).toEqual(['fp_net']);
+    expect(filterFeedForumPosts(POSTS, { tab: 'Networking', category: ALL_CAT, query: '' }).map((p) => p.uid)).toEqual([
+      'fp_net',
+    ]);
     expect(filterFeedForumPosts(POSTS, { tab: 'Storage', category: ALL_CAT, query: '' })).toEqual([]);
   });
 

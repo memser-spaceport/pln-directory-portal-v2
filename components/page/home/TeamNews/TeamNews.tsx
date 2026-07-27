@@ -520,9 +520,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     const prevCount = post.likeCount;
     const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
 
-    setPostLikeOverlay((prev) =>
-      new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }),
-    );
+    setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }));
 
     const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
 

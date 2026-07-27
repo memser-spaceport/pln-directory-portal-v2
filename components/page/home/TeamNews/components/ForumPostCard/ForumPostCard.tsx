@@ -97,11 +97,7 @@ export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: Fo
           </span>
           <span className={s.footerActions} onClick={(e) => e.stopPropagation()}>
             <FeedForumPostShareMenu post={post} source="home" />
-            <UpvoteButton
-              count={post.likeCount}
-              voted={post.viewerHasLiked}
-              onToggle={() => onLikeToggle(post)}
-            />
+            <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
             <CommentButton itemUid={post.uid} open={threadOpen} onToggle={handleThreadToggle} />
           </span>
         </div>

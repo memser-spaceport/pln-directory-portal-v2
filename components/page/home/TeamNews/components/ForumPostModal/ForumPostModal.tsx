@@ -93,7 +93,13 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
           </a>
           {post.author.role && <span className={s.authorRole}>· {post.author.role}</span>}
         </div>
-        <button ref={focusOnAttach} type="button" className={modalStyles.closeButton} aria-label="Close" onClick={handleClose}>
+        <button
+          ref={focusOnAttach}
+          type="button"
+          className={modalStyles.closeButton}
+          aria-label="Close"
+          onClick={handleClose}
+        >
           <CloseIcon width={20} height={20} color="#0a0c11" />
         </button>
       </div>
@@ -118,12 +124,14 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
 
       <div className={modalStyles.footer}>
         <span className={modalStyles.footerActions}>
-          <FeedForumPostShareMenu post={post} source="news-modal" variant="button" side="top" onOpenChange={setShareOpen} />
-          <UpvoteButton
-            count={post.likeCount}
-            voted={post.viewerHasLiked}
-            onToggle={() => onLikeToggle(post)}
+          <FeedForumPostShareMenu
+            post={post}
+            source="news-modal"
+            variant="button"
+            side="top"
+            onOpenChange={setShareOpen}
           />
+          <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
         </span>
       </div>
     </Modal>

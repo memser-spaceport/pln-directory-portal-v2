@@ -2,9 +2,7 @@
 
 import type { ReactNode, Ref } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
-import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { PathProfileChip } from './PathProfileChip';
 import { ScorePercentPill } from './ScorePercentPill';
@@ -57,9 +55,6 @@ export function WarmIntrosV2Table({
             <th className={`${s.th} ${s.colTeam}`} scope="col">
               Team
             </th>
-            <th className={`${s.th} ${s.colSector}`} scope="col">
-              Industry / Sector
-            </th>
             <th className={`${s.th} ${s.colProximity}`} scope="col">
               Proximity
             </th>
@@ -74,7 +69,6 @@ export function WarmIntrosV2Table({
             const name = investor?.name?.trim() || row.targetProfileUid;
             const org = investor?.currentOrg?.trim();
             const title = investor?.currentTitle?.trim();
-            const sectors = (investor?.sectors ?? []) as SectorTag[];
             const count = pathCount(row);
             const avatarSrc = memberAvatarSrc(investor);
             const connector = row.bestConnector;
@@ -116,10 +110,6 @@ export function WarmIntrosV2Table({
                 <td className={s.td}>
                   <div className={s.teamCell}>{org || <span className={s.muted}>—</span>}</div>
                   {title ? <div className={s.subtle}>{title}</div> : null}
-                </td>
-
-                <td className={s.td}>
-                  <SectorTagsList tags={sectors} max={3} />
                 </td>
 
                 <td className={s.td}>

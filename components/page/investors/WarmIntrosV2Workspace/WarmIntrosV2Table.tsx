@@ -4,6 +4,7 @@ import type { ReactNode, Ref } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { ListMembershipTags } from './ListMembershipTags';
 import { PathProfileChip } from './PathProfileChip';
 import { ScorePercentPill } from './ScorePercentPill';
 import s from './WarmIntrosV2Table.module.scss';
@@ -104,6 +105,7 @@ export function WarmIntrosV2Table({
                       {name}
                     </button>
                     {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
+                    <ListMembershipTags listSlugs={investor?.listSlugs} fallbackTargetSet={row.targetSet} />
                   </div>
                 </td>
 

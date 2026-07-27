@@ -17,6 +17,8 @@ export type WarmIntrosV2InvestorSummary = {
   memberUid: string | null;
   /** Directory member photo when linked. */
   imageUrl?: string | null;
+  /** Known cohort list slugs (neuro-fund-i / gold-co-investors). */
+  listSlugs?: string[];
 };
 
 export type WarmIntrosV2ConnectorSummary = {
@@ -157,6 +159,12 @@ export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2SelectorValue, 
   all: 'All',
   'neuro-fund-i': 'Neuro Fund I LP Pipeline',
   'gold-co-investors': 'Gold PLC Co-Investors',
+};
+
+/** Compact chip labels for table / drawer density. */
+export const WARM_INTROS_V2_LIST_TAG_LABEL: Record<WarmIntrosV2TargetSet, string> = {
+  'neuro-fund-i': 'Neuro',
+  'gold-co-investors': 'Gold',
 };
 
 /** v1 InvestorList.slug → Warm Intros v2 targetSet. */

@@ -141,13 +141,20 @@ export type MasterProfileDetail = {
   [key: string]: unknown;
 };
 
+export const WARM_INTROS_V2_ALL_TARGET_SET = 'all' as const;
+
 export const WARM_INTROS_V2_TARGET_SETS = ['neuro-fund-i', 'gold-co-investors'] as const;
 export type WarmIntrosV2TargetSet = (typeof WARM_INTROS_V2_TARGET_SETS)[number];
 
+/** URL / selector values including the "All" sentinel (omit targetSet in API when `all`). */
+export const WARM_INTROS_V2_SELECTOR_VALUES = [WARM_INTROS_V2_ALL_TARGET_SET, ...WARM_INTROS_V2_TARGET_SETS] as const;
+export type WarmIntrosV2SelectorValue = (typeof WARM_INTROS_V2_SELECTOR_VALUES)[number];
+
 export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2TargetSet = 'neuro-fund-i';
 
-/** Display names aligned with v1 InvestorList names. */
-export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2TargetSet, string> = {
+/** Display names aligned with v1 InvestorList names (+ selector "All"). */
+export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2SelectorValue, string> = {
+  all: 'All',
   'neuro-fund-i': 'Neuro Fund I LP Pipeline',
   'gold-co-investors': 'Gold PLC Co-Investors',
 };

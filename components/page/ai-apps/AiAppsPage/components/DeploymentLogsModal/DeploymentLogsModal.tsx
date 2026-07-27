@@ -108,9 +108,18 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
-  // Both streams load their first page on open — the tab counts need them.
-  const build = useAiAppLogs(app.uid, 'build', { enabled: true });
-  const runtime = useAiAppLogs(app.uid, 'runtime', { enabled: true });
+  // Lazy streams: only a tab the reader has visited fetches. Page 1 of a
+  // stream costs the backend a full runner walk (order=desc is assembled
+  // server-side), so opening the modal for build logs must not also pay the
+  // runtime walk. Trade-off: the unvisited tab shows no line count until
+  // opened. Once visited, a stream stays enabled — flipping enabled off would
+  // drop its cache on tab switches.
+  const [visited, setVisited] = useState<Record<AiAppLogStream, boolean>>(() => ({
+    build: stream === 'build',
+    runtime: stream === 'runtime',
+  }));
+  const build = useAiAppLogs(app.uid, 'build', { enabled: visited.build });
+  const runtime = useAiAppLogs(app.uid, 'runtime', { enabled: visited.runtime });
   const active = stream === 'build' ? build : runtime;
 
   const buildLines = useMemo(() => prepareLines(build.events), [build.events]);
@@ -150,6 +159,7 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
   const switchStream = (next: AiAppLogStream) => {
     if (next === stream) return;
     setStream(next);
+    setVisited((v) => (v[next] ? v : { ...v, [next]: true }));
     setQuery('');
     analytics.onDeploymentLogsTabSwitched(app.uid, next);
   };

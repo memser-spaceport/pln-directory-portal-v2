@@ -17,9 +17,13 @@ import {
 /**
  * Runtime is a continuous stream, so it gets a window; build logs are finite
  * per deploy and fetch unwindowed (the fetcher's own bounds still apply).
+ * 1h, not 24h: the backend serves order=desc by walking the runner's forward
+ * pages to the END of the window before it can return anything, and CloudWatch
+ * emits empty-but-tokened pages over sparse stretches — a wide window multiplies
+ * those round-trips, which is what made the cold runtime request slow.
  */
-const RUNTIME_WINDOW_MINUTES = 24 * 60;
-export const RUNTIME_WINDOW_LABEL = 'last 24 hours';
+const RUNTIME_WINDOW_MINUTES = 60;
+export const RUNTIME_WINDOW_LABEL = 'last hour';
 
 /**
  * One stream's logs for the deployment-logs modal, requested with

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import PlaaRoundSelector from './plaa-round-selector';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 
 /* ==========================================================================
    PlaaMenu Component
@@ -26,8 +27,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
-  // Kudos hidden from the sidebar for now — restore this entry to re-enable.
-  // { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
+  { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },
   { name: 'faqs', label: 'FAQ', url: '/alignment-asset/faqs' },
@@ -37,7 +37,13 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' }
 ];
 
-function PlaaMenu({ activeItem, currentRound = 18, totalRounds = 18, viewingRound, onMenuItemClick }: PlaaMenuProps) {
+function PlaaMenu({
+  activeItem,
+  currentRound = getCurrentRoundNumber(),
+  totalRounds = getCurrentRoundNumber(),
+  viewingRound,
+  onMenuItemClick,
+}: PlaaMenuProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
 

@@ -8,6 +8,7 @@ import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
+import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 
 const GuestAccessModalController = dynamic(
   () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
@@ -39,6 +40,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
     'overview': { activeItem: 'overview', title: 'Overview' },
     'activities': { activeItem: 'activities', title: 'Activities' },
+    'kudos': { activeItem: 'kudos', title: 'Kudos' },
     'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
@@ -54,6 +56,7 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
 export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
+  const currentRoundNumber = getCurrentRoundNumber();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
@@ -100,7 +103,12 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
         <div className={styles.plaa__main}>
           {/* Fixed Sidebar */}
           <aside className={styles.plaa__sidebar}>
-            <PlaaMenu activeItem={activeItem} totalRounds={18} currentRound={18} viewingRound={viewingRound} />
+            <PlaaMenu
+              activeItem={activeItem}
+              totalRounds={currentRoundNumber}
+              currentRound={currentRoundNumber}
+              viewingRound={viewingRound}
+            />
           </aside>
 
           {/* Scrollable Content */}

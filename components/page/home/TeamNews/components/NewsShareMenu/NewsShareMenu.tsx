@@ -5,6 +5,7 @@ import { Menu } from '@base-ui-components/react/menu';
 
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { IFeedForumPost } from '@/types/feed.types';
 
 import { buildShareIntentUrl, type ShareIntentNetwork } from '../../utils/buildShareIntentUrl';
 
@@ -22,9 +23,15 @@ function ShareIcon() {
   );
 }
 
-interface NewsShareMenuProps {
-  item: ITeamNewsItem;
-  source: TeamNewsAnalyticsSource;
+interface ShareMenuCoreProps {
+  /** Canonical deep link — built, never read from location.href (the current
+   *  URL may carry filters, utm params, or a different story's uid). Called
+   *  lazily so window is only touched on interaction. */
+  getShareLink: () => string;
+  /** Text prefixed to the link in the LinkedIn/X intents. */
+  shareText: string;
+  ariaLabel: string;
+  onShared: (network: ShareIntentNetwork | 'copy') => void;
   /** 'icon' — glyph-only trigger for feed rows; 'button' — quiet icon+"Share"
    *  trigger for the modal footer. One component, one popup, two triggers. */
   variant?: 'icon' | 'button';
@@ -38,15 +45,20 @@ interface NewsShareMenuProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-/** Share popover for a news story: LinkedIn / X intents + copy link.
- *  Hardened adaptation of the jobs ReferMenu (which is prototype-only and
- *  jobs-typed) on base-ui Menu — portal, positioning, outside-press and
- *  Escape handling come from the library. If a third share surface appears,
- *  extract from THIS component, not ReferMenu.
- *  The /home?news= URL construction is this component's only home-page
- *  coupling — make the link a prop before reusing it elsewhere. */
-export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom', onOpenChange }: NewsShareMenuProps) {
-  const analytics = useTeamNewsAnalytics();
+/** Share popover shell: LinkedIn / X intents + copy link. Hardened adaptation
+ *  of the jobs ReferMenu on base-ui Menu — portal, positioning, outside-press
+ *  and Escape handling come from the library. Wrapped per share target below
+ *  (news story, feed forum post); extract from THIS component for any new
+ *  share surface, never from ReferMenu. */
+function ShareMenuCore({
+  getShareLink,
+  shareText,
+  ariaLabel,
+  onShared,
+  variant = 'icon',
+  side = 'bottom',
+  onOpenChange,
+}: ShareMenuCoreProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,17 +74,13 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
     onOpenChange?.(nextOpen);
   };
 
-  // Canonical deep link — built, never read from location.href (the current
-  // URL may carry filters, utm params, or a different story's uid).
-  const getShareLink = () => `${window.location.origin}/home?news=${encodeURIComponent(item.uid)}`;
-
   const share = (network: ShareIntentNetwork) => {
-    const shareUrl = buildShareIntentUrl(network, getShareLink(), `${item.title} — ${item.teamName}`);
+    const shareUrl = buildShareIntentUrl(network, getShareLink(), shareText);
     // `noopener` must stay in the features string: a non-empty features list
     // grants window.opener unless explicitly denied (the anchor-default
     // implicit noopener does not apply to window.open with features).
     window.open(shareUrl, '_blank', 'noopener,noreferrer,width=550,height=420');
-    analytics.onTeamNewsShared(item, network, source);
+    onShared(network);
   };
 
   const copyLink = async () => {
@@ -83,7 +91,7 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
       if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
       setCopied(true);
       copiedTimerRef.current = setTimeout(() => setCopied(false), 1500);
-      analytics.onTeamNewsShared(item, 'copy', source);
+      onShared('copy');
     } catch {
       // Clipboard can be blocked (insecure context, permissions) — silent
       // no-op per the no-toasts-in-TeamNews convention.
@@ -96,7 +104,7 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
           so no share interaction may reach the layer beneath. */}
       <Menu.Trigger
         className={variant === 'button' ? s.buttonTrigger : s.iconTrigger}
-        aria-label={`Share ${item.title}`}
+        aria-label={ariaLabel}
         onClick={(e) => e.stopPropagation()}
       >
         <ShareIcon />
@@ -138,5 +146,56 @@ export function NewsShareMenu({ item, source, variant = 'icon', side = 'bottom',
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.Root>
+  );
+}
+
+interface NewsShareMenuProps {
+  item: ITeamNewsItem;
+  source: TeamNewsAnalyticsSource;
+  variant?: 'icon' | 'button';
+  side?: 'top' | 'bottom';
+  onOpenChange?: (open: boolean) => void;
+}
+
+/** Share popover for a news story — /home?news=<uid> deep link. */
+export function NewsShareMenu({ item, source, variant, side, onOpenChange }: NewsShareMenuProps) {
+  const analytics = useTeamNewsAnalytics();
+  return (
+    <ShareMenuCore
+      getShareLink={() => `${window.location.origin}/home?news=${encodeURIComponent(item.uid)}`}
+      shareText={`${item.title} — ${item.teamName}`}
+      ariaLabel={`Share ${item.title}`}
+      onShared={(network) => analytics.onTeamNewsShared(item, network, source)}
+      variant={variant}
+      side={side}
+      onOpenChange={onOpenChange}
+    />
+  );
+}
+
+interface FeedForumPostShareMenuProps {
+  post: IFeedForumPost;
+  source: TeamNewsAnalyticsSource;
+  variant?: 'icon' | 'button';
+  side?: 'top' | 'bottom';
+  onOpenChange?: (open: boolean) => void;
+}
+
+/** Share popover for a feed forum post — shares the FEED deep link
+ *  (/home?post=<uid>), not the NodeBB topic URL: the feed card (with its
+ *  feed-only comments) is the thing being shared. Recipients without forum
+ *  access see a plain /home (the server enforces the actual boundary). */
+export function FeedForumPostShareMenu({ post, source, variant, side, onOpenChange }: FeedForumPostShareMenuProps) {
+  const analytics = useTeamNewsAnalytics();
+  return (
+    <ShareMenuCore
+      getShareLink={() => `${window.location.origin}/home?post=${encodeURIComponent(post.uid)}`}
+      shareText={`${post.title} — ${post.author.name}`}
+      ariaLabel={`Share ${post.title}`}
+      onShared={(network) => analytics.onFeedForumPostShared(post, network, source)}
+      variant={variant}
+      side={side}
+      onOpenChange={onOpenChange}
+    />
   );
 }

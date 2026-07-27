@@ -18,6 +18,12 @@ interface UseFeedSocialResult {
    *  no access, error — the caller never needs to know which). */
   forumPosts: IFeedForumPost[] | undefined;
   hasAccess: boolean;
+  /** True once a ?post= deep link can be resolved conclusively — every async
+   *  gate (store hydration, access query, posts query) has settled. Built on
+   *  isPending (never isLoading: a disabled query is pending forever but
+   *  isLoading false, which would strip valid links before identity loads) and
+   *  treats query errors as terminal, so the resolver can't hang. */
+  deepLinkSettled: boolean;
 }
 
 // Composition hook: all of the feed-social data machinery in one testable unit
@@ -30,8 +36,8 @@ interface UseFeedSocialResult {
 // `enabled` alone must never be the thing hiding content.
 export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSocialResult {
   const queryClient = useQueryClient();
-  const { currentUser } = useCurrentUserStore();
-  const { hasAccess, isLoading: accessLoading } = useForumAccess();
+  const { currentUser, isHydrated } = useCurrentUserStore();
+  const { hasAccess, isLoading: accessLoading, isPending: accessPending, isError: accessError } = useForumAccess();
 
   const postsQuery = useFeedForumPosts({ enabled: FEED_SOCIAL_ENABLED && !!currentUser });
 
@@ -44,10 +50,10 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   // not be reset by a later posts arrival.
   const postsData = postsQuery.data;
   useEffect(() => {
-    if (!postsData || postsData.items.length === 0) return;
-    const seed: IFeedCommentCountsResponse = Object.fromEntries(
-      postsData.items.map((p) => [p.uid, p.commentCount]),
-    );
+    // Optional-chained rather than trusting the type: jsdom tests stub
+    // useQuery with a generic data shape.
+    if (!postsData?.items?.length) return;
+    const seed: IFeedCommentCountsResponse = Object.fromEntries(postsData.items.map((p) => [p.uid, p.commentCount]));
     queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) => ({
       ...seed,
       ...old,
@@ -56,16 +62,28 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
 
   // Mid-session revocation: flipping `enabled` false does NOT clear cached data
   // (and a disabled query ignores invalidateQueries) — purge it so a revoked
-  // viewer can't keep reading posts until gcTime. No-op when nothing is cached.
+  // viewer can't keep reading posts until gcTime. The getQueryData guard makes
+  // the common no-access path (nothing cached) a no-op instead of a
+  // remove-refetch cycle.
   useEffect(() => {
     if (!accessLoading && !hasAccess && queryClient.getQueryData(feedQueryKeys.forumPosts())) {
       queryClient.removeQueries({ queryKey: feedQueryKeys.forumPosts() });
     }
   }, [accessLoading, hasAccess, queryClient]);
 
+  // The five-state resolution matrix (tested in use-forum-post-deep-link tests):
+  // signed-out → settled(hidden); access loading → pending; access error →
+  // settled(hidden); access ok + posts loading → pending; posts loaded/error →
+  // settled. isPending is guarded by currentUser because a disabled query
+  // never leaves pending.
+  const accessGatePending = !!currentUser && accessPending && !accessError;
+  const postsGatePending = hasAccess && postsQuery.isPending && !postsQuery.isError;
+  const deepLinkSettled = isHydrated && !accessGatePending && !postsGatePending;
+
   return {
     feedSocialActive: FEED_SOCIAL_ENABLED,
     forumPosts: FEED_SOCIAL_ENABLED && hasAccess ? postsQuery.data?.items : undefined,
     hasAccess,
+    deepLinkSettled,
   };
 }

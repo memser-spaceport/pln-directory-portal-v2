@@ -1,0 +1,38 @@
+/* Forum-post-specific layer over the shared news-modal chrome
+   (NewsDetailModal.module.scss provides the shell; NewsCard.module.scss the
+   logo sizing). Same author treatment as ForumPostCard. */
+
+/* Round member avatar where the news modal shows the square team logo. Double
+   class beats the production .logo border-radius. */
+.authorAvatar.authorAvatar {
+  border-radius: 50%;
+}
+
+.authorRole {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* "DISCUSSION" kicker where the news modal shows the event type. */
+.kicker {
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-secondary, #455468);
+}

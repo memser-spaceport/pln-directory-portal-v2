@@ -2,6 +2,11 @@ import { TEAM_NEWS_ANALYTICS_EVENTS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { IFeedForumPost } from '@/types/feed.types';
+
+/** 'news' | 'forum' — typed off the FeedEntry union so analytics can't drift
+ *  from the feed's own discriminator. */
+export type FeedItemKind = import('@/components/page/home/TeamNews/utils/mergeFeedEntries').FeedEntry['kind'];
 
 export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal' | 'news-rail' | 'news-modal';
 
@@ -221,6 +226,82 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  // ---- Feed social layer (forum posts in the feed + feed-only comments) ----
+  // Privacy rule: no event ever carries a forum-post uid for a viewer who
+  // failed the access gate (e.g. a stripped ?post= deep link) — these fire only
+  // from surfaces the viewer was allowed to render.
+
+  const onFeedForumPostCardClicked = (post: IFeedForumPost, position: number, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      category: post.category,
+      position,
+      source,
+    });
+  };
+
+  // Deep-link opens only — row clicks are covered by onFeedForumPostCardClicked,
+  // matching onTeamNewsDetailModalOpened's one-event-per-user-action convention.
+  const onFeedForumPostModalOpened = (post: IFeedForumPost) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      category: post.category,
+      trigger: 'deep-link',
+    });
+  };
+
+  const onFeedForumPostLikeToggled = (
+    post: IFeedForumPost,
+    position: number,
+    nextState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_LIKE_TOGGLED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      nextState,
+      position,
+      source,
+    });
+  };
+
+  const onFeedForumPostShared = (
+    post: IFeedForumPost,
+    network: TeamNewsShareNetwork,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_SHARED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      network,
+      source,
+    });
+  };
+
+  const onFeedCommentThreadToggled = (
+    itemUid: string,
+    kind: FeedItemKind,
+    open: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED, {
+      itemUid,
+      kind,
+      open,
+      source,
+    });
+  };
+
+  const onFeedCommentSubmitted = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_SUBMITTED, {
+      itemUid,
+      kind,
+      source,
+    });
+  };
+
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
@@ -236,5 +317,11 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsSearch,
     onTeamNewsUpvoteToggled,
     onTeamNewsPopularStoryClicked,
+    onFeedForumPostCardClicked,
+    onFeedForumPostModalOpened,
+    onFeedForumPostLikeToggled,
+    onFeedForumPostShared,
+    onFeedCommentThreadToggled,
+    onFeedCommentSubmitted,
   };
 };

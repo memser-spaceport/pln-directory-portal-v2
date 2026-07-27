@@ -605,6 +605,13 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
   TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED: 'team-news-popular-story-scroll-succeeded',
   TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED: 'team-news-popular-story-fallback-opened',
+  // Feed social layer (forum posts in the feed + feed-only comments).
+  TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED: 'team-news-feed-forum-post-card-clicked',
+  TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED: 'team-news-feed-forum-post-modal-opened',
+  TEAM_NEWS_FEED_FORUM_POST_LIKE_TOGGLED: 'team-news-feed-forum-post-like-toggled',
+  TEAM_NEWS_FEED_FORUM_POST_SHARED: 'team-news-feed-forum-post-shared',
+  TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED: 'team-news-feed-comment-thread-toggled',
+  TEAM_NEWS_FEED_COMMENT_SUBMITTED: 'team-news-feed-comment-submitted',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

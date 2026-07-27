@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../_auth';
 
-/** Give a community kudos. The giver is resolved server-side from the session. */
 export async function POST(request: NextRequest) {
   try {
     const authHeader = resolveAuthHeader(request);
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await res.json().catch(() => null);
-    // Forward the status so the client can distinguish 400 / 403 / 409.
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error('PLAA kudos submit proxy error:', error);

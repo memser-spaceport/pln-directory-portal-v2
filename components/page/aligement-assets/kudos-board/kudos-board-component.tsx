@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -25,7 +25,11 @@ export default function KudosBoardComponent({
   const analytics = useKudosAnalytics();
   const [modalOpen, setModalOpen] = useState(false);
 
+  // useKudosAnalytics returns a new object each render, so latch on a ref.
+  const pageViewTracked = useRef(false);
   useEffect(() => {
+    if (pageViewTracked.current) return;
+    pageViewTracked.current = true;
     analytics.onKudosPageViewed();
   }, [analytics]);
 
@@ -42,7 +46,6 @@ export default function KudosBoardComponent({
   const poolTotal = pool.data?.totalBudget ?? COMMUNITY_TRACK.perRoundBudget;
   const poolUsed = pool.data?.pointsUsed ?? 0;
   const poolPct = poolTotal > 0 ? Math.max(0, Math.min(100, (poolRemaining / poolTotal) * 100)) : 0;
-  // Don't open a modal for a gift the pool can't cover.
   const canGive = poolRemaining >= COMMUNITY_TRACK.minGift;
 
   return (
@@ -50,7 +53,6 @@ export default function KudosBoardComponent({
       <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar theme="dark" />
 
       <div className="kudos-board__container">
-        {/* HEADER */}
         <header className="kudos-board__header">
           <div>
             <h1 className="kudos-board__title">Community Kudos 🏆</h1>
@@ -61,7 +63,6 @@ export default function KudosBoardComponent({
           </div>
         </header>
 
-        {/* POOL CALLOUT */}
         <section className="pool" aria-live="polite">
           <div className="pool__icon" aria-hidden>
             🪙
@@ -90,7 +91,6 @@ export default function KudosBoardComponent({
           </button>
         </section>
 
-        {/* ROUND NOTE */}
         <div className="round-note">
           <span className="round-note__icon" aria-hidden>
             ⓘ
@@ -101,7 +101,6 @@ export default function KudosBoardComponent({
           </span>
         </div>
 
-        {/* SHARED FEED */}
         <div className="feed-heading">Shared Board</div>
         {feed.isLoading ? (
           <FeedSkeleton />

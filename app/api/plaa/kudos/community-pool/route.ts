@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../_auth';
 
-/** The caller's community pool for the current round (server-scoped). */
 export async function GET(request: NextRequest) {
   try {
     const authHeader = resolveAuthHeader(request);

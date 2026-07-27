@@ -1,4 +1,4 @@
-/** Community-track rules. The limits mirror plaa-service. */
+/** Limits mirror plaa-service. */
 export const COMMUNITY_TRACK = {
   perRoundBudget: 100,
   increment: 10,
@@ -8,7 +8,7 @@ export const COMMUNITY_TRACK = {
   messageMax: 500,
 } as const;
 
-/** Valid gift options for the dropdown, e.g. remaining=70 → [10..70]. */
+/** e.g. remaining=70 → [10, 20, ... 70], capped at maxGift. */
 export function communityGiftOptions(remaining: number): number[] {
   const opts: number[] = [];
   const cap = Math.min(remaining, COMMUNITY_TRACK.maxGift);

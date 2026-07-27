@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from './_auth';
 
-/** Shared kudos board (feed). Proxies to plaa-service, forwarding the session. */
 export async function GET(request: NextRequest) {
   try {
     const authHeader = resolveAuthHeader(request);

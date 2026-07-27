@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAuthHeader } from '../_auth';
 
-/** Recipient picker: active members the caller may give kudos to (caller excluded). */
 export async function GET(request: NextRequest) {
   try {
     const authHeader = resolveAuthHeader(request);

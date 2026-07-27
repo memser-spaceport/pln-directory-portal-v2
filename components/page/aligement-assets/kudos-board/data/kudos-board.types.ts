@@ -27,7 +27,6 @@ export interface ICommunityPool {
   pointsRemaining: number;
 }
 
-/** Mirrored as a Zod schema in @/schemas/kudos-forms. */
 export interface ICommunityKudosInput {
   recipientId: string;
   points: number;

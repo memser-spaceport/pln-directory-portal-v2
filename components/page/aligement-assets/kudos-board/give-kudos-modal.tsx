@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 
-import { communityKudosSchema, type CommunityKudosFormValues } from '@/schemas/kudos-forms';
+import { communityKudosSchema, type CommunityKudosFormValues } from '@/schema/kudos-forms';
 import { COMMUNITY_TRACK, communityGiftOptions } from './data/kudos-board.data';
 import { useGiveCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
@@ -14,9 +14,7 @@ import type { IUserSummary } from './data/kudos-board.types';
 interface IGiveKudosModalProps {
   open: boolean;
   onClose: () => void;
-  /** Active members fetched from the backend; excludes the signed-in user. */
   recipients: IUserSummary[];
-  /** The signed-in user's remaining community points this round. */
   poolRemaining: number;
 }
 

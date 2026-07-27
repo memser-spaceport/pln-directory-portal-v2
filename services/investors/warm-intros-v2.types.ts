@@ -181,3 +181,6 @@ export const WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET: Record<WarmIntrosV2TargetSe
 
 /** Cap for client CSV export fetches. */
 export const WARM_INTROS_V2_CSV_EXPORT_LIMIT = 500;
+
+/** Paths below this score (0–1) are excluded from list/detail/facets (= 20%). */
+export const WARM_INTROS_V2_MIN_SCORE = 0.2;

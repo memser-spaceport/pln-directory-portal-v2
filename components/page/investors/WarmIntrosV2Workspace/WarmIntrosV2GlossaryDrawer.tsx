@@ -58,7 +58,7 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
           <h3 className={s.h3}>Score %</h3>
           <p className={s.p}>
             0–100 strength of the recommended intro path (LLM + evidence). Higher is better. Shown as{' '}
-            <code>scorePercent</code> on each row.
+            <code>scorePercent</code> on each row. Paths below <strong>20%</strong> are hidden.
           </p>
         </section>
 

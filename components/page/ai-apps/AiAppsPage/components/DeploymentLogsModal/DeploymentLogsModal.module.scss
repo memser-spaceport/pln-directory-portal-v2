@@ -7,6 +7,10 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  // Fixed height (capped by max-height on short viewports) so the modal
+  // doesn't resize when switching tabs between streams with different
+  // amounts of content — panel/table fill the constant space instead.
+  height: 920px;
   max-height: 85vh;
   overflow: hidden;
   border: 1px solid rgba(27, 56, 96, 0.06);

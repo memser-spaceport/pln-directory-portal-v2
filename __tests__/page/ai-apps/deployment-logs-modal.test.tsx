@@ -26,9 +26,14 @@ type HookReturn = {
 };
 
 let mockStreams: Record<'build' | 'runtime', HookReturn>;
+// Latest enabled flag per stream, so tests can assert the lazy-tab behavior.
+let hookEnabled: Record<'build' | 'runtime', boolean | undefined>;
 jest.mock('@/services/ai-apps/hooks/useAiAppLogs', () => ({
   ...jest.requireActual('@/services/ai-apps/hooks/useAiAppLogs'),
-  useAiAppLogs: (_uid: string, stream: 'build' | 'runtime') => mockStreams[stream],
+  useAiAppLogs: (_uid: string, stream: 'build' | 'runtime', options: { enabled: boolean }) => {
+    hookEnabled[stream] = options.enabled;
+    return mockStreams[stream];
+  },
 }));
 
 const loaded = (events: AiAppLogEvent[] | null, extra: Partial<HookReturn> = {}): HookReturn => ({
@@ -75,6 +80,7 @@ describe('DeploymentLogsModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    hookEnabled = { build: undefined, runtime: undefined };
     mockStreams = {
       build: loaded([line(1, 'Step 1/5 : FROM node:20'), line(2, 'npm install completed')]),
       runtime: loaded([line(3, 'server listening on 3000')]),
@@ -88,6 +94,18 @@ describe('DeploymentLogsModal', () => {
 
     render(<DeploymentLogsModal app={buildApp({ status: 'ERROR' })} onClose={onClose} />);
     expect(screen.getByRole('tab', { name: /build/i })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('only fetches the visited tab — the other stream stays disabled until opened', () => {
+    render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
+    // Healthy app opens on Runtime; the build walk must not start yet.
+    expect(hookEnabled).toEqual({ build: false, runtime: true });
+
+    fireEvent.click(screen.getByRole('tab', { name: /build/i }));
+    // Visiting enables it — and it stays enabled (going back must not drop the cache).
+    expect(hookEnabled).toEqual({ build: true, runtime: true });
+    fireEvent.click(screen.getByRole('tab', { name: /runtime/i }));
+    expect(hookEnabled).toEqual({ build: true, runtime: true });
   });
 
   it('shows log lines with counts, and switching tabs fires analytics and resets search', () => {

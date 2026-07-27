@@ -152,7 +152,7 @@ export type WarmIntrosV2TargetSet = (typeof WARM_INTROS_V2_TARGET_SETS)[number];
 export const WARM_INTROS_V2_SELECTOR_VALUES = [WARM_INTROS_V2_ALL_TARGET_SET, ...WARM_INTROS_V2_TARGET_SETS] as const;
 export type WarmIntrosV2SelectorValue = (typeof WARM_INTROS_V2_SELECTOR_VALUES)[number];
 
-export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2TargetSet = 'neuro-fund-i';
+export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2SelectorValue = WARM_INTROS_V2_ALL_TARGET_SET;
 
 /** Display names aligned with v1 InvestorList names (+ selector "All"). */
 export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2SelectorValue, string> = {

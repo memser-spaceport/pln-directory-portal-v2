@@ -300,8 +300,16 @@ export function AiAppDetailPage(props: Props) {
     <div className={s.root}>
       <div className={s.topBar}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
-          <ArrowBackIcon width={16} height={16} />
-          Back to all
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M11 14L5 8L11 2"
+              stroke="#5E718D"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+          Back
         </Link>
         <div className={s.topBarActions}>
           {hasPrd(app) && (

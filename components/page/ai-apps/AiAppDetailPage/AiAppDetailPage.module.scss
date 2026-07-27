@@ -214,12 +214,13 @@
 .backLink {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   width: fit-content;
   font-size: 14px;
   font-weight: 500;
   color: var(--foreground-neutral-secondary, #455468);
   text-decoration: none;
+  line-height: 0.9;
 
   &:hover {
     color: var(--foreground-neutral-primary, #0a0c11);

@@ -78,7 +78,7 @@ describe('NewsShareMenu', () => {
     await act(async () => {});
 
     expect(writeText).toHaveBeenCalledWith(CANONICAL);
-    expect(screen.getByRole('menuitem', { name: /Link copied!/ })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /Link copied/ })).toBeInTheDocument();
     expect(mockOnShared).toHaveBeenCalledWith(item, 'copy', 'home');
     window.history.replaceState(null, '', '/');
   });
@@ -136,7 +136,7 @@ describe('NewsShareMenu', () => {
     render(<NewsShareMenu item={item} source="home" />);
     openMenu();
 
-    const copyItem = () => screen.getByRole('menuitem', { name: /Copy link|Link copied!/ });
+    const copyItem = () => screen.getByRole('menuitem', { name: /Copy link|Link copied/ });
     fireEvent.click(copyItem());
     await act(async () => {});
     act(() => {
@@ -148,7 +148,7 @@ describe('NewsShareMenu', () => {
       jest.advanceTimersByTime(1000); // old timer would have expired at 1500ms total
     });
 
-    expect(screen.getByRole('menuitem', { name: /Link copied!/ })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /Link copied/ })).toBeInTheDocument();
     jest.useRealTimers();
   });
 });

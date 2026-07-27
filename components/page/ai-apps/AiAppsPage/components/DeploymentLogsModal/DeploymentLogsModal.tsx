@@ -470,7 +470,6 @@ export function DeploymentLogsModal({ app, onClose }: Props) {
             )}
             {active.hasMore &&
               (active.pagesNewestFirst ? ' · newest first — scroll for earlier logs' : ' · more lines available')}
-            {' · times in your local time'}
           </span>
           <Button style="border" variant="neutral" size="s" onClick={onClose}>
             Close

@@ -168,15 +168,15 @@ describe('AiAppDetailPage', () => {
 
     expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /back to all/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^back$/i })).not.toBeInTheDocument();
   });
 
   describe('healthy app top bar', () => {
-    it('renders "back to all" pointing at the list route', () => {
+    it('renders "Back" pointing at the list route', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" />);
 
-      expect(screen.getByRole('link', { name: /back to all/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
+      expect(screen.getByRole('link', { name: /^back$/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
     });
 
     it('shows "App Details" only when the app has a one-pager, and opens the details modal', () => {

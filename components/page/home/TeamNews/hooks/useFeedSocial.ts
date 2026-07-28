@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { IFeedCommentCountsResponse, IFeedForumPost } from '@/types/feed.types';
-import { FEED_SOCIAL_ENABLED } from '@/utils/feature-flags';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useFeedForumPosts } from '@/services/feed/hooks/useFeedForumPosts';
@@ -11,9 +10,6 @@ import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts
 import { feedQueryKeys } from '@/services/feed/constants';
 
 interface UseFeedSocialResult {
-  /** The one switch every social UI surface gates on — false means the feed is
-   *  pixel- and network-identical to the pre-feature /home. */
-  feedSocialActive: boolean;
   /** Access-gated, ready-to-merge posts; undefined = news-only (not loaded,
    *  no access, error — the caller never needs to know which). */
   forumPosts: IFeedForumPost[] | undefined;
@@ -30,19 +26,20 @@ interface UseFeedSocialResult {
 // so TeamNews.tsx (already ~580 load-bearing lines) only gains a render switch.
 //
 // Gating model (decision I6): the posts query fires for any signed-in user —
-// the server's 403 is the access check (one round trip, typed as an expected
-// error, never retried). useForumAccess separately gates RENDERING, live: a
-// disabled/gated query keeps serving cached data in React Query v5, so
-// `enabled` alone must never be the thing hiding content.
+// an empty {items: []} is the access check (no access is indistinguishable
+// from no posts, and that's fine — see docs/NEWSFEED_FORUM_POSTS.md).
+// useForumAccess separately gates RENDERING, live: a disabled/gated query
+// keeps serving cached data in React Query v5, so `enabled` alone must never
+// be the thing hiding content.
 export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSocialResult {
   const queryClient = useQueryClient();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { hasAccess, isLoading: accessLoading, isPending: accessPending, isError: accessError } = useForumAccess();
 
-  const postsQuery = useFeedForumPosts({ enabled: FEED_SOCIAL_ENABLED && !!currentUser });
+  const postsQuery = useFeedForumPosts({ enabled: !!currentUser });
 
   // Counts are public — signed-out visitors see them on news items too.
-  useFeedCommentCounts({ uids: newsUids, enabled: FEED_SOCIAL_ENABLED });
+  useFeedCommentCounts({ uids: newsUids, enabled: true });
 
   // Seed forum-post counts into the single counts entry (their commentCount is
   // embedded in the posts response; the batch endpoint only covers news uids).
@@ -81,8 +78,7 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   const deepLinkSettled = isHydrated && !accessGatePending && !postsGatePending;
 
   return {
-    feedSocialActive: FEED_SOCIAL_ENABLED,
-    forumPosts: FEED_SOCIAL_ENABLED && hasAccess ? postsQuery.data?.items : undefined,
+    forumPosts: hasAccess ? postsQuery.data?.items : undefined,
     hasAccess,
     deepLinkSettled,
   };

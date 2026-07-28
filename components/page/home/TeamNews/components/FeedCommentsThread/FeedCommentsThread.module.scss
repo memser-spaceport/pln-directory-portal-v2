@@ -235,3 +235,71 @@
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+/* Own-comment delete affordance — quiet until hovered, matching .viewAll's
+   "don't compete with the content" treatment. */
+.deleteBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &:hover {
+    color: var(--foreground-danger-primary, #d92d20);
+  }
+}
+
+/* Inline "Delete this comment? Yes / Cancel" — no modal, matching the
+   composer's no-modal, no-toast style. */
+.deleteConfirm {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.deleteConfirmBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-danger-primary, #d92d20);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.deleteCancelBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

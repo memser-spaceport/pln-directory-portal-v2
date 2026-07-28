@@ -23,7 +23,3 @@ export const FEED_COMMENT_MAX_LENGTH = 2000;
 // A thread that goes 60s stale is not worth a focus-refetch burst; re-expands
 // within a minute are cache hits.
 export const FEED_COMMENTS_STALE_TIME = 60_000;
-
-// Mock-mode only: a comment containing this token makes the fixture store
-// reject the submit, so the inline-error/draft-restore path is exercisable.
-export const MOCK_FEED_FAIL_TOKEN = '#fail';

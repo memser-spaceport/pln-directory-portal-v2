@@ -9,6 +9,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
+import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
 import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { IFeedComment } from '@/types/feed.types';
@@ -43,6 +44,14 @@ interface FeedCommentsThreadProps {
  *   still there, with an inline error that clears on the next keystroke.
  * - Submit is guarded in the handler (not just the disabled attribute) so
  *   Enter can't double-fire while a submit is in flight.
+ *
+ * Delete (author-only, `isOwn`): an inline "Delete this comment? Yes / Cancel"
+ * swap on the row — no modal, no toast, matching the composer's style. No
+ * optimistic removal: the row shows a disabled Yes while the request is in
+ * flight, same "nothing touches the cache until the server confirms" rule the
+ * composer follows. If the card unmounts mid-confirm (e.g. a mid-session
+ * access revocation drops this post from the feed), the pending confirm state
+ * is silently discarded — same accepted behavior as an abandoned draft.
  */
 export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThreadProps) {
   const router = useRouter();
@@ -50,12 +59,26 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
   const { currentUser, isHydrated } = useCurrentUserStore();
   const [draft, setDraft] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [confirmingUid, setConfirmingUid] = useState<string | null>(null);
 
   const { data } = useFeedComments(itemUid, { enabled: true });
   const addComment = useAddFeedComment(itemUid);
+  const deleteComment = useDeleteFeedComment(itemUid);
 
   const comments: IFeedComment[] = data?.items ?? [];
-  const shown = expanded ? comments : comments.slice(0, VISIBLE);
+  // Oldest-first data: the most recent VISIBLE comments are the LAST ones, not
+  // the first — a plain slice(0, VISIBLE) would show the oldest instead.
+  const shown = expanded ? comments : comments.slice(-VISIBLE);
+
+  const requestDelete = (commentUid: string) => {
+    if (deleteComment.isPending) return;
+    deleteComment.mutate(
+      { commentUid },
+      {
+        onSuccess: () => setConfirmingUid(null),
+      },
+    );
+  };
 
   const submit = () => {
     const text = draft.trim();
@@ -150,24 +173,63 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
               </div>
             </div>
           )}
-          {shown.map((c) => (
-            <div key={c.uid} className={s.item}>
-              <img
-                className={s.avatar}
-                src={c.author.avatarUrl || getDefaultAvatar(c.author.name)}
-                alt=""
-                loading="lazy"
-              />
-              <div className={s.body}>
-                <div className={s.head}>
-                  <span className={s.name}>{c.author.name}</span>
-                  {c.author.role && <span className={s.role}>· {c.author.role}</span>}
-                  <span className={s.time}>· {formatTimeAgo(c.createdAt)}</span>
+          {shown.map((c) => {
+            const isConfirming = confirmingUid === c.uid;
+            const isDeletingThis = deleteComment.isPending && deleteComment.variables?.commentUid === c.uid;
+            const deleteFailedThis = deleteComment.isError && deleteComment.variables?.commentUid === c.uid;
+            return (
+              <div key={c.uid} className={s.item}>
+                <img
+                  className={s.avatar}
+                  src={c.author.avatarUrl || getDefaultAvatar(c.author.name)}
+                  alt=""
+                  loading="lazy"
+                />
+                <div className={s.body}>
+                  <div className={s.head}>
+                    <span className={s.name}>{c.author.name}</span>
+                    {c.author.role && <span className={s.role}>· {c.author.role}</span>}
+                    <span className={s.time}>· {formatTimeAgo(c.createdAt)}</span>
+                    {c.isOwn &&
+                      (isConfirming ? (
+                        <span className={s.deleteConfirm}>
+                          Delete this comment?
+                          <button
+                            type="button"
+                            className={s.deleteConfirmBtn}
+                            disabled={isDeletingThis}
+                            onClick={() => requestDelete(c.uid)}
+                          >
+                            {isDeletingThis ? 'Deleting…' : 'Yes'}
+                          </button>
+                          <button
+                            type="button"
+                            className={s.deleteCancelBtn}
+                            disabled={isDeletingThis}
+                            onClick={() => {
+                              setConfirmingUid(null);
+                              if (deleteComment.isError) deleteComment.reset();
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button type="button" className={s.deleteBtn} onClick={() => setConfirmingUid(c.uid)}>
+                          Delete
+                        </button>
+                      ))}
+                  </div>
+                  <p className={s.text}>{c.text}</p>
+                  {deleteFailedThis && (
+                    <p className={s.error} role="alert">
+                      Couldn&apos;t delete — try again.
+                    </p>
+                  )}
                 </div>
-                <p className={s.text}>{c.text}</p>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {comments.length > VISIBLE && (
             <button type="button" className={s.viewAll} onClick={() => setExpanded((v) => !v)}>
               {expanded ? 'Show fewer comments' : `View all ${comments.length} comments`}

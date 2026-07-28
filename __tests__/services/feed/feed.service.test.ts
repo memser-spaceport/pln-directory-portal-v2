@@ -1,11 +1,10 @@
 import {
   createFeedComment,
+  deleteFeedComment,
   getFeedCommentCounts,
   getFeedComments,
   getFeedForumPosts,
 } from '@/services/feed/feed.service';
-import { FeedForumPostsForbiddenError } from '@/services/feed/feed.errors';
-import { resetMockFeedStore } from '@/services/feed/feed.mock-data';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
@@ -14,36 +13,12 @@ const customFetchMock = customFetch as jest.Mock;
 const VIEWER = { memberUid: 'viewer-1', name: 'Test Viewer', avatarUrl: null, role: null };
 
 const originalApiUrl = process.env.DIRECTORY_API_URL;
-const originalMockFlag = process.env.NEXT_PUBLIC_MOCK_FEED_SOCIAL;
 
 afterAll(() => {
   process.env.DIRECTORY_API_URL = originalApiUrl;
-  process.env.NEXT_PUBLIC_MOCK_FEED_SOCIAL = originalMockFlag;
 });
 
-describe('mock branch (NEXT_PUBLIC_MOCK_FEED_SOCIAL=true)', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_MOCK_FEED_SOCIAL = 'true';
-    resetMockFeedStore();
-  });
-
-  it('serves fixtures without touching the network', async () => {
-    const { items } = await getFeedForumPosts();
-    expect(items.length).toBeGreaterThan(0);
-    expect(items.every((p) => p.uid.startsWith('fp_'))).toBe(true);
-    expect(customFetchMock).not.toHaveBeenCalled();
-  });
-
-  it('routes comment writes through the fixture store', async () => {
-    const created = await createFeedComment({ itemUid: 'fp_shared-dht', text: 'Hello' }, VIEWER);
-    expect(created.itemUid).toBe('fp_shared-dht');
-    const counts = await getFeedCommentCounts(['fp_shared-dht']);
-    expect(counts['fp_shared-dht']).toBe(1);
-    expect(customFetchMock).not.toHaveBeenCalled();
-  });
-});
-
-describe('real branch (flag off)', () => {
+describe('feed.service (real API)', () => {
   const fetchMock = jest.fn();
 
   beforeAll(() => {
@@ -52,25 +27,35 @@ describe('real branch (flag off)', () => {
   });
 
   beforeEach(() => {
-    delete process.env.NEXT_PUBLIC_MOCK_FEED_SOCIAL;
     fetchMock.mockReset();
     customFetchMock.mockReset();
   });
 
-  it('getFeedForumPosts throws the typed error on 403 (expected news-only state)', async () => {
-    customFetchMock.mockResolvedValue({ ok: false, status: 403 });
-    await expect(getFeedForumPosts()).rejects.toBeInstanceOf(FeedForumPostsForbiddenError);
+  it('getFeedForumPosts requests a single bounded page (limit=100, page=0)', async () => {
+    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+    await getFeedForumPosts();
+    expect(customFetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/feed/forum-posts?limit=100&page=0',
+      { method: 'GET' },
+      true,
+    );
   });
 
-  it('getFeedForumPosts throws a plain error on other failures (queryFns never return null)', async () => {
+  it('getFeedForumPosts returns items on success (no access shows up as an empty list, not an error)', async () => {
+    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+    const { items } = await getFeedForumPosts();
+    expect(items).toEqual([]);
+  });
+
+  it('getFeedForumPosts throws a plain error on failure (queryFns never return null)', async () => {
     customFetchMock.mockResolvedValue({ ok: false, status: 500 });
     await expect(getFeedForumPosts()).rejects.toThrow('Failed to fetch feed forum posts');
   });
 
-  it('getFeedCommentCounts POSTs the uid batch (public endpoint, plain fetch)', async () => {
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ 'n-1': 2 }) });
+  it('getFeedCommentCounts POSTs the uid batch and unwraps the {counts} envelope', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ counts: { 'n-1': 2 } }) });
     const counts = await getFeedCommentCounts(['n-1'], 'token-123');
-    expect(counts['n-1']).toBe(2);
+    expect(counts).toEqual({ 'n-1': 2 });
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.com/v1/feed/comments/counts',
       expect.objectContaining({ method: 'POST', body: JSON.stringify({ uids: ['n-1'] }) }),
@@ -83,17 +68,49 @@ describe('real branch (flag off)', () => {
     await expect(getFeedComments('n-1')).rejects.toThrow('Failed to fetch feed comments');
   });
 
+  it('getFeedComments returns the real {items} shape with no total field', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ items: [{ uid: 'c-1', itemUid: 'n-1', author: VIEWER, text: 'Hi', createdAt: 'now', isOwn: true }] }),
+    });
+    const { items } = await getFeedComments('n-1');
+    expect(items).toHaveLength(1);
+    expect(items[0].isOwn).toBe(true);
+  });
+
   it('createFeedComment goes through the authenticated wrapper', async () => {
     customFetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ uid: 'c-1', itemUid: 'n-1', author: VIEWER, text: 'Hi', createdAt: 'now' }),
+      json: async () => ({ uid: 'c-1', itemUid: 'n-1', author: VIEWER, text: 'Hi', createdAt: 'now', isOwn: true }),
     });
-    const created = await createFeedComment({ itemUid: 'n-1', text: 'Hi' }, VIEWER);
+    const created = await createFeedComment({ itemUid: 'n-1', text: 'Hi' });
     expect(created.uid).toBe('c-1');
     expect(customFetchMock).toHaveBeenCalledWith(
       'https://api.example.com/v1/feed/comments',
       expect.objectContaining({ method: 'POST' }),
       true,
     );
+  });
+
+  it('deleteFeedComment DELETEs through the authenticated wrapper', async () => {
+    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ uid: 'c-1', deleted: true }) });
+    const result = await deleteFeedComment('c-1');
+    expect(result).toEqual({ uid: 'c-1', deleted: true });
+    expect(customFetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/feed/comments/c-1',
+      { method: 'DELETE' },
+      true,
+    );
+  });
+
+  it('deleteFeedComment treats a 404 (already deleted) as a success no-op', async () => {
+    customFetchMock.mockResolvedValue({ ok: false, status: 404 });
+    const result = await deleteFeedComment('c-1');
+    expect(result).toEqual({ uid: 'c-1', deleted: true });
+  });
+
+  it('deleteFeedComment throws on other failures (e.g. 403 not-author, 401 expired session)', async () => {
+    customFetchMock.mockResolvedValue({ ok: false, status: 403 });
+    await expect(deleteFeedComment('c-1')).rejects.toThrow('Failed to delete feed comment');
   });
 });

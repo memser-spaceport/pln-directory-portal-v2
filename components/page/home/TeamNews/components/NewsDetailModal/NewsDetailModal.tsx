@@ -28,10 +28,6 @@ interface NewsDetailModalProps {
   item: ITeamNewsItem;
   onClose: () => void;
   onUpvoteToggle: (item: ITeamNewsItem) => void;
-  /** FEED_SOCIAL_ENABLED, threaded through TeamNews — false (the default)
-   *  renders zero comment UI, keeping the flag-off modal pixel-identical.
-   *  The thread shares the card thread's cache entry (one fetch, N surfaces). */
-  showComments?: boolean;
 }
 
 const TITLE_ID = 'news-detail-modal-title';
@@ -67,7 +63,7 @@ function restoreFocusToRow(uid: string) {
   target?.focus();
 }
 
-export function NewsDetailModal({ item, onClose, onUpvoteToggle, showComments = false }: NewsDetailModalProps) {
+export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailModalProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   // While the share popover is open, the Modal's own Escape/backdrop closers
@@ -185,7 +181,7 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle, showComments = 
         )}
 
         {/* Always expanded in the modal (prototype's FeedDetailModal parity). */}
-        {showComments && <FeedCommentsThread itemUid={item.uid} kind="news" source="news-modal" />}
+        <FeedCommentsThread itemUid={item.uid} kind="news" source="news-modal" />
       </div>
 
       <div className={s.footer}>

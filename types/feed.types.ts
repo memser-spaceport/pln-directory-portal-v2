@@ -1,8 +1,8 @@
 // Wire contract for the /home feed's social layer (forum posts interleaved with
-// team news + feed-only comments). The API does not exist yet — these types ARE
-// the spec handed to the backend (see docs/plans/2026-07-27-feat-newsfeed-forum-
-// posts-inline-comments-plan.md). Until it ships, services/feed/feed.service.ts
-// serves fixtures gated behind NEXT_PUBLIC_MOCK_FEED_SOCIAL.
+// team news + feed-only comments). Live per docs/NEWSFEED_FORUM_POSTS.md
+// (LAB-2175, memser-spaceport/pln-directory-portal) — see
+// docs/plans/2026-07-28-feat-newsfeed-forum-posts-real-api-plan.md for the
+// mock-to-real integration.
 //
 // Field-nullability rule for this contract: `| null` = the server always sends
 // the field but it may be null; `?` is reserved for fields that genuinely don't
@@ -53,19 +53,27 @@ export interface IFeedComment {
   /** Plain text, server-capped at FEED_COMMENT_MAX_LENGTH. */
   text: string;
   createdAt: string;
+  /** True only for the authenticated caller's own comments (always false for
+   *  anonymous requests) — gates the delete affordance. Rendered straight off
+   *  the server payload, no overlay: unlike likes, comments never feed
+   *  mergeFeedEntries' rank-merge, so there's no reordering risk to guard
+   *  against by mutating the cache indirectly. */
+  isOwn: boolean;
 }
 
-// GET /v1/feed/forum-posts — member JWT; 403 without forum.read (the client
-// treats 403 as an expected "news-only" state, never an error surface).
+// GET /v1/feed/forum-posts — optional auth. Anonymous or no forum.read →
+// {items: []} (200, never 403) — the client can't distinguish "no access" from
+// "no posts" and doesn't try to; both render as an empty forum-post lane.
 export interface IFeedForumPostsResponse {
   items: IFeedForumPost[];
 }
 
 // GET /v1/feed/comments?itemUid=x — public for news uids; fp_ uids require
-// forum.read and 404 indistinguishably otherwise. Newest first, capped.
+// forum.read and 404 indistinguishably otherwise. Oldest first (thread reading
+// order) — no `total` field; every consumer derives the count from
+// `items.length` instead of maintaining a second counter in lockstep.
 export interface IFeedCommentsResponse {
   items: IFeedComment[];
-  total: number;
 }
 
 // POST /v1/feed/comments/counts { uids } — public; counts for fp_ uids are
@@ -78,6 +86,15 @@ export type IFeedCommentCountsResponse = Record<string, number>;
 export interface ICreateFeedCommentRequest {
   itemUid: string;
   text: string;
+}
+
+// DELETE /v1/feed/comments/:commentUid — member JWT, author-only (403
+// otherwise). Idempotent from the client's perspective: a 404 (already
+// deleted, e.g. a double-delete from two tabs) is mapped to this same success
+// shape by the service layer rather than surfaced as an error.
+export interface IFeedCommentDeleteResponse {
+  uid: string;
+  deleted: true;
 }
 
 /** Returned by POST/DELETE /v1/feed/forum-posts/:uid/like (member JWT +

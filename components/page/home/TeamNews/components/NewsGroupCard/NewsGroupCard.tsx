@@ -39,9 +39,6 @@ interface NewsGroupCardProps {
    * this card that's beyond VISIBLE_STORIES — forces this card's own truncation
    * open. One-directional (never collapses); see the scroll-to-story plan. */
   autoExpandStoryUid?: string;
-  /** FEED_SOCIAL_ENABLED, threaded through TeamNews — false (the default)
-   * renders zero comment UI, keeping the flag-off card pixel-identical. */
-  showComments?: boolean;
 }
 
 export function NewsGroupCard({
@@ -52,7 +49,6 @@ export function NewsGroupCard({
   onFollowToggle,
   onUpvoteToggle,
   autoExpandStoryUid,
-  showComments = false,
 }: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
@@ -184,17 +180,15 @@ export function NewsGroupCard({
                   voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
-                {showComments && (
-                  <CommentButton
-                    itemUid={story.uid}
-                    open={openThreadUids.has(story.uid)}
-                    onToggle={() => handleThreadToggle(story.uid)}
-                  />
-                )}
+                <CommentButton
+                  itemUid={story.uid}
+                  open={openThreadUids.has(story.uid)}
+                  onToggle={() => handleThreadToggle(story.uid)}
+                />
               </div>
             </div>
             {/* Mount = expanded (the lazy comments query keys off it). */}
-            {showComments && openThreadUids.has(story.uid) && (
+            {openThreadUids.has(story.uid) && (
               <FeedCommentsThread itemUid={story.uid} kind="news" source={analyticsSource} />
             )}
           </div>

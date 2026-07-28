@@ -135,7 +135,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
   // The feed's social layer (forum posts + comment counts), flag- and
   // access-gated in one hook. `forumPosts` undefined ⇒ news-only feed.
-  const { forumPosts, feedSocialActive, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
+  const { forumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
 
   // Optimistic like state for forum posts — the exact upvoteOverlay pattern:
   // a render-time overlay the buttons read, never written to the query cache,
@@ -687,7 +687,6 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
                           autoExpandStoryUid={
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
-                          showComments={feedSocialActive}
                         />
                       );
                     case 'forum':
@@ -731,12 +730,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
       {activeNewsItem && (
-        <NewsDetailModal
-          item={activeNewsItem}
-          onClose={closeNews}
-          onUpvoteToggle={handleUpvoteToggle}
-          showComments={feedSocialActive}
-        />
+        <NewsDetailModal item={activeNewsItem} onClose={closeNews} onUpvoteToggle={handleUpvoteToggle} />
       )}
       {activeForumPost && (
         <ForumPostModal post={activeForumPost} onClose={closePost} onLikeToggle={handleForumPostLikeToggle} />

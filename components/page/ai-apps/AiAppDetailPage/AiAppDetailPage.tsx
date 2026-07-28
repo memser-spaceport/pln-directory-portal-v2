@@ -304,9 +304,9 @@ export function AiAppDetailPage(props: Props) {
             <path
               d="M11 14L5 8L11 2"
               stroke="#5E718D"
-              stroke-width="1.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             ></path>
           </svg>
           Back

@@ -32,6 +32,16 @@ export type TargetSetScope = typeof ALL_LISTS | WarmIntrosV2TargetSet;
 
 export const ALL_LISTS_LABEL = 'All investor lists';
 
+/**
+ * Short list names for the per-row badge. The full labels
+ * ("Neuro Fund I LP Pipeline") are too long to sit beside a name, so the badge
+ * abbreviates and carries the full label as its tooltip.
+ */
+export const TARGET_SET_SHORT_LABEL: Record<WarmIntrosV2TargetSet, string> = {
+  'neuro-fund-i': 'Neuro Fund I',
+  'gold-co-investors': 'Gold PLC',
+};
+
 /** Total members across the mocked lists — the count shown on the "All" option. */
 export const ALL_LISTS_MEMBER_COUNT = MOCK_INVESTOR_LISTS.reduce((sum, l) => sum + l.member_count, 0);
 

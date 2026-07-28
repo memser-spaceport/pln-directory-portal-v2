@@ -16,6 +16,26 @@
   width: 34%;
 }
 
+/* Name and its list badge share a line; wraps rather than squeezing the name. */
+.nameLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/**
+ * The shared listPill is already 12px — its bulk comes from weight 600 and
+ * 2px 10px padding, sized for the MasterProfile modal where it sits in a row of
+ * its own. Beside a 14px name in a table row it needs to recede, so the size
+ * stays and the weight and padding come down.
+ */
+.listBadge {
+  font-weight: 500;
+  line-height: 16px;
+  padding: 1px 8px;
+}
+
 .colProximity {
   width: 18%;
 }

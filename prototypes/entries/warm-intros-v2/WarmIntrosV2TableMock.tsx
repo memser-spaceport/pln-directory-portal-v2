@@ -21,7 +21,11 @@ import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/se
 import { PathProfileChip } from '@/components/page/investors/WarmIntrosV2Workspace/PathProfileChip';
 import { ScorePercentPill } from '@/components/page/investors/WarmIntrosV2Workspace/ScorePercentPill';
 import s from '@/components/page/investors/WarmIntrosV2Workspace/WarmIntrosV2Table.module.scss';
+// The MasterProfile modal already colours the two lists — Neuro blue, Gold amber.
+// Reusing those pills keeps one colour language for "which list" across surfaces.
+import p from '@/components/page/investors/WarmIntrosV2Workspace/MasterProfileModal.module.scss';
 import c from './TableColumns.module.scss';
+import { TARGET_SET_SHORT_LABEL } from './mocks';
 
 interface Props {
   rows: WarmIntrosV2PathListItem[];
@@ -29,9 +33,30 @@ interface Props {
   onOpenProfileUid: (profileUid: string) => void;
   onViewAllPaths: (row: WarmIntrosV2PathListItem) => void;
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
+  /**
+   * Show which list each row came from. Only worth it when the scope spans more
+   * than one list — under a single list every badge would say the same thing.
+   */
+  showListName?: boolean;
   scrollRootRef?: Ref<HTMLDivElement>;
   sentinelRef?: Ref<HTMLDivElement>;
   footer?: ReactNode;
+}
+
+const LIST_FULL_LABEL: Record<string, string> = {
+  'neuro-fund-i': 'Neuro Fund I LP Pipeline',
+  'gold-co-investors': 'Gold PLC Co-Investors',
+};
+
+function ListBadge({ targetSet }: { targetSet: string }) {
+  const short = TARGET_SET_SHORT_LABEL[targetSet as keyof typeof TARGET_SET_SHORT_LABEL];
+  if (!short) return null;
+  const tone = targetSet === 'neuro-fund-i' ? p.listNeuro : targetSet === 'gold-co-investors' ? p.listGold : undefined;
+  return (
+    <span className={`${p.listPill} ${tone ?? ''} ${c.listBadge}`} title={LIST_FULL_LABEL[targetSet] ?? short}>
+      {short}
+    </span>
+  );
 }
 
 function pathCount(row: WarmIntrosV2PathListItem): number {
@@ -49,6 +74,7 @@ export function WarmIntrosV2TableMock({
   onOpenProfileUid,
   onViewAllPaths,
   onRowClick,
+  showListName = false,
   scrollRootRef,
   sentinelRef,
   footer,
@@ -100,17 +126,20 @@ export function WarmIntrosV2TableMock({
               >
                 <td className={s.td}>
                   <div className={s.investorText}>
-                    <button
-                      type="button"
-                      className={s.nameBtn}
-                      aria-label={`Open profile for ${name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (investor) onOpenMasterProfile(investor);
-                      }}
-                    >
-                      {name}
-                    </button>
+                    <div className={c.nameLine}>
+                      <button
+                        type="button"
+                        className={s.nameBtn}
+                        aria-label={`Open profile for ${name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (investor) onOpenMasterProfile(investor);
+                        }}
+                      >
+                        {name}
+                      </button>
+                      {showListName ? <ListBadge targetSet={row.targetSet} /> : null}
+                    </div>
                     {orgLine ? <div className={s.subtle}>{orgLine}</div> : null}
                     {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
                   </div>

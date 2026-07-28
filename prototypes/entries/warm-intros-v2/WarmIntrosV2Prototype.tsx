@@ -17,6 +17,7 @@
  *
  * Design changes on top of production:
  *   - the list picker gains an "All investor lists" option, and opens on it
+ *   - under that scope each row carries a list badge, so mixed results stay readable
  *
  * Deliberate simplifications, all data-layer only:
  *   - filters live in component state instead of the URL (no nuqs in prototypes)
@@ -246,6 +247,9 @@ export default function WarmIntrosV2Prototype() {
               onOpenProfileUid={onOpenProfileUid}
               onViewAllPaths={onViewAllPaths}
               onRowClick={onRowClick}
+              // Only under "All investor lists" — inside a single list every
+              // badge would just repeat the picker.
+              showListName={targetSet === ALL_LISTS}
             />
           </div>
         )}

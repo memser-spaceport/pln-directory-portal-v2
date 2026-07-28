@@ -214,6 +214,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
   },
+  {
+    key: 'auth-copy-audit',
+    title: 'Auth copy audit — “Log in” → “Sign in”',
+    description:
+      'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
+    category: 'Cross-product',
+    load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
+  },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).
   // {

@@ -1,0 +1,25 @@
+/**
+ * Column widths for the 3-column table fork (Investor · Path · Proximity).
+ * Production apportions 22/18/18/14/28 across five columns; with Team and
+ * Industry / Sector gone, the remaining three are re-balanced here.
+ *
+ * Layout only — no colors, so nothing to token-swap. Everything else still
+ * comes from the production WarmIntrosV2Table.module.scss.
+ */
+
+.table {
+  /* Production's 960px floor was sized for five columns. */
+  min-width: 620px;
+}
+
+.colInvestor {
+  width: 34%;
+}
+
+.colProximity {
+  width: 18%;
+}
+
+.colPath {
+  width: 48%;
+}

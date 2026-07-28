@@ -79,6 +79,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
   {
+    key: 'warm-intros-v2',
+    title: 'Warm intros v2 — mocked clone',
+    description:
+      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (proximity code, score %, connector → investor path chips), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-v2/WarmIntrosV2Prototype'),
+  },
+  {
     key: 'members',
     title: 'Members — listing page',
     description:

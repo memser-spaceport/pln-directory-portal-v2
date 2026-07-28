@@ -24,6 +24,12 @@ function renderModal(poolRemaining: number) {
   );
 }
 
+function renderLoadingModal() {
+  return render(
+    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={[]} poolRemaining={100} recipientsLoading />,
+  );
+}
+
 const sendBtn = () => screen.getByRole('button', { name: /send community kudos/i });
 
 describe('GiveCommunityKudosModal — send button gating', () => {
@@ -62,5 +68,32 @@ describe('GiveCommunityKudosModal — send button gating', () => {
     );
 
     await waitFor(() => expect(sendBtn()).toBeEnabled());
+  });
+});
+
+describe('GiveCommunityKudosModal — recipients still loading', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  test('says the list is loading instead of showing an empty picker', () => {
+    renderLoadingModal();
+    expect(screen.getByLabelText(/recipient/i)).toHaveDisplayValue(/loading/i);
+  });
+
+  test('disables the picker so nobody stares at an empty dropdown', () => {
+    renderLoadingModal();
+    expect(screen.getByLabelText(/recipient/i)).toBeDisabled();
+  });
+
+  test('keeps send disabled while there is nobody to send to', () => {
+    renderLoadingModal();
+    expect(sendBtn()).toBeDisabled();
+  });
+
+  test('shows the normal placeholder again once the list has arrived', () => {
+    renderModal(100);
+    const select = screen.getByLabelText(/recipient/i);
+    expect(select).toBeEnabled();
+    expect(select).toHaveDisplayValue(/select a network contributor/i);
+    expect(screen.getByRole('option', { name: 'Alice' })).toBeInTheDocument();
   });
 });

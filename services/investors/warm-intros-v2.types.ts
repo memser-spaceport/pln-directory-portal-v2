@@ -17,6 +17,8 @@ export type WarmIntrosV2InvestorSummary = {
   memberUid: string | null;
   /** Directory member photo when linked. */
   imageUrl?: string | null;
+  /** Known cohort list slugs (neuro-fund-i / gold-co-investors). */
+  listSlugs?: string[];
 };
 
 export type WarmIntrosV2ConnectorSummary = {
@@ -141,15 +143,28 @@ export type MasterProfileDetail = {
   [key: string]: unknown;
 };
 
+export const WARM_INTROS_V2_ALL_TARGET_SET = 'all' as const;
+
 export const WARM_INTROS_V2_TARGET_SETS = ['neuro-fund-i', 'gold-co-investors'] as const;
 export type WarmIntrosV2TargetSet = (typeof WARM_INTROS_V2_TARGET_SETS)[number];
 
-export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2TargetSet = 'neuro-fund-i';
+/** URL / selector values including the "All" sentinel (omit targetSet in API when `all`). */
+export const WARM_INTROS_V2_SELECTOR_VALUES = [WARM_INTROS_V2_ALL_TARGET_SET, ...WARM_INTROS_V2_TARGET_SETS] as const;
+export type WarmIntrosV2SelectorValue = (typeof WARM_INTROS_V2_SELECTOR_VALUES)[number];
 
-/** Display names aligned with v1 InvestorList names. */
-export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2TargetSet, string> = {
+export const WARM_INTROS_V2_DEFAULT_TARGET_SET: WarmIntrosV2SelectorValue = WARM_INTROS_V2_ALL_TARGET_SET;
+
+/** Display names aligned with v1 InvestorList names (+ selector "All"). */
+export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2SelectorValue, string> = {
+  all: 'All',
   'neuro-fund-i': 'Neuro Fund I LP Pipeline',
   'gold-co-investors': 'Gold PLC Co-Investors',
+};
+
+/** Compact chip labels for table / drawer density. */
+export const WARM_INTROS_V2_LIST_TAG_LABEL: Record<WarmIntrosV2TargetSet, string> = {
+  'neuro-fund-i': 'Neuro',
+  'gold-co-investors': 'Gold',
 };
 
 /** v1 InvestorList.slug → Warm Intros v2 targetSet. */
@@ -166,3 +181,6 @@ export const WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET: Record<WarmIntrosV2TargetSe
 
 /** Cap for client CSV export fetches. */
 export const WARM_INTROS_V2_CSV_EXPORT_LIMIT = 500;
+
+/** Paths below this score (0–1) are excluded from list/detail/facets (= 20%). */
+export const WARM_INTROS_V2_MIN_SCORE = 0.2;

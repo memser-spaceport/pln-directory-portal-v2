@@ -12,6 +12,8 @@ import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
 import { useWarmIntrosV2PathsForInvestor } from '@/services/investors/hooks/useWarmIntrosV2PathsForInvestor';
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { ListMembershipTags } from './ListMembershipTags';
+import { parseListMemberships } from './masterProfileDisplay.util';
 import { ScorePercentPill } from './ScorePercentPill';
 import { PathProfileChip } from './PathProfileChip';
 import {
@@ -94,10 +96,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
     [hopChain],
   );
   const explanation =
-    reasonLines[0] ||
-    bestPath?.pathSummary?.explanation?.trim() ||
-    explanationFromHopChain(bestPath?.hopChain) ||
-    null;
+    reasonLines[0] || bestPath?.pathSummary?.explanation?.trim() || explanationFromHopChain(bestPath?.hopChain) || null;
 
   const hops: WarmPathV2HopNode[] = useMemo(() => {
     if (hopChain?.hops?.length) return hopChain.hops;
@@ -128,6 +127,19 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
   const sectors = (investor?.sectors ?? []) as SectorTag[];
   const affinityId = investor?.affinityPersonId?.trim() || null;
   const bio = typeof masterProfile?.bio === 'string' && masterProfile.bio.trim() ? masterProfile.bio.trim() : null;
+
+  const listSlugs = useMemo(() => {
+    const fromInvestor = investor?.listSlugs ?? [];
+    const fromProfile = parseListMemberships(masterProfile?.listMemberships).map((l) => l.slug);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const slug of [...fromInvestor, ...fromProfile]) {
+      if (seen.has(slug)) continue;
+      seen.add(slug);
+      out.push(slug);
+    }
+    return out;
+  }, [investor?.listSlugs, masterProfile?.listMemberships]);
 
   const imageByUid = useMemo(() => {
     const map = new Map<string, string | null | undefined>();
@@ -213,6 +225,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                     {!org && !title ? <span className={s.muted}>—</span> : null}
                   </div>
                   {affinityId ? <div className={s.metaSub}>Affinity id: {affinityId}</div> : null}
+                  <ListMembershipTags listSlugs={listSlugs} fallbackTargetSet={targetSet} />
                   {sectors.length > 0 ? (
                     <div className={s.pillRow}>
                       <SectorTagsList tags={sectors} max={12} />
@@ -312,9 +325,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                               <li key={alt.profileUid} className={s.pathItem}>
                                 <div className={s.pathMeta}>
                                   {proximityCode ? <ProximityCodeBadge code={proximityCode} /> : null}
-                                  {pct != null ? (
-                                    <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} />
-                                  ) : null}
+                                  {pct != null ? <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} /> : null}
                                 </div>
                                 {altReason ? <div className={s.explanation}>{altReason}</div> : null}
                                 <div className={s.chainRow}>

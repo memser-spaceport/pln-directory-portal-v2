@@ -19,6 +19,7 @@ export function useForumAccess() {
   const {
     data = EMPTY,
     isLoading,
+    isPending,
     isError,
   } = useQuery({
     queryKey: [AccessControlQueryKeys.MY_ACCESS],
@@ -35,5 +36,14 @@ export function useForumAccess() {
     retry: 2,
   });
 
-  return { hasAccess: data.hasAccess, deniedReason: data.deniedReason, isLoading, isError, canWrite: data.canWrite };
+  // `isPending` caveat: a DISABLED query (signed-out viewer) sits at pending
+  // forever in React Query v5 — always pair it with a currentUser check.
+  return {
+    hasAccess: data.hasAccess,
+    deniedReason: data.deniedReason,
+    isLoading,
+    isPending,
+    isError,
+    canWrite: data.canWrite,
+  };
 }

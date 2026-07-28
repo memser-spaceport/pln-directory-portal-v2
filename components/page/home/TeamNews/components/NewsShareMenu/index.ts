@@ -1,1 +1,1 @@
-export { NewsShareMenu } from './NewsShareMenu';
+export { NewsShareMenu, FeedForumPostShareMenu } from './NewsShareMenu';

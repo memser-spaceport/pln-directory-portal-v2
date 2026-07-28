@@ -17,6 +17,7 @@ import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
+import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -178,6 +179,9 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
             </div>
           </>
         )}
+
+        {/* Always expanded in the modal (prototype's FeedDetailModal parity). */}
+        <FeedCommentsThread itemUid={item.uid} kind="news" source="news-modal" />
       </div>
 
       <div className={s.footer}>

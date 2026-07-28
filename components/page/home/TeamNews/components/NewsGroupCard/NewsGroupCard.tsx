@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
@@ -8,13 +8,15 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
-import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
+import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -51,6 +53,21 @@ export function NewsGroupCard({
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const analytics = useTeamNewsAnalytics();
+
+  // Per-story inline threads. Local like the card's own `expanded`, so the
+  // composite-key remount on tab/category change resets open threads (and any
+  // unsent drafts — accepted, documented loss; in-flight submits still land
+  // because the mutation's cache writes live in its options callbacks).
+  const [openThreadUids, setOpenThreadUids] = useState<ReadonlySet<string>>(() => new Set());
+
+  const handleThreadToggle = (storyUid: string) => {
+    const next = new Set(openThreadUids);
+    const willOpen = !next.has(storyUid);
+    willOpen ? next.add(storyUid) : next.delete(storyUid);
+    setOpenThreadUids(next);
+    analytics.onFeedCommentThreadToggled(storyUid, 'news', willOpen, analyticsSource);
+  };
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -163,8 +180,17 @@ export function NewsGroupCard({
                   voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
+                <CommentButton
+                  itemUid={story.uid}
+                  open={openThreadUids.has(story.uid)}
+                  onToggle={() => handleThreadToggle(story.uid)}
+                />
               </div>
             </div>
+            {/* Mount = expanded (the lazy comments query keys off it). */}
+            {openThreadUids.has(story.uid) && (
+              <FeedCommentsThread itemUid={story.uid} kind="news" source={analyticsSource} />
+            )}
           </div>
         );
       })}

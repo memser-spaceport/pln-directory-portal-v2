@@ -1,0 +1,36 @@
+/* Same flattened forum-LikesButton styling as NewsCard's .upvote (copied, not
+   imported, per the house rule for crossing component boundaries) so Like and
+   Comment sit in the actions row as one family. Brand blue while the inline
+   thread is open. */
+.comment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  appearance: none;
+  border: none;
+  background: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  // Inherit only the family — NOT the `font` shorthand, which would reset
+  // font-size and override the forum-matching 12px below.
+  font-family: inherit;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+  // Equal-width digits: a count bump never nudges the neighboring actions.
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &:hover {
+    filter: brightness(0.8);
+  }
+}
+
+.commentOpen {
+  color: #156ff7;
+}

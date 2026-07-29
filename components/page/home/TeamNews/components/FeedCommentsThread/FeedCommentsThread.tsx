@@ -2,8 +2,10 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { MentionDropdown } from '@/components/ui/MentionDropdown';
+import { useFeedCommentMentions } from '@/components/page/home/TeamNews/hooks/useFeedCommentMentions';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -60,6 +62,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
   const [draft, setDraft] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [confirmingUid, setConfirmingUid] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data } = useFeedComments(itemUid, { enabled: true });
   const addComment = useAddFeedComment(itemUid);
@@ -80,6 +83,25 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
     );
   };
 
+  const handleDraftChange = (value: string) => {
+    setDraft(value);
+    // A stale "couldn't post" must not sit above a fresh draft.
+    if (addComment.isError) addComment.reset();
+  };
+
+  const {
+    isOpen: mentionsOpen,
+    dropdownRef: mentionDropdownRef,
+    dropdownProps: mentionDropdownProps,
+    inputHandlers: mentionInputHandlers,
+    clearMentions,
+  } = useFeedCommentMentions({
+    inputRef,
+    value: draft,
+    onValueChange: handleDraftChange,
+    maxLength: FEED_COMMENT_MAX_LENGTH,
+  });
+
   const submit = () => {
     const text = draft.trim();
     if (!text || addComment.isPending) return;
@@ -90,16 +112,11 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
           // UI-local follow-ups only — the cache writes live in the hook's
           // options callbacks, which survive this component unmounting.
           setDraft('');
+          clearMentions();
           analytics.onFeedCommentSubmitted(itemUid, kind, source);
         },
       },
     );
-  };
-
-  const handleDraftChange = (value: string) => {
-    setDraft(value);
-    // A stale "couldn't post" must not sit above a fresh draft.
-    if (addComment.isError) addComment.reset();
   };
 
   const goToLogin = () => {
@@ -128,11 +145,15 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
             }}
           >
             <input
+              ref={inputRef}
               className={s.forumField}
               value={draft}
               maxLength={FEED_COMMENT_MAX_LENGTH}
               placeholder="Write your comment here. Use @ to mention someone."
-              onChange={(e) => handleDraftChange(e.target.value)}
+              onChange={mentionInputHandlers.onChange}
+              onSelect={mentionInputHandlers.onSelect}
+              onKeyDown={mentionInputHandlers.onKeyDown}
+              onBlur={mentionInputHandlers.onBlur}
             />
             <button
               type="submit"
@@ -146,6 +167,15 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
               Comment
             </button>
           </form>
+          {/* preventDefault on mousedown stops the focus transfer, so option
+              clicks never blur the input — no blur/click race, no timers.
+              Touch scrolling is unaffected (taps fire mousedown after
+              touchend; scroll gestures never fire it). */}
+          {mentionsOpen && (
+            <div onMouseDown={(e) => e.preventDefault()}>
+              <MentionDropdown ref={mentionDropdownRef} {...mentionDropdownProps} />
+            </div>
+          )}
           {addComment.isError && (
             <p className={s.error} role="alert">
               Couldn&apos;t post your comment — try again.

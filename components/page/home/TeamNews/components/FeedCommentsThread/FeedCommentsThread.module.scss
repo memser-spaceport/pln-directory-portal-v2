@@ -17,6 +17,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* Positioned ancestor for the absolutely-positioned mention dropdown,
+     which anchors to the input's offset box. */
+  position: relative;
 }
 
 /* Copied from forum CommentsInputDesktop.module.scss `.inline` (button height

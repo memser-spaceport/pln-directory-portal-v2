@@ -31,6 +31,28 @@ export type WarmIntrosV2ConnectorSummary = {
   imageUrl?: string | null;
 };
 
+export type WarmPathCanRefer = 'yes' | 'no';
+
+export type WarmPathMyFeedback = {
+  canRefer: WarmPathCanRefer | null;
+  note: string | null;
+  updatedAt: string;
+};
+
+export type WarmPathFeedbackSummaryRecent = {
+  actorEmail: string | null;
+  canRefer: WarmPathCanRefer | null;
+  note: string | null;
+  updatedAt: string;
+};
+
+export type WarmPathFeedbackSummary = {
+  yesCount: number;
+  noCount: number;
+  noteCount: number;
+  recent: WarmPathFeedbackSummaryRecent[];
+};
+
 export type WarmIntrosV2PathListItem = {
   uid: string;
   targetProfileUid: string;
@@ -50,6 +72,50 @@ export type WarmIntrosV2PathListItem = {
   investor: WarmIntrosV2InvestorSummary;
   bestConnector: WarmIntrosV2ConnectorSummary | null;
   pathSummary: { explanation: string | null; alternateCount: number };
+  /** Caller’s own feedback keyed by connectorProfileUid (detail enrich). */
+  myFeedbackByConnector?: Record<string, WarmPathMyFeedback>;
+  /** Editors only — aggregated answers keyed by connectorProfileUid. */
+  feedbackSummaryByConnector?: Record<string, WarmPathFeedbackSummary>;
+};
+
+export type UpsertWarmPathFeedbackBody = {
+  connectorProfileUid: string;
+  canRefer?: WarmPathCanRefer | null;
+  note?: string | null;
+};
+
+export type WarmPathFeedbackRow = {
+  uid: string;
+  warmPathUid: string;
+  targetProfileUid: string;
+  targetSet: string;
+  connectorProfileUid: string;
+  canRefer: WarmPathCanRefer | null;
+  note: string | null;
+  actorUid: string | null;
+  actorEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+  investor: WarmIntrosV2InvestorSummary;
+  connector: WarmIntrosV2ConnectorSummary | null;
+  proximityCode: string | null;
+  scorePercent: number | null;
+  scoreBand?: ScoreBand | null;
+  isBestConnector: boolean;
+};
+
+export type WarmPathFeedbackQueueParams = {
+  targetProfileUid?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+};
+
+export type WarmPathFeedbackQueueResponse = {
+  items: WarmPathFeedbackRow[];
+  total: number;
+  limit: number;
+  offset: number;
 };
 
 export type WarmIntrosV2ListParams = {

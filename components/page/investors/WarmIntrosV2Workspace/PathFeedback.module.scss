@@ -1,0 +1,189 @@
+/**
+ * Per-path referral answer + feedback strip that sits inside the grey warm-path
+ * card (`.pathItem` in WarmIntrosV2InvestorDrawer.module.scss), plus the form
+ * pieces used inside the feedback modal.
+ *
+ * This is NEW UI, not a transcription — so every color is a
+ * `var(--token, #fallback)` pair (prototypes/CLAUDE.md §3–4) and sizes stay on
+ * the PL type scale (12/18 and 14/20).
+ */
+
+/* ---------------------------------------------------------------- card strip */
+
+/**
+ * One quiet row at the foot of the card, divided from the path content above.
+ * The referral answer sits left (it's the action), feedback sits right (it's
+ * the escape hatch) — so the eye lands on the thing people actually do.
+ */
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.stripLeft,
+.stripRight {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* At rest the left half holds nothing. Collapse it, and keep the link cluster
+   pinned right either way — otherwise `Give feedback` jumps across the card the
+   moment the question expands. */
+.stripLeft:empty {
+  display: none;
+}
+
+.stripRight {
+  margin-left: auto;
+}
+
+.linkDivider {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The question, once the "Can you refer?" button has opened it. Naming the
+   connector is what makes Yes/No answerable — "can you refer" alone doesn't
+   say through whom. */
+.askLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.askName {
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* ------------------------------------------------------------ answered state */
+
+/**
+ * Answering replaces the question rather than resetting it — otherwise people
+ * re-answer the same path and the signal arrives duplicated. Undo is the way
+ * back.
+ */
+.answered {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+.answeredNo {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.checkMark {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+/* ------------------------------------------------------------- modal content */
+
+/**
+ * Read-only restatement of which path is being reported, so nobody has to
+ * describe it in prose and no report lands ambiguous.
+ */
+.context {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f9fafb);
+}
+
+.contextMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/**
+ * The drawer's person chip is a button; here the chain only restates which path
+ * is being reported. Killing pointer events is enough to drop the affordance —
+ * it takes the hover state with it, so production's chip colors stay untouched.
+ */
+.chipStatic {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- admin summary */
+
+.adminSummary {
+  margin-top: 8px;
+}
+
+.adminSummaryToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.adminSummaryCaret {
+  font-size: 10px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.adminRecent {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 6px;
+  background: var(--background-neutral-subtle, #f9fafb);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.adminRecentItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.adminRecentWho {
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.adminRecentMeta {
+  color: var(--foreground-neutral-secondary, #455468);
+  word-break: break-word;
+}

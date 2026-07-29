@@ -12,6 +12,7 @@ import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLi
 import { useWarmIntrosV2Facets } from '@/services/investors/hooks/useWarmIntrosV2Facets';
 import { useWarmIntrosV2Paths } from '@/services/investors/hooks/useWarmIntrosV2Paths';
 import { listWarmIntrosV2Paths } from '@/services/investors/warm-intros-v2.service';
+import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import {
   WARM_INTROS_V2_ALL_TARGET_SET,
   WARM_INTROS_V2_CSV_EXPORT_LIMIT,
@@ -26,6 +27,7 @@ import {
 } from '@/services/investors/warm-intros-v2.types';
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
+import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
 import { WarmIntrosV2GlossaryDrawer } from './WarmIntrosV2GlossaryDrawer';
 import { WarmIntrosV2InvestorDrawer } from './WarmIntrosV2InvestorDrawer';
 import { WarmIntrosV2Table } from './WarmIntrosV2Table';
@@ -42,6 +44,7 @@ const SEARCH_DEBOUNCE_MS = 300;
  * Warm Intros v2 workspace: filter bar + polished table + glossary + CSV + investor drawer + MasterProfile modal.
  */
 export function WarmIntrosV2Workspace({ onCountChange }: Props) {
+  const access = useInvestorsAccess();
   const analytics = useInvestorsAnalytics();
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
@@ -54,6 +57,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
   const [searchInput, setSearchInput] = useState(filters.wi2_q);
   const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [feedbackQueueOpen, setFeedbackQueueOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedProfileUid, setSelectedProfileUid] = useState<string | null>(null);
   const [drawerRow, setDrawerRow] = useState<WarmIntrosV2PathListItem | null>(null);
@@ -198,6 +202,44 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     setDrawerRow(row);
   }, []);
 
+  const onOpenInvestorFromFeedback = useCallback(
+    (targetProfileUid: string) => {
+      const existing = paths.find((p) => p.targetProfileUid === targetProfileUid);
+      if (existing) {
+        setDrawerRow(existing);
+        return;
+      }
+      setDrawerRow({
+        uid: `feedback-open-${targetProfileUid}`,
+        targetProfileUid,
+        targetSet: apiTargetSet ?? WARM_INTROS_V2_DEFAULT_TARGET_SET,
+        rank: 1,
+        score: 0,
+        hopCount: 1,
+        hopChain: null,
+        bestConnectorProfileUid: null,
+        alternateConnectorProfileUids: [],
+        proximityCode: '',
+        caliber: null,
+        scorePercent: 0,
+        investor: {
+          profileUid: targetProfileUid,
+          personKey: '',
+          name: targetProfileUid,
+          email: null,
+          currentOrg: null,
+          currentTitle: null,
+          sectors: [],
+          affinityPersonId: null,
+          memberUid: null,
+        },
+        bestConnector: null,
+        pathSummary: { explanation: null, alternateCount: 0 },
+      });
+    },
+    [apiTargetSet, paths],
+  );
+
   const clearSearch = useCallback(() => {
     setSearchInput('');
     void setFilters({ wi2_q: null });
@@ -289,7 +331,12 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             />
           </div>
 
-          <div className={s.filterBarItem}>
+          <div className={clsx(s.filterBarItem, s.filterBarActions)}>
+            {access.canEdit ? (
+              <button type="button" className={s.exportBtn} onClick={() => setFeedbackQueueOpen(true)}>
+                Path feedback
+              </button>
+            ) : null}
             <button
               type="button"
               className={s.exportBtn}
@@ -335,12 +382,20 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
       <WarmIntrosV2GlossaryDrawer open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
 
+      <PathFeedbackQueuePanel
+        open={feedbackQueueOpen}
+        onClose={() => setFeedbackQueueOpen(false)}
+        canEdit={access.canEdit}
+        onOpenInvestor={onOpenInvestorFromFeedback}
+      />
+
       <WarmIntrosV2InvestorDrawer
         key={drawerRow?.uid ?? 'closed'}
         row={drawerRow}
         open={!!drawerRow}
         onClose={() => setDrawerRow(null)}
         onOpenMasterProfile={(uid) => setSelectedProfileUid(uid)}
+        canEdit={access.canEdit}
       />
 
       <MasterProfileModal

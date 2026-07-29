@@ -1,5 +1,5 @@
 import { useEffect, RefObject } from 'react';
-import { MentionDropdownRef } from '../MentionDropdown';
+import { MentionDropdownRef } from '@/components/ui/MentionDropdown';
 
 interface UseMentionKeyboardParams {
   isOpen: boolean;

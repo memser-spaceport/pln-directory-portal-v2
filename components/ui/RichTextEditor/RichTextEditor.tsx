@@ -17,7 +17,7 @@ import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
 import { useMentionDetection, useMentionKeyboard, useMentionClickHandler } from './hooks';
 
 import { registerMentionBlot } from './MentionBlot';
-import { MentionDropdown, MentionDropdownRef } from './MentionDropdown';
+import { MentionDropdown, MentionDropdownRef } from '@/components/ui/MentionDropdown';
 
 import s from './RichTextEditor.module.scss';
 

@@ -20,7 +20,7 @@
 .table {
   table-layout: fixed;
   width: 100%;
-  min-width: 960px;
+  min-width: 620px;
   border-collapse: separate;
   border-spacing: 0;
   font-family: 'Inter', sans-serif;
@@ -42,23 +42,26 @@
 }
 
 .colInvestor {
-  width: 28%;
-}
-
-.colTeam {
-  width: 22%;
-}
-
-.colProximity {
-  width: 16%;
+  width: 34%;
 }
 
 .colPath {
-  width: 34%;
+  width: 48%;
+}
+
+.colProximity {
+  width: 18%;
 }
 
 .investorText {
   min-width: 0;
+}
+
+.nameLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .row {
@@ -100,14 +103,6 @@
   font-size: 12px;
   color: #64748b;
   margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.teamCell {
-  font-weight: 500;
-  color: #0f172a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

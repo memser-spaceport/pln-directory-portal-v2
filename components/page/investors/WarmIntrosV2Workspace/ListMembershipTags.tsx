@@ -14,6 +14,8 @@ interface Props {
   listSlugs?: string[] | null;
   /** When memberships are empty, still show a chip for the path row's targetSet. */
   fallbackTargetSet?: string | null;
+  /** Sit beside the investor name (no top margin; lighter pill). */
+  inline?: boolean;
   className?: string;
 }
 
@@ -37,14 +39,14 @@ function pillClass(slug: WarmIntrosV2TargetSet): string | undefined {
 /**
  * Compact Neuro / Gold membership chips for Warm Intros v2 table + drawer.
  */
-export function ListMembershipTags({ listSlugs, fallbackTargetSet, className }: Props) {
+export function ListMembershipTags({ listSlugs, fallbackTargetSet, inline, className }: Props) {
   const slugs = resolveSlugs(listSlugs, fallbackTargetSet);
   if (slugs.length === 0) return null;
 
   return (
-    <div className={clsx(s.row, className)} aria-label="List memberships">
+    <div className={clsx(s.row, inline && s.inline, className)} aria-label="List memberships">
       {slugs.map((slug) => (
-        <span key={slug} className={clsx(s.pill, pillClass(slug))}>
+        <span key={slug} className={clsx(s.pill, inline && s.pillInline, pillClass(slug))}>
           {WARM_INTROS_V2_LIST_TAG_LABEL[slug]}
         </span>
       ))}

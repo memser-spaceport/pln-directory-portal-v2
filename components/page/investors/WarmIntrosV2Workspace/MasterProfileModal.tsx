@@ -377,6 +377,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
 function typePillClass(type: string): string | undefined {
   if (type === 'pl_internal') return s.typePl;
   if (type === 'investor') return s.typeInvestor;
+  if (type === 'co_investor') return s.typeCoInvestor;
   if (type === 'founder') return s.typeFounder;
   return undefined;
 }

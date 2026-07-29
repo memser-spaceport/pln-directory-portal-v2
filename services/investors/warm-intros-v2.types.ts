@@ -93,7 +93,7 @@ export type MasterProfileSourced<T> = {
   sources: MasterProfileSourceRef[];
 };
 
-export type MasterProfileType = 'pl_internal' | 'investor' | 'founder' | string;
+export type MasterProfileType = 'pl_internal' | 'investor' | 'co_investor' | 'founder' | string;
 
 export type MasterProfileListMembership = {
   listId?: string;
@@ -163,8 +163,8 @@ export const WARM_INTROS_V2_TARGET_SET_LABEL: Record<WarmIntrosV2SelectorValue, 
 
 /** Compact chip labels for table / drawer density. */
 export const WARM_INTROS_V2_LIST_TAG_LABEL: Record<WarmIntrosV2TargetSet, string> = {
-  'neuro-fund-i': 'Neuro',
-  'gold-co-investors': 'Gold',
+  'neuro-fund-i': 'Neuro Fund I',
+  'gold-co-investors': 'Gold PLC',
 };
 
 /** v1 InvestorList.slug → Warm Intros v2 targetSet. */

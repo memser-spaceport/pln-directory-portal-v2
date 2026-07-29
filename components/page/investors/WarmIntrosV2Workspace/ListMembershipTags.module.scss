@@ -5,6 +5,10 @@
   margin-top: 4px;
 }
 
+.inline {
+  margin-top: 0;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -17,6 +21,10 @@
   background: #f3f4f6;
   color: #455468;
   border: 1px solid #e5e7eb;
+}
+
+.pillInline {
+  font-weight: 500;
 }
 
 .listNeuro {

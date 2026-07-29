@@ -325,6 +325,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             onOpenProfileUid={onOpenProfileUid}
             onViewAllPaths={onViewAllPaths}
             onRowClick={onRowClick}
+            showListName={selectorValue === WARM_INTROS_V2_ALL_TARGET_SET}
             scrollRootRef={scrollRootRef}
             sentinelRef={sentinelRef}
             footer={isFetchingNextPage ? <div className={s.sentinelLoader}>Loading more…</div> : null}

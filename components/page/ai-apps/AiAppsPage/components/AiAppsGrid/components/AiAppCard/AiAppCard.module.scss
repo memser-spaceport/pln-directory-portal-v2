@@ -101,6 +101,16 @@
   }
 }
 
+// Rolled back but still up. Amber, not red: the app works, the change just
+// didn't ship. Red here would read as an outage that isn't happening.
+.failStripWarning {
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+
+  .failStripLabel {
+    color: var(--foreground-warning-primary, #b45309);
+  }
+}
+
 .seeLogsButton {
   padding: 0;
   border: none;
@@ -120,6 +130,33 @@
 // ⋯ menu drops by (28 + 16 - 24 + 26) to stay centered on the name line.
 .rootWithStrip .actionSlot {
   top: 46px;
+}
+
+// Nothing is serving — the card reads as inert: muted surface, dimmed text,
+// grayscale avatar, no lift on hover. The strip, ⋯ menu, and App Details
+// button deliberately keep full contrast (they're the actionable parts).
+.rootFailed {
+  background-color: #fbfcfd;
+  border-color: rgba(27, 56, 96, 0.1);
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: none;
+  }
+
+  .name,
+  .description,
+  .creatorTitle,
+  .creatorLink,
+  .deployed {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+
+  .avatar {
+    filter: grayscale(1);
+    opacity: 0.7;
+  }
 }
 
 // Reserve room for the creator's ⋯ menu so long names ellipsize instead of

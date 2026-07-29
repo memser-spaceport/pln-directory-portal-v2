@@ -11,6 +11,7 @@ import { AiApp, AiAppLogEvent, AiAppLogStream } from '@/services/ai-apps/ai-apps
 import {
   deriveLogLevel,
   formatLogTimestamp,
+  initialLogStream,
   stripCriLogPrefix,
   stripLogControlSequences,
 } from '@/services/ai-apps/ai-apps-logs.utils';
@@ -97,12 +98,10 @@ function prepareLines(events: AiAppLogEvent[] | null): PreparedLine[] {
 export function DeploymentLogsModal({ app, onClose }: Props) {
   const analytics = useAiAppsAnalytics();
 
-  // Mount-time default: a failed or in-flight deploy is a build-log story;
-  // a healthy app's interesting logs are runtime. Never switched by effects —
-  // the tab must not move under the reader when a status poll lands.
-  const [stream, setStream] = useState<AiAppLogStream>(() =>
-    app.status === 'ERROR' || app.status === 'DEPLOYING' ? 'build' : 'runtime',
-  );
+  // Mount-time default (see initialLogStream): a failed deploy opens on the
+  // failing stream, in-flight on build, healthy on runtime. Never switched by
+  // effects — the tab must not move under the reader when a status poll lands.
+  const [stream, setStream] = useState<AiAppLogStream>(() => initialLogStream(app));
   const [query, setQuery] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const [isRefreshing, setIsRefreshing] = useState(false);

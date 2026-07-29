@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon } from '@/components/icons';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { AiApp, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { AiApp, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
 
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
@@ -44,15 +44,19 @@ export function AiAppCard(props: Props) {
   };
 
   const isDraft = app.status === 'DRAFT';
-  const hasDeployFailed = app.status === 'ERROR';
   const isDeploying = app.status === 'DEPLOYING';
+  const failureKind = deployFailureKind(app);
 
   const showManageMenu = !!canManage && !!onEdit && !!onDeployment && !!onDelete;
   const showDetailsButton = !!onViewDetails && hasPrd(app);
-  // The strip took over the old inline "Deploy failed" badge's job — everyone
-  // sees it; only managers get its "See logs" link.
-  const showFailureStrip = hasDeployFailed;
-  const showSeeLogs = showFailureStrip && !!canManage && !!onLogs;
+  // Failure UI is manager-only: a visitor's card must be indistinguishable from
+  // a healthy one, whatever the deploy state. A rolled-back app ('warning')
+  // still works, and even the unavailable one ('danger') reveals its state only
+  // to people who can act on it.
+  const showFailureStrip = failureKind !== null && !!canManage;
+  const showSeeLogs = showFailureStrip && !!onLogs;
+  // Dimming and "Never deployed" are the danger treatment — manager-only too.
+  const showDanger = failureKind === 'danger' && !!canManage;
 
   const body = (
     <>
@@ -70,8 +74,10 @@ export function AiAppCard(props: Props) {
   // link-inside-link is invalid HTML and breaks keyboard/SR semantics. It sits
   // above the stretched-link overlay like .actionSlot does.
   const failureStrip = showFailureStrip && (
-    <div className={s.failStrip}>
-      <span className={s.failStripLabel}>Deploy failed</span>
+    <div className={clsx(s.failStrip, { [s.failStripWarning]: failureKind === 'warning' })}>
+      <span className={s.failStripLabel}>
+        {failureKind === 'warning' ? "Latest deploy didn't ship" : 'Deploy failed'}
+      </span>
       {showSeeLogs && (
         <button type="button" className={s.seeLogsButton} onClick={() => onLogs('failure-strip')}>
           See logs
@@ -104,7 +110,8 @@ export function AiAppCard(props: Props) {
             </Link>
           </p>
           <p className={s.deployed}>
-            {isDraft ? 'Draft created' : 'Deployed'} {new Date(app.createdAt).toLocaleDateString()}
+            {isDraft ? 'Draft created' : showDanger ? 'Never deployed' : 'Deployed'}{' '}
+            {new Date(app.createdAt).toLocaleDateString()}
           </p>
         </div>
       </div>
@@ -142,7 +149,7 @@ export function AiAppCard(props: Props) {
 
   if (onSelect) {
     return (
-      <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip })}>
+      <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip, [s.rootFailed]: showDanger })}>
         {failureStrip}
         <button
           type="button"
@@ -161,7 +168,7 @@ export function AiAppCard(props: Props) {
   }
 
   return (
-    <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip })}>
+    <article className={clsx(s.root, { [s.rootWithStrip]: showFailureStrip, [s.rootFailed]: showDanger })}>
       {failureStrip}
       {/* stretchedLink expands the hit area to the whole card (the card can't BE
           the link — the footer holds a nested author link). */}

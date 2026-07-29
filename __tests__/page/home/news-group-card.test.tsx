@@ -136,7 +136,7 @@ describe('NewsGroupCard', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Follow Acme' }));
     expect(onFollowToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('renders a story with its summary when present, and omits the paragraph when absent', () => {
@@ -252,7 +252,7 @@ describe('NewsGroupCard', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('calls onUpvoteToggle with the clicked story when authenticated, without opening the story', () => {

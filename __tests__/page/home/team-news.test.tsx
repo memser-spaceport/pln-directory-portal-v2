@@ -976,7 +976,7 @@ describe('TeamNews', () => {
 
       fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login');
+      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login', { scroll: false });
     });
 
     it('a valid deep link opens the modal on first render and reports the deep-link open once', () => {

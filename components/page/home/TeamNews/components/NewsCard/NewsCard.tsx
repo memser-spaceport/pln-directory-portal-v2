@@ -67,7 +67,7 @@ export const NewsCard = ({
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
@@ -75,7 +75,7 @@ export const NewsCard = ({
 
   const handleUpvoteToggle = () => {
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle?.(item);

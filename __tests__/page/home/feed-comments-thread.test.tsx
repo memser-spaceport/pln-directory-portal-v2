@@ -218,6 +218,6 @@ describe('FeedCommentsThread — signed-out gate', () => {
     expect(screen.getByText('Readable while signed out')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));
-    expect(routerPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(routerPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 });

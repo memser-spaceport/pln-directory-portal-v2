@@ -171,7 +171,7 @@ describe('NewsDetailModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Like (4)' }));
 
-    expect(mockRouterPush).toHaveBeenCalledWith('/home?news=story-1#login');
+    expect(mockRouterPush).toHaveBeenCalledWith('/home?news=story-1#login', { scroll: false });
     expect(onUpvoteToggle).not.toHaveBeenCalled();
   });
 

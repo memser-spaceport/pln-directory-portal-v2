@@ -6,6 +6,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ListMembershipTags } from './ListMembershipTags';
 import { PathProfileChip } from './PathProfileChip';
+import { parseWarmPathHopChain } from './parseWarmPathHopChain';
 import { ScorePercentPill } from './ScorePercentPill';
 import s from './WarmIntrosV2Table.module.scss';
 
@@ -118,29 +119,66 @@ export function WarmIntrosV2Table({
                 <td className={s.td}>
                   <div className={s.pathCell}>
                     <div className={s.pathChain}>
-                      {connector ? (
-                        <PathProfileChip
-                          name={connector.name}
-                          profileUid={connector.profileUid}
-                          imageUrl={
-                            connector.memberUid
-                              ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                              : connector.imageUrl
-                          }
-                          onOpen={onOpenProfileUid}
-                        />
-                      ) : (
-                        <span className={s.muted}>—</span>
-                      )}
-                      {connector && investor ? <span className={s.pathArrow}>→</span> : null}
-                      {investor ? (
-                        <PathProfileChip
-                          name={investor.name}
-                          profileUid={investor.profileUid}
-                          imageUrl={avatarSrc}
-                          onOpen={onOpenProfileUid}
-                        />
-                      ) : null}
+                      {(() => {
+                        const chain = parseWarmPathHopChain(row.hopChain);
+                        const hops = chain?.hops?.length ? chain.hops : null;
+                        if (hops) {
+                          return hops.map((hop, i) => {
+                            const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+                            const hopImage = isOrg
+                              ? null
+                              : hop.role === 'investor'
+                                ? avatarSrc
+                                : hop.memberUid
+                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hop.name)
+                                  : hop.imageUrl ??
+                                    (connector?.profileUid === hop.profileUid
+                                      ? connector.memberUid
+                                        ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                        : connector.imageUrl
+                                      : null);
+                            return (
+                              <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.pathHop}>
+                                {i > 0 ? <span className={s.pathArrow}>→</span> : null}
+                                <PathProfileChip
+                                  name={hop.name}
+                                  profileUid={hop.profileUid}
+                                  imageUrl={hopImage}
+                                  onOpen={onOpenProfileUid}
+                                  nonInteractive={isOrg}
+                                />
+                              </span>
+                            );
+                          });
+                        }
+                        return (
+                          <>
+                            {connector ? (
+                              <PathProfileChip
+                                name={connector.name}
+                                profileUid={connector.profileUid}
+                                imageUrl={
+                                  connector.memberUid
+                                    ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                    : connector.imageUrl
+                                }
+                                onOpen={onOpenProfileUid}
+                              />
+                            ) : (
+                              <span className={s.muted}>—</span>
+                            )}
+                            {connector && investor ? <span className={s.pathArrow}>→</span> : null}
+                            {investor ? (
+                              <PathProfileChip
+                                name={investor.name}
+                                profileUid={investor.profileUid}
+                                imageUrl={avatarSrc}
+                                onOpen={onOpenProfileUid}
+                              />
+                            ) : null}
+                          </>
+                        );
+                      })()}
                     </div>
                     <button
                       type="button"

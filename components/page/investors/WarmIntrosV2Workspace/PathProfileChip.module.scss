@@ -20,6 +20,16 @@
   }
 }
 
+.chipStatic {
+  cursor: default;
+
+  &:hover {
+    background: #fff;
+    border-color: #e5e7eb;
+    color: #0a0c11;
+  }
+}
+
 .avatar,
 .avatarImg {
   display: inline-flex;

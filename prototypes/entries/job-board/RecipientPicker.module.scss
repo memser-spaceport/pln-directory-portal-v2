@@ -1,0 +1,172 @@
+// Only the parts react-select's `styles` object can't express: the two-line option
+// row, the group heading, and the chip / "add email" contents.
+
+// The recipient list scrolls once it passes three rows. A default scrollbar lands
+// a chunky grey bar against the chips and the clear control; this keeps the track
+// invisible and the thumb thin, in the same neutral as the field's own border.
+.valueContainer {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24)) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    border-radius: 9999px;
+    // Inset the thumb so it reads as a hairline rather than a full-width bar.
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+.groupHeading {
+  padding: 8px 8px 4px;
+  margin: 0;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// --- Option rows --------------------------------------------------------------
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.optionAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.optionDescription {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// --- "Add someone@example.com" row --------------------------------------------
+
+.createRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+// A mail glyph in an avatar-sized disc keeps the row on the same rhythm as the
+// member rows above it, so the menu doesn't jump when the list switches.
+.mailBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.createText {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  strong {
+    font-weight: 500;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// --- Chips --------------------------------------------------------------------
+
+// Transcribed from production's only person-name chip — MemberMultiSelect's
+// `.tag` / `.tagAvatar` (20px disc, 2px gap). The chip's border, radius, padding
+// and shadow come from the `multiValue` style object, which matches it exactly.
+.chip {
+  display: inline-flex;
+  align-items: center;
+  // 6px, not production's effective 4px: a 20px avatar butted against a 14px name
+  // reads as one smudged block. Trailing space separates the name from the ✕.
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.chipAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// Same idle/hover tones as FormSelect's `.clearIndicator`, so the chip ✕ and the
+// field's clear-all ✕ behave identically.
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #455468;
+  }
+}
+
+// External addresses have no avatar, so a mail glyph holds the same 20px slot.
+.chipMail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 20px;
+  height: 20px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

@@ -730,7 +730,13 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
       {activeNewsItem && (
-        <NewsDetailModal item={activeNewsItem} onClose={closeNews} onUpvoteToggle={handleUpvoteToggle} />
+        <NewsDetailModal
+          item={activeNewsItem}
+          onClose={closeNews}
+          onUpvoteToggle={handleUpvoteToggle}
+          isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
+          onFollowToggle={handleFollowToggle}
+        />
       )}
       {activeForumPost && (
         <ForumPostModal post={activeForumPost} onClose={closePost} onLikeToggle={handleForumPostLikeToggle} />

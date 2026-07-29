@@ -13,9 +13,39 @@
 .modal.modal {
   max-width: 480px;
 
+  // Fixed height, so the card is the same size empty as it is with six recipients
+  // and a full draft — adding people scrolls the field, it never moves the footer.
+  // dvh (not vh) so mobile browser chrome collapsing doesn't clip the actions; the
+  // subtraction covers the overlay's own padding at every breakpoint.
+  height: min(720px, calc(100dvh - 48px));
+  overflow: hidden;
+
   @include media.mobile-only {
     max-width: 100%;
+    height: min(720px, calc(100dvh - 32px));
   }
+}
+
+// Takes the card's leftover height so `.fields` has something to scroll within.
+.form {
+  flex: 1;
+  min-height: 0;
+}
+
+// Only the fields scroll — the envelope, title, description, privacy note and
+// action buttons stay put.
+.fields {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  // Room for focus rings against the scroll edge.
+  padding: 2px;
+  margin: -2px;
 }
 
 // Sits directly above the actions, where the reference has nothing — our version

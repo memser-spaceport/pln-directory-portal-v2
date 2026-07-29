@@ -1,6 +1,30 @@
 // Only the parts react-select's `styles` object can't express: the two-line option
 // row, the group heading, and the chip / "add email" contents.
 
+// The recipient list scrolls once it passes three rows. A default scrollbar lands
+// a chunky grey bar against the chips and the clear control; this keeps the track
+// invisible and the thumb thin, in the same neutral as the field's own border.
+.valueContainer {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24)) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    border-radius: 9999px;
+    // Inset the thumb so it reads as a hairline rather than a full-width bar.
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
 .groupHeading {
   padding: 8px 8px 4px;
   margin: 0;

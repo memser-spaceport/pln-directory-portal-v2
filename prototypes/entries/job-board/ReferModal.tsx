@@ -219,72 +219,74 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
         ) : (
           <FormProvider {...methods}>
             <form
-              className={intro.form}
+              className={`${intro.form} ${s.form}`}
               onSubmit={(e) => {
                 e.preventDefault();
                 if (canSend) setSent(true);
               }}
             >
-              {/* The chosen value carries the same avatar + role line as the menu row, so no
+              <div className={s.fields}>
+                {/* The chosen value carries the same avatar + role line as the menu row, so no
                     second "who you picked" card is needed under it. */}
-              <FormSelect
-                name="referee"
-                label="Who are you referring?"
-                placeholder="Search members by name..."
-                options={refereeOptions}
-                isClearable
-                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                renderOption={({ option, label, description }) => (
-                  <div className={s.optionRow}>
-                    <MemberAvatar name={option.label} size={32} />
-                    <div className={s.optionText}>
-                      {label}
-                      {description}
+                <FormSelect
+                  name="referee"
+                  label="Who are you referring?"
+                  placeholder="Search members by name..."
+                  options={refereeOptions}
+                  isClearable
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  renderOption={({ option, label, description }) => (
+                    <div className={s.optionRow}>
+                      <MemberAvatar name={option.label} size={32} />
+                      <div className={s.optionText}>
+                        {label}
+                        {description}
+                      </div>
                     </div>
-                  </div>
-                )}
-                formatOptionLabel={(option) => (
-                  <span className={s.valueRow}>
-                    <MemberAvatar name={option.label} size={24} />
-                    <span className={s.valueName}>{option.label}</span>
-                    {option.description && <span className={s.valueMeta}>{option.description}</span>}
-                  </span>
-                )}
-              />
-
-              <RecipientPicker
-                label="Send to"
-                teamMembers={teamMembers}
-                networkMembers={networkMembers}
-                teamName={teamName}
-                value={recipients}
-                onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
-                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-              />
-
-              <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
-                <div className={s.templateLabelRow}>
-                  <span className={s.templateLabel}>Your note</span>
-                  {messageEdited && selectedMember && (
-                    <button type="button" className={s.resetLink} onClick={resetTemplate}>
-                      Reset to template
-                    </button>
                   )}
-                </div>
-                <FormTextArea
-                  name="message"
-                  placeholder={
-                    selectedMember
-                      ? 'Tell them why this is a fit...'
-                      : 'Pick someone above and we’ll draft the note for you.'
-                  }
-                  disabled={!selectedMember}
-                  // 6, not the 8 the wide gantry shell allowed — the reference card is
-                  // narrower, so an empty 8-row box read as a hole in the layout.
-                  rows={6}
-                  maxLength={MESSAGE_MAX_LENGTH}
-                  showCharCount
+                  formatOptionLabel={(option) => (
+                    <span className={s.valueRow}>
+                      <MemberAvatar name={option.label} size={24} />
+                      <span className={s.valueName}>{option.label}</span>
+                      {option.description && <span className={s.valueMeta}>{option.description}</span>}
+                    </span>
+                  )}
                 />
+
+                <RecipientPicker
+                  label="Send to"
+                  teamMembers={teamMembers}
+                  networkMembers={networkMembers}
+                  teamName={teamName}
+                  value={recipients}
+                  onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                />
+
+                <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
+                  <div className={s.templateLabelRow}>
+                    <span className={s.templateLabel}>Your note</span>
+                    {messageEdited && selectedMember && (
+                      <button type="button" className={s.resetLink} onClick={resetTemplate}>
+                        Reset to template
+                      </button>
+                    )}
+                  </div>
+                  <FormTextArea
+                    name="message"
+                    placeholder={
+                      selectedMember
+                        ? 'Tell them why this is a fit...'
+                        : 'Pick someone above and we’ll draft the note for you.'
+                    }
+                    disabled={!selectedMember}
+                    // 6, not the 8 the wide gantry shell allowed — the reference card is
+                    // narrower, so an empty 8-row box read as a hole in the layout.
+                    rows={6}
+                    maxLength={MESSAGE_MAX_LENGTH}
+                    showCharCount
+                  />
+                </div>
               </div>
 
               <p className={s.privacyNote}>

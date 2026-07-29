@@ -195,6 +195,93 @@
   color: #64748b;
 }
 
+/* Creator's shortcut from the failed-deploy card straight to the failing log. */
+.setupSeeLogs {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Non-manager view of a never-deployed app — neutral framing, no failure details. */
+.notDeployedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.notDeployedTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #0f172a;
+}
+
+/* Slim manager-only notice above the (working) previous revision's frame.
+   Amber, not red: the app below is serving — red would read as an outage. */
+.warningBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+  border-bottom: 1px solid rgba(180, 83, 9, 0.15);
+
+  @include media.tablet-landscape {
+    padding: 6px 24px;
+  }
+}
+
+.warningBannerLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-warning-primary, #b45309);
+
+  /* Same severity dot as the card strip — severity isn't carried by color alone. */
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.warningBannerButton {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .topBar {
   display: flex;
   align-items: center;

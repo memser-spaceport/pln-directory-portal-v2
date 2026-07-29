@@ -1,3 +1,7 @@
+// Type-only import: the service imports this module's functions at runtime,
+// so a value-level import back would create a cycle.
+import type { AiApp, AiAppLogStream } from './ai-apps.service';
+
 export type AiAppLogLevel = 'error' | 'warn';
 
 /**
@@ -84,4 +88,17 @@ const CRI_PREFIX_PATTERN = /^\d{4}-\d{2}-\d{2}T\S+ (stdout|stderr) [FP] /;
 
 export function stripCriLogPrefix(message: string): string {
   return message.replace(CRI_PREFIX_PATTERN, '');
+}
+
+/**
+ * Mount-time default tab for the logs modal. A failed deploy opens on the
+ * stream that actually holds the failure (`deployment.failureStream`) so the
+ * reader doesn't land on a clean build log and conclude nothing is wrong;
+ * failureStream is honored ONLY while status is ERROR — a stale value on a
+ * now-healthy app must not hijack the default. In-flight deploys are a
+ * build-log story; a healthy app's interesting logs are runtime.
+ */
+export function initialLogStream(app: Pick<AiApp, 'status' | 'deployment'>): AiAppLogStream {
+  if (app.status === 'ERROR') return app.deployment?.failureStream ?? 'build';
+  return app.status === 'DEPLOYING' ? 'build' : 'runtime';
 }

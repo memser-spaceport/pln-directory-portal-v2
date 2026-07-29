@@ -1,10 +1,33 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { logTimestampSortValue } from '@/services/ai-apps/ai-apps-logs.utils';
+import { AI_APPS_DEPLOYMENT_MOCK } from '@/utils/feature-flags';
 
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
 /** Keep in sync with the status set the web-api emits (LAB-2101). */
 export type AiAppStatus = 'DRAFT' | 'DEPLOYING' | 'READY' | 'ERROR';
+
+/**
+ * What is actually serving traffic — independent of whether the last deploy
+ * succeeded. 'latest' = the current build is live; 'previous' = the last deploy
+ * failed and rolled back, but an older revision is still up (the app WORKS;
+ * only the creator needs to know their change didn't ship); 'none' = nothing
+ * has ever shipped, the app is genuinely unavailable.
+ */
+export type AiAppServing = 'latest' | 'previous' | 'none';
+
+/** Deploy-outcome detail the web-api will emit alongside `status` (backend contract pending — LAB-2101 family). */
+export interface AiAppDeploymentInfo {
+  serving: AiAppServing;
+  /**
+   * Contract-only in v1 — not rendered anywhere; carried for the backend ticket.
+   * Server must only populate this for managers; never render it to
+   * non-managers even if present.
+   */
+  failureReason?: string;
+  /** Which stream holds the failure. Meaningful only while status === 'ERROR'; consumers gate via deployFailureKind. */
+  failureStream?: AiAppLogStream;
+}
 
 export interface AiApp {
   uid: string;
@@ -19,6 +42,8 @@ export interface AiApp {
   host: string | null;
   port: number | null;
   deploymentId: string;
+  /** Absent until the backend ships the contract — absence means "no serving info", not "not serving". */
+  deployment?: AiAppDeploymentInfo;
   /** Env var NAMES the app needs at runtime (draft/secrets flow). */
   requiredEnvVars: string[];
   /** NAMES the member already stored values for (values never leave the backend). */
@@ -35,6 +60,33 @@ export interface AiApp {
     /** Profile photo URL; null when the member has no photo (UI falls back to a generated avatar). */
     image: string | null;
   };
+}
+
+export type AiAppFailureKind = 'warning' | 'danger' | 'legacy';
+
+/**
+ * Single source of truth for deploy-failure severity (like hasPrd for one-pagers):
+ * 'warning' = latest deploy failed but a previous revision still serves (amber,
+ * managers only); 'danger' = failed and nothing serves (red, dimmed card);
+ * 'legacy' = ERROR without usable serving info. The blanket rule lives HERE and
+ * only here: any serving value other than 'previous'/'none' (absent field,
+ * 'latest', unknown future values) is 'legacy' — treated like today's ERROR.
+ */
+export function deployFailureKind(app: Pick<AiApp, 'status' | 'deployment'>): AiAppFailureKind | null {
+  if (app.status !== 'ERROR') return null;
+  switch (app.deployment?.serving) {
+    case 'previous':
+      return 'warning';
+    case 'none':
+      return 'danger';
+    default:
+      return 'legacy';
+  }
+}
+
+/** Loaded lazily inside AI_APPS_DEPLOYMENT_MOCK branches only — production builds never reach it. */
+function deploymentMock() {
+  return import('./ai-apps-deployment.mock-data');
 }
 
 export interface DeployAiAppResult {
@@ -105,7 +157,11 @@ export async function fetchAiApps(): Promise<AiApp[]> {
     return [];
   }
 
-  return response.json();
+  const apps: AiApp[] = await response.json();
+  if (AI_APPS_DEPLOYMENT_MOCK) {
+    return (await deploymentMock()).decorateApps(apps);
+  }
+  return apps;
 }
 
 /**
@@ -132,7 +188,11 @@ export async function fetchAiApp(uid: string): Promise<FetchAiAppResult> {
     return { app: null, errorKind };
   }
 
-  return { app: await response.json(), errorKind: null };
+  const app: AiApp = await response.json();
+  if (AI_APPS_DEPLOYMENT_MOCK) {
+    return { app: (await deploymentMock()).decorateApp(app), errorKind: null };
+  }
+  return { app, errorKind: null };
 }
 
 /** The two log sources the platform produces: the image build (Kaniko) vs the running app pod. */

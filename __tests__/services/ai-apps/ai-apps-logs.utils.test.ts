@@ -1,10 +1,31 @@
 import {
   deriveLogLevel,
   formatLogTimestamp,
+  initialLogStream,
   logTimestampSortValue,
   stripCriLogPrefix,
   stripLogControlSequences,
 } from '@/services/ai-apps/ai-apps-logs.utils';
+import type { AiApp } from '@/services/ai-apps/ai-apps.service';
+
+describe('initialLogStream', () => {
+  const app = (status: AiApp['status'], deployment?: AiApp['deployment']) => ({ status, deployment });
+
+  it.each([
+    // [status, deployment, expected]
+    ['READY', undefined, 'runtime'],
+    ['DRAFT', undefined, 'runtime'],
+    ['DEPLOYING', undefined, 'build'],
+    ['ERROR', undefined, 'build'],
+    ['ERROR', { serving: 'previous', failureStream: 'runtime' }, 'runtime'],
+    ['ERROR', { serving: 'none', failureStream: 'build' }, 'build'],
+    // failureStream honored ONLY while ERROR — a stale value must not hijack the default.
+    ['READY', { serving: 'latest', failureStream: 'build' }, 'runtime'],
+    ['DEPLOYING', { serving: 'previous', failureStream: 'runtime' }, 'build'],
+  ] as const)('status=%s deployment=%j → %s', (status, deployment, expected) => {
+    expect(initialLogStream(app(status, deployment as AiApp['deployment']))).toBe(expected);
+  });
+});
 
 describe('deriveLogLevel', () => {
   it.each([

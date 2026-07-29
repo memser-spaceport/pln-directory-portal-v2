@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 import { AiAppsGrid } from '@/components/page/ai-apps/AiAppsPage/components/AiAppsGrid';
 import {
@@ -14,11 +14,28 @@ jest.mock('@/services/ai-apps/hooks/useAiApps', () => ({
   useAiApps: () => mockUseAiApps(),
 }));
 
+const mockLogsOpened = jest.fn();
 jest.mock('@/analytics/ai-apps.analytics', () => ({
   useAiAppsAnalytics: () => ({
     onCardClicked: jest.fn(),
     onAuthorClicked: jest.fn(),
+    onDeploymentLogsOpened: mockLogsOpened,
   }),
+}));
+
+const mockCanLikelyManage = jest.fn().mockReturnValue(false);
+jest.mock('@/services/ai-apps/hooks/useAiAppManageAccess', () => ({
+  useAiAppManageAccess: () => ({ canLikelyManage: mockCanLikelyManage, isDirectoryAdmin: false }),
+}));
+
+// The lazy modal registry pulls in next/dynamic; stub it so the logs modal's
+// open/close wiring can be asserted without loading the real modal tree.
+jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
+  EditAiAppModal: () => null,
+  DeploymentSettingsModal: () => null,
+  DeploymentLogsModal: ({ app }: { app: { uid: string } }) => <div data-testid="logs-modal">{app.uid}</div>,
+  DeleteAiAppDialog: () => null,
+  AiAppDetailsModal: () => null,
 }));
 
 const mockUseReducedMotion = jest.fn();
@@ -46,7 +63,7 @@ const app = (partial: Partial<AiApp> & Pick<AiApp, 'uid'>): AiApp => ({
   providedEnvVars: [],
   createdAt: '2026-07-01T00:00:00.000Z',
   updatedAt: '2026-07-01T00:00:00.000Z',
-  member: { uid: 'm-1', name: 'Ada Lovelace' },
+  member: { uid: 'm-1', name: 'Ada Lovelace', image: null },
   ...partial,
 });
 
@@ -56,6 +73,7 @@ describe('AiAppsGrid', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
+    mockCanLikelyManage.mockReturnValue(false);
   });
 
   it('shows a loading state and no cards while loading', () => {
@@ -100,6 +118,38 @@ describe('AiAppsGrid', () => {
     render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
 
     expect(screen.getByText('Alpha')).toBeInTheDocument();
+  });
+
+  it("failure strip 'See logs' opens the logs modal and reports source + variant", () => {
+    mockCanLikelyManage.mockReturnValue(true);
+    mockUseAiApps.mockReturnValue({
+      apps: [app({ uid: 'a1', name: 'Alpha', status: 'ERROR', deployment: { serving: 'previous' } })],
+      isLoading: false,
+      isError: false,
+    });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /see logs/i }));
+
+    expect(mockLogsOpened).toHaveBeenCalledWith({
+      appUid: 'a1',
+      appName: 'Alpha',
+      source: 'failure-strip',
+      variant: 'warning',
+    });
+    expect(screen.getByTestId('logs-modal')).toHaveTextContent('a1');
+  });
+
+  it('visitors get no failure strip on an ERROR app', () => {
+    mockUseAiApps.mockReturnValue({
+      apps: [app({ uid: 'a1', name: 'Alpha', status: 'ERROR', deployment: { serving: 'none' } })],
+      isLoading: false,
+      isError: false,
+    });
+    render(<AiAppsGrid onOpenCreateModal={onOpenCreateModal} />);
+
+    expect(screen.queryByText('Deploy failed')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /see logs/i })).not.toBeInTheDocument();
   });
 
   it('does not remount existing cards when the apps array reference changes but content is stable (background refetch)', () => {

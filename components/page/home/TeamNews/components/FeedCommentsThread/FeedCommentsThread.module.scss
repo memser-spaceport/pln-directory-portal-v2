@@ -13,6 +13,18 @@
   margin-top: 16px; /* + the body's 16px gap = 32px above the comment field */
 }
 
+/* Rendered @mention inside a comment — matches the rich editor's .ql-mention
+   look (brand color, medium weight, no underline). */
+.mentionLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .composer {
   display: flex;
   flex-direction: column;

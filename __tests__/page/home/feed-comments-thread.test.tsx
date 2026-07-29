@@ -86,7 +86,7 @@ describe('FeedCommentsThread — list', () => {
     mockThread([]);
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
-    expect(screen.getByPlaceholderText('Write your comment here…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Write your comment here. Use @ to mention someone.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
   });
 
@@ -105,7 +105,7 @@ describe('FeedCommentsThread — composer', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here. Use @ to mention someone.');
     fireEvent.change(input, { target: { value: '  Hello there  ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
@@ -123,7 +123,7 @@ describe('FeedCommentsThread — composer', () => {
     const mutation = mockMutation(useAddFeedCommentMock, { isPending: true, variables: { text: 'In flight' } });
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here. Use @ to mention someone.');
     fireEvent.change(input, { target: { value: 'Another one' } });
     fireEvent.submit(input.closest('form') as HTMLFormElement);
     expect(mutation.mutate).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe('FeedCommentsThread — composer', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t post your comment — try again.'.replace('’', "'"));
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here. Use @ to mention someone.');
     fireEvent.change(input, { target: { value: 'retry text' } });
     expect(mutation.reset).toHaveBeenCalled();
   });
@@ -214,7 +214,7 @@ describe('FeedCommentsThread — signed-out gate', () => {
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here. Use @ to mention someone.')).not.toBeInTheDocument();
     expect(screen.getByText('Readable while signed out')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));

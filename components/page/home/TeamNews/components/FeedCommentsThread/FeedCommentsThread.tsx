@@ -1,11 +1,14 @@
 'use client';
 
 import clsx from 'clsx';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 
 import { MentionDropdown } from '@/components/ui/MentionDropdown';
 import { useFeedCommentMentions } from '@/components/page/home/TeamNews/hooks/useFeedCommentMentions';
+import { deriveMentionOffsets } from '@/components/page/home/TeamNews/utils/deriveMentionOffsets';
+import { splitTextByMentions } from '@/components/page/home/TeamNews/utils/splitTextByMentions';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -20,6 +23,29 @@ import s from './FeedCommentsThread.module.scss';
 
 // Show at most this many comments before capping behind "View all N …".
 const VISIBLE = 2;
+
+/**
+ * Comment text as JSX segments: mentions (server-supplied, validated by
+ * splitTextByMentions — any malformed payload falls back to one plain
+ * segment) render as profile links; everything else as text nodes. Keys are
+ * segment start offsets, stable for a given immutable comment text.
+ */
+function renderCommentText(text: string, mentions: IFeedComment['mentions']) {
+  const segments = splitTextByMentions(text, mentions);
+  let offset = 0;
+  return segments.map((segment) => {
+    const key = offset;
+    offset += segment.text.length;
+    if (segment.kind === 'mention') {
+      return (
+        <Link key={key} className={s.mentionLink} href={`/members/${encodeURIComponent(segment.uid)}`}>
+          {segment.text}
+        </Link>
+      );
+    }
+    return <Fragment key={key}>{segment.text}</Fragment>;
+  });
+}
 
 interface FeedCommentsThreadProps {
   itemUid: string;
@@ -94,6 +120,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
     dropdownRef: mentionDropdownRef,
     dropdownProps: mentionDropdownProps,
     inputHandlers: mentionInputHandlers,
+    selectedMentions,
     clearMentions,
   } = useFeedCommentMentions({
     inputRef,
@@ -105,8 +132,11 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
   const submit = () => {
     const text = draft.trim();
     if (!text || addComment.isPending) return;
+    // Offsets are derived against the exact (trimmed) string being sent.
+    // `mentions` is OMITTED when none — never sent as [].
+    const mentionOffsets = deriveMentionOffsets(text, selectedMentions);
     addComment.mutate(
-      { text },
+      { text, mentions: mentionOffsets.length > 0 ? mentionOffsets : undefined },
       {
         onSuccess: () => {
           // UI-local follow-ups only — the cache writes live in the hook's
@@ -250,7 +280,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
                         </button>
                       ))}
                   </div>
-                  <p className={s.text}>{c.text}</p>
+                  <p className={s.text}>{renderCommentText(c.text, c.mentions)}</p>
                   {deleteFailedThis && (
                     <p className={s.error} role="alert">
                       Couldn&apos;t delete — try again.

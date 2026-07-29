@@ -8,6 +8,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
@@ -28,6 +29,8 @@ interface NewsDetailModalProps {
   item: ITeamNewsItem;
   onClose: () => void;
   onUpvoteToggle: (item: ITeamNewsItem) => void;
+  isFollowing?: boolean;
+  onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
 const TITLE_ID = 'news-detail-modal-title';
@@ -63,7 +66,13 @@ function restoreFocusToRow(uid: string) {
   target?.focus();
 }
 
-export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailModalProps) {
+export function NewsDetailModal({
+  item,
+  onClose,
+  onUpvoteToggle,
+  isFollowing = false,
+  onFollowToggle,
+}: NewsDetailModalProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   // While the share popover is open, the Modal's own Escape/backdrop closers
@@ -87,6 +96,14 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
   const handleClose = () => {
     restoreFocusToRow(item.uid);
     onClose();
+  };
+
+  const handleFollowClick = () => {
+    if (!currentUser) {
+      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`);
+      return;
+    }
+    onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
   };
 
   const handleUpvoteClick = () => {
@@ -138,6 +155,9 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
           >
             {item.teamName}
           </a>
+          {isHydrated && onFollowToggle && (
+            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} size="compact" />
+          )}
         </div>
         <button ref={focusOnAttach} type="button" className={s.closeButton} aria-label="Close" onClick={handleClose}>
           <CloseIcon width={20} height={20} color="#0a0c11" />

@@ -79,6 +79,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
   {
+    key: 'warm-intros-v2',
+    title: 'Warm intros v2 — mocked clone',
+    description:
+      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (proximity code, score %, connector → investor path chips), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-v2/WarmIntrosV2Prototype'),
+  },
+  {
     key: 'members',
     title: 'Members — listing page',
     description:
@@ -205,6 +213,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
+  },
+  {
+    key: 'auth-copy-audit',
+    title: 'Auth copy audit — “Log in” → “Sign in”',
+    description:
+      'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
+    category: 'Cross-product',
+    load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

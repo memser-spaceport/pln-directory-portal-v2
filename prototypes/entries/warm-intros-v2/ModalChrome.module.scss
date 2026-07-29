@@ -1,0 +1,44 @@
+/**
+ * Width overrides for the shared content-modal chrome.
+ *
+ * The modal now borrows SubmitDealModal.module.scss — the same chrome the Gantry
+ * item modal imports — for its header, close button and scroll body. That root is
+ * a fixed 600px, which is right for a form but cramped for a profile's key/value
+ * rows and experience lists, so the width goes back to this modal's own 800px.
+ * Everything else (radius, shadow, header, close button) stays canonical.
+ *
+ * Layout only, no colors.
+ */
+
+.modal {
+  width: 100%;
+  max-width: 800px;
+}
+
+.root {
+  width: 100%;
+}
+
+/* The shared .content gives padding + scroll; sections still need their column gap. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/**
+ * Slimmer header. The shared chrome sizes its header for a form modal, where the
+ * title is the main thing on screen; here the person's name right below it is,
+ * so the chrome title recedes to a label. 20px/27 → 16px/24 (both on the type
+ * scale) and the block padding tightens 20px → 12px.
+ */
+.header {
+  padding: 12px 16px;
+  align-items: center;
+}
+
+.title {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}

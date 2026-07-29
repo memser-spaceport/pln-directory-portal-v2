@@ -1,0 +1,33 @@
+/**
+ * Inline social icons for the MasterProfile modal's contact row.
+ *
+ * The modal shipped socials as labeled pills in a separate row below the
+ * contact box. Everywhere else — v1 InvestorDrawer, member details — LinkedIn
+ * and website sit inline with the email as bare 20px logos after a divider.
+ * Both classes are copied literally from InvestorDrawer.module.scss (the
+ * canonical version of this row); only the divider color is translated to a
+ * token + fallback pair, keeping the same rendered #e2e8f0.
+ */
+
+.contactIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  opacity: 0.8;
+  transition: opacity 0.1s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.channelDivider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 16px;
+  margin: 0 4px;
+  background: var(--border-neutral-secondary, #e2e8f0);
+}

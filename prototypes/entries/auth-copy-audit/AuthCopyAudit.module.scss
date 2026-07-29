@@ -1,0 +1,301 @@
+/**
+ * Auth copy audit page. New UI, so every color is a token + fallback pair per
+ * prototypes/CLAUDE.md §3–4, and type sizes stay on the scale (§5).
+ */
+
+.page {
+  min-height: 100%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  font-family: 'Inter', sans-serif;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding: 30px 24px 40px;
+  }
+}
+
+.sheet {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.statNum {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* ── The standard ───────────────────────────────────────────────────── */
+
+.ruleList {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.ruleList strong {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+}
+
+.sectionTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.countPill {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.blurb {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ── Findings ───────────────────────────────────────────────────────── */
+
+.findings {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.finding {
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.findingHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  flex-shrink: 0;
+}
+
+.where {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.path {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.swap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.from,
+.to {
+  font-size: 14px;
+  line-height: 22px;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.from {
+  background: var(--background-error-subtle, #fef2f2);
+  color: var(--foreground-error-primary, #b91c1c);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.to {
+  background: var(--background-success-subtle, #f0fdf4);
+  color: var(--foreground-success-primary, #0a9952);
+  font-weight: 500;
+}
+
+.arrow {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  flex-shrink: 0;
+}
+
+.note {
+  margin: 10px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ── Exclusions ─────────────────────────────────────────────────────── */
+
+.exclusionIntro {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tableWrap {
+  margin-top: 14px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  white-space: nowrap;
+}
+
+.td {
+  padding: 10px 12px;
+  vertical-align: top;
+  line-height: 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tdWhat {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 500;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+/* ── Order + verify ─────────────────────────────────────────────────── */
+
+.orderList {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.verify {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-x: auto;
+  white-space: pre;
+}

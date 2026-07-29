@@ -181,6 +181,26 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
   });
 
+  it('renders an Other category chip, disabled when no OTHER items exist', () => {
+    renderTeamNews(<TeamNews groups={groups} />);
+    // Neither fixture group has an OTHER item, so the chip should render but disable like any other zero-count category.
+    expect(screen.getByRole('button', { name: /^Other$/ })).toBeDisabled();
+  });
+
+  it('enables the Other category chip and filters by it when OTHER items exist', () => {
+    const otherItem = makeItem('ai-other', 'OTHER', ['AI & Robotics']);
+    const groupsWithOther: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, otherItem] },
+      { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+    ];
+    renderTeamNews(<TeamNews groups={groupsWithOther} />);
+    expect(screen.getByRole('button', { name: /^Other/ })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /^Other/ }));
+    expect(mockOnCategoryClicked).toHaveBeenCalledWith('OTHER', 1, 'All');
+    expect(screen.getByText(/Headline ai-other/)).toBeInTheDocument();
+    expect(screen.queryByText(/Headline ai-1/)).not.toBeInTheDocument();
+  });
+
   it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
     renderTeamNews(<TeamNews groups={groups} pageSize={2} />);
     // 5 items total, pageSize=2 → first 2 visible

@@ -2,7 +2,7 @@ import type { TeamNewsEventType } from '@/types/team-news.types';
 
 import s from '../components/NewsCard/NewsCard.module.scss';
 
-const LABEL: Record<TeamNewsEventType, string> = {
+export const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
   FUNDING: 'Funding',
   LAUNCH: 'Launch',
   PARTNERSHIP: 'Partnership',
@@ -21,5 +21,5 @@ const DOT_CLASS: Record<TeamNewsEventType, string> = {
 };
 
 export function getEventTypeConfig(eventType: TeamNewsEventType) {
-  return { label: LABEL[eventType], dotClassName: DOT_CLASS[eventType] };
+  return { label: EVENT_TYPE_LABEL[eventType], dotClassName: DOT_CLASS[eventType] };
 }

@@ -6,15 +6,34 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
+import { useMembersSearch } from '@/services/members/hooks/useMembersSearch';
 import type { IFeedComment } from '@/types/feed.types';
 
 jest.mock('@/services/feed/hooks/useFeedComments', () => ({ useFeedComments: jest.fn() }));
 jest.mock('@/services/feed/hooks/useAddFeedComment', () => ({ useAddFeedComment: jest.fn() }));
 jest.mock('@/services/feed/hooks/useDeleteFeedComment', () => ({ useDeleteFeedComment: jest.fn() }));
+jest.mock('@/services/members/hooks/useMembersSearch', () => ({ useMembersSearch: jest.fn() }));
 
 const useFeedCommentsMock = useFeedComments as jest.Mock;
 const useAddFeedCommentMock = useAddFeedComment as jest.Mock;
 const useDeleteFeedCommentMock = useDeleteFeedComment as jest.Mock;
+const useMembersSearchMock = useMembersSearch as jest.Mock;
+
+// STABLE identities: the mention hook adopts results via an effect keyed on
+// the results reference, exactly like the real hook's state value.
+const NO_RESULTS: never[] = [];
+const ANNA_RESULTS = [
+  { uid: 'anna-uid', externalId: 'x1', name: 'Anna Chen', image: undefined, teamName: 'Lattice' },
+  { uid: 'annab-uid', externalId: 'x2', name: 'Anna Board', image: undefined, teamName: 'Chorus' },
+];
+
+function mockMemberSearch() {
+  useMembersSearchMock.mockImplementation((term: string) => ({
+    results: term && 'anna chen'.startsWith(term.toLowerCase()) ? ANNA_RESULTS : NO_RESULTS,
+    isLoading: false,
+    error: null,
+  }));
+}
 
 const routerPush = jest.fn();
 jest.mock('next/navigation', () => ({
@@ -66,6 +85,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   signIn();
   mockMutation(useDeleteFeedCommentMock);
+  mockMemberSearch();
 });
 
 describe('FeedCommentsThread — list', () => {
@@ -204,6 +224,118 @@ describe('FeedCommentsThread — delete', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByText(/Couldn.t delete/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Deleting…' })).toBeDisabled();
+  });
+});
+
+describe('FeedCommentsThread — mentions', () => {
+  const PLACEHOLDER = 'Write your comment here. Use @ to mention someone.';
+
+  function typeDraft(value: string) {
+    const input = screen.getByPlaceholderText(PLACEHOLDER) as HTMLInputElement;
+    fireEvent.change(input, { target: { value } });
+    return input;
+  }
+
+  it('typing @ at a word boundary opens the dropdown in its type-to-search state', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    typeDraft('hey @');
+    expect(screen.getByText('Type to search members')).toBeInTheDocument();
+  });
+
+  it('@ inside a word (email address) does NOT open the dropdown', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    typeDraft('mail me at oleg@precise');
+    expect(screen.queryByText('Type to search members')).not.toBeInTheDocument();
+    expect(screen.queryByText(/No members found/)).not.toBeInTheDocument();
+  });
+
+  it('selecting a member splices "@Name " into the draft and closes the dropdown', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const input = typeDraft('hey @ann');
+    fireEvent.click(screen.getByText('Anna Chen'));
+
+    expect(input).toHaveValue('hey @Anna Chen ');
+    expect(screen.queryByText('Anna Board')).not.toBeInTheDocument();
+  });
+
+  it('submit carries structured mention offsets; none → mentions omitted', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    typeDraft('hey @ann');
+    fireEvent.click(screen.getByText('Anna Chen'));
+    fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
+
+    expect(mutation.mutate).toHaveBeenCalledWith(
+      {
+        text: 'hey @Anna Chen',
+        mentions: [{ uid: 'anna-uid', name: 'Anna Chen', offset: 4 }],
+      },
+      expect.any(Object),
+    );
+
+    // A mention whose text was edited away is dropped — payload omits mentions.
+    mutation.mutate.mockClear();
+    typeDraft('plain comment');
+    fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
+    const [payload] = mutation.mutate.mock.calls[0];
+    expect(payload.text).toBe('plain comment');
+    expect(payload.mentions).toBeUndefined();
+  });
+
+  it('Enter with the dropdown open selects instead of submitting', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const input = typeDraft('hey @ann');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(mutation.mutate).not.toHaveBeenCalled();
+    expect(input).toHaveValue('hey @Anna Chen ');
+  });
+
+  it('Escape closes only the dropdown and stops propagation (modals must stay open)', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    const outerEscape = jest.fn();
+    render(
+      <div onKeyDown={(e) => e.key === 'Escape' && outerEscape()}>
+        <FeedCommentsThread itemUid="n-1" kind="news" source="home" />
+      </div>,
+    );
+
+    const input = typeDraft('hey @ann');
+    expect(screen.getByText('Anna Chen')).toBeInTheDocument();
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.queryByText('Anna Chen')).not.toBeInTheDocument();
+    expect(outerEscape).not.toHaveBeenCalled();
+  });
+
+  it('renders server-supplied mentions as profile links; malformed payloads fall back to plain text', () => {
+    mockThread([
+      { ...comment('c1', 'welcome @Anna Chen !'), mentions: [{ uid: 'anna-uid', name: 'Anna Chen', offset: 8 }] },
+      { ...comment('c2', 'bad @Anna Chen !'), mentions: [{ uid: '../evil', name: 'Anna Chen', offset: 4 }] },
+    ]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const link = screen.getByRole('link', { name: '@Anna Chen' });
+    expect(link).toHaveAttribute('href', '/members/anna-uid');
+    // The malformed one renders as one inert text node — no link.
+    expect(screen.getByText('bad @Anna Chen !')).toBeInTheDocument();
+    expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 });
 

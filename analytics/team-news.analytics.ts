@@ -294,11 +294,32 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onFeedCommentSubmitted = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+  const onFeedCommentSubmitted = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    mentionsCount = 0,
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_SUBMITTED, {
       itemUid,
       kind,
       source,
+      mentionsCount,
+    });
+  };
+
+  // Never include comment text or the draft here — only the selection.
+  const onFeedCommentMentionSelected = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    mention: { memberUid: string; memberName: string; query: string },
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_MENTION_SELECTED, {
+      itemUid,
+      kind,
+      source,
+      ...mention,
     });
   };
 
@@ -323,5 +344,6 @@ export const useTeamNewsAnalytics = () => {
     onFeedForumPostShared,
     onFeedCommentThreadToggled,
     onFeedCommentSubmitted,
+    onFeedCommentMentionSelected,
   };
 };

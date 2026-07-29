@@ -127,6 +127,12 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
     value: draft,
     onValueChange: handleDraftChange,
     maxLength: FEED_COMMENT_MAX_LENGTH,
+    onMentionInserted: (item, query) =>
+      analytics.onFeedCommentMentionSelected(itemUid, kind, source, {
+        memberUid: item.uid,
+        memberName: item.name,
+        query,
+      }),
   });
 
   const submit = () => {
@@ -143,7 +149,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
           // options callbacks, which survive this component unmounting.
           setDraft('');
           clearMentions();
-          analytics.onFeedCommentSubmitted(itemUid, kind, source);
+          analytics.onFeedCommentSubmitted(itemUid, kind, source, mentionOffsets.length);
         },
       },
     );

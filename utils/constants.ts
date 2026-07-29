@@ -612,6 +612,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_FEED_FORUM_POST_SHARED: 'team-news-feed-forum-post-shared',
   TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED: 'team-news-feed-comment-thread-toggled',
   TEAM_NEWS_FEED_COMMENT_SUBMITTED: 'team-news-feed-comment-submitted',
+  TEAM_NEWS_FEED_COMMENT_MENTION_SELECTED: 'team-news-feed-comment-mention-selected',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

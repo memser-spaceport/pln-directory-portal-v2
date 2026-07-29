@@ -47,17 +47,21 @@ function PathHopRow({
   if (hops.length === 0) return null;
   return (
     <div className={s.chain}>
-      {hops.map((hop, i) => (
-        <span key={`${hop.profileUid}-${i}`} className={s.node}>
-          {i > 0 && <span className={s.arrow}>→</span>}
-          <PathProfileChip
-            name={hop.name}
-            profileUid={hop.profileUid}
-            imageUrl={imageByUid.get(hop.profileUid)}
-            onOpen={onOpen}
-          />
-        </span>
-      ))}
+      {hops.map((hop, i) => {
+        const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+        return (
+          <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.node}>
+            {i > 0 && <span className={s.arrow}>→</span>}
+            <PathProfileChip
+              name={hop.name}
+              profileUid={hop.profileUid}
+              imageUrl={isOrg ? null : imageByUid.get(hop.profileUid)}
+              onOpen={onOpen}
+              nonInteractive={isOrg}
+            />
+          </span>
+        );
+      })}
     </div>
   );
 }

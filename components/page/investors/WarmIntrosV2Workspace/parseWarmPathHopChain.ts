@@ -20,6 +20,7 @@ export type WarmPathV2Alternate = {
   caliber?: 'A' | 'B' | null;
   scorePercent?: number;
   scoreBand?: 'green' | 'yellow' | 'red' | 'none';
+  relationKind?: string;
 };
 
 export type WarmPathV2HopChain = {
@@ -115,6 +116,7 @@ function parseAlternate(raw: unknown): WarmPathV2Alternate | null {
     caliber: rec.caliber === 'A' || rec.caliber === 'B' ? rec.caliber : rec.caliber === null ? null : undefined,
     scorePercent: typeof rec.scorePercent === 'number' ? rec.scorePercent : undefined,
     scoreBand,
+    relationKind: typeof rec.relationKind === 'string' ? rec.relationKind : undefined,
   };
 }
 
@@ -158,11 +160,12 @@ export function scoreToPercent(score: number | undefined | null): number | null 
 
 /**
  * Fallback when detail API has not yet enriched alternates with proximity fields.
- * Mirrors portal `computeWarmPathProximity` (PL + hop + A|B; score ≥ 0.60 → A).
+ * Mirrors portal `computeWarmPathProximity` (family + hop + A|B; score ≥ 0.60 → A).
  */
 export function derivePathProximity(
   score: number | undefined | null,
-  hopCount: number = 1
+  hopCount: number = 1,
+  family: string = 'PL',
 ): Pick<WarmPathV2Alternate, 'proximityCode' | 'caliber' | 'scorePercent' | 'scoreBand'> | null {
   if (score == null || !Number.isFinite(score) || score <= 0) return null;
   const normalized = score > 1 ? score / 100 : score;
@@ -171,10 +174,21 @@ export function derivePathProximity(
   const scoreBand =
     scorePercent > 60 ? 'green' : scorePercent >= 25 ? 'yellow' : scorePercent > 0 ? 'red' : 'none';
   const hops = Number.isFinite(hopCount) && hopCount > 0 ? Math.trunc(hopCount) : 1;
+  const fam = (family || 'PL').trim() || 'PL';
   return {
-    proximityCode: `PL+${hops}${caliber}`,
+    proximityCode: `${fam}+${hops}${caliber}`,
     caliber,
     scorePercent,
     scoreBand,
   };
+}
+
+export function proximityFamilyFromRelationKind(relationKind: string | null | undefined): string {
+  if (relationKind === 'founder_bridge') return 'F';
+  if (relationKind === 'coinvestor_bridge') return 'VC';
+  return 'PL';
+}
+
+export function hopCountFromRelationKind(relationKind: string | null | undefined): number {
+  return relationKind === 'founder_bridge' || relationKind === 'coinvestor_bridge' ? 2 : 1;
 }

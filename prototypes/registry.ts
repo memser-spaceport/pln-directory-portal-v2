@@ -162,7 +162,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'job-board',
     title: 'Job Board',
     description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries a share-icon "Refer" control that opens a popover (LinkedIn / X / copy link).',
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link.',
     category: 'Jobs',
     load: () => import('./entries/job-board/JobBoardPrototype'),
   },

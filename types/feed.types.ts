@@ -1,8 +1,11 @@
 // Wire contract for the /home feed's social layer (forum posts interleaved with
-// team news + feed-only comments). Live per docs/NEWSFEED_FORUM_POSTS.md
-// (LAB-2175, memser-spaceport/pln-directory-portal) — see
-// docs/plans/2026-07-28-feat-newsfeed-forum-posts-real-api-plan.md for the
-// mock-to-real integration.
+// team news + feed-only comments).
+//
+// Forum posts (IFeedForumPost) are fetched directly from NodeBB by
+// services/feed/feed.service.ts (getFeedForumPosts/toggleFeedForumPostLike) —
+// there is no backend proxy for them anymore. Feed comments (IFeedComment,
+// on a TeamNewsItem) are still served by the directory backend; see
+// docs/NEWSFEED_FORUM_POSTS.md in pln-directory-portal.
 //
 // Field-nullability rule for this contract: `| null` = the server always sends
 // the field but it may be null; `?` is reserved for fields that genuinely don't
@@ -61,9 +64,8 @@ export interface IFeedComment {
   isOwn: boolean;
 }
 
-// GET /v1/feed/forum-posts — optional auth. Anonymous or no forum.read →
-// {items: []} (200, never 403) — the client can't distinguish "no access" from
-// "no posts" and doesn't try to; both render as an empty forum-post lane.
+// Sourced live from NodeBB's GET /api/recent (see getFeedForumPosts) —
+// never stored or proxied by the directory backend.
 export interface IFeedForumPostsResponse {
   items: IFeedForumPost[];
 }
@@ -97,6 +99,7 @@ export interface IFeedCommentDeleteResponse {
   deleted: true;
 }
 
-/** Returned by POST/DELETE /v1/feed/forum-posts/:uid/like (member JWT +
- *  forum.read, idempotent) and carried on every post. */
+/** Returned by toggleFeedForumPostLike, which votes directly on NodeBB
+ *  (PUT/DELETE {FORUM_API_URL}/api/v3/posts/:pid/vote) and is carried on
+ *  every post. */
 export type IFeedForumPostLikeStatus = Pick<IFeedForumPost, 'likeCount' | 'viewerHasLiked'>;

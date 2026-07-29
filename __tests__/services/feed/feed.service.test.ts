@@ -4,6 +4,7 @@ import {
   getFeedCommentCounts,
   getFeedComments,
   getFeedForumPosts,
+  toggleFeedForumPostLike,
 } from '@/services/feed/feed.service';
 import { customFetch } from '@/utils/fetch-wrapper';
 
@@ -13,9 +14,33 @@ const customFetchMock = customFetch as jest.Mock;
 const VIEWER = { memberUid: 'viewer-1', name: 'Test Viewer', avatarUrl: null, role: null };
 
 const originalApiUrl = process.env.DIRECTORY_API_URL;
+const originalForumApiUrl = process.env.FORUM_API_URL;
+const originalForumToken = process.env.CUSTOM_FORUM_AUTH_TOKEN;
+
+const TOPIC = {
+  tid: 96,
+  cid: 5,
+  mainPid: 263,
+  titleRaw: 'Willow Is Live!',
+  title: 'Willow Is Live!',
+  teaser: { content: '<p>Hi Protocol Labs</p>' },
+  category: { name: 'Intros' },
+  timestamp: 1782891482999,
+  postcount: 3,
+  upvotes: 5,
+  user: {
+    memberUid: 'cmo6tw96g005kq04h7yu2rkar',
+    displayname: 'Matt Curran',
+    username: 'matt-curran',
+    picture: null,
+    teamRole: 'Marketing & Business Development',
+  },
+};
 
 afterAll(() => {
   process.env.DIRECTORY_API_URL = originalApiUrl;
+  process.env.FORUM_API_URL = originalForumApiUrl;
+  process.env.CUSTOM_FORUM_AUTH_TOKEN = originalForumToken;
 });
 
 describe('feed.service (real API)', () => {
@@ -23,6 +48,8 @@ describe('feed.service (real API)', () => {
 
   beforeAll(() => {
     process.env.DIRECTORY_API_URL = 'https://api.example.com';
+    process.env.FORUM_API_URL = 'https://forum.example.com';
+    process.env.CUSTOM_FORUM_AUTH_TOKEN = 'forum-token';
     global.fetch = fetchMock;
   });
 
@@ -31,25 +58,57 @@ describe('feed.service (real API)', () => {
     customFetchMock.mockReset();
   });
 
-  it('getFeedForumPosts requests a single bounded page (limit=100, page=0)', async () => {
-    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+  it('getFeedForumPosts requests NodeBB /api/recent directly', async () => {
+    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [] }) });
     await getFeedForumPosts();
     expect(customFetchMock).toHaveBeenCalledWith(
-      'https://api.example.com/v1/feed/forum-posts?limit=100&page=0',
-      { method: 'GET' },
-      true,
+      'https://forum.example.com/api/recent',
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer forum-token' }) }),
+      false,
     );
   });
 
-  it('getFeedForumPosts returns items on success (no access shows up as an empty list, not an error)', async () => {
-    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ items: [] }) });
+  it('getFeedForumPosts maps NodeBB topics to the feed shape (real reply/vote counts, HTML stripped)', async () => {
+    customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
     const { items } = await getFeedForumPosts();
-    expect(items).toEqual([]);
+    expect(items).toEqual([
+      expect.objectContaining({
+        uid: 'fp_96',
+        title: 'Willow Is Live!',
+        body: 'Hi Protocol Labs',
+        category: 'Intros',
+        commentCount: 2,
+        likeCount: 5,
+        viewerHasLiked: false,
+        forumTopicUrl: '/forum/topics/5/96',
+      }),
+    ]);
   });
 
-  it('getFeedForumPosts throws a plain error on failure (queryFns never return null)', async () => {
+  it('getFeedForumPosts returns an empty list when NodeBB is unreachable', async () => {
     customFetchMock.mockResolvedValue({ ok: false, status: 500 });
     await expect(getFeedForumPosts()).rejects.toThrow('Failed to fetch feed forum posts');
+  });
+
+  it('toggleFeedForumPostLike votes on the cached topic main post directly on NodeBB', async () => {
+    customFetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ topics: [TOPIC] }) });
+    await getFeedForumPosts();
+    customFetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
+    const status = await toggleFeedForumPostLike('fp_96', true);
+
+    expect(customFetchMock).toHaveBeenLastCalledWith(
+      'https://forum.example.com/api/v3/posts/263/vote',
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify({ delta: 1 }) }),
+      false,
+    );
+    expect(status).toEqual({ likeCount: 6, viewerHasLiked: true });
+  });
+
+  it('toggleFeedForumPostLike throws for a uid it never fetched (no cached NodeBB post id)', async () => {
+    await expect(toggleFeedForumPostLike('fp_unknown', true)).rejects.toThrow(
+      'Failed to toggle feed forum post like',
+    );
   });
 
   it('getFeedCommentCounts POSTs the uid batch and unwraps the {counts} envelope', async () => {

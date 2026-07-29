@@ -321,6 +321,8 @@ export interface FeedComment {
    * carry `parent.pid` and `nestComments` builds the tree).
    */
   parentUid?: string;
+  /** Seeded like count. The viewer's own like is tracked separately and added on top. */
+  likes?: number;
 }
 
 /**
@@ -337,6 +339,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Protocol Engineer @ libp2p',
       text: 'Congrats! Is the GPU marketplace going to be permissionless from day one, or gated for the testnet?',
       createdAt: '2026-06-26T15:10:00.000Z',
+      likes: 4,
     },
     {
       uid: 'c-n3-2',
@@ -344,6 +347,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'Gated for testnet while we harden the proof pipeline, then opening up. Happy to add you to the early cohort.',
       createdAt: '2026-06-26T16:02:00.000Z',
+      likes: 6,
       parentUid: 'c-n3-1',
     },
     {
@@ -352,6 +356,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Protocol Engineer @ libp2p',
       text: 'Perfect — count us in. We can throw a few thousand proof jobs at it in week one.',
       createdAt: '2026-06-26T16:35:00.000Z',
+      likes: 2,
       parentUid: 'c-n3-2',
     },
     {
@@ -360,6 +365,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Research Lead @ Filecoin Foundation',
       text: 'Congrats on the raise. Curious whether the verifiable-workload proofs will be portable across providers or bespoke per job.',
       createdAt: '2026-06-26T17:15:00.000Z',
+      likes: 3,
     },
     {
       uid: 'c-n3-4',
@@ -367,6 +373,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Ecosystem Lead @ Protocol Labs',
       text: 'This is a great fit for the compute track — happy to help connect you with a few teams sitting on idle GPU capacity.',
       createdAt: '2026-06-26T18:40:00.000Z',
+      likes: 7,
     },
   ],
   n8: [
@@ -376,6 +383,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Research Lead @ Filecoin Foundation',
       text: 'This is the missing piece for multi-rollup retrieval. Will the reference impl land in the next release or behind a flag?',
       createdAt: '2026-06-20T15:40:00.000Z',
+      likes: 9,
     },
     {
       uid: 'c-n8-2',
@@ -383,6 +391,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Protocol Engineer @ libp2p',
       text: 'Behind a flag first, default-on once we have two independent rollups running it in production. Spec draft goes out this week.',
       createdAt: '2026-06-20T16:05:00.000Z',
+      likes: 5,
       parentUid: 'c-n8-1',
     },
     {
@@ -391,6 +400,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'We would run it. The shared DHT alone cuts our bootstrap time in half — happy to be one of the early production nodes.',
       createdAt: '2026-06-20T17:20:00.000Z',
+      likes: 3,
       parentUid: 'c-n8-2',
     },
     {
@@ -399,6 +409,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Ecosystem Lead @ Protocol Labs',
       text: 'Great to see this standardized rather than every team shipping its own. Is there a working group forming around the spec?',
       createdAt: '2026-06-20T18:00:00.000Z',
+      likes: 2,
     },
     {
       uid: 'c-n8-5',
@@ -406,6 +417,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Research Lead @ Filecoin Foundation',
       text: 'Count Filecoin in for review. The eclipse-resistance guarantees matter a lot for archival retrieval paths.',
       createdAt: '2026-06-20T19:10:00.000Z',
+      likes: 4,
     },
   ],
   f1: [
@@ -415,6 +427,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Ecosystem Lead @ Protocol Labs',
       text: 'We started fixed, then moved to a soft market once we had enough supply to keep prices stable. Fixed-first made the early buyer conversations far easier.',
       createdAt: '2026-06-27T19:05:00.000Z',
+      likes: 11,
     },
     {
       uid: 'c-f1-2',
@@ -422,6 +435,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Research Lead @ Filecoin Foundation',
       text: 'Watch out for long jobs getting priced out under spot — a reserved tier alongside the market helped us a lot.',
       createdAt: '2026-06-27T20:12:00.000Z',
+      likes: 6,
     },
   ],
   f2: [
@@ -431,6 +445,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'We would adopt a shared DHT immediately. The one thing that breaks for us is custom record TTLs — as long as those stay configurable, count us in.',
       createdAt: '2026-06-21T10:30:00.000Z',
+      likes: 3,
     },
   ],
   f3: [
@@ -440,6 +455,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Protocol Engineer @ libp2p',
       text: 'Required content hash is a must. I would also make the license field an enum rather than free text — it is the one people get wrong most often.',
       createdAt: '2026-06-25T16:20:00.000Z',
+      likes: 8,
     },
     {
       uid: 'c-f3-2',
@@ -447,6 +463,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Ecosystem Lead @ Protocol Labs',
       text: 'Agree on keeping it lean. Could collection date be optional with a “best known” fallback? Some archival sets genuinely don’t have it.',
       createdAt: '2026-06-25T17:05:00.000Z',
+      likes: 2,
       parentUid: 'c-f3-1',
     },
   ],
@@ -457,6 +474,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'Moving grant discovery ahead of profile setup is the insight here. Please do share the funnel numbers — we’re about to redo ours.',
       createdAt: '2026-06-19T12:40:00.000Z',
+      likes: 5,
     },
   ],
 };

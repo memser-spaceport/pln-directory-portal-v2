@@ -5,9 +5,11 @@ import { useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { CommentIcon } from '@/components/icons';
 
 import type { FeedComment } from './mocks';
+// The feed's own Like affordance (a copy-simplify of the forum LikesButton) —
+// the same button the cards use, so a comment like matches a story like.
+import { LikeButton } from './FeedActions';
 import s from './CommentsThread.module.scss';
 // Reuse the production forum comment-input styling (its layout row + the brand
 // "Comment" button) so the composer matches the forum 1:1.
@@ -20,6 +22,10 @@ interface Props {
    * session). `parentUid` set = the new comment is a reply to that comment.
    */
   onAddComment: (text: string, parentUid?: string) => void;
+  /** Has the viewer liked this comment? Keyed by comment uid. */
+  isCommentLiked: (commentUid: string) => boolean;
+  /** Toggle the viewer's like on a comment — available at every nesting depth. */
+  onToggleCommentLike: (commentUid: string) => void;
 }
 
 /** A comment with its direct replies attached — the render-time shape. */
@@ -119,16 +125,22 @@ function CommentRow({
   replyingTo,
   setReplyingTo,
   onAddComment,
+  isCommentLiked,
+  onToggleCommentLike,
 }: {
   comment: NestedComment;
   depth: number;
   replyingTo: string | null;
   setReplyingTo: (uid: string | null) => void;
   onAddComment: (text: string, parentUid?: string) => void;
+  isCommentLiked: (commentUid: string) => boolean;
+  onToggleCommentLike: (commentUid: string) => void;
 }) {
   const [draft, setDraft] = useState('');
   const canReply = depth < MAX_DEPTH;
   const isReplying = replyingTo === comment.uid;
+  const liked = isCommentLiked(comment.uid);
+  const likes = (comment.likes ?? 0) + (liked ? 1 : 0);
 
   const submitReply = () => {
     const text = draft.trim();
@@ -149,22 +161,18 @@ function CommentRow({
         </div>
         <p className={s.text}>{comment.text}</p>
 
-        {canReply && (
-          <div className={s.sub}>
-            {comment.replies.length > 0 && (
-              <span className={s.subItem}>
-                <CommentIcon /> {comment.replies.length} {comment.replies.length === 1 ? 'Reply' : 'Replies'}
-              </span>
-            )}
-            <button
-              type="button"
-              className={s.replyBtn}
-              onClick={() => setReplyingTo(isReplying ? null : comment.uid)}
-            >
+        {/* Likes → Reply, in the forum CommentItem's order. The forum's "N Replies"
+            counter is deliberately dropped — the replies are rendered right below,
+            so the number is noise. Likes stay available at every depth; Reply
+            stops at the depth cap. */}
+        <div className={s.sub}>
+          <LikeButton count={likes} liked={liked} onToggle={() => onToggleCommentLike(comment.uid)} showLabel />
+          {canReply && (
+            <button type="button" className={s.replyBtn} onClick={() => setReplyingTo(isReplying ? null : comment.uid)}>
               Reply
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {isReplying && (
           <Composer
@@ -192,6 +200,8 @@ function CommentRow({
                 replyingTo={replyingTo}
                 setReplyingTo={setReplyingTo}
                 onAddComment={onAddComment}
+                isCommentLiked={isCommentLiked}
+                onToggleCommentLike={onToggleCommentLike}
               />
             ))}
           </div>
@@ -201,7 +211,7 @@ function CommentRow({
   );
 }
 
-export function CommentsThread({ comments, onAddComment }: Props) {
+export function CommentsThread({ comments, onAddComment, isCommentLiked, onToggleCommentLike }: Props) {
   const [draft, setDraft] = useState('');
   const [expanded, setExpanded] = useState(false);
   // One open reply composer at a time across the whole thread, like the forum.
@@ -239,6 +249,8 @@ export function CommentsThread({ comments, onAddComment }: Props) {
               replyingTo={replyingTo}
               setReplyingTo={setReplyingTo}
               onAddComment={onAddComment}
+              isCommentLiked={isCommentLiked}
+              onToggleCommentLike={onToggleCommentLike}
             />
           ))}
           {nested.length > VISIBLE && (

@@ -160,6 +160,11 @@ export function V0FeedCard({
               <CommentsThread
                 comments={comments}
                 onAddComment={(text, parentUid) => onAddComment(story.uid, text, parentUid)}
+                // Likes are tracked by uid in one shared set, and comment uids
+                // never collide with story uids — so the card's own like
+                // handlers work unchanged for comments and replies.
+                isCommentLiked={isLiked}
+                onToggleCommentLike={onToggleLike}
               />
             )}
           </div>

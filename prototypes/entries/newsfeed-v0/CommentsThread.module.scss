@@ -60,29 +60,13 @@
   min-width: 0;
 }
 
-/* Action row under a comment — copied from the forum CommentItem `.sub`,
-   minus likes and the edit menu (this thread is mocked). */
+/* Action row under a comment — the forum CommentItem `.sub`, minus its edit
+   menu and its "N Replies" counter (the replies render right below it). */
 .sub {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-top: 8px;
-}
-
-.subItem {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
 }
 
 .replyBtn {
@@ -96,7 +80,10 @@
   background: none;
   cursor: pointer;
   border-radius: var(--corner-radius-zero, 0px);
-  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  /* Grey rather than the forum's brand blue — it sits next to the Like button in
+     this row, and two competing accents made the row read as a link pair. Same
+     secondary as the Like label, with the feed's brightness hover. */
+  color: var(--foreground-neutral-secondary, #455468);
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -104,7 +91,7 @@
   letter-spacing: -0.2px;
 
   &:hover {
-    color: var(--action-foreground-brand-hover, #0060ff);
+    filter: brightness(0.8);
   }
 }
 

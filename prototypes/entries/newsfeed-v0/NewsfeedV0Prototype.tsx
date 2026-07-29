@@ -578,6 +578,8 @@ export default function NewsfeedV0Prototype() {
                             onToggleLike={() => toggleLike(entry.post.uid)}
                             comments={commentsFor(entry.post.uid)}
                             onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
+                            isCommentLiked={isLiked}
+                            onToggleCommentLike={toggleLike}
                             onOpenDetail={() => openForumDetail(entry.post)}
                           />
                         ),
@@ -612,6 +614,8 @@ export default function NewsfeedV0Prototype() {
         showComments={commentsMode === 'with'}
         comments={detail ? commentsFor(detail.id) : []}
         onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
+        isCommentLiked={isLiked}
+        onToggleCommentLike={toggleLike}
       />
 
       <ForumPostModal
@@ -622,6 +626,8 @@ export default function NewsfeedV0Prototype() {
         onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
         comments={forumDetail ? commentsFor(forumDetail.uid) : []}
         onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
+        isCommentLiked={isLiked}
+        onToggleCommentLike={toggleLike}
       />
 
       {toast && (

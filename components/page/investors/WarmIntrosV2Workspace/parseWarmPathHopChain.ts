@@ -83,13 +83,21 @@ export function allReasonDescriptions(reasons: unknown[]): string[] {
 function parseHop(raw: unknown): WarmPathV2HopNode | null {
   const rec = asRecord(raw);
   if (!rec) return null;
+  const role = typeof rec.role === 'string' ? rec.role : undefined;
   const profileUid = typeof rec.profileUid === 'string' ? rec.profileUid : null;
-  if (!profileUid) return null;
-  const name = typeof rec.name === 'string' && rec.name.trim() ? rec.name.trim() : profileUid;
+  // Protocol Labs org stub uses empty profileUid
+  if (profileUid == null) return null;
+  if (!profileUid && role !== 'pl_org') return null;
+  const name =
+    typeof rec.name === 'string' && rec.name.trim()
+      ? rec.name.trim()
+      : role === 'pl_org'
+        ? 'Protocol Labs'
+        : profileUid || 'Unknown';
   return {
     profileUid,
     name,
-    role: typeof rec.role === 'string' ? rec.role : undefined,
+    role,
     score: typeof rec.score === 'number' ? rec.score : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,

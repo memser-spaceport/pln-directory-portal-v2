@@ -96,6 +96,26 @@ describe('DeploymentLogsModal', () => {
     expect(screen.getByRole('tab', { name: /build/i })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('opens on the failing stream when a failed deploy carries failureStream', () => {
+    render(
+      <DeploymentLogsModal
+        app={buildApp({ status: 'ERROR', deployment: { serving: 'previous', failureStream: 'runtime' } })}
+        onClose={onClose}
+      />,
+    );
+    expect(screen.getByRole('tab', { name: /runtime/i })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('ignores a stale failureStream on a healthy app — READY still opens on Runtime', () => {
+    render(
+      <DeploymentLogsModal
+        app={buildApp({ status: 'READY', deployment: { serving: 'latest', failureStream: 'build' } })}
+        onClose={onClose}
+      />,
+    );
+    expect(screen.getByRole('tab', { name: /runtime/i })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('only fetches the visited tab — the other stream stays disabled until opened', () => {
     render(<DeploymentLogsModal app={buildApp()} onClose={onClose} />);
     // Healthy app opens on Runtime; the build walk must not start yet.

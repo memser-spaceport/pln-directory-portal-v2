@@ -38,7 +38,8 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
               {'{'}caliber{'}'}
             </strong>
             . Family, hop count, and caliber come from the API (<code>proximityCode</code>) — the UI does not invent
-            them. Direct PL-person paths are <code>PL+1…</code>; founder/co-investor bridges are <code>PL+2…</code>.
+            them. Direct PL-person paths are <code>PL+1…</code>; founder bridges are <code>F+2…</code>;
+            co-investor bridges are <code>VC+2…</code>.
           </p>
         </section>
 

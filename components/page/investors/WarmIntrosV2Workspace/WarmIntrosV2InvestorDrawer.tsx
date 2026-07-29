@@ -21,7 +21,9 @@ import {
   allReasonDescriptions,
   derivePathProximity,
   explanationFromHopChain,
+  hopCountFromRelationKind,
   parseWarmPathHopChain,
+  proximityFamilyFromRelationKind,
   reasonDescription,
   type WarmPathV2HopNode,
 } from './parseWarmPathHopChain';
@@ -318,7 +320,12 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                       {showAlternates ? (
                         <ul className={s.altList}>
                           {alternates.map((alt) => {
-                            const derived = derivePathProximity(alt.score, bestPath.hopCount ?? 1);
+                            const altKind = alt.relationKind ?? hopChain?.relationKind;
+                            const derived = derivePathProximity(
+                              alt.score,
+                              hopCountFromRelationKind(altKind),
+                              proximityFamilyFromRelationKind(altKind),
+                            );
                             const proximityCode = alt.proximityCode ?? derived?.proximityCode ?? null;
                             const pct = alt.scorePercent ?? derived?.scorePercent ?? null;
                             const scoreBand = alt.scoreBand ?? derived?.scoreBand;

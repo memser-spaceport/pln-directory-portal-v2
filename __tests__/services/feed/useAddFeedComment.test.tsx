@@ -16,7 +16,14 @@ jest.mock('@/services/feed/feed.service', () => ({ createFeedComment: jest.fn() 
 const createFeedCommentMock = createFeedComment as jest.MockedFunction<typeof createFeedComment>;
 
 function comment(uid: string, itemUid: string, text: string, createdAt: string): IFeedComment {
-  return { uid, itemUid, author: { memberUid: 'm-1', name: 'Author', avatarUrl: null, role: null }, text, createdAt, isOwn: true };
+  return {
+    uid,
+    itemUid,
+    author: { memberUid: 'm-1', name: 'Author', avatarUrl: null, role: null },
+    text,
+    createdAt,
+    isOwn: true,
+  };
 }
 
 describe('useAddFeedComment', () => {
@@ -48,6 +55,42 @@ describe('useAddFeedComment', () => {
     const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
     expect(patched?.items.map((c) => c.uid)).toEqual(['c-old', 'c-new']);
     expect(client.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts())?.[itemUid]).toBe(2);
+  });
+
+  it('enriches the cached comment with the submitted mentions while the server does not echo them', async () => {
+    const itemUid = 'fp_3';
+    const created = comment('c-1', itemUid, 'hey @Anna Chen', '2026-01-01T00:00:00.000Z'); // no mentions field
+    createFeedCommentMock.mockResolvedValue(created);
+
+    const mentions = [{ uid: 'anna-uid', name: 'Anna Chen', offset: 4 }];
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'hey @Anna Chen', mentions }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
+    expect(patched?.items[0].mentions).toEqual(mentions);
+  });
+
+  it('prefers server-echoed mentions over the submitted ones once the BE contract lands', async () => {
+    const itemUid = 'fp_4';
+    const serverMentions = [{ uid: 'server-uid', name: 'Anna Chen', offset: 4 }];
+    const created = {
+      ...comment('c-1', itemUid, 'hey @Anna Chen', '2026-01-01T00:00:00.000Z'),
+      mentions: serverMentions,
+    };
+    createFeedCommentMock.mockResolvedValue(created);
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() =>
+      result.current.mutate({
+        text: 'hey @Anna Chen',
+        mentions: [{ uid: 'client-uid', name: 'Anna Chen', offset: 4 }],
+      }),
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
+    expect(patched?.items[0].mentions).toEqual(serverMentions);
   });
 
   it('seeds a fresh cache entry when no thread has been fetched yet', async () => {

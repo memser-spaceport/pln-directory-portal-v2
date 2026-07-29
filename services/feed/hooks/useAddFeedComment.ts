@@ -32,7 +32,16 @@ export function useAddFeedComment(itemUid: string) {
   return useMutation<IFeedComment, Error, Omit<ICreateFeedCommentRequest, 'itemUid'>>({
     scope: { id: `feed-comment-${itemUid}` },
     mutationFn: (fields) => createFeedComment({ itemUid, ...fields }),
-    onSuccess: async (created) => {
+    onSuccess: async (created, variables) => {
+      // The server doesn't echo `mentions` yet (BE follow-up) — enrich its
+      // response with the mentions the client just sent so the fresh comment
+      // renders linked immediately. Client-known data, applied only after the
+      // server confirms; render-side validation still guards any mismatch
+      // against the server's text. Once BE echoes the field, `created` wins.
+      const enriched =
+        !created.mentions && variables.mentions && variables.mentions.length > 0
+          ? { ...created, mentions: variables.mentions }
+          : created;
       // Cancel BEFORE writing — an in-flight thread/counts refetch whose server
       // snapshot predates this POST would clobber the append when it lands.
       await Promise.all([
@@ -43,7 +52,7 @@ export function useAddFeedComment(itemUid: string) {
       // list, not the front (the mock's newest-first assumption doesn't hold
       // against the real API).
       queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), (old) =>
-        old ? { items: [...old.items, created] } : { items: [created] },
+        old ? { items: [...old.items, enriched] } : { items: [enriched] },
       );
       queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
         old ? { ...old, [itemUid]: (old[itemUid] ?? 0) + 1 } : { [itemUid]: 1 },

@@ -41,7 +41,10 @@
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  // The reference stacks its fields at 10px, but its fields are bare inputs. Ours
+  // carry a caption under Send to, which at 10px sat closer to the next field's
+  // label than to the field it describes. 20px re-attaches each caption upward.
+  gap: 20px;
 
   // Room for focus rings against the scroll edge.
   padding: 2px;

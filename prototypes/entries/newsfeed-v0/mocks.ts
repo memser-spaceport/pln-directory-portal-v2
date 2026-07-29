@@ -315,6 +315,12 @@ export interface FeedComment {
   role: string;
   text: string;
   createdAt: string;
+  /**
+   * uid of the comment this one replies to. Absent = top-level comment. Stored
+   * flat and nested at render time, mirroring the production forum (its posts
+   * carry `parent.pid` and `nestComments` builds the tree).
+   */
+  parentUid?: string;
 }
 
 /**
@@ -338,6 +344,15 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'Gated for testnet while we harden the proof pipeline, then opening up. Happy to add you to the early cohort.',
       createdAt: '2026-06-26T16:02:00.000Z',
+      parentUid: 'c-n3-1',
+    },
+    {
+      uid: 'c-n3-5',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Perfect — count us in. We can throw a few thousand proof jobs at it in week one.',
+      createdAt: '2026-06-26T16:35:00.000Z',
+      parentUid: 'c-n3-2',
     },
     {
       uid: 'c-n3-3',
@@ -368,6 +383,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Protocol Engineer @ libp2p',
       text: 'Behind a flag first, default-on once we have two independent rollups running it in production. Spec draft goes out this week.',
       createdAt: '2026-06-20T16:05:00.000Z',
+      parentUid: 'c-n8-1',
     },
     {
       uid: 'c-n8-3',
@@ -375,6 +391,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Founder @ Lattice Compute',
       text: 'We would run it. The shared DHT alone cuts our bootstrap time in half — happy to be one of the early production nodes.',
       createdAt: '2026-06-20T17:20:00.000Z',
+      parentUid: 'c-n8-2',
     },
     {
       uid: 'c-n8-4',
@@ -430,6 +447,7 @@ export const COMMENTS_BY_UID: Record<string, FeedComment[]> = {
       role: 'Ecosystem Lead @ Protocol Labs',
       text: 'Agree on keeping it lean. Could collection date be optional with a “best known” fallback? Some archival sets genuinely don’t have it.',
       createdAt: '2026-06-25T17:05:00.000Z',
+      parentUid: 'c-f3-1',
     },
   ],
   f4: [

@@ -175,6 +175,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
   {
+    key: 'notifications-hub',
+    title: 'Notifications — bell panel',
+    description:
+      'The bell dropdown, reworked so it is something you can act on rather than only read. Header follows the Airtable notification panel: an All / Unread / Read segmented switch, in-panel search, and a visible Mark all as read above the list (with an undo window rather than a confirm). Read state is decoupled from navigation — a per-row read toggle on a real 28px target plus per-row dismiss — and status is split from action the way the reference splits it: a non-interactive dot leads each row so unread reads down the left edge. The panel behaves like a dialog — Escape, focus trap, focus restore, positioned against the bell instead of a fixed offset — and has real loading and error states instead of falling through to "No new updates". The eight categories get distinct hues and keep their glyph on mobile, and every accent carrying text clears 4.5:1.',
+    category: 'Newsfeed',
+    load: () => import('./entries/notifications-hub/NotificationsHubPrototype'),
+  },
+  {
+    key: 'notifications-inbox',
+    title: 'Notifications — full Updates page',
+    description:
+      'The standalone counterpart to the bell panel: the full Updates page grouped by Today / Yesterday / Earlier and closed with a terminator instead of infinite scroll simply stopping. Carries the same All / Unread / Read switch, search, per-row read toggle and dismiss as the panel, plus Mark all as read with an undo window — production wires markAllAsRead through the provider and the service but no component ever calls it. Shares its state hook, filter, row component and stylesheet with the panel entry so the two surfaces cannot drift.',
+    category: 'Newsfeed',
+    load: () => import('./entries/notifications-inbox/NotificationsInboxPrototype'),
+  },
+  {
     key: 'email-preferences',
     title: 'Email Preferences — digest split',
     description:
@@ -213,6 +229,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
+  },
+  {
+    key: 'input-interactions',
+    title: 'Input interactions — autosave & dismissal',
+    description:
+      'One contract for every place a member types: outside click never destroys text, autosave is continuous and visible, discard is always explicit, and drafts survive reload. Four demos (inline composer, page composer, modal, anchored popover) each flip between what ships today and the proposed behaviour, standing in for the Tier 1 and Tier 2 surfaces from the consistency audit.',
+    category: 'Cross-product',
+    load: () => import('./entries/input-interactions/InputInteractionsPrototype'),
   },
   {
     key: 'auth-copy-audit',

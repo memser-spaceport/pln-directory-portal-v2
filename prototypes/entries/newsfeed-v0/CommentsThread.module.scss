@@ -44,6 +44,75 @@
   gap: 10px;
 }
 
+/* Replies are already indented by the parent's avatar column, so they only need
+   the forum's thread rule (CommentItem `.reply`) — its #e2e8f0 hairline
+   translated to the PL border token, same rendered weight. */
+.reply {
+  border-left: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  padding-left: 14px;
+}
+
+.repliesWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  min-width: 0;
+}
+
+/* Action row under a comment — copied from the forum CommentItem `.sub`,
+   minus likes and the edit menu (this thread is mocked). */
+.sub {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.subItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.replyBtn {
+  display: flex;
+  padding: var(--spacing-zero, 0px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-5xs, 2px);
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--corner-radius-zero, 0px);
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  &:hover {
+    color: var(--action-foreground-brand-hover, #0060ff);
+  }
+}
+
+/* Inline reply composer, tucked under the comment it answers. */
+.replyForm {
+  margin-top: 10px;
+}
+
 .avatar {
   width: 28px;
   height: 28px;

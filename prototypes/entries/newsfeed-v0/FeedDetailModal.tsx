@@ -66,7 +66,7 @@ interface Props {
   /** Show the inline comment thread + count (the "with comments" version). */
   showComments?: boolean;
   comments?: FeedComment[];
-  onAddComment?: (text: string) => void;
+  onAddComment?: (text: string, parentUid?: string) => void;
 }
 
 /**

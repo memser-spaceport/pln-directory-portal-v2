@@ -1,6 +1,20 @@
 // Only the parts react-select's `styles` object can't express: the two-line option
 // row, the group heading, and the chip / "add email" contents.
 
+// Production has two caption styles: the form primitives' own `.fieldDescription`
+// (10px/500 #878b94, used by FormSelect / FormMultiSelect / FormTextArea) and the
+// 12px/400 #455468 helper used by FormField, SubmitDealModal `.helperText` and the
+// deals modal footer note. 12px here — 10px is off the PL type scale, and this
+// modal's other secondary line (who sees the referral) is already 12px, so the
+// smaller one would leave two disagreeing caption sizes in one dialog.
+.description {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // The recipient list scrolls once it passes three rows. A default scrollbar lands
 // a chunky grey bar against the chips and the clear control; this keeps the track
 // invisible and the thumb thin, in the same neutral as the field's own border.

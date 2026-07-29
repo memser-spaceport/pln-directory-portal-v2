@@ -242,16 +242,20 @@ export default function NewsfeedV0Prototype() {
   const isLiked = (uid: string) => likedIds.has(uid);
   const commentsFor = (uid: string) => commentsByUid[uid] ?? [];
 
-  const addComment = (uid: string, text: string) =>
+  /** `parentUid` set = the new comment is a reply nested under that comment. */
+  const addComment = (uid: string, text: string, parentUid?: string) =>
     setCommentsByUid((prev) => {
       const existing = prev[uid] ?? [];
       const comment: FeedComment = {
-        uid: `c-${uid}-${existing.length + 1}`,
+        // `-new-` keeps posted uids from ever colliding with a seeded one —
+        // nesting keys off uid, so a duplicate would swallow a comment.
+        uid: `c-${uid}-new-${existing.length + 1}`,
         author: 'You',
         role: 'Member @ Protocol Labs',
         text,
         // Fixed timestamp — the prototype has no clock; "just now" reads right.
         createdAt: new Date().toISOString(),
+        parentUid,
       };
       return { ...prev, [uid]: [...existing, comment] };
     });
@@ -573,7 +577,7 @@ export default function NewsfeedV0Prototype() {
                             liked={isLiked(entry.post.uid)}
                             onToggleLike={() => toggleLike(entry.post.uid)}
                             comments={commentsFor(entry.post.uid)}
-                            onAddComment={(text) => addComment(entry.post.uid, text)}
+                            onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
                             onOpenDetail={() => openForumDetail(entry.post)}
                           />
                         ),
@@ -607,7 +611,7 @@ export default function NewsfeedV0Prototype() {
         citationStyle="superscript"
         showComments={commentsMode === 'with'}
         comments={detail ? commentsFor(detail.id) : []}
-        onAddComment={(text) => detail && addComment(detail.id, text)}
+        onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
       />
 
       <ForumPostModal
@@ -617,7 +621,7 @@ export default function NewsfeedV0Prototype() {
         liked={forumDetail ? isLiked(forumDetail.uid) : false}
         onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
         comments={forumDetail ? commentsFor(forumDetail.uid) : []}
-        onAddComment={(text) => forumDetail && addComment(forumDetail.uid, text)}
+        onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
       />
 
       {toast && (

@@ -24,7 +24,7 @@ interface Props {
   liked: boolean;
   onToggleLike: () => void;
   comments: FeedComment[];
-  onAddComment: (text: string) => void;
+  onAddComment: (text: string, parentUid?: string) => void;
   onOpenDetail: () => void;
 }
 

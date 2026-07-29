@@ -11,6 +11,7 @@ import { CloseIcon } from '@/components/icons';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
+import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 // Demo Day's "Make an intro" modal, verbatim: the centred envelope / title / desc
 // stack, the 24px round card, and the twin full-width footer buttons.
@@ -18,7 +19,7 @@ import intro from '@/components/page/demo-day/ActiveView/components/TeamsList/co
 
 import { EnvelopeIcon } from './icons';
 import { RecipientPicker, isEmailAddress, type RecipientOption } from './RecipientPicker';
-import { MOCK_MEMBERS, type MockMember } from './mockMembers';
+import { CURRENT_USER, MOCK_MEMBERS, type MockMember } from './mockMembers';
 import s from './ReferModal.module.scss';
 
 const MESSAGE_MAX_LENGTH = 800;
@@ -54,6 +55,9 @@ function greeting(recipients: RecipientOption[], teamName: string): string {
  *  the recipient list changes, unless the referrer has already edited it by hand. */
 function buildTemplate(member: MockMember, role: IJobRole, teamName: string, recipients: RecipientOption[]): string {
   const where = member.team ? `${member.title} at ${member.team}` : member.title;
+  // Same link the row's apply arrow and the share menu use, utm params and all, so
+  // a referral that turns into an application is still attributed to the board.
+  const jobLink = role.applyUrl ? `${role.applyUrl}?${JOB_QUERY_PARAMS}` : null;
 
   return [
     greeting(recipients, teamName),
@@ -61,8 +65,13 @@ function buildTemplate(member: MockMember, role: IJobRole, teamName: string, rec
     `I'd like to refer ${member.name} for your ${role.roleTitle} role.`,
     ``,
     `${member.name} is ${where}. ${member.signal}`,
+    ...(jobLink ? [``, `The role: ${jobLink}`] : []),
     ``,
     `Happy to make the intro whenever you're ready.`,
+    ``,
+    // The sender is the Directory, not the referrer, so the sign-off is the only
+    // thing telling the recipient who actually vouched for this candidate.
+    `— ${CURRENT_USER.name}, ${CURRENT_USER.title} at ${CURRENT_USER.team}`,
   ].join('\n');
 }
 
@@ -108,27 +117,31 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
 
   const selectedMember: MockMember | null = (referee as any)?.originalObject ?? null;
 
+  // The sender is never a candidate or a recipient — they're the one writing, and
+  // they're already on the thread.
+  const selectableMembers = useMemo(() => MOCK_MEMBERS.filter((m) => m.uid !== CURRENT_USER.uid), []);
+
   const refereeOptions = useMemo<Option[]>(
     () =>
-      MOCK_MEMBERS.map((m) => ({
+      selectableMembers.map((m) => ({
         label: m.name,
         value: m.uid,
         description: `${m.title} · ${m.team}`,
         originalObject: m,
       })),
-    [],
+    [selectableMembers],
   );
 
   // The hiring team leads the list — they're who a referral is actually for. You
   // can't be both the candidate and someone hearing about the referral, so the
   // person being referred drops out of both groups.
   const teamMembers = useMemo(
-    () => MOCK_MEMBERS.filter((m) => m.team === teamName && m.uid !== referee?.value),
-    [teamName, referee?.value],
+    () => selectableMembers.filter((m) => m.team === teamName && m.uid !== referee?.value),
+    [selectableMembers, teamName, referee?.value],
   );
   const networkMembers = useMemo(
-    () => MOCK_MEMBERS.filter((m) => m.team !== teamName && m.uid !== referee?.value),
-    [teamName, referee?.value],
+    () => selectableMembers.filter((m) => m.team !== teamName && m.uid !== referee?.value),
+    [selectableMembers, teamName, referee?.value],
   );
 
   // Fresh form every time the modal opens — a referral draft is per-role, not sticky.
@@ -136,7 +149,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     if (!open) return;
     // Default recipients: whoever in the network is on the hiring team. Empty for
     // teams with no mocked members, which is the "type an email address" case.
-    const teamContacts = MOCK_MEMBERS.filter((m) => m.team === teamName).map((m) => ({
+    const teamContacts = MOCK_MEMBERS.filter((m) => m.team === teamName && m.uid !== CURRENT_USER.uid).map((m) => ({
       label: m.name,
       value: m.uid,
       description: `${m.title} · ${m.team}`,
@@ -206,8 +219,8 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
 
         <p className={intro.desc}>
           {sent
-            ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
-            : `This will send an intro email to ${teamName}, yourself, and the people you list below.`}
+            ? `Your note is on its way to ${sentTo}, signed with your name. You're copied on it, and ${firstName} is notified too.`
+            : `This will send an intro email from the Directory to ${teamName}, yourself, and the people you list below.`}
         </p>
 
         {sent ? (
@@ -261,6 +274,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                   value={recipients}
                   onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  description="The first person on the list gets the email directly, everyone else is CC’d."
                 />
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
@@ -292,8 +306,9 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
               <p className={s.privacyNote}>
                 {recipients.length === 0
                   ? 'Add at least one recipient — a network member or an email address.'
-                  : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-                    (selectedMember ? ` ${firstName} is notified too.` : '')}
+                  : `Sent from the Directory and signed ${CURRENT_USER.name}, so ${sentTo} ${
+                      recipients.length === 1 ? 'knows' : 'know'
+                    } who referred${selectedMember ? ` ${firstName}` : ''}.`}
               </p>
 
               <div className={intro.actions}>

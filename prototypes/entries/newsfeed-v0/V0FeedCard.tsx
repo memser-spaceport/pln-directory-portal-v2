@@ -44,7 +44,7 @@ interface V0FeedCardProps {
   isLiked: (uid: string) => boolean;
   onToggleLike: (uid: string) => void;
   commentsFor: (uid: string) => FeedComment[];
-  onAddComment: (uid: string, text: string) => void;
+  onAddComment: (uid: string, text: string, parentUid?: string) => void;
   /** Open the story's detail modal (summary + share + sources). */
   onOpenStory: (story: ITeamNewsItem) => void;
 }
@@ -157,7 +157,10 @@ export function V0FeedCard({
             </div>
 
             {showComments && threadOpen && (
-              <CommentsThread comments={comments} onAddComment={(text) => onAddComment(story.uid, text)} />
+              <CommentsThread
+                comments={comments}
+                onAddComment={(text, parentUid) => onAddComment(story.uid, text, parentUid)}
+              />
             )}
           </div>
         );

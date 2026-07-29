@@ -35,7 +35,21 @@ production drifts.
 | `MasterProfileModalMock.tsx` | `MasterProfileModal.tsx` | `useMasterProfile` → `MOCK_MASTER_PROFILES[uid]`; loading / error branches are inert |
 | `WarmIntrosV2TableMock.tsx` | `WarmIntrosV2Table.tsx` | **Team** and **Industry / Sector** columns removed (a design change, not a data one); firm · role folded under the investor name; column widths re-balanced in `TableColumns.module.scss` |
 
-## New UI (no production counterpart)
+## New UI (prototype still; production twin shipped)
+
+Production counterparts live under
+`components/page/investors/WarmIntrosV2Workspace/`:
+
+| Prototype | Production |
+| --- | --- |
+| `PathFeedback.tsx` | `PathActions.tsx` (+ `PathFeedbackAdminSummary.tsx` for editors) |
+| `PathFeedbackModal.tsx` | `PathFeedbackModal.tsx` |
+| `PathFeedback.module.scss` | `PathFeedback.module.scss` |
+| — | `PathFeedbackQueuePanel.tsx` (admin queue; `investor_db.edit`) |
+
+Prototype keeps an in-memory `FEEDBACK_STORE`. Production wires
+`PUT/DELETE …/warm-intros-v2/paths/:uid/feedback` and enriches investor detail with
+`myFeedbackByConnector` / `feedbackSummaryByConnector`.
 
 | File | What it is |
 | --- | --- |

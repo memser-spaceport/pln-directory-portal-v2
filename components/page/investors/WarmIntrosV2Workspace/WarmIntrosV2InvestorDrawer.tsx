@@ -14,6 +14,7 @@ import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ListMembershipTags } from './ListMembershipTags';
 import { parseListMemberships } from './masterProfileDisplay.util';
+import { PathActions } from './PathActions';
 import { ScorePercentPill } from './ScorePercentPill';
 import { PathProfileChip } from './PathProfileChip';
 import {
@@ -35,6 +36,8 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onOpenMasterProfile: (profileUid: string) => void;
+  /** investor_db.edit — shows aggregated feedback on path cards. */
+  canEdit?: boolean;
 }
 
 function PathHopRow({
@@ -68,7 +71,7 @@ function PathHopRow({
  * Warm Intros v2 investor drawer (S3-T5).
  * Mirrors v1 InvestorDrawer chrome; binds to enriched WarmPathV2 + optional MasterProfile.
  */
-export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterProfile }: Props) {
+export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterProfile, canEdit = false }: Props) {
   const investor = row?.investor;
   const profileUid = investor?.profileUid ?? row?.targetProfileUid ?? null;
   const targetSet = row?.targetSet;
@@ -301,6 +304,29 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                     <div className={s.chainRow}>
                       <PathHopRow hops={hops} imageByUid={imageByUid} onOpen={onOpenMasterProfile} />
                     </div>
+                    {bestPath.uid && bestPath.bestConnectorProfileUid ? (
+                      <PathActions
+                        key={`${bestPath.uid}:${bestPath.bestConnectorProfileUid}`}
+                        warmPathUid={bestPath.uid}
+                        connectorProfileUid={bestPath.bestConnectorProfileUid}
+                        investorProfileUid={investor.profileUid}
+                        targetSet={targetSet}
+                        canEdit={canEdit}
+                        myFeedback={bestPath.myFeedbackByConnector?.[bestPath.bestConnectorProfileUid]}
+                        feedbackSummary={bestPath.feedbackSummaryByConnector?.[bestPath.bestConnectorProfileUid]}
+                        context={{
+                          nodes: hops.map((hop) => ({
+                            profileUid: hop.profileUid,
+                            name: hop.name,
+                            imageUrl: imageByUid.get(hop.profileUid),
+                          })),
+                          connectorName: bestPath.bestConnector?.name ?? hops[0]?.name ?? null,
+                          proximityCode: bestPath.proximityCode,
+                          scorePercent: bestPath.scorePercent,
+                          scoreBand: bestPath.scoreBand,
+                        }}
+                      />
+                    ) : null}
                   </div>
 
                   {alternates.length > 0 ? (
@@ -353,6 +379,36 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                                     onOpen={onOpenMasterProfile}
                                   />
                                 </div>
+                                {bestPath.uid ? (
+                                  <PathActions
+                                    key={`${bestPath.uid}:${alt.profileUid}`}
+                                    warmPathUid={bestPath.uid}
+                                    connectorProfileUid={alt.profileUid}
+                                    investorProfileUid={investor.profileUid}
+                                    targetSet={targetSet}
+                                    canEdit={canEdit}
+                                    myFeedback={bestPath.myFeedbackByConnector?.[alt.profileUid]}
+                                    feedbackSummary={bestPath.feedbackSummaryByConnector?.[alt.profileUid]}
+                                    context={{
+                                      nodes: [
+                                        {
+                                          profileUid: alt.profileUid,
+                                          name: alt.name,
+                                          imageUrl: imageByUid.get(alt.profileUid),
+                                        },
+                                        {
+                                          profileUid: investor.profileUid,
+                                          name: investor.name,
+                                          imageUrl: imageByUid.get(investor.profileUid),
+                                        },
+                                      ],
+                                      connectorName: alt.name,
+                                      proximityCode,
+                                      scorePercent: pct,
+                                      scoreBand,
+                                    }}
+                                  />
+                                ) : null}
                               </li>
                             );
                           })}

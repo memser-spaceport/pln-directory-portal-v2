@@ -1,6 +1,5 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { logTimestampSortValue } from '@/services/ai-apps/ai-apps-logs.utils';
-import { AI_APPS_DEPLOYMENT_MOCK } from '@/utils/feature-flags';
 
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
@@ -42,8 +41,14 @@ export interface AiApp {
   host: string | null;
   port: number | null;
   deploymentId: string;
-  /** Absent until the backend ships the contract — absence means "no serving info", not "not serving". */
+  /** Absent only from pre-contract API versions — absence means "no serving info", not "not serving". */
   deployment?: AiAppDeploymentInfo;
+  /**
+   * When the app last deployed SUCCESSFULLY (null = never shipped). Unlike
+   * updatedAt, failed deploys never move it — so it's the safe key for
+   * "the running version changed" (iframe remount, probe generation).
+   */
+  lastDeployedAt?: string | null;
   /** Env var NAMES the app needs at runtime (draft/secrets flow). */
   requiredEnvVars: string[];
   /** NAMES the member already stored values for (values never leave the backend). */
@@ -82,11 +87,6 @@ export function deployFailureKind(app: Pick<AiApp, 'status' | 'deployment'>): Ai
     default:
       return 'legacy';
   }
-}
-
-/** Loaded lazily inside AI_APPS_DEPLOYMENT_MOCK branches only — production builds never reach it. */
-function deploymentMock() {
-  return import('./ai-apps-deployment.mock-data');
 }
 
 export interface DeployAiAppResult {
@@ -157,11 +157,7 @@ export async function fetchAiApps(): Promise<AiApp[]> {
     return [];
   }
 
-  const apps: AiApp[] = await response.json();
-  if (AI_APPS_DEPLOYMENT_MOCK) {
-    return (await deploymentMock()).decorateApps(apps);
-  }
-  return apps;
+  return response.json();
 }
 
 /**
@@ -188,11 +184,7 @@ export async function fetchAiApp(uid: string): Promise<FetchAiAppResult> {
     return { app: null, errorKind };
   }
 
-  const app: AiApp = await response.json();
-  if (AI_APPS_DEPLOYMENT_MOCK) {
-    return { app: (await deploymentMock()).decorateApp(app), errorKind: null };
-  }
-  return { app, errorKind: null };
+  return { app: await response.json(), errorKind: null };
 }
 
 /** The two log sources the platform produces: the image build (Kaniko) vs the running app pod. */

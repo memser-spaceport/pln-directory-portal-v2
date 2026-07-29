@@ -130,15 +130,22 @@ export function AiAppDetailPage(props: Props) {
   }, [isError, uid, analytics]);
 
   const appUrl = app?.url ?? null;
-  // One probe "generation" per deployed version (updatedAt changes on every
-  // deploy) and per manual retry; probe results from older generations are
-  // ignored, so a fresh deploy always re-checks.
-  const probeGeneration = `${app?.updatedAt ?? ''}:${retryToken}`;
+  // "The running version changed" key for the probe generation and the iframe
+  // remount. lastDeployedAt moves only on SUCCESSFUL deploys — keying on
+  // updatedAt would remount a visitor's working previous version whenever a
+  // FAILED deploy bumps the row (warning state). updatedAt stays as the
+  // fallback for pre-contract API responses that lack the field.
+  const deployGeneration = app?.lastDeployedAt ?? app?.updatedAt ?? '';
+  // One probe "generation" per deployed version and per manual retry; probe
+  // results from older generations are ignored, so a fresh deploy always
+  // re-checks.
+  const probeGeneration = `${deployGeneration}:${retryToken}`;
   const frameStatus: FrameStatus = probeResult?.generation === probeGeneration ? probeResult.status : 'checking';
 
   // Poll the backend liveness probe until the app answers, then mount the
-  // iframe. Runs on first load and again after every redeploy (updatedAt
-  // changes / the deploy flag drops), so gateway errors never reach the frame.
+  // iframe. Runs on first load and again after every successful redeploy
+  // (lastDeployedAt changes / the deploy flag drops), so gateway errors never
+  // reach the frame.
   useEffect(() => {
     if (!appUrl || isRedeploying) return;
 
@@ -325,7 +332,7 @@ export function AiAppDetailPage(props: Props) {
       <iframe
         // Remount after every deploy so the frame reloads instead of keeping
         // whatever it captured before the restart.
-        key={app.updatedAt}
+        key={deployGeneration}
         className={s.iframe}
         src={app.url ?? undefined}
         title={app.name}

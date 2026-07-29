@@ -131,7 +131,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
               className={s.forumField}
               value={draft}
               maxLength={FEED_COMMENT_MAX_LENGTH}
-              placeholder="Write your comment here…"
+              placeholder="Write your comment here. Use @ to mention someone."
               onChange={(e) => handleDraftChange(e.target.value)}
             />
             <button

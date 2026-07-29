@@ -55,10 +55,19 @@ export async function getFeedComments(itemUid: string, authToken?: string): Prom
   return (await response.json()) as IFeedCommentsResponse;
 }
 
+// FE-first mentions gate: the create endpoint's Zod schema strips unknown keys
+// today (verified non-strict), so sending `mentions` is harmless. If the BE
+// validator ever turns strict before the mentions contract lands, flip this
+// off — commenting must never break over an optional field.
+const SEND_MENTIONS = true;
+
 export async function createFeedComment(request: ICreateFeedCommentRequest): Promise<IFeedComment> {
+  const { mentions, ...rest } = request;
+  const payload: ICreateFeedCommentRequest =
+    SEND_MENTIONS && mentions && mentions.length > 0 ? { ...rest, mentions } : rest;
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/feed/comments`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request) },
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) },
     true,
   );
   if (!response?.ok) throw new Error('Failed to post feed comment');

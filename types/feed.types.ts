@@ -45,6 +45,16 @@ export interface IFeedForumPost {
   viewerHasLiked: boolean;
 }
 
+/** A member mentioned inside a feed comment's text. `offset` is a UTF-16
+ *  code-unit index (plain JS string index) into `text` exactly as sent —
+ *  client and server MUST agree on code units, not code points (emoji are
+ *  two units). */
+export interface IFeedCommentMention {
+  uid: string;
+  name: string;
+  offset: number;
+}
+
 export interface IFeedComment {
   uid: string;
   /** News uid or ForumPostUid the comment hangs off. */
@@ -52,6 +62,9 @@ export interface IFeedComment {
   author: IFeedAuthor;
   /** Plain text, server-capped at FEED_COMMENT_MAX_LENGTH. */
   text: string;
+  /** FE-first: the server doesn't echo mentions yet — absent until the BE
+   *  contract lands, and render falls back to plain text. */
+  mentions?: IFeedCommentMention[];
   createdAt: string;
   /** True only for the authenticated caller's own comments (always false for
    *  anonymous requests) — gates the delete affordance. Rendered straight off
@@ -86,6 +99,10 @@ export type IFeedCommentCountsResponse = Record<string, number>;
 export interface ICreateFeedCommentRequest {
   itemUid: string;
   text: string;
+  /** OMITTED (never `[]`) when there are none — one wire representation of
+   *  "no mentions". FE-first: the server currently strips unknown keys
+   *  (verified: plain z.object, non-strict); persisting is the BE follow-up. */
+  mentions?: IFeedCommentMention[];
 }
 
 // DELETE /v1/feed/comments/:commentUid — member JWT, author-only (403

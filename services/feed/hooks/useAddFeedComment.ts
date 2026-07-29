@@ -1,7 +1,12 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
+import type {
+  ICreateFeedCommentRequest,
+  IFeedComment,
+  IFeedCommentCountsResponse,
+  IFeedCommentsResponse,
+} from '@/types/feed.types';
 import { feedQueryKeys } from '../constants';
 import { createFeedComment } from '../feed.service';
 
@@ -22,9 +27,11 @@ import { createFeedComment } from '../feed.service';
 export function useAddFeedComment(itemUid: string) {
   const queryClient = useQueryClient();
 
-  return useMutation<IFeedComment, Error, { text: string }>({
+  // Variables derive from the wire type (minus the bound itemUid) so hook and
+  // contract can't drift as fields are added.
+  return useMutation<IFeedComment, Error, Omit<ICreateFeedCommentRequest, 'itemUid'>>({
     scope: { id: `feed-comment-${itemUid}` },
-    mutationFn: ({ text }) => createFeedComment({ itemUid, text }),
+    mutationFn: (fields) => createFeedComment({ itemUid, ...fields }),
     onSuccess: async (created) => {
       // Cancel BEFORE writing — an in-flight thread/counts refetch whose server
       // snapshot predates this POST would clobber the append when it lands.

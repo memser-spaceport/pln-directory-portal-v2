@@ -187,7 +187,7 @@ export function NewsRail({
 
   const handleSubscribeClick = () => {
     if (!currentUser?.uid) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
 

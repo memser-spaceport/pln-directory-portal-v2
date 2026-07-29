@@ -103,7 +103,7 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
   };
 
   const goToLogin = () => {
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
   };
 
   const pendingText = addComment.isPending ? addComment.variables?.text.trim() : undefined;

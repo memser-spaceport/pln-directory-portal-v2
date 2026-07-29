@@ -72,7 +72,7 @@ export function NewsGroupCard({
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onFollowToggle?.(cluster.teamUid, cluster.teamName, isFollowing);
@@ -80,7 +80,7 @@ export function NewsGroupCard({
 
   const handleUpvoteClick = (story: ITeamNewsItem) => {
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle?.(story);

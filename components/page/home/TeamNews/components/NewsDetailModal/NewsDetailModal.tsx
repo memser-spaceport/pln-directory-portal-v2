@@ -100,7 +100,11 @@ export function NewsDetailModal({
 
   const handleFollowClick = () => {
     if (!currentUser) {
-      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`);
+      // scroll: false — Next resolves this push as a real navigation (its
+      // canonicalUrl never learned the ?news= param, since useNewsDeepLink
+      // writes it via raw history.replaceState) and would otherwise reset
+      // the feed's scroll position to the top on every guest login-gate.
+      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`, { scroll: false });
       return;
     }
     onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
@@ -111,7 +115,8 @@ export function NewsDetailModal({
       // Constructed, not read from location.search — the URL write on open is
       // synchronous (history.replaceState), but building the target explicitly
       // keeps the login round-trip correct even if that ever changes.
-      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`);
+      // scroll: false for the same reason as handleFollowClick above.
+      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle(item);

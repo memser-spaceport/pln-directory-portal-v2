@@ -14,6 +14,11 @@ export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profi
  *  or navigated to the source article (team-details surfaces). */
 export type TeamNewsCardClickOutcome = 'modal' | 'source';
 
+/** Which affordance opened the card. Both the row and the comment badge open
+ *  the same detail modal now that threads live only there, so this is the only
+ *  thing that distinguishes "read this story" from "go to its comments". */
+export type TeamNewsCardClickVia = 'row' | 'comment-button';
+
 export type TeamNewsShareNetwork = 'linkedin' | 'x' | 'copy';
 
 export const useTeamNewsAnalytics = () => {
@@ -107,7 +112,12 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsCardClicked = (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
+  const onTeamNewsCardClicked = (
+    item: ITeamNewsItem,
+    position: number,
+    source: TeamNewsAnalyticsSource,
+    via: TeamNewsCardClickVia = 'row',
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_CARD_CLICKED, {
       itemUid: item.uid,
       teamUid: item.teamUid,
@@ -118,6 +128,7 @@ export const useTeamNewsAnalytics = () => {
       sourceCount: item.sourceUrls?.length ?? 1,
       position,
       source,
+      via,
       // The same event name now means "opened the detail modal" on /home but
       // still "opened the source article" on team-details. Derived here — the
       // one place that knows source→surface semantics — so dashboards can
@@ -231,13 +242,19 @@ export const useTeamNewsAnalytics = () => {
   // failed the access gate (e.g. a stripped ?post= deep link) — these fire only
   // from surfaces the viewer was allowed to render.
 
-  const onFeedForumPostCardClicked = (post: IFeedForumPost, position: number, source: TeamNewsAnalyticsSource) => {
+  const onFeedForumPostCardClicked = (
+    post: IFeedForumPost,
+    position: number,
+    source: TeamNewsAnalyticsSource,
+    via: TeamNewsCardClickVia = 'row',
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED, {
       postUid: post.uid,
       authorMemberUid: post.author.memberUid,
       category: post.category,
       position,
       source,
+      via,
     });
   };
 
@@ -280,25 +297,21 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onFeedCommentThreadToggled = (
+  // No thread-toggled event: threads are always expanded in the detail modal,
+  // so there is nothing to toggle. The intent that event used to capture now
+  // rides on the card-clicked events' `via` property.
+
+  const onFeedCommentSubmitted = (
     itemUid: string,
     kind: FeedItemKind,
-    open: boolean,
     source: TeamNewsAnalyticsSource,
+    isReply = false,
   ) => {
-    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED, {
-      itemUid,
-      kind,
-      open,
-      source,
-    });
-  };
-
-  const onFeedCommentSubmitted = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_SUBMITTED, {
       itemUid,
       kind,
       source,
+      isReply,
     });
   };
 
@@ -321,7 +334,6 @@ export const useTeamNewsAnalytics = () => {
     onFeedForumPostModalOpened,
     onFeedForumPostLikeToggled,
     onFeedForumPostShared,
-    onFeedCommentThreadToggled,
     onFeedCommentSubmitted,
   };
 };

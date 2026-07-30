@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
 
-import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics, type TeamNewsCardClickVia } from '@/analytics/team-news.analytics';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
@@ -337,9 +337,9 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // Single owner of a row click's consequences: analytics (card-clicked with
   // outcome 'modal', derived in the analytics module) + modal state + URL.
   // Positions are entry-list indices now that forum posts interleave.
-  const handleStoryOpen = (item: ITeamNewsItem) => {
+  const handleStoryOpen = (item: ITeamNewsItem, via: TeamNewsCardClickVia = 'row') => {
     const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
-    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
+    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home', via);
     // One modal, one URL param at a time — closing the other side first keeps
     // ?news= and ?post= mutually exclusive (both writes are synchronous).
     if (activePostUid) closePost();

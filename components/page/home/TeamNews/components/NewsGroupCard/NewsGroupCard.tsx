@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
@@ -8,7 +8,11 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
-import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import {
+  useTeamNewsAnalytics,
+  type TeamNewsAnalyticsSource,
+  type TeamNewsCardClickVia,
+} from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
@@ -16,7 +20,6 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
-import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -29,8 +32,10 @@ interface NewsGroupCardProps {
   /** Row click/Enter opens the news detail modal — the single owner of
    *  analytics + modal state + URL sync lives in TeamNews.handleStoryOpen.
    *  (The old open-the-source-in-a-new-tab behavior moved into the modal's
-   *  SOURCE links; NewsCard — team-details — still opens the source.) */
-  onStoryOpen: (item: ITeamNewsItem) => void;
+   *  SOURCE links; NewsCard — team-details — still opens the source.)
+   *  `via` distinguishes the comment badge from the row, since both now open
+   *  the same modal and only the analytics can tell them apart. */
+  onStoryOpen: (item: ITeamNewsItem, via?: TeamNewsCardClickVia) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
@@ -54,20 +59,6 @@ export function NewsGroupCard({
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const analytics = useTeamNewsAnalytics();
-
-  // Per-story inline threads. Local like the card's own `expanded`, so the
-  // composite-key remount on tab/category change resets open threads (and any
-  // unsent drafts — accepted, documented loss; in-flight submits still land
-  // because the mutation's cache writes live in its options callbacks).
-  const [openThreadUids, setOpenThreadUids] = useState<ReadonlySet<string>>(() => new Set());
-
-  const handleThreadToggle = (storyUid: string) => {
-    const next = new Set(openThreadUids);
-    const willOpen = !next.has(storyUid);
-    willOpen ? next.add(storyUid) : next.delete(storyUid);
-    setOpenThreadUids(next);
-    analytics.onFeedCommentThreadToggled(storyUid, 'news', willOpen, analyticsSource);
-  };
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -180,17 +171,10 @@ export function NewsGroupCard({
                   voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
-                <CommentButton
-                  itemUid={story.uid}
-                  open={openThreadUids.has(story.uid)}
-                  onToggle={() => handleThreadToggle(story.uid)}
-                />
+                {/* Opens the detail modal, where the thread lives. */}
+                <CommentButton itemUid={story.uid} onClick={() => onStoryOpen(story, 'comment-button')} />
               </div>
             </div>
-            {/* Mount = expanded (the lazy comments query keys off it). */}
-            {openThreadUids.has(story.uid) && (
-              <FeedCommentsThread itemUid={story.uid} kind="news" source={analyticsSource} />
-            )}
           </div>
         );
       })}

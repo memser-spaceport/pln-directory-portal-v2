@@ -22,8 +22,8 @@ import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
@@ -37,7 +37,7 @@ import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
-import { filterFeedForumPosts } from './utils/matchesFeedForumPost';
+import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useFeedSocial } from './hooks/useFeedSocial';
@@ -83,7 +83,10 @@ function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): bool
 // of "matches" — same rationale as matchesTeamNewsQuery above.
 function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
   if (categoryId === ALL_CAT) return true;
-  if (categoryId === ACTIVE_DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
+  // A news item counts as a discussion when it has a forum thread of its own.
+  // Forum posts also live under this pill, but they aren't news items — see
+  // filterFeedForumPosts for that half.
+  if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
   return item.eventType === categoryId;
 }
 
@@ -182,29 +185,37 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     [forumPosts, activeTab],
   );
 
+  // One definition of "how many does this pill have", used both to render the
+  // pills and to report the count on click — two copies of this drifted apart
+  // once already.
+  const countForCategory = useCallback(
+    (id: TeamNewsCategoryId) => {
+      const newsCount =
+        id === ALL_CAT
+          ? itemsForActiveTab.length
+          : itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, id)).length;
+      // Forum posts show under All and Discussions, and nowhere else.
+      return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
+    },
+    [itemsForActiveTab, tabForumPosts],
+  );
+
   const categoriesWithCounts = useMemo(() => {
-    const activeDiscussionsCount = itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length;
-    const base = CATEGORIES.map((c) => ({
-      ...c,
-      // The All pill counts everything the feed below will show — including
-      // this tab's forum posts (they're invisible under every other pill).
-      count:
-        c.id === ALL_CAT
-          ? itemsForActiveTab.length + tabForumPosts.length
-          : itemsForActiveTab.filter((i) => i.eventType === c.id).length,
-    }));
+    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const discussionsCount = countForCategory(DISCUSSIONS_CAT);
 
-    if (activeDiscussionsCount === 0) return base;
+    // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
+    if (discussionsCount === 0) return base;
 
-    const withActive: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
+    const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
     for (const c of base) {
-      withActive.push(c);
+      withDiscussions.push(c);
       if (c.id === ALL_CAT) {
-        withActive.push({ ...ACTIVE_DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
+        withDiscussions.push({ ...DISCUSSIONS_CATEGORY, count: discussionsCount });
       }
     }
-    return withActive;
-  }, [itemsForActiveTab, tabForumPosts]);
+    return withDiscussions;
+  }, [countForCategory]);
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
@@ -330,13 +341,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   };
 
   const handleCategory = (id: TeamNewsCategoryId) => {
-    const nextCount =
-      id === ALL_CAT
-        ? itemsForActiveTab.length + tabForumPosts.length
-        : id === ACTIVE_DISCUSSIONS_CAT
-          ? itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length
-          : itemsForActiveTab.filter((i) => i.eventType === id).length;
-    analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
+    analytics.onTeamNewsCategoryClicked(String(id), countForCategory(id), activeTab);
     setActiveCategory(id);
     setExpanded(false);
   };

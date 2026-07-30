@@ -10,8 +10,10 @@ import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
 import { Button } from '@/components/common/Button';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  // Renamed in production (the pill now covers forum posts too); aliased here
+  // so this frozen prototype keeps compiling against its own semantics.
+  DISCUSSIONS_CAT as ACTIVE_DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY as ACTIVE_DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,

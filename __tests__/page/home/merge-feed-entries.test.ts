@@ -1,7 +1,7 @@
 import { feedEntryKey, mergeFeedEntries, type FeedEntry } from '@/components/page/home/TeamNews/utils/mergeFeedEntries';
 import { filterFeedForumPosts, matchesFeedForumPost } from '@/components/page/home/TeamNews/utils/matchesFeedForumPost';
 import { sortTeamNewsClusters, type TeamNewsSort } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
-import { ALL_CAT, ALL_TAB } from '@/components/page/home/TeamNews/constants';
+import { ALL_CAT, ALL_TAB, DISCUSSIONS_CAT } from '@/components/page/home/TeamNews/constants';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import type { ForumPostUid, IFeedForumPost } from '@/types/feed.types';
 
@@ -197,9 +197,22 @@ describe('filterFeedForumPosts / matchesFeedForumPost', () => {
     post('fp_net', 2, '2026-07-02', ['Networking']),
   ];
 
-  it('returns nothing outside the All category pill (posts have no event type)', () => {
+  it('returns nothing under an event-type pill (posts have no event type)', () => {
     expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: 'FUNDING', query: '' })).toEqual([]);
-    expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: 'active-discussions', query: '' })).toEqual([]);
+    expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: 'LAUNCH', query: '' })).toEqual([]);
+  });
+
+  it('shows posts under Discussions — the pill that exists to filter to them', () => {
+    expect(filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: DISCUSSIONS_CAT, query: '' })).toHaveLength(2);
+  });
+
+  it('still narrows by tab and search under Discussions', () => {
+    expect(
+      filterFeedForumPosts(POSTS, { tab: 'Networking', category: DISCUSSIONS_CAT, query: '' }).map((p) => p.uid),
+    ).toEqual(['fp_net']);
+    expect(
+      filterFeedForumPosts(POSTS, { tab: ALL_TAB, category: DISCUSSIONS_CAT, query: 'fp_infra' }).map((p) => p.uid),
+    ).toEqual(['fp_infra']);
   });
 
   it('scopes to the focus-area tab, always including the All tab', () => {

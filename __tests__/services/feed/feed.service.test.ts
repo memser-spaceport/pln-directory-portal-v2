@@ -151,6 +151,72 @@ describe('feed.service (real API)', () => {
     );
   });
 
+  it('getFeedComments reads a forum post\'s real replies directly from NodeBB', async () => {
+    customFetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        mainPid: 263,
+        posts: [
+          { pid: 263 }, // the topic's own opening post — excluded from comments
+          {
+            pid: 264,
+            content: '<p>awesome!</p>',
+            timestamp: 1782906219045,
+            user: { memberUid: 'm-2', displayname: 'Lacey Wisdom', picture: null, teamRole: 'General Partner' },
+          },
+        ],
+      }),
+    });
+    const { items } = await getFeedComments('fp_96');
+    expect(customFetchMock).toHaveBeenCalledWith('https://forum.example.com/api/topic/96', expect.anything(), false);
+    expect(items).toEqual([
+      {
+        uid: 'fpc_264',
+        itemUid: 'fp_96',
+        author: { memberUid: 'm-2', name: 'Lacey Wisdom', avatarUrl: null, role: 'General Partner' },
+        text: 'awesome!',
+        createdAt: new Date(1782906219045).toISOString(),
+        isOwn: false,
+      },
+    ]);
+  });
+
+  it("createFeedComment posts a forum post's comment as a real NodeBB reply to the topic's main post", async () => {
+    customFetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ topics: [TOPIC] }) });
+    await getFeedForumPosts(); // populates the cached mainPid for fp_96
+
+    customFetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        response: {
+          pid: 500,
+          content: '<p>Great update!</p>',
+          timestamp: 1782906219045,
+          user: { memberUid: 'viewer-1', displayname: 'Test Viewer', picture: null, teamRole: null },
+        },
+      }),
+    });
+
+    const created = await createFeedComment({ itemUid: 'fp_96', text: 'Great update!' });
+
+    expect(customFetchMock).toHaveBeenLastCalledWith(
+      'https://forum.example.com/api/v3/topics/96',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ content: '<p>Great update!</p>', toPid: 263 }),
+      }),
+      false,
+    );
+    expect(created).toEqual({
+      uid: 'fpc_500',
+      itemUid: 'fp_96',
+      author: { memberUid: 'viewer-1', name: 'Test Viewer', avatarUrl: null, role: null },
+      text: 'Great update!',
+      createdAt: new Date(1782906219045).toISOString(),
+      isOwn: false,
+    });
+  });
+
   it('deleteFeedComment DELETEs through the authenticated wrapper', async () => {
     customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ uid: 'c-1', deleted: true }) });
     const result = await deleteFeedComment('c-1');

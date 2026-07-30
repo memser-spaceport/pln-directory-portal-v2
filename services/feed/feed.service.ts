@@ -2,6 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml } from '@/utils/forum';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
+import { isForumPostUid } from '@/types/feed.types';
 import type {
   ForumPostUid,
   ICreateFeedCommentRequest,
@@ -105,6 +106,8 @@ export async function getFeedCommentCounts(uids: string[], authToken?: string): 
 // Public for news uids; fp_ itemUids 404 without forum.read (indistinguishable
 // from nonexistent — the UI never reaches here for posts the viewer can't see).
 export async function getFeedComments(itemUid: string, authToken?: string): Promise<IFeedCommentsResponse> {
+  if (isForumPostUid(itemUid)) return getForumPostComments(itemUid);
+
   const response = await fetch(
     `${process.env.DIRECTORY_API_URL}/v1/feed/comments?itemUid=${encodeURIComponent(itemUid)}`,
     { headers: getHeader(authToken) },
@@ -114,6 +117,8 @@ export async function getFeedComments(itemUid: string, authToken?: string): Prom
 }
 
 export async function createFeedComment(request: ICreateFeedCommentRequest): Promise<IFeedComment> {
+  if (isForumPostUid(request.itemUid)) return createForumPostComment(request.itemUid, request.text);
+
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/feed/comments`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request) },
@@ -121,6 +126,91 @@ export async function createFeedComment(request: ICreateFeedCommentRequest): Pro
   );
   if (!response?.ok) throw new Error('Failed to post feed comment');
   return (await response.json()) as IFeedComment;
+}
+
+// A forum post's "comments" are its real NodeBB replies — read/written
+// straight against the Forum, same as its votes/likes above. There's no
+// reply-to-a-specific-comment UI yet (see docs/NEWSFEED_FORUM_POSTS.md), so
+// every new comment replies to the topic's own opening post (mainPid), same
+// as the top-level composer on the standalone /forum page
+// (components/page/forum/PostComments/PostComments.tsx).
+//
+// isOwn is always false here (never surfaced as "yours") because deleting a
+// real NodeBB reply isn't implemented — that's a separate, larger feature
+// (author-permission-checked DELETE against NodeBB's own write API).
+
+function tidFromForumPostUid(uid: ForumPostUid): number {
+  return Number(uid.slice(3));
+}
+
+async function getMainPid(uid: ForumPostUid): Promise<number> {
+  const cached = forumPostByUid.get(uid);
+  if (cached) return cached.pid;
+
+  // Cache miss (e.g. commenting resolved before the posts list finished
+  // fetching) — fall back to fetching the topic directly.
+  const { includeDirectoryToken, ...init } = forumAuthHeaders();
+  const response = await customFetch(
+    `${process.env.FORUM_API_URL}/api/topic/${tidFromForumPostUid(uid)}`,
+    init,
+    includeDirectoryToken,
+  );
+  if (!response?.ok) throw new Error('Failed to post feed comment');
+  const topic = await response.json();
+  return topic.mainPid;
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function mapForumPostToFeedComment(post: any, itemUid: ForumPostUid): IFeedComment {
+  const user = post.user ?? {};
+  return {
+    uid: `fpc_${post.pid}`,
+    itemUid,
+    author: {
+      memberUid: user.memberUid ?? '',
+      name: user.displayname || user.username || 'Unknown',
+      avatarUrl: user.picture ?? null,
+      role: user.teamRole ?? null,
+    },
+    text: stripHtml(post.content ?? ''),
+    createdAt: new Date(Number(post.timestamp) || Date.now()).toISOString(),
+    isOwn: false,
+  };
+}
+
+async function getForumPostComments(uid: ForumPostUid): Promise<IFeedCommentsResponse> {
+  const { includeDirectoryToken, ...init } = forumAuthHeaders();
+  const response = await customFetch(
+    `${process.env.FORUM_API_URL}/api/topic/${tidFromForumPostUid(uid)}`,
+    init,
+    includeDirectoryToken,
+  );
+  if (!response?.ok) throw new Error('Failed to fetch feed comments');
+  const topic = await response.json();
+  const posts = Array.isArray(topic?.posts) ? topic.posts : [];
+  // posts[0] is the topic's own opening post, not a reply to it.
+  return { items: posts.slice(1).map((post: any) => mapForumPostToFeedComment(post, uid)) };
+}
+
+async function createForumPostComment(uid: ForumPostUid, text: string): Promise<IFeedComment> {
+  const toPid = await getMainPid(uid);
+  const { includeDirectoryToken, ...init } = forumAuthHeaders();
+  const response = await customFetch(
+    `${process.env.FORUM_API_URL}/api/v3/topics/${tidFromForumPostUid(uid)}`,
+    { ...init, method: 'POST', body: JSON.stringify({ content: `<p>${escapeHtml(text)}</p>`, toPid }) },
+    includeDirectoryToken,
+  );
+  if (!response?.ok) throw new Error('Failed to post feed comment');
+  const data = await response.json();
+  return mapForumPostToFeedComment(data?.response ?? data, uid);
 }
 
 // 404 (already deleted — e.g. a double-delete from two tabs) is mapped to the

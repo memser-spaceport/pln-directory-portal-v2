@@ -1,4 +1,4 @@
-import { forumErrorMessage, postForumReply } from '@/services/forum/forum.service';
+import { ForumWriteError, forumErrorMessage, postForumReply } from '@/services/forum/forum.service';
 import { customFetch } from '@/utils/fetch-wrapper';
 
 jest.mock('@/utils/fetch-wrapper', () => ({ customFetch: jest.fn() }));
@@ -47,7 +47,7 @@ describe('postForumReply', () => {
     );
   });
 
-  it('throws a plain error when the failure body is unreadable', async () => {
+  it('carries the status when the failure body is unreadable, and invents no message', async () => {
     customFetchMock.mockResolvedValue({
       ok: false,
       status: 500,
@@ -56,7 +56,22 @@ describe('postForumReply', () => {
       },
     });
 
-    await expect(postForumReply({ tid: 96, toPid: 263, content: '<p>x</p>' })).rejects.toThrow('Failed to add comment');
+    await expect(postForumReply({ tid: 96, toPid: 263, content: '<p>x</p>' })).rejects.toMatchObject({
+      name: 'ForumWriteError',
+      status: 500,
+      forumMessage: undefined,
+    });
+  });
+
+  it('carries a 401 from the auth layer in front of NodeBB, whose body is not NodeBB-shaped', async () => {
+    // Observed with an expired CUSTOM_FORUM_AUTH_TOKEN: reads still succeed as a
+    // guest, writes come back like this.
+    customFetchMock.mockResolvedValue({ ok: false, status: 401, json: async () => ({ error: 'Invalid token' }) });
+
+    await expect(postForumReply({ tid: 96, toPid: 263, content: '<p>x</p>' })).rejects.toMatchObject({
+      status: 401,
+      forumMessage: 'Invalid token',
+    });
   });
 });
 
@@ -88,5 +103,24 @@ describe('forumErrorMessage', () => {
   it('falls back for a non-Error or empty rejection', () => {
     expect(forumErrorMessage(undefined, FALLBACK)).toBe(FALLBACK);
     expect(forumErrorMessage(new Error(''), FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('explains a rejected session on 401 — in practice an expired forum token', () => {
+    const rejected = new ForumWriteError(401, 'Invalid token');
+
+    expect(forumErrorMessage(rejected, FALLBACK)).toMatch(/didn’t accept your session/);
+  });
+
+  it('explains a 403 as a permission problem, not a session one', () => {
+    expect(forumErrorMessage(new ForumWriteError(403, undefined), FALLBACK)).toMatch(/permission to reply/);
+  });
+
+  it('never leaks our own synthesised wording to a member', () => {
+    // No message from the forum ⇒ the Error's text is ours, not theirs.
+    expect(forumErrorMessage(new ForumWriteError(500, undefined), FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('still prefers the forum’s message when it sent a real one', () => {
+    expect(forumErrorMessage(new ForumWriteError(400, 'Topic is locked.'), FALLBACK)).toBe('Topic is locked.');
   });
 });

@@ -39,13 +39,27 @@ export interface PostForumReplyParams {
   content: string;
 }
 
+/** A forum write that was refused, carrying the HTTP status so callers can tell
+ *  "you're not signed in to the forum" apart from "the forum didn't like this". */
+export class ForumWriteError extends Error {
+  constructor(
+    readonly status: number | undefined,
+    /** The forum's own message, when it sent one. Never invented. */
+    readonly forumMessage: string | undefined,
+  ) {
+    super(forumMessage ?? `Forum write failed${status ? ` (${status})` : ''}`);
+    this.name = 'ForumWriteError';
+  }
+}
+
 /**
  * Post a reply to a topic. Shared by the /forum page's composer and the /home
  * feed's forum-post thread, which write the same reply through the same route.
  *
- * Throws with NodeBB's own message when it has one. Callers should route that
- * through `forumErrorMessage` before showing it: NodeBB frequently answers with
- * an untranslated `[[error:…]]` key.
+ * Rejections throw a ForumWriteError; run it through `forumErrorMessage` before
+ * showing anything to a member. Not every failure comes from NodeBB itself — an
+ * auth layer in front of it answers 401 `{"error":"Invalid token"}`, which has
+ * none of NodeBB's error shape — so the status matters as much as the message.
  */
 export async function postForumReply({ tid, toPid, content }: PostForumReplyParams) {
   const response = await forumFetch(`/api/v3/topics/${tid}`, {
@@ -55,29 +69,42 @@ export async function postForumReply({ tid, toPid, content }: PostForumReplyPara
 
   if (!response?.ok) {
     const body = await response?.json().catch(() => undefined);
-    throw new Error(body?.status?.message || 'Failed to add comment');
+    throw new ForumWriteError(response?.status, body?.status?.message ?? body?.error);
   }
 
   return await response.json();
 }
 
 /**
+ * Turn a forum rejection into something worth showing a member.
+ *
  * NodeBB's rejections are often translation KEYS, not sentences —
  * `[[error:content-too-short, Content too short]]`, `[[error:too-many-posts]]`.
  * Showing one raw is worse than showing nothing, so anything still in that form
- * is replaced with the caller's fallback.
+ * is replaced with the caller's fallback, and so is any message we made up
+ * ourselves rather than received.
  *
- * Two rejections members hit routinely and cannot diagnose from a generic
- * message get spelled out instead: NodeBB's `minimumPostLength` (8 characters
- * by default, so "nice!" is refused) and its post-rate limit.
+ * Rejections members hit routinely and cannot diagnose from a generic line get
+ * spelled out: NodeBB's `minimumPostLength` (8 characters by default, so
+ * "nice!" is refused), its post-rate limit, and a rejected session — which in
+ * practice means an expired forum token, and is otherwise indistinguishable from
+ * the composer just not working.
  */
 export function forumErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ForumWriteError) {
+    if (error.status === 401) return 'The forum didn’t accept your session — try signing in again.';
+    if (error.status === 403) return 'You don’t have permission to reply on the forum.';
+    // Anything we synthesised is internal wording, not a message for a member.
+    if (!error.forumMessage) return fallback;
+  }
+
   const raw = error instanceof Error ? error.message : '';
   if (!raw) return fallback;
 
   if (/content-too-short|too-short/i.test(raw)) return 'That’s too short for the forum — try a few more words.';
   if (/too-many-posts|rate-limit/i.test(raw)) return 'You’re posting a little fast for the forum — try again shortly.';
   if (/no-privileges|not-allowed|privileges/i.test(raw)) return 'You don’t have permission to reply on the forum.';
+  if (/invalid token|unauthori[sz]ed/i.test(raw)) return 'The forum didn’t accept your session — try signing in again.';
 
   // Any remaining bracketed key is machine text, not a message for a member.
   return /^\[\[.*\]\]$/.test(raw.trim()) || raw.includes('[[') ? fallback : raw;

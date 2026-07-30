@@ -176,6 +176,18 @@
   opacity: 0.55;
 }
 
+/* Replies, indented under the comment they answer. 16px matches the forum's
+   CommentItem.module.scss `.repliesWrapper`, at this thread's tighter 14px
+   rhythm — display depth is capped at MAX_DEPTH, so the indent can't run away. */
+.repliesWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  padding-left: 16px;
+  min-width: 0;
+}
+
 .avatar {
   width: 28px;
   height: 28px;

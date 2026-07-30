@@ -525,7 +525,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
 
     postLikeMutate(
-      { uid: post.uid, isLiked: nextLiked },
+      { post, isLiked: nextLiked },
       {
         onError: () => {
           setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));

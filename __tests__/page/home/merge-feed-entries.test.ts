@@ -33,6 +33,8 @@ function cluster(teamUid: string, items: ITeamNewsItem[]): TeamCluster {
 function post(uid: string, likeCount: number, createdAt: string, focusAreas: string[] = ['Infra']): IFeedForumPost {
   return {
     uid: uid as ForumPostUid,
+    tid: 1,
+    mainPid: 10,
     title: `Post ${uid}`,
     body: 'Body text',
     author: { memberUid: 'm1', name: 'Mira Chen', avatarUrl: null, role: 'Founder @ Lattice' },

@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { IFeedCommentCountsResponse, IFeedCommentDeleteResponse, IFeedCommentsResponse } from '@/types/feed.types';
+import { removeCommentFromTree } from '@/utils/comments';
 import { feedQueryKeys } from '../constants';
 import { deleteFeedComment } from '../feed.service';
 
@@ -22,12 +23,22 @@ export function useDeleteFeedComment(itemUid: string) {
         queryClient.cancelQueries({ queryKey: feedQueryKeys.comments(itemUid) }),
         queryClient.cancelQueries({ queryKey: feedQueryKeys.commentCounts() }),
       ]);
-      queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), (old) =>
-        old ? { items: old.items.filter((c) => c.uid !== commentUid) } : old,
-      );
-      queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
-        old ? { ...old, [itemUid]: Math.max(0, (old[itemUid] ?? 0) - 1) } : old,
-      );
+      // The backend cascades: deleting a comment deletes its replies too. So the
+      // whole subtree comes out of the thread, and the count drops by its size —
+      // decrementing by 1 would leave the badge permanently overstated.
+      // `removedCount` is 0 when the comment wasn't cached (a stale delete from
+      // another tab), which correctly leaves the count alone.
+      const cached = queryClient.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
+      const { items, removedCount } = cached
+        ? removeCommentFromTree(cached.items, commentUid)
+        : { items: [], removedCount: 0 };
+
+      if (cached) queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), { items });
+      if (removedCount > 0) {
+        queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
+          old ? { ...old, [itemUid]: Math.max(0, (old[itemUid] ?? 0) - removedCount) } : old,
+        );
+      }
     },
   });
 }

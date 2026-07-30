@@ -1,26 +1,21 @@
 import { TopicResponse } from '@/services/forum/hooks/useForumPost';
+import { buildCommentTree } from '@/utils/comments';
 
 import { NestedComment } from '../types';
 
+/**
+ * NodeBB's flat post list → a reply tree, nested on `parent.pid`.
+ *
+ * The algorithm lives in utils/comments/buildCommentTree so the /home feed can
+ * nest the same NodeBB payload the same way (it reads forum-post comments
+ * straight from the forum now). This wrapper keeps the forum's call site and
+ * types unchanged.
+ */
 export function nestComments(items: TopicResponse['posts']): NestedComment[] {
-  const map = new Map<number, any>();
-
-  // Create a lookup map and add `replies` to each
-  for (const item of items) {
-    map.set(item.pid, { ...item, replies: [] });
-  }
-
-  const roots: any[] = [];
-
-  for (const item of items) {
-    const current = map.get(item.pid);
-    if (item.parent?.pid && map.has(item.parent.pid)) {
-      const parent = map.get(item.parent.pid);
-      parent.replies.push(current);
-    } else {
-      roots.push(current);
-    }
-  }
-
-  return roots;
+  return buildCommentTree<TopicResponse['posts'][number], NestedComment>({
+    items,
+    idOf: (item) => item.pid,
+    parentIdOf: (item) => item.parent?.pid,
+    makeNode: (item) => ({ ...item, replies: [] }),
+  });
 }

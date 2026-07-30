@@ -2,10 +2,11 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { clampDepth } from '@/utils/comments';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
@@ -16,8 +17,20 @@ import type { IFeedComment } from '@/types/feed.types';
 
 import s from './FeedCommentsThread.module.scss';
 
-// Show at most this many comments before capping behind "View all N …".
+// Show at most this many TOP-LEVEL comments before capping behind "View all N …".
 const VISIBLE = 2;
+
+// Deepest rendered level, as a depth index — 2 means comment → reply →
+// reply-to-reply, the same cap as the forum's CommentItem.MAX_DEPTH. The wire
+// allows unlimited depth, so anything deeper is lifted to this level by
+// clampDepth rather than indented off the edge of the card.
+const MAX_DEPTH = 2;
+
+/** Total comments in the thread, replies included — matches what the count
+ *  badge shows (the backend counts every row under an item, at any depth). */
+function countComments(comments: readonly IFeedComment[]): number {
+  return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
+}
 
 interface FeedCommentsThreadProps {
   itemUid: string;
@@ -26,9 +39,12 @@ interface FeedCommentsThreadProps {
 }
 
 /**
- * Inline feed-only comment thread + composer (ported from the newsfeed-v0
- * prototype's CommentsThread). Feed comments are their own system — posting
- * here never creates or updates a NodeBB forum reply.
+ * Inline comment thread + composer for a feed item.
+ *
+ * The comments come from one of two entirely separate systems, and this
+ * component is deliberately blind to which: news comments are directory-native,
+ * a forum post's comments are its real NodeBB topic replies. Both arrive as the
+ * same `IFeedComment` tree from services/feed/feed.service.ts.
  *
  * Mount = expanded: the parent renders this component only while the thread is
  * open, so the lazy comments query fetches on first expand and, with no
@@ -49,9 +65,9 @@ interface FeedCommentsThreadProps {
  * swap on the row — no modal, no toast, matching the composer's style. No
  * optimistic removal: the row shows a disabled Yes while the request is in
  * flight, same "nothing touches the cache until the server confirms" rule the
- * composer follows. If the card unmounts mid-confirm (e.g. a mid-session
- * access revocation drops this post from the feed), the pending confirm state
- * is silently discarded — same accepted behavior as an abandoned draft.
+ * composer follows. Deleting cascades to the comment's replies, server-side and
+ * in the cache patch alike. NodeBB-sourced comments always report
+ * `isOwn: false`, so the affordance never appears on them.
  */
 export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThreadProps) {
   const router = useRouter();
@@ -65,7 +81,12 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
   const addComment = useAddFeedComment(itemUid);
   const deleteComment = useDeleteFeedComment(itemUid);
 
-  const comments: IFeedComment[] = data?.items ?? [];
+  const items = data?.items;
+  // Display cap applied once, here: every consumer below can then recurse
+  // without re-checking depth.
+  const comments = useMemo(() => clampDepth<IFeedComment>(items ?? [], MAX_DEPTH), [items]);
+  const totalCount = useMemo(() => countComments(comments), [comments]);
+
   // Oldest-first data: the most recent VISIBLE comments are the LAST ones, not
   // the first — a plain slice(0, VISIBLE) would show the oldest instead.
   const shown = expanded ? comments : comments.slice(-VISIBLE);
@@ -173,70 +194,127 @@ export function FeedCommentsThread({ itemUid, kind, source }: FeedCommentsThread
               </div>
             </div>
           )}
-          {shown.map((c) => {
-            const isConfirming = confirmingUid === c.uid;
-            const isDeletingThis = deleteComment.isPending && deleteComment.variables?.commentUid === c.uid;
-            const deleteFailedThis = deleteComment.isError && deleteComment.variables?.commentUid === c.uid;
-            return (
-              <div key={c.uid} className={s.item}>
-                <img
-                  className={s.avatar}
-                  src={c.author.avatarUrl || getDefaultAvatar(c.author.name)}
-                  alt=""
-                  loading="lazy"
-                />
-                <div className={s.body}>
-                  <div className={s.head}>
-                    <span className={s.name}>{c.author.name}</span>
-                    {c.author.role && <span className={s.role}>· {c.author.role}</span>}
-                    <span className={s.time}>· {formatTimeAgo(c.createdAt)}</span>
-                    {c.isOwn &&
-                      (isConfirming ? (
-                        <span className={s.deleteConfirm}>
-                          Delete this comment?
-                          <button
-                            type="button"
-                            className={s.deleteConfirmBtn}
-                            disabled={isDeletingThis}
-                            onClick={() => requestDelete(c.uid)}
-                          >
-                            {isDeletingThis ? 'Deleting…' : 'Yes'}
-                          </button>
-                          <button
-                            type="button"
-                            className={s.deleteCancelBtn}
-                            disabled={isDeletingThis}
-                            onClick={() => {
-                              setConfirmingUid(null);
-                              if (deleteComment.isError) deleteComment.reset();
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </span>
-                      ) : (
-                        <button type="button" className={s.deleteBtn} onClick={() => setConfirmingUid(c.uid)}>
-                          Delete
-                        </button>
-                      ))}
-                  </div>
-                  <p className={s.text}>{c.text}</p>
-                  {deleteFailedThis && (
-                    <p className={s.error} role="alert">
-                      Couldn&apos;t delete — try again.
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {shown.map((comment) => (
+            <CommentRow
+              key={comment.uid}
+              comment={comment}
+              confirmingUid={confirmingUid}
+              onConfirmDelete={setConfirmingUid}
+              onDelete={requestDelete}
+              isDeletePending={deleteComment.isPending}
+              deletingUid={deleteComment.variables?.commentUid}
+              deleteFailed={deleteComment.isError}
+              resetDelete={deleteComment.reset}
+            />
+          ))}
           {comments.length > VISIBLE && (
             <button type="button" className={s.viewAll} onClick={() => setExpanded((v) => !v)}>
-              {expanded ? 'Show fewer comments' : `View all ${comments.length} comments`}
+              {expanded ? 'Show fewer comments' : `View all ${totalCount} comments`}
             </button>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+interface CommentRowProps {
+  comment: IFeedComment;
+  confirmingUid: string | null;
+  onConfirmDelete: (uid: string | null) => void;
+  onDelete: (uid: string) => void;
+  isDeletePending: boolean;
+  deletingUid: string | undefined;
+  deleteFailed: boolean;
+  resetDelete: () => void;
+}
+
+/**
+ * One comment and its replies. Recursive, but bounded: the tree it renders has
+ * already been through clampDepth, so recursion is at most MAX_DEPTH deep.
+ * Delete state is passed down rather than held here — there is one delete
+ * mutation for the whole thread, and only one row may be confirming at a time.
+ */
+function CommentRow({
+  comment,
+  confirmingUid,
+  onConfirmDelete,
+  onDelete,
+  isDeletePending,
+  deletingUid,
+  deleteFailed,
+  resetDelete,
+}: CommentRowProps) {
+  const isConfirming = confirmingUid === comment.uid;
+  const isDeletingThis = isDeletePending && deletingUid === comment.uid;
+  const deleteFailedThis = deleteFailed && deletingUid === comment.uid;
+  // `name` is nullable on the wire; the fallback keeps the avatar deterministic
+  // and the row readable rather than rendering a blank byline.
+  const displayName = comment.author.name || 'Member';
+
+  return (
+    <div className={s.item}>
+      <img className={s.avatar} src={comment.author.avatarUrl || getDefaultAvatar(displayName)} alt="" loading="lazy" />
+      <div className={s.body}>
+        <div className={s.head}>
+          <span className={s.name}>{displayName}</span>
+          {comment.author.role && <span className={s.role}>· {comment.author.role}</span>}
+          <span className={s.time}>· {formatTimeAgo(comment.createdAt)}</span>
+          {comment.isOwn &&
+            (isConfirming ? (
+              <span className={s.deleteConfirm}>
+                Delete this comment?
+                <button
+                  type="button"
+                  className={s.deleteConfirmBtn}
+                  disabled={isDeletingThis}
+                  onClick={() => onDelete(comment.uid)}
+                >
+                  {isDeletingThis ? 'Deleting…' : 'Yes'}
+                </button>
+                <button
+                  type="button"
+                  className={s.deleteCancelBtn}
+                  disabled={isDeletingThis}
+                  onClick={() => {
+                    onConfirmDelete(null);
+                    if (deleteFailed) resetDelete();
+                  }}
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <button type="button" className={s.deleteBtn} onClick={() => onConfirmDelete(comment.uid)}>
+                Delete
+              </button>
+            ))}
+        </div>
+        <p className={s.text}>{comment.text}</p>
+        {deleteFailedThis && (
+          <p className={s.error} role="alert">
+            Couldn&apos;t delete — try again.
+          </p>
+        )}
+
+        {comment.replies.length > 0 && (
+          <div className={s.repliesWrapper}>
+            {comment.replies.map((reply) => (
+              <CommentRow
+                key={reply.uid}
+                comment={reply}
+                confirmingUid={confirmingUid}
+                onConfirmDelete={onConfirmDelete}
+                onDelete={onDelete}
+                isDeletePending={isDeletePending}
+                deletingUid={deletingUid}
+                deleteFailed={deleteFailed}
+                resetDelete={resetDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

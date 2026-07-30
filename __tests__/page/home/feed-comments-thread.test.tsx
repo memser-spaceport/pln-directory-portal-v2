@@ -21,15 +21,28 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPush }),
 }));
 
-function comment(uid: string, text: string, isOwn = false): IFeedComment {
+function comment(uid: string, text: string, isOwn = false, replies: IFeedComment[] = []): IFeedComment {
   return {
     uid,
     itemUid: 'n-1',
-    author: { memberUid: `m-${uid}`, name: `Author ${uid}`, avatarUrl: null, role: 'Founder @ Lattice' },
+    parentUid: null,
+    author: { uid: `m-${uid}`, name: `Author ${uid}`, avatarUrl: null, role: 'Founder @ Lattice' },
     text,
     createdAt: '2026-07-01T00:00:00.000Z',
     isOwn,
+    replies,
   };
+}
+
+/** A reply carries its parent, mirroring what both backends send. */
+function reply(
+  uid: string,
+  text: string,
+  parentUid: string,
+  isOwn = false,
+  replies: IFeedComment[] = [],
+): IFeedComment {
+  return { ...comment(uid, text, isOwn, replies), parentUid };
 }
 
 // Comments are oldest-first — these fixtures are ordered accordingly.
@@ -96,6 +109,89 @@ describe('FeedCommentsThread — list', () => {
     const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
     expect(screen.getByText('<script>alert(1)</script>')).toBeInTheDocument();
     expect(container.querySelector('script')).toBeNull();
+  });
+
+  it('falls back to a readable byline when the author has no name (the wire allows null)', () => {
+    const nameless = { ...comment('c1', 'Anonymous-ish'), author: { uid: 'm-1', name: null, avatarUrl: null } };
+    mockThread([nameless]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(screen.getByText('Member')).toBeInTheDocument();
+  });
+
+  it('shows a role only when the source provides one (news comments have none)', () => {
+    const roleless = {
+      ...comment('c1', 'No role here'),
+      author: { uid: 'm-1', name: 'Author c1', avatarUrl: null },
+    };
+    mockThread([roleless]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(screen.queryByText(/Founder @ Lattice/)).not.toBeInTheDocument();
+  });
+});
+
+describe('FeedCommentsThread — replies', () => {
+  it('renders a reply nested under the comment it answers', () => {
+    mockThread([comment('c1', 'Top level', false, [reply('c2', 'A reply', 'c1')])]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(screen.getByText('Top level')).toBeInTheDocument();
+    expect(screen.getByText('A reply')).toBeInTheDocument();
+  });
+
+  it('renders three levels: comment → reply → reply-to-reply', () => {
+    mockThread([
+      comment('c1', 'Level 0', false, [reply('c2', 'Level 1', 'c1', false, [reply('c3', 'Level 2', 'c2')])]),
+    ]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(screen.getByText('Level 2')).toBeInTheDocument();
+  });
+
+  it('keeps a level-3 reply visible by lifting it to the cap — the wire allows unlimited depth', () => {
+    mockThread([
+      comment('c1', 'Level 0', false, [
+        reply('c2', 'Level 1', 'c1', false, [
+          reply('c3', 'Level 2', 'c2', false, [reply('c4', 'Level 3 lifted', 'c3')]),
+        ]),
+      ]),
+    ]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(screen.getByText('Level 3 lifted')).toBeInTheDocument();
+  });
+
+  it('counts replies in "View all N comments" — the cap applies to top-level comments only', () => {
+    mockThread([
+      comment('c1', 'First', false, [reply('c1r', 'Reply to first', 'c1')]),
+      comment('c2', 'Second'),
+      comment('c3', 'Third'),
+    ]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // 3 top-level + 1 reply = 4, matching what the count badge shows.
+    expect(screen.getByRole('button', { name: 'View all 4 comments' })).toBeInTheDocument();
+    // Only the last 2 top-level comments are visible, so the reply is hidden too.
+    expect(screen.queryByText('Reply to first')).not.toBeInTheDocument();
+  });
+
+  it('offers delete on an own reply, not just on top-level comments', () => {
+    mockThread([comment('c1', 'Not mine', false, [reply('c2', 'My reply', 'c1', true)])]);
+    mockMutation(useAddFeedCommentMock);
+    const deleteMutation = mockMutation(useDeleteFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes' }));
+
+    expect(deleteMutation.mutate).toHaveBeenCalledWith({ commentUid: 'c2' }, expect.any(Object));
   });
 });
 

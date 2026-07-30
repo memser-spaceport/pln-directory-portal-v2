@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
 import { useCurrentUserStore } from '@/services/auth/store';
+import type { IFeedForumPost } from '@/types/feed.types';
 import type {
   ITeamNewsDiscussion,
   ITeamNewsGroup,
@@ -43,6 +44,17 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
     onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
   }),
+}));
+
+// Forum posts reach the feed through this hook. Default: none, which is what the
+// globally-mocked useQuery already produced — so every other test in this file
+// behaves exactly as before.
+type FeedSocialResult = { forumPosts: IFeedForumPost[] | undefined; hasAccess: boolean; deepLinkSettled: boolean };
+const mockUseFeedSocial = jest.fn(
+  (): FeedSocialResult => ({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true }),
+);
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
+  useFeedSocial: (...a: unknown[]) => mockUseFeedSocial(...(a as [])),
 }));
 
 // The global jest.setup.js mock returns a NEW object with fresh jest.fn()s on
@@ -132,6 +144,9 @@ describe('TeamNews', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
+    // clearAllMocks clears calls, NOT return values — without this, a describe
+    // that supplies forum posts leaks them into every later test's feed.
+    mockUseFeedSocial.mockReturnValue({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true });
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
     window.history.replaceState(null, '', '/home');
@@ -276,7 +291,7 @@ describe('TeamNews', () => {
     expect(source).toBe('home');
   });
 
-  describe('Active Discussions', () => {
+  describe('Discussions category', () => {
     const aiDiscussed = makeItem('ai-discuss', 'FUNDING', ['AI & Robotics'], {
       count: 1,
       latestTopicUrl: '/forum/t/123',
@@ -287,43 +302,99 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
     ];
 
-    it('does not render Active Discussions when no items have a forum thread', () => {
+    it('does not render Discussions when there are no forum posts and no threaded items', () => {
       renderTeamNews(<TeamNews groups={groups} />);
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('shows Active Discussions after All categories when at least one item has a thread', () => {
+    it('shows Discussions after All categories when at least one item has a thread', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
       const allCat = screen.getByRole('button', { name: /All categories/ });
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(chips.indexOf(activeDisc)).toBeGreaterThan(chips.indexOf(allCat));
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(chips.indexOf(discussions)).toBeGreaterThan(chips.indexOf(allCat));
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
     });
 
     it('filters to discussion items and reports analytics', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      fireEvent.click(screen.getByRole('button', { name: /Active Discussions/ }));
-      expect(mockOnCategoryClicked).toHaveBeenCalledWith('active-discussions', 1, 'All');
+      fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('discussions', 1, 'All');
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
     });
 
-    it('hides Active Discussions on a focus tab with no threads', () => {
+    it('hides Discussions on a focus tab with nothing to show', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      expect(screen.getByRole('button', { name: /Active Discussions/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Discussions/ })).toBeInTheDocument();
       fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('scopes Active Discussions count to the selected focus tab', () => {
+    it('scopes the Discussions count to the selected focus tab', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
-      fireEvent.click(activeDisc);
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
+      fireEvent.click(discussions);
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+    });
+
+    describe('with forum posts in the feed', () => {
+      const forumPost: IFeedForumPost = {
+        uid: 'fp_96',
+        tid: 96,
+        mainPid: 263,
+        title: 'Willow Is Live!',
+        body: 'Hi Protocol Labs',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: '2026-07-01T00:00:00.000Z',
+        forumTopicUrl: '/forum/topics/5/96',
+        commentCount: 2,
+        likeCount: 5,
+        viewerHasLiked: false,
+      };
+
+      beforeEach(() => {
+        mockUseFeedSocial.mockReturnValue({ forumPosts: [forumPost], hasAccess: true, deepLinkSettled: true });
+      });
+
+      it('offers the Discussions pill for forum posts alone, with no threaded news items', () => {
+        // `groups` has no item with a forum thread — before this, the cards were
+        // in the feed with no pill that could reach them.
+        renderTeamNews(<TeamNews groups={groups} />);
+
+        const discussions = screen.getByRole('button', { name: /Discussions/ });
+        expect(within(discussions).getByText('1')).toBeInTheDocument();
+      });
+
+      it('counts forum posts alongside threaded news items', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        // 1 threaded news item + 1 forum post.
+        expect(within(screen.getByRole('button', { name: /Discussions/ })).getByText('2')).toBeInTheDocument();
+      });
+
+      it('keeps the forum post visible when Discussions is selected, and drops plain news', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+
+        expect(screen.getByText('Willow Is Live!')).toBeInTheDocument();
+        expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
+        expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+      });
+
+      it('still hides forum posts under an event-type pill (a post has no event type)', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Funding/ }));
+
+        expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+      });
     });
   });
 

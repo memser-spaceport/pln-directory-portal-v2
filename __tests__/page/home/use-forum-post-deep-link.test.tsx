@@ -13,6 +13,8 @@ jest.mock('next/navigation', () => ({
 function post(uid: string): IFeedForumPost {
   return {
     uid: uid as ForumPostUid,
+    tid: 1,
+    mainPid: 10,
     title: `Post ${uid}`,
     body: 'Body',
     author: { memberUid: 'm1', name: 'Mira Chen', avatarUrl: null, role: null },

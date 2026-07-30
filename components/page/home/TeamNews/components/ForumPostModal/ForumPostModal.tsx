@@ -117,9 +117,10 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
 
         <p className={clsx(modalStyles.content, modalStyles.contentPlain)}>{post.body}</p>
 
-        {/* Always expanded in the modal (prototype parity) — shares the card
-            thread's cache entry, so nothing refetches when both are open. */}
-        <FeedCommentsThread itemUid={post.uid} kind="forum" source="news-modal" />
+        {/* The post's real NodeBB thread. `forumMainPid` is the topic's opening
+            post — the reply target for a top-level comment — passed down so the
+            write is one request instead of a fetch-then-post. */}
+        <FeedCommentsThread itemUid={post.uid} kind="forum" source="news-modal" forumMainPid={post.mainPid} />
       </div>
 
       <div className={modalStyles.footer}>

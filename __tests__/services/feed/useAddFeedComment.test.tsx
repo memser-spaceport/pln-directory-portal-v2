@@ -15,8 +15,24 @@ jest.mock('@/services/feed/feed.service', () => ({ createFeedComment: jest.fn() 
 
 const createFeedCommentMock = createFeedComment as jest.MockedFunction<typeof createFeedComment>;
 
-function comment(uid: string, itemUid: string, text: string, createdAt: string): IFeedComment {
-  return { uid, itemUid, author: { memberUid: 'm-1', name: 'Author', avatarUrl: null, role: null }, text, createdAt, isOwn: true };
+function comment(
+  uid: string,
+  itemUid: string,
+  text: string,
+  createdAt: string,
+  parentUid: string | null = null,
+  replies: IFeedComment[] = [],
+): IFeedComment {
+  return {
+    uid,
+    itemUid,
+    parentUid,
+    author: { uid: 'm-1', name: 'Author', avatarUrl: null },
+    text,
+    createdAt,
+    isOwn: true,
+    replies,
+  };
 }
 
 describe('useAddFeedComment', () => {
@@ -60,5 +76,61 @@ describe('useAddFeedComment', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.items).toEqual([created]);
+  });
+
+  it('passes parentUid through to the service so a reply is created as a reply', async () => {
+    const itemUid = 'n-1';
+    createFeedCommentMock.mockResolvedValue(comment('c-2', itemUid, 'Agreed', '2026-01-02T00:00:00.000Z', 'c-1'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Agreed', parentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(createFeedCommentMock).toHaveBeenCalledWith({ itemUid, parentUid: 'c-1', text: 'Agreed' });
+  });
+
+  it('nests a reply under its parent instead of appending it to the root list', async () => {
+    const itemUid = 'n-1';
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+      items: [comment('c-1', itemUid, 'First', '2026-01-01T00:00:00.000Z')],
+    });
+    client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { [itemUid]: 1 });
+
+    const reply = comment('c-2', itemUid, 'Agreed', '2026-01-02T00:00:00.000Z', 'c-1');
+    createFeedCommentMock.mockResolvedValue(reply);
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Agreed', parentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
+    // The reply must NOT become a second top-level comment — that's the failure
+    // mode a flat append produces, and it looks correct until you reload.
+    expect(patched?.items.map((c) => c.uid)).toEqual(['c-1']);
+    expect(patched?.items[0].replies.map((c) => c.uid)).toEqual(['c-2']);
+    // Counts include replies at any depth.
+    expect(client.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts())?.[itemUid]).toBe(2);
+  });
+
+  it('nests a reply-to-a-reply under the right comment, several levels down', async () => {
+    const itemUid = 'n-1';
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+      items: [
+        comment('c-1', itemUid, 'First', '2026-01-01T00:00:00.000Z', null, [
+          comment('c-2', itemUid, 'Agreed', '2026-01-02T00:00:00.000Z', 'c-1'),
+        ]),
+      ],
+    });
+
+    createFeedCommentMock.mockResolvedValue(comment('c-3', itemUid, 'Same', '2026-01-03T00:00:00.000Z', 'c-2'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Same', parentUid: 'c-2' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
+    expect(patched?.items[0].replies[0].replies.map((c) => c.uid)).toEqual(['c-3']);
   });
 });

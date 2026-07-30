@@ -1,6 +1,6 @@
-import { customFetch } from '@/utils/fetch-wrapper';
 import { useQuery } from '@tanstack/react-query';
 import { ForumQueryKeys } from '@/services/forum/constants';
+import { forumFetch } from '@/services/forum/forum.service';
 
 export type TopicResponse = {
   tid: 0;
@@ -244,18 +244,7 @@ export type TopicResponse = {
 };
 
 export async function fetcher(tid: string) {
-  const token = process.env.CUSTOM_FORUM_AUTH_TOKEN;
-  const response = await customFetch(
-    `${process.env.FORUM_API_URL}/api/topic/${tid}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: 'include',
-    },
-    !token,
-  );
+  const response = await forumFetch(`/api/topic/${tid}`);
 
   if (!response?.ok) {
     return null;

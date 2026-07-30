@@ -186,6 +186,28 @@ describe('NewsGroupCard', () => {
     openSpy.mockRestore();
   });
 
+  it('opens the detail modal from the comment badge, flagged as such for analytics', () => {
+    const onStoryOpen = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'View comments' }));
+
+    // The badge is not a disclosure toggle — the thread lives in the modal, and
+    // `via` is the only thing that distinguishes this from a row click.
+    expect(onStoryOpen).toHaveBeenCalledWith(item, 'comment-button');
+  });
+
+  it('never renders a thread inline on the card', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={noopStoryOpen} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'View comments' }));
+
+    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+  });
+
   it('exposes rows as dialog-opening buttons with the title as accessible name', () => {
     render(
       <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={jest.fn()} />,

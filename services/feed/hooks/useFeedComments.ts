@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import type { IFeedCommentsResponse } from '@/types/feed.types';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import type { IFeedCommentsResponse, IFeedForumPostLikeStatus } from '@/types/feed.types';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { FEED_COMMENTS_STALE_TIME, feedQueryKeys } from '../constants';
 import { getFeedComments } from '../feed.service';
@@ -19,4 +19,20 @@ export function useFeedComments(itemUid: string, { enabled }: { enabled: boolean
     staleTime: FEED_COMMENTS_STALE_TIME,
     refetchOnWindowFocus: false,
   });
+}
+
+// A forum post's Like starts out blind: /api/recent builds the card and carries
+// no per-viewer vote state, so `viewerHasLiked` is false until something says
+// otherwise. Opening the thread fetches the topic, which does know — this
+// observes that same cache entry (skipToken = observe only, never fetch) and
+// narrows to the vote state with `select`, the same pattern the per-button
+// comment counts use, so the feed doesn't re-render when comments load.
+export function useFeedForumTopicLike(itemUid: string | null): IFeedForumPostLikeStatus | undefined {
+  const { data } = useQuery<IFeedCommentsResponse, Error, IFeedForumPostLikeStatus | undefined>({
+    queryKey: feedQueryKeys.comments(itemUid ?? ''),
+    queryFn: skipToken,
+    select: (response) => response.forumTopic?.like,
+    enabled: Boolean(itemUid),
+  });
+  return data;
 }

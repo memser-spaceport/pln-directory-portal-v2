@@ -11,6 +11,10 @@ import s from './CommentButton.module.scss';
 // as one family. Subscribes to its own uid's slot in the shared feed counts
 // cache (select-narrowed, so a count bump re-renders exactly this button, not
 // the feed); undefined means "unknown" and renders no number (never a fake "0").
+//
+// This is a count badge that OPENS the detail modal, not a disclosure toggle:
+// threads live only in the modal, where a depth-2 reply tree has room to
+// breathe. Hence no `open`/aria-expanded — there is nothing here to expand.
 
 function CommentIcon() {
   return (
@@ -25,24 +29,21 @@ function CommentIcon() {
 
 interface CommentButtonProps {
   itemUid: string;
-  open: boolean;
-  onToggle: () => void;
+  onClick: () => void;
 }
 
-export function CommentButton({ itemUid, open, onToggle }: CommentButtonProps) {
+export function CommentButton({ itemUid, onClick }: CommentButtonProps) {
   const count = useFeedCommentCount(itemUid);
   const noun = count === 1 ? 'Comment' : 'Comments';
-  const label = open ? `Hide comments` : `Show comments`;
   return (
     <button
       type="button"
-      className={clsx(s.comment, open && s.commentOpen)}
-      aria-expanded={open}
-      aria-label={label}
-      title={label}
+      className={s.comment}
+      aria-label="View comments"
+      title="View comments"
       onClick={(e) => {
         e.stopPropagation();
-        onToggle();
+        onClick();
       }}
     >
       <CommentIcon />

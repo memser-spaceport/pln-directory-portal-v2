@@ -108,7 +108,20 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
     reasonLines[0] || bestPath?.pathSummary?.explanation?.trim() || explanationFromHopChain(bestPath?.hopChain) || null;
 
   const hops: WarmPathV2HopNode[] = useMemo(() => {
-    if (hopChain?.hops?.length) return hopChain.hops;
+    const resolveName = (hop: WarmPathV2HopNode): string => {
+      if (hop.name && hop.name !== hop.profileUid) return hop.name;
+      if (hop.profileUid && hop.profileUid === bestPath?.bestConnector?.profileUid) {
+        return bestPath.bestConnector.name;
+      }
+      if (hop.profileUid && hop.profileUid === investor?.profileUid) {
+        return investor.name;
+      }
+      return hop.name;
+    };
+
+    if (hopChain?.hops?.length) {
+      return hopChain.hops.map((h) => ({ ...h, name: resolveName(h) }));
+    }
     // Fallback from enriched list summaries
     const out: WarmPathV2HopNode[] = [];
     if (bestPath?.bestConnector) {

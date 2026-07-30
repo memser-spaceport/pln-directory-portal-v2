@@ -176,6 +176,29 @@
   opacity: 0.55;
 }
 
+/* Link out to the origin topic: for the replies a single NodeBB page didn't
+   include, and for a comment whose whole content was an attachment. */
+.forumLink {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* An attachment-only comment: not the member's words, so it doesn't get their
+   emphasis. */
+.textAttachment {
+  font-style: italic;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 /* Quiet "Reply" affordance under a comment — same restraint as .deleteBtn and
    .viewAll: available, but never competing with the comment text. */
 .replyBtn {

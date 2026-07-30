@@ -109,6 +109,13 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
   const comments = useMemo(() => clampDepth<IFeedComment>(items ?? [], MAX_DEPTH), [items]);
   const totalCount = useMemo(() => countComments(comments), [comments]);
 
+  // NodeBB serves one page of posts per request, so a busy topic's thread is
+  // only partly here. Saying "View all N" over a subset would be a lie; the
+  // forum link is where the rest actually is.
+  const forumTopic = data?.forumTopic;
+  const forumTopicUrl = forumTopic?.url ?? undefined;
+  const missingReplyCount = forumTopic ? Math.max(0, forumTopic.totalReplyCount - totalCount) : 0;
+
   // Oldest-first data: the most recent VISIBLE comments are the LAST ones, not
   // the first — a plain slice(0, VISIBLE) would show the oldest instead.
   const shown = expanded ? comments : comments.slice(-VISIBLE);
@@ -224,12 +231,24 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
               deletingUid={deleteComment.variables?.commentUid}
               deleteFailed={deleteComment.isError}
               resetDelete={deleteComment.reset}
+              forumTopicUrl={forumTopicUrl}
             />
           ))}
           {comments.length > VISIBLE && (
             <button type="button" className={s.viewAll} onClick={() => setExpanded((v) => !v)}>
-              {expanded ? 'Show fewer comments' : `View all ${totalCount} comments`}
+              {expanded
+                ? 'Show fewer comments'
+                : missingReplyCount > 0
+                  ? 'Show more comments'
+                  : `View all ${totalCount} comments`}
             </button>
+          )}
+          {missingReplyCount > 0 && forumTopicUrl && (
+            <a className={s.forumLink} href={forumTopicUrl} target="_blank" rel="noopener noreferrer">
+              {missingReplyCount === 1
+                ? '1 more comment on the forum →'
+                : `${missingReplyCount} more comments on the forum →`}
+            </a>
           )}
         </div>
       )}
@@ -332,6 +351,8 @@ interface CommentRowProps {
   deletingUid: string | undefined;
   deleteFailed: boolean;
   resetDelete: () => void;
+  /** Where an attachment-only comment can actually be seen (forum posts only). */
+  forumTopicUrl: string | undefined;
 }
 
 /**
@@ -362,6 +383,7 @@ function CommentRow(props: CommentRowProps) {
     deletingUid,
     deleteFailed,
     resetDelete,
+    forumTopicUrl,
   } = props;
 
   const [replyDraft, setReplyDraft] = useState('');
@@ -419,7 +441,22 @@ function CommentRow(props: CommentRowProps) {
               </button>
             ))}
         </div>
-        <p className={s.text}>{comment.text}</p>
+        {/* A forum comment that was only an image or a file strips to nothing —
+            the text is plain by contract, and the attachment isn't in it. Say so
+            and point at where it can be seen, rather than rendering a blank row. */}
+        {comment.text ? (
+          <p className={s.text}>{comment.text}</p>
+        ) : (
+          <p className={clsx(s.text, s.textAttachment)}>
+            {forumTopicUrl ? (
+              <a href={forumTopicUrl} target="_blank" rel="noopener noreferrer" className={s.forumLink}>
+                Shared an image or file — view it on the forum →
+              </a>
+            ) : (
+              'Shared an image or file.'
+            )}
+          </p>
+        )}
         {deleteFailedThis && (
           <p className={s.error} role="alert">
             Couldn’t delete — try again.

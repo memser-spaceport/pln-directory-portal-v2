@@ -112,11 +112,26 @@ export interface IFeedForumPostsResponse {
   items: IFeedForumPost[];
 }
 
+/** What the forum can tell us about a topic that its reply list alone can't.
+ *  Present only for forum posts, where the thread comes from NodeBB. */
+export interface IFeedForumTopicMeta {
+  /** In-app path to the topic, for "see the rest of this on the forum". */
+  url: string | null;
+  /** Replies the topic actually has, at any depth. NodeBB serves one page of
+   *  posts per request, so this can exceed the number in `items`. */
+  totalReplyCount: number;
+  /** The topic's own vote state, which the /api/recent listing doesn't carry —
+   *  the only way a forum card can learn whether the viewer already liked it. */
+  like: IFeedForumPostLikeStatus;
+}
+
 /** Top-level comments, oldest first, each with its own `replies`. No `total`
  *  field: every consumer derives counts from the tree rather than maintaining a
  *  second counter in lockstep. */
 export interface IFeedCommentsResponse {
   items: IFeedComment[];
+  /** Forum posts only. */
+  forumTopic?: IFeedForumTopicMeta;
 }
 
 /** Keyed by item uid. A uid the server omitted means "unknown" and must render

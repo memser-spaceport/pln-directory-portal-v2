@@ -6,7 +6,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
-import type { IFeedComment } from '@/types/feed.types';
+import type { IFeedComment, IFeedCommentsResponse } from '@/types/feed.types';
 
 jest.mock('@/services/feed/hooks/useFeedComments', () => ({ useFeedComments: jest.fn() }));
 jest.mock('@/services/feed/hooks/useAddFeedComment', () => ({ useAddFeedComment: jest.fn() }));
@@ -52,8 +52,13 @@ function reply(
 }
 
 // Comments are oldest-first — these fixtures are ordered accordingly.
-function mockThread(items: IFeedComment[]) {
-  useFeedCommentsMock.mockReturnValue({ data: { items } });
+function mockThread(items: IFeedComment[], forumTopic?: IFeedCommentsResponse['forumTopic']) {
+  useFeedCommentsMock.mockReturnValue({ data: { items, forumTopic } });
+}
+
+/** What the service reports about a NodeBB topic alongside its replies. */
+function forumTopicMeta(totalReplyCount: number, url: string | null = '/forum/topics/5/96') {
+  return { url, totalReplyCount, like: { likeCount: 0, viewerHasLiked: false } };
 }
 
 function mockMutation(mock: jest.Mock, overrides: Partial<Record<string, unknown>> = {}) {
@@ -433,6 +438,50 @@ describe('FeedCommentsThread — forum posts', () => {
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
 
     expect(screen.getByPlaceholderText('Write your comment here…')).toBeInTheDocument();
+  });
+
+  it('links to the forum for the replies NodeBB’s single page left out', () => {
+    // 50 replies exist; one page of them arrived.
+    mockThread([comment('c1', 'Loaded'), comment('c2', 'Also loaded')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    const link = screen.getByRole('link', { name: '48 more comments on the forum →' });
+    expect(link).toHaveAttribute('href', '/forum/topics/5/96');
+  });
+
+  it('says "Show more" rather than "View all N" when N would understate the thread', () => {
+    mockThread([comment('c1', 'One'), comment('c2', 'Two'), comment('c3', 'Three')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByRole('button', { name: 'Show more comments' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
+  });
+
+  it('shows no forum link when the whole thread is already here', () => {
+    mockThread([comment('c1', 'One'), comment('c2', 'Two')], forumTopicMeta(2));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.queryByRole('link', { name: /on the forum/ })).not.toBeInTheDocument();
+  });
+
+  it('labels an attachment-only comment instead of rendering a blank row', () => {
+    // A comment that was just an image strips to empty text by contract.
+    mockThread([comment('c1', '')], forumTopicMeta(1));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByRole('link', { name: /Shared an image or file/ })).toHaveAttribute('href', '/forum/topics/5/96');
+  });
+
+  it('still labels an attachment-only comment when there is no topic link', () => {
+    mockThread([comment('c1', '')], forumTopicMeta(1, null));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByText('Shared an image or file.')).toBeInTheDocument();
   });
 
   it('surfaces the forum’s own reason when it has one, in place of the generic line', () => {

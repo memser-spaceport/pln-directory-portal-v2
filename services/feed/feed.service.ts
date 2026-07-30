@@ -325,7 +325,7 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
   const posts = Array.isArray(topic?.posts) ? topic.posts : [];
   // posts[0] is the topic's own opening post rather than a reply to it — the
   // same slice the /forum page takes (components/page/forum/Post/Post.tsx).
-  const replies = posts.slice(1);
+  const [mainPost, ...replies] = posts;
 
   return {
     items: buildCommentTree<TopicPost, IFeedComment>({
@@ -336,5 +336,18 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
       parentIdOf: (post) => post.parent?.pid,
       makeNode: (post) => toForumFeedComment(post, itemUid, topic.mainPid),
     }),
+    forumTopic: {
+      url: topic.cid ? `/forum/topics/${topic.cid}/${tidFromForumPostUid(itemUid)}` : null,
+      // NodeBB serves one page of posts per request, so `replies` is often a
+      // subset of this — the difference is what the link-out exists for.
+      totalReplyCount: Math.max(0, (Number(topic.postcount) || 0) - 1),
+      // Read off the opening post, since that's what a forum card's Like votes
+      // on. This is the only place the viewer's own vote state is available:
+      // /api/recent, which builds the card, has no per-viewer state at all.
+      like: {
+        likeCount: Number(mainPost?.upvotes) || 0,
+        viewerHasLiked: Boolean(mainPost?.upvoted),
+      },
+    },
   };
 }

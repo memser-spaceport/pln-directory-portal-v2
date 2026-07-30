@@ -11,6 +11,7 @@ import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
+import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
@@ -33,6 +34,7 @@ import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
+import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { filterFeedForumPosts } from './utils/matchesFeedForumPost';
@@ -285,11 +287,30 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // activeNewsItem: modal and row can never disagree). `forumPosts` going
   // undefined — e.g. mid-session access revocation — nulls this out and the
   // modal unmounts; the effect below also strips the URL param.
+  // A forum card can't know whether the viewer already liked the post: the
+  // /api/recent listing it's built from has no per-viewer vote state, so
+  // `viewerHasLiked` is false by default and a "like" on something already liked
+  // would send a vote NodeBB ignores while the local count climbed. Opening the
+  // thread fetches the topic, which does know — resolved at render time, under
+  // the viewer's own toggle. Because the resolved value is what feeds
+  // handleForumPostLikeToggle, the correction lands in the overlay on first use
+  // and outlives the modal.
+  const activePostTopicLike = useFeedForumTopicLike(activePostUid);
+  const resolvePostLike = useCallback(
+    (post: IFeedForumPost) =>
+      resolveForumPostLike(
+        post,
+        post.uid === activePostUid ? activePostTopicLike : undefined,
+        postLikeOverlay.get(post.uid),
+      ),
+    [activePostUid, activePostTopicLike, postLikeOverlay],
+  );
+
   const activeForumPost = useMemo(() => {
     if (!activePostUid) return null;
     const post = forumPosts?.find((p) => p.uid === activePostUid);
-    return post ? { ...post, ...postLikeOverlay.get(post.uid) } : null;
-  }, [activePostUid, forumPosts, postLikeOverlay]);
+    return post ? resolvePostLike(post) : null;
+  }, [activePostUid, forumPosts, resolvePostLike]);
 
   useEffect(() => {
     if (activePostUid && !hasAccess) closePost();
@@ -693,9 +714,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
                       return (
                         <ForumPostCard
                           key={key}
-                          // Live like state merged at render only — the merge above
-                          // ranked by frozen counts, so likes never reorder the feed.
-                          post={{ ...entry.post, ...postLikeOverlay.get(entry.post.uid) }}
+                          // Live like state resolved at render only — the merge
+                          // above ranked by frozen counts, so likes never reorder
+                          // the feed.
+                          post={resolvePostLike(entry.post)}
                           position={index}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}

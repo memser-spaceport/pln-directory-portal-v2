@@ -489,7 +489,76 @@ describe('feed.service', () => {
     it('returns an empty thread for a topic with no replies', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ mainPid: 263, posts: [{ pid: 263 }] }) });
 
-      await expect(getFeedComments('fp_96')).resolves.toEqual({ items: [] });
+      const { items } = await getFeedComments('fp_96');
+
+      expect(items).toEqual([]);
+    });
+
+    it('reports the topic’s own vote state, which the card’s listing never carries', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          postcount: 3,
+          posts: [
+            { pid: 263, upvotes: 7, upvoted: true },
+            { pid: 264, content: 'hi', timestamp: 1, user: {} },
+          ],
+        }),
+      });
+
+      const { forumTopic } = await getFeedComments('fp_96');
+
+      expect(forumTopic?.like).toEqual({ likeCount: 7, viewerHasLiked: true });
+      expect(forumTopic?.url).toBe('/forum/topics/5/96');
+    });
+
+    it('reports the topic’s real reply count, which can exceed the page it just served', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          // 50 replies exist; NodeBB returned one page of them.
+          postcount: 51,
+          posts: [{ pid: 263 }, { pid: 264, content: 'hi', timestamp: 1, user: {} }],
+        }),
+      });
+
+      const { items, forumTopic } = await getFeedComments('fp_96');
+
+      expect(items).toHaveLength(1);
+      expect(forumTopic?.totalReplyCount).toBe(50);
+    });
+
+    it('treats a missing vote state as not-liked rather than undefined', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ mainPid: 263, cid: 5, postcount: 1, posts: [{ pid: 263 }] }),
+      });
+
+      const { forumTopic } = await getFeedComments('fp_96');
+
+      expect(forumTopic?.like).toEqual({ likeCount: 0, viewerHasLiked: false });
+    });
+
+    it('keeps an attachment-only reply as an empty-text comment for the UI to label', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          postcount: 2,
+          posts: [{ pid: 263 }, { pid: 264, content: '<p><img src="/x.png" /></p>', timestamp: 1, user: {} }],
+        }),
+      });
+
+      const { items } = await getFeedComments('fp_96');
+
+      // Not dropped, and not given fake text — the component says what it is.
+      expect(items).toHaveLength(1);
+      expect(items[0].text).toBe('');
     });
 
     it('throws when the forum is unreachable', async () => {

@@ -21,6 +21,12 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPush }),
 }));
 
+// Forum writes are gated on forum.write, the same gate the /forum composer uses.
+const mockForumAccess = jest.fn();
+jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
+  useForumAccess: () => mockForumAccess(),
+}));
+
 function comment(uid: string, text: string, isOwn = false, replies: IFeedComment[] = []): IFeedComment {
   return {
     uid,
@@ -79,6 +85,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   signIn();
   mockMutation(useDeleteFeedCommentMock);
+  mockForumAccess.mockReturnValue({ canWrite: true });
 });
 
 describe('FeedCommentsThread — list', () => {
@@ -182,6 +189,99 @@ describe('FeedCommentsThread — replies', () => {
     expect(screen.queryByText('Reply to first')).not.toBeInTheDocument();
   });
 
+  it('submits a reply with its parentUid, and closes the reply box on success', () => {
+    mockThread([comment('c1', 'Top level')]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    const input = screen.getByPlaceholderText('Reply to Author c1…');
+    fireEvent.change(input, { target: { value: '  Agreed  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+
+    expect(mutation.mutate).toHaveBeenCalledWith({ text: 'Agreed', parentUid: 'c1' }, expect.any(Object));
+
+    act(() => mutation.mutate.mock.calls[0][1].onSuccess());
+    expect(screen.queryByPlaceholderText('Reply to Author c1…')).not.toBeInTheDocument();
+  });
+
+  it('keeps the top-level composer separate from the reply box', () => {
+    mockThread([comment('c1', 'Top level')]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), { target: { value: 'Top-level text' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
+
+    // No parentUid — typing in the main composer must never become a reply.
+    expect(mutation.mutate).toHaveBeenCalledWith({ text: 'Top-level text' }, expect.any(Object));
+  });
+
+  it('opens only one reply box at a time', () => {
+    mockThread([comment('c1', 'First'), comment('c2', 'Second')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const [firstReply, secondReply] = screen.getAllByRole('button', { name: 'Reply' });
+    fireEvent.click(firstReply);
+    expect(screen.getByPlaceholderText('Reply to Author c1…')).toBeInTheDocument();
+
+    fireEvent.click(secondReply);
+    expect(screen.queryByPlaceholderText('Reply to Author c1…')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Reply to Author c2…')).toBeInTheDocument();
+  });
+
+  it('Cancel discards the reply draft without mutating', () => {
+    mockThread([comment('c1', 'Top level')]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    fireEvent.change(screen.getByPlaceholderText('Reply to Author c1…'), { target: { value: 'never mind' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(mutation.mutate).not.toHaveBeenCalled();
+    expect(screen.queryByPlaceholderText('Reply to Author c1…')).not.toBeInTheDocument();
+  });
+
+  it('hides Reply at the depth cap — a deeper reply would render alongside its own parent', () => {
+    mockThread([
+      comment('c1', 'Level 0', false, [reply('c2', 'Level 1', 'c1', false, [reply('c3', 'Level 2', 'c2')])]),
+    ]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // Levels 0 and 1 can be replied to; level 2 (the cap) cannot.
+    expect(screen.getAllByRole('button', { name: 'Reply' })).toHaveLength(2);
+  });
+
+  it('renders an in-flight reply under the comment it answers, not at the top of the thread', () => {
+    mockThread([comment('c1', 'Answered'), comment('c2', 'Untouched')]);
+    mockMutation(useAddFeedCommentMock, { isPending: true, variables: { text: 'Sending', parentUid: 'c1' } });
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const pending = screen.getByText('Sending');
+    const answeredRow = screen.getByText('Answered').closest('div');
+    const untouchedRow = screen.getByText('Untouched').closest('div');
+
+    expect(answeredRow?.contains(pending)).toBe(true);
+    expect(untouchedRow?.contains(pending)).toBe(false);
+    expect(screen.getByText('· posting…')).toBeInTheDocument();
+  });
+
+  it('scopes a failed reply’s error to that reply box only', () => {
+    mockThread([comment('c1', 'Top level')]);
+    mockMutation(useAddFeedCommentMock, { isError: true, variables: { text: 'Agreed', parentUid: 'c1' } });
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+
+    // Exactly one error, next to the composer that produced it — not duplicated
+    // above the top-level composer.
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+
   it('offers delete on an own reply, not just on top-level comments', () => {
     mockThread([comment('c1', 'Not mine', false, [reply('c2', 'My reply', 'c1', true)])]);
     mockMutation(useAddFeedCommentMock);
@@ -238,7 +338,7 @@ describe('FeedCommentsThread — composer', () => {
     const mutation = mockMutation(useAddFeedCommentMock, { isError: true });
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t post your comment — try again.'.replace('’', "'"));
+    expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t post your comment — try again.');
 
     const input = screen.getByPlaceholderText('Write your comment here…');
     fireEvent.change(input, { target: { value: 'retry text' } });
@@ -300,6 +400,63 @@ describe('FeedCommentsThread — delete', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByText(/Couldn.t delete/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Deleting…' })).toBeDisabled();
+  });
+});
+
+describe('FeedCommentsThread — forum posts', () => {
+  it('lets a member with forum.write comment and reply on a forum post', () => {
+    mockThread([comment('c1', 'A real forum reply')]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), { target: { value: 'Nice work' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
+
+    expect(mutation.mutate).toHaveBeenCalledWith({ text: 'Nice work' }, expect.any(Object));
+  });
+
+  it('leaves the thread readable but offers no composer without forum.write', () => {
+    mockForumAccess.mockReturnValue({ canWrite: false });
+    mockThread([comment('c1', 'A real forum reply')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByText('A real forum reply')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument();
+  });
+
+  it('never gates a news thread on forum.write', () => {
+    mockForumAccess.mockReturnValue({ canWrite: false });
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByPlaceholderText('Write your comment here…')).toBeInTheDocument();
+  });
+
+  it('surfaces the forum’s own reason when it has one, in place of the generic line', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock, {
+      isError: true,
+      error: new Error('[[error:content-too-short, Content too short]]'),
+      variables: { text: 'ok' },
+    });
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('too short for the forum');
+  });
+
+  it('hides an untranslated NodeBB error key behind the generic line', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock, {
+      isError: true,
+      error: new Error('[[error:some-key-nobody-can-read]]'),
+      variables: { text: 'ok' },
+    });
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t post your comment — try again.');
   });
 });
 

@@ -20,12 +20,15 @@ import { createFeedComment } from '../feed.service';
 // invalidateQueries here (or in the like toggle): a refetch racing the patch
 // is the "comment that vanishes" bug; if the real-API swap ever adds an
 // onSettled invalidation, guard it with isMutating({scope}) === 1.
-export function useAddFeedComment(itemUid: string) {
+// `forumMainPid` is the topic's opening post, which a top-level comment on a
+// forum post replies to. Passed in by the surface that already has the post so
+// the write costs one request; ignored entirely for news items.
+export function useAddFeedComment(itemUid: string, forumMainPid?: number) {
   const queryClient = useQueryClient();
 
   return useMutation<IFeedComment, Error, { text: string; parentUid?: string }>({
     scope: { id: `feed-comment-${itemUid}` },
-    mutationFn: ({ text, parentUid }) => createFeedComment({ itemUid, parentUid, text }),
+    mutationFn: ({ text, parentUid }) => createFeedComment({ itemUid, parentUid, text, forumMainPid }),
     onSuccess: async (created) => {
       // Cancel BEFORE writing — an in-flight thread/counts refetch whose server
       // snapshot predates this POST would clobber the append when it lands.

@@ -498,4 +498,100 @@ describe('feed.service', () => {
       await expect(getFeedComments('fp_96')).rejects.toThrow('Failed to fetch feed comments');
     });
   });
+
+  describe('writing a forum post comment (a real NodeBB reply)', () => {
+    const created = {
+      response: {
+        pid: 500,
+        content: '<p>Great update!</p>',
+        timestamp: 1782906219045,
+        user: { memberUid: 'viewer-1', displayname: 'Test Viewer', picture: null, teamRole: null },
+      },
+    };
+
+    it('replies to the topic’s opening post for a top-level comment, using the pid it was given', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
+
+      await createFeedComment({ itemUid: 'fp_96', text: 'Great update!', forumMainPid: 263 });
+
+      // One request, not a fetch-the-topic-then-post pair.
+      expect(customFetchMock).toHaveBeenCalledTimes(1);
+      expect(customFetchMock).toHaveBeenCalledWith(
+        'https://forum.example.com/api/v3/topics/96',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ content: '<p>Great update!</p>', toPid: 263 }),
+        }),
+        false,
+      );
+    });
+
+    it('replies to a comment’s own post when replying to that comment', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
+
+      await createFeedComment({ itemUid: 'fp_96', parentUid: 'fpc_264', text: 'Agreed', forumMainPid: 263 });
+
+      expect(JSON.parse(customFetchMock.mock.calls[0][1].body).toPid).toBe(264);
+    });
+
+    it('falls back to fetching the topic when no mainPid was supplied', async () => {
+      customFetchMock
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ mainPid: 263, posts: [] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => created });
+
+      await createFeedComment({ itemUid: 'fp_96', text: 'Great update!' });
+
+      expect(customFetchMock).toHaveBeenNthCalledWith(
+        1,
+        'https://forum.example.com/api/topic/96',
+        expect.anything(),
+        false,
+      );
+      expect(JSON.parse(customFetchMock.mock.calls[1][1].body).toPid).toBe(263);
+    });
+
+    it('escapes member text — NodeBB stores content as HTML', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
+
+      await createFeedComment({ itemUid: 'fp_96', text: '<script>alert(1)</script> & "done"', forumMainPid: 263 });
+
+      expect(JSON.parse(customFetchMock.mock.calls[0][1].body).content).toBe(
+        '<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;done&quot;</p>',
+      );
+    });
+
+    it('returns the created comment carrying the caller’s parentUid, which NodeBB does not always echo', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
+
+      const comment = await createFeedComment({
+        itemUid: 'fp_96',
+        parentUid: 'fpc_264',
+        text: 'Agreed',
+        forumMainPid: 263,
+      });
+
+      expect(comment).toEqual(
+        expect.objectContaining({
+          uid: 'fpc_500',
+          itemUid: 'fp_96',
+          // Without this the cache patch would land the reply at the root.
+          parentUid: 'fpc_264',
+          isOwn: false,
+          replies: [],
+        }),
+      );
+    });
+
+    it('propagates NodeBB’s rejection message so the composer can explain itself', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ status: { message: '[[error:content-too-short]]' } }),
+      });
+
+      await expect(createFeedComment({ itemUid: 'fp_96', text: 'hi', forumMainPid: 263 })).rejects.toThrow(
+        '[[error:content-too-short]]',
+      );
+    });
+  });
 });

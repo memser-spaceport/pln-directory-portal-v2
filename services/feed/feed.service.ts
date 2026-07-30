@@ -2,7 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
-import { forumFetch } from '@/services/forum/forum.service';
+import { forumFetch, postForumReply } from '@/services/forum/forum.service';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
 import type { TopicResponse } from '@/services/forum/hooks/useForumPost';
 import {
@@ -192,6 +192,8 @@ export async function getFeedComments(itemUid: string, authToken?: string): Prom
 }
 
 export async function createFeedComment(request: ICreateFeedCommentRequest): Promise<IFeedComment> {
+  if (isForumPostUid(request.itemUid)) return createForumPostComment(request);
+
   const response = await customFetch(
     `${process.env.DIRECTORY_API_URL}/v1/feed/comments`,
     {
@@ -262,6 +264,57 @@ function toForumFeedComment(post: TopicPost, itemUid: ForumPostUid, mainPid: num
     isOwn: false,
     replies: [],
   };
+}
+
+function pidFromForumCommentUid(uid: string): number | undefined {
+  const pid = Number(uid.slice('fpc_'.length));
+  return uid.startsWith('fpc_') && Number.isFinite(pid) ? pid : undefined;
+}
+
+/**
+ * Post a comment on a forum post as a REAL NodeBB reply — the directory backend
+ * has no table to put it in.
+ *
+ * A top-level comment replies to the topic's opening post, a reply replies to
+ * that comment's own post. `forumMainPid` comes from the card the modal was
+ * opened from; the topic fetch is only a fallback for a caller that doesn't
+ * have it, so the common path is one request, not two.
+ */
+async function createForumPostComment(request: ICreateFeedCommentRequest): Promise<IFeedComment> {
+  const itemUid = request.itemUid as ForumPostUid;
+  const tid = tidFromForumPostUid(itemUid);
+
+  const parentPid = request.parentUid ? pidFromForumCommentUid(request.parentUid) : undefined;
+  const toPid = parentPid ?? request.forumMainPid ?? (await fetchTopicMainPid(tid));
+
+  const created = await postForumReply({ tid, toPid, content: `<p>${escapeHtml(request.text)}</p>` });
+  const post = (created?.response ?? created) as TopicPost;
+
+  return {
+    ...toForumFeedComment(post, itemUid, toPid),
+    // The mapper reads `parent.pid` off the response, which NodeBB doesn't
+    // always echo. The caller's own intent is authoritative here, and the cache
+    // patch depends on it landing the comment under the right parent.
+    parentUid: request.parentUid ?? null,
+  };
+}
+
+async function fetchTopicMainPid(tid: number): Promise<number> {
+  const response = await forumFetch(`/api/topic/${tid}`);
+  if (!response?.ok) throw new Error('Failed to post feed comment');
+
+  const topic = (await response.json()) as TopicResponse;
+  return topic.mainPid;
+}
+
+/** NodeBB stores post content as HTML, so member text must not be markup. */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedCommentsResponse> {

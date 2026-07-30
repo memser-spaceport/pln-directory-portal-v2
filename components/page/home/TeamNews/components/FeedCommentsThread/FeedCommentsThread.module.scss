@@ -176,6 +176,57 @@
   opacity: 0.55;
 }
 
+/* Quiet "Reply" affordance under a comment — same restraint as .deleteBtn and
+   .viewAll: available, but never competing with the comment text. */
+.replyBtn {
+  align-self: flex-start;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.replyComposer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Secondary to the brand submit next to it — dismissing a reply draft should
+   never look like the primary action. */
+.replyCancelBtn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 12px;
+  appearance: none;
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
 /* Replies, indented under the comment they answer. 16px matches the forum's
    CommentItem.module.scss `.repliesWrapper`, at this thread's tighter 14px
    rhythm — display depth is capped at MAX_DEPTH, so the indent can't run away. */

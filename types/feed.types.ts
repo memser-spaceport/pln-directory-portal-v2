@@ -130,6 +130,10 @@ export interface ICreateFeedCommentRequest {
   /** Reply target; omitted for a top-level comment. */
   parentUid?: string;
   text: string;
+  /** Forum posts only: the topic's opening post, which a top-level comment
+   *  replies to. Supplied by the surface that already has the post so the write
+   *  costs one request; the service falls back to fetching the topic without it. */
+  forumMainPid?: number;
 }
 
 /** DELETE /v1/feed/comments/:commentUid — member JWT, author-only (403

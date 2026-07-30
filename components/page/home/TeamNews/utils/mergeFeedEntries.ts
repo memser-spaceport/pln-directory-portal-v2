@@ -37,8 +37,8 @@ const clusterLatestEventDate = (c: TeamCluster): string =>
  * order is byte-identical to the pre-feature feed under every sort mode —
  * "existing behavior unchanged" is a structural property here, not a hope.
  *
- * Posts are ranked by the same measure as the mode they join ('popular' /
- * 'following' → likeCount vs the cluster upvote snapshot; 'latest' →
+ * Posts are ranked by the same measure as the mode they join ('popular' →
+ * likeCount vs the cluster upvote snapshot; 'latest' / 'following' →
  * createdAt vs the cluster's max eventDate — the documented cross-kind
  * semantic) and inserted before the first cluster that ranks below them.
  * Under 'following', posts are never "followed", so they only interleave
@@ -72,13 +72,13 @@ export function mergeFeedEntries({
   // A post outranks a cluster when the cluster ranks strictly below it — ties
   // keep news first (posts join the feed; they don't displace equals).
   const postOutranksCluster = (post: IFeedForumPost, cluster: TeamCluster): boolean => {
-    if (sort === 'latest') return clusterLatestEventDate(cluster) < post.createdAt;
-    // 'popular', and the unfollowed tail of 'following', both rank by votes.
-    return clusterUpvotes(cluster, upvoteCounts) < post.likeCount;
+    if (sort === 'popular') return clusterUpvotes(cluster, upvoteCounts) < post.likeCount;
+    // 'latest', and the unfollowed tail of 'following', both rank by date.
+    return clusterLatestEventDate(cluster) < post.createdAt;
   };
 
   const rankedPosts = [...forumPosts].sort((a, b) =>
-    sort === 'latest' ? b.createdAt.localeCompare(a.createdAt) : b.likeCount - a.likeCount,
+    sort === 'popular' ? b.likeCount - a.likeCount : b.createdAt.localeCompare(a.createdAt),
   );
 
   const merged: FeedEntry[] = [];

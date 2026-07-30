@@ -151,7 +151,8 @@ describe('mergeFeedEntries', () => {
 
   it('following: posts never precede a followed cluster', () => {
     const followed: ReadonlySet<string> = new Set(['t3']);
-    const sorted = sortTeamNewsClusters(CLUSTERS, 'following', followed, UPVOTES); // t3 first, then t1(30) t2(20)
+    // t3 first (followed), then unfollowed by date: t2(22nd) t1(20th)
+    const sorted = sortTeamNewsClusters(CLUSTERS, 'following', followed, UPVOTES);
     const entries = mergeFeedEntries({
       sortedClusters: sorted,
       forumPosts: [post('fp_huge', 999, '2026-07-25')],
@@ -159,9 +160,9 @@ describe('mergeFeedEntries', () => {
       followedTeamUids: followed,
       upvoteCounts: UPVOTES,
     });
-    // Even with 999 likes the post can't outrank the followed t3 — it lands in
+    // Even with a newer date the post can't outrank the followed t3 — it lands in
     // slot 2 only because slot 2 is INSIDE the unfollowed tail here.
-    expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'forum:fp_huge', 'news:t1', 'news:t2']);
+    expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'forum:fp_huge', 'news:t2', 'news:t1']);
   });
 
   it('news-empty feed still renders posts (a forum-access user with zero news)', () => {

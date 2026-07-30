@@ -22,6 +22,12 @@ function renderTeamNews(ui: ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+/** Default sort is Most popular — switch to Following when a test needs followed-first order. */
+function selectFollowingSort() {
+  fireEvent.click(screen.getByRole('button', { name: 'Most popular' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Following' }));
+}
+
 const mockOnTabClicked = jest.fn();
 const mockOnCategoryClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
@@ -43,6 +49,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
     onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
     onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
+    onTeamNewsSortChanged: jest.fn(),
   }),
 }));
 
@@ -477,6 +484,7 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
       const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
       // Zeta is followed and should render first despite being last in insertion order.
       expect(teamLinks[0]).toHaveTextContent('Zeta');
@@ -821,6 +829,7 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: 3, items: [itemA, itemB, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
 
       fireEvent.click(screen.getAllByRole('button', { name: 'Like (0)' })[0]);
 
@@ -838,7 +847,7 @@ describe('TeamNews', () => {
     };
     const alpha = { ...makeItem('fa-1', 'LAUNCH', ['AI & Robotics']), teamUid: 'team-alpha', teamName: 'Alpha' };
     const beta = { ...makeItem('fb-1', 'MILESTONE', ['AI & Robotics']), teamUid: 'team-beta', teamName: 'Beta' };
-    // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
+    // Insertion order alpha, beta, zeta — Following sort must pin Zeta on mount.
     const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
 
     const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
@@ -853,6 +862,7 @@ describe('TeamNews', () => {
 
     it('clicking Follow flips the button immediately but does not move the cluster', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
 
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
@@ -863,6 +873,7 @@ describe('TeamNews', () => {
 
     it('clicking Unfollow on a pinned cluster keeps its position (symmetric freeze)', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
 
       fireEvent.click(screen.getByRole('button', { name: 'Following Zeta' }));
 
@@ -872,6 +883,7 @@ describe('TeamNews', () => {
 
     it('reverts the button (but not the order) when the server rejects with a null response', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(screen.getByRole('button', { name: 'Following Beta' })).toBeInTheDocument();
 
@@ -886,6 +898,7 @@ describe('TeamNews', () => {
 
     it('a fresh mount applies the new follow order (simulates page reload)', () => {
       const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
       // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh mount
@@ -900,14 +913,15 @@ describe('TeamNews', () => {
         },
       ];
       renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Beta', 'Alpha', 'Zeta']);
     });
   });
 
   describe('upvote — session-stable ordering (frozen until reload)', () => {
-    // No followed items → default sort resolves to 'popular', which ranks clusters
-    // by upvote count. Equal counts keep insertion order (stable sort), so upvoting
-    // Yankee (1 → 2) would rank it above Xray without the mount-time count snapshot.
+    // Default sort is 'popular', which ranks clusters by upvote count. Equal
+    // counts keep insertion order (stable sort), so upvoting Yankee (1 → 2)
+    // would rank it above Xray without the mount-time count snapshot.
     const xray = {
       ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
       teamUid: 'team-xray',

@@ -183,8 +183,7 @@ export const TeamNews = ({
     () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
   );
 
-  // Default: Following when the user follows any teams; otherwise Most popular.
-  const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
+  const [sort, setSort] = useState<TeamNewsSort>('popular');
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;

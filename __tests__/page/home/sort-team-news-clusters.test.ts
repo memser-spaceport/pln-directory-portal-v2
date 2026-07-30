@@ -75,12 +75,42 @@ describe('sortTeamNewsClusters', () => {
   });
 
   describe("'following'", () => {
-    it('keeps followed-first partitioning, then tie-breaks within each group by the counts map', () => {
-      const followedLow = makeItem('f-1', 'team-followed', 'Followed', { upvoteCount: 0 });
-      const clusters = clusterByTeam([beta, alpha, followedLow]);
-      const counts = new Map(pinnedCounts).set('f-1', 0);
-      const sorted = sortTeamNewsClusters(clusters, 'following', new Set(['team-followed']), counts);
-      expect(teamOrder(sorted)).toEqual(['team-followed', 'team-alpha', 'team-beta']);
+    it('keeps followed-first partitioning, then ranks within each group by latest event date', () => {
+      const followedOlder = makeItem('f-old', 'team-followed-old', 'Followed Old', {
+        eventDate: '2026-04-01T12:00:00.000Z',
+        upvoteCount: 99,
+      });
+      const followedNewer = makeItem('f-new', 'team-followed-new', 'Followed New', {
+        eventDate: '2026-06-01T12:00:00.000Z',
+        upvoteCount: 0,
+      });
+      const unfollowedOlder = makeItem('u-old', 'team-unfollowed-old', 'Unfollowed Old', {
+        eventDate: '2026-03-01T12:00:00.000Z',
+        upvoteCount: 50,
+      });
+      const unfollowedNewer = makeItem('u-new', 'team-unfollowed-new', 'Unfollowed New', {
+        eventDate: '2026-05-01T12:00:00.000Z',
+        upvoteCount: 1,
+      });
+      const counts: ReadonlyMap<string, number> = new Map([
+        ['f-old', 99],
+        ['f-new', 0],
+        ['u-old', 50],
+        ['u-new', 1],
+      ]);
+      const sorted = sortTeamNewsClusters(
+        clusterByTeam([followedOlder, unfollowedOlder, followedNewer, unfollowedNewer]),
+        'following',
+        new Set(['team-followed-old', 'team-followed-new']),
+        counts,
+      );
+      // Followed subgroup by date, then unfollowed subgroup by date — upvotes ignored.
+      expect(teamOrder(sorted)).toEqual([
+        'team-followed-new',
+        'team-followed-old',
+        'team-unfollowed-new',
+        'team-unfollowed-old',
+      ]);
     });
   });
 

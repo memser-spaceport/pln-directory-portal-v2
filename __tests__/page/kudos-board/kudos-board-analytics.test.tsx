@@ -7,7 +7,7 @@ const mockPageViewed = jest.fn();
 
 jest.mock('@/hooks/use-kudos', () => ({
   useKudosFeed: () => ({ isLoading: false, isError: false, data: { items: [] }, refetch: jest.fn() }),
-  useCommunityPool: () => ({ data: { pointsRemaining: 100, totalBudget: 100, pointsUsed: 0 } }),
+  useCommunityPool: () => ({ data: { pointsRemaining: 100, totalBudget: 100, pointsUsed: 0, eligible: true } }),
   useRecipients: () => ({ data: { items: [] } }),
   useGiveCommunityKudos: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));

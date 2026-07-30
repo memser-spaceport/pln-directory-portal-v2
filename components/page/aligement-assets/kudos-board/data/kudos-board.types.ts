@@ -25,6 +25,8 @@ export interface ICommunityPool {
   totalBudget: number;
   pointsUsed: number;
   pointsRemaining: number;
+  /** False for a viewer with no current roster link: no pool, can't give. */
+  eligible: boolean;
 }
 
 export interface ICommunityKudosInput {

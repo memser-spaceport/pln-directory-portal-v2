@@ -16,9 +16,17 @@ interface IGiveKudosModalProps {
   onClose: () => void;
   recipients: IUserSummary[];
   poolRemaining: number;
+  /** The picker is resolved server-side and can take a moment on a cold cache. */
+  recipientsLoading?: boolean;
 }
 
-export function GiveCommunityKudosModal({ open, onClose, recipients, poolRemaining }: IGiveKudosModalProps) {
+export function GiveCommunityKudosModal({
+  open,
+  onClose,
+  recipients,
+  poolRemaining,
+  recipientsLoading = false,
+}: IGiveKudosModalProps) {
   const mutation = useGiveCommunityKudos();
   const analytics = useKudosAnalytics();
 
@@ -102,8 +110,12 @@ export function GiveCommunityKudosModal({ open, onClose, recipients, poolRemaini
           <label className="form-label" htmlFor="recipient">
             Recipient *
           </label>
-          <select id="recipient" className="form-control" {...register('recipientId')}>
-            <option value="">— Select a network contributor —</option>
+          {/* An empty picker and a picker that hasn't loaded look identical to a
+              user, so say which one it is rather than letting them wonder. */}
+          <select id="recipient" className="form-control" disabled={recipientsLoading} {...register('recipientId')}>
+            <option value="">
+              {recipientsLoading ? 'Loading recipients…' : '— Select a network contributor —'}
+            </option>
             {recipients.map((r) => (
               <option key={r.memberId} value={r.memberId}>
                 {r.name}

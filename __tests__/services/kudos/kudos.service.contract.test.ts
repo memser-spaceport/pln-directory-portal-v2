@@ -55,6 +55,7 @@ const poolFixture = {
   totalBudget: 100,
   pointsUsed: 40,
   pointsRemaining: 60,
+  eligible: true,
 } satisfies ICommunityPool;
 
 const recipientsFixture = {

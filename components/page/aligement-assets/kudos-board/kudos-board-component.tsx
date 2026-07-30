@@ -42,11 +42,14 @@ export default function KudosBoardComponent({
     analytics.onGiveKudosOpened();
   }
 
+  // Undefined while the pool is still loading; treat that the same as
+  // ineligible so the module never flashes in before we know either way.
+  const eligible = pool.data?.eligible ?? false;
   const poolRemaining = pool.data?.pointsRemaining ?? 0;
   const poolTotal = pool.data?.totalBudget ?? COMMUNITY_TRACK.perRoundBudget;
   const poolUsed = pool.data?.pointsUsed ?? 0;
   const poolPct = poolTotal > 0 ? Math.max(0, Math.min(100, (poolRemaining / poolTotal) * 100)) : 0;
-  const canGive = poolRemaining >= COMMUNITY_TRACK.minGift;
+  const canGive = eligible && poolRemaining >= COMMUNITY_TRACK.minGift;
 
   return (
     <div className="kudos-board">
@@ -63,33 +66,36 @@ export default function KudosBoardComponent({
           </div>
         </header>
 
-        <section className="pool" aria-live="polite">
-          <div className="pool__icon" aria-hidden>
-            🪙
-          </div>
-          <div className="pool__body">
-            <p className="pool__headline">
-              You have <span className="pool__remaining">{poolRemaining}</span> of {poolTotal} community points to give
-              this round.
-            </p>
-            <p className="pool__sub">
-              You&rsquo;ve given {poolUsed} of {poolTotal} points so far. Distribute in {COMMUNITY_TRACK.increment}
-              -point increments ({COMMUNITY_TRACK.minGift} pts minimum, {COMMUNITY_TRACK.maxGift} pts maximum per gift).
-            </p>
-            <div className="pool__progress" aria-hidden>
-              <div className="pool__progress-bar" style={{ width: `${poolPct}%` }} />
+        {eligible && (
+          <section className="pool" aria-live="polite">
+            <div className="pool__icon" aria-hidden>
+              🪙
             </div>
-          </div>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={openModal}
-            disabled={!canGive}
-            title={canGive ? undefined : 'No community points left to give this round'}
-          >
-            ＋ Give Community Kudos
-          </button>
-        </section>
+            <div className="pool__body">
+              <p className="pool__headline">
+                You have <span className="pool__remaining">{poolRemaining}</span> of {poolTotal} community points to
+                give this round.
+              </p>
+              <p className="pool__sub">
+                You&rsquo;ve given {poolUsed} of {poolTotal} points so far. Distribute in {COMMUNITY_TRACK.increment}
+                -point increments ({COMMUNITY_TRACK.minGift} pts minimum, {COMMUNITY_TRACK.maxGift} pts maximum per
+                gift).
+              </p>
+              <div className="pool__progress" aria-hidden>
+                <div className="pool__progress-bar" style={{ width: `${poolPct}%` }} />
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={openModal}
+              disabled={!canGive}
+              title={canGive ? undefined : 'No community points left to give this round'}
+            >
+              ＋ Give Community Kudos
+            </button>
+          </section>
+        )}
 
         <div className="round-note">
           <span className="round-note__icon" aria-hidden>
@@ -107,7 +113,7 @@ export default function KudosBoardComponent({
         ) : feed.isError ? (
           <FeedError onRetry={() => feed.refetch()} />
         ) : (feed.data?.items ?? []).length === 0 ? (
-          <EmptyState onGiveKudos={openModal} disabled={!canGive} />
+          <EmptyState onGiveKudos={openModal} disabled={!canGive} showButton={eligible} />
         ) : (
           <div className="feed-grid">
             {feed.data!.items.map((k) => (
@@ -121,6 +127,7 @@ export default function KudosBoardComponent({
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         recipients={recipients.data?.items ?? []}
+        recipientsLoading={recipients.isLoading}
         poolRemaining={poolRemaining}
       />
 
@@ -362,21 +369,31 @@ function FeedError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function EmptyState({ onGiveKudos, disabled = false }: { onGiveKudos: () => void; disabled?: boolean }) {
+function EmptyState({
+  onGiveKudos,
+  disabled = false,
+  showButton = true,
+}: {
+  onGiveKudos: () => void;
+  disabled?: boolean;
+  showButton?: boolean;
+}) {
   return (
     <div className="es">
       <div className="es__icon">🎉</div>
       <div className="es__title">No kudos on the board yet</div>
       <div className="es__sub">Be the first to recognize a contributor!</div>
-      <button
-        type="button"
-        className="es__btn"
-        onClick={onGiveKudos}
-        disabled={disabled}
-        title={disabled ? 'No community points left to give this round' : undefined}
-      >
-        ＋ Give Community Kudos
-      </button>
+      {showButton && (
+        <button
+          type="button"
+          className="es__btn"
+          onClick={onGiveKudos}
+          disabled={disabled}
+          title={disabled ? 'No community points left to give this round' : undefined}
+        >
+          ＋ Give Community Kudos
+        </button>
+      )}
       <style jsx>{`
         .es {
           text-align: center;

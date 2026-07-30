@@ -13,7 +13,18 @@ import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
    Figma: https://www.figma.com/design/xrvyUEqgZ0oRNT0spUruMW/Untitled?node-id=1-5250
    ========================================================================== */
 
-export type PlaaActiveItem = 'overview' | 'activities' | 'incentive-model' | 'kudos' | 'terms-of-use' | 'privacy-policy' | 'product-versions' | 'trust-holdings' | 'faqs' | 'disclosure' | 'feedback';
+export type PlaaActiveItem =
+  | 'overview'
+  | 'activities'
+  | 'incentive-model'
+  | 'kudos'
+  | 'terms-of-use'
+  | 'privacy-policy'
+  | 'product-versions'
+  | 'trust-holdings'
+  | 'faqs'
+  | 'disclosure'
+  | 'feedback';
 
 interface PlaaMenuProps {
   activeItem?: PlaaActiveItem;
@@ -21,6 +32,8 @@ interface PlaaMenuProps {
   totalRounds?: number;
   viewingRound?: number; // The round being viewed on the current page
   onMenuItemClick?: () => void; // Callback to handle menu item clicks (e.g., close mobile menu)
+  /** Server-resolved LabOS session. Undefined (not yet known) hides Kudos same as false. */
+  isLoggedIn?: boolean;
 }
 
 const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExternal?: boolean; badge?: 'new' }> = [
@@ -34,7 +47,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'feedback', label: 'Feedback', url: 'https://forms.gle/NAKxJ8RUqmUf9fmQ9', isExternal: true },
   { name: 'terms-of-use', label: 'Terms of Use', url: '/alignment-asset/terms-of-use' },
   { name: 'privacy-policy', label: 'Privacy Policy', url: '/alignment-asset/privacy-policy' },
-  { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' }
+  { name: 'disclosure', label: 'Disclosure', url: '/alignment-asset/disclosure' },
 ];
 
 function PlaaMenu({
@@ -43,9 +56,14 @@ function PlaaMenu({
   totalRounds = getCurrentRoundNumber(),
   viewingRound,
   onMenuItemClick,
+  isLoggedIn,
 }: PlaaMenuProps) {
   const router = useRouter();
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
+
+  // Guests (no LabOS session) can't give kudos and shouldn't see the feature
+  // exists; a signed-in non-PLAA member can still read the board.
+  const visibleItems = isLoggedIn ? menuItems : menuItems.filter((item) => item.name !== 'kudos');
 
   const onItemClicked = (label: string, url: string, isExternal?: boolean) => {
     onNavMenuClicked(label, url);
@@ -89,7 +107,7 @@ function PlaaMenu({
 
         {/* Navigation Items */}
         <ul className="plaa-menu__list" role="list">
-          {menuItems.map((item) => (
+          {visibleItems.map((item) => (
             <li key={`plaa-${item.name}`} role="listitem">
               <button
                 onClick={() => onItemClicked(item.label, item.url, item.isExternal)}
@@ -98,14 +116,7 @@ function PlaaMenu({
               >
                 <span className="plaa-menu__item-text">{item.label}</span>
                 {item.badge === 'new' && <span className="plaa-menu__badge">NEW</span>}
-                {item.isExternal && (
-                  <Image
-                    src="/icons/external-link.svg"
-                    alt="external link"
-                    width={11}
-                    height={11}
-                  />
-                )}
+                {item.isExternal && <Image src="/icons/external-link.svg" alt="external link" width={11} height={11} />}
               </button>
             </li>
           ))}

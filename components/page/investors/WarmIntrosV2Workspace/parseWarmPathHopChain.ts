@@ -49,9 +49,7 @@ export function reasonDescription(reason: unknown): string | null {
 function reasonSourceType(reason: unknown): string | null {
   const rec = asRecord(reason);
   if (!rec) return null;
-  return typeof rec.sourceType === 'string' && rec.sourceType.trim()
-    ? rec.sourceType.trim()
-    : null;
+  return typeof rec.sourceType === 'string' && rec.sourceType.trim() ? rec.sourceType.trim() : null;
 }
 
 /** Prefer webVerify reasons; otherwise first usable description. */
@@ -88,12 +86,10 @@ function parseHop(raw: unknown): WarmPathV2HopNode | null {
   // Protocol Labs org stub uses empty profileUid
   if (profileUid == null) return null;
   if (!profileUid && role !== 'pl_org') return null;
-  const name =
-    typeof rec.name === 'string' && rec.name.trim()
-      ? rec.name.trim()
-      : role === 'pl_org'
-        ? 'Protocol Labs'
-        : profileUid || 'Unknown';
+  const rawName = typeof rec.name === 'string' ? rec.name.trim() : '';
+  // Ignore stored name when it was incorrectly stubbed as the profileUid.
+  const usableName = rawName && rawName !== profileUid ? rawName : '';
+  const name = usableName || (role === 'pl_org' ? 'Protocol Labs' : profileUid || 'Unknown');
   return {
     profileUid,
     name,
@@ -113,14 +109,17 @@ function parseAlternate(raw: unknown): WarmPathV2Alternate | null {
     rec.scoreBand === 'green' || rec.scoreBand === 'yellow' || rec.scoreBand === 'red' || rec.scoreBand === 'none'
       ? rec.scoreBand
       : undefined;
+  const rawName = typeof rec.name === 'string' ? rec.name.trim() : '';
+  const name = rawName && rawName !== profileUid ? rawName : profileUid;
   return {
     profileUid,
-    name: typeof rec.name === 'string' && rec.name.trim() ? rec.name.trim() : profileUid,
+    name,
     score: typeof rec.score === 'number' ? rec.score : undefined,
     reasons: Array.isArray(rec.reasons) ? rec.reasons : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,
-    proximityCode: typeof rec.proximityCode === 'string' ? rec.proximityCode : rec.proximityCode === null ? null : undefined,
+    proximityCode:
+      typeof rec.proximityCode === 'string' ? rec.proximityCode : rec.proximityCode === null ? null : undefined,
     caliber: rec.caliber === 'A' || rec.caliber === 'B' ? rec.caliber : rec.caliber === null ? null : undefined,
     scorePercent: typeof rec.scorePercent === 'number' ? rec.scorePercent : undefined,
     scoreBand,
@@ -179,8 +178,7 @@ export function derivePathProximity(
   const normalized = score > 1 ? score / 100 : score;
   const caliber = normalized >= 0.6 ? 'A' : 'B';
   const scorePercent = Math.round(Math.min(Math.max(normalized, 0), 1) * 100);
-  const scoreBand =
-    scorePercent > 60 ? 'green' : scorePercent >= 25 ? 'yellow' : scorePercent > 0 ? 'red' : 'none';
+  const scoreBand = scorePercent > 60 ? 'green' : scorePercent >= 25 ? 'yellow' : scorePercent > 0 ? 'red' : 'none';
   const hops = Number.isFinite(hopCount) && hopCount > 0 ? Math.trunc(hopCount) : 1;
   const fam = (family || 'PL').trim() || 'PL';
   return {

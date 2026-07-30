@@ -92,6 +92,8 @@ function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCatego
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
+  /** Allowlisted teams with no focus-area group; shown on "All" only. */
+  allTabExtraItems?: ITeamNewsItem[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -99,7 +101,13 @@ interface TeamNewsProps {
   initialDigestSettings?: ForumDigestSettings | null;
 }
 
-export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDigestSettings = null }: TeamNewsProps) => {
+export const TeamNews = ({
+  groups,
+  allTabExtraItems = [],
+  popularItems = [],
+  pageSize = 6,
+  initialDigestSettings = null,
+}: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
@@ -130,13 +138,20 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const revealStory = useStoryReveal();
 
   const allItems = useMemo(
-    () => applyUpvoteOverlay(sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), upvoteOverlay),
-    [groups, upvoteOverlay],
+    () =>
+      applyUpvoteOverlay(
+        sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems])),
+        upvoteOverlay,
+      ),
+    [groups, allTabExtraItems, upvoteOverlay],
   );
 
   // Derived from `groups` (not allItems) so its identity never churns with the
   // upvote overlay — it feeds the session-stable comment-counts batch.
-  const newsUids = useMemo(() => dedupeByUid(groups.flatMap((g) => g.items)).map((i) => i.uid), [groups]);
+  const newsUids = useMemo(
+    () => dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]).map((i) => i.uid),
+    [groups, allTabExtraItems],
+  );
 
   // The feed's social layer (forum posts + comment counts), flag- and
   // access-gated in one hook. `forumPosts` undefined ⇒ news-only feed.

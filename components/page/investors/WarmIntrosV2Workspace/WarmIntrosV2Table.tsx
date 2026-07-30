@@ -125,23 +125,34 @@ export function WarmIntrosV2Table({
                         if (hops) {
                           return hops.map((hop, i) => {
                             const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+                            const hopName =
+                              hop.name && hop.name !== hop.profileUid
+                                ? hop.name
+                                : hop.profileUid === connector?.profileUid
+                                  ? connector.name
+                                  : hop.profileUid === investor?.profileUid
+                                    ? name
+                                    : hop.name;
                             const hopImage = isOrg
                               ? null
                               : hop.role === 'investor'
                                 ? avatarSrc
                                 : hop.memberUid
-                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hop.name)
-                                  : hop.imageUrl ??
+                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
+                                  : (hop.imageUrl ??
                                     (connector?.profileUid === hop.profileUid
                                       ? connector.memberUid
                                         ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
                                         : connector.imageUrl
-                                      : null);
+                                      : null));
                             return (
-                              <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.pathHop}>
+                              <span
+                                key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`}
+                                className={s.pathHop}
+                              >
                                 {i > 0 ? <span className={s.pathArrow}>→</span> : null}
                                 <PathProfileChip
-                                  name={hop.name}
+                                  name={hopName}
                                   profileUid={hop.profileUid}
                                   imageUrl={hopImage}
                                   onOpen={onOpenProfileUid}

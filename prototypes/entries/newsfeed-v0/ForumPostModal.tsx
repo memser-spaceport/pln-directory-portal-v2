@@ -21,7 +21,10 @@ interface Props {
   liked: boolean;
   onToggleLike: () => void;
   comments: FeedComment[];
-  onAddComment: (text: string) => void;
+  onAddComment: (text: string, parentUid?: string) => void;
+  /** Like state for comments and replies, keyed by comment uid. */
+  isCommentLiked: (commentUid: string) => boolean;
+  onToggleCommentLike: (commentUid: string) => void;
 }
 
 /**
@@ -30,7 +33,17 @@ interface Props {
  * Views · Likes · Comments meta trio in the footer. No AI note, no sources, no
  * Share/Discuss chrome — it IS the discussion.
  */
-export function ForumPostModal({ post, onClose, likeCount, liked, onToggleLike, comments, onAddComment }: Props) {
+export function ForumPostModal({
+  post,
+  onClose,
+  likeCount,
+  liked,
+  onToggleLike,
+  comments,
+  onAddComment,
+  isCommentLiked,
+  onToggleCommentLike,
+}: Props) {
   return (
     <Modal isOpen={Boolean(post)} onClose={onClose} overlayClassname={s.mobileOverlay} className={s.mobileContainer}>
       {post && (
@@ -53,7 +66,12 @@ export function ForumPostModal({ post, onClose, likeCount, liked, onToggleLike, 
             <span className={s.kicker}>Discussion</span>
             <h2 className={s.title}>{post.title}</h2>
             <p className={s.summary}>{post.body}</p>
-            <CommentsThread comments={comments} onAddComment={onAddComment} />
+            <CommentsThread
+              comments={comments}
+              onAddComment={onAddComment}
+              isCommentLiked={isCommentLiked}
+              onToggleCommentLike={onToggleCommentLike}
+            />
           </div>
 
           <div className={s.footer}>

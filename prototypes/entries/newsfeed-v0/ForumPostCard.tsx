@@ -24,7 +24,10 @@ interface Props {
   liked: boolean;
   onToggleLike: () => void;
   comments: FeedComment[];
-  onAddComment: (text: string) => void;
+  onAddComment: (text: string, parentUid?: string) => void;
+  /** Like state for comments and replies, keyed by comment uid. */
+  isCommentLiked: (commentUid: string) => boolean;
+  onToggleCommentLike: (commentUid: string) => void;
   onOpenDetail: () => void;
 }
 
@@ -42,6 +45,8 @@ export function ForumPostCard({
   onToggleLike,
   comments,
   onAddComment,
+  isCommentLiked,
+  onToggleCommentLike,
   onOpenDetail,
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
@@ -94,7 +99,14 @@ export function ForumPostCard({
           </span>
         </div>
 
-        {showComments && threadOpen && <CommentsThread comments={comments} onAddComment={onAddComment} />}
+        {showComments && threadOpen && (
+          <CommentsThread
+            comments={comments}
+            onAddComment={onAddComment}
+            isCommentLiked={isCommentLiked}
+            onToggleCommentLike={onToggleCommentLike}
+          />
+        )}
       </div>
     </div>
   );

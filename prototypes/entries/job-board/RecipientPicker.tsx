@@ -189,6 +189,9 @@ interface RecipientPickerProps {
   value: RecipientOption[];
   onChange: (value: RecipientOption[]) => void;
   menuPortalTarget?: HTMLElement | null;
+  /** Helper line under the field — see `.description` in the SCSS for which of
+   *  production's two caption sizes this uses and why. */
+  description?: string;
 }
 
 /**
@@ -203,7 +206,7 @@ interface RecipientPickerProps {
  * reinvented — see `selectStyles`.
  */
 export function RecipientPicker(props: RecipientPickerProps) {
-  const { label, teamMembers, networkMembers, teamName, value, onChange, menuPortalTarget } = props;
+  const { label, teamMembers, networkMembers, teamName, value, onChange, menuPortalTarget, description } = props;
 
   const groups = useMemo<GroupBase<RecipientOption>[]>(() => {
     const result: GroupBase<RecipientOption>[] = [];
@@ -324,6 +327,8 @@ export function RecipientPicker(props: RecipientPickerProps) {
           ),
         }}
       />
+
+      {description && <span className={s.description}>{description}</span>}
     </div>
   );
 }

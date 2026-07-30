@@ -1,0 +1,1268 @@
+@use 'styles/media';
+
+// Notifications hub — improved. Structure and spacing are transcribed from the
+// production UpdatesPanel / NotificationItem; the colour layer is translated to
+// token+fallback pairs, and the accent for *text* moves off #4174ff (4.06:1 on
+// white — fails AA) to the darker brand blue (5.91:1), which production already
+// uses for its "View all" link.
+//
+// Responsive: production splits across three breakpoints (480 / 640 / 960).
+// Everything here keys off the design system's single mobile breakpoint (640).
+
+// ── z-index scale ───────────────────────────────────────────────────────────
+// Named, ordered, no 999s.
+$z-panel-scrim: 100;
+$z-panel: 101;
+// Toasts are not in this scale — they come from production's ToastContainer,
+// which owns its own stacking.
+
+// ── Page shell (prototype host) ─────────────────────────────────────────────
+
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  padding-bottom: 64px;
+}
+
+/**
+ * The bell's stand-in. Deliberately NOT styled as app chrome: every prototype
+ * route already renders the real production `SiteHeader` above it (the root
+ * layout wraps all routes), so a second white full-width bar reads as a broken
+ * duplicate navbar. This is a labelled trigger card instead.
+ */
+.triggerStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  background: var(--background-neutral-primary, #ffffff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+}
+
+.shell {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 32px 20px 0;
+
+  @include media.mobile-only {
+    padding: 20px 12px 0;
+  }
+}
+
+.note {
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.04));
+  border: 1px solid var(--border-brand-subtle, rgba(27, 77, 255, 0.16));
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 500;
+  }
+}
+
+// ── Bell ────────────────────────────────────────────────────────────────────
+
+.bellButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  // A count badge that changes width must not nudge the bell.
+  pointer-events: none;
+}
+
+// ── Panel ───────────────────────────────────────────────────────────────────
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: $z-panel-scrim;
+  background: rgba(14, 15, 17, 0.08);
+
+  // On mobile the panel is a true full-screen modal, so the scrim carries a
+  // real modal weight rather than the desktop dropdown's hint.
+  @include media.mobile-only {
+    background: rgba(14, 15, 17, 0.45);
+  }
+}
+
+.panel {
+  position: fixed;
+  // Matches production's UpdatesPanel exactly (480px) — the popover's footprint
+  // is not what this prototype is changing.
+  width: 480px;
+  max-width: calc(100vw - 40px);
+  // Fallback only — the real ceiling is measured against the trigger's actual
+  // position and set inline (see HubPanel's `position`). A static value here
+  // overflows the viewport as soon as the trigger sits below the fold, and a
+  // fixed panel cannot be scrolled back into view.
+  max-height: calc(100vh - 96px);
+  background: var(--background-neutral-primary, #ffffff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 16px;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: $z-panel;
+  animation: panelIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @include media.mobile-only {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border: none;
+    border-radius: 0;
+    animation: sheetIn 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  // No space-between: the title group owns the left edge and Close is pushed
+  // out by its own margin, so search can sit next to the title instead of
+  // being dragged to the right with it.
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  // 12px between title and search, matching NewsBase's header gap.
+  gap: 12px;
+  min-width: 0;
+  /**
+   * Reserve the taller of the two search states so opening the field never
+   * resizes the header — otherwise the whole list below it shifts.
+   *
+   * 40px, not 38: `SearchInput.module.scss` declares `min-height: 38px`, but
+   * the `DebouncedInput` it wraps hard-sets `height: 40px`, and an explicit
+   * height beats a smaller min-height. Reserving the declared 38 left a 2px
+   * jump. Collapsed, HeaderSearch is a 30px icon button, so 40 covers both.
+   */
+  min-height: 40px;
+}
+
+// Transcribed from production's UpdatesPanel `.title` — 24/500/32/-0.4px, not
+// the 18/600/26 this had. Only the colour is translated to a token pair.
+.title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  // Close keeps the far corner now that search has moved next to the title.
+  margin-left: auto;
+}
+
+// ── Segmented view switch ───────────────────────────────────────────────────
+// All / Unread / Read, after Airtable's Unread|Read control. Production ships
+// a decorative "Unread 12" badge and no way to filter at all.
+//
+// Deviation from the reference: a third "All" segment. Airtable offers only
+// Unread|Read, which means there is no merged chronological view; for a hub
+// aggregating eight domains the combined feed is the useful default, so All
+// leads and is selected on open.
+
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border-radius: 8px;
+}
+
+.segmentedBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  // Selected reads as a raised white pill — shape and elevation, not colour
+  // alone.
+  &[aria-selected='true'] {
+    background: var(--background-neutral-primary, #ffffff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+    box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+  }
+}
+
+.segmentCount {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  // #1b4dff = 5.91:1 on white. Production's #4174ff is 4.06:1 and fails AA.
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+// ── Panel status row ────────────────────────────────────────────────────────
+// The search *field* lives in the top navigation, not in the panel — one search
+// for the app, not a second one nested in a dropdown. This row carries the
+// consequence of that search instead: a result count, or an escapable chip when
+// a nav-level query is narrowing the list.
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/**
+ * In-panel search, revealed by the header icon. Scoped to this list — the nav
+ * field covers the directory, this one covers your updates. Two fields is only
+ * a duplicate when they search the same thing; these do not.
+ */
+/**
+ * The header's inline search slot — the panel's counterpart to `.pageSearch`
+ * on the full Updates page.
+ *
+ * Replaces the old `.panelSearchRow`, a separate full-width strip under the
+ * header: the icon now expands in place beside the title, so opening search
+ * no longer pushes the whole list down by a row.
+ */
+.panelSearch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+  // The panel is 480px wide; past this the field starts crowding Close.
+  max-width: 260px;
+
+  // Hidden on the mobile sheet, where the permanent full-width row takes over.
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.resultCount {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #667085);
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Top-navigation search ───────────────────────────────────────────────────
+// Where the search field actually belongs: app level, beside the bell, one
+// field covering the directory rather than one per surface.
+
+.navSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  max-width: 420px;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--background-neutral-subtle, #f1f5f9);
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:focus-within {
+    background: var(--background-neutral-primary, #ffffff);
+    border-color: var(--border-brand-subtle, rgba(27, 77, 255, 0.4));
+  }
+}
+
+.navSearchHint {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #667085);
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &::placeholder {
+    // Placeholders need the same 4.5:1 as body text.
+    color: var(--foreground-neutral-secondary, #667085);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.searchClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+// ── Inline bulk action ──────────────────────────────────────────────────────
+// Mark-all shares the search row rather than owning a third header row. It is a
+// visible control (Airtable's placement) rather than a ··· menu item: with a
+// Read segment present, a bulk mark-as-read hides nothing.
+
+.searchRowAction {
+  flex-shrink: 0;
+
+  // The mobile sheet already repeats mark-all at the bottom, in the thumb
+  // zone — two copies would crowd a 360px row.
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.markAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// ── Icon buttons + overflow menu ────────────────────────────────────────────
+
+// Transcribed from production's `.closeButton`: the filled circle and inset
+// shadow are always on, not only on hover — that resting chrome is what makes
+// it read as a control rather than a bare glyph. 32x32 and the 20x20 icon
+// already matched.
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border: none;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  box-shadow: inset 0px -2px 4px 0px rgba(14, 15, 17, 0.02);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+// ── Panel body ──────────────────────────────────────────────────────────────
+
+.panelBody {
+  flex: 1;
+  // One scroll region, not two. Production nests an inner max-height:503px
+  // scroller inside this one at >=960px.
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Production's `.footer`: 20px padding, 16px gap, and no top border — the
+// link sits in open space rather than in a bounded strip. space-between is
+// kept only for the mobile mark-all; with one visible child it renders
+// identically to production's flex-start.
+.panelFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+}
+
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  // 2px, matching production — 4px was pushing the arrow off the word.
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/** Mobile only: mark-all moves into the thumb zone (Digg's placement). */
+.footerMarkAll {
+  display: none;
+
+  @include media.mobile-only {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: var(--foreground-brand-primary, #1b4dff);
+    cursor: pointer;
+  }
+}
+
+// ── Notification row ────────────────────────────────────────────────────────
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  background: var(--background-neutral-primary, #ffffff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.06));
+  border-radius: 10px;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.16));
+  }
+
+  &:focus-within {
+    border-color: var(--border-brand-subtle, rgba(27, 77, 255, 0.24));
+  }
+}
+
+.itemUnread {
+  background: var(--background-brand-subtle, #f2f5ff);
+
+  &:hover {
+    background: var(--background-brand-subtle-hover, #e8edff);
+  }
+}
+
+/** Non-navigable rows must not borrow a link's affordances. */
+.itemStatic {
+  cursor: default;
+}
+
+.itemLink {
+  // The row's navigable area. Actions sit outside it so they are not swallowed
+  // by the link — production makes the entire row one <Link>, which is why the
+  // only way to mark something read is to navigate to it.
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.iconWrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+
+  // Production hides the category glyph below 480px, which strips the only
+  // at-a-glance type cue on the smallest screens. It stays.
+  @include media.mobile-only {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  width: fit-content;
+
+  // The badge is the only content level with the lifted read-toggle, so it
+  // reserves the corner the toggle now sits in. Everything below it — title,
+  // snippet, footer CTA — clears the toggle vertically and spans full width.
+  @include media.mobile-only {
+    margin-right: 36px;
+  }
+}
+
+.itemTitle {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.itemDescription {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.itemFooter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 2px;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #667085);
+  font-variant-numeric: tabular-nums;
+}
+
+.actionText {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  margin-left: auto;
+}
+
+// ── Per-row actions ─────────────────────────────────────────────────────────
+// Revealed on hover/focus on pointer devices; always visible on touch, where
+// there is no hover to reveal them.
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+
+  .item:hover &,
+  .item:focus-within & {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+/**
+ * Status and action stay two separate things, the way the Airtable reference
+ * splits them — but the status indicator does not get its own layout column.
+ *
+ * A reserved leading column has to stay reserved on read rows too (or the text
+ * jumps 20px left every time you toggle), which leaves a dead gutter beside
+ * every read notification. Pinning the pip to the category icon instead costs
+ * zero layout: read and unread rows are identical in structure, nothing shifts
+ * on toggle, and the indicator still reads down a single column because the
+ * icon is already one.
+ */
+.unreadPip {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--foreground-brand-primary, #1b4dff);
+  // Ringed in the unread row's own tint — the pip only ever renders on an
+  // unread row — so it reads as a separate mark rather than merging into the
+  // category icon behind it.
+  box-shadow: 0 0 0 2px var(--background-brand-subtle, #f2f5ff);
+}
+
+.readToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  // As a flex sibling this reserves a 28px column down the card's whole
+  // height, so on a narrow screen the footer CTA stops ~50px short of the
+  // right edge (10px padding + 28px column + 12px gap) and the card reads
+  // lopsided. Lifting it out of the flow gives the content the full width
+  // back; the toggle keeps the corner it already occupied.
+  @include media.mobile-only {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    background-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  .item:hover &,
+  .item:focus-within & {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: -1px;
+  }
+
+  // No hover to reveal on touch.
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+/**
+ * Already read. The tick stays put and turns brand — pressed state on a
+ * toggle, not a different icon — so the control never moves or changes shape
+ * under the cursor. It also stays visible without hover, because on a read row
+ * the tick is the only thing saying "this one is done".
+ */
+.readToggleDone {
+  opacity: 1;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// ── Loading skeleton ────────────────────────────────────────────────────────
+// Production shows the "No new updates" empty state during the first fetch,
+// because the bell never reads `isLoading`.
+
+.skeletonRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.06));
+  border-radius: 10px;
+}
+
+.skelCircle,
+.skelLine {
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  border-radius: 6px;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skelCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.skelBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 3px;
+}
+
+.skelLine {
+  height: 10px;
+}
+
+.skelShort {
+  width: 34%;
+}
+.skelLong {
+  width: 88%;
+}
+.skelMid {
+  width: 62%;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+// ── Error state ─────────────────────────────────────────────────────────────
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.errorTitle {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+}
+
+.errorBody {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  max-width: 40ch;
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--background-neutral-primary, #ffffff);
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+// ── Empty states ────────────────────────────────────────────────────────────
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  margin-bottom: 4px;
+}
+
+.emptyTitle {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+}
+
+.emptyBody {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  max-width: 38ch;
+}
+
+.emptyAction {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+// ── Full-page inbox ─────────────────────────────────────────────────────────
+
+.inboxHeader {
+  display: flex;
+  align-items: center;
+  // No space-between — that pinned search to the far right, a full title's
+  // width away from the list it filters. Search sits next to the title, the
+  // same as NewsBase's header (title, then actions, 12px gap).
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  // Same reservation as the panel's title row: expanded, the search field is a
+  // real 40px (DebouncedInput's explicit height beats SearchInput's declared
+  // 38px min-height); collapsed it is a 30px icon. Without this the page
+  // header — and everything under it — shifts when search opens.
+  min-height: 40px;
+}
+
+.inboxTitle {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 38px;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+
+  @include media.mobile-only {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.4px;
+  }
+}
+
+/**
+ * Scoping row, under the header: All / Unread / Read against the list it
+ * scopes, with the bulk action that operates on the same set opposite it —
+ * the same arrangement as the panel's filter row.
+ */
+.inboxFilters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/** Tabs, plus the match count when a search is narrowing the list. */
+.inboxFiltersLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/**
+ * Slot for the header search on the full page. Carries no chrome of its own —
+ * `HeaderSearch` (imported from the newsfeed entry) brings the collapsed icon
+ * button, the expanded DS field and their shared border/hover treatment. This
+ * only decides how much room the expanded field may take.
+ */
+.pageSearch {
+  display: flex;
+  align-items: center;
+  // flex-start, not flex-end: the collapsed icon anchors beside the title and
+  // the field grows rightward when it expands, rather than the icon floating
+  // at the far end of a 380px box.
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 380px;
+
+  // The whole control hides on mobile; the permanent full-width row below the
+  // header takes over, exactly as on the newsfeed page.
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+.card {
+  background: var(--background-neutral-primary, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0px 1px 2px 0px rgba(14, 15, 17, 0.06);
+  padding: 12px;
+}
+
+.groupLabel {
+  padding: 16px 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #667085);
+
+  &:first-child {
+    padding-top: 6px;
+  }
+}
+
+.groupList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/** Closes the list. Production's infinite scroll just stops. */
+.endOfList {
+  padding: 24px 16px 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #667085);
+}
+
+// ── Undo toast ──────────────────────────────────────────────────────────────
+// Bulk mark-as-read gets an undo, not a confirmation dialog: confirming a
+// low-stakes bulk action costs every user a click to protect a rare mistake.
+
+// The toast itself is production's — `toast()` from ToastContainer, rendered
+// through the real `Toast` shell (bottom-center, Slide, status icon, close X).
+// All that belongs here is the layout of the content passed into it.
+
+.toastRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toastMessage {
+  min-width: 0;
+}
+
+/** Announced to screen readers, invisible on screen. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ── Prototype controls (not part of the design) ─────────────────────────────
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.controlLabel {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin-right: 4px;
+}
+
+.controlButton {
+  padding: 6px 12px;
+  background: var(--background-neutral-primary, #ffffff);
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+.controlButtonActive {
+  background: var(--foreground-brand-primary, #1b4dff);
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+
+  &:hover {
+    background: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// ── Reduced motion ──────────────────────────────────────────────────────────
+// Production guards none of its notification motion (the bell shake, the badge
+// spring, the panel scale-in), though the codebase does this correctly
+// elsewhere. Every animation here degrades to a crossfade or nothing.
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .toast {
+    animation: none;
+  }
+
+  .skelCircle,
+  .skelLine {
+    animation: none;
+  }
+
+  .item,
+  .readToggle,
+  .iconButton,
+  .segmentedBtn,
+  .markAllLink,
+  .itemActions {
+    transition: none;
+  }
+}

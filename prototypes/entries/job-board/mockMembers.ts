@@ -14,6 +14,20 @@ export interface MockMember {
   signal: string;
 }
 
+/**
+ * The mocked signed-in member — the one doing the referring. The intro email goes
+ * out from the Directory's own address, not theirs, so their name has to appear in
+ * the body or the recipient has no idea who vouched for the candidate.
+ */
+export const CURRENT_USER = {
+  // Matches the `m-7` entry below, so the pickers can leave the sender out: you
+  // can't refer yourself, and you're already on the thread as the sender.
+  uid: 'm-7',
+  name: 'Wei Chen',
+  title: 'Engineering Manager',
+  team: 'Protocol Labs',
+};
+
 export const MOCK_MEMBERS: MockMember[] = [
   {
     uid: 'm-1',

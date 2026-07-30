@@ -6,7 +6,7 @@ import type {
   ITeamNewsUpvoteStatus,
 } from '@/types/team-news.types';
 import { getHeader } from '@/utils/common.utils';
-import { TEAM_NEWS_DEFAULT_WINDOW_DAYS, TEAM_NEWS_PREVIEW_LIMIT } from './constants';
+import { TEAM_NEWS_DEFAULT_WINDOW_DAYS, TEAM_NEWS_POPULAR_LIMIT, TEAM_NEWS_PREVIEW_LIMIT } from './constants';
 import { MOCK_TEAM_NEWS_GROUPED_RESPONSE } from './team-news.mock-data';
 
 interface FetchGroupedOptions {
@@ -81,7 +81,7 @@ export async function getTeamNewsGroupedByFocusArea(
 // keeps this consistent with the grouped feed's SSR fetch. Returns null on
 // failure so the caller can fall back to hiding the module.
 export async function getTeamNewsPopular(
-  limit: number = TEAM_NEWS_PREVIEW_LIMIT,
+  limit: number = TEAM_NEWS_POPULAR_LIMIT,
   authToken?: string,
 ): Promise<ITeamNewsPopularResponse | null> {
   const url = `${process.env.DIRECTORY_API_URL}/v1/team-news/popular?limit=${limit}`;

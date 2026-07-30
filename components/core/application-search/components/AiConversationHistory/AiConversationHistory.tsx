@@ -1,3 +1,4 @@
+import isArray from 'lodash/isArray';
 import React, { useCallback, useMemo } from 'react';
 import s from '@/components/core/application-search/components/TryAiSearch/TryAiSearch.module.scss';
 import Image from 'next/image';
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
-  const { data: history, isLoading } = useChatHistory();
+  const { data: history } = useChatHistory();
   const router = useRouter();
   const analytics = useUnifiedSearchAnalytics();
 
@@ -31,7 +32,7 @@ export const AiConversationHistory = ({ onClick, isLoggedIn }: Props) => {
     const oneMonthAgo = subMonths(now, 1);
     const currentYear = getYear(now);
 
-    return (chats ?? []).slice(0, 3).reduce(
+    return (isArray(chats) ? chats : []).slice(0, 3).reduce(
       (
         groups: {
           today: IThread[];

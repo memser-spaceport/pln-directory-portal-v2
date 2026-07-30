@@ -15,7 +15,7 @@ import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
-import { ReferModal } from './ReferModal';
+import { ReferModal } from './components/ReferModal';
 
 interface JobReferRoleRowProps {
   role: IJobRole;

@@ -1,16 +1,35 @@
-// Local extras only. The modal chrome (card, close button, centred envelope +
-// title + desc, form stack, twin action buttons) is Demo Day's "Make an intro"
-// modal — ReferCompanyModal.module.scss, imported as-is.
+// Chrome (card, close button, centred envelope + title + desc, form stack, footer
+// row) is transcribed from Demo Day's "Make an intro" modal —
+// components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal/ReferCompanyModal.module.scss
+// — verbatim, so this prototype no longer reaches into production for styles.
+// Raw hex from the reference is translated to its `var(--token, #fallback)` pair
+// where a canonical one exists; every size, space and shadow is copied 1:1.
+//
+// Not carried over, because production components cover them: the reference's
+// `.overlay` (we wrap in `Modal`), its plain `.input` / `.textarea` / `.label` set
+// (fields are `FormSelect` / `FormTextArea`), and its hand-rolled footer buttons
+// (`Button`). Its close button we do keep — that one stays a plain `<button>`.
 @use 'styles/media';
 
-// The one deliberate deviation from the reference: it caps at 400px, which suits
-// its three plain inputs but squeezes a member picker with two-line rows and a
-// drafted email down to ~35 characters a line. 480px keeps the same proportions
-// and every other value untouched.
-//
-// Doubled selector on purpose: this class and the reference's `.modal` have equal
-// specificity, so without it the winner would depend on CSS bundle order.
-.modal.modal {
+// --- Modal chrome -------------------------------------------------------------
+
+.modal {
+  background: white;
+  border-radius: 24px;
+  padding: 20px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+  0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: auto;
+
+  // The one deliberate deviation from the reference: it caps at 400px, which suits
+  // its three plain inputs but squeezes a member picker with two-line rows and a
+  // drafted email down to ~35 characters a line. 480px keeps the same proportions
+  // and every other value untouched.
   max-width: 480px;
 
   // Fixed height, so the card is the same size empty as it is with six recipients
@@ -26,11 +45,98 @@
   }
 }
 
-// Takes the card's leftover height so `.fields` has something to scroll within.
+// `Button` with `style="link"` is the component's chromeless base: it zeroes the
+// border, padding, min-width and background, and `.root` brings cursor, transition and
+// the disabled state — so those five declarations are gone from here, and nothing new
+// was added. What's left is the round tinted swatch and its placement, which no
+// style/variant pair provides.
+//
+// `variant="neutral"` because it's the one variant `.link` doesn't define (it has
+// primary/secondary/success/warning/error/light), so the icon colour stays ours in
+// both states. Any defined variant would also repaint it on hover — `.link.secondary`
+// goes #6b7280 → #374151 — from a selector too specific to override cheaply.
+//
+// Doubled selector on purpose: what this overrides (`.root`, `.link`) is a single class
+// too, so at equal specificity the winner would depend on CSS bundle order.
+.closeButton.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+  box-shadow: 0px -2px 4px 0px inset rgba(14, 15, 17, 0.02);
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.iconWrapper {
+  background: #f2f5ff;
+  border-radius: 9999px;
+  padding: 10px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.4px;
+}
+
+.desc {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
 .form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+
+  // Takes the card's leftover height so `.fields` has something to scroll within.
   flex: 1;
   min-height: 0;
 }
+
+// --- Actions ------------------------------------------------------------------
+
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+// Every footer button — Cancel / Send referral, and Done in the sent state — is a
+// production `Button` (primary fill, or primary border for Cancel), so all they need
+// from here is a share of the footer row.
+.actionButton {
+  flex: 1;
+}
+
+// --- Fields -------------------------------------------------------------------
 
 // Only the fields scroll — the envelope, title, description, privacy note and
 // action buttons stay put.
@@ -60,13 +166,6 @@
   line-height: 18px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
-}
-
-.avatar {
-  border-radius: 9999px;
-  flex-shrink: 0;
-  object-fit: cover;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 // --- People picker rows -------------------------------------------------------
@@ -220,5 +319,5 @@
   }
 }
 
-// The sent state needs no styles of its own now: it reuses the reference's centred
-// envelope / title / desc stack and drops to a single action button.
+// The sent state needs no styles of its own: it reuses the centred envelope /
+// title / desc stack and drops to a single action button.

@@ -2,15 +2,20 @@
 
 import { HTMLProps } from 'react';
 import isEmpty from 'lodash/isEmpty';
+import { useToggle } from 'react-use';
+
+import { Button } from '@/components/common/Button';
 
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
+import { JOB_QUERY_PARAMS } from './constants';
+
 import { ReferMenu } from './components/ReferMenu';
 import { ArrowIcon, ClockIcon } from './components/Icons';
+import { ReferModal } from '@/prototypes/entries/job-board/components/ReferModal/ReferModal';
 
 import s from './ReferRoleRow.module.scss';
-import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 interface ReferRoleRowProps {
   role: IJobRole;
@@ -25,6 +30,7 @@ interface ReferRoleRowProps {
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
   const { role, teamName, onClick } = props;
+  const [referOpen, toggleReferOpen] = useToggle(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
@@ -64,6 +70,10 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         )}
 
         <div className={s.actionButtons}>
+          <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={toggleReferOpen}>
+            Refer
+          </Button>
+
           <ReferMenu role={role} teamName={teamName} />
 
           <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
@@ -71,6 +81,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
           </a>
         </div>
       </div>
+
+      <ReferModal open={referOpen} onClose={toggleReferOpen} role={role} teamName={teamName} />
     </div>
   );
 }

@@ -800,6 +800,25 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.23 - Feed Discussions & AI Apps',
+    tag: 'New Feature',
+    date: '30, Jul 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Forum posts</span> - Forum discussions now appear in the home feed alongside team news; use the Discussions filter to focus on them.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inline comments</span> - Comment on news stories directly from the feed without leaving Home.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Protocol Labs news</span> - Protocol Labs updates now show up in the network feed and Popular this week.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">AI Apps</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">App databases</span> - Ask PLN to provision a database for backend apps, or connect one you already have.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Design system</span> - New apps ship with the PL Directory design system for a more consistent LabOS look.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.22 - News Sharing & Job Referrals',
     tag: 'New Feature',
     date: '24, Jul 2026',

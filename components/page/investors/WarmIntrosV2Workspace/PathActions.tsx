@@ -17,6 +17,9 @@ import f from './PathFeedback.module.scss';
 
 type ReferVerdict = 'yes' | 'no';
 
+/** Temporarily hidden — re-enable when refer flow ships. */
+const SHOW_CAN_REFER = false;
+
 interface Props {
   warmPathUid: string;
   connectorProfileUid: string;
@@ -67,45 +70,47 @@ export function PathActions({
   return (
     <>
       <div className={f.strip}>
-        <div className={f.stripLeft}>
-          {asking && !answered ? (
-            <>
-              <span className={f.askLabel}>
-                Can you refer
-                {connector ? (
-                  <>
-                    {' via '}
-                    <span className={f.askName}>{connector}</span>
-                  </>
-                ) : null}
-                ?
-              </span>
-              <Button style="border" variant="secondary" size="xxs" disabled={busy} onClick={() => setRefer('yes')}>
-                Yes
-              </Button>
-              <Button style="border" variant="secondary" size="xxs" disabled={busy} onClick={() => setRefer('no')}>
-                No
-              </Button>
-            </>
-          ) : null}
+        {SHOW_CAN_REFER ? (
+          <div className={f.stripLeft}>
+            {asking && !answered ? (
+              <>
+                <span className={f.askLabel}>
+                  Can you refer
+                  {connector ? (
+                    <>
+                      {' via '}
+                      <span className={f.askName}>{connector}</span>
+                    </>
+                  ) : null}
+                  ?
+                </span>
+                <Button style="border" variant="secondary" size="xxs" disabled={busy} onClick={() => setRefer('yes')}>
+                  Yes
+                </Button>
+                <Button style="border" variant="secondary" size="xxs" disabled={busy} onClick={() => setRefer('no')}>
+                  No
+                </Button>
+              </>
+            ) : null}
 
-          {answered ? (
-            <>
-              <span className={clsx(f.answered, answered === 'no' && f.answeredNo)}>
-                <CheckIcon className={f.checkMark} width={11} height={11} />
-                {answered === 'yes'
-                  ? `You can refer${connector ? ` via ${connector}` : ''}`
-                  : 'You can’t refer on this path'}
-              </span>
-              <Button style="link" variant="secondary" size="xxs" underline disabled={busy} onClick={reset}>
-                Undo
-              </Button>
-            </>
-          ) : null}
-        </div>
+            {answered ? (
+              <>
+                <span className={clsx(f.answered, answered === 'no' && f.answeredNo)}>
+                  <CheckIcon className={f.checkMark} width={11} height={11} />
+                  {answered === 'yes'
+                    ? `You can refer${connector ? ` via ${connector}` : ''}`
+                    : 'You can’t refer on this path'}
+                </span>
+                <Button style="link" variant="secondary" size="xxs" underline disabled={busy} onClick={reset}>
+                  Undo
+                </Button>
+              </>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className={f.stripRight}>
-          {resting ? (
+          {SHOW_CAN_REFER && resting ? (
             <>
               <Button
                 style="link"

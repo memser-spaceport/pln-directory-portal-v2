@@ -2,6 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import { getHeader } from '@/utils/common.utils';
 import { stripHtml } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
+import { sanitizeCommentHtml } from '@/utils/html';
 import { forumFetch, postForumReply } from '@/services/forum/forum.service';
 import type { Topic } from '@/services/forum/hooks/useForumPosts';
 import type { TopicResponse } from '@/services/forum/hooks/useForumPost';
@@ -291,7 +292,15 @@ async function createForumPostComment(request: ICreateFeedCommentRequest): Promi
   const parentPid = request.parentUid ? pidFromForumCommentUid(request.parentUid) : undefined;
   const toPid = parentPid ?? request.forumMainPid ?? (await fetchTopicMainPid(tid));
 
-  const created = await postForumReply({ tid, toPid, content: `<p>${escapeHtml(request.text)}</p>` });
+  // Sanitized, NOT escaped. Comment content is Quill HTML now, so escaping it
+  // shipped the markup to NodeBB as literal text — a mention arrived on /forum
+  // reading `&lt;a class="ql-mention"…&gt;@Jane Doe&lt;/a&gt;`, which defeated
+  // the entire point of writing mentions in the forum's own anchor format.
+  // Sanitizing keeps the guarantee escaping was there for (nothing executable
+  // reaches a page other members read, through a renderer we don't control)
+  // while letting mentions and links through. Quill already emits <p>, so no
+  // wrapping either.
+  const created = await postForumReply({ tid, toPid, content: sanitizeCommentHtml(request.text) });
   const post = (created?.response ?? created) as TopicPost;
 
   return {
@@ -312,15 +321,6 @@ async function fetchTopicMainPid(tid: number): Promise<number> {
 }
 
 /** NodeBB stores post content as HTML, so member text must not be markup. */
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedCommentsResponse> {
   const response = await forumFetch(`/api/topic/${tidFromForumPostUid(itemUid)}`);
   if (!response?.ok) throw new Error('Failed to fetch feed comments');

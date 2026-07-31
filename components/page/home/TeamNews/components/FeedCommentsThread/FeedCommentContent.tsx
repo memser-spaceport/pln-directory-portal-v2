@@ -2,10 +2,9 @@
 
 import clsx from 'clsx';
 import { useMemo } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
 import parse from 'html-react-parser';
 
-import { isBlankHtml, linkifyHtml } from '@/utils/html';
+import { isBlankHtml, linkifyHtml, sanitizeCommentHtml } from '@/utils/html';
 
 import s from './FeedCommentsThread.module.scss';
 
@@ -28,34 +27,6 @@ import s from './FeedCommentsThread.module.scss';
  * `white-space: pre-wrap`, so their line breaks collapsed before too.
  */
 
-// A no-toolbar composer can only produce paragraphs, breaks and anchors, so
-// that is the whole allowlist. Deliberately narrower than NewsDetailModal's,
-// and narrower than what NodeBB may send — a forum post's images and headings
-// are dropped here rather than rendered inside a feed card.
-const COMMENT_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'br', 'a'],
-  // NewsDetailModal allows `href` alone. A mention keeps its identity in
-  // `class` + `data-uid` (see RichTextEditor's MentionBlot), so both have to
-  // survive or the mention renders as an ordinary link.
-  ALLOWED_ATTR: ['href', 'class', 'target', 'rel', 'data-uid', 'data-name', 'data-external-id'],
-  // NewsDetailModal's /^https?:/i would reject a mention's own relative
-  // /members/<uid> href. Anything outside these three schemes — `javascript:`
-  // above all — still goes.
-  ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|\/members\/)/i,
-};
-
-// Registered at module scope: DOMPurify hooks are global and stack if added
-// per render. Identical to the hook NewsDetailModal and PrdContent register,
-// and idempotent alongside them — setting the same two attributes twice is a
-// no-op. Registering it here as well means this component does not depend on
-// one of those modules happening to be loaded first.
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A' && node.hasAttribute('href')) {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
-  }
-});
-
 /**
  * Would this comment render as a visible body?
  *
@@ -65,7 +36,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
  * fallback instead of rendering a blank row.
  */
 export function hasRenderableContent(html: string): boolean {
-  return !isBlankHtml(DOMPurify.sanitize(html ?? '', COMMENT_SANITIZE_CONFIG));
+  return !isBlankHtml(sanitizeCommentHtml(html));
 }
 
 interface FeedCommentContentProps {
@@ -76,7 +47,7 @@ interface FeedCommentContentProps {
 }
 
 export function FeedCommentContent({ html, className }: FeedCommentContentProps) {
-  const nodes = useMemo(() => parse(DOMPurify.sanitize(linkifyHtml(html ?? ''), COMMENT_SANITIZE_CONFIG)), [html]);
+  const nodes = useMemo(() => parse(sanitizeCommentHtml(linkifyHtml(html ?? ''))), [html]);
 
   return <div className={clsx(s.text, s.richText, className)}>{nodes}</div>;
 }

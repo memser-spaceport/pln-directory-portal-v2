@@ -585,7 +585,7 @@ describe('feed.service', () => {
     it('replies to the topic’s opening post for a top-level comment, using the pid it was given', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
 
-      await createFeedComment({ itemUid: 'fp_96', text: 'Great update!', forumMainPid: 263 });
+      await createFeedComment({ itemUid: 'fp_96', text: '<p>Great update!</p>', forumMainPid: 263 });
 
       // One request, not a fetch-the-topic-then-post pair.
       expect(customFetchMock).toHaveBeenCalledTimes(1);
@@ -593,6 +593,7 @@ describe('feed.service', () => {
         'https://forum.example.com/api/v3/topics/96',
         expect.objectContaining({
           method: 'POST',
+          // Quill already emits <p>; the service adds no wrapper of its own.
           body: JSON.stringify({ content: '<p>Great update!</p>', toPid: 263 }),
         }),
         false,
@@ -623,14 +624,38 @@ describe('feed.service', () => {
       expect(JSON.parse(customFetchMock.mock.calls[1][1].body).toPid).toBe(263);
     });
 
-    it('escapes member text — NodeBB stores content as HTML', async () => {
+    it('sends a mention through as a real anchor — escaping it made /forum show the markup', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
 
-      await createFeedComment({ itemUid: 'fp_96', text: '<script>alert(1)</script> & "done"', forumMainPid: 263 });
+      const mention =
+        '<a class="ql-mention" href="/members/m_7fa2" data-uid="m_7fa2" data-name="Jane Doe">@Jane Doe</a>';
+      await createFeedComment({ itemUid: 'fp_96', text: `<p>thanks ${mention}!</p>`, forumMainPid: 263 });
 
-      expect(JSON.parse(customFetchMock.mock.calls[0][1].body).content).toBe(
-        '<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;done&quot;</p>',
-      );
+      // The whole point of writing mentions in the forum's own anchor format is
+      // that NodeBB renders them. Escaping shipped `&lt;a class="ql-mention"…`
+      // as literal text on /forum.
+      const { content } = JSON.parse(customFetchMock.mock.calls[0][1].body);
+      expect(content).toContain('class="ql-mention"');
+      expect(content).toContain('data-uid="m_7fa2"');
+      expect(content).not.toContain('&lt;a');
+    });
+
+    it('sanitizes before sending — nothing executable reaches a page other members read', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => created });
+
+      await createFeedComment({
+        itemUid: 'fp_96',
+        text: '<p onclick="steal()">hi</p><script>alert(1)</script><a href="javascript:alert(1)">x</a>',
+        forumMainPid: 263,
+      });
+
+      // A forum comment becomes a real NodeBB post rendered by a pipeline we
+      // don't control, so the write boundary sanitizes as well as the read one.
+      const { content } = JSON.parse(customFetchMock.mock.calls[0][1].body);
+      expect(content).not.toContain('script');
+      expect(content).not.toContain('onclick');
+      expect(content).not.toContain('javascript:');
+      expect(content).toContain('hi');
     });
 
     it('returns the created comment carrying the caller’s parentUid, which NodeBB does not always echo', async () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import { useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -14,6 +15,7 @@ import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
+import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 
 import s from './ForumPostCard.module.scss';
 
@@ -35,10 +37,28 @@ interface ForumPostCardProps {
  */
 export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: ForumPostCardProps) {
   const analytics = useTeamNewsAnalytics();
+  const [threadOpen, setThreadOpen] = useState(false);
+  // See NewsGroupCard: an unsettled comment blocks collapse, because the
+  // mutation's error state does not survive the unmount its cache writes do.
+  const [threadBusy, setThreadBusy] = useState(false);
 
   const handleOpenDetail = (via: TeamNewsCardClickVia = 'row') => {
     analytics.onFeedForumPostCardClicked(post, position, 'home', via);
     onOpenDetail(post);
+  };
+
+  const handleThreadToggle = () => {
+    if (threadOpen && threadBusy) return;
+    const next = !threadOpen;
+    setThreadOpen(next);
+    analytics.onFeedCommentThreadToggled(post.uid, 'forum', next, 'home');
+    // See NewsGroupCard: `nearest` reveals a thread opened near the viewport
+    // bottom without ever scrolling the feed to the top.
+    if (next) {
+      requestAnimationFrame(() => {
+        document.getElementById(feedThreadDomId(post.uid))?.scrollIntoView({ block: 'nearest' });
+      });
+    }
   };
 
   return (
@@ -89,10 +109,26 @@ export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: Fo
           <span className={s.footerActions} onClick={(e) => e.stopPropagation()}>
             <FeedForumPostShareMenu post={post} source="home" />
             <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
-            {/* Opens the detail modal, where the thread lives. */}
-            <CommentButton itemUid={post.uid} onClick={() => handleOpenDetail('comment-button')} />
+            <CommentButton
+              itemUid={post.uid}
+              open={threadOpen}
+              onToggle={handleThreadToggle}
+              controls={feedThreadDomId(post.uid)}
+            />
           </span>
         </div>
+
+        {/* Mount = expanded (the lazy comments query keys off it). */}
+        {threadOpen && (
+          <FeedCommentsThread
+            itemUid={post.uid}
+            kind="forum"
+            source="home"
+            forumMainPid={post.mainPid}
+            onViewAll={() => handleOpenDetail('view-all-comments')}
+            onBusyChange={setThreadBusy}
+          />
+        )}
       </div>
     </div>
   );

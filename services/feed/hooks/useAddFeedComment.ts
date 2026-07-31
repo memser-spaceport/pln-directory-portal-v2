@@ -40,8 +40,14 @@ export function useAddFeedComment(itemUid: string, forumMainPid?: number) {
       // level — and a REPLY belongs under its parent at any depth, not appended
       // to the root list (which would silently promote it to a top-level
       // comment until the next refetch).
+      //
+      // Spread `old`: the entry also carries `forumTopic` (the NodeBB topic's
+      // url / totalReplyCount / like state). Rebuilding the object from `items`
+      // alone erased it on the first post, which silently took out the "N more
+      // comments on the forum" link, the escalation label's honesty about
+      // unloaded replies, and useFeedForumTopicLike's view of the vote state.
       queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), (old) =>
-        old ? { items: insertCommentIntoTree(old.items, created) } : { items: [created] },
+        old ? { ...old, items: insertCommentIntoTree(old.items, created) } : { items: [created] },
       );
       queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
         old ? { ...old, [itemUid]: (old[itemUid] ?? 0) + 1 } : { [itemUid]: 1 },

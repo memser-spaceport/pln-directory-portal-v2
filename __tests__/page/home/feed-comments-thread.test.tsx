@@ -94,16 +94,49 @@ beforeEach(() => {
 });
 
 describe('FeedCommentsThread — list', () => {
-  it('caps at the 2 MOST RECENT comments (oldest-first data — last 2, not first 2) behind "View all N"', () => {
+  it('caps a CARD at the 2 MOST RECENT comments (oldest-first data — last 2, not first 2)', () => {
+    const onViewAll = jest.fn();
     mockThread([comment('c1', 'First'), comment('c2', 'Second'), comment('c3', 'Third')]);
     mockMutation(useAddFeedCommentMock);
-    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={onViewAll} />);
 
     expect(screen.queryByText('First')).not.toBeInTheDocument();
     expect(screen.getByText('Second')).toBeInTheDocument();
     expect(screen.getByText('Third')).toBeInTheDocument();
 
+    // The overflow escalates to the modal rather than growing the card.
     fireEvent.click(screen.getByRole('button', { name: 'View all 3 comments' }));
+    expect(onViewAll).toHaveBeenCalled();
+    expect(screen.queryByText('First')).not.toBeInTheDocument();
+  });
+
+  it('renders the WHOLE thread in the modal — no cap, nothing left to expand', () => {
+    mockThread([comment('c1', 'First'), comment('c2', 'Second'), comment('c3', 'Third')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(screen.getByText('First')).toBeInTheDocument();
+    // Without this the card's "View all" would land on a modal showing the
+    // same two comments behind the same button.
+    expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps a card row visible while its reply composer is open, even as the thread grows', () => {
+    const onViewAll = jest.fn();
+    mockThread([comment('c1', 'First'), comment('c2', 'Second')]);
+    mockMutation(useAddFeedCommentMock);
+    const { rerender } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={onViewAll} />);
+
+    const [firstReply] = screen.getAllByRole('button', { name: 'Reply' });
+    fireEvent.click(firstReply);
+    expect(screen.getByPlaceholderText('Reply to Author c1…')).toBeInTheDocument();
+
+    // A third comment arrives — a bare slice(-2) would drop c1 and take the
+    // open composer (and its unsent draft) with it.
+    mockThread([comment('c1', 'First'), comment('c2', 'Second'), comment('c3', 'Third')]);
+    rerender(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={onViewAll} />);
+
+    expect(screen.getByPlaceholderText('Reply to Author c1…')).toBeInTheDocument();
     expect(screen.getByText('First')).toBeInTheDocument();
   });
 
@@ -186,7 +219,7 @@ describe('FeedCommentsThread — replies', () => {
       comment('c3', 'Third'),
     ]);
     mockMutation(useAddFeedCommentMock);
-    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} />);
 
     // 3 top-level + 1 reply = 4, matching what the count badge shows.
     expect(screen.getByRole('button', { name: 'View all 4 comments' })).toBeInTheDocument();
@@ -450,13 +483,26 @@ describe('FeedCommentsThread — forum posts', () => {
     expect(link).toHaveAttribute('href', '/forum/topics/5/96');
   });
 
-  it('says "Show more" rather than "View all N" when N would understate the thread', () => {
+  it('drops the number from a card’s escalation when N would understate the thread', () => {
     mockThread([comment('c1', 'One'), comment('c2', 'Two'), comment('c3', 'Three')], forumTopicMeta(50));
     mockMutation(useAddFeedCommentMock);
-    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="home" forumMainPid={263} onViewAll={jest.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Show more comments' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View all comments' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /View all \d/ })).not.toBeInTheDocument();
+  });
+
+  it('still escalates from a card when the thread fits but NodeBB has more', () => {
+    const onViewAll = jest.fn();
+    // Under the cap, so the count alone would hide the escalation — but the
+    // card suppresses the forum link, so this would be a dead end.
+    mockThread([comment('c1', 'One'), comment('c2', 'Two')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="home" forumMainPid={263} onViewAll={onViewAll} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'View all comments' }));
+    expect(onViewAll).toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: /more comments on the forum/ })).not.toBeInTheDocument();
   });
 
   it('shows no forum link when the whole thread is already here', () => {
@@ -521,5 +567,63 @@ describe('FeedCommentsThread — signed-out gate', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));
     expect(routerPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
+  });
+
+  it('prefers a card’s onSignIn over the bare #login push, so the round trip keeps its place', () => {
+    const onSignIn = jest.fn();
+    signOut();
+    mockThread([comment('c1', 'Readable while signed out')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} onSignIn={onSignIn} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));
+    expect(onSignIn).toHaveBeenCalled();
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it('shows no composer before the auth store hydrates — a guest must not be able to type', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    mockThread([comment('c1', 'Readable')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} />);
+
+    // Otherwise a fast guest types a comment and gets "couldn't post" instead
+    // of a login prompt.
+    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'sign in to comment' })).not.toBeInTheDocument();
+    expect(screen.getByText('Readable')).toBeInTheDocument();
+  });
+});
+
+describe('FeedCommentsThread — read-path states', () => {
+  it('shows a busy placeholder while the thread loads, not an empty box', () => {
+    useFeedCommentsMock.mockReturnValue({ isPending: true });
+    mockMutation(useAddFeedCommentMock);
+    const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} />);
+
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
+    expect(screen.queryByText('No comments yet.')).not.toBeInTheDocument();
+  });
+
+  it('offers a retry when the thread fails to load', () => {
+    const refetch = jest.fn();
+    useFeedCommentsMock.mockReturnValue({ isError: true, refetch });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" onViewAll={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it('says the thread is empty rather than expanding to nothing', () => {
+    // A forum member with read but not write access gets no composer either,
+    // so without this the badge opens onto a blank box.
+    mockForumAccess.mockReturnValue({ canWrite: false });
+    mockThread([], forumTopicMeta(0));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="home" onViewAll={jest.fn()} />);
+
+    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.getByText('No comments yet.')).toBeInTheDocument();
   });
 });

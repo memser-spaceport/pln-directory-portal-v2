@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -36,6 +36,38 @@ function countComments(comments: readonly IFeedComment[]): number {
   return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
 }
 
+/** Is `uid` this comment or anywhere in its subtree? */
+function containsUid(comment: IFeedComment, uid: string): boolean {
+  return comment.uid === uid || comment.replies.some((reply) => containsUid(reply, uid));
+}
+
+/**
+ * The last `count` top-level comments, plus any whose subtree the member is
+ * currently working in.
+ *
+ * A bare `slice(-count)` is a sliding window over a list that GROWS AT THE END
+ * (insertCommentIntoTree appends), so posting a comment silently unmounts the
+ * row above it — taking an open reply composer, its unsent draft, and any
+ * in-flight reply's pending row with it. Pinning costs one pass and makes the
+ * window stable exactly where it has to be.
+ */
+function windowWithPinned(
+  comments: readonly IFeedComment[],
+  count: number,
+  activeUids: readonly string[],
+): readonly IFeedComment[] {
+  if (comments.length <= count) return comments;
+  const tail = new Set(comments.slice(-count).map((comment) => comment.uid));
+  if (activeUids.length === 0) return comments.slice(-count);
+  return comments.filter((comment) => tail.has(comment.uid) || activeUids.some((uid) => containsUid(comment, uid)));
+}
+
+/** Stable DOM id for a thread region, so a card's badge can own `aria-controls`
+ *  without either component having to thread a generated id between them. */
+export function feedThreadDomId(itemUid: string): string {
+  return `feed-thread-${itemUid}`;
+}
+
 interface FeedCommentsThreadProps {
   itemUid: string;
   kind: FeedItemKind;
@@ -43,6 +75,21 @@ interface FeedCommentsThreadProps {
   /** Forum posts only: the topic's opening post, which a top-level comment
    *  replies to. Lets the write happen in one request instead of two. */
   forumMainPid?: number;
+  /** CARD SURFACES ONLY, and the single switch between the two layouts: its
+   *  presence caps the list at VISIBLE and turns the overflow affordance into
+   *  "open the detail modal". The modal omits it and renders the whole thread —
+   *  without that asymmetry the escalation would land on a modal showing the
+   *  same two comments behind the same button. */
+  onViewAll?: () => void;
+  /** Card surfaces only: bounce to #login recording which item's thread was
+   *  open, so the round trip lands back on it. Defaults to a bare #login push,
+   *  which from a card loses that context entirely. */
+  onSignIn?: () => void;
+  /** Card surfaces only: "there is an unsettled write in here". Closing a modal
+   *  is a deliberate "I'm done"; clicking a disclosure badge is not, and the
+   *  mutation's error state — unlike its cache writes — does not survive
+   *  unmount, so a collapse mid-flight can drop a failed comment in silence. */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 /**
@@ -54,11 +101,18 @@ interface FeedCommentsThreadProps {
  * really does appear on /forum. Both arrive as the same `IFeedComment` tree from
  * services/feed/feed.service.ts.
  *
- * Mount = expanded: the parent renders this component only while the modal is
+ * Mount = expanded: the parent renders this component only while the thread is
  * open, so the lazy comments query fetches on mount and, with no observer after
  * close, never refetches in the background. All comment text / names / roles
  * render via JSX text interpolation only — dangerouslySetInnerHTML is banned in
  * this component, and forum HTML arrives already stripped to plain text.
+ *
+ * Two surfaces, one component, told apart by `onViewAll`:
+ * - CARD (prop passed): shows the last VISIBLE top-level comments and escalates
+ *   the rest to the detail modal. The forum's "more on the forum" link is
+ *   suppressed — two competing escalations on one card is noise.
+ * - MODAL (prop omitted): renders the whole thread. There is nothing left to
+ *   expand, which is why this component has no expand state of its own.
  *
  * Composer rules (no toasts, ever):
  * - The in-flight comment renders immediately from the mutation's `variables`
@@ -82,19 +136,29 @@ interface FeedCommentsThreadProps {
  * cache patch alike. NodeBB-sourced comments always report `isOwn: false`, so
  * the affordance never appears on them.
  */
-export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: FeedCommentsThreadProps) {
+export function FeedCommentsThread({
+  itemUid,
+  kind,
+  source,
+  forumMainPid,
+  onViewAll,
+  onSignIn,
+  onBusyChange,
+}: FeedCommentsThreadProps) {
   const router = useRouter();
   const analytics = useTeamNewsAnalytics();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canWrite: canWriteForum } = useForumAccess();
   const [draft, setDraft] = useState('');
-  const [expanded, setExpanded] = useState(false);
   const [confirmingUid, setConfirmingUid] = useState<string | null>(null);
   // One open reply composer at a time — a thread full of open inputs is noise,
   // and the draft belongs to whichever comment the member is answering.
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const { data } = useFeedComments(itemUid, { enabled: true });
+  // The only difference between the card and the modal. See the prop's doc.
+  const isCard = onViewAll !== undefined;
+
+  const { data, isPending, isError, refetch } = useFeedComments(itemUid, { enabled: true });
   const addComment = useAddFeedComment(itemUid, forumMainPid);
   const deleteComment = useDeleteFeedComment(itemUid);
 
@@ -115,10 +179,6 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
   const forumTopic = data?.forumTopic;
   const forumTopicUrl = forumTopic?.url ?? undefined;
   const missingReplyCount = forumTopic ? Math.max(0, forumTopic.totalReplyCount - totalCount) : 0;
-
-  // Oldest-first data: the most recent VISIBLE comments are the LAST ones, not
-  // the first — a plain slice(0, VISIBLE) would show the oldest instead.
-  const shown = expanded ? comments : comments.slice(-VISIBLE);
 
   const requestDelete = (commentUid: string) => {
     if (deleteComment.isPending) return;
@@ -159,6 +219,13 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
   };
 
   const goToLogin = () => {
+    // A card passes onSignIn so the URL records which thread was open; without
+    // it this is a bare /home#login and the member comes back to a collapsed
+    // feed with no idea where they were.
+    if (onSignIn) {
+      onSignIn();
+      return;
+    }
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
   };
 
@@ -176,10 +243,50 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
   // comment's reply composer. Without this the same error renders in both.
   const errorParentUid = errorText ? (attempt?.parentUid ?? null) : undefined;
 
+  // "Latest ref" so the report below keys off the busy flag alone — callers
+  // pass an inline arrow, and depending on its identity would re-fire every
+  // render. Ref written in an effect, never during render (repo lint rule).
+  const busy = addComment.isPending || addComment.isError;
+  const onBusyChangeRef = useRef(onBusyChange);
+  useEffect(() => {
+    onBusyChangeRef.current = onBusyChange;
+  });
+  useEffect(() => {
+    onBusyChangeRef.current?.(busy);
+    // Clearing on unmount matters: a card that refused to collapse while busy
+    // would otherwise stay stuck open after a filter change remounts it.
+    return () => onBusyChangeRef.current?.(false);
+  }, [busy]);
+
+  const pendingParentUid = pending?.parentUid;
+
+  // Oldest-first data: the most recent VISIBLE comments are the LAST ones, not
+  // the first — a plain slice(0, VISIBLE) would show the oldest instead. Rows
+  // the member is mid-interaction with are pinned in, so an append can't
+  // unmount one out from under an open composer.
+  const shown = useMemo(() => {
+    if (!isCard) return comments;
+    const activeUids = [replyingTo, confirmingUid, pendingParentUid].filter((uid): uid is string => Boolean(uid));
+    return windowWithPinned(comments, VISIBLE, activeUids);
+  }, [isCard, comments, replyingTo, confirmingUid, pendingParentUid]);
+
+  // A forum card whose thread fits under the cap can still have replies left on
+  // NodeBB, and its "more on the forum" link is suppressed here — so the
+  // escalation has to key off both, or that card offers no way through at all.
+  const showEscalation = isCard && (comments.length > VISIBLE || missingReplyCount > 0);
+  const hasRows = comments.length > 0 || Boolean(pendingText && !pending?.parentUid);
+
   return (
-    <div className={s.thread} onClick={(e) => e.stopPropagation()}>
-      {/* Composer sits above the list — leave a comment first, then read. */}
-      {isHydrated && !currentUser ? (
+    <div
+      id={feedThreadDomId(itemUid)}
+      className={clsx(s.thread, isCard && s.threadCard)}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Composer sits above the list — leave a comment first, then read.
+          Nothing renders before the auth store hydrates: `currentUser` is null
+          either way at that point, so showing the composer would let a guest
+          type a comment and get "couldn't post" instead of a login prompt. */}
+      {!isHydrated ? null : !currentUser ? (
         <div className={s.signedOut}>
           <span>Join the conversation —</span>
           <button type="button" className={s.signInBtn} onClick={goToLogin}>
@@ -206,7 +313,27 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
         )
       )}
 
-      {(comments.length > 0 || (pendingText && !pending?.parentUid)) && (
+      {/* On a card the badge already promised a count, so "loading" and
+          "failed" have to be visible states — silence reads as "the comments
+          are gone". In the modal these were masked by the article body. */}
+      {isPending ? (
+        <div className={s.list} aria-busy="true">
+          <div className={s.skeletonRow} />
+          <div className={s.skeletonRow} />
+        </div>
+      ) : isError ? (
+        <p className={s.error} role="alert">
+          Couldn’t load comments —{' '}
+          <button type="button" className={s.retryBtn} onClick={() => refetch()}>
+            retry
+          </button>
+        </p>
+      ) : !hasRows ? (
+        // Reachable with the composer hidden too: a forum member with read but
+        // not write access gets neither, so without this the badge expands to
+        // an empty box.
+        <p className={s.empty}>No comments yet.</p>
+      ) : (
         <div className={s.list}>
           {pendingText && !pending?.parentUid && <PendingRow text={pendingText} />}
           {shown.map((comment) => (
@@ -234,16 +361,15 @@ export function FeedCommentsThread({ itemUid, kind, source, forumMainPid }: Feed
               forumTopicUrl={forumTopicUrl}
             />
           ))}
-          {comments.length > VISIBLE && (
-            <button type="button" className={s.viewAll} onClick={() => setExpanded((v) => !v)}>
-              {expanded
-                ? 'Show fewer comments'
-                : missingReplyCount > 0
-                  ? 'Show more comments'
-                  : `View all ${totalCount} comments`}
+          {showEscalation && (
+            <button type="button" className={s.viewAll} aria-haspopup="dialog" onClick={onViewAll}>
+              {/* totalCount counts what's LOADED. On a forum post with replies
+                  still on NodeBB that understates, so drop the number rather
+                  than print a wrong one. */}
+              {missingReplyCount > 0 ? 'View all comments' : `View all ${totalCount} comments`}
             </button>
           )}
-          {missingReplyCount > 0 && forumTopicUrl && (
+          {!isCard && missingReplyCount > 0 && forumTopicUrl && (
             <a className={s.forumLink} href={forumTopicUrl} target="_blank" rel="noopener noreferrer">
               {missingReplyCount === 1
                 ? '1 more comment on the forum →'
@@ -297,6 +423,15 @@ function Composer({
         // follows the click rather than making the member click twice.
         autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)}
+        // Escape backs out of a reply composer, which is what everyone expects
+        // of one. Only inline: inside the modal, Modal's own capture-phase
+        // listener sees Escape first and closes the whole dialog.
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && onCancel) {
+            e.preventDefault();
+            onCancel();
+          }
+        }}
       />
       {onCancel && (
         <button type="button" className={s.replyCancelBtn} onClick={onCancel}>

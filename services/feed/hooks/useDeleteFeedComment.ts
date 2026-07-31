@@ -3,8 +3,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { IFeedCommentCountsResponse, IFeedCommentDeleteResponse, IFeedCommentsResponse } from '@/types/feed.types';
 import { removeCommentFromTree } from '@/utils/comments';
+import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { feedQueryKeys } from '../constants';
+import { classifyCommentFailure } from '../commentFailure';
 import { deleteFeedComment } from '../feed.service';
+import type { FeedCommentContext } from './useAddFeedComment';
 
 // Mirrors useAddFeedComment's shape exactly (same scope, same cancel-then-write
 // ordering, same "cache writes live in options callbacks" rule) — delete is
@@ -12,12 +15,20 @@ import { deleteFeedComment } from '../feed.service';
 // pre-removal: the row shows a pending/disabled state during the request
 // instead, same "nothing touches the cache until the server confirms" rule
 // useAddFeedComment already follows.
-export function useDeleteFeedComment(itemUid: string) {
+export function useDeleteFeedComment(itemUid: string, context?: FeedCommentContext) {
   const queryClient = useQueryClient();
+  const analytics = useTeamNewsAnalytics();
 
   return useMutation<IFeedCommentDeleteResponse, Error, { commentUid: string }>({
     scope: { id: `feed-comment-${itemUid}` },
     mutationFn: ({ commentUid }) => deleteFeedComment(commentUid),
+    // Same reasoning as useAddFeedComment: reported here so a remount can't
+    // swallow it, and so `removedCount` — which only this callback knows — can
+    // ride along.
+    onError: (error) => {
+      if (!context) return;
+      analytics.onFeedCommentDeleteFailed(itemUid, context.kind, context.source, classifyCommentFailure(error));
+    },
     onSuccess: async (_, { commentUid }) => {
       await Promise.all([
         queryClient.cancelQueries({ queryKey: feedQueryKeys.comments(itemUid) }),
@@ -42,6 +53,11 @@ export function useDeleteFeedComment(itemUid: string) {
           old ? { ...old, [itemUid]: Math.max(0, (old[itemUid] ?? 0) - removedCount) } : old,
         );
       }
+
+      // `removedCount` is 0 for a comment that wasn't cached — a stale delete
+      // from another tab, which the service maps 404→success. Reporting it
+      // keeps that case visible instead of inflating the delete count.
+      if (context) analytics.onFeedCommentDeleted(itemUid, context.kind, context.source, removedCount);
     },
   });
 }

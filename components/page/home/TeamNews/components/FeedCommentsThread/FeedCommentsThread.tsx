@@ -52,12 +52,6 @@ function countComments(comments: readonly IFeedComment[]): number {
   return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
 }
 
-/** How many members this comment mentions — the class MentionBlot stamps is
- *  the only marker distinguishing a mention from an ordinary link. */
-function countMentions(html: string): number {
-  return html.match(/class="ql-mention"/g)?.length ?? 0;
-}
-
 /** Is `uid` this comment or anywhere in its subtree? */
 function containsUid(comment: IFeedComment, uid: string): boolean {
   return comment.uid === uid || comment.replies.some((reply) => containsUid(reply, uid));
@@ -188,8 +182,12 @@ export function FeedCommentsThread({
   const isCard = onViewAll !== undefined;
 
   const { data, isPending, isError, refetch } = useFeedComments(itemUid, { enabled: true });
-  const addComment = useAddFeedComment(itemUid, forumMainPid);
-  const deleteComment = useDeleteFeedComment(itemUid);
+  // The hooks report their own analytics, from their options callbacks — those
+  // survive the remount a tab or category change causes, which a callback
+  // passed to mutate() would not.
+  const analyticsContext = useMemo(() => ({ kind, source }), [kind, source]);
+  const addComment = useAddFeedComment(itemUid, forumMainPid, analyticsContext);
+  const deleteComment = useDeleteFeedComment(itemUid, analyticsContext);
 
   const isForumPost = isForumPostUid(itemUid);
   // Forum writes go through NodeBB, which enforces this itself; checking here
@@ -240,7 +238,6 @@ export function FeedCommentsThread({
           // options callbacks, which survive this component unmounting.
           if (parentUid) setReplyingTo(null);
           else setDraft('');
-          analytics.onFeedCommentSubmitted(itemUid, kind, source, Boolean(parentUid), countMentions(trimmed));
         },
       },
     );

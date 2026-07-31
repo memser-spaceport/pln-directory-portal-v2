@@ -3,6 +3,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { IFeedForumPost } from '@/types/feed.types';
+import type { CommentFailure } from '@/services/feed/commentFailure';
 
 /** 'news' | 'forum' — typed off the FeedEntry union so analytics can't drift
  *  from the feed's own discriminator. */
@@ -331,6 +332,112 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  // ── Comment failures and drop-offs ────────────────────────────────────────
+  // House rule for every event below: no comment text, no draft, no full URL,
+  // no raw server message. Reasons and counts only.
+
+  const onFeedCommentFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    isReply: boolean,
+    failure: CommentFailure,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_FAILED, {
+      itemUid,
+      kind,
+      source,
+      isReply,
+      ...failure,
+    });
+  };
+
+  const onFeedCommentDeleted = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    /** Rows removed including the cascaded replies — tells apart deleting a
+     *  leaf from deleting a whole conversation. */
+    removedCount: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_DELETED, {
+      itemUid,
+      kind,
+      source,
+      removedCount,
+    });
+  };
+
+  const onFeedCommentDeleteFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    failure: CommentFailure,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_DELETE_FAILED, {
+      itemUid,
+      kind,
+      source,
+      ...failure,
+    });
+  };
+
+  // The guest→member funnel, from inside a thread. Fires before a soft #login
+  // nav, so unlike the session-expired path it delivers reliably.
+  const onFeedCommentSignInClicked = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_SIGNIN_CLICKED, { itemUid, kind, source });
+  };
+
+  const onFeedCommentLoadFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    /** The thread rendered its error state while cached comments existed, so
+     *  the member saw a failure over content that was actually there. */
+    hadCachedData: boolean,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_LOAD_FAILED, {
+      itemUid,
+      kind,
+      source,
+      hadCachedData,
+    });
+  };
+
+  const onFeedCommentRetryClicked = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_RETRY_CLICKED, { itemUid, kind, source });
+  };
+
+  /** `host` ONLY — a pasted URL's path or query can carry a token or a private
+   *  document id. A mailto link reports no host at all. */
+  const onFeedCommentLinkClicked = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    link: { linkType: 'http' | 'mailto'; host?: string },
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_LINK_CLICKED, {
+      itemUid,
+      kind,
+      source,
+      ...link,
+    });
+  };
+
+  const onFeedCommentMentionClicked = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    targetMemberUid: string,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_MENTION_CLICKED, {
+      itemUid,
+      kind,
+      source,
+      targetMemberUid,
+    });
+  };
+
   // Never include comment text or the draft here — only the selection.
   const onFeedCommentMentionSelected = (
     itemUid: string,
@@ -368,5 +475,13 @@ export const useTeamNewsAnalytics = () => {
     onFeedCommentThreadToggled,
     onFeedCommentSubmitted,
     onFeedCommentMentionSelected,
+    onFeedCommentFailed,
+    onFeedCommentDeleted,
+    onFeedCommentDeleteFailed,
+    onFeedCommentSignInClicked,
+    onFeedCommentLoadFailed,
+    onFeedCommentRetryClicked,
+    onFeedCommentLinkClicked,
+    onFeedCommentMentionClicked,
   };
 };

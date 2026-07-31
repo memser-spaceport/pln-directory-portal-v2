@@ -444,28 +444,29 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     expect(mutation.mutate).not.toHaveBeenCalled();
   });
 
-  it('reports the mention count with a submitted comment, and the selection when it is picked', () => {
+  it('forwards a picked mention to analytics without touching the draft', () => {
     mockThread([]);
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     // The editor owns the dropdown; the thread only forwards the selection.
+    // (submitted/failed are reported by the mutation hook now, so they're
+    // covered in useAddFeedComment.test.tsx — the hook is mocked here.)
     mockEditorProps.mock.calls.at(-1)?.[0].onMentionSelected({ uid: 'm_7fa2', name: 'Jane Doe' });
+
     expect(onFeedCommentMentionSelected).toHaveBeenCalledWith('n-1', 'news', 'home', {
       memberUid: 'm_7fa2',
       memberName: 'Jane Doe',
     });
+  });
 
-    const mutation = useAddFeedCommentMock.mock.results[0].value;
-    const field = screen.getByPlaceholderText('Write your comment here…');
-    fireEvent.change(field, {
-      target: { value: '<p>hi <a class="ql-mention" data-uid="m_7fa2">@Jane Doe</a></p>' },
-    });
-    fireEvent.submit(field.closest('form')!);
+  it('gives the mutation hooks the surface context they report with', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
 
-    const { onSuccess } = mutation.mutate.mock.calls[0][1];
-    act(() => onSuccess());
-    expect(onFeedCommentSubmitted).toHaveBeenCalledWith('n-1', 'news', 'home', false, 1);
+    expect(useAddFeedCommentMock).toHaveBeenCalledWith('fp_96', 263, { kind: 'forum', source: 'news-modal' });
+    expect(useDeleteFeedCommentMock).toHaveBeenCalledWith('fp_96', { kind: 'forum', source: 'news-modal' });
   });
 
   it('refuses a comment whose markup exceeds the server’s cap, and says why', () => {

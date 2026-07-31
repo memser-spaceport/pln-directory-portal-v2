@@ -6,10 +6,21 @@ jest.unmock('@tanstack/react-query');
 
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
 import { feedQueryKeys } from '@/services/feed/constants';
-import { deleteFeedComment } from '@/services/feed/feed.service';
+import { deleteFeedComment, FeedWriteError } from '@/services/feed/feed.service';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
 
-jest.mock('@/services/feed/feed.service', () => ({ deleteFeedComment: jest.fn() }));
+jest.mock('@/services/feed/feed.service', () => ({
+  ...jest.requireActual('@/services/feed/feed.service'),
+  deleteFeedComment: jest.fn(),
+}));
+
+const onFeedCommentDeleted = jest.fn();
+const onFeedCommentDeleteFailed = jest.fn();
+jest.mock('@/analytics/team-news.analytics', () => ({
+  useTeamNewsAnalytics: () => ({ onFeedCommentDeleted, onFeedCommentDeleteFailed }),
+}));
+
+const CONTEXT = { kind: 'news', source: 'home' } as const;
 
 const deleteFeedCommentMock = deleteFeedComment as jest.MockedFunction<typeof deleteFeedComment>;
 
@@ -163,5 +174,58 @@ describe('useDeleteFeedComment', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     // Nothing removed from the cache on failure — no optimistic pre-removal.
     expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.items).toHaveLength(1);
+  });
+});
+
+describe('useDeleteFeedComment — analytics', () => {
+  let client: QueryClient;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  });
+
+  function wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  }
+
+  it('reports the size of the removed subtree, not just that a delete happened', async () => {
+    const itemUid = 'n-1';
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+      items: [comment('c-1', itemUid, null, [comment('c-2', itemUid, 'c-1'), comment('c-3', itemUid, 'c-1')])],
+    });
+    deleteFeedCommentMock.mockResolvedValue({ uid: 'c-1', deleted: true });
+
+    const { result } = renderHook(() => useDeleteFeedComment(itemUid, CONTEXT), { wrapper });
+    act(() => result.current.mutate({ commentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Deleting a leaf and deleting a whole conversation are different acts.
+    expect(onFeedCommentDeleted).toHaveBeenCalledWith(itemUid, 'news', 'home', 3);
+  });
+
+  it('reports removedCount 0 for a comment that was already gone', async () => {
+    // The service maps 404 to success, so a double-delete from another tab
+    // lands here. Reporting 0 keeps it from inflating the delete count.
+    deleteFeedCommentMock.mockResolvedValue({ uid: 'c-9', deleted: true });
+
+    const { result } = renderHook(() => useDeleteFeedComment('n-1', CONTEXT), { wrapper });
+    act(() => result.current.mutate({ commentUid: 'c-9' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(onFeedCommentDeleted).toHaveBeenCalledWith('n-1', 'news', 'home', 0);
+  });
+
+  it('reports a delete failure with a classified reason', async () => {
+    deleteFeedCommentMock.mockRejectedValue(new FeedWriteError('Failed to delete feed comment', undefined));
+
+    const { result } = renderHook(() => useDeleteFeedComment('n-1', CONTEXT), { wrapper });
+    act(() => result.current.mutate({ commentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    // No status means customFetch gave up on auth, not that nothing is known.
+    expect(onFeedCommentDeleteFailed).toHaveBeenCalledWith('n-1', 'news', 'home', { reason: 'session-expired' });
   });
 });

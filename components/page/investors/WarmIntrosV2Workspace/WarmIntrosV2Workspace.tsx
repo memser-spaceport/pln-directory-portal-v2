@@ -12,17 +12,22 @@ import { useGetInvestorLists } from '@/services/investors/hooks/useGetInvestorLi
 import { useWarmIntrosV2Facets } from '@/services/investors/hooks/useWarmIntrosV2Facets';
 import { useWarmIntrosV2Paths } from '@/services/investors/hooks/useWarmIntrosV2Paths';
 import { listWarmIntrosV2Paths } from '@/services/investors/warm-intros-v2.service';
+import { useInvestorsAccess } from '@/services/rbac/hooks/useInvestorsAccess';
 import {
+  WARM_INTROS_V2_ALL_TARGET_SET,
   WARM_INTROS_V2_CSV_EXPORT_LIMIT,
+  WARM_INTROS_V2_DEFAULT_TARGET_SET,
   WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET,
+  WARM_INTROS_V2_MIN_SCORE,
   WARM_INTROS_V2_TARGET_SET_LABEL,
   WARM_INTROS_V2_TARGET_SETS,
   type WarmIntrosV2InvestorSummary,
   type WarmIntrosV2PathListItem,
-  type WarmIntrosV2TargetSet,
+  type WarmIntrosV2SelectorValue,
 } from '@/services/investors/warm-intros-v2.types';
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
+import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
 import { WarmIntrosV2GlossaryDrawer } from './WarmIntrosV2GlossaryDrawer';
 import { WarmIntrosV2InvestorDrawer } from './WarmIntrosV2InvestorDrawer';
 import { WarmIntrosV2Table } from './WarmIntrosV2Table';
@@ -39,16 +44,20 @@ const SEARCH_DEBOUNCE_MS = 300;
  * Warm Intros v2 workspace: filter bar + polished table + glossary + CSV + investor drawer + MasterProfile modal.
  */
 export function WarmIntrosV2Workspace({ onCountChange }: Props) {
+  const access = useInvestorsAccess();
   const analytics = useInvestorsAnalytics();
   const [filters, setFilters] = useQueryStates(investorsFilterParsers, {
     history: 'replace',
     shallow: true,
   });
 
-  const targetSet = (filters.wi2_target_set ?? 'neuro-fund-i') as WarmIntrosV2TargetSet;
+  const selectorValue = (filters.wi2_target_set ?? WARM_INTROS_V2_DEFAULT_TARGET_SET) as WarmIntrosV2SelectorValue;
+  /** Omit targetSet on API when "All" is selected. */
+  const apiTargetSet = selectorValue === WARM_INTROS_V2_ALL_TARGET_SET ? undefined : selectorValue;
   const [searchInput, setSearchInput] = useState(filters.wi2_q);
   const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [feedbackQueueOpen, setFeedbackQueueOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedProfileUid, setSelectedProfileUid] = useState<string | null>(null);
   const [drawerRow, setDrawerRow] = useState<WarmIntrosV2PathListItem | null>(null);
@@ -64,19 +73,20 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
   const listParams = useMemo(
     () => ({
-      targetSet,
+      targetSet: apiTargetSet,
       search: debouncedSearch.trim() || undefined,
       connectorProfileUid: filters.wi2_connector || undefined,
       sector: filters.wi2_sector || undefined,
+      minScore: WARM_INTROS_V2_MIN_SCORE,
       rank: 1,
       limit: PAGE_LIMIT,
     }),
-    [targetSet, debouncedSearch, filters.wi2_connector, filters.wi2_sector],
+    [apiTargetSet, debouncedSearch, filters.wi2_connector, filters.wi2_sector],
   );
 
   const { data, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useWarmIntrosV2Paths(listParams);
-  const { data: facets } = useWarmIntrosV2Facets(targetSet);
+  const { data: facets } = useWarmIntrosV2Facets(apiTargetSet);
   const { data: lists } = useGetInvestorLists(true);
 
   const paths = useMemo(() => data?.pages.flatMap((p) => p.paths) ?? [], [data]);
@@ -84,7 +94,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
   const hasRows = paths.length > 0;
 
   const targetSetOptions = useMemo<Option[]>(() => {
-    return WARM_INTROS_V2_TARGET_SETS.map((value) => {
+    const cohortOptions = WARM_INTROS_V2_TARGET_SETS.map((value) => {
       const list = lists?.find((l) => l.slug === WARM_INTROS_V2_LIST_SLUG_BY_TARGET_SET[value]);
       const name = list?.name ?? WARM_INTROS_V2_TARGET_SET_LABEL[value];
       const count = list?.member_count;
@@ -92,6 +102,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
         typeof count === 'number' ? `${name} · ${count.toLocaleString()} ${count === 1 ? 'member' : 'members'}` : name;
       return { value, label };
     });
+    return [{ value: WARM_INTROS_V2_ALL_TARGET_SET, label: WARM_INTROS_V2_TARGET_SET_LABEL.all }, ...cohortOptions];
   }, [lists]);
 
   const scrollRootRef = useRef<HTMLDivElement>(null);
@@ -121,7 +132,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     if (data) onCountChange?.(total);
   }, [data, total, onCountChange]);
 
-  const targetSetValue = targetSetOptions.find((o) => o.value === targetSet) ?? targetSetOptions[0];
+  const targetSetValue = targetSetOptions.find((o) => o.value === selectorValue) ?? targetSetOptions[0];
 
   const connectorOptions = useMemo<Option[]>(
     () =>
@@ -147,7 +158,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
   const onPickTargetSet = useCallback(
     (opt: Option | null) => {
-      const next = (opt?.value as WarmIntrosV2TargetSet | undefined) ?? 'neuro-fund-i';
+      const next = (opt?.value as WarmIntrosV2SelectorValue | undefined) ?? WARM_INTROS_V2_DEFAULT_TARGET_SET;
       void setFilters({
         wi2_target_set: next,
         wi2_connector: null,
@@ -168,12 +179,12 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
       const rows = res.paths;
       if (rows.length === 0) return;
       const stamp = new Date().toISOString().slice(0, 10);
-      exportWarmIntrosV2Csv(rows, `warm-intros-v2-${targetSet}-${stamp}.csv`);
-      analytics.trackExport({ count: rows.length, teamName: WARM_INTROS_V2_TARGET_SET_LABEL[targetSet] });
+      exportWarmIntrosV2Csv(rows, `warm-intros-v2-${selectorValue}-${stamp}.csv`);
+      analytics.trackExport({ count: rows.length, teamName: WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue] });
     } finally {
       setExporting(false);
     }
-  }, [listParams, targetSet, analytics]);
+  }, [listParams, selectorValue, analytics]);
 
   const onOpenMasterProfile = useCallback((investor: WarmIntrosV2InvestorSummary) => {
     setSelectedProfileUid(investor.profileUid);
@@ -191,6 +202,44 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     setDrawerRow(row);
   }, []);
 
+  const onOpenInvestorFromFeedback = useCallback(
+    (targetProfileUid: string) => {
+      const existing = paths.find((p) => p.targetProfileUid === targetProfileUid);
+      if (existing) {
+        setDrawerRow(existing);
+        return;
+      }
+      setDrawerRow({
+        uid: `feedback-open-${targetProfileUid}`,
+        targetProfileUid,
+        targetSet: apiTargetSet ?? WARM_INTROS_V2_DEFAULT_TARGET_SET,
+        rank: 1,
+        score: 0,
+        hopCount: 1,
+        hopChain: null,
+        bestConnectorProfileUid: null,
+        alternateConnectorProfileUids: [],
+        proximityCode: '',
+        caliber: null,
+        scorePercent: 0,
+        investor: {
+          profileUid: targetProfileUid,
+          personKey: '',
+          name: targetProfileUid,
+          email: null,
+          currentOrg: null,
+          currentTitle: null,
+          sectors: [],
+          affinityPersonId: null,
+          memberUid: null,
+        },
+        bestConnector: null,
+        pathSummary: { explanation: null, alternateCount: 0 },
+      });
+    },
+    [apiTargetSet, paths],
+  );
+
   const clearSearch = useCallback(() => {
     setSearchInput('');
     void setFilters({ wi2_q: null });
@@ -203,7 +252,8 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
           <div className={s.builderHMain}>
             <h2 className={s.title}>Warm Intros v2</h2>
             <p className={s.desc}>
-              Who at PL can introduce you — MasterProfile + LLM paths for Neuro and Gold. Pick a list, then filter.
+              Who at PL can introduce you — MasterProfile + LLM paths for Neuro and Gold. Pick a list (or All), then
+              filter.
             </p>
           </div>
           <button
@@ -281,7 +331,12 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             />
           </div>
 
-          <div className={s.filterBarItem}>
+          <div className={clsx(s.filterBarItem, s.filterBarActions)}>
+            {access.canEdit ? (
+              <button type="button" className={s.exportBtn} onClick={() => setFeedbackQueueOpen(true)}>
+                Path feedback
+              </button>
+            ) : null}
             <button
               type="button"
               className={s.exportBtn}
@@ -309,7 +364,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
         <div className={s.listWrap}>
           <div className={s.meta}>
             Showing {paths.length}
-            {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[targetSet]}
+            {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue]}
           </div>
           <WarmIntrosV2Table
             rows={paths}
@@ -317,6 +372,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             onOpenProfileUid={onOpenProfileUid}
             onViewAllPaths={onViewAllPaths}
             onRowClick={onRowClick}
+            showListName={selectorValue === WARM_INTROS_V2_ALL_TARGET_SET}
             scrollRootRef={scrollRootRef}
             sentinelRef={sentinelRef}
             footer={isFetchingNextPage ? <div className={s.sentinelLoader}>Loading more…</div> : null}
@@ -326,12 +382,20 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
       <WarmIntrosV2GlossaryDrawer open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
 
+      <PathFeedbackQueuePanel
+        open={feedbackQueueOpen}
+        onClose={() => setFeedbackQueueOpen(false)}
+        canEdit={access.canEdit}
+        onOpenInvestor={onOpenInvestorFromFeedback}
+      />
+
       <WarmIntrosV2InvestorDrawer
         key={drawerRow?.uid ?? 'closed'}
         row={drawerRow}
         open={!!drawerRow}
         onClose={() => setDrawerRow(null)}
         onOpenMasterProfile={(uid) => setSelectedProfileUid(uid)}
+        canEdit={access.canEdit}
       />
 
       <MasterProfileModal

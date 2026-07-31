@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
 import { useCurrentUserStore } from '@/services/auth/store';
+import type { IFeedForumPost } from '@/types/feed.types';
 import type {
   ITeamNewsDiscussion,
   ITeamNewsGroup,
@@ -21,12 +22,26 @@ function renderTeamNews(ui: ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+/** Default sort is Most popular — switch to Following when a test needs followed-first order. */
+function selectFollowingSort() {
+  fireEvent.click(screen.getByRole('button', { name: 'Most popular' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Following' }));
+}
+
 const mockOnTabClicked = jest.fn();
 const mockOnCategoryClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
 const mockOnCardClicked = jest.fn();
 const mockOnTeamNewsSearch = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
+const mockOnUpvoteFailed = jest.fn();
+const mockOnForumLikeToggled = jest.fn();
+const mockOnForumLikeFailed = jest.fn();
+const mockOnPopularCardViewed = jest.fn();
+const mockOnScrollSucceeded = jest.fn();
+const mockOnFallbackOpened = jest.fn();
+const mockOnTeamsToFollowViewed = jest.fn();
+const mockOnTeamsToFollowHidden = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
 const mockOnShared = jest.fn();
@@ -42,7 +57,27 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
     onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
     onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
+    onTeamNewsSortChanged: jest.fn(),
+    onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
+    onFeedForumPostLikeToggled: (...a: unknown[]) => mockOnForumLikeToggled(...a),
+    onFeedForumPostLikeFailed: (...a: unknown[]) => mockOnForumLikeFailed(...a),
+    onPopularCardViewed: (...a: unknown[]) => mockOnPopularCardViewed(...a),
+    onPopularStoryScrollSucceeded: (...a: unknown[]) => mockOnScrollSucceeded(...a),
+    onPopularStoryFallbackOpened: (...a: unknown[]) => mockOnFallbackOpened(...a),
+    onTeamsToFollowViewed: (...a: unknown[]) => mockOnTeamsToFollowViewed(...a),
+    onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
   }),
+}));
+
+// Forum posts reach the feed through this hook. Default: none, which is what the
+// globally-mocked useQuery already produced — so every other test in this file
+// behaves exactly as before.
+type FeedSocialResult = { forumPosts: IFeedForumPost[] | undefined; hasAccess: boolean; deepLinkSettled: boolean };
+const mockUseFeedSocial = jest.fn(
+  (): FeedSocialResult => ({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true }),
+);
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
+  useFeedSocial: (...a: unknown[]) => mockUseFeedSocial(...(a as [])),
 }));
 
 // The global jest.setup.js mock returns a NEW object with fresh jest.fn()s on
@@ -132,6 +167,9 @@ describe('TeamNews', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
+    // clearAllMocks clears calls, NOT return values — without this, a describe
+    // that supplies forum posts leaks them into every later test's feed.
+    mockUseFeedSocial.mockReturnValue({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true });
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
     window.history.replaceState(null, '', '/home');
@@ -179,6 +217,26 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /^Launch$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Milestone/ })).not.toBeDisabled();
     expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
+  });
+
+  it('renders an Other category chip, disabled when no OTHER items exist', () => {
+    renderTeamNews(<TeamNews groups={groups} />);
+    // Neither fixture group has an OTHER item, so the chip should render but disable like any other zero-count category.
+    expect(screen.getByRole('button', { name: /^Other$/ })).toBeDisabled();
+  });
+
+  it('enables the Other category chip and filters by it when OTHER items exist', () => {
+    const otherItem = makeItem('ai-other', 'OTHER', ['AI & Robotics']);
+    const groupsWithOther: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, otherItem] },
+      { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+    ];
+    renderTeamNews(<TeamNews groups={groupsWithOther} />);
+    expect(screen.getByRole('button', { name: /^Other/ })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /^Other/ }));
+    expect(mockOnCategoryClicked).toHaveBeenCalledWith('OTHER', 1, 'All');
+    expect(screen.getByText(/Headline ai-other/)).toBeInTheDocument();
+    expect(screen.queryByText(/Headline ai-1/)).not.toBeInTheDocument();
   });
 
   it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
@@ -256,7 +314,7 @@ describe('TeamNews', () => {
     expect(source).toBe('home');
   });
 
-  describe('Active Discussions', () => {
+  describe('Discussions category', () => {
     const aiDiscussed = makeItem('ai-discuss', 'FUNDING', ['AI & Robotics'], {
       count: 1,
       latestTopicUrl: '/forum/t/123',
@@ -267,43 +325,99 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
     ];
 
-    it('does not render Active Discussions when no items have a forum thread', () => {
+    it('does not render Discussions when there are no forum posts and no threaded items', () => {
       renderTeamNews(<TeamNews groups={groups} />);
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('shows Active Discussions after All categories when at least one item has a thread', () => {
+    it('shows Discussions after All categories when at least one item has a thread', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
       const allCat = screen.getByRole('button', { name: /All categories/ });
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(chips.indexOf(activeDisc)).toBeGreaterThan(chips.indexOf(allCat));
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(chips.indexOf(discussions)).toBeGreaterThan(chips.indexOf(allCat));
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
     });
 
     it('filters to discussion items and reports analytics', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      fireEvent.click(screen.getByRole('button', { name: /Active Discussions/ }));
-      expect(mockOnCategoryClicked).toHaveBeenCalledWith('active-discussions', 1, 'All');
+      fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('discussions', 1, 'All');
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
     });
 
-    it('hides Active Discussions on a focus tab with no threads', () => {
+    it('hides Discussions on a focus tab with nothing to show', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      expect(screen.getByRole('button', { name: /Active Discussions/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Discussions/ })).toBeInTheDocument();
       fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('scopes Active Discussions count to the selected focus tab', () => {
+    it('scopes the Discussions count to the selected focus tab', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
-      fireEvent.click(activeDisc);
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
+      fireEvent.click(discussions);
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+    });
+
+    describe('with forum posts in the feed', () => {
+      const forumPost: IFeedForumPost = {
+        uid: 'fp_96',
+        tid: 96,
+        mainPid: 263,
+        title: 'Willow Is Live!',
+        body: 'Hi Protocol Labs',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: '2026-07-01T00:00:00.000Z',
+        forumTopicUrl: '/forum/topics/5/96',
+        commentCount: 2,
+        likeCount: 5,
+        viewerHasLiked: false,
+      };
+
+      beforeEach(() => {
+        mockUseFeedSocial.mockReturnValue({ forumPosts: [forumPost], hasAccess: true, deepLinkSettled: true });
+      });
+
+      it('offers the Discussions pill for forum posts alone, with no threaded news items', () => {
+        // `groups` has no item with a forum thread — before this, the cards were
+        // in the feed with no pill that could reach them.
+        renderTeamNews(<TeamNews groups={groups} />);
+
+        const discussions = screen.getByRole('button', { name: /Discussions/ });
+        expect(within(discussions).getByText('1')).toBeInTheDocument();
+      });
+
+      it('counts forum posts alongside threaded news items', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        // 1 threaded news item + 1 forum post.
+        expect(within(screen.getByRole('button', { name: /Discussions/ })).getByText('2')).toBeInTheDocument();
+      });
+
+      it('keeps the forum post visible when Discussions is selected, and drops plain news', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+
+        expect(screen.getByText('Willow Is Live!')).toBeInTheDocument();
+        expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
+        expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+      });
+
+      it('still hides forum posts under an event-type pill (a post has no event type)', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Funding/ }));
+
+        expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -386,6 +500,7 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
       const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
       // Zeta is followed and should render first despite being last in insertion order.
       expect(teamLinks[0]).toHaveTextContent('Zeta');
@@ -717,6 +832,8 @@ describe('TeamNews', () => {
 
       expect(screen.getAllByRole('button', { name: 'Like (0)' })).toHaveLength(2);
       expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+      // A rolled-back like used to be indistinguishable from one that stuck.
+      expect(mockOnUpvoteFailed).toHaveBeenCalledWith(expect.anything(), expect.any(Number), true, 'home');
     });
 
     it('does not change followed-first cluster ordering when upvoting an unfollowed story', () => {
@@ -730,6 +847,7 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: 3, items: [itemA, itemB, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
 
       fireEvent.click(screen.getAllByRole('button', { name: 'Like (0)' })[0]);
 
@@ -747,7 +865,7 @@ describe('TeamNews', () => {
     };
     const alpha = { ...makeItem('fa-1', 'LAUNCH', ['AI & Robotics']), teamUid: 'team-alpha', teamName: 'Alpha' };
     const beta = { ...makeItem('fb-1', 'MILESTONE', ['AI & Robotics']), teamUid: 'team-beta', teamName: 'Beta' };
-    // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
+    // Insertion order alpha, beta, zeta — Following sort must pin Zeta on mount.
     const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
 
     const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
@@ -762,6 +880,7 @@ describe('TeamNews', () => {
 
     it('clicking Follow flips the button immediately but does not move the cluster', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
 
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
@@ -772,6 +891,7 @@ describe('TeamNews', () => {
 
     it('clicking Unfollow on a pinned cluster keeps its position (symmetric freeze)', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
 
       fireEvent.click(screen.getByRole('button', { name: 'Following Zeta' }));
 
@@ -781,6 +901,7 @@ describe('TeamNews', () => {
 
     it('reverts the button (but not the order) when the server rejects with a null response', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(screen.getByRole('button', { name: 'Following Beta' })).toBeInTheDocument();
 
@@ -795,6 +916,7 @@ describe('TeamNews', () => {
 
     it('a fresh mount applies the new follow order (simulates page reload)', () => {
       const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
       // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh mount
@@ -809,14 +931,15 @@ describe('TeamNews', () => {
         },
       ];
       renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Beta', 'Alpha', 'Zeta']);
     });
   });
 
   describe('upvote — session-stable ordering (frozen until reload)', () => {
-    // No followed items → default sort resolves to 'popular', which ranks clusters
-    // by upvote count. Equal counts keep insertion order (stable sort), so upvoting
-    // Yankee (1 → 2) would rank it above Xray without the mount-time count snapshot.
+    // Default sort is 'popular', which ranks clusters by upvote count. Equal
+    // counts keep insertion order (stable sort), so upvoting Yankee (1 → 2)
+    // would rank it above Xray without the mount-time count snapshot.
     const xray = {
       ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
       teamUid: 'team-xray',
@@ -976,7 +1099,7 @@ describe('TeamNews', () => {
 
       fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login');
+      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login', { scroll: false });
     });
 
     it('a valid deep link opens the modal on first render and reports the deep-link open once', () => {
@@ -1203,6 +1326,10 @@ describe('TeamNews', () => {
       fireEvent.click(getRailButton('Headline ai-1'));
 
       expect(openSpy).toHaveBeenCalledWith('https://example.com/expired', '_blank', 'noopener,noreferrer');
+      // The live, previously unmeasured failure path: ranked server-side, aged
+      // out of the 14-day window before it was clicked.
+      expect(mockOnFallbackOpened).toHaveBeenCalledWith(expect.objectContaining({ uid: 'expired-uid' }), 0);
+      expect(mockOnScrollSucceeded).not.toHaveBeenCalled();
       openSpy.mockRestore();
     });
 
@@ -1213,6 +1340,8 @@ describe('TeamNews', () => {
       fireEvent.click(getRailButton('Headline ai-1'));
       const row = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(row).toHaveClass('storyHighlighted');
+      // The denominator for the fallback above.
+      expect(mockOnScrollSucceeded).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 0);
 
       act(() => jest.advanceTimersByTime(2000));
       expect(row).not.toHaveClass('storyHighlighted');

@@ -69,8 +69,8 @@ export const investorsFilterParsers = {
   wi_source: parseAsString.withDefault(''),
 
   // Warm Intros v2 workspace (only used when mode=warm-intros-v2)
-  /** Cohort: neuro-fund-i | gold-co-investors. */
-  wi2_target_set: parseAsStringLiteral(['neuro-fund-i', 'gold-co-investors'] as const).withDefault('neuro-fund-i'),
+  /** Cohort: all | neuro-fund-i | gold-co-investors (`all` = omit targetSet on API). */
+  wi2_target_set: parseAsStringLiteral(['all', 'neuro-fund-i', 'gold-co-investors'] as const).withDefault('all'),
   /** Debounced name/email search → API `search`. */
   wi2_q: parseAsString.withDefault(''),
   /** PL connector MasterProfile uid → API `connectorProfileUid`. */

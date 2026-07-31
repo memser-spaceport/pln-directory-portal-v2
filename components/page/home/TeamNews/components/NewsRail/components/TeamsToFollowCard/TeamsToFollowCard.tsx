@@ -74,7 +74,7 @@ export function TeamsToFollowCard({
   const handleFollowClick = (team: ISuggestedTeam, position: number) => (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     if (followedTeamUids.has(team.uid)) return;

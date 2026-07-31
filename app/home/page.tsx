@@ -19,12 +19,20 @@ import { Welcome } from '@/components/page/home/Welcome';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
-import type { ITeamNewsGroup, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 
 export default async function Home() {
-  const { isLoggedIn, isError, userInfo, focusAreas, teamNewsGroups, popularItems, initialDigestSettings } =
-    await getPageData();
+  const {
+    isLoggedIn,
+    isError,
+    userInfo,
+    focusAreas,
+    teamNewsGroups,
+    teamNewsAllTabExtraItems,
+    popularItems,
+    initialDigestSettings,
+  } = await getPageData();
 
   if (isError) {
     return <Error />;
@@ -43,6 +51,7 @@ export default async function Home() {
           <div className={styles.home__cn__teamnews}>
             <TeamNews
               groups={teamNewsGroups}
+              allTabExtraItems={teamNewsAllTabExtraItems}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
             />
@@ -68,6 +77,7 @@ const getPageData = async () => {
   let teamFocusAreas: IFocusArea[] = [];
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
+  let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
 
@@ -103,6 +113,7 @@ const getPageData = async () => {
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
+    teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
     if (
@@ -122,6 +133,7 @@ const getPageData = async () => {
         discoverData,
         featuredData,
         teamNewsGroups,
+        teamNewsAllTabExtraItems,
         popularItems,
         initialDigestSettings,
       };
@@ -145,6 +157,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      teamNewsAllTabExtraItems,
       popularItems,
       initialDigestSettings,
     };
@@ -162,6 +175,7 @@ const getPageData = async () => {
       featuredData,
       discoverData,
       teamNewsGroups,
+      teamNewsAllTabExtraItems,
       popularItems,
       initialDigestSettings,
     };

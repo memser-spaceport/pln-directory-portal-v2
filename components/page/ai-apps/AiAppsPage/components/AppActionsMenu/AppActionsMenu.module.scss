@@ -46,6 +46,7 @@
 .item {
   display: flex;
   align-items: center;
+  gap: 8px;
   width: 100%;
   padding: 9px 10px;
   border: none;
@@ -59,6 +60,11 @@
   color: var(--foreground-neutral-primary, #0a0c11);
   cursor: pointer;
   user-select: none;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
 
   &[data-highlighted] {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
@@ -78,6 +84,10 @@
 
 .destructive {
   color: var(--foreground-error-primary, #d21a0e);
+
+  svg {
+    color: currentColor;
+  }
 
   &[data-highlighted] {
     background: var(--background-error-subtle, rgba(210, 26, 14, 0.06));

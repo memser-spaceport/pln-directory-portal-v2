@@ -2,11 +2,11 @@
 
 import type { ReactNode, Ref } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
-import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { ListMembershipTags } from './ListMembershipTags';
 import { PathProfileChip } from './PathProfileChip';
+import { parseWarmPathHopChain } from './parseWarmPathHopChain';
 import { ScorePercentPill } from './ScorePercentPill';
 import s from './WarmIntrosV2Table.module.scss';
 
@@ -16,6 +16,8 @@ interface Props {
   onOpenProfileUid: (profileUid: string) => void;
   onViewAllPaths: (row: WarmIntrosV2PathListItem) => void;
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
+  /** Show list badges beside the name — only when the scope spans more than one list. */
+  showListName?: boolean;
   /** Scroll container for infinite-scroll IntersectionObserver root. */
   scrollRootRef?: Ref<HTMLDivElement>;
   /** Placed at the bottom of the scrollable table body. */
@@ -42,6 +44,7 @@ export function WarmIntrosV2Table({
   onOpenProfileUid,
   onViewAllPaths,
   onRowClick,
+  showListName = false,
   scrollRootRef,
   sentinelRef,
   footer,
@@ -54,17 +57,11 @@ export function WarmIntrosV2Table({
             <th className={`${s.th} ${s.colInvestor}`} scope="col">
               Investor
             </th>
-            <th className={`${s.th} ${s.colTeam}`} scope="col">
-              Team
-            </th>
-            <th className={`${s.th} ${s.colSector}`} scope="col">
-              Industry / Sector
+            <th className={`${s.th} ${s.colPath}`} scope="col">
+              Path
             </th>
             <th className={`${s.th} ${s.colProximity}`} scope="col">
               Proximity
-            </th>
-            <th className={`${s.th} ${s.colPath}`} scope="col">
-              Path
             </th>
           </tr>
         </thead>
@@ -74,7 +71,7 @@ export function WarmIntrosV2Table({
             const name = investor?.name?.trim() || row.targetProfileUid;
             const org = investor?.currentOrg?.trim();
             const title = investor?.currentTitle?.trim();
-            const sectors = (investor?.sectors ?? []) as SectorTag[];
+            const orgLine = [org, title].filter(Boolean).join(' · ');
             const count = pathCount(row);
             const avatarSrc = memberAvatarSrc(investor);
             const connector = row.bestConnector;
@@ -98,67 +95,101 @@ export function WarmIntrosV2Table({
               >
                 <td className={s.td}>
                   <div className={s.investorText}>
-                    <button
-                      type="button"
-                      className={s.nameBtn}
-                      aria-label={`Open profile for ${name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (investor) onOpenMasterProfile(investor);
-                      }}
-                    >
-                      {name}
-                    </button>
+                    <div className={s.nameLine}>
+                      <button
+                        type="button"
+                        className={s.nameBtn}
+                        aria-label={`Open profile for ${name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (investor) onOpenMasterProfile(investor);
+                        }}
+                      >
+                        {name}
+                      </button>
+                      {showListName ? (
+                        <ListMembershipTags listSlugs={investor?.listSlugs} fallbackTargetSet={row.targetSet} inline />
+                      ) : null}
+                    </div>
+                    {orgLine ? <div className={s.subtle}>{orgLine}</div> : null}
                     {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
-                  </div>
-                </td>
-
-                <td className={s.td}>
-                  <div className={s.teamCell}>{org || <span className={s.muted}>—</span>}</div>
-                  {title ? <div className={s.subtle}>{title}</div> : null}
-                </td>
-
-                <td className={s.td}>
-                  <SectorTagsList tags={sectors} max={3} />
-                </td>
-
-                <td className={s.td}>
-                  <div className={s.proximityCell}>
-                    {row.proximityCode ? (
-                      <ProximityCodeBadge code={row.proximityCode} />
-                    ) : (
-                      <span className={s.muted}>—</span>
-                    )}
-                    <ScorePercentPill scorePercent={row.scorePercent} scoreBand={row.scoreBand} />
                   </div>
                 </td>
 
                 <td className={s.td}>
                   <div className={s.pathCell}>
                     <div className={s.pathChain}>
-                      {connector ? (
-                        <PathProfileChip
-                          name={connector.name}
-                          profileUid={connector.profileUid}
-                          imageUrl={
-                            connector.memberUid
-                              ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                              : connector.imageUrl
-                          }
-                          onOpen={onOpenProfileUid}
-                        />
-                      ) : (
-                        <span className={s.muted}>—</span>
-                      )}
-                      {connector && investor ? <span className={s.pathArrow}>→</span> : null}
-                      {investor ? (
-                        <PathProfileChip
-                          name={investor.name}
-                          profileUid={investor.profileUid}
-                          imageUrl={avatarSrc}
-                          onOpen={onOpenProfileUid}
-                        />
-                      ) : null}
+                      {(() => {
+                        const chain = parseWarmPathHopChain(row.hopChain);
+                        const hops = chain?.hops?.length ? chain.hops : null;
+                        if (hops) {
+                          return hops.map((hop, i) => {
+                            const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+                            const hopName =
+                              hop.name && hop.name !== hop.profileUid
+                                ? hop.name
+                                : hop.profileUid === connector?.profileUid
+                                  ? connector.name
+                                  : hop.profileUid === investor?.profileUid
+                                    ? name
+                                    : hop.name;
+                            const hopImage = isOrg
+                              ? null
+                              : hop.role === 'investor'
+                                ? avatarSrc
+                                : hop.memberUid
+                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
+                                  : (hop.imageUrl ??
+                                    (connector?.profileUid === hop.profileUid
+                                      ? connector.memberUid
+                                        ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                        : connector.imageUrl
+                                      : null));
+                            return (
+                              <span
+                                key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`}
+                                className={s.pathHop}
+                              >
+                                {i > 0 ? <span className={s.pathArrow}>→</span> : null}
+                                <PathProfileChip
+                                  name={hopName}
+                                  profileUid={hop.profileUid}
+                                  imageUrl={hopImage}
+                                  onOpen={onOpenProfileUid}
+                                  nonInteractive={isOrg}
+                                />
+                              </span>
+                            );
+                          });
+                        }
+                        return (
+                          <>
+                            {connector ? (
+                              <PathProfileChip
+                                name={connector.name}
+                                profileUid={connector.profileUid}
+                                imageUrl={
+                                  connector.memberUid
+                                    ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                    : connector.imageUrl
+                                }
+                                onOpen={onOpenProfileUid}
+                              />
+                            ) : (
+                              <span className={s.muted}>—</span>
+                            )}
+                            {connector && investor ? <span className={s.pathArrow}>→</span> : null}
+                            {investor ? (
+                              <PathProfileChip
+                                name={investor.name}
+                                profileUid={investor.profileUid}
+                                imageUrl={avatarSrc}
+                                onOpen={onOpenProfileUid}
+                              />
+                            ) : null}
+                          </>
+                        );
+                      })()}
                     </div>
                     <button
                       type="button"
@@ -171,6 +202,17 @@ export function WarmIntrosV2Table({
                     >
                       View all ({count})
                     </button>
+                  </div>
+                </td>
+
+                <td className={s.td}>
+                  <div className={s.proximityCell}>
+                    {row.proximityCode ? (
+                      <ProximityCodeBadge code={row.proximityCode} />
+                    ) : (
+                      <span className={s.muted}>—</span>
+                    )}
+                    <ScorePercentPill scorePercent={row.scorePercent} scoreBand={row.scoreBand} />
                   </div>
                 </td>
               </tr>

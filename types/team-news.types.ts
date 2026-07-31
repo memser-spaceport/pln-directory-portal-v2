@@ -113,6 +113,8 @@ export interface ITeamNewsGroupedResponse {
   windowDays: number;
   generatedAt: string;
   groups: ITeamNewsGroup[];
+  /** Allowlisted teams with no focus-area group; merged into the home "All" tab only. */
+  allTabExtraItems?: ITeamNewsItem[];
 }
 
 export interface TeamCluster {

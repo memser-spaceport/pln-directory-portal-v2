@@ -20,6 +20,7 @@ export type WarmPathV2Alternate = {
   caliber?: 'A' | 'B' | null;
   scorePercent?: number;
   scoreBand?: 'green' | 'yellow' | 'red' | 'none';
+  relationKind?: string;
 };
 
 export type WarmPathV2HopChain = {
@@ -48,9 +49,7 @@ export function reasonDescription(reason: unknown): string | null {
 function reasonSourceType(reason: unknown): string | null {
   const rec = asRecord(reason);
   if (!rec) return null;
-  return typeof rec.sourceType === 'string' && rec.sourceType.trim()
-    ? rec.sourceType.trim()
-    : null;
+  return typeof rec.sourceType === 'string' && rec.sourceType.trim() ? rec.sourceType.trim() : null;
 }
 
 /** Prefer webVerify reasons; otherwise first usable description. */
@@ -82,13 +81,19 @@ export function allReasonDescriptions(reasons: unknown[]): string[] {
 function parseHop(raw: unknown): WarmPathV2HopNode | null {
   const rec = asRecord(raw);
   if (!rec) return null;
+  const role = typeof rec.role === 'string' ? rec.role : undefined;
   const profileUid = typeof rec.profileUid === 'string' ? rec.profileUid : null;
-  if (!profileUid) return null;
-  const name = typeof rec.name === 'string' && rec.name.trim() ? rec.name.trim() : profileUid;
+  // Protocol Labs org stub uses empty profileUid
+  if (profileUid == null) return null;
+  if (!profileUid && role !== 'pl_org') return null;
+  const rawName = typeof rec.name === 'string' ? rec.name.trim() : '';
+  // Ignore stored name when it was incorrectly stubbed as the profileUid.
+  const usableName = rawName && rawName !== profileUid ? rawName : '';
+  const name = usableName || (role === 'pl_org' ? 'Protocol Labs' : profileUid || 'Unknown');
   return {
     profileUid,
     name,
-    role: typeof rec.role === 'string' ? rec.role : undefined,
+    role,
     score: typeof rec.score === 'number' ? rec.score : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,
@@ -104,17 +109,21 @@ function parseAlternate(raw: unknown): WarmPathV2Alternate | null {
     rec.scoreBand === 'green' || rec.scoreBand === 'yellow' || rec.scoreBand === 'red' || rec.scoreBand === 'none'
       ? rec.scoreBand
       : undefined;
+  const rawName = typeof rec.name === 'string' ? rec.name.trim() : '';
+  const name = rawName && rawName !== profileUid ? rawName : profileUid;
   return {
     profileUid,
-    name: typeof rec.name === 'string' && rec.name.trim() ? rec.name.trim() : profileUid,
+    name,
     score: typeof rec.score === 'number' ? rec.score : undefined,
     reasons: Array.isArray(rec.reasons) ? rec.reasons : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,
-    proximityCode: typeof rec.proximityCode === 'string' ? rec.proximityCode : rec.proximityCode === null ? null : undefined,
+    proximityCode:
+      typeof rec.proximityCode === 'string' ? rec.proximityCode : rec.proximityCode === null ? null : undefined,
     caliber: rec.caliber === 'A' || rec.caliber === 'B' ? rec.caliber : rec.caliber === null ? null : undefined,
     scorePercent: typeof rec.scorePercent === 'number' ? rec.scorePercent : undefined,
     scoreBand,
+    relationKind: typeof rec.relationKind === 'string' ? rec.relationKind : undefined,
   };
 }
 
@@ -158,23 +167,34 @@ export function scoreToPercent(score: number | undefined | null): number | null 
 
 /**
  * Fallback when detail API has not yet enriched alternates with proximity fields.
- * Mirrors portal `computeWarmPathProximity` (PL + hop + A|B; score ≥ 0.60 → A).
+ * Mirrors portal `computeWarmPathProximity` (family + hop + A|B; score ≥ 0.60 → A).
  */
 export function derivePathProximity(
   score: number | undefined | null,
-  hopCount: number = 1
+  hopCount: number = 1,
+  family: string = 'PL',
 ): Pick<WarmPathV2Alternate, 'proximityCode' | 'caliber' | 'scorePercent' | 'scoreBand'> | null {
   if (score == null || !Number.isFinite(score) || score <= 0) return null;
   const normalized = score > 1 ? score / 100 : score;
   const caliber = normalized >= 0.6 ? 'A' : 'B';
   const scorePercent = Math.round(Math.min(Math.max(normalized, 0), 1) * 100);
-  const scoreBand =
-    scorePercent > 60 ? 'green' : scorePercent >= 25 ? 'yellow' : scorePercent > 0 ? 'red' : 'none';
+  const scoreBand = scorePercent > 60 ? 'green' : scorePercent >= 25 ? 'yellow' : scorePercent > 0 ? 'red' : 'none';
   const hops = Number.isFinite(hopCount) && hopCount > 0 ? Math.trunc(hopCount) : 1;
+  const fam = (family || 'PL').trim() || 'PL';
   return {
-    proximityCode: `PL+${hops}${caliber}`,
+    proximityCode: `${fam}+${hops}${caliber}`,
     caliber,
     scorePercent,
     scoreBand,
   };
+}
+
+export function proximityFamilyFromRelationKind(relationKind: string | null | undefined): string {
+  if (relationKind === 'founder_bridge') return 'F';
+  if (relationKind === 'coinvestor_bridge') return 'VC';
+  return 'PL';
+}
+
+export function hopCountFromRelationKind(relationKind: string | null | undefined): number {
+  return relationKind === 'founder_bridge' || relationKind === 'coinvestor_bridge' ? 2 : 1;
 }

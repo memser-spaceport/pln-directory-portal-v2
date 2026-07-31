@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useAiApps } from '@/services/ai-apps/hooks/useAiApps';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
 import {
   EditAiAppModal,
   DeploymentSettingsModal,
@@ -63,7 +63,12 @@ export function AiAppsGrid({ onOpenCreateModal }: Props) {
   };
 
   const openLogs = (app: (typeof apps)[number], source: 'menu' | 'failure-strip') => {
-    analytics.onDeploymentLogsOpened(app.uid, app.name, source);
+    analytics.onDeploymentLogsOpened({
+      appUid: app.uid,
+      appName: app.name,
+      source,
+      variant: deployFailureKind(app) ?? undefined,
+    });
     setAction({ uid: app.uid, type: 'logs' });
   };
 

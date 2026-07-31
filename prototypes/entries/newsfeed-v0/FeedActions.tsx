@@ -13,7 +13,19 @@ import s from './FeedActions.module.scss';
  * Fully functional: clicking toggles the viewer's like and the count updates
  * live (and un-likes, which the real button disables — a prototype convenience).
  */
-export function LikeButton({ count, liked, onToggle }: { count: number; liked: boolean; onToggle: () => void }) {
+export function LikeButton({
+  count,
+  liked,
+  onToggle,
+  showLabel,
+}: {
+  count: number;
+  liked: boolean;
+  onToggle: () => void;
+  /** Spell out "N Likes" — how the forum labels it on a comment (`CommentItem`'s
+   *  LikesButton). The feed card's dense meta row keeps the bare count. */
+  showLabel?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -26,6 +38,7 @@ export function LikeButton({ count, liked, onToggle }: { count: number; liked: b
       }}
     >
       <LikeIcon /> {count}
+      {showLabel ? (count === 1 ? ' Like' : ' Likes') : ''}
     </button>
   );
 }

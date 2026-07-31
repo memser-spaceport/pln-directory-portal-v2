@@ -49,7 +49,11 @@ export function AuthInfo() {
       }
 
       authEvents.emit('auth:init-login');
-      router.push(`${window.location.pathname}${window.location.search}`);
+      // scroll: false — this fires right after login() opens the Privy modal;
+      // without it, Next treats the hash-stripping push as a real navigation
+      // (same canonicalUrl-vs-actual-URL mismatch as the modal's #login gate)
+      // and resets the underlying page's scroll to the top.
+      router.push(`${window.location.pathname}${window.location.search}`, { scroll: false });
     } catch (err) {
       console.log('Login Failed', err);
     }

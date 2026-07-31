@@ -78,7 +78,7 @@ describe('NewsCard upvotes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Like (2)' }));
 
     expect(onUpvoteToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('withholds the upvote button until the auth store hydrates', () => {

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { NewsGroupCard } from '@/components/page/home/TeamNews/components/NewsGroupCard/NewsGroupCard';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
@@ -16,6 +16,22 @@ jest.mock('@/components/page/home/TeamNews/components/SourceList/SourceList', ()
   SourceList: (props: { position: number }) => {
     mockSourceList(props);
     return null;
+  },
+}));
+
+// Stubbed like SourceList above: the thread's own behaviour is covered in
+// feed-comments-thread.test.tsx, and this file is about the card's wiring.
+const mockThread = jest.fn();
+jest.mock('@/components/page/home/TeamNews/components/FeedCommentsThread/FeedCommentsThread', () => ({
+  feedThreadDomId: (uid: string) => `feed-thread-${uid}`,
+  FeedCommentsThread: (props: {
+    itemUid: string;
+    source: string;
+    onViewAll: () => void;
+    onBusyChange: (busy: boolean) => void;
+  }) => {
+    mockThread(props);
+    return <div data-testid={`thread-${props.itemUid}`} />;
   },
 }));
 
@@ -136,7 +152,7 @@ describe('NewsGroupCard', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Follow Acme' }));
     expect(onFollowToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('renders a story with its summary when present, and omits the paragraph when absent', () => {
@@ -184,6 +200,78 @@ describe('NewsGroupCard', () => {
     // The source link lives in the detail modal now — a row click must not navigate.
     expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();
+  });
+
+  it('does NOT open the modal from the comment badge — it discloses the thread in place', () => {
+    const onStoryOpen = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+
+    expect(onStoryOpen).not.toHaveBeenCalled();
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+  });
+
+  it('renders the thread inline, collapsed by default, and toggles it closed again', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={noopStoryOpen} />,
+    );
+
+    // Mount = expanded, so nothing may be mounted before the first click.
+    expect(screen.queryByTestId('thread-a')).not.toBeInTheDocument();
+
+    const badge = screen.getByRole('button', { name: /Comments, show/ });
+    expect(badge).toHaveAttribute('aria-expanded', 'false');
+    expect(badge).toHaveAttribute('aria-controls', 'feed-thread-a');
+
+    fireEvent.click(badge);
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Comments, hide/ })).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, hide/ }));
+    expect(screen.queryByTestId('thread-a')).not.toBeInTheDocument();
+  });
+
+  it('escalates the inline thread to the modal, flagged as such for analytics', () => {
+    const onStoryOpen = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    // "View all" is the only comment affordance that still reaches the modal.
+    mockThread.mock.calls.at(-1)?.[0].onViewAll();
+
+    expect(onStoryOpen).toHaveBeenCalledWith(item, 'view-all-comments');
+  });
+
+  it('opens each story’s thread independently', () => {
+    render(
+      <NewsGroupCard
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z'), makeItem('b', '2026-05-02T00:00:00.000Z')])}
+        onStoryOpen={noopStoryOpen}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Comments, show/ })[0]);
+
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+    expect(screen.queryByTestId('thread-b')).not.toBeInTheDocument();
+  });
+
+  it('refuses to collapse a thread holding an unsettled comment', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={noopStoryOpen} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    act(() => mockThread.mock.calls.at(-1)?.[0].onBusyChange(true));
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, hide/ }));
+
+    // Unmounting would discard the mutation's error state — and with it any
+    // notice that the comment failed to post.
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
   });
 
   it('exposes rows as dialog-opening buttons with the title as accessible name', () => {
@@ -252,7 +340,7 @@ describe('NewsGroupCard', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('calls onUpvoteToggle with the clicked story when authenticated, without opening the story', () => {

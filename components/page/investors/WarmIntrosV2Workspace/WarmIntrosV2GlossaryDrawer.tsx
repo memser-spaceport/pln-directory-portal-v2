@@ -24,8 +24,9 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
         </header>
 
         <p className={s.lead}>
-          v2 ranks <strong>who at PL can introduce you</strong> to each investor using MasterProfile + an LLM pairing
-          pass. Affinity email history is only a hint — not the ranking itself.
+          v2 ranks <strong>who can introduce you</strong> to each investor using MasterProfile + an LLM pairing pass.
+          Paths may be a direct Protocol Labs person, or Protocol Labs → founder / co-investor → investor. Affinity
+          email history is only a hint — not the ranking itself.
         </p>
 
         <section className={s.section}>
@@ -37,7 +38,8 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
               {'{'}caliber{'}'}
             </strong>
             . Family, hop count, and caliber come from the API (<code>proximityCode</code>) — the UI does not invent
-            them. Iteration 1 is direct PL connector paths (<code>PL+1…</code>).
+            them. Direct PL-person paths are <code>PL+1…</code>; founder bridges are <code>F+2…</code>;
+            co-investor bridges are <code>VC+2…</code>.
           </p>
         </section>
 
@@ -58,7 +60,7 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
           <h3 className={s.h3}>Score %</h3>
           <p className={s.p}>
             0–100 strength of the recommended intro path (LLM + evidence). Higher is better. Shown as{' '}
-            <code>scorePercent</code> on each row.
+            <code>scorePercent</code> on each row. Paths below <strong>20%</strong> are hidden.
           </p>
         </section>
 
@@ -79,8 +81,9 @@ export function WarmIntrosV2GlossaryDrawer({ open, onClose }: Props) {
         </section>
 
         <p className={s.note}>
-          Unlike v1 Pathfinder (founder/VC hop graphs), v2 focuses on which of the six PL connectors is the best
-          introducer for each investor — grounded in shared entities and model knowledge, not Affinity noise alone.
+          Unlike v1 Pathfinder graphs, v2 ranks LLM-scored intro paths in one list: six PL connectors plus
+          founder/co-investor bridges when evidence exists. Grounded in shared entities and model knowledge — not
+          Affinity noise alone. The Protocol Labs org hop on bridge paths is not clickable.
         </p>
       </div>
     </Drawer>

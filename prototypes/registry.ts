@@ -79,6 +79,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/warm-intros-filter-update/WarmPathStatesPrototype'),
   },
   {
+    key: 'warm-intros-v2',
+    title: 'Warm intros v2 — mocked clone',
+    description:
+      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (proximity code, score %, connector → investor path chips), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-v2/WarmIntrosV2Prototype'),
+  },
+  {
     key: 'members',
     title: 'Members — listing page',
     description:
@@ -154,7 +162,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'job-board',
     title: 'Job Board',
     description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries a share-icon "Refer" control that opens a popover (LinkedIn / X / copy link).',
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link.',
     category: 'Jobs',
     load: () => import('./entries/job-board/JobBoardPrototype'),
   },
@@ -165,6 +173,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'A wide single-column feed mixing team news clusters and member forum posts (author on top, same card style), with a follow-suggestions / popular rail and fully-functional per-item likes (forum-style). A prototype switch flips between two versions: "With comments" (news and posts carry an inline comment thread) and "Without comments" (Like + Share only). Clicking a story opens an enlarged detail modal with the standardized modal chrome (sticky header + close, full summary, Share, source badges, and comments in the with-comments version).',
     category: 'Newsfeed',
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
+  },
+  {
+    key: 'notifications-hub',
+    title: 'Notifications — bell panel',
+    description:
+      'The bell dropdown, reworked so it is something you can act on rather than only read. Header follows the Airtable notification panel: an All / Unread / Read segmented switch, in-panel search, and a visible Mark all as read above the list (with an undo window rather than a confirm). Read state is decoupled from navigation — a per-row read toggle on a real 28px target plus per-row dismiss — and status is split from action the way the reference splits it: a non-interactive dot leads each row so unread reads down the left edge. The panel behaves like a dialog — Escape, focus trap, focus restore, positioned against the bell instead of a fixed offset — and has real loading and error states instead of falling through to "No new updates". The eight categories get distinct hues and keep their glyph on mobile, and every accent carrying text clears 4.5:1.',
+    category: 'Newsfeed',
+    load: () => import('./entries/notifications-hub/NotificationsHubPrototype'),
+  },
+  {
+    key: 'notifications-inbox',
+    title: 'Notifications — full Updates page',
+    description:
+      'The standalone counterpart to the bell panel: the full Updates page grouped by Today / Yesterday / Earlier and closed with a terminator instead of infinite scroll simply stopping. Carries the same All / Unread / Read switch, search, per-row read toggle and dismiss as the panel, plus Mark all as read with an undo window — production wires markAllAsRead through the provider and the service but no component ever calls it. Shares its state hook, filter, row component and stylesheet with the panel entry so the two surfaces cannot drift.',
+    category: 'Newsfeed',
+    load: () => import('./entries/notifications-inbox/NotificationsInboxPrototype'),
   },
   {
     key: 'email-preferences',
@@ -205,6 +229,22 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Secret-key states for the app setup card: first deploy (plain required field + Deploy), value already stored (locked masked field with Edit / Cancel, button becomes Re-deploy), and a failed deploy where a newly added key is still missing.',
     category: 'AI Apps',
     load: () => import('./entries/ai-apps-secrets/AiAppsSecretsPrototype'),
+  },
+  {
+    key: 'input-interactions',
+    title: 'Input interactions — autosave & dismissal',
+    description:
+      'One contract for every place a member types: outside click never destroys text, autosave is continuous and visible, discard is always explicit, and drafts survive reload. Four demos (inline composer, page composer, modal, anchored popover) each flip between what ships today and the proposed behaviour, standing in for the Tier 1 and Tier 2 surfaces from the consistency audit.',
+    category: 'Cross-product',
+    load: () => import('./entries/input-interactions/InputInteractionsPrototype'),
+  },
+  {
+    key: 'auth-copy-audit',
+    title: 'Auth copy audit — “Log in” → “Sign in”',
+    description:
+      'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
+    category: 'Cross-product',
+    load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

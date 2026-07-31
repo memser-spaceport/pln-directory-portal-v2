@@ -37,8 +37,13 @@ export function mergeUpvoteOverlay(items: ITeamNewsItem[], overlay: TeamNewsUpvo
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
   const [modalState, setModalState] = useState<NewsModalState>({ isOpen: false });
   const isMobile = useIsMobile();
-  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked, onTeamNewsUpvoteToggled } =
-    useTeamNewsAnalytics();
+  const {
+    onTeamNewsCardClicked,
+    onTeamNewsViewAllClicked,
+    onTeamNewsShowMoreClicked,
+    onTeamNewsUpvoteToggled,
+    onTeamNewsUpvoteFailed,
+  } = useTeamNewsAnalytics();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
 
   const searchParams = useSearchParams();
@@ -73,6 +78,10 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
               next.set(item.uid, { viewerHasUpvoted: wasUpvoted, upvoteCount: prevCount });
               return next;
             });
+            // The other half of the funnel. Wiring only /home's copy of this
+            // handler would have made the failure rate read 0% for every
+            // team-profile surface, while the success event covers them all.
+            onTeamNewsUpvoteFailed(item, position, nextUpvoted, source);
           },
           onSuccess: (status) => {
             // Reconcile with the server's authoritative count/state (e.g.
@@ -89,7 +98,7 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         },
       );
     },
-    [onTeamNewsUpvoteToggled, upvoteMutate],
+    [onTeamNewsUpvoteToggled, onTeamNewsUpvoteFailed, upvoteMutate],
   );
 
   const total = initialData.total;

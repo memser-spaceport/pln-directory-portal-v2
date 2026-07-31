@@ -1,11 +1,15 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import type {
   MasterProfileDetail,
+  UpsertWarmPathFeedbackBody,
   WarmIntrosV2Facets,
   WarmIntrosV2InvestorPathsResponse,
   WarmIntrosV2ListParams,
   WarmIntrosV2ListResponse,
   WarmIntrosV2PathListItem,
+  WarmPathFeedbackQueueParams,
+  WarmPathFeedbackQueueResponse,
+  WarmPathFeedbackRow,
 } from './warm-intros-v2.types';
 
 /**
@@ -90,4 +94,61 @@ export async function getMasterProfile(uid: string): Promise<MasterProfileDetail
   const res = await customFetch(`${MASTER_PROFILES_BASE}/${encodeURIComponent(uid)}`, { method: 'GET' }, true);
   if (!res || !res.ok) return null;
   return (await res.json()) as MasterProfileDetail;
+}
+
+/** PUT /v1/warm-intros-v2/paths/:warmPathUid/feedback — upsert caller’s refer/note. */
+export async function upsertWarmPathFeedback(
+  warmPathUid: string,
+  body: UpsertWarmPathFeedbackBody,
+): Promise<WarmPathFeedbackRow | { deleted: true } | null> {
+  const res = await customFetch(
+    `${BASE}/paths/${encodeURIComponent(warmPathUid)}/feedback`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    true,
+  );
+  if (!res || !res.ok) return null;
+  return (await res.json()) as WarmPathFeedbackRow | { deleted: true };
+}
+
+/** DELETE /v1/warm-intros-v2/paths/:warmPathUid/feedback/refer — clear canRefer, keep note. */
+export async function clearWarmPathRefer(
+  warmPathUid: string,
+  connectorProfileUid: string,
+): Promise<WarmPathFeedbackRow | { deleted: true } | null> {
+  const res = await customFetch(
+    `${BASE}/paths/${encodeURIComponent(warmPathUid)}/feedback/refer`,
+    {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ connectorProfileUid }),
+    },
+    true,
+  );
+  if (!res || !res.ok) return null;
+  return (await res.json()) as WarmPathFeedbackRow | { deleted: true };
+}
+
+/** GET /v1/warm-intros-v2/feedback — admin queue (investor_db.edit). */
+export async function listWarmPathFeedback(
+  params: WarmPathFeedbackQueueParams = {},
+): Promise<WarmPathFeedbackQueueResponse> {
+  const qs = buildQuery({
+    targetProfileUid: params.targetProfileUid,
+    q: params.q,
+    limit: params.limit ?? 50,
+    offset: params.offset ?? 0,
+  });
+  const res = await customFetch(`${BASE}/feedback${qs}`, { method: 'GET' }, true);
+  if (!res || !res.ok) return { items: [], total: 0, limit: params.limit ?? 50, offset: params.offset ?? 0 };
+  const json = await res.json();
+  return {
+    items: Array.isArray(json.items) ? (json.items as WarmPathFeedbackRow[]) : [],
+    total: typeof json.total === 'number' ? json.total : 0,
+    limit: typeof json.limit === 'number' ? json.limit : (params.limit ?? 50),
+    offset: typeof json.offset === 'number' ? json.offset : (params.offset ?? 0),
+  };
 }

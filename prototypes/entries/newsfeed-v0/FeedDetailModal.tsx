@@ -66,7 +66,10 @@ interface Props {
   /** Show the inline comment thread + count (the "with comments" version). */
   showComments?: boolean;
   comments?: FeedComment[];
-  onAddComment?: (text: string) => void;
+  onAddComment?: (text: string, parentUid?: string) => void;
+  /** Like state for comments and replies, keyed by comment uid. */
+  isCommentLiked?: (commentUid: string) => boolean;
+  onToggleCommentLike?: (commentUid: string) => void;
 }
 
 /**
@@ -85,6 +88,8 @@ export function FeedDetailModal({
   showComments = true,
   comments = [],
   onAddComment,
+  isCommentLiked,
+  onToggleCommentLike,
 }: Props) {
   const commentsRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +206,12 @@ export function FeedDetailModal({
           {/* "With comments" version: see + leave comments right in the news modal. */}
           {detail.kind === 'news' && showComments && (
             <div ref={commentsRef}>
-              <CommentsThread comments={comments} onAddComment={onAddComment ?? (() => {})} />
+              <CommentsThread
+                comments={comments}
+                onAddComment={onAddComment ?? (() => {})}
+                isCommentLiked={isCommentLiked ?? (() => false)}
+                onToggleCommentLike={onToggleCommentLike ?? (() => {})}
+              />
             </div>
           )}
           </div>

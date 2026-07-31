@@ -25,6 +25,7 @@ export enum InvestorsQueryKeys {
   WARM_INTROS_V2_PATHS = 'investors-warm-intros-v2-paths',
   WARM_INTROS_V2_FACETS = 'investors-warm-intros-v2-facets',
   WARM_INTROS_V2_PATHS_FOR_INVESTOR = 'investors-warm-intros-v2-paths-for-investor',
+  WARM_INTROS_V2_FEEDBACK_QUEUE = 'investors-warm-intros-v2-feedback-queue',
   MASTER_PROFILE = 'investors-master-profile',
   // Lists IA
   INVESTOR_LISTS = 'investors-lists',

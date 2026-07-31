@@ -20,7 +20,7 @@
 .table {
   table-layout: fixed;
   width: 100%;
-  min-width: 960px;
+  min-width: 620px;
   border-collapse: separate;
   border-spacing: 0;
   font-family: 'Inter', sans-serif;
@@ -42,27 +42,26 @@
 }
 
 .colInvestor {
-  width: 22%;
-}
-
-.colTeam {
-  width: 18%;
-}
-
-.colSector {
-  width: 18%;
-}
-
-.colProximity {
-  width: 14%;
+  width: 34%;
 }
 
 .colPath {
-  width: 28%;
+  width: 48%;
+}
+
+.colProximity {
+  width: 18%;
 }
 
 .investorText {
   min-width: 0;
+}
+
+.nameLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .row {
@@ -109,14 +108,6 @@
   white-space: nowrap;
 }
 
-.teamCell {
-  font-weight: 500;
-  color: #0f172a;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .muted {
   color: #9ca3af;
 }
@@ -142,6 +133,13 @@
   flex-wrap: wrap;
   gap: 4px;
   max-width: 100%;
+}
+
+.pathHop {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .pathArrow {

@@ -8,7 +8,7 @@ import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useAiApp } from '@/services/ai-apps/hooks/useAiApp';
 import { useAiAppManageAccess } from '@/services/ai-apps/hooks/useAiAppManageAccess';
-import { checkAiAppLive, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { checkAiAppLive, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
 import { ArrowBackIcon, DocumentIcon } from '@/components/icons';
 import { AppActionsMenu } from '@/components/page/ai-apps/AiAppsPage/components/AppActionsMenu';
 import {
@@ -83,13 +83,20 @@ export function AiAppDetailPage(props: Props) {
 
   // Deep link: `?settings=deployment` opens the Deployment settings modal
   // straight away (shared with members to edit stored secrets & redeploy).
+  // Creator/admin only — the modal exposes env-var names and failure notes, and
+  // the ⋯ menu (the other entry point) is gated the same way. Waits for the app
+  // record so the server-computed canManage can be consulted.
   useEffect(() => {
     if (openedSettingsFromUrl.current) return;
-    if (searchParams.get('settings') === 'deployment') {
-      openedSettingsFromUrl.current = true;
+    if (searchParams.get('settings') !== 'deployment') return;
+    if (!app) return;
+    const creatorLike = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
+    // One-shot either way — a later refetch must not pop the modal open.
+    openedSettingsFromUrl.current = true;
+    if (creatorLike) {
       setAction('deployment');
     }
-  }, [searchParams]);
+  }, [searchParams, app, currentUser]);
 
   const requiredEnvVars = app?.requiredEnvVars ?? [];
   // Genuinely "never deployed" only means DRAFT — DEPLOYING/ERROR have their
@@ -100,8 +107,11 @@ export function AiAppDetailPage(props: Props) {
   const needsSetup = !!app && requiredEnvVars.length > 0 && app.status === 'DRAFT';
   // A failed deploy (runner error, or a stuck deploy the backend settled to
   // ERROR) is surfaced as a full status card — never a broken iframe — with the
-  // error notes and a retry path for the creator/admin.
+  // error notes and a retry path for the creator/admin. Exception: 'warning'
+  // (the previous revision still serves) renders the normal layout — the app
+  // WORKS, replacing it with an error card would read as an outage.
   const deployFailed = app?.status === 'ERROR';
+  const failureKind = app ? deployFailureKind(app) : null;
   // An in-flight deploy someone else started (agent redeploy, another admin).
   // While OUR deploy runs (isRedeploying) the secrets panel or the deployment
   // settings modal owns the UI instead, so neither is unmounted mid-flight.
@@ -120,15 +130,22 @@ export function AiAppDetailPage(props: Props) {
   }, [isError, uid, analytics]);
 
   const appUrl = app?.url ?? null;
-  // One probe "generation" per deployed version (updatedAt changes on every
-  // deploy) and per manual retry; probe results from older generations are
-  // ignored, so a fresh deploy always re-checks.
-  const probeGeneration = `${app?.updatedAt ?? ''}:${retryToken}`;
+  // "The running version changed" key for the probe generation and the iframe
+  // remount. lastDeployedAt moves only on SUCCESSFUL deploys — keying on
+  // updatedAt would remount a visitor's working previous version whenever a
+  // FAILED deploy bumps the row (warning state). updatedAt stays as the
+  // fallback for pre-contract API responses that lack the field.
+  const deployGeneration = app?.lastDeployedAt ?? app?.updatedAt ?? '';
+  // One probe "generation" per deployed version and per manual retry; probe
+  // results from older generations are ignored, so a fresh deploy always
+  // re-checks.
+  const probeGeneration = `${deployGeneration}:${retryToken}`;
   const frameStatus: FrameStatus = probeResult?.generation === probeGeneration ? probeResult.status : 'checking';
 
   // Poll the backend liveness probe until the app answers, then mount the
-  // iframe. Runs on first load and again after every redeploy (updatedAt
-  // changes / the deploy flag drops), so gateway errors never reach the frame.
+  // iframe. Runs on first load and again after every successful redeploy
+  // (lastDeployedAt changes / the deploy flag drops), so gateway errors never
+  // reach the frame.
   useEffect(() => {
     if (!appUrl || isRedeploying) return;
 
@@ -185,44 +202,9 @@ export function AiAppDetailPage(props: Props) {
   const isCreator = app.canManage ?? (!!currentUser?.uid && currentUser.uid === app.member?.uid);
 
   // Shown both for an app that genuinely isn't deployed yet (needsSetup) and
-  // for a deploy in progress or failed — the top bar's "Deployment settings"
-  // menu item is the only voluntary entry point for a healthy app now.
-  if (needsSetup || deployFailed || deployInProgress) {
-    return (
-      <div className={s.setupPage}>
-        <div className={s.setupContent}>
-          <div className={s.setupCard}>
-            <div className={s.setupHeader}>
-              <h1 className={s.setupTitle}>{app.name}</h1>
-              <span className={s.statusBadge} data-status={app.status}>
-                {SETUP_STATUS_LABELS[app.status] ?? app.status}
-              </span>
-            </div>
-            {app.description && <p className={s.setupDescription}>{app.description}</p>}
-            {app.status === 'ERROR' && app.notes && <p className={s.setupError}>Last deploy failed: {app.notes}</p>}
-            {deployInProgress ? (
-              <div className={s.progress}>
-                <div className={s.progressBar}>
-                  <div className={s.progressIndicator} />
-                </div>
-                <p className={s.progressText}>
-                  A deploy is in progress — this page updates automatically once it finishes.
-                </p>
-              </div>
-            ) : isCreator ? (
-              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
-            ) : (
-              <p className={s.setupInfo}>
-                {deployFailed
-                  ? `The last deploy of this app failed. Only ${app.member?.name ?? 'its creator'} or an admin can retry it.`
-                  : `This app is not deployed yet. Only ${app.member?.name ?? 'its creator'} can provide the required values and deploy it.`}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // for a deploy in progress or failed with nothing serving — a 'warning'
+  // failure (previous revision still up) renders the normal layout instead.
+  const showSetupCard = needsSetup || (deployFailed && failureKind !== 'warning') || deployInProgress;
 
   // Close a card action; if the deployment modal was opened via the
   // `?settings=deployment` deep link, drop the param so a refresh/back doesn't
@@ -236,6 +218,70 @@ export function AiAppDetailPage(props: Props) {
       router.replace(qs ? `?${qs}` : `/pl-infra/ai-apps/${uid}`, { scroll: false });
     }
   };
+
+  const openFailureLogs = (source: 'detail-banner' | 'detail-error-card') => {
+    analytics.onDeploymentLogsOpened({
+      appUid: app.uid,
+      appName: app.name,
+      source,
+      variant: failureKind ?? undefined,
+    });
+    setAction('logs');
+  };
+
+  const setupCard = (
+    <div className={s.setupPage}>
+      <div className={s.setupContent}>
+        <div className={s.setupCard}>
+          <div className={s.setupHeader}>
+            <h1 className={s.setupTitle}>{app.name}</h1>
+            <span className={s.statusBadge} data-status={app.status}>
+              {SETUP_STATUS_LABELS[app.status] ?? app.status}
+            </span>
+          </div>
+          {app.description && <p className={s.setupDescription}>{app.description}</p>}
+          {/* Failure notes are runner output (stack fragments, image names) — creator/admin only. */}
+          {app.status === 'ERROR' && app.notes && isCreator && (
+            <p className={s.setupError}>Last deploy failed: {app.notes}</p>
+          )}
+          {deployInProgress ? (
+            <div className={s.progress}>
+              <div className={s.progressBar}>
+                <div className={s.progressIndicator} />
+              </div>
+              <p className={s.progressText}>
+                A deploy is in progress — this page updates automatically once it finishes.
+              </p>
+            </div>
+          ) : isCreator ? (
+            <>
+              {deployFailed && (
+                <button type="button" className={s.setupSeeLogs} onClick={() => openFailureLogs('detail-error-card')}>
+                  See logs
+                </button>
+              )}
+              <AppSecretsPanel app={app} onDeployingChange={setIsRedeploying} />
+            </>
+          ) : failureKind === 'danger' ? (
+            // Nothing has ever served, but failure details stay creator-only —
+            // visitors get the neutral "nothing to preview" framing.
+            <div className={s.notDeployedCard}>
+              <h2 className={s.notDeployedTitle}>Not deployed</h2>
+              <p className={s.setupInfo}>
+                This app has never been built successfully, so there is no running version to preview.
+              </p>
+            </div>
+          ) : (
+            <p className={s.setupInfo}>
+              {deployFailed
+                ? `The last deploy of this app failed. Only ${app.member?.name ?? 'its creator'} or an admin can retry it.`
+                : `This app is not deployed yet. Only ${app.member?.name ?? 'its creator'} can provide the required values and deploy it.`}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const renderFrameArea = () => {
     if (isRedeploying) {
@@ -286,7 +332,7 @@ export function AiAppDetailPage(props: Props) {
       <iframe
         // Remount after every deploy so the frame reloads instead of keeping
         // whatever it captured before the restart.
-        key={app.updatedAt}
+        key={deployGeneration}
         className={s.iframe}
         src={app.url ?? undefined}
         title={app.name}
@@ -296,12 +342,20 @@ export function AiAppDetailPage(props: Props) {
     );
   };
 
-  return (
+  const normalLayout = (
     <div className={s.root}>
       <div className={s.topBar}>
         <Link href="/pl-infra/ai-apps" className={s.backLink}>
-          <ArrowBackIcon width={16} height={16} />
-          Back to all
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M11 14L5 8L11 2"
+              stroke="#5E718D"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></path>
+          </svg>
+          Back
         </Link>
         <div className={s.topBarActions}>
           {hasPrd(app) && (
@@ -323,7 +377,7 @@ export function AiAppDetailPage(props: Props) {
               onEdit={() => setAction('edit')}
               onDeployment={() => setAction('deployment')}
               onLogs={() => {
-                analytics.onDeploymentLogsOpened(app.uid, app.name, 'menu');
+                analytics.onDeploymentLogsOpened({ appUid: app.uid, appName: app.name, source: 'menu' });
                 setAction('logs');
               }}
               onDelete={() => setAction('delete')}
@@ -331,8 +385,28 @@ export function AiAppDetailPage(props: Props) {
           )}
         </div>
       </div>
+      {/* The previous revision still serves — the app below works, only its
+          creator needs to know the latest change didn't ship. Hidden during the
+          creator's own redeploy (the frame area shows that story). */}
+      {isCreator && failureKind === 'warning' && !isRedeploying && (
+        <div className={s.warningBanner}>
+          <span className={s.warningBannerLabel}>Latest deploy didn&apos;t ship</span>
+          <button type="button" className={s.warningBannerButton} onClick={() => openFailureLogs('detail-banner')}>
+            See logs
+          </button>
+        </div>
+      )}
       {renderFrameArea()}
       <FloatingFeedbackButton appUid={app.uid} appName={app.name} />
+    </div>
+  );
+
+  // One return for both page states, with every modal AFTER the branch in a
+  // stable tree position: a status flip (normal ↔ setup card, e.g. a redeploy
+  // settling warning → danger) must never unmount an open modal mid-result.
+  return (
+    <>
+      {showSetupCard ? setupCard : normalLayout}
       {showDetails && (
         <AiAppDetailsModal
           isOpen
@@ -356,6 +430,6 @@ export function AiAppDetailPage(props: Props) {
           onDeleteSucceeded={() => router.push('/pl-infra/ai-apps')}
         />
       )}
-    </div>
+    </>
   );
 }

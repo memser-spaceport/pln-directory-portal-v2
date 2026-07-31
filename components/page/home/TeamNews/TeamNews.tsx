@@ -5,22 +5,29 @@ import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
 
-import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import {
+  useTeamNewsAnalytics,
+  type TeamNewsAnalyticsSource,
+  type TeamNewsCardClickVia,
+} from '@/analytics/team-news.analytics';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
+import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
+import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
@@ -31,13 +38,20 @@ import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
 
 import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
+import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
+import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
+import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
+import { useFeedSocial } from './hooks/useFeedSocial';
+import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
 
 import { NewsDetailModal } from './components/NewsDetailModal';
+import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
+import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
 import { NewsSearch } from './components/NewsSearch';
@@ -73,12 +87,17 @@ function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): bool
 // of "matches" — same rationale as matchesTeamNewsQuery above.
 function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
   if (categoryId === ALL_CAT) return true;
-  if (categoryId === ACTIVE_DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
+  // A news item counts as a discussion when it has a forum thread of its own.
+  // Forum posts also live under this pill, but they aren't news items — see
+  // filterFeedForumPosts for that half.
+  if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
   return item.eventType === categoryId;
 }
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
+  /** Allowlisted teams with no focus-area group; shown on "All" only. */
+  allTabExtraItems?: ITeamNewsItem[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -86,7 +105,13 @@ interface TeamNewsProps {
   initialDigestSettings?: ForumDigestSettings | null;
 }
 
-export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDigestSettings = null }: TeamNewsProps) => {
+export const TeamNews = ({
+  groups,
+  allTabExtraItems = [],
+  popularItems = [],
+  pageSize = 6,
+  initialDigestSettings = null,
+}: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
   const [expanded, setExpanded] = useState(false);
@@ -97,6 +122,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const followAnalytics = useFollowAnalytics();
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
+  const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -116,9 +142,29 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   const revealStory = useStoryReveal();
 
   const allItems = useMemo(
-    () => applyUpvoteOverlay(sortAllTabItemsByEventDate(dedupeByUid(groups.flatMap((g) => g.items))), upvoteOverlay),
-    [groups, upvoteOverlay],
+    () =>
+      applyUpvoteOverlay(
+        sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems])),
+        upvoteOverlay,
+      ),
+    [groups, allTabExtraItems, upvoteOverlay],
   );
+
+  // Derived from `groups` (not allItems) so its identity never churns with the
+  // upvote overlay — it feeds the session-stable comment-counts batch.
+  const newsUids = useMemo(
+    () => dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]).map((i) => i.uid),
+    [groups, allTabExtraItems],
+  );
+
+  // The feed's social layer (forum posts + comment counts), flag- and
+  // access-gated in one hook. `forumPosts` undefined ⇒ news-only feed.
+  const { forumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
+
+  // Optimistic like state for forum posts — the exact upvoteOverlay pattern:
+  // a render-time overlay the buttons read, never written to the query cache,
+  // so the session-frozen post ordering can't reorder mid-session.
+  const [postLikeOverlay, setPostLikeOverlay] = useState<Map<string, IFeedForumPostLikeStatus>>(() => new Map());
 
   const [followedTeamUids, setFollowedTeamUids] = useState<Set<string>>(
     () => new Set(allItems.filter((i) => i.isFollowed).map((i) => i.teamUid)),
@@ -141,8 +187,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
   );
 
-  // Default: Following when the user follows any teams; otherwise Most popular.
-  const [sort, setSort] = useState<TeamNewsSort>(() => (initialFollowedTeamUids.size > 0 ? 'following' : 'popular'));
+  const [sort, setSort] = useState<TeamNewsSort>('popular');
 
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
@@ -150,24 +195,45 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     return applyUpvoteOverlay(group?.items ?? [], upvoteOverlay);
   }, [activeTab, allItems, groups, upvoteOverlay]);
 
+  // Forum posts joining the current tab (they only ever show under the "All"
+  // category pill — a post has no event type). Memoized so its array identity
+  // can't re-run the merge on unrelated renders (e.g. upvote overlay writes).
+  const tabForumPosts = useMemo(
+    () => filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
+    [forumPosts, activeTab],
+  );
+
+  // One definition of "how many does this pill have", used both to render the
+  // pills and to report the count on click — two copies of this drifted apart
+  // once already.
+  const countForCategory = useCallback(
+    (id: TeamNewsCategoryId) => {
+      const newsCount =
+        id === ALL_CAT
+          ? itemsForActiveTab.length
+          : itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, id)).length;
+      // Forum posts show under All and Discussions, and nowhere else.
+      return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
+    },
+    [itemsForActiveTab, tabForumPosts],
+  );
+
   const categoriesWithCounts = useMemo(() => {
-    const activeDiscussionsCount = itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length;
-    const base = CATEGORIES.map((c) => ({
-      ...c,
-      count: c.id === ALL_CAT ? itemsForActiveTab.length : itemsForActiveTab.filter((i) => i.eventType === c.id).length,
-    }));
+    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const discussionsCount = countForCategory(DISCUSSIONS_CAT);
 
-    if (activeDiscussionsCount === 0) return base;
+    // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
+    if (discussionsCount === 0) return base;
 
-    const withActive: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
+    const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
     for (const c of base) {
-      withActive.push(c);
+      withDiscussions.push(c);
       if (c.id === ALL_CAT) {
-        withActive.push({ ...ACTIVE_DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
+        withDiscussions.push({ ...DISCUSSIONS_CATEGORY, count: discussionsCount });
       }
     }
-    return withActive;
-  }, [itemsForActiveTab]);
+    return withDiscussions;
+  }, [countForCategory]);
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
@@ -189,8 +255,31 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     [clusters, sort, initialFollowedTeamUids, initialUpvoteCounts],
   );
 
-  const visibleClusters = expanded ? sortedClusters : sortedClusters.slice(0, pageSize);
-  const newCount = allItems.length;
+  // Forum posts under the CURRENT filters (category + search narrow tabForumPosts).
+  const visibleForumPosts = useMemo(
+    () => filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query }),
+    [forumPosts, activeTab, activeCategory, query],
+  );
+
+  // The unified feed: forum posts interleaved into the sorted clusters. The
+  // merge DELEGATES to sortedClusters' order (news-vs-news order stays
+  // byte-identical to the pre-feature feed) and ranks posts by their frozen
+  // query-data likeCount — the live postLikeOverlay is applied at render only,
+  // so likes never reorder anything.
+  const entries = useMemo(
+    () =>
+      mergeFeedEntries({
+        sortedClusters,
+        forumPosts: visibleForumPosts,
+        sort,
+        followedTeamUids: initialFollowedTeamUids,
+        upvoteCounts: initialUpvoteCounts,
+      }),
+    [sortedClusters, visibleForumPosts, sort, initialFollowedTeamUids, initialUpvoteCounts],
+  );
+
+  const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
+  const newCount = allItems.length + (forumPosts?.length ?? 0);
 
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
@@ -213,6 +302,49 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     analytics.onTeamNewsDetailModalOpened(activeNewsItem);
   });
 
+  // ?post=<uid> ↔ forum-post-modal sync. Unlike ?news=, this resolves
+  // asynchronously (hydration → access → posts) — the hook holds the param
+  // while pending and strips it silently once settled-invalid. Deep-link
+  // analytics ride the resolver's single 'valid' transition.
+  const { activePostUid, openPost, closePost } = useForumPostDeepLink({
+    posts: forumPosts,
+    isSettled: deepLinkSettled,
+    onDeepLinkOpen: (post) => analytics.onFeedForumPostModalOpened(post),
+  });
+
+  // Resolved fresh each render with the like overlay merged (same contract as
+  // activeNewsItem: modal and row can never disagree). `forumPosts` going
+  // undefined — e.g. mid-session access revocation — nulls this out and the
+  // modal unmounts; the effect below also strips the URL param.
+  // A forum card can't know whether the viewer already liked the post: the
+  // /api/recent listing it's built from has no per-viewer vote state, so
+  // `viewerHasLiked` is false by default and a "like" on something already liked
+  // would send a vote NodeBB ignores while the local count climbed. Opening the
+  // thread fetches the topic, which does know — resolved at render time, under
+  // the viewer's own toggle. Because the resolved value is what feeds
+  // handleForumPostLikeToggle, the correction lands in the overlay on first use
+  // and outlives the modal.
+  const activePostTopicLike = useFeedForumTopicLike(activePostUid);
+  const resolvePostLike = useCallback(
+    (post: IFeedForumPost) =>
+      resolveForumPostLike(
+        post,
+        post.uid === activePostUid ? activePostTopicLike : undefined,
+        postLikeOverlay.get(post.uid),
+      ),
+    [activePostUid, activePostTopicLike, postLikeOverlay],
+  );
+
+  const activeForumPost = useMemo(() => {
+    if (!activePostUid) return null;
+    const post = forumPosts?.find((p) => p.uid === activePostUid);
+    return post ? resolvePostLike(post) : null;
+  }, [activePostUid, forumPosts, resolvePostLike]);
+
+  useEffect(() => {
+    if (activePostUid && !hasAccess) closePost();
+  }, [activePostUid, hasAccess, closePost]);
+
   const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
@@ -227,13 +359,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   };
 
   const handleCategory = (id: TeamNewsCategoryId) => {
-    const nextCount =
-      id === ALL_CAT
-        ? itemsForActiveTab.length
-        : id === ACTIVE_DISCUSSIONS_CAT
-          ? itemsForActiveTab.filter((i) => hasExistingDiscussion(i.discussion)).length
-          : itemsForActiveTab.filter((i) => i.eventType === id).length;
-    analytics.onTeamNewsCategoryClicked(String(id), nextCount, activeTab);
+    analytics.onTeamNewsCategoryClicked(String(id), countForCategory(id), activeTab);
     setActiveCategory(id);
     setExpanded(false);
   };
@@ -245,7 +371,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   };
 
   const handleToggleAll = () => {
-    analytics.onTeamNewsLoadMoreClicked(visibleClusters.length, clusters.length, 'home', {
+    analytics.onTeamNewsLoadMoreClicked(visibleEntries.length, entries.length, 'home', {
       currentTab: activeTab,
       currentCategory: String(activeCategory),
     });
@@ -254,10 +380,21 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
 
   // Single owner of a row click's consequences: analytics (card-clicked with
   // outcome 'modal', derived in the analytics module) + modal state + URL.
-  const handleStoryOpen = (item: ITeamNewsItem) => {
-    const position = visibleClusters.findIndex((c) => c.teamUid === item.teamUid);
-    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home');
+  // Positions are entry-list indices now that forum posts interleave.
+  const handleStoryOpen = (item: ITeamNewsItem, via: TeamNewsCardClickVia = 'row') => {
+    const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
+    analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home', via);
+    // One modal, one URL param at a time — closing the other side first keeps
+    // ?news= and ?post= mutually exclusive (both writes are synchronous).
+    if (activePostUid) closePost();
     openNews(item.uid);
+  };
+
+  // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
+  // ForumPostCard, which knows its own position).
+  const handleForumPostOpen = (post: IFeedForumPost) => {
+    if (activeNewsUid) closeNews();
+    openPost(post.uid);
   };
 
   // "Latest ref" pattern: lets handleSearch read current context synchronously
@@ -266,11 +403,13 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // effect with no dependency array (runs after every render) rather than
   // written during render, per this repo's react-hooks/refs lint rule.
   const filteredItemsRef = useRef(filteredItems);
+  const forumPostsRef = useRef(forumPosts);
   const activeTabRef = useRef(activeTab);
   const activeCategoryRef = useRef(activeCategory);
   const analyticsRef = useRef(analytics);
   useEffect(() => {
     filteredItemsRef.current = filteredItems;
+    forumPostsRef.current = forumPosts;
     activeTabRef.current = activeTab;
     activeCategoryRef.current = activeCategory;
     analyticsRef.current = analytics;
@@ -290,7 +429,15 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     const trimmed = value.trim();
     if (!trimmed) return; // clearing a search isn't a search event
     const q = trimmed.toLowerCase();
-    const resultCount = filteredItemsRef.current.filter((i) => matchesTeamNewsQuery(i, q)).length;
+    // Same definition of "matches" as the rendered entries: news narrowed by
+    // the query + forum posts under the current tab/category filters.
+    const resultCount =
+      filteredItemsRef.current.filter((i) => matchesTeamNewsQuery(i, q)).length +
+      filterFeedForumPosts(forumPostsRef.current, {
+        tab: activeTabRef.current,
+        category: activeCategoryRef.current,
+        query: trimmed,
+      }).length;
     const truncatedSearchValue = value.length > 100 ? value.slice(0, 100) : value;
     analyticsRef.current.onTeamNewsSearch(
       truncatedSearchValue,
@@ -367,7 +514,10 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
   // Auth check + login redirect happens in the calling card component (see
   // NewsGroupCard.handleUpvoteClick), matching handleFollowToggle's split below —
   // this handler assumes an authenticated caller.
-  const handleUpvoteToggle = (item: ITeamNewsItem) => {
+  // `source` is a parameter, not the constant 'home' it used to be: this
+  // handler serves the card AND the detail modal, so hardcoding it made the
+  // dimension carry no information at all.
+  const handleUpvoteToggle = (item: ITeamNewsItem, source: TeamNewsAnalyticsSource = 'home') => {
     const wasUpvoted = Boolean(item.viewerHasUpvoted);
     const nextUpvoted = !wasUpvoted;
     const prevCount = item.upvoteCount ?? 0;
@@ -379,7 +529,9 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       return next;
     });
 
-    const position = visibleClusters.findIndex((c) => c.teamUid === item.teamUid);
+    // -1, not 0: a deep-linked modal item isn't in visibleEntries at all, and
+    // reporting it as position 0 makes it indistinguishable from the top card.
+    const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
 
     upvoteMutate(
       { uid: item.uid, isUpvoted: nextUpvoted },
@@ -390,6 +542,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
             next.set(item.uid, { viewerHasUpvoted: wasUpvoted, upvoteCount: prevCount });
             return next;
           });
+          analytics.onTeamNewsUpvoteFailed(item, position, nextUpvoted, source);
         },
         onSuccess: (status) => {
           // Reconcile the optimistic overlay with the server's authoritative
@@ -401,7 +554,38 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
               return next;
             });
           }
-          analytics.onTeamNewsUpvoteToggled(item, position >= 0 ? position : 0, nextUpvoted, 'home');
+          analytics.onTeamNewsUpvoteToggled(item, position, nextUpvoted, source);
+        },
+      },
+    );
+  };
+
+  // Forum-post Like — handleUpvoteToggle's exact shape (optimistic overlay,
+  // rollback on error, reconcile with the server's authoritative status). The
+  // caller passes the overlay-merged post, so `viewerHasLiked` is current.
+  // No signed-out branch: only access-holding (signed-in) viewers see posts.
+  const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
+    const wasLiked = post.viewerHasLiked;
+    const nextLiked = !wasLiked;
+    const prevCount = post.likeCount;
+    const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
+
+    setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }));
+
+    const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
+
+    postLikeMutate(
+      { post, isLiked: nextLiked },
+      {
+        onError: () => {
+          setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));
+          analytics.onFeedForumPostLikeFailed(post, position, nextLiked, source);
+        },
+        onSuccess: (status) => {
+          if (status) {
+            setPostLikeOverlay((prev) => new Map(prev).set(post.uid, status));
+          }
+          analytics.onFeedForumPostLikeToggled(post, position, nextLiked, source);
         },
       },
     );
@@ -414,6 +598,7 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     if (!fullItem) {
       // Expired/removed from the 14-day window since Popular was ranked server-side.
       // Nothing to scroll to — fall back to the old behavior instead of a dead click.
+      analytics.onPopularStoryFallbackOpened(item, position);
       window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -429,10 +614,12 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     // If filters are already about to reflow substantially, don't also re-derive
     // clusterByTeam for the *new* filters just to check pageSize precisely —
     // force-expanding blends into a view that's changing anyway. Otherwise,
-    // sortedClusters (in scope, this render) already reflects the item's real
-    // position, so only expand if it's actually beyond pageSize.
+    // entries (in scope, this render — the unified list the pageSize slice
+    // actually cuts) already reflects the item's real position, so only expand
+    // if it's actually beyond pageSize.
     const shouldExpandOuter =
-      filtersChanging || sortedClusters.findIndex((c) => c.teamUid === fullItem.teamUid) >= pageSize;
+      filtersChanging ||
+      entries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === fullItem.teamUid) >= pageSize;
 
     // flushSync forces this batch of state updates — and every layout effect they
     // synchronously trigger in children, including NewsGroupCard's own auto-expand
@@ -456,11 +643,18 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
     const el = document.querySelector<HTMLElement>(selector);
     setScrollTarget(null); // one-shot signal — clear right after use so a later, unrelated remount can't replay it
 
-    if (el) revealStory(el);
-    // else: unexpected — flushSync above should guarantee `el` exists.
+    if (el) {
+      revealStory(el);
+      analytics.onPopularStoryScrollSucceeded(item, position);
+    }
+    // else: unexpected — flushSync above should guarantee `el` exists. Left
+    // unreported on purpose: clicked minus succeeded minus fallback IS this
+    // case, so it stays visible without inventing an event for it.
   };
 
-  if (isEmpty(allItems)) {
+  // A forum-access member with zero news in the window still gets their posts
+  // (they render alone once the posts query lands — accepted pop-in).
+  if (isEmpty(allItems) && (forumPosts?.length ?? 0) === 0) {
     return (
       <NewsBase>
         <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
@@ -521,32 +715,56 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
-          {searchedItems.length === 0 ? (
+          {entries.length === 0 ? (
             <div className={s.empty}>
               {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
             </div>
           ) : (
             <>
               <div className={s.feed}>
-                {visibleClusters.map((cluster) => (
+                {visibleEntries.map((entry, index) => {
                   // Composite key intentionally forces a remount on every tab/category
-                  // change so each card's local `expanded` resets — see rationale in
+                  // change so each card's local state (expanded stories, open comment
+                  // threads) resets — see rationale in
                   // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
                   // NOTE: any future CSS transition on .storyRow/.expander will not
                   // animate across a filter change, since this replaces the DOM node
                   // rather than updating it in place.
-                  <NewsGroupCard
-                    key={`${activeTab}::${String(activeCategory)}::${cluster.teamUid}`}
-                    cluster={cluster}
-                    onStoryOpen={handleStoryOpen}
-                    isFollowing={followedTeamUids.has(cluster.teamUid)}
-                    onFollowToggle={handleFollowToggle}
-                    onUpvoteToggle={handleUpvoteToggle}
-                    autoExpandStoryUid={scrollTarget?.teamUid === cluster.teamUid ? scrollTarget.storyUid : undefined}
-                  />
-                ))}
+                  const key = `${activeTab}::${String(activeCategory)}::${feedEntryKey(entry)}`;
+                  switch (entry.kind) {
+                    case 'news':
+                      return (
+                        <NewsGroupCard
+                          key={key}
+                          cluster={entry.cluster}
+                          onStoryOpen={handleStoryOpen}
+                          isFollowing={followedTeamUids.has(entry.cluster.teamUid)}
+                          onFollowToggle={handleFollowToggle}
+                          onUpvoteToggle={handleUpvoteToggle}
+                          autoExpandStoryUid={
+                            scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
+                          }
+                        />
+                      );
+                    case 'forum':
+                      return (
+                        <ForumPostCard
+                          key={key}
+                          // Live like state resolved at render only — the merge
+                          // above ranked by frozen counts, so likes never reorder
+                          // the feed.
+                          post={resolvePostLike(entry.post)}
+                          position={index}
+                          onOpenDetail={handleForumPostOpen}
+                          onLikeToggle={handleForumPostLikeToggle}
+                        />
+                      );
+                    default:
+                      return assertNever(entry);
+                  }
+                })}
               </div>
-              {clusters.length > pageSize && (
+              {entries.length > pageSize && (
                 <div className={s.showAll}>
                   <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
                     {expanded ? 'Show Less' : 'Show All'}
@@ -570,7 +788,20 @@ export const TeamNews = ({ groups, popularItems = [], pageSize = 6, initialDiges
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
       {activeNewsItem && (
-        <NewsDetailModal item={activeNewsItem} onClose={closeNews} onUpvoteToggle={handleUpvoteToggle} />
+        <NewsDetailModal
+          item={activeNewsItem}
+          onClose={closeNews}
+          onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
+          isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
+          onFollowToggle={handleFollowToggle}
+        />
+      )}
+      {activeForumPost && (
+        <ForumPostModal
+          post={activeForumPost}
+          onClose={closePost}
+          onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
+        />
       )}
     </NewsBase>
   );

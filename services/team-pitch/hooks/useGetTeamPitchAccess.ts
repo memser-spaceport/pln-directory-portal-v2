@@ -35,14 +35,16 @@ export async function getTeamPitchAccess(slug: string, authenticated: boolean) {
   return (await response.json()) as TeamPitchAccess;
 }
 
-export function useGetTeamPitchAccess(slug?: string) {
+export function useGetTeamPitchAccess(slug?: string, initialAccess?: TeamPitchAccess | null) {
   const params = useParams();
   const pitchSlug = slug ?? (params.slug as string);
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const authenticated = !!currentUser?.uid;
 
   return useQuery({
     queryKey: [TeamPitchQueryKeys.ACCESS, pitchSlug, currentUser?.uid],
-    queryFn: () => getTeamPitchAccess(pitchSlug, !!currentUser?.uid),
+    queryFn: () => getTeamPitchAccess(pitchSlug, authenticated),
     enabled: !!pitchSlug && isHydrated,
+    ...(!authenticated && initialAccess ? { initialData: initialAccess } : {}),
   });
 }

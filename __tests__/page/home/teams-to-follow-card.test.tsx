@@ -143,7 +143,7 @@ describe('TeamsToFollowCard', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: /follow banyan storage/i }));
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
     expect(mockOnFollowToggle).not.toHaveBeenCalled();
   });
 

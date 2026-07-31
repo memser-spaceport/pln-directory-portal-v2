@@ -8,6 +8,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
@@ -17,6 +18,7 @@ import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
+import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsDetailModal.module.scss';
@@ -27,6 +29,8 @@ interface NewsDetailModalProps {
   item: ITeamNewsItem;
   onClose: () => void;
   onUpvoteToggle: (item: ITeamNewsItem) => void;
+  isFollowing?: boolean;
+  onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
 }
 
 const TITLE_ID = 'news-detail-modal-title';
@@ -62,7 +66,13 @@ function restoreFocusToRow(uid: string) {
   target?.focus();
 }
 
-export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailModalProps) {
+export function NewsDetailModal({
+  item,
+  onClose,
+  onUpvoteToggle,
+  isFollowing = false,
+  onFollowToggle,
+}: NewsDetailModalProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   // While the share popover is open, the Modal's own Escape/backdrop closers
@@ -88,12 +98,25 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
     onClose();
   };
 
+  const handleFollowClick = () => {
+    if (!currentUser) {
+      // scroll: false — Next resolves this push as a real navigation (its
+      // canonicalUrl never learned the ?news= param, since useNewsDeepLink
+      // writes it via raw history.replaceState) and would otherwise reset
+      // the feed's scroll position to the top on every guest login-gate.
+      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`, { scroll: false });
+      return;
+    }
+    onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
+  };
+
   const handleUpvoteClick = () => {
     if (!currentUser) {
       // Constructed, not read from location.search — the URL write on open is
       // synchronous (history.replaceState), but building the target explicitly
       // keeps the login round-trip correct even if that ever changes.
-      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`);
+      // scroll: false for the same reason as handleFollowClick above.
+      router.push(`/home?news=${encodeURIComponent(item.uid)}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle(item);
@@ -137,6 +160,9 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
           >
             {item.teamName}
           </a>
+          {isHydrated && onFollowToggle && (
+            <FollowButton following={isFollowing} onClick={handleFollowClick} name={item.teamName} size="compact" />
+          )}
         </div>
         <button ref={focusOnAttach} type="button" className={s.closeButton} aria-label="Close" onClick={handleClose}>
           <CloseIcon width={20} height={20} color="#0a0c11" />
@@ -178,6 +204,9 @@ export function NewsDetailModal({ item, onClose, onUpvoteToggle }: NewsDetailMod
             </div>
           </>
         )}
+
+        {/* Always expanded in the modal (prototype's FeedDetailModal parity). */}
+        <FeedCommentsThread itemUid={item.uid} kind="news" source="news-modal" />
       </div>
 
       <div className={s.footer}>

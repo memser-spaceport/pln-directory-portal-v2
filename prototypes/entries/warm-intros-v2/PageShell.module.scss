@@ -1,0 +1,21 @@
+/**
+ * Reproduces the page padding production gives the workspace.
+ *
+ * On /investors the workspace itself has no padding — it inherits it from
+ * DashboardPagesLayout's content column (`padding: 30px 24px 40px` at ≥1024px,
+ * on a #f1f5f9 gutter). The prototype route has no dashboard shell, so the
+ * workspace was rendering flush to the viewport edge. Values are copied
+ * literally from DashboardPagesLayout.module.css, incl. its 1024px breakpoint;
+ * only the color is translated to a token + fallback pair.
+ */
+
+.page {
+  min-height: 100%;
+  background: var(--background-neutral-subtle, #f1f5f9);
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding: 30px 24px 40px;
+  }
+}

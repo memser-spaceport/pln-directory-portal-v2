@@ -53,10 +53,10 @@ export function sortTeamNewsClusters(
     return [...clusters].sort(compareClusterLatest);
   }
 
-  // following: followed first, then upvotes within each group
+  // following: followed first, then latest date within each group
   return [...clusters].sort((a, b) => {
     const followDiff = Number(followedTeamUids.has(b.teamUid)) - Number(followedTeamUids.has(a.teamUid));
     if (followDiff !== 0) return followDiff;
-    return clusterUpvotes(b, upvoteCounts) - clusterUpvotes(a, upvoteCounts);
+    return compareClusterLatest(a, b);
   });
 }

@@ -392,6 +392,8 @@ export function typeLabel(type: string): string {
       return 'PL internal';
     case 'investor':
       return 'Investor';
+    case 'co_investor':
+      return 'Co-investor';
     case 'founder':
       return 'Founder';
     default:

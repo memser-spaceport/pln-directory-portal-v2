@@ -63,7 +63,7 @@ describe('NewsRail', () => {
     render(<NewsRail onPopularItemClick={mockOnPopularItemClick} />);
     fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
     expect(mockMutate).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('calls the forum-digest mutation with weekly frequency and news enabled when an authenticated user subscribes, and fires onForumDigestOptionSelect(source: home-feed) once it succeeds', () => {

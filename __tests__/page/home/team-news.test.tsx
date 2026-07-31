@@ -37,6 +37,11 @@ const mockOnUpvoteToggled = jest.fn();
 const mockOnUpvoteFailed = jest.fn();
 const mockOnForumLikeToggled = jest.fn();
 const mockOnForumLikeFailed = jest.fn();
+const mockOnPopularCardViewed = jest.fn();
+const mockOnScrollSucceeded = jest.fn();
+const mockOnFallbackOpened = jest.fn();
+const mockOnTeamsToFollowViewed = jest.fn();
+const mockOnTeamsToFollowHidden = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
 const mockOnShared = jest.fn();
@@ -56,6 +61,11 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
     onFeedForumPostLikeToggled: (...a: unknown[]) => mockOnForumLikeToggled(...a),
     onFeedForumPostLikeFailed: (...a: unknown[]) => mockOnForumLikeFailed(...a),
+    onPopularCardViewed: (...a: unknown[]) => mockOnPopularCardViewed(...a),
+    onPopularStoryScrollSucceeded: (...a: unknown[]) => mockOnScrollSucceeded(...a),
+    onPopularStoryFallbackOpened: (...a: unknown[]) => mockOnFallbackOpened(...a),
+    onTeamsToFollowViewed: (...a: unknown[]) => mockOnTeamsToFollowViewed(...a),
+    onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
   }),
 }));
 

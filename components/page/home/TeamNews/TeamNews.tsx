@@ -598,6 +598,7 @@ export const TeamNews = ({
     if (!fullItem) {
       // Expired/removed from the 14-day window since Popular was ranked server-side.
       // Nothing to scroll to — fall back to the old behavior instead of a dead click.
+      analytics.onPopularStoryFallbackOpened(item, position);
       window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -642,8 +643,13 @@ export const TeamNews = ({
     const el = document.querySelector<HTMLElement>(selector);
     setScrollTarget(null); // one-shot signal — clear right after use so a later, unrelated remount can't replay it
 
-    if (el) revealStory(el);
-    // else: unexpected — flushSync above should guarantee `el` exists.
+    if (el) {
+      revealStory(el);
+      analytics.onPopularStoryScrollSucceeded(item, position);
+    }
+    // else: unexpected — flushSync above should guarantee `el` exists. Left
+    // unreported on purpose: clicked minus succeeded minus fallback IS this
+    // case, so it stays visible without inventing an event for it.
   };
 
   // A forum-access member with zero news in the window still gets their posts

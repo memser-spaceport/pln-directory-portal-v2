@@ -249,6 +249,44 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  /** The suggestions card appeared with real teams on it (not its loading
+   *  state). Once per appearance, not once per render. */
+  const onTeamsToFollowViewed = (suggestionCount: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TEAMS_TO_FOLLOW_VIEWED, { suggestionCount });
+  };
+
+  /** …and it left, which in practice means the member followed all of them. */
+  const onTeamsToFollowHidden = () => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TEAMS_TO_FOLLOW_HIDDEN, {});
+  };
+
+  /** The Popular-this-week card appeared with stories on it — the denominator
+   *  for its click-through, which was measured with no impression count. */
+  const onPopularCardViewed = (itemCount: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_CARD_VIEWED, { itemCount });
+  };
+
+  /** The popular rail's two outcomes. Its click event fires either way, so
+   *  clicked minus these two is the "flushSync should have made this
+   *  impossible" case. */
+  const onPopularStoryScrollSucceeded = (item: ITeamNewsPopularItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      position,
+    });
+  };
+
+  /** The story aged out of the 14-day window after Popular was ranked, so the
+   *  click opened the source article instead of scrolling to a card. */
+  const onPopularStoryFallbackOpened = (item: ITeamNewsPopularItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      position,
+    });
+  };
+
   const onTeamNewsPopularStoryClicked = (item: ITeamNewsPopularItem, position: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_CLICKED, {
       itemUid: item.uid,
@@ -507,6 +545,11 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsUpvoteFailed,
     onFeedForumPostLikeFailed,
     onTeamNewsPopularStoryClicked,
+    onPopularCardViewed,
+    onPopularStoryScrollSucceeded,
+    onPopularStoryFallbackOpened,
+    onTeamsToFollowViewed,
+    onTeamsToFollowHidden,
     onFeedForumPostCardClicked,
     onFeedForumPostModalOpened,
     onFeedForumPostLikeToggled,

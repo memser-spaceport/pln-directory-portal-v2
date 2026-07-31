@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { clampDepth } from '@/utils/comments';
-import { isBlankHtml } from '@/utils/html';
+import { countMentions, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { forumErrorMessage } from '@/services/forum/forum.service';
@@ -18,6 +18,7 @@ import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment
 import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { isForumPostUid, type IFeedComment } from '@/types/feed.types';
+import type { AnchorTarget } from '@/utils/html';
 
 import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
 
@@ -50,12 +51,6 @@ const TOO_LONG = 'That’s too long to post — try shortening it, or removing a
  *  badge shows (the backend counts every row under an item, at any depth). */
 function countComments(comments: readonly IFeedComment[]): number {
   return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
-}
-
-/** How many members this comment mentions — the class MentionBlot stamps is
- *  the only marker distinguishing a mention from an ordinary link. */
-function countMentions(html: string): number {
-  return html.match(/class="ql-mention"/g)?.length ?? 0;
 }
 
 /** Is `uid` this comment or anywhere in its subtree? */
@@ -187,9 +182,13 @@ export function FeedCommentsThread({
   // The only difference between the card and the modal. See the prop's doc.
   const isCard = onViewAll !== undefined;
 
-  const { data, isPending, isError, refetch } = useFeedComments(itemUid, { enabled: true });
-  const addComment = useAddFeedComment(itemUid, forumMainPid);
-  const deleteComment = useDeleteFeedComment(itemUid);
+  const { data, isPending, isError, errorUpdatedAt, refetch } = useFeedComments(itemUid, { enabled: true });
+  // The hooks report their own analytics, from their options callbacks — those
+  // survive the remount a tab or category change causes, which a callback
+  // passed to mutate() would not.
+  const analyticsContext = useMemo(() => ({ kind, source }), [kind, source]);
+  const addComment = useAddFeedComment(itemUid, forumMainPid, analyticsContext);
+  const deleteComment = useDeleteFeedComment(itemUid, analyticsContext);
 
   const isForumPost = isForumPostUid(itemUid);
   // Forum writes go through NodeBB, which enforces this itself; checking here
@@ -228,7 +227,21 @@ export function FeedCommentsThread({
     // a comment that looks well short of the limit can still be refused. Say
     // so here rather than letting it come back as a bare 400.
     if (trimmed.length > FEED_COMMENT_MAX_LENGTH) {
-      setOversizeParentUid(parentUid ?? null);
+      const target = parentUid ?? null;
+      // Only on the transition: submit is reachable from the form AND from
+      // Enter, so hammering Enter on an unchanged oversize draft would
+      // otherwise report the same refusal over and over.
+      if (oversizeParentUid !== target) {
+        setOversizeParentUid(target);
+        analytics.onFeedCommentFailed(itemUid, kind, source, Boolean(parentUid), {
+          reason: 'too-long-client',
+          // Plain numbers, hard-rule safe — and the only way to tell "wrote an
+          // essay" from "added six mentions and blew the markup budget", which
+          // is the distinction TOO_LONG's copy already draws.
+          length: trimmed.length,
+          mentionsCount: countMentions(trimmed),
+        });
+      }
       return false;
     }
     setOversizeParentUid(undefined);
@@ -240,11 +253,23 @@ export function FeedCommentsThread({
           // options callbacks, which survive this component unmounting.
           if (parentUid) setReplyingTo(null);
           else setDraft('');
-          analytics.onFeedCommentSubmitted(itemUid, kind, source, Boolean(parentUid), countMentions(trimmed));
         },
       },
     );
     return true;
+  };
+
+  // Someone followed something a member wrote. host only for links — a pasted
+  // URL's path or query can carry a token or a private document id.
+  const reportAnchorClick = (target: AnchorTarget) => {
+    if (target.kind === 'mention') {
+      analytics.onFeedCommentMentionClicked(itemUid, kind, source, target.memberUid);
+    } else if (target.kind === 'link') {
+      analytics.onFeedCommentLinkClicked(itemUid, kind, source, {
+        linkType: target.linkType,
+        ...(target.linkType === 'http' ? { host: target.host } : {}),
+      });
+    }
   };
 
   // Only the selection, never the draft it was typed into.
@@ -267,6 +292,9 @@ export function FeedCommentsThread({
   };
 
   const goToLogin = () => {
+    // The guest→member funnel's drop-off point. Fires before a soft #login nav,
+    // so unlike the session-expired path this one delivers reliably.
+    analytics.onFeedCommentSignInClicked(itemUid, kind, source);
     // A card passes onSignIn so the URL records which thread was open; without
     // it this is a bare /home#login and the member comes back to a collapsed
     // feed with no idea where they were.
@@ -296,6 +324,16 @@ export function FeedCommentsThread({
       ? (attempt?.parentUid ?? null)
       : undefined
     : oversizeParentUid;
+
+  // Keyed on errorUpdatedAt, NOT isError: in TanStack v5 a failing refetch of
+  // an already-errored query leaves status 'error' throughout, so an [isError]
+  // effect would fire once ever no matter how many retries failed — and the
+  // retry funnel would have no denominator.
+  useEffect(() => {
+    if (!isError) return;
+    analytics.onFeedCommentLoadFailed(itemUid, kind, source, Boolean(data));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorUpdatedAt, isError]);
 
   // "Latest ref" so the report below keys off the busy flag alone — callers
   // pass an inline arrow, and depending on its identity would re-fire every
@@ -379,7 +417,14 @@ export function FeedCommentsThread({
       ) : isError ? (
         <p className={s.error} role="alert">
           Couldn’t load comments —{' '}
-          <button type="button" className={s.retryBtn} onClick={() => refetch()}>
+          <button
+            type="button"
+            className={s.retryBtn}
+            onClick={() => {
+              analytics.onFeedCommentRetryClicked(itemUid, kind, source);
+              refetch();
+            }}
+          >
             retry
           </button>
         </p>
@@ -415,6 +460,7 @@ export function FeedCommentsThread({
               resetDelete={deleteComment.reset}
               forumTopicUrl={forumTopicUrl}
               onMentionSelected={reportMentionSelected}
+              onAnchorClick={reportAnchorClick}
             />
           ))}
           {showEscalation && (
@@ -548,7 +594,9 @@ function PendingRow({ text }: { text: string }) {
           <span className={s.time}>· posting…</span>
         </div>
         {/* Same pipeline as a landed comment, so a mention or link the member
-            just typed doesn't visibly change shape when the server confirms. */}
+            just typed doesn't visibly change shape when the server confirms.
+            No onAnchorClick: this is the member's own unsent comment, and
+            counting them clicking their own link would inflate the metric. */}
         <FeedCommentContent html={text} />
       </div>
     </div>
@@ -575,6 +623,7 @@ interface CommentRowProps {
   /** Where an attachment-only comment can actually be seen (forum posts only). */
   forumTopicUrl: string | undefined;
   onMentionSelected: (member: { uid: string; name: string }) => void;
+  onAnchorClick: (target: AnchorTarget) => void;
 }
 
 /**
@@ -607,6 +656,7 @@ function CommentRow(props: CommentRowProps) {
     resetDelete,
     forumTopicUrl,
     onMentionSelected,
+    onAnchorClick,
   } = props;
 
   const [replyDraft, setReplyDraft] = useState('');
@@ -669,7 +719,7 @@ function CommentRow(props: CommentRowProps) {
             where it can be seen, rather than rendering a blank row. Asked of
             the sanitized string: the raw one is a truthy `<img src=…>`. */}
         {hasRenderableContent(comment.text) ? (
-          <FeedCommentContent html={comment.text} />
+          <FeedCommentContent html={comment.text} onAnchorClick={onAnchorClick} />
         ) : (
           <p className={clsx(s.text, s.textAttachment)}>
             {forumTopicUrl ? (

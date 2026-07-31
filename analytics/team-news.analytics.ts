@@ -3,6 +3,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
 import type { ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { IFeedForumPost } from '@/types/feed.types';
+import type { CommentFailure } from '@/services/feed/commentFailure';
 
 /** 'news' | 'forum' — typed off the FeedEntry union so analytics can't drift
  *  from the feed's own discriminator. */
@@ -211,6 +212,81 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  /** The rollback half of onTeamNewsUpvoteToggled. Without it the like funnel
+   *  is measured on one side only, and an optimistic like that silently rolled
+   *  back is indistinguishable from one that stuck. */
+  const onTeamNewsUpvoteFailed = (
+    item: ITeamNewsItem,
+    position: number,
+    attemptedState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_UPVOTE_FAILED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      attemptedState,
+      position,
+      source,
+    });
+  };
+
+  /** Its own event, not a shared one with news upvotes: the success events are
+   *  separately named, and a shared failure event makes the ratio uncomputable
+   *  for both. */
+  const onFeedForumPostLikeFailed = (
+    post: IFeedForumPost,
+    position: number,
+    attemptedState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_LIKE_FAILED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      attemptedState,
+      position,
+      source,
+    });
+  };
+
+  /** The suggestions card appeared with real teams on it (not its loading
+   *  state). Once per appearance, not once per render. */
+  const onTeamsToFollowViewed = (suggestionCount: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TEAMS_TO_FOLLOW_VIEWED, { suggestionCount });
+  };
+
+  /** …and it left, which in practice means the member followed all of them. */
+  const onTeamsToFollowHidden = () => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TEAMS_TO_FOLLOW_HIDDEN, {});
+  };
+
+  /** The Popular-this-week card appeared with stories on it — the denominator
+   *  for its click-through, which was measured with no impression count. */
+  const onPopularCardViewed = (itemCount: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_CARD_VIEWED, { itemCount });
+  };
+
+  /** The popular rail's two outcomes. Its click event fires either way, so
+   *  clicked minus these two is the "flushSync should have made this
+   *  impossible" case. */
+  const onPopularStoryScrollSucceeded = (item: ITeamNewsPopularItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      position,
+    });
+  };
+
+  /** The story aged out of the 14-day window after Popular was ranked, so the
+   *  click opened the source article instead of scrolling to a card. */
+  const onPopularStoryFallbackOpened = (item: ITeamNewsPopularItem, position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      position,
+    });
+  };
+
   const onTeamNewsPopularStoryClicked = (item: ITeamNewsPopularItem, position: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_CLICKED, {
       itemUid: item.uid,
@@ -331,6 +407,112 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  // ── Comment failures and drop-offs ────────────────────────────────────────
+  // House rule for every event below: no comment text, no draft, no full URL,
+  // no raw server message. Reasons and counts only.
+
+  const onFeedCommentFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    isReply: boolean,
+    failure: CommentFailure,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_FAILED, {
+      itemUid,
+      kind,
+      source,
+      isReply,
+      ...failure,
+    });
+  };
+
+  const onFeedCommentDeleted = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    /** Rows removed including the cascaded replies — tells apart deleting a
+     *  leaf from deleting a whole conversation. */
+    removedCount: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_DELETED, {
+      itemUid,
+      kind,
+      source,
+      removedCount,
+    });
+  };
+
+  const onFeedCommentDeleteFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    failure: CommentFailure,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_DELETE_FAILED, {
+      itemUid,
+      kind,
+      source,
+      ...failure,
+    });
+  };
+
+  // The guest→member funnel, from inside a thread. Fires before a soft #login
+  // nav, so unlike the session-expired path it delivers reliably.
+  const onFeedCommentSignInClicked = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_SIGNIN_CLICKED, { itemUid, kind, source });
+  };
+
+  const onFeedCommentLoadFailed = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    /** The thread rendered its error state while cached comments existed, so
+     *  the member saw a failure over content that was actually there. */
+    hadCachedData: boolean,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_LOAD_FAILED, {
+      itemUid,
+      kind,
+      source,
+      hadCachedData,
+    });
+  };
+
+  const onFeedCommentRetryClicked = (itemUid: string, kind: FeedItemKind, source: TeamNewsAnalyticsSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_RETRY_CLICKED, { itemUid, kind, source });
+  };
+
+  /** `host` ONLY — a pasted URL's path or query can carry a token or a private
+   *  document id. A mailto link reports no host at all. */
+  const onFeedCommentLinkClicked = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    link: { linkType: 'http' | 'mailto'; host?: string },
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_LINK_CLICKED, {
+      itemUid,
+      kind,
+      source,
+      ...link,
+    });
+  };
+
+  const onFeedCommentMentionClicked = (
+    itemUid: string,
+    kind: FeedItemKind,
+    source: TeamNewsAnalyticsSource,
+    targetMemberUid: string,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_MENTION_CLICKED, {
+      itemUid,
+      kind,
+      source,
+      targetMemberUid,
+    });
+  };
+
   // Never include comment text or the draft here — only the selection.
   const onFeedCommentMentionSelected = (
     itemUid: string,
@@ -360,7 +542,14 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsSourceLinkClicked,
     onTeamNewsSearch,
     onTeamNewsUpvoteToggled,
+    onTeamNewsUpvoteFailed,
+    onFeedForumPostLikeFailed,
     onTeamNewsPopularStoryClicked,
+    onPopularCardViewed,
+    onPopularStoryScrollSucceeded,
+    onPopularStoryFallbackOpened,
+    onTeamsToFollowViewed,
+    onTeamsToFollowHidden,
     onFeedForumPostCardClicked,
     onFeedForumPostModalOpened,
     onFeedForumPostLikeToggled,
@@ -368,5 +557,13 @@ export const useTeamNewsAnalytics = () => {
     onFeedCommentThreadToggled,
     onFeedCommentSubmitted,
     onFeedCommentMentionSelected,
+    onFeedCommentFailed,
+    onFeedCommentDeleted,
+    onFeedCommentDeleteFailed,
+    onFeedCommentSignInClicked,
+    onFeedCommentLoadFailed,
+    onFeedCommentRetryClicked,
+    onFeedCommentLinkClicked,
+    onFeedCommentMentionClicked,
   };
 };

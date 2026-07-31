@@ -613,6 +613,17 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED: 'team-news-feed-comment-thread-toggled',
   TEAM_NEWS_FEED_COMMENT_SUBMITTED: 'team-news-feed-comment-submitted',
   TEAM_NEWS_FEED_COMMENT_MENTION_SELECTED: 'team-news-feed-comment-mention-selected',
+  // Failure and drop-off paths. Every other feed event fires on a completed
+  // action, so without these the members the product refuses are invisible.
+  TEAM_NEWS_FEED_COMMENT_FAILED: 'team-news-feed-comment-failed',
+  TEAM_NEWS_FEED_COMMENT_DELETED: 'team-news-feed-comment-deleted',
+  TEAM_NEWS_FEED_COMMENT_DELETE_FAILED: 'team-news-feed-comment-delete-failed',
+  TEAM_NEWS_FEED_COMMENT_SIGNIN_CLICKED: 'team-news-feed-comment-signin-clicked',
+  TEAM_NEWS_FEED_COMMENT_LOAD_FAILED: 'team-news-feed-comment-load-failed',
+  TEAM_NEWS_FEED_COMMENT_RETRY_CLICKED: 'team-news-feed-comment-retry-clicked',
+  TEAM_NEWS_FEED_COMMENT_LINK_CLICKED: 'team-news-feed-comment-link-clicked',
+  TEAM_NEWS_FEED_COMMENT_MENTION_CLICKED: 'team-news-feed-comment-mention-clicked',
+  TEAM_NEWS_FEED_FORUM_POST_LIKE_FAILED: 'team-news-feed-forum-post-like-failed',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

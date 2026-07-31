@@ -18,6 +18,12 @@ export function useFeedComments(itemUid: string, { enabled }: { enabled: boolean
     enabled,
     staleTime: FEED_COMMENTS_STALE_TIME,
     refetchOnWindowFocus: false,
+    // One retry, not the provider's default three. This is a foreground fetch
+    // a member is waiting on with an open thread: three attempts with backoff
+    // means the error state — and the retry button, and the analytics that go
+    // with it — arrive around seven seconds late, by which point most people
+    // have collapsed the thread and become invisible.
+    retry: 1,
   });
 }
 

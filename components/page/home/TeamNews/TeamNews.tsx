@@ -5,7 +5,11 @@ import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
 
-import { useTeamNewsAnalytics, type TeamNewsCardClickVia } from '@/analytics/team-news.analytics';
+import {
+  useTeamNewsAnalytics,
+  type TeamNewsAnalyticsSource,
+  type TeamNewsCardClickVia,
+} from '@/analytics/team-news.analytics';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
@@ -510,7 +514,10 @@ export const TeamNews = ({
   // Auth check + login redirect happens in the calling card component (see
   // NewsGroupCard.handleUpvoteClick), matching handleFollowToggle's split below —
   // this handler assumes an authenticated caller.
-  const handleUpvoteToggle = (item: ITeamNewsItem) => {
+  // `source` is a parameter, not the constant 'home' it used to be: this
+  // handler serves the card AND the detail modal, so hardcoding it made the
+  // dimension carry no information at all.
+  const handleUpvoteToggle = (item: ITeamNewsItem, source: TeamNewsAnalyticsSource = 'home') => {
     const wasUpvoted = Boolean(item.viewerHasUpvoted);
     const nextUpvoted = !wasUpvoted;
     const prevCount = item.upvoteCount ?? 0;
@@ -522,6 +529,8 @@ export const TeamNews = ({
       return next;
     });
 
+    // -1, not 0: a deep-linked modal item isn't in visibleEntries at all, and
+    // reporting it as position 0 makes it indistinguishable from the top card.
     const position = visibleEntries.findIndex((e) => e.kind === 'news' && e.cluster.teamUid === item.teamUid);
 
     upvoteMutate(
@@ -533,6 +542,7 @@ export const TeamNews = ({
             next.set(item.uid, { viewerHasUpvoted: wasUpvoted, upvoteCount: prevCount });
             return next;
           });
+          analytics.onTeamNewsUpvoteFailed(item, position, nextUpvoted, source);
         },
         onSuccess: (status) => {
           // Reconcile the optimistic overlay with the server's authoritative
@@ -544,7 +554,7 @@ export const TeamNews = ({
               return next;
             });
           }
-          analytics.onTeamNewsUpvoteToggled(item, position >= 0 ? position : 0, nextUpvoted, 'home');
+          analytics.onTeamNewsUpvoteToggled(item, position, nextUpvoted, source);
         },
       },
     );
@@ -554,7 +564,7 @@ export const TeamNews = ({
   // rollback on error, reconcile with the server's authoritative status). The
   // caller passes the overlay-merged post, so `viewerHasLiked` is current.
   // No signed-out branch: only access-holding (signed-in) viewers see posts.
-  const handleForumPostLikeToggle = (post: IFeedForumPost) => {
+  const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
     const wasLiked = post.viewerHasLiked;
     const nextLiked = !wasLiked;
     const prevCount = post.likeCount;
@@ -569,12 +579,13 @@ export const TeamNews = ({
       {
         onError: () => {
           setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));
+          analytics.onFeedForumPostLikeFailed(post, position, nextLiked, source);
         },
         onSuccess: (status) => {
           if (status) {
             setPostLikeOverlay((prev) => new Map(prev).set(post.uid, status));
           }
-          analytics.onFeedForumPostLikeToggled(post, position >= 0 ? position : 0, nextLiked, 'home');
+          analytics.onFeedForumPostLikeToggled(post, position, nextLiked, source);
         },
       },
     );
@@ -587,6 +598,7 @@ export const TeamNews = ({
     if (!fullItem) {
       // Expired/removed from the 14-day window since Popular was ranked server-side.
       // Nothing to scroll to — fall back to the old behavior instead of a dead click.
+      analytics.onPopularStoryFallbackOpened(item, position);
       window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -631,8 +643,13 @@ export const TeamNews = ({
     const el = document.querySelector<HTMLElement>(selector);
     setScrollTarget(null); // one-shot signal — clear right after use so a later, unrelated remount can't replay it
 
-    if (el) revealStory(el);
-    // else: unexpected — flushSync above should guarantee `el` exists.
+    if (el) {
+      revealStory(el);
+      analytics.onPopularStoryScrollSucceeded(item, position);
+    }
+    // else: unexpected — flushSync above should guarantee `el` exists. Left
+    // unreported on purpose: clicked minus succeeded minus fallback IS this
+    // case, so it stays visible without inventing an event for it.
   };
 
   // A forum-access member with zero news in the window still gets their posts
@@ -774,13 +791,17 @@ export const TeamNews = ({
         <NewsDetailModal
           item={activeNewsItem}
           onClose={closeNews}
-          onUpvoteToggle={handleUpvoteToggle}
+          onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
           isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
           onFollowToggle={handleFollowToggle}
         />
       )}
       {activeForumPost && (
-        <ForumPostModal post={activeForumPost} onClose={closePost} onLikeToggle={handleForumPostLikeToggle} />
+        <ForumPostModal
+          post={activeForumPost}
+          onClose={closePost}
+          onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
+        />
       )}
     </NewsBase>
   );

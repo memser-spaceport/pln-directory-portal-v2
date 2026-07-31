@@ -8,10 +8,21 @@ jest.unmock('@tanstack/react-query');
 
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { feedQueryKeys } from '@/services/feed/constants';
-import { createFeedComment } from '@/services/feed/feed.service';
+import { createFeedComment, FeedWriteError } from '@/services/feed/feed.service';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
 
-jest.mock('@/services/feed/feed.service', () => ({ createFeedComment: jest.fn() }));
+jest.mock('@/services/feed/feed.service', () => ({
+  ...jest.requireActual('@/services/feed/feed.service'),
+  createFeedComment: jest.fn(),
+}));
+
+const onFeedCommentSubmitted = jest.fn();
+const onFeedCommentFailed = jest.fn();
+jest.mock('@/analytics/team-news.analytics', () => ({
+  useTeamNewsAnalytics: () => ({ onFeedCommentSubmitted, onFeedCommentFailed }),
+}));
+
+const CONTEXT = { kind: 'news', source: 'home' } as const;
 
 const createFeedCommentMock = createFeedComment as jest.MockedFunction<typeof createFeedComment>;
 
@@ -157,5 +168,81 @@ describe('useAddFeedComment', () => {
 
     const patched = client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid));
     expect(patched?.items[0].replies[0].replies.map((c) => c.uid)).toEqual(['c-3']);
+  });
+});
+
+describe('useAddFeedComment — analytics', () => {
+  let client: QueryClient;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  });
+
+  function wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  }
+
+  it('reports a submitted comment from the HOOK, so a remount cannot swallow it', async () => {
+    const itemUid = 'n-1';
+    createFeedCommentMock.mockResolvedValue(comment('c-1', itemUid, 'Hi', '2026-01-01T00:00:00.000Z'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid, undefined, CONTEXT), { wrapper });
+    act(() => result.current.mutate({ text: '<p>hi <a class="ql-mention" data-uid="m_7">@Jane</a></p>' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // isReply false, one mention counted off the anchor class.
+    expect(onFeedCommentSubmitted).toHaveBeenCalledWith(itemUid, 'news', 'home', false, 1);
+  });
+
+  it('reports a reply as a reply, taking isReply from the mutation variables', async () => {
+    const itemUid = 'n-1';
+    createFeedCommentMock.mockResolvedValue(comment('c-2', itemUid, 'Yes', '2026-01-02T00:00:00.000Z', 'c-1'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid, undefined, CONTEXT), { wrapper });
+    act(() => result.current.mutate({ text: '<p>yes</p>', parentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(onFeedCommentSubmitted).toHaveBeenCalledWith(itemUid, 'news', 'home', true, 0);
+  });
+
+  it('reports a failure with a classified reason and status', async () => {
+    createFeedCommentMock.mockRejectedValue(new FeedWriteError('Failed to post feed comment', 429));
+
+    const { result } = renderHook(() => useAddFeedComment('n-1', undefined, CONTEXT), { wrapper });
+    act(() => result.current.mutate({ text: '<p>too fast</p>' }));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(onFeedCommentFailed).toHaveBeenCalledWith('n-1', 'news', 'home', false, {
+      reason: 'rate-limited',
+      status: 429,
+      errorKey: undefined,
+    });
+    expect(onFeedCommentSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('fires exactly once per mutation, not once per render', async () => {
+    createFeedCommentMock.mockResolvedValue(comment('c-1', 'n-1', 'Hi', '2026-01-01T00:00:00.000Z'));
+
+    const { result, rerender } = renderHook(() => useAddFeedComment('n-1', undefined, CONTEXT), { wrapper });
+    act(() => result.current.mutate({ text: '<p>hi</p>' }));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    rerender();
+    rerender();
+
+    expect(onFeedCommentSubmitted).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports nothing when no surface context was given', async () => {
+    createFeedCommentMock.mockResolvedValue(comment('c-1', 'n-1', 'Hi', '2026-01-01T00:00:00.000Z'));
+
+    const { result } = renderHook(() => useAddFeedComment('n-1'), { wrapper });
+    act(() => result.current.mutate({ text: '<p>hi</p>' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(onFeedCommentSubmitted).not.toHaveBeenCalled();
   });
 });

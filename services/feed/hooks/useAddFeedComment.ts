@@ -3,8 +3,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
 import { insertCommentIntoTree } from '@/utils/comments';
+import { countMentions } from '@/utils/html';
+import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { feedQueryKeys } from '../constants';
+import { classifyCommentFailure } from '../commentFailure';
 import { createFeedComment } from '../feed.service';
+
+/** Which surface a write came from, so its analytics can say. */
+export interface FeedCommentContext {
+  kind: FeedItemKind;
+  source: TeamNewsAnalyticsSource;
+}
 
 // Per-item mutation (itemUid bound at hook creation so `scope` can serialize
 // rapid submits across surfaces — the card composer and the modal composer are
@@ -23,13 +32,42 @@ import { createFeedComment } from '../feed.service';
 // `forumMainPid` is the topic's opening post, which a top-level comment on a
 // forum post replies to. Passed in by the surface that already has the post so
 // the write costs one request; ignored entirely for news items.
-export function useAddFeedComment(itemUid: string, forumMainPid?: number) {
+export function useAddFeedComment(itemUid: string, forumMainPid?: number, context?: FeedCommentContext) {
   const queryClient = useQueryClient();
+  const analytics = useTeamNewsAnalytics();
 
   return useMutation<IFeedComment, Error, { text: string; parentUid?: string }>({
     scope: { id: `feed-comment-${itemUid}` },
     mutationFn: ({ text, parentUid }) => createFeedComment({ itemUid, parentUid, text, forumMainPid }),
-    onSuccess: async (created) => {
+    // Analytics live here with the cache writes, for the same reason: a tab or
+    // category change remounts the card mid-flight, and a mutate()-level
+    // callback would simply not run. Submitted used to be reported from the
+    // component and was therefore already silently lossy — putting the failure
+    // event anywhere else would make the failure RATE wrong, in a direction
+    // nobody could work out from the data.
+    onError: (error, { parentUid }) => {
+      if (!context) return;
+      // `parentUid` comes from the mutation's own variables, never component
+      // state: the member can close a reply composer while the write is in
+      // flight, and `replyingTo` would then describe the wrong thing.
+      analytics.onFeedCommentFailed(
+        itemUid,
+        context.kind,
+        context.source,
+        Boolean(parentUid),
+        classifyCommentFailure(error),
+      );
+    },
+    onSuccess: async (created, { text, parentUid }) => {
+      if (context) {
+        analytics.onFeedCommentSubmitted(
+          itemUid,
+          context.kind,
+          context.source,
+          Boolean(parentUid),
+          countMentions(text),
+        );
+      }
       // Cancel BEFORE writing — an in-flight thread/counts refetch whose server
       // snapshot predates this POST would clobber the append when it lands.
       await Promise.all([

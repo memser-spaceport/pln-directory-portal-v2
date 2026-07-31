@@ -68,8 +68,23 @@ jest.mock('next/dynamic', () => () => {
 
 const onFeedCommentSubmitted = jest.fn();
 const onFeedCommentMentionSelected = jest.fn();
+const onFeedCommentFailed = jest.fn();
+const onFeedCommentSignInClicked = jest.fn();
+const onFeedCommentLoadFailed = jest.fn();
+const onFeedCommentRetryClicked = jest.fn();
+const onFeedCommentLinkClicked = jest.fn();
+const onFeedCommentMentionClicked = jest.fn();
 jest.mock('@/analytics/team-news.analytics', () => ({
-  useTeamNewsAnalytics: () => ({ onFeedCommentSubmitted, onFeedCommentMentionSelected }),
+  useTeamNewsAnalytics: () => ({
+    onFeedCommentSubmitted,
+    onFeedCommentMentionSelected,
+    onFeedCommentFailed,
+    onFeedCommentSignInClicked,
+    onFeedCommentLoadFailed,
+    onFeedCommentRetryClicked,
+    onFeedCommentLinkClicked,
+    onFeedCommentMentionClicked,
+  }),
 }));
 
 // Forum writes are gated on forum.write, the same gate the /forum composer uses.
@@ -444,28 +459,29 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     expect(mutation.mutate).not.toHaveBeenCalled();
   });
 
-  it('reports the mention count with a submitted comment, and the selection when it is picked', () => {
+  it('forwards a picked mention to analytics without touching the draft', () => {
     mockThread([]);
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     // The editor owns the dropdown; the thread only forwards the selection.
+    // (submitted/failed are reported by the mutation hook now, so they're
+    // covered in useAddFeedComment.test.tsx — the hook is mocked here.)
     mockEditorProps.mock.calls.at(-1)?.[0].onMentionSelected({ uid: 'm_7fa2', name: 'Jane Doe' });
+
     expect(onFeedCommentMentionSelected).toHaveBeenCalledWith('n-1', 'news', 'home', {
       memberUid: 'm_7fa2',
       memberName: 'Jane Doe',
     });
+  });
 
-    const mutation = useAddFeedCommentMock.mock.results[0].value;
-    const field = screen.getByPlaceholderText('Write your comment here…');
-    fireEvent.change(field, {
-      target: { value: '<p>hi <a class="ql-mention" data-uid="m_7fa2">@Jane Doe</a></p>' },
-    });
-    fireEvent.submit(field.closest('form')!);
+  it('gives the mutation hooks the surface context they report with', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
 
-    const { onSuccess } = mutation.mutate.mock.calls[0][1];
-    act(() => onSuccess());
-    expect(onFeedCommentSubmitted).toHaveBeenCalledWith('n-1', 'news', 'home', false, 1);
+    expect(useAddFeedCommentMock).toHaveBeenCalledWith('fp_96', 263, { kind: 'forum', source: 'news-modal' });
+    expect(useDeleteFeedCommentMock).toHaveBeenCalledWith('fp_96', { kind: 'forum', source: 'news-modal' });
   });
 
   it('refuses a comment whose markup exceeds the server’s cap, and says why', () => {
@@ -746,6 +762,152 @@ describe('FeedCommentsThread — signed-out gate', () => {
     expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'sign in to comment' })).not.toBeInTheDocument();
     expect(screen.getByText('Readable')).toBeInTheDocument();
+  });
+});
+
+describe('FeedCommentsThread — drop-off analytics', () => {
+  it('reports the sign-in gate click — the guest→member drop-off', () => {
+    signOut();
+    mockThread([comment('c1', 'Readable')]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));
+
+    expect(onFeedCommentSignInClicked).toHaveBeenCalledWith('n-1', 'news', 'home');
+  });
+
+  it('reports a too-long refusal ONCE, with sizes rather than content', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    const oversize = `<p>${'a'.repeat(2100)}<a class="ql-mention" data-uid="m_1">@A</a></p>`;
+    fireEvent.change(field, { target: { value: oversize } });
+
+    // Submit is reachable from the form AND from Enter; repeating it on an
+    // unchanged draft must not re-report the same refusal.
+    fireEvent.submit(field.closest('form')!);
+    fireEvent.keyDown(field, { key: 'Enter' });
+    fireEvent.submit(field.closest('form')!);
+
+    expect(onFeedCommentFailed).toHaveBeenCalledTimes(1);
+    expect(onFeedCommentFailed).toHaveBeenCalledWith('n-1', 'news', 'home', false, {
+      reason: 'too-long-client',
+      length: oversize.length,
+      mentionsCount: 1,
+    });
+    // The draft itself never travels.
+    expect(JSON.stringify(onFeedCommentFailed.mock.calls)).not.toContain('aaaa');
+  });
+
+  it('reports a load failure, saying whether cached comments were on screen', () => {
+    useFeedCommentsMock.mockReturnValue({ isError: true, errorUpdatedAt: 1, refetch: jest.fn(), data: undefined });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(onFeedCommentLoadFailed).toHaveBeenCalledWith('n-1', 'news', 'home', false);
+  });
+
+  it('reports a load failure AGAIN when a retry fails', () => {
+    const refetch = jest.fn();
+    useFeedCommentsMock.mockReturnValue({ isError: true, errorUpdatedAt: 1, refetch, data: undefined });
+    mockMutation(useAddFeedCommentMock);
+    const { rerender } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+    expect(onFeedCommentRetryClicked).toHaveBeenCalledWith('n-1', 'news', 'home');
+
+    // A failing refetch of an already-errored query never flips isError, so an
+    // effect keyed on it would fire once ever and leave the retry funnel open.
+    useFeedCommentsMock.mockReturnValue({ isError: true, errorUpdatedAt: 2, refetch, data: undefined });
+    rerender(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(onFeedCommentLoadFailed).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not re-report a load failure on an unrelated re-render', () => {
+    useFeedCommentsMock.mockReturnValue({ isError: true, errorUpdatedAt: 1, refetch: jest.fn(), data: undefined });
+    mockMutation(useAddFeedCommentMock);
+    const { rerender } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    rerender(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+    rerender(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    expect(onFeedCommentLoadFailed).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('FeedCommentsThread — clicks inside a comment', () => {
+  it('reports a mention click with the member it points at', () => {
+    mockThread([comment('c1', '')]);
+    useFeedCommentsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            ...comment('c1', ''),
+            text: '<p>thanks <a class="ql-mention" href="/members/m_7fa2" data-uid="m_7fa2">@Jane</a></p>',
+          },
+        ],
+      },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('link', { name: '@Jane' }));
+
+    expect(onFeedCommentMentionClicked).toHaveBeenCalledWith('n-1', 'news', 'home', 'm_7fa2');
+    expect(onFeedCommentLinkClicked).not.toHaveBeenCalled();
+  });
+
+  it('reports a link click with the host only', () => {
+    useFeedCommentsMock.mockReturnValue({
+      data: {
+        items: [{ ...comment('c1', ''), text: '<p>see https://docs.example.com/secret?token=abc</p>' }],
+      },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('link', { name: /docs\.example\.com/ }));
+
+    expect(onFeedCommentLinkClicked).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      linkType: 'http',
+      host: 'docs.example.com',
+    });
+    expect(JSON.stringify(onFeedCommentLinkClicked.mock.calls)).not.toContain('token=abc');
+  });
+
+  it('does NOT report the thread’s own forum chrome links', () => {
+    // "N more comments on the forum →" lives in the thread, not in a comment.
+    // A listener on the thread root would have counted it as a comment link.
+    mockThread([comment('c1', 'One'), comment('c2', 'Two')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    fireEvent.click(screen.getByRole('link', { name: /more comments on the forum/ }));
+
+    expect(onFeedCommentLinkClicked).not.toHaveBeenCalled();
+  });
+
+  it('reports a middle-click, which fires auxclick rather than click', () => {
+    useFeedCommentsMock.mockReturnValue({
+      data: { items: [{ ...comment('c1', ''), text: '<p>see https://example.com/a</p>' }] },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // No fireEvent.auxClick helper in this version of testing-library.
+    fireEvent(
+      screen.getByRole('link', { name: /example\.com/ }),
+      new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }),
+    );
+
+    expect(onFeedCommentLinkClicked).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      linkType: 'http',
+      host: 'example.com',
+    });
   });
 });
 

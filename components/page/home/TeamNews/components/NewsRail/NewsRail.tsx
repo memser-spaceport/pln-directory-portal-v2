@@ -9,6 +9,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useGetForumDigestSettings, type ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
 import { useUpdateForumDigestSettings } from '@/services/forum/hooks/useUpdateForumDigestSettings';
 import { useSettingsAnalytics } from '@/analytics/settings.analytics';
+import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import type { ISuggestedTeam, ITeamNewsPopularItem } from '@/types/team-news.types';
 
@@ -173,6 +174,7 @@ export function NewsRail({
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const analytics = useSettingsAnalytics();
+  const teamNewsAnalytics = useTeamNewsAnalytics();
   const { mutate } = useUpdateForumDigestSettings();
   const visibleSuggestions = useDelayedHideFollowedSuggestions(suggestedTeams, followedTeamUids);
 
@@ -213,6 +215,30 @@ export function NewsRail({
   // the rail smoothly reflow into the space that frees up, rather than jumping.
   const showTeamsToFollow = Boolean(onFollowToggle) && (isLoadingSuggestedTeams || visibleSuggestions.length > 0);
   const showPopular = popularItems.length > 0;
+
+  // Two constants for this card were declared and never fired. Wired off the
+  // mount decision above, which is the only place that knows both outcomes:
+  // the card appearing with real suggestions, and it leaving — which happens
+  // when the member has followed every one, the completion of this funnel.
+  const suggestionsShown = showTeamsToFollow && !isLoadingSuggestedTeams ? visibleSuggestions.length : 0;
+  const wasShownRef = useRef(false);
+  useEffect(() => {
+    if (suggestionsShown > 0 && !wasShownRef.current) {
+      wasShownRef.current = true;
+      teamNewsAnalytics.onTeamsToFollowViewed(suggestionsShown);
+    } else if (suggestionsShown === 0 && wasShownRef.current && !isLoadingSuggestedTeams) {
+      wasShownRef.current = false;
+      teamNewsAnalytics.onTeamsToFollowHidden();
+    }
+  }, [suggestionsShown, isLoadingSuggestedTeams, teamNewsAnalytics]);
+
+  // Popular-this-week's click-through had a numerator and no denominator.
+  const popularShownRef = useRef(false);
+  useEffect(() => {
+    if (!showPopular || popularShownRef.current) return;
+    popularShownRef.current = true;
+    teamNewsAnalytics.onPopularCardViewed(popularItems.length);
+  }, [showPopular, popularItems.length, teamNewsAnalytics]);
 
   return (
     <aside className={s.rail} aria-label="News feed sidebar">

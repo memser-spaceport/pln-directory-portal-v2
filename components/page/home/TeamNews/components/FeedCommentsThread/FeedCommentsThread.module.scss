@@ -399,6 +399,38 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Comment bodies are sanitized HTML now (p / br / a only). Link + mention
+   treatment copied from the forum's CommentItem.module.scss `.autoLink` rather
+   than imported — copying is the house rule for crossing page-domain
+   boundaries. `overflow-wrap` matters: a pasted URL is one unbreakable token
+   and will otherwise push a card wider than the feed. */
+.richText {
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0;
+
+    + p {
+      margin-top: 8px;
+    }
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* A mention is a member's name, so it reads as a name first and a link
+     second — weight instead of the plain link colour's full contrast. */
+  :global(.ql-mention) {
+    font-weight: 600;
+  }
+}
+
 /* Own-comment delete affordance — quiet until hovered, matching .viewAll's
    "don't compete with the content" treatment. */
 .deleteBtn {

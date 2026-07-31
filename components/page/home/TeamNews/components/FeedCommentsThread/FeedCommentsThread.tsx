@@ -17,6 +17,8 @@ import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { isForumPostUid, type IFeedComment } from '@/types/feed.types';
 
+import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
+
 import s from './FeedCommentsThread.module.scss';
 
 // Show at most this many TOP-LEVEL comments before capping behind "View all N …".
@@ -463,7 +465,9 @@ function PendingRow({ text }: { text: string }) {
           <span className={s.name}>{name}</span>
           <span className={s.time}>· posting…</span>
         </div>
-        <p className={s.text}>{text}</p>
+        {/* Same pipeline as a landed comment, so a mention or link the member
+            just typed doesn't visibly change shape when the server confirms. */}
+        <FeedCommentContent html={text} />
       </div>
     </div>
   );
@@ -576,11 +580,12 @@ function CommentRow(props: CommentRowProps) {
               </button>
             ))}
         </div>
-        {/* A forum comment that was only an image or a file strips to nothing —
-            the text is plain by contract, and the attachment isn't in it. Say so
-            and point at where it can be seen, rather than rendering a blank row. */}
-        {comment.text ? (
-          <p className={s.text}>{comment.text}</p>
+        {/* A forum comment that was only an image or a file sanitizes to
+            nothing under the feed's three-tag allowlist. Say so and point at
+            where it can be seen, rather than rendering a blank row. Asked of
+            the sanitized string: the raw one is a truthy `<img src=…>`. */}
+        {hasRenderableContent(comment.text) ? (
+          <FeedCommentContent html={comment.text} />
         ) : (
           <p className={clsx(s.text, s.textAttachment)}>
             {forumTopicUrl ? (

@@ -148,12 +148,16 @@ describe('FeedCommentsThread — list', () => {
     expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
   });
 
-  it('renders comment text as inert text — a script tag never executes or nests markup', () => {
-    mockThread([comment('c1', '<script>alert(1)</script>')]);
+  it('strips a script tag out of comment content entirely', () => {
+    mockThread([comment('c1', '<script>alert(1)</script>Hello')]);
     mockMutation(useAddFeedCommentMock);
     const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
-    expect(screen.getByText('<script>alert(1)</script>')).toBeInTheDocument();
+
+    // Content is sanitized HTML now, so the tag is removed rather than shown
+    // literally — but it must never survive in any form.
     expect(container.querySelector('script')).toBeNull();
+    expect(container.textContent).not.toContain('alert(1)');
+    expect(screen.getByText('Hello')).toBeInTheDocument();
   });
 
   it('falls back to a readable byline when the author has no name (the wire allows null)', () => {
@@ -300,8 +304,10 @@ describe('FeedCommentsThread — replies', () => {
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     const pending = screen.getByText('Sending');
-    const answeredRow = screen.getByText('Answered').closest('div');
-    const untouchedRow = screen.getByText('Untouched').closest('div');
+    // `.item` is the whole comment row. Not `.closest('div')` — comment bodies
+    // are a div-wrapped <p> now, so that would stop at the content wrapper.
+    const answeredRow = screen.getByText('Answered').closest('.item');
+    const untouchedRow = screen.getByText('Untouched').closest('.item');
 
     expect(answeredRow?.contains(pending)).toBe(true);
     expect(untouchedRow?.contains(pending)).toBe(false);

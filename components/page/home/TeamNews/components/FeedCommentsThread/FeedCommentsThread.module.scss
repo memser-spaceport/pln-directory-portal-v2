@@ -62,6 +62,14 @@
   cursor: pointer;
 }
 
+/* Holds the editor's place while Quill lazy-loads, so the composer row doesn't
+   jump when it arrives. */
+.composerLoading {
+  height: 40px;
+  border-radius: var(--corner-radius-md, 8px);
+  background: var(--background-neutral-subtle, rgba(27, 56, 96, 0.06));
+}
+
 /* Composer input — reproduces the production forum FormField input (its border
    + focus ring) at the 40px composer height. */
 .forumField {

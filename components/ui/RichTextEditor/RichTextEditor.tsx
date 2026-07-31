@@ -37,6 +37,11 @@ interface Props {
   placeholder?: string;
   toolbarConfig?: (string | Record<string, unknown>)[][];
   minHeight?: number;
+  /** Opt in to Enter-submits / Shift+Enter-newlines, for single-message
+   *  composers rather than documents. Lives here rather than in the caller
+   *  because only this component knows whether the mention dropdown is open,
+   *  and Enter belongs to the dropdown whenever it is. */
+  onSubmit?: () => void;
 }
 
 const QL_EDITOR_CLASS = 'ql-editor';
@@ -77,6 +82,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     placeholder,
     toolbarConfig,
     minHeight,
+    onSubmit,
   } = props;
 
   const quillRef = useRef<any>(null);
@@ -372,6 +378,18 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     }
   };
 
+  // Capture phase, on the container: Quill's own keyboard module listens on
+  // the editor root, so intercepting here runs first and preventDefault stops
+  // the newline. Enter belongs to the mention dropdown whenever it is open.
+  const handleKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (!onSubmit) return;
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    if (enableMentions && mentionState.isOpen) return;
+    e.preventDefault();
+    e.stopPropagation();
+    onSubmit();
+  };
+
   return (
     <div
       ref={editorContainerRef}
@@ -379,6 +397,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         [s.error]: !!errorMessage,
       })}
       id={id}
+      onKeyDownCapture={onSubmit ? handleKeyDownCapture : undefined}
     >
       <ReactQuill
         ref={mergeRefs([ref, quillRef])}

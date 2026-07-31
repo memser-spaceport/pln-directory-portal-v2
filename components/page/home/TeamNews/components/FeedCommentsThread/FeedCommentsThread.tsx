@@ -1,12 +1,14 @@
 'use client';
 
 import clsx from 'clsx';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { clampDepth } from '@/utils/comments';
+import { isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { forumErrorMessage } from '@/services/forum/forum.service';
@@ -21,6 +23,15 @@ import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
 
 import s from './FeedCommentsThread.module.scss';
 
+// Quill is ~100kB of editor for a one-line comment box, and most /home visits
+// never open a composer. ssr:false because it needs the DOM.
+// Imported by path, not through the barrel: `index.ts` is `export *`, which
+// does not re-export the default, so dynamic() would resolve to no component.
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor/RichTextEditor'), {
+  ssr: false,
+  loading: () => <div className={s.composerLoading} />,
+});
+
 // Show at most this many TOP-LEVEL comments before capping behind "View all N …".
 const VISIBLE = 2;
 
@@ -31,6 +42,9 @@ const VISIBLE = 2;
 const MAX_DEPTH = 2;
 
 const POST_FAILED = 'Couldn’t post your comment — try again.';
+// A mention costs ~150 characters of markup behind a short name, so this can
+// fire on a comment that looks well within the limit. Name the likely cause.
+const TOO_LONG = 'That’s too long to post — try shortening it, or removing a mention.';
 
 /** Total comments in the thread, replies included — matches what the count
  *  badge shows (the backend counts every row under an item, at any depth). */
@@ -156,6 +170,10 @@ export function FeedCommentsThread({
   // One open reply composer at a time — a thread full of open inputs is noise,
   // and the draft belongs to whichever comment the member is answering.
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  // Which composer, if any, refused a submit for exceeding the server's cap on
+  // the serialised string. `undefined` = no such failure; `null` = the
+  // top-level composer, mirroring how errorParentUid reads.
+  const [oversizeParentUid, setOversizeParentUid] = useState<string | null | undefined>(undefined);
 
   // The only difference between the card and the modal. See the prop's doc.
   const isCard = onViewAll !== undefined;
@@ -194,7 +212,17 @@ export function FeedCommentsThread({
 
   const submit = (text: string, parentUid?: string) => {
     const trimmed = text.trim();
-    if (!trimmed || addComment.isPending) return false;
+    // isBlankHtml, not `!trimmed` — Quill's empty value is `<p><br></p>`.
+    if (isBlankHtml(trimmed) || addComment.isPending) return false;
+    // The composer caps VISIBLE characters, but the server caps the serialised
+    // string. A mention anchor is ~150 characters of markup behind a name, so
+    // a comment that looks well short of the limit can still be refused. Say
+    // so here rather than letting it come back as a bare 400.
+    if (trimmed.length > FEED_COMMENT_MAX_LENGTH) {
+      setOversizeParentUid(parentUid ?? null);
+      return false;
+    }
+    setOversizeParentUid(undefined);
     addComment.mutate(
       { text: trimmed, parentUid },
       {
@@ -213,6 +241,7 @@ export function FeedCommentsThread({
   const clearError = () => {
     // A stale "couldn't post" must not sit above a fresh draft.
     if (addComment.isError) addComment.reset();
+    if (oversizeParentUid !== undefined) setOversizeParentUid(undefined);
   };
 
   const handleDraftChange = (value: string) => {
@@ -240,10 +269,16 @@ export function FeedCommentsThread({
     ? isForumPost
       ? forumErrorMessage(addComment.error, POST_FAILED)
       : POST_FAILED
-    : undefined;
+    : oversizeParentUid !== undefined
+      ? TOO_LONG
+      : undefined;
   // `null` = the failure belongs to the top-level composer; a uid = to that
   // comment's reply composer. Without this the same error renders in both.
-  const errorParentUid = errorText ? (attempt?.parentUid ?? null) : undefined;
+  const errorParentUid = addComment.isError
+    ? errorText
+      ? (attempt?.parentUid ?? null)
+      : undefined
+    : oversizeParentUid;
 
   // "Latest ref" so the report below keys off the busy flag alone — callers
   // pass an inline arrow, and depending on its identity would re-fire every
@@ -395,7 +430,19 @@ interface ComposerProps {
   autoFocus?: boolean;
 }
 
-/** The composer row, shared by the thread's own input and every reply input. */
+/**
+ * The composer row, shared by the thread's own input and every reply input.
+ *
+ * A Quill editor rather than an <input>, so that a mention is written in the
+ * forum's own `ql-mention` anchor format — the only encoding that renders on
+ * both /home and /forum. Lazy-loaded: Quill stays out of the /home bundle
+ * until a member actually opens a composer.
+ *
+ * Configured down to something that looks like a text field: no toolbar, which
+ * also drops the imageUploader module (it is registered only when the toolbar
+ * carries 'image') and with it the only code path in RichTextEditor that can
+ * fire a toast — banned throughout TeamNews.
+ */
 function Composer({
   value,
   onChange,
@@ -406,7 +453,9 @@ function Composer({
   onCancel,
   autoFocus,
 }: ComposerProps) {
-  const canSubmit = Boolean(value.trim()) && !disabled;
+  // Quill's "empty" value is `<p><br></p>`, which is truthy — `value.trim()`
+  // would have happily enabled submit on an empty composer.
+  const canSubmit = !isBlankHtml(value) && !disabled;
 
   return (
     <form
@@ -415,26 +464,34 @@ function Composer({
         e.preventDefault();
         onSubmit();
       }}
+      // Escape backs out of a reply composer, which is what everyone expects of
+      // one. Only inline: inside the modal, Modal's own capture-phase listener
+      // sees Escape first and closes the whole dialog.
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && onCancel) {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
     >
-      <input
-        className={s.forumField}
-        value={value}
-        maxLength={FEED_COMMENT_MAX_LENGTH}
-        placeholder={placeholder}
-        // Opening a reply box is an explicit request to type in it, so focus
-        // follows the click rather than making the member click twice.
-        autoFocus={autoFocus}
-        onChange={(e) => onChange(e.target.value)}
-        // Escape backs out of a reply composer, which is what everyone expects
-        // of one. Only inline: inside the modal, Modal's own capture-phase
-        // listener sees Escape first and closes the whole dialog.
-        onKeyDown={(e) => {
-          if (e.key === 'Escape' && onCancel) {
-            e.preventDefault();
-            onCancel();
-          }
-        }}
-      />
+      <div className={s.forumField}>
+        <RichTextEditor
+          value={value}
+          onChange={onChange}
+          onSubmit={onSubmit}
+          enableMentions
+          // Empty toolbar: no formatting UI, and no imageUploader module.
+          toolbarConfig={[]}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoFocus={autoFocus}
+          // Counts VISIBLE characters (Quill's getLength), not markup — which
+          // is what a member perceives. The server's cap is on the serialised
+          // string, so `submit` guards that separately.
+          maxLength={FEED_COMMENT_MAX_LENGTH}
+          minHeight={40}
+        />
+      </div>
       {onCancel && (
         <button type="button" className={s.replyCancelBtn} onClick={onCancel}>
           Cancel

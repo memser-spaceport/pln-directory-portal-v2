@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 /* Inline feed-comment thread revealed under a story / forum post. Ported from
    the approved newsfeed-v0 prototype (prototypes/entries/newsfeed-v0/
    CommentsThread.module.scss). `.inline` and `.primaryBtn` are COPIED from the
@@ -312,6 +314,29 @@
   margin-top: 14px;
   padding-left: 16px;
   min-width: 0;
+
+  @include media.mobile-only {
+    padding-left: 12px;
+  }
+}
+
+/* The reply row is input + Cancel + Reply on one line. At depth 2 on a phone
+   that leaves the input around 90px once the card padding, two indent levels,
+   the avatar and both buttons are taken out — .forumField already
+   ellipsis-truncates its own placeholder, which was the tell. Stack instead:
+   full-width input, buttons right-aligned underneath. */
+@include media.mobile-only {
+  .replyComposer .inline {
+    flex-wrap: wrap;
+  }
+
+  .replyComposer .forumField {
+    flex: 1 0 100%;
+  }
+
+  .replyComposer .replyCancelBtn {
+    margin-left: auto;
+  }
 }
 
 .avatar {

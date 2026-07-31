@@ -1,18 +1,26 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { IFeedCommentCountsResponse, IFeedForumPost } from '@/types/feed.types';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useFeedForumPosts } from '@/services/feed/hooks/useFeedForumPosts';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
-import { feedQueryKeys } from '@/services/feed/constants';
+import { FEED_FORUM_POST_WINDOW_DAYS, feedQueryKeys } from '@/services/feed/constants';
+import { feedWindowCutoffIso, withinFeedWindow } from '../utils/feedForumPostWindow';
 
 interface UseFeedSocialResult {
-  /** Access-gated, ready-to-merge posts; undefined = news-only (not loaded,
-   *  no access, error — the caller never needs to know which). */
+  /** Access-gated, ready-to-merge posts, trimmed to the last
+   *  FEED_FORUM_POST_WINDOW_DAYS; undefined = news-only (not loaded, no access,
+   *  error — the caller never needs to know which). This is the default for ALL
+   *  rendering, counting, merging and analytics. */
   forumPosts: IFeedForumPost[] | undefined;
+  /** The same access-gated list with only the date window lifted — NOT the
+   *  access gate, which applies identically to both. Exists solely so a shared
+   *  ?post= link to an older topic still resolves and renders; anything that
+   *  decides what the feed SHOWS must use `forumPosts` instead. */
+  unwindowedForumPosts: IFeedForumPost[] | undefined;
   hasAccess: boolean;
   /** True once a ?post= deep link can be resolved conclusively — every async
    *  gate (store hydration, access query, posts query) has settled. Built on
@@ -77,8 +85,27 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   const postsGatePending = hasAccess && postsQuery.isPending && !postsQuery.isError;
   const deepLinkSettled = isHydrated && !accessGatePending && !postsGatePending;
 
+  // Mount-time cutoff (setter-less useState, the same idiom useForumPostDeepLink
+  // uses and what this repo's react-hooks/refs rule requires instead of reading
+  // the clock in the render body). Fixed once because the posts query is
+  // session-frozen: a cutoff recomputed each render would creep forward and
+  // could drop a post out from under someone mid-read.
+  //
+  // No hydration risk from the clock read: on the server the user store is
+  // unhydrated, so hasAccess is false and forumPosts is undefined — the cutoff
+  // never reaches rendered output.
+  const [cutoffIso] = useState(() => feedWindowCutoffIso(FEED_FORUM_POST_WINDOW_DAYS, Date.now()));
+
+  const unwindowedForumPosts = hasAccess ? postsQuery.data?.items : undefined;
+  // Memoized, not just tidy: TeamNews feeds this array into useMemo deps whose
+  // whole purpose is to keep the feed merge from re-running on unrelated
+  // renders (upvote-overlay writes). A fresh .filter() every render would
+  // silently defeat that.
+  const forumPosts = useMemo(() => withinFeedWindow(unwindowedForumPosts, cutoffIso), [unwindowedForumPosts, cutoffIso]);
+
   return {
-    forumPosts: hasAccess ? postsQuery.data?.items : undefined,
+    forumPosts,
+    unwindowedForumPosts,
     hasAccess,
     deepLinkSettled,
   };

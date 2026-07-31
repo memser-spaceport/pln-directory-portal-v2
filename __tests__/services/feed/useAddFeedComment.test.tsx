@@ -113,6 +113,31 @@ describe('useAddFeedComment', () => {
     expect(client.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts())?.[itemUid]).toBe(2);
   });
 
+  it('preserves forumTopic on the entry — the patch must not rebuild it from items alone', async () => {
+    const itemUid = 'fp_3';
+    const forumTopic = {
+      url: '/forum/topics/5/96',
+      totalReplyCount: 40,
+      like: { likeCount: 3, viewerHasLiked: true },
+    };
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+      items: [comment('c-1', itemUid, 'First', '2026-01-01T00:00:00.000Z')],
+      forumTopic,
+    });
+
+    createFeedCommentMock.mockResolvedValue(comment('c-2', itemUid, 'Second', '2026-01-02T00:00:00.000Z'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Second' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Dropping forumTopic silently kills the "N more comments on the forum"
+    // link, the escalation label's honesty about unloaded replies, and
+    // useFeedForumTopicLike's view of the vote state.
+    expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.forumTopic).toEqual(forumTopic);
+  });
+
   it('nests a reply-to-a-reply under the right comment, several levels down', async () => {
     const itemUid = 'n-1';
     client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {

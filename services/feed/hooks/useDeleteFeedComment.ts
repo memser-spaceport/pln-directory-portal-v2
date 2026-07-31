@@ -33,7 +33,10 @@ export function useDeleteFeedComment(itemUid: string) {
         ? removeCommentFromTree(cached.items, commentUid)
         : { items: [], removedCount: 0 };
 
-      if (cached) queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), { items });
+      // Spread `cached` for the same reason useAddFeedComment spreads `old`:
+      // `forumTopic` rides on this entry and must survive the patch.
+      if (cached)
+        queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), { ...cached, items });
       if (removedCount > 0) {
         queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
           old ? { ...old, [itemUid]: Math.max(0, (old[itemUid] ?? 0) - removedCount) } : old,

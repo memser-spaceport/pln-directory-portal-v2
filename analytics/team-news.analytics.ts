@@ -212,6 +212,43 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  /** The rollback half of onTeamNewsUpvoteToggled. Without it the like funnel
+   *  is measured on one side only, and an optimistic like that silently rolled
+   *  back is indistinguishable from one that stuck. */
+  const onTeamNewsUpvoteFailed = (
+    item: ITeamNewsItem,
+    position: number,
+    attemptedState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_UPVOTE_FAILED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      attemptedState,
+      position,
+      source,
+    });
+  };
+
+  /** Its own event, not a shared one with news upvotes: the success events are
+   *  separately named, and a shared failure event makes the ratio uncomputable
+   *  for both. */
+  const onFeedForumPostLikeFailed = (
+    post: IFeedForumPost,
+    position: number,
+    attemptedState: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_FORUM_POST_LIKE_FAILED, {
+      postUid: post.uid,
+      authorMemberUid: post.author.memberUid,
+      attemptedState,
+      position,
+      source,
+    });
+  };
+
   const onTeamNewsPopularStoryClicked = (item: ITeamNewsPopularItem, position: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_STORY_CLICKED, {
       itemUid: item.uid,
@@ -467,6 +504,8 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsSourceLinkClicked,
     onTeamNewsSearch,
     onTeamNewsUpvoteToggled,
+    onTeamNewsUpvoteFailed,
+    onFeedForumPostLikeFailed,
     onTeamNewsPopularStoryClicked,
     onFeedForumPostCardClicked,
     onFeedForumPostModalOpened,

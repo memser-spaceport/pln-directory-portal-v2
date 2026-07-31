@@ -9,6 +9,7 @@ const mockOnCardClicked = jest.fn();
 const mockOnViewAllClicked = jest.fn();
 const mockOnShowMoreClicked = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
+const mockOnUpvoteFailed = jest.fn();
 const mockUpvoteMutate = jest.fn();
 const mockUseCurrentUserStore = jest.fn(() => ({ currentUser: { uid: 'm-1' }, isHydrated: true }));
 let lastModalProps: Record<string, unknown> | null = null;
@@ -19,6 +20,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
     onTeamNewsShowMoreClicked: (...a: unknown[]) => mockOnShowMoreClicked(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
+    onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
   }),
 }));
 

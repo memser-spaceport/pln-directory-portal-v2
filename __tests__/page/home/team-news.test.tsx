@@ -34,6 +34,9 @@ const mockOnLoadMoreClicked = jest.fn();
 const mockOnCardClicked = jest.fn();
 const mockOnTeamNewsSearch = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
+const mockOnUpvoteFailed = jest.fn();
+const mockOnForumLikeToggled = jest.fn();
+const mockOnForumLikeFailed = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
 const mockOnShared = jest.fn();
@@ -50,6 +53,9 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
     onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
     onTeamNewsSortChanged: jest.fn(),
+    onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
+    onFeedForumPostLikeToggled: (...a: unknown[]) => mockOnForumLikeToggled(...a),
+    onFeedForumPostLikeFailed: (...a: unknown[]) => mockOnForumLikeFailed(...a),
   }),
 }));
 

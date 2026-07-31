@@ -495,25 +495,28 @@ function Composer({
         }
       }}
     >
-      <div className={s.forumField}>
-        <RichTextEditor
-          value={value}
-          onChange={onChange}
-          onSubmit={onSubmit}
-          enableMentions
-          onMentionSelected={onMentionSelected}
-          // Empty toolbar: no formatting UI, and no imageUploader module.
-          toolbarConfig={[]}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoFocus={autoFocus}
-          // Counts VISIBLE characters (Quill's getLength), not markup — which
-          // is what a member perceives. The server's cap is on the serialised
-          // string, so `submit` guards that separately.
-          maxLength={FEED_COMMENT_MAX_LENGTH}
-          minHeight={40}
-        />
-      </div>
+      {/* No wrapper element: RichTextEditor's own root is the field. Wrapping
+          it drew a second border around Quill's, and a fixed height on the
+          wrapper clipped the editable area so clicks landed on nothing. */}
+      <RichTextEditor
+        className={s.composerEditor}
+        value={value}
+        onChange={onChange}
+        onSubmit={onSubmit}
+        enableMentions
+        onMentionSelected={onMentionSelected}
+        // Empty toolbar means NO toolbar element at all, and no imageUploader
+        // module — which is where RichTextEditor's only toast() calls live.
+        toolbarConfig={[]}
+        placeholder={placeholder}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        // Counts VISIBLE characters (Quill's getLength), not markup — which
+        // is what a member perceives. The server's cap is on the serialised
+        // string, so `submit` guards that separately.
+        maxLength={FEED_COMMENT_MAX_LENGTH}
+        minHeight={40}
+      />
       {onCancel && (
         <button type="button" className={s.replyCancelBtn} onClick={onCancel}>
           Cancel

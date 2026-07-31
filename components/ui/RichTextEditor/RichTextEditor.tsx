@@ -150,23 +150,29 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     const hasImage = container.some((group) => group.includes('image'));
 
     return {
-      toolbar: {
-        container,
-        handlers: {
-          ...(hasMention && {
-            mention: function () {
-              const editor = quillRef.current?.getEditor();
-              if (editor) {
-                const selection = editor.getSelection();
-                if (selection) {
-                  editor.insertText(selection.index, '@');
-                  editor.setSelection(selection.index + 1);
-                }
-              }
+      // `false`, not an empty container: given `[]`, the snow theme still
+      // builds a toolbar element, so the caller gets an empty bordered strip
+      // above the editor that takes space and can't be clicked through.
+      toolbar:
+        container.length === 0
+          ? false
+          : {
+              container,
+              handlers: {
+                ...(hasMention && {
+                  mention: function () {
+                    const editor = quillRef.current?.getEditor();
+                    if (editor) {
+                      const selection = editor.getSelection();
+                      if (selection) {
+                        editor.insertText(selection.index, '@');
+                        editor.setSelection(selection.index + 1);
+                      }
+                    }
+                  },
+                }),
+              },
             },
-          }),
-        },
-      },
       ...(hasImage && {
         imageUploader: {
           upload: (file: File) => {

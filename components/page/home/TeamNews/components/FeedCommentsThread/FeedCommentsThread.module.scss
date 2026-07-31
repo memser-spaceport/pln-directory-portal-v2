@@ -70,41 +70,51 @@
   background: var(--background-neutral-subtle, rgba(27, 56, 96, 0.06));
 }
 
-/* Composer input — reproduces the production forum FormField input (its border
-   + focus ring) at the 40px composer height. */
-.forumField {
-  flex: 1;
-  min-width: 0;
-  height: 40px; /* match the Comment button height */
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  background: #fff;
-  font-family: inherit;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  // Ellipsis-truncate the placeholder when it doesn't fit (e.g. narrow mobile).
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* RichTextEditor's own root is the field — nothing wraps it. It renders no
+   toolbar here (an empty toolbarConfig means `toolbar: false`), so .ql-container
+   IS the input and carries the full border, not just its bottom corners.
 
-  &::placeholder {
-    color: var(--foreground-neutral-tertiary, #8897ae);
-    text-overflow: ellipsis;
+   Doubled class throughout: RichTextEditor's own `.editor :global(.ql-…)` rules
+   are single-class, and CSS-module file order across chunks isn't something to
+   bet a layout on. Same trick as .commentBtn.commentBtn below. */
+.composerEditor.composerEditor {
+  :global(.ql-container) {
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    border-radius: 8px;
+    background: #fff;
+    font-family: inherit;
   }
 
-  &:focus {
-    outline: none;
-    border-color: #5e718d;
-    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  :global(.ql-editor) {
+    /* 10 + 20 line-height + 10 = the 40px the Comment button is. */
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  /* Quill's placeholder is a ::before on the blank editor, not a real
+     placeholder attribute, so it needs positioning and truncation of its own. */
+  :global(.ql-editor.ql-blank::before) {
+    left: 14px;
+    right: 14px;
+    font-style: normal;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-/* The app forces all inputs to 16px !important (`.root input`, an anti-iOS-zoom
-   rule). Beat it with a higher-specificity !important so the field text is the
-   requested 14px. */
-.forumField.forumField {
-  font-size: 14px !important;
+/* The editor sits in the composer row next to Cancel / Comment. Its root is
+   RichTextEditor's own scoped class, so it can't be named from here — but it is
+   the row's only non-button child. */
+.inline > div {
+  /* basis 0, not auto: RichTextEditor's root sets width:100%, which as a
+     flex-basis would start it at full row width and squeeze the buttons. */
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* A bit smaller than the forum's 50px input row, same brand styling. */
@@ -328,17 +338,17 @@
   }
 }
 
-/* The reply row is input + Cancel + Reply on one line. At depth 2 on a phone
-   that leaves the input around 90px once the card padding, two indent levels,
-   the avatar and both buttons are taken out — .forumField already
-   ellipsis-truncates its own placeholder, which was the tell. Stack instead:
-   full-width input, buttons right-aligned underneath. */
+/* The reply row is editor + Cancel + Reply on one line. At depth 2 on a phone
+   that leaves the editor around 90px once the card padding, two indent levels,
+   the avatar and both buttons are taken out — the placeholder had to
+   ellipsis-truncate, which was the tell. Stack instead: full-width editor,
+   buttons right-aligned underneath. */
 @include media.mobile-only {
   .replyComposer .inline {
     flex-wrap: wrap;
   }
 
-  .replyComposer .forumField {
+  .replyComposer .inline > div {
     flex: 1 0 100%;
   }
 

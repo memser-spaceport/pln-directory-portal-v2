@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 import parse from 'html-react-parser';
 
-import { isBlankHtml, linkifyHtml, sanitizeCommentHtml } from '@/utils/html';
+import { classifyAnchor, isBlankHtml, linkifyHtml, sanitizeCommentHtml, type AnchorTarget } from '@/utils/html';
 
 import s from './FeedCommentsThread.module.scss';
 
@@ -44,10 +44,39 @@ interface FeedCommentContentProps {
    *  plain text for everything older. */
   html: string;
   className?: string;
+  /** Someone followed a link or a mention in this comment. A callback rather
+   *  than analytics here, so this component stays a renderer and never needs
+   *  to know which feed item, surface or kind it is inside. */
+  onAnchorClick?: (target: AnchorTarget) => void;
 }
 
-export function FeedCommentContent({ html, className }: FeedCommentContentProps) {
+export function FeedCommentContent({ html, className, onAnchorClick }: FeedCommentContentProps) {
   const nodes = useMemo(() => parse(sanitizeCommentHtml(linkifyHtml(html ?? ''))), [html]);
 
-  return <div className={clsx(s.text, s.richText, className)}>{nodes}</div>;
+  // One delegated handler on this element, not one per anchor: the content is
+  // parsed HTML, so per-anchor handlers would mean rewriting nodes during the
+  // parse. Scoped HERE rather than on the thread, which also contains the
+  // "more comments on the forum" and "view it on the forum" links — those are
+  // chrome, not something a member wrote.
+  //
+  // auxclick as well as click, or every middle-click "open in new tab" — a
+  // very normal way to follow a link — would be invisible. Never
+  // preventDefault: this observes, it does not intercept.
+  const handleAnchorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onAnchorClick) return;
+    const anchor = (event.target as HTMLElement | null)?.closest?.('a');
+    if (!anchor) return;
+    const target = classifyAnchor(anchor as HTMLAnchorElement);
+    if (target.kind !== 'skip') onAnchorClick(target);
+  };
+
+  return (
+    <div
+      className={clsx(s.text, s.richText, className)}
+      onClick={onAnchorClick ? handleAnchorClick : undefined}
+      onAuxClick={onAnchorClick ? handleAnchorClick : undefined}
+    >
+      {nodes}
+    </div>
+  );
 }

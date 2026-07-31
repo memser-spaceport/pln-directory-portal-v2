@@ -18,6 +18,7 @@ import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment
 import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { isForumPostUid, type IFeedComment } from '@/types/feed.types';
+import type { AnchorTarget } from '@/utils/html';
 
 import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
 
@@ -258,6 +259,19 @@ export function FeedCommentsThread({
     return true;
   };
 
+  // Someone followed something a member wrote. host only for links — a pasted
+  // URL's path or query can carry a token or a private document id.
+  const reportAnchorClick = (target: AnchorTarget) => {
+    if (target.kind === 'mention') {
+      analytics.onFeedCommentMentionClicked(itemUid, kind, source, target.memberUid);
+    } else if (target.kind === 'link') {
+      analytics.onFeedCommentLinkClicked(itemUid, kind, source, {
+        linkType: target.linkType,
+        ...(target.linkType === 'http' ? { host: target.host } : {}),
+      });
+    }
+  };
+
   // Only the selection, never the draft it was typed into.
   const reportMentionSelected = (member: { uid: string; name: string }) => {
     analytics.onFeedCommentMentionSelected(itemUid, kind, source, {
@@ -446,6 +460,7 @@ export function FeedCommentsThread({
               resetDelete={deleteComment.reset}
               forumTopicUrl={forumTopicUrl}
               onMentionSelected={reportMentionSelected}
+              onAnchorClick={reportAnchorClick}
             />
           ))}
           {showEscalation && (
@@ -579,7 +594,9 @@ function PendingRow({ text }: { text: string }) {
           <span className={s.time}>· posting…</span>
         </div>
         {/* Same pipeline as a landed comment, so a mention or link the member
-            just typed doesn't visibly change shape when the server confirms. */}
+            just typed doesn't visibly change shape when the server confirms.
+            No onAnchorClick: this is the member's own unsent comment, and
+            counting them clicking their own link would inflate the metric. */}
         <FeedCommentContent html={text} />
       </div>
     </div>
@@ -606,6 +623,7 @@ interface CommentRowProps {
   /** Where an attachment-only comment can actually be seen (forum posts only). */
   forumTopicUrl: string | undefined;
   onMentionSelected: (member: { uid: string; name: string }) => void;
+  onAnchorClick: (target: AnchorTarget) => void;
 }
 
 /**
@@ -638,6 +656,7 @@ function CommentRow(props: CommentRowProps) {
     resetDelete,
     forumTopicUrl,
     onMentionSelected,
+    onAnchorClick,
   } = props;
 
   const [replyDraft, setReplyDraft] = useState('');
@@ -700,7 +719,7 @@ function CommentRow(props: CommentRowProps) {
             where it can be seen, rather than rendering a blank row. Asked of
             the sanitized string: the raw one is a truthy `<img src=…>`. */}
         {hasRenderableContent(comment.text) ? (
-          <FeedCommentContent html={comment.text} />
+          <FeedCommentContent html={comment.text} onAnchorClick={onAnchorClick} />
         ) : (
           <p className={clsx(s.text, s.textAttachment)}>
             {forumTopicUrl ? (

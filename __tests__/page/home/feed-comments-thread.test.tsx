@@ -839,6 +839,78 @@ describe('FeedCommentsThread — drop-off analytics', () => {
   });
 });
 
+describe('FeedCommentsThread — clicks inside a comment', () => {
+  it('reports a mention click with the member it points at', () => {
+    mockThread([comment('c1', '')]);
+    useFeedCommentsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            ...comment('c1', ''),
+            text: '<p>thanks <a class="ql-mention" href="/members/m_7fa2" data-uid="m_7fa2">@Jane</a></p>',
+          },
+        ],
+      },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('link', { name: '@Jane' }));
+
+    expect(onFeedCommentMentionClicked).toHaveBeenCalledWith('n-1', 'news', 'home', 'm_7fa2');
+    expect(onFeedCommentLinkClicked).not.toHaveBeenCalled();
+  });
+
+  it('reports a link click with the host only', () => {
+    useFeedCommentsMock.mockReturnValue({
+      data: {
+        items: [{ ...comment('c1', ''), text: '<p>see https://docs.example.com/secret?token=abc</p>' }],
+      },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    fireEvent.click(screen.getByRole('link', { name: /docs\.example\.com/ }));
+
+    expect(onFeedCommentLinkClicked).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      linkType: 'http',
+      host: 'docs.example.com',
+    });
+    expect(JSON.stringify(onFeedCommentLinkClicked.mock.calls)).not.toContain('token=abc');
+  });
+
+  it('does NOT report the thread’s own forum chrome links', () => {
+    // "N more comments on the forum →" lives in the thread, not in a comment.
+    // A listener on the thread root would have counted it as a comment link.
+    mockThread([comment('c1', 'One'), comment('c2', 'Two')], forumTopicMeta(50));
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
+
+    fireEvent.click(screen.getByRole('link', { name: /more comments on the forum/ }));
+
+    expect(onFeedCommentLinkClicked).not.toHaveBeenCalled();
+  });
+
+  it('reports a middle-click, which fires auxclick rather than click', () => {
+    useFeedCommentsMock.mockReturnValue({
+      data: { items: [{ ...comment('c1', ''), text: '<p>see https://example.com/a</p>' }] },
+    });
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // No fireEvent.auxClick helper in this version of testing-library.
+    fireEvent(
+      screen.getByRole('link', { name: /example\.com/ }),
+      new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }),
+    );
+
+    expect(onFeedCommentLinkClicked).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      linkType: 'http',
+      host: 'example.com',
+    });
+  });
+});
+
 describe('FeedCommentsThread — read-path states', () => {
   it('shows a busy placeholder while the thread loads, not an empty box', () => {
     useFeedCommentsMock.mockReturnValue({ isPending: true });

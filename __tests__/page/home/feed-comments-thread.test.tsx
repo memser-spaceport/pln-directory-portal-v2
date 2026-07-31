@@ -21,6 +21,57 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPush }),
 }));
 
+// Quill needs a real DOM and is lazy-loaded, so it is useless in jsdom and
+// would render only its loading placeholder here. Stub it as a controlled
+// textarea with the same contract — value in, string out, Enter submits — so
+// these tests keep covering the THREAD rather than the editor. The editor's own
+// behaviour (mention anchors, toolbar off) belongs in its own suite.
+interface StubEditorProps {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit?: () => void;
+  placeholder?: string;
+  disabled?: boolean;
+  toolbarConfig?: unknown[];
+  enableMentions?: boolean;
+  maxLength?: number;
+}
+
+const mockEditorProps = jest.fn();
+jest.mock('@/components/ui/RichTextEditor/RichTextEditor', () => ({
+  __esModule: true,
+  default: (props: StubEditorProps) => {
+    mockEditorProps(props);
+    const { value, onChange, onSubmit, placeholder, disabled } = props;
+    return (
+      <textarea
+        placeholder={placeholder}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onSubmit?.();
+          }
+        }}
+      />
+    );
+  },
+}));
+
+// next/dynamic would hand back the loading placeholder on first render; resolve
+// the one dynamic import in the module under test eagerly instead.
+jest.mock('next/dynamic', () => () => {
+  return require('@/components/ui/RichTextEditor/RichTextEditor').default;
+});
+
+const onFeedCommentSubmitted = jest.fn();
+const onFeedCommentMentionSelected = jest.fn();
+jest.mock('@/analytics/team-news.analytics', () => ({
+  useTeamNewsAnalytics: () => ({ onFeedCommentSubmitted, onFeedCommentMentionSelected }),
+}));
+
 // Forum writes are gated on forum.write, the same gate the /forum composer uses.
 const mockForumAccess = jest.fn();
 jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
@@ -148,12 +199,16 @@ describe('FeedCommentsThread — list', () => {
     expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
   });
 
-  it('renders comment text as inert text — a script tag never executes or nests markup', () => {
-    mockThread([comment('c1', '<script>alert(1)</script>')]);
+  it('strips a script tag out of comment content entirely', () => {
+    mockThread([comment('c1', '<script>alert(1)</script>Hello')]);
     mockMutation(useAddFeedCommentMock);
     const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
-    expect(screen.getByText('<script>alert(1)</script>')).toBeInTheDocument();
+
+    // Content is sanitized HTML now, so the tag is removed rather than shown
+    // literally — but it must never survive in any form.
     expect(container.querySelector('script')).toBeNull();
+    expect(container.textContent).not.toContain('alert(1)');
+    expect(screen.getByText('Hello')).toBeInTheDocument();
   });
 
   it('falls back to a readable byline when the author has no name (the wire allows null)', () => {
@@ -300,8 +355,10 @@ describe('FeedCommentsThread — replies', () => {
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     const pending = screen.getByText('Sending');
-    const answeredRow = screen.getByText('Answered').closest('div');
-    const untouchedRow = screen.getByText('Untouched').closest('div');
+    // `.item` is the whole comment row. Not `.closest('div')` — comment bodies
+    // are a div-wrapped <p> now, so that would stop at the content wrapper.
+    const answeredRow = screen.getByText('Answered').closest('.item');
+    const untouchedRow = screen.getByText('Untouched').closest('.item');
 
     expect(answeredRow?.contains(pending)).toBe(true);
     expect(untouchedRow?.contains(pending)).toBe(false);
@@ -333,7 +390,104 @@ describe('FeedCommentsThread — replies', () => {
   });
 });
 
-describe('FeedCommentsThread — composer', () => {
+describe('FeedCommentsThread — composer (HTML content)', () => {
+  it('configures the editor with no toolbar — which is what keeps toasts out of the feed', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // RichTextEditor registers its imageUploader module only when the toolbar
+    // carries 'image', and that module holds the only two toast() calls in the
+    // component. An empty toolbar is therefore load-bearing, not cosmetic.
+    expect(mockEditorProps).toHaveBeenCalledWith(
+      expect.objectContaining({ toolbarConfig: [], enableMentions: true, maxLength: 2000 }),
+    );
+  });
+
+  it('treats Quill’s empty value as empty rather than as content', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // `<p><br></p>` is truthy, so the old `!value.trim()` guard would have
+    // enabled Comment and posted an empty comment.
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), {
+      target: { value: '<p><br></p>' },
+    });
+
+    expect(screen.getByRole('button', { name: 'Comment' })).toBeDisabled();
+    fireEvent.submit(screen.getByPlaceholderText('Write your comment here…').closest('form')!);
+    expect(mutation.mutate).not.toHaveBeenCalled();
+  });
+
+  it('submits on Enter', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    fireEvent.change(field, { target: { value: '<p>ship it</p>' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(mutation.mutate).toHaveBeenCalledWith({ text: '<p>ship it</p>', parentUid: undefined }, expect.any(Object));
+  });
+
+  it('does not submit on Shift+Enter', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    fireEvent.change(field, { target: { value: '<p>line one</p>' } });
+    fireEvent.keyDown(field, { key: 'Enter', shiftKey: true });
+
+    expect(mutation.mutate).not.toHaveBeenCalled();
+  });
+
+  it('reports the mention count with a submitted comment, and the selection when it is picked', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // The editor owns the dropdown; the thread only forwards the selection.
+    mockEditorProps.mock.calls.at(-1)?.[0].onMentionSelected({ uid: 'm_7fa2', name: 'Jane Doe' });
+    expect(onFeedCommentMentionSelected).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      memberUid: 'm_7fa2',
+      memberName: 'Jane Doe',
+    });
+
+    const mutation = useAddFeedCommentMock.mock.results[0].value;
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    fireEvent.change(field, {
+      target: { value: '<p>hi <a class="ql-mention" data-uid="m_7fa2">@Jane Doe</a></p>' },
+    });
+    fireEvent.submit(field.closest('form')!);
+
+    const { onSuccess } = mutation.mutate.mock.calls[0][1];
+    act(() => onSuccess());
+    expect(onFeedCommentSubmitted).toHaveBeenCalledWith('n-1', 'news', 'home', false, 1);
+  });
+
+  it('refuses a comment whose markup exceeds the server’s cap, and says why', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    // Short to read, far too long on the wire — which is what a pile of
+    // mention anchors does. The editor caps VISIBLE length, so only this
+    // guard stands between the member and a bare 400.
+    fireEvent.change(field, { target: { value: `<p>${'a'.repeat(2100)}</p>` } });
+    fireEvent.submit(field.closest('form')!);
+
+    expect(mutation.mutate).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent(/too long to post/i);
+
+    // Clears on the next keystroke, like every other composer error.
+    fireEvent.change(field, { target: { value: '<p>shorter</p>' } });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('submits the trimmed draft and clears the input only on success', () => {
     mockThread([]);
     const mutation = mockMutation(useAddFeedCommentMock);

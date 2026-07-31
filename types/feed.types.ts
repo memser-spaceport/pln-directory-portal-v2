@@ -70,7 +70,14 @@ export interface IFeedForumPost {
   focusAreas: string[];
   /** Forum category label, shown where news shows its event type. */
   category: string;
+  /** Topic creation. What the card displays and what the feed merge ranks on. */
   createdAt: string;
+  /** Latest activity on the topic — its creation or its last reply, whichever
+   *  is later, so `>= createdAt` by construction. The 14-day feed window is
+   *  measured on THIS, not on createdAt: /api/recent is ordered by activity, so
+   *  windowing on creation alone would drop actively-discussed older threads the
+   *  endpoint deliberately surfaced. Never displayed. */
+  lastActivityAt: string;
   /** In-app path to the origin topic (`/forum/topics/:cid/:tid`), for "view the
    *  full discussion" — same form CreatePost builds. Not an absolute URL, so
    *  it's never what gets shared; the share menu links to `/home?post=`. */

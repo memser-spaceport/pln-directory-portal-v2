@@ -23,3 +23,14 @@ export const FEED_COMMENT_MAX_LENGTH = 2000;
 // A thread that goes 60s stale is not worth a focus-refetch burst; re-expands
 // within a minute are cache hits.
 export const FEED_COMMENTS_STALE_TIME = 60_000;
+
+// Forum posts are trimmed to the same window the news side already uses
+// (TEAM_NEWS_DEFAULT_WINDOW_DAYS, sent to the backend as ?windowDays=) and that
+// the feed's empty state already promises — "No network news in the last 14
+// days yet". Deliberately a separate constant rather than an import: the two
+// govern different domains (a NodeBB client-side trim vs. a directory query
+// param) and happening to share a value today shouldn't couple them.
+//
+// Client-side because it cannot be pushed down: NodeBB's /api/recent only
+// accepts ?term=daily|weekly|monthly — there is no 14-day term.
+export const FEED_FORUM_POST_WINDOW_DAYS = 14;

@@ -3,7 +3,7 @@ import { ActivitiesData } from '../types';
 export const activitiesData: ActivitiesData = {
   hero: {
     title: 'Build the Network, Collect PLAA Points',
-    description: `You’re already contributing to the growth of the Protocol Labs Network. Complete the activities below to have your contributions recognized as PLAA points—a way to track and recognize your participation in the community. Click any activity to view details and discover new ways to get involved.`,
+    description: `You’re already contributing to the growth of the Protocol Labs Network. Complete the activities below to have your contributions recognized as PLAA points—a way to track and celebrate your participation in the community. Click any activity to view details and discover new ways to get involved.`,
     note: ''
   },
   activities: [
@@ -66,11 +66,16 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Host Office Hours',
-        overview: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.',
+        overview: 'Host live sessions to share expertise, provide feedback, or collaborate with others in the network. These real-time connections not only share knowledge, but build stronger connections. Set yourself up to host office hours via your profile page.\n\nYou can host office hours through your PL Network profile. For meetings scheduled outside the Directory, add plaa-oh@plrs.xyz as an attendee to make the session eligible for automatic tracking.',
         networkBenefits: 'Makes member expertise accessible and creates lightweight paths for feedback, collaboration, and mentoring across the network.',
         rules: [
-          'Sessions must be scheduled through directory.plnetwork.io and only completed sessions count towards rewards',
-          'Each session must run for at least 15 minutes'
+          'Sessions must either be scheduled through directory.plnetwork.io or include plaa-oh@plrs.xyz as an attendee on the calendar invitation',
+          'Each session must run for at least 15 minutes',
+          'The tracking email must be added to the calendar invitation before the session occurs',
+          'Cancelled, declined, duplicated, or unverified sessions are not eligible'
+        ],
+        links: [
+          { text: 'plaa-oh@plrs.xyz', url: 'mailto:plaa-oh@plrs.xyz' }
         ]
       }
     },
@@ -229,6 +234,29 @@ export const activitiesData: ActivitiesData = {
         rules: [
           'At the close of each snapshot period, the top 5 users with the highest verified point totals receive the bonus',
           'Points are awarded only after all activity for the snapshot has been reviewed, finalized, and closed'
+        ]
+      }
+    },
+    {
+      id: 'give-network-kudos',
+      category: 'People/Talent',
+      activity: 'Give a Network Kudos',
+      networkValue: 'Give out 10–100 points! You decide who deserves the Kudos…',
+      points: '0',
+      frequency: 'Repeatable',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Give a Network Kudos',
+        overview: 'Give Kudos to recognize another network member for a helpful, meaningful, or positive contribution. Giving Kudos does not allow you to collect points, but the recipient may receive between 10 and 100 points based on the level of recognition awarded.',
+        networkBenefits: 'Encourages peer recognition and helps surface valuable contributions that may not be captured through other activities.',
+        rules: [
+          'Kudos must be given through the official network Kudos feature.',
+          'You cannot award Kudos to yourself.',
+          'Kudos may be reviewed or removed if they appear duplicated, coordinated, or otherwise misused.'
+        ],
+        links: [
+          { text: 'Kudos feature', url: 'https://directory.plnetwork.io/alignment-asset/kudos' }
         ]
       }
     },
@@ -474,13 +502,13 @@ export const activitiesData: ActivitiesData = {
       category: 'Network Tooling',
       activity: 'Design a Custom Incentive Experiment',
       networkValue: 'Share expertise and insights across the network.',
-      points: '200+',
+      points: '1000',
       frequency: 'One-Time',
       verificationType: 'Submission',
       cta: 'submit',
       popupContent: {
         title: 'Design a Custom Incentive Experiment',
-        overview: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group.\n\nRecommended participant pool sizes: Small Initiatives (couple of hours) collect 200 points per participant, Medium Initiatives (4-10 hours) collect 600 points, and Large Initiatives (10+ hours) collect 1200 points.',
+        overview: 'Propose a short-term incentivized initiative—such as a research study, contributor challenge, pilot test, or community-based campaign—with clear goals, measurable outcomes, and a defined participant group.',
         networkBenefits: 'Share expertise and insights across the network.',
         rules: [
           'Must be reviewed and approved by AAWG before launch',

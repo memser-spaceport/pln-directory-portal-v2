@@ -61,6 +61,7 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
     items: [
       'Ask PLN to provision a database for your app automatically — no accounts or setup needed',
       'Bringing your own database instead? Connect it the same way as any other secret',
+      'UI kit update: higher fidelity to the product, every state inspectable in Storybook, more control over individual components, and a broader component set',
     ],
   },
   {

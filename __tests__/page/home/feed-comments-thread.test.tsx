@@ -66,6 +66,12 @@ jest.mock('next/dynamic', () => () => {
   return require('@/components/ui/RichTextEditor/RichTextEditor').default;
 });
 
+const onFeedCommentSubmitted = jest.fn();
+const onFeedCommentMentionSelected = jest.fn();
+jest.mock('@/analytics/team-news.analytics', () => ({
+  useTeamNewsAnalytics: () => ({ onFeedCommentSubmitted, onFeedCommentMentionSelected }),
+}));
+
 // Forum writes are gated on forum.write, the same gate the /forum composer uses.
 const mockForumAccess = jest.fn();
 jest.mock('@/services/access-control/hooks/useForumAccess', () => ({
@@ -424,6 +430,42 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     fireEvent.keyDown(field, { key: 'Enter' });
 
     expect(mutation.mutate).toHaveBeenCalledWith({ text: '<p>ship it</p>', parentUid: undefined }, expect.any(Object));
+  });
+
+  it('does not submit on Shift+Enter', () => {
+    mockThread([]);
+    const mutation = mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    fireEvent.change(field, { target: { value: '<p>line one</p>' } });
+    fireEvent.keyDown(field, { key: 'Enter', shiftKey: true });
+
+    expect(mutation.mutate).not.toHaveBeenCalled();
+  });
+
+  it('reports the mention count with a submitted comment, and the selection when it is picked', () => {
+    mockThread([]);
+    mockMutation(useAddFeedCommentMock);
+    render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
+
+    // The editor owns the dropdown; the thread only forwards the selection.
+    mockEditorProps.mock.calls.at(-1)?.[0].onMentionSelected({ uid: 'm_7fa2', name: 'Jane Doe' });
+    expect(onFeedCommentMentionSelected).toHaveBeenCalledWith('n-1', 'news', 'home', {
+      memberUid: 'm_7fa2',
+      memberName: 'Jane Doe',
+    });
+
+    const mutation = useAddFeedCommentMock.mock.results[0].value;
+    const field = screen.getByPlaceholderText('Write your comment here…');
+    fireEvent.change(field, {
+      target: { value: '<p>hi <a class="ql-mention" data-uid="m_7fa2">@Jane Doe</a></p>' },
+    });
+    fireEvent.submit(field.closest('form')!);
+
+    const { onSuccess } = mutation.mutate.mock.calls[0][1];
+    act(() => onSuccess());
+    expect(onFeedCommentSubmitted).toHaveBeenCalledWith('n-1', 'news', 'home', false, 1);
   });
 
   it('refuses a comment whose markup exceeds the server’s cap, and says why', () => {

@@ -52,6 +52,12 @@ function countComments(comments: readonly IFeedComment[]): number {
   return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
 }
 
+/** How many members this comment mentions — the class MentionBlot stamps is
+ *  the only marker distinguishing a mention from an ordinary link. */
+function countMentions(html: string): number {
+  return html.match(/class="ql-mention"/g)?.length ?? 0;
+}
+
 /** Is `uid` this comment or anywhere in its subtree? */
 function containsUid(comment: IFeedComment, uid: string): boolean {
   return comment.uid === uid || comment.replies.some((reply) => containsUid(reply, uid));
@@ -119,9 +125,12 @@ interface FeedCommentsThreadProps {
  *
  * Mount = expanded: the parent renders this component only while the thread is
  * open, so the lazy comments query fetches on mount and, with no observer after
- * close, never refetches in the background. All comment text / names / roles
- * render via JSX text interpolation only — dangerouslySetInnerHTML is banned in
- * this component, and forum HTML arrives already stripped to plain text.
+ * close, never refetches in the background.
+ *
+ * Comment BODIES are HTML — they carry links and `ql-mention` anchors — and go
+ * through FeedCommentContent, which is the only place allowed to render them.
+ * Everything else here (names, roles, timestamps) is still JSX text
+ * interpolation, and forum content is no longer pre-stripped by the service.
  *
  * Two surfaces, one component, told apart by `onViewAll`:
  * - CARD (prop passed): shows the last VISIBLE top-level comments and escalates
@@ -231,11 +240,19 @@ export function FeedCommentsThread({
           // options callbacks, which survive this component unmounting.
           if (parentUid) setReplyingTo(null);
           else setDraft('');
-          analytics.onFeedCommentSubmitted(itemUid, kind, source, Boolean(parentUid));
+          analytics.onFeedCommentSubmitted(itemUid, kind, source, Boolean(parentUid), countMentions(trimmed));
         },
       },
     );
     return true;
+  };
+
+  // Only the selection, never the draft it was typed into.
+  const reportMentionSelected = (member: { uid: string; name: string }) => {
+    analytics.onFeedCommentMentionSelected(itemUid, kind, source, {
+      memberUid: member.uid,
+      memberName: member.name,
+    });
   };
 
   const clearError = () => {
@@ -340,6 +357,7 @@ export function FeedCommentsThread({
               placeholder="Write your comment here…"
               submitLabel="Comment"
               disabled={addComment.isPending}
+              onMentionSelected={reportMentionSelected}
             />
             {errorText && errorParentUid === null && (
               <p className={s.error} role="alert">
@@ -396,6 +414,7 @@ export function FeedCommentsThread({
               deleteFailed={deleteComment.isError}
               resetDelete={deleteComment.reset}
               forumTopicUrl={forumTopicUrl}
+              onMentionSelected={reportMentionSelected}
             />
           ))}
           {showEscalation && (
@@ -428,6 +447,7 @@ interface ComposerProps {
   disabled: boolean;
   onCancel?: () => void;
   autoFocus?: boolean;
+  onMentionSelected: (member: { uid: string; name: string }) => void;
 }
 
 /**
@@ -452,6 +472,7 @@ function Composer({
   disabled,
   onCancel,
   autoFocus,
+  onMentionSelected,
 }: ComposerProps) {
   // Quill's "empty" value is `<p><br></p>`, which is truthy — `value.trim()`
   // would have happily enabled submit on an empty composer.
@@ -480,6 +501,7 @@ function Composer({
           onChange={onChange}
           onSubmit={onSubmit}
           enableMentions
+          onMentionSelected={onMentionSelected}
           // Empty toolbar: no formatting UI, and no imageUploader module.
           toolbarConfig={[]}
           placeholder={placeholder}
@@ -549,6 +571,7 @@ interface CommentRowProps {
   resetDelete: () => void;
   /** Where an attachment-only comment can actually be seen (forum posts only). */
   forumTopicUrl: string | undefined;
+  onMentionSelected: (member: { uid: string; name: string }) => void;
 }
 
 /**
@@ -580,6 +603,7 @@ function CommentRow(props: CommentRowProps) {
     deleteFailed,
     resetDelete,
     forumTopicUrl,
+    onMentionSelected,
   } = props;
 
   const [replyDraft, setReplyDraft] = useState('');
@@ -680,6 +704,7 @@ function CommentRow(props: CommentRowProps) {
               placeholder={`Reply to ${displayName}…`}
               submitLabel="Reply"
               disabled={isSubmitting}
+              onMentionSelected={onMentionSelected}
             />
             {errorHere && (
               <p className={s.error} role="alert">

@@ -122,7 +122,12 @@ describe('feed.service', () => {
     it('falls back to creation when lastposttime is missing or zero, never epoch 0', async () => {
       customFetchMock.mockResolvedValue({
         ok: true,
-        json: async () => ({ topics: [{ ...TOPIC, lastposttime: 0 }, { ...TOPIC, lastposttime: undefined }] }),
+        json: async () => ({
+          topics: [
+            { ...TOPIC, lastposttime: 0 },
+            { ...TOPIC, lastposttime: undefined },
+          ],
+        }),
       });
 
       const { items } = await getFeedForumPosts();

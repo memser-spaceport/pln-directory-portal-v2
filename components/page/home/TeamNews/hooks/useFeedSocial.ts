@@ -101,7 +101,10 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   // whole purpose is to keep the feed merge from re-running on unrelated
   // renders (upvote-overlay writes). A fresh .filter() every render would
   // silently defeat that.
-  const forumPosts = useMemo(() => withinFeedWindow(unwindowedForumPosts, cutoffIso), [unwindowedForumPosts, cutoffIso]);
+  const forumPosts = useMemo(
+    () => withinFeedWindow(unwindowedForumPosts, cutoffIso),
+    [unwindowedForumPosts, cutoffIso],
+  );
 
   return {
     forumPosts,

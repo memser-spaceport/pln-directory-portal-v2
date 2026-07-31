@@ -23,9 +23,6 @@ export function feedWindowCutoffIso(days: number, nowMs: number): string {
  *
  *  Undefined in, undefined out: `undefined` means "news-only feed" (not loaded,
  *  no access, or error) and must not collapse into an empty-but-loaded list. */
-export function withinFeedWindow(
-  posts: IFeedForumPost[] | undefined,
-  cutoffIso: string,
-): IFeedForumPost[] | undefined {
+export function withinFeedWindow(posts: IFeedForumPost[] | undefined, cutoffIso: string): IFeedForumPost[] | undefined {
   return posts?.filter((post) => post.lastActivityAt >= cutoffIso);
 }

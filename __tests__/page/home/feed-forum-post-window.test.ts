@@ -1,8 +1,5 @@
 import type { ForumPostUid, IFeedForumPost } from '@/types/feed.types';
-import {
-  feedWindowCutoffIso,
-  withinFeedWindow,
-} from '@/components/page/home/TeamNews/utils/feedForumPostWindow';
+import { feedWindowCutoffIso, withinFeedWindow } from '@/components/page/home/TeamNews/utils/feedForumPostWindow';
 
 const NOW = Date.parse('2026-07-31T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;

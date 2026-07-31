@@ -159,7 +159,12 @@ export const TeamNews = ({
 
   // The feed's social layer (forum posts + comment counts), flag- and
   // access-gated in one hook. `forumPosts` undefined ⇒ news-only feed.
-  const { forumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
+  //
+  // `forumPosts` is trimmed to the last 14 days and is what everything below
+  // renders and counts. `unwindowedForumPosts` is the same access-gated list
+  // with only that trim lifted, and has exactly two consumers — both on the
+  // ?post= deep-link path, so a shared link to an older topic still opens.
+  const { forumPosts, unwindowedForumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
 
   // Optimistic like state for forum posts — the exact upvoteOverlay pattern:
   // a render-time overlay the buttons read, never written to the query cache,
@@ -306,16 +311,20 @@ export const TeamNews = ({
   // asynchronously (hydration → access → posts) — the hook holds the param
   // while pending and strips it silently once settled-invalid. Deep-link
   // analytics ride the resolver's single 'valid' transition.
+  // Resolves against the UNWINDOWED list on purpose: a link someone shared
+  // three weeks ago should still open the thread it points at, even though that
+  // thread no longer earns a slot in the feed.
   const { activePostUid, openPost, closePost } = useForumPostDeepLink({
-    posts: forumPosts,
+    posts: unwindowedForumPosts,
     isSettled: deepLinkSettled,
     onDeepLinkOpen: (post) => analytics.onFeedForumPostModalOpened(post),
   });
 
   // Resolved fresh each render with the like overlay merged (same contract as
-  // activeNewsItem: modal and row can never disagree). `forumPosts` going
-  // undefined — e.g. mid-session access revocation — nulls this out and the
-  // modal unmounts; the effect below also strips the URL param.
+  // activeNewsItem: modal and row can never disagree). The post list going
+  // undefined — e.g. mid-session access revocation, which empties both the
+  // windowed and unwindowed arrays — nulls this out and the modal unmounts;
+  // the effect below also strips the URL param.
   // A forum card can't know whether the viewer already liked the post: the
   // /api/recent listing it's built from has no per-viewer vote state, so
   // `viewerHasLiked` is false by default and a "like" on something already liked
@@ -335,11 +344,14 @@ export const TeamNews = ({
     [activePostUid, activePostTopicLike, postLikeOverlay],
   );
 
+  // Unwindowed for the same reason as the resolver above — and it must match
+  // it: this is what the modal actually renders, so resolving from the windowed
+  // list would let a valid deep link open an empty modal.
   const activeForumPost = useMemo(() => {
     if (!activePostUid) return null;
-    const post = forumPosts?.find((p) => p.uid === activePostUid);
+    const post = unwindowedForumPosts?.find((p) => p.uid === activePostUid);
     return post ? resolvePostLike(post) : null;
-  }, [activePostUid, forumPosts, resolvePostLike]);
+  }, [activePostUid, unwindowedForumPosts, resolvePostLike]);
 
   useEffect(() => {
     if (activePostUid && !hasAccess) closePost();

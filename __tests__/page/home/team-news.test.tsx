@@ -45,6 +45,7 @@ const mockOnTeamsToFollowHidden = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
 const mockOnShared = jest.fn();
+const mockOnForumPostModalOpened = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -61,6 +62,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
     onFeedForumPostLikeToggled: (...a: unknown[]) => mockOnForumLikeToggled(...a),
     onFeedForumPostLikeFailed: (...a: unknown[]) => mockOnForumLikeFailed(...a),
+    onFeedForumPostModalOpened: (...a: unknown[]) => mockOnForumPostModalOpened(...a),
     onPopularCardViewed: (...a: unknown[]) => mockOnPopularCardViewed(...a),
     onPopularStoryScrollSucceeded: (...a: unknown[]) => mockOnScrollSucceeded(...a),
     onPopularStoryFallbackOpened: (...a: unknown[]) => mockOnFallbackOpened(...a),
@@ -72,10 +74,18 @@ jest.mock('@/analytics/team-news.analytics', () => ({
 // Forum posts reach the feed through this hook. Default: none, which is what the
 // globally-mocked useQuery already produced — so every other test in this file
 // behaves exactly as before.
-type FeedSocialResult = { forumPosts: IFeedForumPost[] | undefined; hasAccess: boolean; deepLinkSettled: boolean };
-const mockUseFeedSocial = jest.fn(
-  (): FeedSocialResult => ({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true }),
-);
+type FeedSocialResult = {
+  forumPosts: IFeedForumPost[] | undefined;
+  unwindowedForumPosts: IFeedForumPost[] | undefined;
+  hasAccess: boolean;
+  deepLinkSettled: boolean;
+};
+/** The ordinary case: every post is inside the 14-day window, so both arrays
+ *  agree. Tests that care about the window pass the two separately. */
+function feedSocial(posts: IFeedForumPost[] | undefined, hasAccess: boolean): FeedSocialResult {
+  return { forumPosts: posts, unwindowedForumPosts: posts, hasAccess, deepLinkSettled: true };
+}
+const mockUseFeedSocial = jest.fn((): FeedSocialResult => feedSocial(undefined, false));
 jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
   useFeedSocial: (...a: unknown[]) => mockUseFeedSocial(...(a as [])),
 }));
@@ -169,7 +179,7 @@ describe('TeamNews', () => {
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
     // clearAllMocks clears calls, NOT return values — without this, a describe
     // that supplies forum posts leaks them into every later test's feed.
-    mockUseFeedSocial.mockReturnValue({ forumPosts: undefined, hasAccess: false, deepLinkSettled: true });
+    mockUseFeedSocial.mockReturnValue(feedSocial(undefined, false));
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
     window.history.replaceState(null, '', '/home');
@@ -383,7 +393,7 @@ describe('TeamNews', () => {
       };
 
       beforeEach(() => {
-        mockUseFeedSocial.mockReturnValue({ forumPosts: [forumPost], hasAccess: true, deepLinkSettled: true });
+        mockUseFeedSocial.mockReturnValue(feedSocial([forumPost], true));
       });
 
       it('offers the Discussions pill for forum posts alone, with no threaded news items', () => {
@@ -418,6 +428,38 @@ describe('TeamNews', () => {
         fireEvent.click(screen.getByRole('button', { name: /Funding/ }));
 
         expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+      });
+
+      // A post older than the 14-day window is absent from `forumPosts` but
+      // still present in `unwindowedForumPosts` — the split that lets an old
+      // shared link work without letting a stale post into the feed.
+      describe('when the post falls outside the 14-day window', () => {
+        beforeEach(() => {
+          mockUseFeedSocial.mockReturnValue({
+            forumPosts: [],
+            unwindowedForumPosts: [forumPost],
+            hasAccess: true,
+            deepLinkSettled: true,
+          });
+        });
+
+        it('keeps it out of the feed, and out of the Discussions pill', () => {
+          renderTeamNews(<TeamNews groups={groups} />);
+
+          expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+          expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
+        });
+
+        it('still opens it from a ?post= deep link, rather than stripping the param', () => {
+          window.history.replaceState(null, '', '/home?post=fp_96');
+
+          renderTeamNews(<TeamNews groups={groups} />);
+
+          // Resolving from the windowed list would leave the modal empty and
+          // silently drop the param — the exact regression this guards.
+          expect(mockOnForumPostModalOpened).toHaveBeenCalled();
+          expect(window.location.search).toBe('?post=fp_96');
+        });
       });
     });
   });

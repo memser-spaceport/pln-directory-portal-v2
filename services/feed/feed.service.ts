@@ -99,6 +99,12 @@ function tidFromForumPostUid(uid: ForumPostUid): number {
 function toFeedForumPost(topic: Topic): IFeedForumPost {
   const user = topic.user;
 
+  const createdMs = Number(topic.timestamp) || Date.now();
+  // NodeBB seeds lastposttime from the opening post, so it is normally >=
+  // timestamp. Maxed defensively anyway: a zero/malformed value must not make a
+  // topic look older than its own creation and window itself out of the feed.
+  const lastActivityMs = Math.max(createdMs, Number(topic.lastposttime) || 0);
+
   return {
     uid: `fp_${topic.tid}`,
     tid: topic.tid,
@@ -115,7 +121,8 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
     // no focusAreas field to map from — posts show in every tab.
     focusAreas: [],
     category: topic.category?.name ?? '',
-    createdAt: new Date(Number(topic.timestamp) || Date.now()).toISOString(),
+    createdAt: new Date(createdMs).toISOString(),
+    lastActivityAt: new Date(lastActivityMs).toISOString(),
     forumTopicUrl: `/forum/topics/${topic.cid}/${topic.tid}`,
     // postcount includes the topic's own opening post, which is the post itself
     // rather than a comment on it.

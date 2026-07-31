@@ -41,6 +41,9 @@ function post(uid: string, likeCount: number, createdAt: string, focusAreas: str
     focusAreas,
     category: 'Compute',
     createdAt,
+    // The merge ranks on createdAt, never on activity — mirrored here so these
+    // fixtures can't imply otherwise.
+    lastActivityAt: createdAt,
     forumTopicUrl: null,
     commentCount: 0,
     likeCount,

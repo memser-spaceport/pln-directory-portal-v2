@@ -21,6 +21,7 @@ function post(uid: string): IFeedForumPost {
     focusAreas: [],
     category: 'Compute',
     createdAt: '2026-07-01T00:00:00.000Z',
+    lastActivityAt: '2026-07-01T00:00:00.000Z',
     forumTopicUrl: null,
     commentCount: 0,
     likeCount: 0,

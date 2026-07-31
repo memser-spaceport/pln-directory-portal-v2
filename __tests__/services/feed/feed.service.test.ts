@@ -39,6 +39,8 @@ const TOPIC = {
   teaser: { content: '<p>Hi Protocol Labs</p>' },
   category: { name: 'Intros' },
   timestamp: 1782891482999,
+  // A reply landed after the topic was created — /api/recent orders on this.
+  lastposttime: 1782906219045,
   postcount: 3,
   upvotes: 5,
   user: {
@@ -106,6 +108,33 @@ describe('feed.service', () => {
           viewerHasLiked: false,
         }),
       ]);
+    });
+
+    it('carries last activity separately from creation, so the feed window can use it', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].createdAt).toBe(new Date(1782891482999).toISOString());
+      expect(items[0].lastActivityAt).toBe(new Date(1782906219045).toISOString());
+    });
+
+    it('falls back to creation when lastposttime is missing or zero, never epoch 0', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          topics: [
+            { ...TOPIC, lastposttime: 0 },
+            { ...TOPIC, lastposttime: undefined },
+          ],
+        }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      // Windowing on a bogus 1970 timestamp would silently hide a fresh topic.
+      expect(items[0].lastActivityAt).toBe(items[0].createdAt);
+      expect(items[1].lastActivityAt).toBe(items[1].createdAt);
     });
 
     it('counts replies as postcount minus the topic’s own opening post', async () => {

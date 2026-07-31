@@ -14,10 +14,11 @@ export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profi
  *  or navigated to the source article (team-details surfaces). */
 export type TeamNewsCardClickOutcome = 'modal' | 'source';
 
-/** Which affordance opened the card. Both the row and the comment badge open
- *  the same detail modal now that threads live only there, so this is the only
- *  thing that distinguishes "read this story" from "go to its comments". */
-export type TeamNewsCardClickVia = 'row' | 'comment-button';
+/** Which affordance opened the detail modal. The comment badge is a disclosure
+ *  toggle again, so it no longer appears here — the only way a comment intent
+ *  reaches the modal is the card thread's "View all", which is a genuinely
+ *  different signal: the member read the thread first and wanted more of it. */
+export type TeamNewsCardClickVia = 'row' | 'view-all-comments';
 
 export type TeamNewsShareNetwork = 'linkedin' | 'x' | 'copy';
 
@@ -297,9 +298,22 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  // No thread-toggled event: threads are always expanded in the detail modal,
-  // so there is nothing to toggle. The intent that event used to capture now
-  // rides on the card-clicked events' `via` property.
+  // Fires from the card only — the modal's thread is always expanded, so there
+  // is nothing to toggle there. This is the only signal for "opened a thread
+  // without opening the story", which is now the common path.
+  const onFeedCommentThreadToggled = (
+    itemUid: string,
+    kind: FeedItemKind,
+    open: boolean,
+    source: TeamNewsAnalyticsSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED, {
+      itemUid,
+      kind,
+      open,
+      source,
+    });
+  };
 
   const onFeedCommentSubmitted = (
     itemUid: string,
@@ -334,6 +348,7 @@ export const useTeamNewsAnalytics = () => {
     onFeedForumPostModalOpened,
     onFeedForumPostLikeToggled,
     onFeedForumPostShared,
+    onFeedCommentThreadToggled,
     onFeedCommentSubmitted,
   };
 };

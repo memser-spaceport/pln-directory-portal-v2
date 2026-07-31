@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -85,6 +85,11 @@ interface FeedCommentsThreadProps {
    *  open, so the round trip lands back on it. Defaults to a bare #login push,
    *  which from a card loses that context entirely. */
   onSignIn?: () => void;
+  /** Card surfaces only: "there is an unsettled write in here". Closing a modal
+   *  is a deliberate "I'm done"; clicking a disclosure badge is not, and the
+   *  mutation's error state — unlike its cache writes — does not survive
+   *  unmount, so a collapse mid-flight can drop a failed comment in silence. */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 /**
@@ -138,6 +143,7 @@ export function FeedCommentsThread({
   forumMainPid,
   onViewAll,
   onSignIn,
+  onBusyChange,
 }: FeedCommentsThreadProps) {
   const router = useRouter();
   const analytics = useTeamNewsAnalytics();
@@ -236,6 +242,21 @@ export function FeedCommentsThread({
   // `null` = the failure belongs to the top-level composer; a uid = to that
   // comment's reply composer. Without this the same error renders in both.
   const errorParentUid = errorText ? (attempt?.parentUid ?? null) : undefined;
+
+  // "Latest ref" so the report below keys off the busy flag alone — callers
+  // pass an inline arrow, and depending on its identity would re-fire every
+  // render. Ref written in an effect, never during render (repo lint rule).
+  const busy = addComment.isPending || addComment.isError;
+  const onBusyChangeRef = useRef(onBusyChange);
+  useEffect(() => {
+    onBusyChangeRef.current = onBusyChange;
+  });
+  useEffect(() => {
+    onBusyChangeRef.current?.(busy);
+    // Clearing on unmount matters: a card that refused to collapse while busy
+    // would otherwise stay stuck open after a filter change remounts it.
+    return () => onBusyChangeRef.current?.(false);
+  }, [busy]);
 
   const pendingParentUid = pending?.parentUid;
 

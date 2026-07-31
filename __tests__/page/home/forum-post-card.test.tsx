@@ -7,12 +7,24 @@ import type { ForumPostUid, IFeedForumPost } from '@/types/feed.types';
 jest.mock('@/utils/formatTimeAgo', () => ({ formatTimeAgo: () => '2d ago' }));
 
 const onFeedForumPostCardClicked = jest.fn();
+const onFeedCommentThreadToggled = jest.fn();
 jest.mock('@/analytics/team-news.analytics', () => ({
-  useTeamNewsAnalytics: () => ({ onFeedForumPostCardClicked }),
+  useTeamNewsAnalytics: () => ({ onFeedForumPostCardClicked, onFeedCommentThreadToggled }),
 }));
 
 jest.mock('@/components/page/home/TeamNews/components/NewsShareMenu', () => ({
   FeedForumPostShareMenu: () => null,
+}));
+
+// The thread's own behaviour lives in feed-comments-thread.test.tsx; this file
+// covers the card's wiring to it.
+const mockThread = jest.fn();
+jest.mock('@/components/page/home/TeamNews/components/FeedCommentsThread/FeedCommentsThread', () => ({
+  feedThreadDomId: (uid: string) => `feed-thread-${uid}`,
+  FeedCommentsThread: (props: { itemUid: string; forumMainPid?: number; onViewAll: () => void }) => {
+    mockThread(props);
+    return <div data-testid={`thread-${props.itemUid}`} />;
+  },
 }));
 
 const post: IFeedForumPost = {
@@ -63,21 +75,38 @@ describe('ForumPostCard', () => {
     expect(onFeedForumPostCardClicked).toHaveBeenCalledWith(post, 0, 'home', 'row');
   });
 
-  it('opens the same modal from the comment badge, flagged as such for analytics', () => {
+  it('discloses the real NodeBB thread in place rather than opening the modal', () => {
     const { onOpenDetail } = renderCard();
 
-    fireEvent.click(screen.getByRole('button', { name: 'View comments' }));
+    expect(screen.queryByTestId('thread-fp_96')).not.toBeInTheDocument();
 
-    expect(onOpenDetail).toHaveBeenCalledWith(post);
-    expect(onFeedForumPostCardClicked).toHaveBeenCalledWith(post, 0, 'home', 'comment-button');
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+
+    expect(onOpenDetail).not.toHaveBeenCalled();
+    expect(screen.getByTestId('thread-fp_96')).toBeInTheDocument();
+    // The topic's opening post is what a top-level comment replies to.
+    expect(mockThread).toHaveBeenCalledWith(expect.objectContaining({ forumMainPid: 263 }));
+    expect(onFeedCommentThreadToggled).toHaveBeenCalledWith('fp_96', 'forum', true, 'home');
   });
 
-  it('never renders a thread inline on the card — the real NodeBB thread lives in the modal', () => {
+  it('collapses the thread again on a second click', () => {
     renderCard();
 
-    fireEvent.click(screen.getByRole('button', { name: 'View comments' }));
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Comments, hide/ }));
 
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('thread-fp_96')).not.toBeInTheDocument();
+    expect(onFeedCommentThreadToggled).toHaveBeenLastCalledWith('fp_96', 'forum', false, 'home');
+  });
+
+  it('escalates the inline thread to the modal, flagged as such for analytics', () => {
+    const { onOpenDetail } = renderCard();
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    mockThread.mock.calls.at(-1)?.[0].onViewAll();
+
+    expect(onOpenDetail).toHaveBeenCalledWith(post);
+    expect(onFeedForumPostCardClicked).toHaveBeenCalledWith(post, 0, 'home', 'view-all-comments');
   });
 
   it('toggles the like without opening the modal', () => {

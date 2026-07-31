@@ -12,9 +12,9 @@ import s from './CommentButton.module.scss';
 // cache (select-narrowed, so a count bump re-renders exactly this button, not
 // the feed); undefined means "unknown" and renders no number (never a fake "0").
 //
-// This is a count badge that OPENS the detail modal, not a disclosure toggle:
-// threads live only in the modal, where a depth-2 reply tree has room to
-// breathe. Hence no `open`/aria-expanded — there is nothing here to expand.
+// A disclosure control for the card's inline thread — hence `aria-expanded` and
+// `aria-controls`. Long threads escalate to the detail modal from inside the
+// thread itself, not from here.
 
 function CommentIcon() {
   return (
@@ -29,25 +29,35 @@ function CommentIcon() {
 
 interface CommentButtonProps {
   itemUid: string;
-  onClick: () => void;
+  open: boolean;
+  onToggle: () => void;
+  /** id of the thread region this button discloses. */
+  controls: string;
 }
 
-export function CommentButton({ itemUid, onClick }: CommentButtonProps) {
+export function CommentButton({ itemUid, open, onToggle, controls }: CommentButtonProps) {
   const count = useFeedCommentCount(itemUid);
   const noun = count === 1 ? 'Comment' : 'Comments';
+  const visibleLabel = count !== undefined ? `${count} ${noun}` : noun;
+  // The accessible name has to CARRY the visible text, not replace it: a bare
+  // "Show comments" hides the count from screen readers and leaves voice
+  // control with no way to say what it can see.
+  const label = `${visibleLabel}, ${open ? 'hide' : 'show'}`;
   return (
     <button
       type="button"
-      className={s.comment}
-      aria-label="View comments"
-      title="View comments"
+      className={clsx(s.comment, open && s.commentOpen)}
+      aria-expanded={open}
+      aria-controls={controls}
+      aria-label={label}
+      title={label}
       onClick={(e) => {
         e.stopPropagation();
-        onClick();
+        onToggle();
       }}
     >
       <CommentIcon />
-      <span>{count !== undefined ? `${count} ${noun}` : noun}</span>
+      <span>{visibleLabel}</span>
     </button>
   );
 }

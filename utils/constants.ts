@@ -610,6 +610,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED: 'team-news-feed-forum-post-modal-opened',
   TEAM_NEWS_FEED_FORUM_POST_LIKE_TOGGLED: 'team-news-feed-forum-post-like-toggled',
   TEAM_NEWS_FEED_FORUM_POST_SHARED: 'team-news-feed-forum-post-shared',
+  TEAM_NEWS_FEED_COMMENT_THREAD_TOGGLED: 'team-news-feed-comment-thread-toggled',
   TEAM_NEWS_FEED_COMMENT_SUBMITTED: 'team-news-feed-comment-submitted',
 };
 

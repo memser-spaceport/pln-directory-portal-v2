@@ -38,6 +38,25 @@ import {
 // badge on the page down with it.
 const COMMENT_COUNTS_BATCH_SIZE = 200;
 
+/**
+ * A directory-backend write that came back not-ok, carrying the status so a
+ * failure can be classified rather than lumped into "something went wrong".
+ * Mirrors ForumWriteError, which does the same for the NodeBB side.
+ *
+ * `status` is undefined only when customFetch gave up on auth and returned
+ * nothing — a genuine network failure makes fetch REJECT, so it never reaches
+ * here. classifyCommentFailure relies on that distinction.
+ */
+export class FeedWriteError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | undefined,
+  ) {
+    super(message);
+    this.name = 'FeedWriteError';
+  }
+}
+
 // ── Wire shapes (directory backend) ──────────────────────────────────────────
 // Deliberately local: the moment these leak upward, every component has to care
 // that news comments say `newsItemUid` and forum comments have no such concept.
@@ -210,7 +229,8 @@ export async function createFeedComment(request: ICreateFeedCommentRequest): Pro
     },
     true,
   );
-  if (!response?.ok) throw new Error('Failed to post feed comment');
+  // Same message as before (a test pins it); the status is what's new.
+  if (!response?.ok) throw new FeedWriteError('Failed to post feed comment', response?.status);
 
   return toFeedComment((await response.json()) as IFeedCommentWire);
 }
@@ -225,7 +245,7 @@ export async function deleteFeedComment(commentUid: string): Promise<IFeedCommen
     true,
   );
   if (response?.status === 404) return { uid: commentUid, deleted: true };
-  if (!response?.ok) throw new Error('Failed to delete feed comment');
+  if (!response?.ok) throw new FeedWriteError('Failed to delete feed comment', response?.status);
 
   return (await response.json()) as IFeedCommentDeleteResponse;
 }
@@ -314,7 +334,10 @@ async function createForumPostComment(request: ICreateFeedCommentRequest): Promi
 
 async function fetchTopicMainPid(tid: number): Promise<number> {
   const response = await forumFetch(`/api/topic/${tid}`);
-  if (!response?.ok) throw new Error('Failed to post feed comment');
+  // Its own message: sharing the POST's made two unrelated causes — the
+  // directory rejecting a comment, and a NodeBB topic lookup failing — land in
+  // one analytics row with no way to tell them apart.
+  if (!response?.ok) throw new FeedWriteError('Failed to look up the forum topic', response?.status);
 
   const topic = (await response.json()) as TopicResponse;
   return topic.mainPid;

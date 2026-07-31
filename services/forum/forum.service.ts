@@ -101,11 +101,34 @@ export function forumErrorMessage(error: unknown, fallback: string): string {
   const raw = error instanceof Error ? error.message : '';
   if (!raw) return fallback;
 
-  if (/content-too-short|too-short/i.test(raw)) return 'That’s too short for the forum — try a few more words.';
-  if (/too-many-posts|rate-limit/i.test(raw)) return 'You’re posting a little fast for the forum — try again shortly.';
-  if (/no-privileges|not-allowed|privileges/i.test(raw)) return 'You don’t have permission to reply on the forum.';
-  if (/invalid token|unauthori[sz]ed/i.test(raw)) return 'The forum didn’t accept your session — try signing in again.';
+  switch (classifyForumMessage(raw)) {
+    case 'too-short':
+      return 'That’s too short for the forum — try a few more words.';
+    case 'rate-limited':
+      return 'You’re posting a little fast for the forum — try again shortly.';
+    case 'no-permission':
+      return 'You don’t have permission to reply on the forum.';
+    case 'session-expired':
+      return 'The forum didn’t accept your session — try signing in again.';
+  }
 
   // Any remaining bracketed key is machine text, not a message for a member.
   return /^\[\[.*\]\]$/.test(raw.trim()) || raw.includes('[[') ? fallback : raw;
+}
+
+/** What a forum rejection actually was, for analytics and for the copy above.
+ *  `undefined` = the message says nothing recognisable. */
+export type ForumMessageReason = 'too-short' | 'rate-limited' | 'no-permission' | 'session-expired';
+
+/**
+ * The message half of classifying a forum rejection — shared so the reason a
+ * member is shown and the reason we record can never drift apart. Order is
+ * load-bearing and matches what forumErrorMessage did before it was extracted.
+ */
+export function classifyForumMessage(raw: string): ForumMessageReason | undefined {
+  if (/content-too-short|too-short/i.test(raw)) return 'too-short';
+  if (/too-many-posts|rate-limit/i.test(raw)) return 'rate-limited';
+  if (/no-privileges|not-allowed|privileges/i.test(raw)) return 'no-permission';
+  if (/invalid token|unauthori[sz]ed/i.test(raw)) return 'session-expired';
+  return undefined;
 }

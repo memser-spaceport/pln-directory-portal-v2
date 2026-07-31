@@ -832,6 +832,8 @@ describe('TeamNews', () => {
 
       expect(screen.getAllByRole('button', { name: 'Like (0)' })).toHaveLength(2);
       expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+      // A rolled-back like used to be indistinguishable from one that stuck.
+      expect(mockOnUpvoteFailed).toHaveBeenCalledWith(expect.anything(), expect.any(Number), true, 'home');
     });
 
     it('does not change followed-first cluster ordering when upvoting an unfollowed story', () => {
@@ -1324,6 +1326,10 @@ describe('TeamNews', () => {
       fireEvent.click(getRailButton('Headline ai-1'));
 
       expect(openSpy).toHaveBeenCalledWith('https://example.com/expired', '_blank', 'noopener,noreferrer');
+      // The live, previously unmeasured failure path: ranked server-side, aged
+      // out of the 14-day window before it was clicked.
+      expect(mockOnFallbackOpened).toHaveBeenCalledWith(expect.objectContaining({ uid: 'expired-uid' }), 0);
+      expect(mockOnScrollSucceeded).not.toHaveBeenCalled();
       openSpy.mockRestore();
     });
 
@@ -1334,6 +1340,8 @@ describe('TeamNews', () => {
       fireEvent.click(getRailButton('Headline ai-1'));
       const row = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(row).toHaveClass('storyHighlighted');
+      // The denominator for the fallback above.
+      expect(mockOnScrollSucceeded).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 0);
 
       act(() => jest.advanceTimersByTime(2000));
       expect(row).not.toHaveClass('storyHighlighted');

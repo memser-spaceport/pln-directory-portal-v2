@@ -227,6 +227,14 @@ describe('TeamNewsRail', () => {
     const button = screen.getByRole('button', { name: 'Like (0)' });
     expect(button).toHaveTextContent('0');
     expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+    // team-profile is the OTHER call site. Wiring only /home's would have made
+    // the failure rate read 0% here while the success event covered both.
+    expect(mockOnUpvoteFailed).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'news-1' }),
+      expect.any(Number),
+      true,
+      'team-profile-rail',
+    );
   });
 
   const summarized = (uid: string): ITeamNewsItem => ({

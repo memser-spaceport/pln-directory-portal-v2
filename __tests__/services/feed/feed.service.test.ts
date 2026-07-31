@@ -434,7 +434,7 @@ describe('feed.service', () => {
       expect(items[0].replies[0].parentUid).toBe('fpc_264');
     });
 
-    it('maps a NodeBB post onto the comment view model, HTML stripped', async () => {
+    it('maps a NodeBB post onto the comment view model, HTML intact', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => topicResponse });
 
       const { items } = await getFeedComments('fp_96');
@@ -444,7 +444,9 @@ describe('feed.service', () => {
         itemUid: 'fp_96',
         parentUid: null,
         author: { uid: 'm-2', name: 'Lacey Wisdom', avatarUrl: null, role: 'General Partner' },
-        text: 'awesome!',
+        // Not stripped: a forum comment's own links and mentions live in this
+        // HTML. FeedCommentContent sanitizes it at render.
+        text: '<p>awesome!</p>',
         createdAt: new Date(1782906219045).toISOString(),
         isOwn: false,
         // Its own reply, asserted in full by the nesting tests above.
@@ -543,7 +545,7 @@ describe('feed.service', () => {
       expect(forumTopic?.like).toEqual({ likeCount: 0, viewerHasLiked: false });
     });
 
-    it('keeps an attachment-only reply as an empty-text comment for the UI to label', async () => {
+    it('passes an attachment-only reply through untouched, for the renderer to label', async () => {
       customFetchMock.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -556,9 +558,11 @@ describe('feed.service', () => {
 
       const { items } = await getFeedComments('fp_96');
 
-      // Not dropped, and not given fake text — the component says what it is.
+      // Not dropped, and not pre-judged here. The service no longer decides
+      // what's renderable — hasRenderableContent does, after sanitizing, which
+      // is the only place that knows the img won't survive the allowlist.
       expect(items).toHaveLength(1);
-      expect(items[0].text).toBe('');
+      expect(items[0].text).toBe('<p><img src="/x.png" /></p>');
     });
 
     it('throws when the forum is unreachable', async () => {

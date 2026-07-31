@@ -257,7 +257,11 @@ function toForumFeedComment(post: TopicPost, itemUid: ForumPostUid, mainPid: num
       avatarUrl: user?.picture ?? null,
       role: user?.teamRole ?? null,
     },
-    text: stripHtml(post.content ?? ''),
+    // NOT stripped any more. A forum comment's own links and mentions are in
+    // this HTML, and flattening it was why they rendered as inert text in the
+    // feed while working fine on /forum. FeedCommentContent sanitizes it down
+    // to p/br/a at render — images and headings still don't reach a card.
+    text: post.content ?? '',
     createdAt: new Date(Number(post.timestamp) || Date.now()).toISOString(),
     // Deleting a real NodeBB reply from the feed isn't implemented, so the
     // delete affordance is never offered — regardless of who wrote it.

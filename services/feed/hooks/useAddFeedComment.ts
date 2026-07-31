@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
 import { insertCommentIntoTree } from '@/utils/comments';
+import { countMentions } from '@/utils/html';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { feedQueryKeys } from '../constants';
 import { classifyCommentFailure } from '../commentFailure';
@@ -12,12 +13,6 @@ import { createFeedComment } from '../feed.service';
 export interface FeedCommentContext {
   kind: FeedItemKind;
   source: TeamNewsAnalyticsSource;
-}
-
-/** Mentions are the only thing in a comment worth counting, and the class
- *  MentionBlot stamps is what distinguishes one from an ordinary link. */
-function countMentions(html: string): number {
-  return html.match(/class="ql-mention"/g)?.length ?? 0;
 }
 
 // Per-item mutation (itemUid bound at hook creation so `scope` can serialize

@@ -29,6 +29,12 @@ export interface CommentFailure {
    *  chose to send, and NodeBB's spam and URL plugins embed the offending
    *  content in it, so nothing else from that string may reach analytics. */
   errorKey?: string;
+  /** `too-long-client` only: the serialised length that breached the cap, and
+   *  how much of it was mention markup. Plain numbers — no content. Without
+   *  them there is no telling a long comment from a mention-heavy short one,
+   *  which is the whole question that reason raises. */
+  length?: number;
+  mentionsCount?: number;
 }
 
 const ERROR_KEY = /\[\[error:([a-z0-9_-]+)/i;

@@ -2,7 +2,11 @@ import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
 import { getRoundStats, RoundBuybackStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
-import { IPastRoundData, BuybackSimulationSectionData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
+import {
+  IPastRoundData,
+  BuybackSimulationSectionData,
+  BuybackBidEntry,
+} from '@/components/page/aligement-assets/rounds/types/current-round.types';
 import styles from './page.module.css';
 
 interface PastRoundPageProps {
@@ -25,26 +29,33 @@ function formatCount(value: number | null): string {
 }
 
 // A buyback_results row can be just an "anticipated" placeholder (round hasn't
-// settled yet) with every number null — only build the section once there's
-// an actual result to show.
+// settled yet) with every field null — only build the section once there's an
+// actual result to show. totalBuybackPool/cappedAllocation/totalFilled come
+// back pre-formatted (raw display strings, entered exactly as shown — e.g.
+// "n/a" or "$23,811.55 (50% cap)"), not numbers to reformat.
 function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimulationSectionData {
   const label = buyback.simulation ? 'Buyback Simulation' : 'Buyback Auction';
+  const numbered = buyback.auctionNumber != null ? `${label} #${buyback.auctionNumber}` : label;
   return {
     title: buyback.simulation ? 'Buyback Simulation' : 'Live Buyback Auction',
-    headerDescription: `Results from this round's buyback ${buyback.simulation ? 'simulation' : 'auction'}.`,
-    totalFilled: formatCurrency(buyback.totalFilled),
+    headerDescription:
+      buyback.headerDescription ?? `Results from this round's buyback ${buyback.simulation ? 'simulation' : 'auction'}.`,
+    totalFilled: buyback.totalFilled ?? 'TBD',
     summary: {
-      title: `${label} - Key Results`,
+      title: `${numbered} - Key Results`,
       items: [
-        { icon: '/icons/rounds/buy_action_results/wallet-01.svg', label: 'Total Buyback Pool', value: formatCurrency(buyback.totalBuybackPool) },
+        { icon: '/icons/rounds/buy_action_results/wallet-01.svg', label: 'Total Buyback Pool', value: buyback.totalBuybackPool ?? 'TBD' },
         { icon: '/icons/rounds/buy_action_results/pie-chart.svg', label: 'Pool Used', value: formatPercent(buyback.poolUsed) },
         { icon: '/icons/rounds/buy_action_results/coins-02.svg', label: 'Clearing Price', value: formatCurrency(buyback.clearingPrice) },
-        { icon: '/icons/rounds/buy_action_results/analytics-01.svg', label: 'Capped Allocation', value: formatCurrency(buyback.cappedAllocation) },
+        { icon: '/icons/rounds/buy_action_results/analytics-01.svg', label: 'Capped Allocation', value: buyback.cappedAllocation ?? 'TBD' },
         { icon: '/icons/rounds/buy_action_results/dollar-02.svg', label: 'Tokens Purchased', value: formatCount(buyback.tokensPurchased) },
         { icon: '/icons/rounds/buy_action_results/user-multiple.svg', label: 'Winning Bidders', value: formatCount(buyback.winningBidders) },
       ],
     },
-    bids: [],
+    // Stored/entered exactly as the original ledger showed; status is one of
+    // the five values the frontend type expects (Fully/Partially/Not Filled,
+    // Limit, Pro Rata) — the Airtable source is constrained to match.
+    bids: buyback.bids as BuybackBidEntry[],
   };
 }
 

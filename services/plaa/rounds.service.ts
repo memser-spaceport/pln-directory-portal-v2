@@ -9,18 +9,35 @@ export interface RoundStatsChartEntry {
   value: number;
 }
 
+export interface RoundBuybackBid {
+  bidderId: string;
+  tokensBid: string;
+  tokenPrice: string;
+  bidValue: string;
+  status: string;
+  amtFilled: string;
+  accepted: string;
+  aggFill: string;
+  percentCapture: string;
+}
+
 export interface RoundBuybackStats {
   anticipated: boolean;
   simulation: boolean;
+  auctionNumber: number | null;
+  headerDescription: string | null;
   clearingPrice: number | null;
   totalTokensDistributed: number | null;
-  totalBuybackPool: number | null;
+  // Raw display strings, stored/formatted exactly as entered — irregular by
+  // nature (some rounds show cents, some don't; cappedAllocation can read
+  // "n/a" or carry a "(50% cap)" note).
+  totalBuybackPool: string | null;
   poolUsed: number | null;
-  cappedAllocation: number | null;
+  cappedAllocation: string | null;
   tokensPurchased: number | null;
   winningBidders: number | null;
-  totalFilled: number | null;
-  fillRate: number | null;
+  totalFilled: string | null;
+  bids: RoundBuybackBid[];
 }
 
 export interface RoundStatsResponse {

@@ -151,6 +151,7 @@ export const currentRoundData: CurrentRoundData = {
       'Complete a Survey',
       'Refer New Alignment Asset Participants',
       'Top the Leaderboard',
+      'Give a Network Kudos',
       'Host or Co-Host an X Space',
       'Write and publish a case study about the Alignment Asset',
       'Refer a Potential Team Member to a PL Network Org',

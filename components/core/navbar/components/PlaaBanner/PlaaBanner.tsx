@@ -20,6 +20,8 @@ interface BannerButton {
 interface BannerContent {
   id: string;
   type: BannerType;
+  // Optional per-banner icon; falls back to the type-based default when omitted.
+  icon?: string;
   title: string;
   // Bold lead-in rendered immediately before `subtitle`.
   subtitleBold?: string;
@@ -38,14 +40,36 @@ const COMPACT_SCROLL_OFFSET = 24;
 // Banner data
 export const BANNER_CONTENTS: BannerContent[] = [
   {
-    id: 'buyback-auction-july',
+    id: 'kudos-board',
     type: 'event',
-    title: 'The July Buyback Auction Is Now Live',
-    subtitleBold: 'All bids must be in no later than July 21 at 12 PM ET',
-    subtitle: ' for the opportunity to redeem your PLAA in exchange for USD.',
+    icon: '/icons/star-outline-white.svg',
+    title: 'Recognize Great Work with Kudos',
+    subtitle: 'Visit the new Kudos Board to recognize meaningful contributions from across the network.',
     date: '',
     buttons: [
-      { label: 'Place Your Bid Now on the Surus Platform', link: 'https://auction-interface.fly.dev/', variant: 'secondary' },
+      { label: 'Give Kudos', link: 'https://directory.plnetwork.io/alignment-asset/kudos', variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'advisor-applications',
+    type: 'event',
+    icon: '/icons/badge-check-outline-white.svg',
+    title: 'Interested in Becoming an Advisor?',
+    subtitle: 'Share your expertise and support teams across the network by applying to become an advisor.',
+    date: '',
+    buttons: [
+      { label: 'Apply to Be an Advisor', link: 'https://forms.gle/WL14LyMceKSM5D5CA', variant: 'secondary' },
+    ],
+  },
+  {
+    id: 'new-activities',
+    type: 'event',
+    icon: '/icons/zap-outline-white.svg',
+    title: 'New Activities Have Arrived',
+    subtitle: 'Explore new ways to contribute to the network and collect PLAA points.',
+    date: '',
+    buttons: [
+      { label: 'View Activities', link: 'https://directory.plnetwork.io/alignment-asset/activities', variant: 'secondary' },
     ],
   },
 ];
@@ -131,7 +155,7 @@ export function PlaaBanner() {
                     {/* Icon */}
                     <div className={styles.iconBox}>
                       <Image
-                        src={item.type === 'event' ? '/icons/calendar-white.svg' : '/icons/zap-yellow.svg'}
+                        src={item.icon ?? (item.type === 'event' ? '/icons/calendar-white.svg' : '/icons/zap-yellow.svg')}
                         alt=""
                         width={24}
                         height={24}

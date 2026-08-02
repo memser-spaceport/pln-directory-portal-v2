@@ -46,3 +46,32 @@ export const getCurrentRoundStats = async (): Promise<{
     return { error: { message: 'Failed to fetch current round stats' } };
   }
 };
+
+/**
+ * Stats for an arbitrary round by number. Used by the past-round archive
+ * page for rounds that don't have a hand-authored data file (round 18+).
+ */
+export const getRoundStats = async (
+  roundNumber: number,
+): Promise<{
+  data?: RoundStatsResponse;
+  error?: { message: string };
+}> => {
+  try {
+    const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/${roundNumber}/stats`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return { error: { message: `API responded with ${response.status}: ${response.statusText}` } };
+    }
+
+    const data: RoundStatsResponse = await response.json();
+    return { data };
+  } catch (error) {
+    console.error('[rounds.service] Failed to fetch round stats:', error);
+    return { error: { message: 'Failed to fetch round stats' } };
+  }
+};

@@ -117,7 +117,10 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
         stats.buyback?.totalTokensDistributed != null
           ? stats.buyback.totalTokensDistributed.toLocaleString('en-US')
           : 'TBD',
-      numberOfBuybacks: hasSettledBuyback && !stats.buyback!.simulation ? 1 : 0,
+      // Original data counted any buyback event (simulation or live) as 1 —
+      // rounds 7, 9, and 11 all show numberOfBuybacks: 1 regardless of the
+      // simulation flag.
+      numberOfBuybacks: hasSettledBuyback ? 1 : 0,
       ...(stats.labweek25IncentivizedActivities.length > 0
         ? { labweek25IncentivizedActivities: stats.labweek25IncentivizedActivities }
         : {}),

@@ -7,9 +7,12 @@ import { CurrentRoundData } from '@/components/page/aligement-assets/rounds/type
 
 /**
  * Everything derivable comes from the API (round meta, month/period, KPI
- * chart, totals, participants, activity catalog); the data file keeps only
- * editorial content (hero copy, descriptions, regions, token/buyback
- * figures) and acts as the fallback when the API is unreachable.
+ * chart, totals, participants, activity catalog, regions unlocked); the data
+ * file keeps only editorial content that never varies by round (hero copy,
+ * paragraph/tip text, section labels) and acts as the fallback when the API
+ * is unreachable. Buyback figures stay on the data file — the section only
+ * ever renders when `bids` is non-empty, which no data source populates, so
+ * wiring live buyback data in here has no visible effect.
  */
 function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
   if (!stats) return currentRoundData;
@@ -56,10 +59,8 @@ function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
     stats: {
       ...currentRoundData.stats,
       onboardedParticipants: stats.onboardedParticipants,
-      // incentivizedActivities stays hand-curated: the API's activityName set
-      // mixes awards (e.g. "5 Highest Points per Snapshot") with submittable
-      // activities, and the catalog changes per round. Needs an Airtable
-      // activity-catalog table before it can be derived.
+      incentivizedActivities: stats.incentivizedActivities,
+      regionsUnlocked: stats.regionsUnlocked,
       totalPointsCollected: stats.totalPointsCollected.toLocaleString('en-US'),
     },
   };

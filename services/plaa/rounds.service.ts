@@ -9,6 +9,20 @@ export interface RoundStatsChartEntry {
   value: number;
 }
 
+export interface RoundBuybackStats {
+  anticipated: boolean;
+  simulation: boolean;
+  clearingPrice: number | null;
+  totalTokensDistributed: number | null;
+  totalBuybackPool: number | null;
+  poolUsed: number | null;
+  cappedAllocation: number | null;
+  tokensPurchased: number | null;
+  winningBidders: number | null;
+  totalFilled: number | null;
+  fillRate: number | null;
+}
+
 export interface RoundStatsResponse {
   roundId: string;
   roundNumber: number;
@@ -21,6 +35,8 @@ export interface RoundStatsResponse {
   totalPointsCollected: number;
   onboardedParticipants: number;
   incentivizedActivities: string[];
+  regionsUnlocked: string[];
+  buyback: RoundBuybackStats | null;
 }
 
 export const getCurrentRoundStats = async (): Promise<{

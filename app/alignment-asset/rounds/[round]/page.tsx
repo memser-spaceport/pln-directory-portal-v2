@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
-import { getRoundStats, RoundBuybackStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getRoundStats, RoundBuybackBid, RoundBuybackStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
 import {
   IPastRoundData,
   BuybackSimulationSectionData,
@@ -28,6 +28,38 @@ function formatCount(value: number | null): string {
   return value.toLocaleString('en-US');
 }
 
+// Bid-ledger cells use '' for "not applicable" (unfilled bids), matching the
+// original hand-typed table, rather than the summary card's 'TBD'.
+function formatBidCurrency(value: number | null): string {
+  if (value === null) return '';
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatBidCount(value: number | null): string {
+  if (value === null) return '';
+  return value.toLocaleString('en-US');
+}
+
+function formatBidPercent(value: number | null): string {
+  if (value === null) return '';
+  return `${value.toFixed(2)}%`;
+}
+
+function mapBid(bid: RoundBuybackBid): BuybackBidEntry {
+  return {
+    bidderId: bid.bidderId,
+    tokensBid: formatBidCount(bid.tokensBid),
+    tokenPrice: formatBidCurrency(bid.tokenPrice),
+    bidValue: formatBidCurrency(bid.bidValue),
+    // Constrained at the Airtable source to the five values this type expects.
+    status: bid.status as BuybackBidEntry['status'],
+    amtFilled: formatBidCurrency(bid.amtFilled),
+    accepted: formatBidCount(bid.accepted),
+    aggFill: formatBidCurrency(bid.aggFill),
+    percentCapture: formatBidPercent(bid.percentCapture),
+  };
+}
+
 // A buyback_results row can be just an "anticipated" placeholder (round hasn't
 // settled yet) with every field null — only build the section once there's an
 // actual result to show. totalBuybackPool/cappedAllocation/totalFilled come
@@ -52,10 +84,7 @@ function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimulationSe
         { icon: '/icons/rounds/buy_action_results/user-multiple.svg', label: 'Winning Bidders', value: formatCount(buyback.winningBidders) },
       ],
     },
-    // Stored/entered exactly as the original ledger showed; status is one of
-    // the five values the frontend type expects (Fully/Partially/Not Filled,
-    // Limit, Pro Rata) — the Airtable source is constrained to match.
-    bids: buyback.bids as BuybackBidEntry[],
+    bids: buyback.bids.map(mapBid),
   };
 }
 

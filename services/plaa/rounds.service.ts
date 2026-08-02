@@ -11,14 +11,14 @@ export interface RoundStatsChartEntry {
 
 export interface RoundBuybackBid {
   bidderId: string;
-  tokensBid: string;
-  tokenPrice: string;
-  bidValue: string;
+  tokensBid: number;
+  tokenPrice: number;
+  bidValue: number;
   status: string;
-  amtFilled: string;
-  accepted: string;
-  aggFill: string;
-  percentCapture: string;
+  amtFilled: number | null;
+  accepted: number | null;
+  aggFill: number;
+  percentCapture: number | null;
 }
 
 export interface RoundBuybackStats {

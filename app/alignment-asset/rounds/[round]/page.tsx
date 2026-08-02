@@ -30,9 +30,20 @@ function formatCount(value: number | null): string {
 
 // Bid-ledger cells use '' for "not applicable" (unfilled bids), matching the
 // original hand-typed table, rather than the summary card's 'TBD'.
-function formatBidCurrency(value: number | null): string {
+//
+// tokenPrice/clearingPrice/bidValue forced 2 decimals in a 2-of-3 majority of
+// the original rounds (7 and 11; only round 9 didn't). amtFilled/aggFill go
+// the other way — natural in a 2-of-3 majority (9 and 11; only round 7
+// forced them). Neither is exact for every round (nothing can be, the
+// original wasn't systematic), but each follows the majority convention.
+function formatBidPrice(value: number | null): string {
   if (value === null) return '';
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatBidAmount(value: number | null): string {
+  if (value === null) return '';
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 function formatBidCount(value: number | null): string {
@@ -49,13 +60,13 @@ function mapBid(bid: RoundBuybackBid): BuybackBidEntry {
   return {
     bidderId: bid.bidderId,
     tokensBid: formatBidCount(bid.tokensBid),
-    tokenPrice: formatBidCurrency(bid.tokenPrice),
-    bidValue: formatBidCurrency(bid.bidValue),
+    tokenPrice: formatBidPrice(bid.tokenPrice),
+    bidValue: formatBidAmount(bid.bidValue),
     // Constrained at the Airtable source to the five values this type expects.
     status: bid.status as BuybackBidEntry['status'],
-    amtFilled: formatBidCurrency(bid.amtFilled),
+    amtFilled: formatBidAmount(bid.amtFilled),
     accepted: formatBidCount(bid.accepted),
-    aggFill: formatBidCurrency(bid.aggFill),
+    aggFill: formatBidAmount(bid.aggFill),
     percentCapture: formatBidPercent(bid.percentCapture),
   };
 }

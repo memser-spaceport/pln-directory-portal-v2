@@ -36,6 +36,7 @@ export interface RoundStatsResponse {
   onboardedParticipants: number;
   incentivizedActivities: string[];
   regionsUnlocked: string[];
+  labweek25IncentivizedActivities: string[];
   buyback: RoundBuybackStats | null;
 }
 

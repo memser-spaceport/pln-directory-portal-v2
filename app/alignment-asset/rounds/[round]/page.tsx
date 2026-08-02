@@ -78,6 +78,9 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
           ? stats.buyback.totalTokensDistributed.toLocaleString('en-US')
           : 'TBD',
       numberOfBuybacks: hasSettledBuyback && !stats.buyback!.simulation ? 1 : 0,
+      ...(stats.labweek25IncentivizedActivities.length > 0
+        ? { labweek25IncentivizedActivities: stats.labweek25IncentivizedActivities }
+        : {}),
     },
     leaderboard: [],
     buybackSimulation: hasSettledBuyback ? buildBuybackSimulation(stats.buyback!) : undefined,

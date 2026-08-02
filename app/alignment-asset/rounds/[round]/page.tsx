@@ -43,7 +43,12 @@ function formatBidPrice(value: number | null): string {
 
 function formatBidAmount(value: number | null): string {
   if (value === null) return '';
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  // Whole dollars show no decimals; anything with real cents shows exactly
+  // 2, never 1 (a bare float can't distinguish "35312.4" from "35312.40",
+  // so pad explicitly rather than leaving it to whatever precision the
+  // number happens to carry).
+  const decimals = Number.isInteger(value) ? 0 : 2;
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
 function formatBidCount(value: number | null): string {

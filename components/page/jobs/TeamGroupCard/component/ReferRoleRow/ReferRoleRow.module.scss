@@ -1,0 +1,149 @@
+// Local extras on top of the reused production RoleRow.module.scss.
+@use '../../../../../../styles/media';
+
+.root {
+  gap: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: #f9fafb;
+
+  text-decoration: none;
+  color: inherit;
+}
+
+.body {
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.meta {
+  color: #455468;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+.right {
+  gap: 16px;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.relative {
+  gap: 2px;
+  display: flex;
+  align-items: center;
+
+  font-size: 13px;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.newBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+// On phones the production row (title/meta left, actions right) gets crushed —
+// the title/meta wrap over many lines while the actions squish. Stack them: full-
+// width title + meta, then the actions on their own line below.
+.row {
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.actions {
+  @include media.mobile-only {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px 16px;
+  }
+}
+
+// Refer + apply arrow travel together. On mobile they're pushed to the card's
+// right corner, leaving the post time on the left with space between.
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  @include media.mobile-only {
+    margin-left: auto;
+  }
+}
+
+// Title + (mobile) "New" badge on one line: name fills, badge pinned right.
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+// "New" badge: shown in the action line on desktop, moved to the top-right of the
+// card (in line with the role name) on mobile. Only one renders per breakpoint.
+.newBadgeMobile {
+  display: none;
+}
+
+@include media.mobile-only {
+  .titleRow .titleLink {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .newBadgeMobile {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .newBadgeDesktop {
+    display: none;
+  }
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.applyArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  border-radius: 8px;
+  padding: 2px;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}

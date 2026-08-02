@@ -18,10 +18,6 @@ jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: null, isHydrated: true }),
 }));
 
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: () => <button type="button">Discuss</button>,
-}));
-
 jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '4d ago',
 }));

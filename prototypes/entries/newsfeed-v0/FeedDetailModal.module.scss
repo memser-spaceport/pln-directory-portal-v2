@@ -1,0 +1,404 @@
+@import 'styles/media.scss';
+
+/* Detail modal for one news story (or forum post): full summary/body, a share
+   action, and the story's sources as badges. Sits inside the production common
+   Modal (max-width 600, centered, backdrop blur); this styles the panel body. */
+
+/* Desktop keeps the platform's centered Modal; on mobile the platform takes
+   detail views full-screen (its Drawer goes 100vw/100dvh under 640px), so we
+   match that here — the common Modal's overlay padding + container max-width are
+   overridden via its overlayClassname / className props below. */
+.mobileOverlay.mobileOverlay {
+  @include mobile-only {
+    padding: 0;
+  }
+}
+
+/* Larger than the platform's default 600px centered container — the news detail
+   modal carries a full summary, sources, and a comment thread, so it gets more
+   room. Full-screen on mobile (matching the platform Drawer). */
+.container.container {
+  max-width: 680px;
+
+  @include mobile-only {
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+  }
+}
+
+/* Fixed size regardless of content length: a set height with the middle region
+   scrolling internally, so a 4-paragraph story and a one-line post open the same
+   modal. Header + footer stay pinned; only .body scrolls. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: min(680px, 88vh);
+  background: var(--background-base-white, #fff);
+  border-radius: 16px;
+  overflow: hidden; /* clip the scrolling body to the rounded corners */
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 12px 32px 0px rgba(15, 23, 42, 0.14);
+
+  /* Mobile: fill the screen (no rounded corners, no cap) — a full-screen
+     takeover matching the platform's Drawer behavior. */
+  @include mobile-only {
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Scrolling middle: kicker, title, summary, meta, sources. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 16px;
+
+  @include mobile-only {
+    padding: 18px 20px 16px;
+  }
+}
+
+/* Author / team header — logo (news) or round avatar (forum) + name + subline,
+   with the standardized close button opposite. Sticky above the scrolling body
+   (border-bottom + flex-shrink come from the reused dealModal.header). */
+.head.head {
+  align-items: center;
+  padding: 16px 20px 16px 24px;
+
+  @include mobile-only {
+    padding: 14px 16px 14px 20px;
+  }
+}
+
+/* Logo + name group on the left of the header. */
+.headIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo,
+.logoFallback {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.avatar {
+  border-radius: 50%;
+}
+
+.logoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.sub {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Event kicker (news) / category (forum) above the title. */
+/* Kicker row at the top of the body: "ANNOUNCEMENT · 1 month ago". */
+.kickerRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kicker {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.kickerSep {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.kickerTime {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* Small disclosure under the summary — quiet tertiary text (not a tag), letting
+   readers know the body is machine-written from the sources. Pulled up tight to
+   the summary above it (the body's 16px gap is too loose for a footnote). */
+.aiNote {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: -8px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+}
+
+.summary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: pre-line;
+}
+
+/* ---------- Per-claim citations (prototype comparison) ---------- */
+
+/* Superscript style: wraps MarkdownToJSX output; style its paragraphs to match
+   the plain .summary, with paragraph spacing between them. */
+.summaryBody p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Anchors the per-marker source popover; kept atomic so it never breaks a line,
+   and vertically centered so the chip sits mid-line with the text. */
+.citeWrap {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.citeLink {
+  text-decoration: none;
+}
+
+/* Source popover on a superscript — favicon + domain, revealed on hover/focus.
+   Modeled on the feed SourceList popover (NewsfeedV0.module.scss .sourcePopover). */
+.citePop {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--background-base-white, #fff);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 8px 20px 0px rgba(15, 23, 42, 0.12);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s;
+
+  .citeWrap:hover &,
+  .citeWrap:focus-within & {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+  }
+}
+
+.citePopDomain {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The raised ¹ citation chip. */
+.cite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  margin-left: 2px;
+  border-radius: 5px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  vertical-align: middle; /* center the chip on the line rather than raising it */
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  }
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.metaDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* Sources block. */
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.sourcesLabel {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A source as a clickable pill — opens the outlet in a new tab. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Footer: share + like + comment count, right-aligned to match the feed card's
+   action cluster. Sticky below the scrolling body (border-top + flex-shrink come
+   from the reused dealModal.footer). */
+.footer.footer {
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  /* Quiet icon+text actions are short, so the band needs more vertical padding
+     than a button-filled footer to avoid looking thin. */
+  padding: 18px 24px;
+
+  @include mobile-only {
+    padding: 16px 20px;
+  }
+}
+
+.footerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Forum-post meta trio (Views · Likes · Comments) in the ForumPostModal footer. */
+.forumMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}

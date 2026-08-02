@@ -11,16 +11,20 @@ import Error from '@/components/core/error';
 import { investorsFilterParsers } from '../searchParams';
 import { InvestorsTableSection } from '@/components/page/investors/InvestorsTableSection/InvestorsTableSection';
 import { WarmIntrosWorkspace } from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace';
+import { WarmIntrosV2Workspace } from '@/components/page/investors/WarmIntrosV2Workspace/WarmIntrosV2Workspace';
 import { InvestorDrawer } from '@/components/page/investors/InvestorDrawer/InvestorDrawer';
 import { useInvestorsAnalytics } from '@/analytics/investors.analytics';
 import s from './page.module.scss';
 
 // Lists IA: Co-investors tab retired (now the relationship filter on All
-// Investors). IA = All Investors (universe) + Warm Intros (proximity workspace).
+// Investors). IA = Warm Intros v2 (default) + Warm Intros v1 + All Investors.
 const VISUAL_TABS = [
+  { value: 'warm-intros-v2', label: 'Warm Intros v2' },
   { value: 'warm-intros', label: 'Warm Intros' },
   { value: 'all', label: 'All Investors' },
 ];
+
+type VisualTab = 'warm-intros' | 'warm-intros-v2' | 'all';
 
 export default function InvestorsContent() {
   const [mounted, toggleMounted] = useToggle(false);
@@ -59,20 +63,23 @@ export default function InvestorsContent() {
   }
 
   const isWarmIntros = filters.mode === 'warm-intros';
-  const activeVisualTab = isWarmIntros ? 'warm-intros' : 'all';
+  const isWarmIntrosV2 = filters.mode === 'warm-intros-v2';
+  const activeVisualTab: VisualTab = isWarmIntros ? 'warm-intros' : isWarmIntrosV2 ? 'warm-intros-v2' : 'all';
 
   const visualTabs = VISUAL_TABS.map((t) =>
     tabCounts[t.value] !== undefined ? { ...t, badge: tabCounts[t.value].toLocaleString() } : t,
   );
 
   const handleVisualTabChange = (next: string) => {
-    const previousTab = activeVisualTab as 'warm-intros' | 'all';
-    const tab = next as 'warm-intros' | 'all';
+    const previousTab = activeVisualTab;
+    const tab = next as VisualTab;
     if (tab !== previousTab) {
       analytics.trackWorkspaceTabChanged({ tab, previousTab });
     }
     if (next === 'warm-intros') {
       setFilters({ tab: 'all', mode: 'warm-intros', investorId: null });
+    } else if (next === 'warm-intros-v2') {
+      setFilters({ tab: 'all', mode: 'warm-intros-v2', investorId: null });
     } else {
       setFilters({
         tab: 'all',
@@ -97,7 +104,7 @@ export default function InvestorsContent() {
       </div>
 
       <div className={s.body}>
-        {isWarmIntros ? (
+        {isWarmIntros || isWarmIntrosV2 ? (
           <div className={s.warmIntrosView}>
             <div className={s.warmIntrosTabBar}>
               <Tabs
@@ -108,7 +115,11 @@ export default function InvestorsContent() {
                 classes={{ tab: s.tab, badge: s.tabBadge }}
               />
             </div>
-            <WarmIntrosWorkspace onCountChange={(n) => updateTabCount('warm-intros', n)} />
+            {isWarmIntrosV2 ? (
+              <WarmIntrosV2Workspace onCountChange={(n) => updateTabCount('warm-intros-v2', n)} />
+            ) : (
+              <WarmIntrosWorkspace onCountChange={(n) => updateTabCount('warm-intros', n)} />
+            )}
           </div>
         ) : (
           <InvestorsTableSection

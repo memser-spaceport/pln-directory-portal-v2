@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { useGetTeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
+import { useGetTeamPitchAccess, type TeamPitchAccess } from '@/services/team-pitch/hooks/useGetTeamPitchAccess';
 import { useGetTeamPitch } from '@/services/team-pitch/hooks/useGetTeamPitch';
 import { TeamProfileCard } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamProfileCard/TeamProfileCard';
 import { TeamDetailsDrawer } from '@/components/page/demo-day/ActiveView/components/TeamsList/components/TeamDetailsDrawer/TeamDetailsDrawer';
@@ -21,7 +21,11 @@ import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnal
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import { getTeamSpotlightPath } from '@/services/team-pitch/constants';
 
-export const PitchView = () => {
+type PitchViewProps = {
+  initialAccess?: TeamPitchAccess | null;
+};
+
+export const PitchView = ({ initialAccess }: PitchViewProps) => {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -31,7 +35,7 @@ export const PitchView = () => {
   const { currentUser, isHydrated } = useCurrentUserStore();
   const isLoggedIn = !!currentUser?.uid;
 
-  const { data: access, isLoading: accessLoading, isError: accessError } = useGetTeamPitchAccess(slug);
+  const { data: access, isLoading: accessLoading, isError: accessError } = useGetTeamPitchAccess(slug, initialAccess);
   const canViewFullPitch =
     !!access &&
     (access.isPitchAdmin || access.participantAccess === 'VIEW_ADMIN' || access.participantAccess === 'EDIT');
@@ -55,12 +59,12 @@ export const PitchView = () => {
     path: getTeamSpotlightPath(slug),
     requireAuth: false,
     distinctId: currentUser?.email ?? `pitch-anonymous-${slug}`,
-    skip: accessLoading || !access,
+    skip: (!access && accessLoading) || !access,
     additionalProperties: pitchPageProperties,
   });
 
   useTimeOnPage({
-    enabled: !accessLoading && !!access,
+    enabled: !!access && (!accessLoading || !!initialAccess),
     onTimeReport: (timeSpent, sessionId) => {
       const distinctId = currentUser?.email ?? `pitch-anonymous-${slug}`;
       reportAnalytics.mutate(
@@ -79,7 +83,7 @@ export const PitchView = () => {
   const loginRedirectAttemptedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !isHydrated || accessLoading || !access) {
+    if (typeof window === 'undefined' || !isHydrated || (!access && accessLoading) || !access) {
       return;
     }
     if (loginRedirectAttemptedRef.current) {
@@ -109,7 +113,11 @@ export const PitchView = () => {
 
   const isInvestor = access?.participantType === 'INVESTOR';
 
-  if (!isHydrated || accessLoading) {
+  if (initialAccess === null) {
+    return <div className={s.root}>Spotlight not found</div>;
+  }
+
+  if (!access && (accessLoading || !isHydrated)) {
     return <PitchViewSkeleton />;
   }
 

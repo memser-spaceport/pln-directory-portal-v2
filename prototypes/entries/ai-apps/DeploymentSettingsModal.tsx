@@ -5,16 +5,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { CloseIcon, SuccessCircleIcon } from '@/components/icons';
+import { CloseIcon, ErrorCircle, SuccessCircleIcon } from '@/components/icons';
 
 import type { AiAppWithDoc } from './mocks';
 
 import s from './DeploymentSettingsModal.module.scss';
 
-/** How long the mock redeploy shows its loader before reporting success. */
+/** How long the mock redeploy shows its loader before reporting an outcome. */
 const REDEPLOY_MS = 2600;
 
-type Phase = 'form' | 'deploying' | 'done';
+type Phase = 'form' | 'deploying' | 'done' | 'failed';
 
 interface Props {
   isOpen: boolean;
@@ -23,10 +23,12 @@ interface Props {
   /**
    * Fires when the redeploy is confirmed. Receives the app with any
    * newly-provided secrets folded into `providedEnvVars`, so the parent can
-   * persist them. Progress and success are shown inside this modal — the app
+   * persist them. Progress and outcome are shown inside this modal — the app
    * page stays untouched.
    */
   onRedeploy: (app: AiAppWithDoc) => void;
+  /** Opens the deployment logs, scoped to the stream that holds the failure. */
+  onViewLogs: () => void;
 }
 
 /**
@@ -36,7 +38,7 @@ interface Props {
  * read back, so a provided var shows as masked "stored" until the creator
  * chooses to Replace it, and blank means "keep the stored value".
  */
-export function DeploymentSettingsModal({ isOpen, app, onClose, onRedeploy }: Props) {
+export function DeploymentSettingsModal({ isOpen, app, onClose, onRedeploy, onViewLogs }: Props) {
   const provided = new Set(app.providedEnvVars);
   const requiredEnvVars = app.requiredEnvVars ?? [];
   const hasSecrets = requiredEnvVars.length > 0;
@@ -84,7 +86,10 @@ export function DeploymentSettingsModal({ isOpen, app, onClose, onRedeploy }: Pr
 
     onRedeploy({ ...app, providedEnvVars: Array.from(willProvide) });
     setPhase('deploying');
-    timer.current = setTimeout(() => setPhase('done'), REDEPLOY_MS);
+    // An app that is already failing fails again — updating a secret doesn't fix
+    // an OOM kill or a type error. Redeploying without changing the underlying
+    // cause reproducing the same failure is the honest outcome.
+    timer.current = setTimeout(() => setPhase(app.status === 'ERROR' ? 'failed' : 'done'), REDEPLOY_MS);
   };
 
   return (
@@ -189,6 +194,32 @@ export function DeploymentSettingsModal({ isOpen, app, onClose, onRedeploy }: Pr
             <div className={s.footer}>
               <Button style="fill" variant="primary" size="s" onClick={onClose}>
                 Done
+              </Button>
+            </div>
+          </>
+        )}
+
+        {phase === 'failed' && (
+          <>
+            <div className={s.statusBody}>
+              <ErrorCircle width={44} height={44} className={s.failMark} aria-hidden />
+              <p className={s.statusTitle}>Redeploy failed</p>
+              {/* Name the cause here rather than sending them to the logs to
+                  find it — the logs are for the detail, not the headline. */}
+              <p className={s.statusText}>{app.deployment?.failureReason ?? 'The deploy did not complete.'}</p>
+              {app.deployment?.failureStream === 'runtime' && (
+                <p className={s.statusHint}>Your previous version is still running and serving traffic.</p>
+              )}
+            </div>
+            <div className={s.footer}>
+              <button type="button" className={s.logsLink} onClick={onViewLogs}>
+                See logs
+              </button>
+              <Button style="border" variant="neutral" size="s" onClick={() => setPhase('form')}>
+                Back
+              </Button>
+              <Button style="fill" variant="primary" size="s" onClick={onClose}>
+                Close
               </Button>
             </div>
           </>

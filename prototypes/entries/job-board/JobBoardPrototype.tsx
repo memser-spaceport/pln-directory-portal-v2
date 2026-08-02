@@ -13,9 +13,18 @@
  * COPY-SIMPLIFY (prototype-local, mock store):
  *  - JobBoardFilterView   ← JobsFilterBody + FiltersContent   (react-query facets → mock facets)
  *  - mockJobsFilterStore  ← useJobsFilterStore                (Zustand + URL sync → external store)
- *  - JobTeamGroupCard     ← TeamGroupCard   (forked to render ReferRoleRow; reuses its SCSS 1:1)
- *  - ReferRoleRow         ← RoleRow         (forked to add the per-job "Refer" control; reuses its SCSS 1:1)
- *  - ReferMenu            (new)             per-job Refer → LinkedIn / X web share-intent popover
+ *  - JobTeamGroupCard     ← TeamGroupCard   (forked to render JobReferRoleRow; reuses its SCSS 1:1)
+ *  - JobReferRoleRow      ← ReferRoleRow    (forked to add the "Refer" button; reuses its SCSS 1:1;
+ *                                            keeps the production ReferMenu share icon alongside)
+ *  - ReferModal           (new)             pick a member, pick who hears about it, send a drafted
+ *                                            referral. Chrome = Demo Day's "Make an intro" modal
+ *                                            (ReferCompanyModal.module.scss) inside production
+ *                                            Modal; fields = FormSelect / FormTextArea. Mocked.
+ *  - RecipientPicker      (new)             one "type a name or email" field: hiring team grouped
+ *                                            first with role lines, external addresses added from
+ *                                            the same menu. react-select Creatable wearing
+ *                                            FormMultiSelect's chrome (no production select can
+ *                                            order, describe AND create).
  * OMITTED vs production: Focus Area tree filter, job-alert banner/indicator, infinite scroll,
  *  analytics, mobile filter sheet. Data is mocked; no API/react-query calls.
  */
@@ -111,8 +120,7 @@ export default function JobBoardPrototype() {
     <h1 className={contentCss.title}>
       Job Board{' '}
       <span className={contentCss.titleCount}>
-        ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups}{' '}
-        {totalGroups === 1 ? 'team' : 'teams'})
+        ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
       </span>
     </h1>
   );

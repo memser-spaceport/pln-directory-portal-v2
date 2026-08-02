@@ -10,7 +10,7 @@ import {
   createModalIntro,
   createModalSecurityNote,
   createModalSteps,
-  createModalWhatsNewItems,
+  createModalWhatsNewSections,
   mockStarterKitVersion,
 } from './mocks';
 
@@ -66,13 +66,17 @@ export function CreateAiAppModal({ isOpen, onClose }: Props) {
             </ol>
           </div>
 
-          <aside className={s.whatsNew} aria-label={`What's new in v${mockStarterKitVersion}`}>
-            <p className={s.whatsNewLabel}>What&apos;s new in v{mockStarterKitVersion}</p>
-            <ul className={s.whatsNewList}>
-              {createModalWhatsNewItems.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+          <aside className={s.whatsNew} aria-label="What's new">
+            {createModalWhatsNewSections.map((section) => (
+              <div key={section.version} className={s.whatsNewSection}>
+                <p className={s.whatsNewLabel}>What&apos;s new in v{section.version}</p>
+                <ul className={s.whatsNewList}>
+                  {section.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </aside>
         </div>
 

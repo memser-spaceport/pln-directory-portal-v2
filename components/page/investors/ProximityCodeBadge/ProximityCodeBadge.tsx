@@ -19,9 +19,9 @@ type ParsedCode = {
   isCold: boolean;
 };
 
-// Code grammar: {connector}+{hops}{caliber}, e.g. "F+2B" / "JB+1A". Cold = "C".
+  // Code grammar: {connector}+{hops}{caliber}, e.g. "F+2B" / "JB+1A". Cold = exact "C".
 function parseCode(code: string): ParsedCode {
-  if (!code || code === 'C' || code.startsWith('C')) {
+  if (!code || code === 'C') {
     return { connector: 'C', caliber: null, isCold: true };
   }
   const connector = (code.split('+')[0] || 'O') as PathConnectorType;

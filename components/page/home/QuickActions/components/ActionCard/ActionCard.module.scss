@@ -4,6 +4,7 @@
   text-decoration: none;
   display: block;
   border-radius: 16px;
+  cursor: pointer;
 
   &:focus-visible {
     outline: 2px solid var(--Neutral-Slate-900);

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
 import { useCurrentUserStore } from '@/services/auth/store';
+import type { IFeedForumPost } from '@/types/feed.types';
 import type {
   ITeamNewsDiscussion,
   ITeamNewsGroup,
@@ -21,13 +22,30 @@ function renderTeamNews(ui: ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+/** Default sort is Most popular — switch to Following when a test needs followed-first order. */
+function selectFollowingSort() {
+  fireEvent.click(screen.getByRole('button', { name: 'Most popular' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Following' }));
+}
+
 const mockOnTabClicked = jest.fn();
 const mockOnCategoryClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
 const mockOnCardClicked = jest.fn();
 const mockOnTeamNewsSearch = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
+const mockOnUpvoteFailed = jest.fn();
+const mockOnForumLikeToggled = jest.fn();
+const mockOnForumLikeFailed = jest.fn();
+const mockOnPopularCardViewed = jest.fn();
+const mockOnScrollSucceeded = jest.fn();
+const mockOnFallbackOpened = jest.fn();
+const mockOnTeamsToFollowViewed = jest.fn();
+const mockOnTeamsToFollowHidden = jest.fn();
 const mockOnPopularStoryClicked = jest.fn();
+const mockOnDetailModalOpened = jest.fn();
+const mockOnShared = jest.fn();
+const mockOnForumPostModalOpened = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -38,7 +56,50 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsSearch: (...a: unknown[]) => mockOnTeamNewsSearch(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
     onTeamNewsPopularStoryClicked: (...a: unknown[]) => mockOnPopularStoryClicked(...a),
+    onTeamNewsDetailModalOpened: (...a: unknown[]) => mockOnDetailModalOpened(...a),
+    onTeamNewsShared: (...a: unknown[]) => mockOnShared(...a),
+    onTeamNewsSortChanged: jest.fn(),
+    onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
+    onFeedForumPostLikeToggled: (...a: unknown[]) => mockOnForumLikeToggled(...a),
+    onFeedForumPostLikeFailed: (...a: unknown[]) => mockOnForumLikeFailed(...a),
+    onFeedForumPostModalOpened: (...a: unknown[]) => mockOnForumPostModalOpened(...a),
+    onPopularCardViewed: (...a: unknown[]) => mockOnPopularCardViewed(...a),
+    onPopularStoryScrollSucceeded: (...a: unknown[]) => mockOnScrollSucceeded(...a),
+    onPopularStoryFallbackOpened: (...a: unknown[]) => mockOnFallbackOpened(...a),
+    onTeamsToFollowViewed: (...a: unknown[]) => mockOnTeamsToFollowViewed(...a),
+    onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
   }),
+}));
+
+// Forum posts reach the feed through this hook. Default: none, which is what the
+// globally-mocked useQuery already produced — so every other test in this file
+// behaves exactly as before.
+type FeedSocialResult = {
+  forumPosts: IFeedForumPost[] | undefined;
+  unwindowedForumPosts: IFeedForumPost[] | undefined;
+  hasAccess: boolean;
+  deepLinkSettled: boolean;
+};
+/** The ordinary case: every post is inside the 14-day window, so both arrays
+ *  agree. Tests that care about the window pass the two separately. */
+function feedSocial(posts: IFeedForumPost[] | undefined, hasAccess: boolean): FeedSocialResult {
+  return { forumPosts: posts, unwindowedForumPosts: posts, hasAccess, deepLinkSettled: true };
+}
+const mockUseFeedSocial = jest.fn((): FeedSocialResult => feedSocial(undefined, false));
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
+  useFeedSocial: (...a: unknown[]) => mockUseFeedSocial(...(a as [])),
+}));
+
+// The global jest.setup.js mock returns a NEW object with fresh jest.fn()s on
+// every useRouter() call — it records nothing across renders. This file needs
+// stable spies (the anon #login push) and a useSearchParams that reflects the
+// real jsdom URL, because useNewsDeepLink writes via window.history.replaceState
+// and reads the params back (Next syncs the two in production).
+const mockRouterPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: (...a: unknown[]) => mockRouterPush(...a), replace: jest.fn(), prefetch: jest.fn() }),
+  usePathname: () => '/home',
+  useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -116,18 +177,24 @@ describe('TeamNews', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
+    // clearAllMocks clears calls, NOT return values — without this, a describe
+    // that supplies forum posts leaks them into every later test's feed.
+    mockUseFeedSocial.mockReturnValue(feedSocial(undefined, false));
+    // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
+    // ?news= param written by one test can't open the modal in the next.
+    window.history.replaceState(null, '', '/home');
   });
 
   it('renders the global empty state when there are no items', () => {
     renderTeamNews(<TeamNews groups={[]} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText(/No network news in the last 14 days yet/i)).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
   it('renders the section, tabs with counts, and category chips when populated', () => {
     renderTeamNews(<TeamNews groups={groups} />);
-    expect(screen.getByRole('heading', { level: 2, name: /News from the network/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Network updates/i })).toBeInTheDocument();
     expect(screen.getByText('5 new')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toBeInTheDocument();
@@ -160,6 +227,26 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /^Launch$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Milestone/ })).not.toBeDisabled();
     expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
+  });
+
+  it('renders an Other category chip, disabled when no OTHER items exist', () => {
+    renderTeamNews(<TeamNews groups={groups} />);
+    // Neither fixture group has an OTHER item, so the chip should render but disable like any other zero-count category.
+    expect(screen.getByRole('button', { name: /^Other$/ })).toBeDisabled();
+  });
+
+  it('enables the Other category chip and filters by it when OTHER items exist', () => {
+    const otherItem = makeItem('ai-other', 'OTHER', ['AI & Robotics']);
+    const groupsWithOther: ITeamNewsGroup[] = [
+      { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, otherItem] },
+      { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+    ];
+    renderTeamNews(<TeamNews groups={groupsWithOther} />);
+    expect(screen.getByRole('button', { name: /^Other/ })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /^Other/ }));
+    expect(mockOnCategoryClicked).toHaveBeenCalledWith('OTHER', 1, 'All');
+    expect(screen.getByText(/Headline ai-other/)).toBeInTheDocument();
+    expect(screen.queryByText(/Headline ai-1/)).not.toBeInTheDocument();
   });
 
   it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
@@ -227,7 +314,7 @@ describe('TeamNews', () => {
 
   it('reports analytics when a card is clicked', () => {
     renderTeamNews(<TeamNews groups={groups} />);
-    const card = screen.getByText(/Headline ai-1/).closest('[role="link"]');
+    const card = screen.getByText(/Headline ai-1/).closest('[role="button"]');
     expect(card).toBeInTheDocument();
     fireEvent.click(within(card! as HTMLElement).getByText(/Headline ai-1/));
     expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
@@ -237,7 +324,7 @@ describe('TeamNews', () => {
     expect(source).toBe('home');
   });
 
-  describe('Active Discussions', () => {
+  describe('Discussions category', () => {
     const aiDiscussed = makeItem('ai-discuss', 'FUNDING', ['AI & Robotics'], {
       count: 1,
       latestTopicUrl: '/forum/t/123',
@@ -248,43 +335,132 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
     ];
 
-    it('does not render Active Discussions when no items have a forum thread', () => {
+    it('does not render Discussions when there are no forum posts and no threaded items', () => {
       renderTeamNews(<TeamNews groups={groups} />);
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('shows Active Discussions after All categories when at least one item has a thread', () => {
+    it('shows Discussions after All categories when at least one item has a thread', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
       const allCat = screen.getByRole('button', { name: /All categories/ });
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(chips.indexOf(activeDisc)).toBeGreaterThan(chips.indexOf(allCat));
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(chips.indexOf(discussions)).toBeGreaterThan(chips.indexOf(allCat));
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
     });
 
     it('filters to discussion items and reports analytics', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      fireEvent.click(screen.getByRole('button', { name: /Active Discussions/ }));
-      expect(mockOnCategoryClicked).toHaveBeenCalledWith('active-discussions', 1, 'All');
+      fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('discussions', 1, 'All');
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
     });
 
-    it('hides Active Discussions on a focus tab with no threads', () => {
+    it('hides Discussions on a focus tab with nothing to show', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      expect(screen.getByRole('button', { name: /Active Discussions/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Discussions/ })).toBeInTheDocument();
       fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
-      expect(screen.queryByRole('button', { name: /Active Discussions/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
     });
 
-    it('scopes Active Discussions count to the selected focus tab', () => {
+    it('scopes the Discussions count to the selected focus tab', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
       fireEvent.click(screen.getByRole('tab', { name: /AI & Robotics/ }));
-      const activeDisc = screen.getByRole('button', { name: /Active Discussions/ });
-      expect(within(activeDisc).getByText('1')).toBeInTheDocument();
-      fireEvent.click(activeDisc);
+      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      expect(within(discussions).getByText('1')).toBeInTheDocument();
+      fireEvent.click(discussions);
       expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
       expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+    });
+
+    describe('with forum posts in the feed', () => {
+      const forumPost: IFeedForumPost = {
+        uid: 'fp_96',
+        tid: 96,
+        mainPid: 263,
+        title: 'Willow Is Live!',
+        body: 'Hi Protocol Labs',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: '2026-07-01T00:00:00.000Z',
+        lastActivityAt: '2026-07-01T00:00:00.000Z',
+        forumTopicUrl: '/forum/topics/5/96',
+        commentCount: 2,
+        likeCount: 5,
+        viewerHasLiked: false,
+      };
+
+      beforeEach(() => {
+        mockUseFeedSocial.mockReturnValue(feedSocial([forumPost], true));
+      });
+
+      it('offers the Discussions pill for forum posts alone, with no threaded news items', () => {
+        // `groups` has no item with a forum thread — before this, the cards were
+        // in the feed with no pill that could reach them.
+        renderTeamNews(<TeamNews groups={groups} />);
+
+        const discussions = screen.getByRole('button', { name: /Discussions/ });
+        expect(within(discussions).getByText('1')).toBeInTheDocument();
+      });
+
+      it('counts forum posts alongside threaded news items', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        // 1 threaded news item + 1 forum post.
+        expect(within(screen.getByRole('button', { name: /Discussions/ })).getByText('2')).toBeInTheDocument();
+      });
+
+      it('keeps the forum post visible when Discussions is selected, and drops plain news', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Discussions/ }));
+
+        expect(screen.getByText('Willow Is Live!')).toBeInTheDocument();
+        expect(screen.getByText(/Headline ai-discuss/)).toBeInTheDocument();
+        expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
+      });
+
+      it('still hides forum posts under an event-type pill (a post has no event type)', () => {
+        renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Funding/ }));
+
+        expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+      });
+
+      // A post older than the 14-day window is absent from `forumPosts` but
+      // still present in `unwindowedForumPosts` — the split that lets an old
+      // shared link work without letting a stale post into the feed.
+      describe('when the post falls outside the 14-day window', () => {
+        beforeEach(() => {
+          mockUseFeedSocial.mockReturnValue({
+            forumPosts: [],
+            unwindowedForumPosts: [forumPost],
+            hasAccess: true,
+            deepLinkSettled: true,
+          });
+        });
+
+        it('keeps it out of the feed, and out of the Discussions pill', () => {
+          renderTeamNews(<TeamNews groups={groups} />);
+
+          expect(screen.queryByText('Willow Is Live!')).not.toBeInTheDocument();
+          expect(screen.queryByRole('button', { name: /Discussions/ })).not.toBeInTheDocument();
+        });
+
+        it('still opens it from a ?post= deep link, rather than stripping the param', () => {
+          window.history.replaceState(null, '', '/home?post=fp_96');
+
+          renderTeamNews(<TeamNews groups={groups} />);
+
+          // Resolving from the windowed list would leave the modal empty and
+          // silently drop the param — the exact regression this guards.
+          expect(mockOnForumPostModalOpened).toHaveBeenCalled();
+          expect(window.location.search).toBe('?post=fp_96');
+        });
+      });
     });
   });
 
@@ -367,6 +543,7 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: aiItems.length + 1, items: [...aiItems, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
       const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
       // Zeta is followed and should render first despite being last in insertion order.
       expect(teamLinks[0]).toHaveTextContent('Zeta');
@@ -659,18 +836,18 @@ describe('TeamNews', () => {
 
     it("toggling upvote on one story does not affect another story's state (overlay is per-item)", () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const buttons = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const buttons = screen.getAllByRole('button', { name: 'Like (0)' });
       expect(buttons).toHaveLength(2);
 
       fireEvent.click(buttons[0]);
 
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Upvote (0)' })).toBeInTheDocument(); // the other story unaffected
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Like (0)' })).toBeInTheDocument(); // the other story unaffected
     });
 
     it('fires onTeamNewsUpvoteToggled analytics once the mutation succeeds', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
 
       expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'up-a', isUpvoted: true }, expect.anything());
@@ -689,15 +866,17 @@ describe('TeamNews', () => {
 
     it('reverts the overlay and does not fire success analytics when the mutation fails', () => {
       renderTeamNews(<TeamNews groups={upvoteGroups} />);
-      const [firstButton] = screen.getAllByRole('button', { name: 'Upvote (0)' });
+      const [firstButton] = screen.getAllByRole('button', { name: 'Like (0)' });
       fireEvent.click(firstButton);
-      expect(screen.getByRole('button', { name: 'Remove upvote (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
 
       const options = mockUpvoteMutate.mock.calls[0][1];
       act(() => options.onError());
 
-      expect(screen.getAllByRole('button', { name: 'Upvote (0)' })).toHaveLength(2);
+      expect(screen.getAllByRole('button', { name: 'Like (0)' })).toHaveLength(2);
       expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+      // A rolled-back like used to be indistinguishable from one that stuck.
+      expect(mockOnUpvoteFailed).toHaveBeenCalledWith(expect.anything(), expect.any(Number), true, 'home');
     });
 
     it('does not change followed-first cluster ordering when upvoting an unfollowed story', () => {
@@ -711,8 +890,9 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: 3, items: [itemA, itemB, followedItem] },
       ];
       renderTeamNews(<TeamNews groups={groupsWithFollowed} />);
+      selectFollowingSort();
 
-      fireEvent.click(screen.getAllByRole('button', { name: 'Upvote (0)' })[0]);
+      fireEvent.click(screen.getAllByRole('button', { name: 'Like (0)' })[0]);
 
       const teamLinks = screen.getAllByRole('link', { name: /Zzz|Team up-/ });
       expect(teamLinks[0]).toHaveTextContent('Zzz');
@@ -728,11 +908,10 @@ describe('TeamNews', () => {
     };
     const alpha = { ...makeItem('fa-1', 'LAUNCH', ['AI & Robotics']), teamUid: 'team-alpha', teamName: 'Alpha' };
     const beta = { ...makeItem('fb-1', 'MILESTONE', ['AI & Robotics']), teamUid: 'team-beta', teamName: 'Beta' };
-    // Insertion order alpha, beta, zeta — followed-first sorting must pin Zeta on mount.
+    // Insertion order alpha, beta, zeta — Following sort must pin Zeta on mount.
     const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 3, items: [alpha, beta, zeta] }];
 
-    const getTeamOrder = () =>
-      screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Zeta|Alpha|Beta)/ }).map((l) => l.textContent);
 
     // FollowButton only renders hydrated + signed-in (same setup as the upvotes block).
     beforeEach(() => {
@@ -744,6 +923,7 @@ describe('TeamNews', () => {
 
     it('clicking Follow flips the button immediately but does not move the cluster', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
 
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
@@ -754,6 +934,7 @@ describe('TeamNews', () => {
 
     it('clicking Unfollow on a pinned cluster keeps its position (symmetric freeze)', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
 
       fireEvent.click(screen.getByRole('button', { name: 'Following Zeta' }));
 
@@ -763,6 +944,7 @@ describe('TeamNews', () => {
 
     it('reverts the button (but not the order) when the server rejects with a null response', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(screen.getByRole('button', { name: 'Following Beta' })).toBeInTheDocument();
 
@@ -777,6 +959,7 @@ describe('TeamNews', () => {
 
     it('a fresh mount applies the new follow order (simulates page reload)', () => {
       const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectFollowingSort();
       fireEvent.click(screen.getByRole('button', { name: 'Follow Beta' }));
       expect(getTeamOrder()).toEqual(['Zeta', 'Alpha', 'Beta']);
       // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh mount
@@ -791,7 +974,249 @@ describe('TeamNews', () => {
         },
       ];
       renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      selectFollowingSort();
       expect(getTeamOrder()).toEqual(['Beta', 'Alpha', 'Zeta']);
+    });
+  });
+
+  describe('upvote — session-stable ordering (frozen until reload)', () => {
+    // Default sort is 'popular', which ranks clusters by upvote count. Equal
+    // counts keep insertion order (stable sort), so upvoting Yankee (1 → 2)
+    // would rank it above Xray without the mount-time count snapshot.
+    const xray = {
+      ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-xray',
+      teamName: 'Xray',
+      upvoteCount: 1,
+    };
+    const yankee = {
+      ...makeItem('uy-1', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-yankee',
+      teamName: 'Yankee',
+      upvoteCount: 1,
+    };
+    const frozenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: 2, items: [xray, yankee] }];
+
+    const getTeamOrder = () => screen.getAllByRole('link', { name: /^(Xray|Yankee)/ }).map((l) => l.textContent);
+    // Both stories start at count 1, so the buttons share a name — index 1 is
+    // Yankee's, matching the rendered [Xray, Yankee] order asserted first.
+    const getYankeeUpvoteButton = () => screen.getAllByRole('button', { name: 'Like (1)' })[1];
+
+    // UpvoteButton redirects anonymous clicks to login — sign in (same setup as
+    // the upvotes block above).
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('upvoting flips the button and count immediately but does not move the cluster', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+
+      fireEvent.click(getYankeeUpvoteButton());
+
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // order frozen until reload
+
+      // Removing the upvote is symmetric: count drops back, cluster still doesn't move.
+      fireEvent.click(screen.getByRole('button', { name: 'Remove like (2)' }));
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+    });
+
+    it('reverts the button (but not the order) when the mutation fails', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
+
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onError());
+
+      expect(screen.getAllByRole('button', { name: 'Like (1)' })).toHaveLength(2);
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // frozen order untouched by the revert
+    });
+
+    it('reconciling with a different server count updates the button only, never the order', () => {
+      renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+
+      // Concurrent voters: server's authoritative count differs from the optimistic +1.
+      const options = mockUpvoteMutate.mock.calls[0][1];
+      act(() => options.onSuccess({ viewerHasUpvoted: true, upvoteCount: 7 }));
+
+      expect(screen.getByRole('button', { name: 'Remove like (7)' })).toBeInTheDocument();
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']); // still ranked by page-load counts
+    });
+
+    it('a fresh mount applies the new count order (simulates page reload)', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      fireEvent.click(getYankeeUpvoteButton());
+      expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
+      // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh
+      // mount with fresh SSR counts, so unmount and render anew with the server's truth.
+      unmount();
+
+      const reloadedGroups: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 2, items: [xray, { ...yankee, upvoteCount: 2, viewerHasUpvoted: true }] },
+      ];
+      renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      expect(getTeamOrder()).toEqual(['Yankee', 'Xray']);
+    });
+  });
+
+  describe('news detail modal + deep link (?news=<uid>)', () => {
+    const getDialog = () => screen.getByRole('dialog');
+
+    beforeEach(() => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+    });
+    afterEach(() => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+    });
+
+    it('opens the modal on row click, writes ?news= synchronously, and never window.opens', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      const dialog = getDialog();
+      expect(within(dialog).getByRole('heading', { name: 'Headline ai-1' })).toBeInTheDocument();
+      expect(window.location.search).toBe('?news=ai-1'); // history.replaceState is synchronous
+      expect(openSpy).not.toHaveBeenCalled();
+      expect(mockOnCardClicked).toHaveBeenCalledTimes(1);
+      openSpy.mockRestore();
+    });
+
+    it('preserves unrelated query params (utm) across open and close', () => {
+      window.history.replaceState(null, '', '/home?utm_source=li');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(window.location.search).toContain('utm_source=li');
+      expect(window.location.search).toContain('news=ai-1');
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Close' }));
+      expect(window.location.search).toBe('?utm_source=li');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('closes on Escape and strips only the news param', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(getDialog()).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('');
+    });
+
+    it('shows the source links inside the modal (they left the row click)', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      const link = within(getDialog()).getByRole('link', { name: 'example.com' });
+      expect(link).toHaveAttribute('href', 'https://example.com/ai-1');
+      expect(link).toHaveAttribute('target', '_blank');
+    });
+
+    it('keeps the modal Like and the feed row in sync through the shared overlay', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
+
+      expect(within(getDialog()).getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+      // The originating feed row reads the same overlay-merged item.
+      const row = screen.getByRole('button', { name: 'Headline ai-1' });
+      expect(within(row).getByRole('button', { name: 'Remove like (1)' })).toBeInTheDocument();
+    });
+
+    it('anonymous Like in the modal pushes a #login URL that carries the news param', () => {
+      useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+      window.history.replaceState(null, '', '/home?news=ai-1');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: 'Like (0)' }));
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/home?news=ai-1#login', { scroll: false });
+    });
+
+    it('a valid deep link opens the modal on first render and reports the deep-link open once', () => {
+      window.history.replaceState(null, '', '/home?news=dhr-1');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      expect(within(getDialog()).getByRole('heading', { name: 'Headline dhr-1' })).toBeInTheDocument();
+      expect(mockOnDetailModalOpened).toHaveBeenCalledTimes(1);
+      expect(mockOnDetailModalOpened).toHaveBeenCalledWith(expect.objectContaining({ uid: 'dhr-1' }));
+    });
+
+    it('an unknown uid renders the plain feed and silently strips the param', () => {
+      window.history.replaceState(null, '', '/home?news=expired-uid&utm_source=li');
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('?utm_source=li');
+      expect(mockOnDetailModalOpened).not.toHaveBeenCalled();
+    });
+
+    it('row clicks never report a deep-link modal open', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      expect(mockOnDetailModalOpened).not.toHaveBeenCalled();
+    });
+
+    it('opening the share popover from a row never opens the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(window.location.search).toBe('');
+    });
+
+    it('clicking a share menu item never opens the row modal beneath it', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Share Headline ai-1' }));
+
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      openSpy.mockRestore();
+    });
+
+    it('Escape with the share popover open closes only the popover; the next Escape closes the modal', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+      const dialog = getDialog();
+
+      fireEvent.click(within(dialog).getByRole('button', { name: /^Share/ }));
+      const menu = screen.getByRole('menu');
+
+      fireEvent.keyDown(menu, { key: 'Escape' });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument(); // modal survived the first Escape
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('shares from the modal footer report the news-modal source', () => {
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Headline ai-1' }));
+
+      fireEvent.click(within(getDialog()).getByRole('button', { name: /^Share/ }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Share on X' }));
+
+      expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('news=ai-1'));
+      expect(mockOnShared).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 'x', 'news-modal');
+      openSpy.mockRestore();
     });
   });
 
@@ -807,10 +1232,14 @@ describe('TeamNews', () => {
       ...partial,
     });
 
-    // The rail's own button ("Popular this week") always has role="button";
-    // feed rows have role="link" — that's enough to disambiguate identical
-    // headline text appearing in both places, no need for extra test ids.
-    const getRailButton = (title: string) => screen.getByRole('button', { name: new RegExp(title) });
+    // Feed rows are role="button" too now (they open the detail modal) and use
+    // the headline as accessible name; share triggers are "Share <headline>".
+    // The rail button is the one whose name STARTS with the headline and that
+    // carries no data-story-uid.
+    const getRailButton = (title: string) =>
+      screen
+        .getAllByRole('button', { name: new RegExp(`^${title}`) })
+        .find((el) => !el.hasAttribute('data-story-uid'))!;
     const getFeedHeadline = (title: string) => screen.queryByText(new RegExp(title), { selector: 'h3' });
 
     it('reveals an already-visible story without changing tab/category/query, and does not navigate', () => {
@@ -823,7 +1252,7 @@ describe('TeamNews', () => {
       expect(openSpy).not.toHaveBeenCalled();
       expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
       expect(getFeedHeadline('Headline ai-1')).toBeInTheDocument();
-      expect(getFeedHeadline('Headline ai-1')!.closest('[role="link"]')).toHaveClass('storyHighlighted');
+      expect(getFeedHeadline('Headline ai-1')!.closest('[role="button"]')).toHaveClass('storyHighlighted');
       expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
       openSpy.mockRestore();
     });
@@ -940,6 +1369,10 @@ describe('TeamNews', () => {
       fireEvent.click(getRailButton('Headline ai-1'));
 
       expect(openSpy).toHaveBeenCalledWith('https://example.com/expired', '_blank', 'noopener,noreferrer');
+      // The live, previously unmeasured failure path: ranked server-side, aged
+      // out of the 14-day window before it was clicked.
+      expect(mockOnFallbackOpened).toHaveBeenCalledWith(expect.objectContaining({ uid: 'expired-uid' }), 0);
+      expect(mockOnScrollSucceeded).not.toHaveBeenCalled();
       openSpy.mockRestore();
     });
 
@@ -948,8 +1381,10 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={[popularItem({ uid: 'ai-1' })]} />);
 
       fireEvent.click(getRailButton('Headline ai-1'));
-      const row = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      const row = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(row).toHaveClass('storyHighlighted');
+      // The denominator for the fallback above.
+      expect(mockOnScrollSucceeded).toHaveBeenCalledWith(expect.objectContaining({ uid: 'ai-1' }), 0);
 
       act(() => jest.advanceTimersByTime(2000));
       expect(row).not.toHaveClass('storyHighlighted');
@@ -968,11 +1403,11 @@ describe('TeamNews', () => {
       );
 
       fireEvent.click(getRailButton('Headline ai-1'));
-      const firstRow = getFeedHeadline('Headline ai-1')!.closest('[role="link"]');
+      const firstRow = getFeedHeadline('Headline ai-1')!.closest('[role="button"]');
       expect(firstRow).toHaveClass('storyHighlighted');
 
       fireEvent.click(getRailButton('Headline ai-2'));
-      const secondRow = getFeedHeadline('Headline ai-2')!.closest('[role="link"]');
+      const secondRow = getFeedHeadline('Headline ai-2')!.closest('[role="button"]');
 
       expect(firstRow).not.toHaveClass('storyHighlighted');
       expect(secondRow).toHaveClass('storyHighlighted');

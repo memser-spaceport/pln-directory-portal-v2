@@ -12,13 +12,14 @@ import { AiAppDetail } from './AiAppDetail';
 import { CreateAiAppModal } from './CreateAiAppModal';
 import { ManageAppModal } from './ManageAppModal';
 import { DeploymentSettingsModal } from './DeploymentSettingsModal';
+import { DeploymentLogsModal } from './DeploymentLogsModal';
 import { DeleteAppDialog } from './DeleteAppDialog';
 import { OnePagerViewer } from './OnePagerViewer';
 import { mockAiApps, mockAppPreviews, mockPageCopy, type AiAppWithDoc } from './mocks';
 
 import proto from './AiAppsPrototype.module.scss';
 
-type ActionType = 'edit' | 'deployment' | 'delete';
+type ActionType = 'edit' | 'deployment' | 'logs' | 'delete';
 
 export default function AiAppsPrototype() {
   const [apps, setApps] = useState<AiAppWithDoc[]>(mockAiApps);
@@ -86,7 +87,23 @@ export default function AiAppsPrototype() {
         <ManageAppModal isOpen app={actionApp} onClose={closeAction} onSave={saveEdit} />
       )}
       {actionApp && action?.type === 'deployment' && (
-        <DeploymentSettingsModal isOpen app={actionApp} onClose={closeAction} onRedeploy={updateApp} />
+        <DeploymentSettingsModal
+          isOpen
+          app={actionApp}
+          onClose={closeAction}
+          onRedeploy={updateApp}
+          onViewLogs={() => setAction({ uid: actionApp.uid, type: 'logs' })}
+        />
+      )}
+      {actionApp && action?.type === 'logs' && (
+        <DeploymentLogsModal
+          isOpen
+          app={actionApp}
+          onClose={closeAction}
+          // "Retry deploy" hands off to the deployment-settings flow (fix limits/
+          // secrets, then redeploy) rather than blindly re-running the same deploy.
+          onRetry={() => setAction({ uid: actionApp.uid, type: 'deployment' })}
+        />
       )}
       <DeleteAppDialog
         isOpen={!!actionApp && action?.type === 'delete'}
@@ -111,6 +128,7 @@ export default function AiAppsPrototype() {
           canManage={isCreator}
           onEdit={() => setAction({ uid: selected.uid, type: 'edit' })}
           onDeployment={() => setAction({ uid: selected.uid, type: 'deployment' })}
+          onLogs={() => setAction({ uid: selected.uid, type: 'logs' })}
           onDelete={() => setAction({ uid: selected.uid, type: 'delete' })}
           onViewOnePager={() => setViewerUid(selected.uid)}
         />
@@ -141,6 +159,7 @@ export default function AiAppsPrototype() {
                 onSelect={() => setSelectedUid(app.uid)}
                 onEdit={() => setAction({ uid: app.uid, type: 'edit' })}
                 onDeployment={() => setAction({ uid: app.uid, type: 'deployment' })}
+                onLogs={() => setAction({ uid: app.uid, type: 'logs' })}
                 onDelete={() => setAction({ uid: app.uid, type: 'delete' })}
                 onViewOnePager={() => setViewerUid(app.uid)}
               />

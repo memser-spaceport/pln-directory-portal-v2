@@ -63,6 +63,11 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
 
   const isDraft = app.status === 'DRAFT';
   const hasSecrets = requiredEnvVars.length > 0;
+  // A draft has never been deployed, so the action is a first "Deploy" — only an
+  // already-live app "Redeploys". Snapshotting `app.status` at open keeps the
+  // verb stable through the post-deploy poll that flips the live record.
+  const deployVerb = isDraft ? 'Deploy' : 'Redeploy';
+  const deployingVerb = isDraft ? 'Deploying' : 'Redeploying';
   // A deploy already running that this modal didn't start (e.g. agent-triggered).
   const externalDeployInFlight = phase === 'form' && liveStatus === 'DEPLOYING';
 
@@ -164,6 +169,11 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
     setReplacing({});
     // Refresh both caches right away — the list poll only starts once it can
     // see a DEPLOYING app, and the detail query drives this modal's phases.
+    // Logs are dropped (not just invalidated) so a reopened logs modal shows a
+    // loader for this deploy, never the previous deploy's lines under the new
+    // status chip. (Agent-triggered redeploys skip this path — the logs hook's
+    // staleTime: 0 refetch-on-open is the safety net there.)
+    queryClient.removeQueries({ queryKey: [AiAppsQueryKeys.AI_APP_LOGS, app.uid] });
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),
@@ -188,8 +198,9 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
               {hasSecrets ? (
                 <>
                   <p className={s.intro}>
-                    Update one or more values and redeploy. Stored secrets stay in place — replace one only if it
-                    changed. Secrets are held securely on the sandbox and never shown again.
+                    {isDraft
+                      ? 'Enter the required values and deploy. Secrets are held securely on the sandbox and never shown again.'
+                      : 'Update one or more values and redeploy. Stored secrets stay in place — replace one only if it changed. Secrets are held securely on the sandbox and never shown again.'}
                   </p>
                   <div className={s.fields}>
                     {requiredEnvVars.map((name) => {
@@ -271,7 +282,7 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
                 onClick={handleRedeploy}
                 disabled={isSubmitting || externalDeployInFlight}
               >
-                {isSubmitting ? 'Redeploying…' : 'Redeploy'}
+                {isSubmitting ? `${deployingVerb}…` : deployVerb}
               </Button>
             </div>
           </>
@@ -280,7 +291,9 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
         {phase === 'deploying' && (
           <div className={s.statusBody}>
             <Spinner />
-            <p className={s.statusTitle}>Redeploying {app.name}</p>
+            <p className={s.statusTitle}>
+              {deployingVerb} {app.name}
+            </p>
             <p className={s.statusText}>
               This usually takes a couple of minutes — you can close this and keep working.
             </p>
@@ -291,8 +304,12 @@ export function DeploymentSettingsModal({ app, onClose, onDeployingChange }: Pro
           <>
             <div className={s.statusBody}>
               <SuccessCircleIcon width={44} height={44} className={s.successMark} aria-hidden />
-              <p className={s.statusTitle}>App redeployed</p>
-              <p className={s.statusText}>Your changes are live. Open the app to see the latest version.</p>
+              <p className={s.statusTitle}>{isDraft ? 'App deployed' : 'App redeployed'}</p>
+              <p className={s.statusText}>
+                {isDraft
+                  ? 'Your app is live. Open it to take a look.'
+                  : 'Your changes are live. Open the app to see the latest version.'}
+              </p>
             </div>
             <div className={s.footer}>
               <Button style="fill" variant="primary" size="s" onClick={onClose}>

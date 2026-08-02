@@ -60,3 +60,43 @@ const ArrowUpIcon = () => (
     <path d="M5 9.5V1.5m0 0L1.5 5.5M5 1.5L8.5 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+/**
+ * Like button — the same Gantry boost pill as UpvoteButton, relabeled Like/Liked
+ * with a heart. News uses "likes" (feed + reader), not upvotes. Count hides at 0.
+ */
+export function LikeButton({ count, liked, onToggle }: { count: number; liked: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      className={clsx(gs.boost, liked && gs.boostActive)}
+      aria-pressed={liked}
+      aria-label={liked ? `Unlike (${count})` : `Like (${count})`}
+      title={liked ? 'Unlike' : 'Like — show the team you find this interesting'}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    >
+      <HeartIcon />
+      <span className={gs.boostLabel}>{liked ? 'Liked' : 'Like'}</span>
+      {count > 0 && (
+        <>
+          <span className={gs.boostDivider} aria-hidden />
+          <span>{count}</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+const HeartIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <path
+      d="M8 13.5s-5.2-3.2-5.2-6.8A2.7 2.7 0 0 1 8 4.6a2.7 2.7 0 0 1 5.2 2.1c0 3.6-5.2 6.8-5.2 6.8Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

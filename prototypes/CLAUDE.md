@@ -40,5 +40,28 @@ Copy the exact `name + fallback` pair from a **neighboring production `.module.s
 | Border on hover | `var(--border-neutral-muted, rgba(27, 56, 96, 0.24))` |
 | Subtle shadow / hover bg | `var(--transparent-dark-4, rgba(14, 15, 17, 0.04))` |
 
-## 5. Type sizes must be on the scale
-The PL type scale has no `13px` and pairs `14px` with `lh 20/22`. Don't invent off-scale sizes.
+## 5. Type sizes must be on the scale — for NEW UI
+When designing **new** UI, the PL type scale has no `13px` and pairs `14px` with `lh 20/22`. Don't
+invent off-scale sizes.
+
+**Exception:** when you're reproducing an existing production component, copy its literal sizes even
+if they're off-scale — fidelity to dev wins over the scale. See #6.
+
+## 6. Copying a component from dev? Transcribe it — don't re-create it
+When a prototype reproduces a production component (a "copy-simplify" of, say, `TeamIrlContributions`),
+the goal is a **pixel-faithful match**, not a tasteful re-interpretation. Rebuilding it from memory
+drifts the spec — every time.
+
+- **Open the real component and copy its literal values verbatim** — `font-size`, `line-height`,
+  `height`, `padding`, `max-width`, `width`, `gap`, `border-radius`, `border`. Even the weird ones.
+  Production's event chips are `40px` tall with a `12px` title over an **`8px`** date and a `115px`
+  max-width — so the prototype's are too.
+- **Production's actual numbers override every house rule above, including the type scale (#5).**
+  If dev ships an off-scale `8px` date, the prototype ships an `8px` date. "Looks like dev" means
+  "measures like dev."
+- **Only the color layer gets translated:** swap production's raw hex for the matching
+  `var(--token, #fallback)` pair (#3, #4), keeping the *same rendered color*. Sizes, spacing, and
+  structure are copied 1:1 — never "corrected."
+- **Deviate only where you're deliberately simplifying** (dropping an edit mode, a store, analytics) —
+  and say so in a comment. Never quietly restyle a component you're claiming to mirror.
+- When in doubt, re-open the source file and measure. Don't guess a value you could read.

@@ -187,6 +187,41 @@
   color: var(--foreground-success-primary, #0a9952);
 }
 
+.failMark {
+  margin-bottom: 4px;
+  color: var(--foreground-error-primary, #d21a0e);
+}
+
+// Reassurance for a rollback: the app is still up on its previous revision, so
+// this failure is not an outage.
+.statusHint {
+  margin: 4px 0 0;
+  max-width: 340px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--background-success-subtle, rgba(10, 153, 82, 0.08));
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-success-primary, #0a9952);
+}
+
+// Sits left of the footer buttons — a route to the detail, not a primary action.
+.logsLink {
+  margin-right: auto;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .statusTitle {
   margin: 0;
   font-size: 16px;
@@ -220,5 +255,9 @@
 
   .footer {
     flex-direction: column-reverse;
+  }
+
+  .logsLink {
+    margin-right: 0;
   }
 }

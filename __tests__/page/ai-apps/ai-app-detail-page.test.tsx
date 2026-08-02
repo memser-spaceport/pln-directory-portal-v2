@@ -9,6 +9,7 @@ const mockAnalytics = {
   onDraftSetupViewed: jest.fn(),
   onIframeLoadFailed: jest.fn(),
   onIframeLoaded: jest.fn(),
+  onDeploymentLogsOpened: jest.fn(),
 };
 
 let mockUseAiAppReturn: { app: AiApp | null; isLoading: boolean; isError: boolean };
@@ -85,13 +86,7 @@ jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
       <button onClick={onClose}>Close deployment</button>
     </div>
   ),
-  DeleteAiAppDialog: ({
-    onClose,
-    onDeleteSucceeded,
-  }: {
-    onClose: () => void;
-    onDeleteSucceeded?: () => void;
-  }) => (
+  DeleteAiAppDialog: ({ onClose, onDeleteSucceeded }: { onClose: () => void; onDeleteSucceeded?: () => void }) => (
     <div>
       <span>DeleteAiAppDialog</span>
       <button
@@ -111,11 +106,19 @@ jest.mock('@/components/page/ai-apps/dynamicActionModals', () => ({
       <button onClick={onClose}>Close details</button>
     </div>
   ),
+  DeploymentLogsModal: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      <span>DeploymentLogsModal</span>
+      <button onClick={onClose}>Close logs</button>
+    </div>
+  ),
 }));
 
 const mockPush = jest.fn();
+let mockSearchParams = new URLSearchParams();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn(), prefetch: jest.fn() }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 jest.mock('next/link', () => ({
@@ -154,6 +157,7 @@ function buildApp(overrides: Partial<AiApp> = {}): AiApp {
 describe('AiAppDetailPage', () => {
   beforeEach(() => {
     mockCanLikelyManage.mockReturnValue(true);
+    mockSearchParams = new URLSearchParams();
   });
 
   afterEach(() => {
@@ -167,19 +171,23 @@ describe('AiAppDetailPage', () => {
 
     expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /back to all/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^back$/i })).not.toBeInTheDocument();
   });
 
   describe('healthy app top bar', () => {
-    it('renders "back to all" pointing at the list route', () => {
+    it('renders "Back" pointing at the list route', () => {
       mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
       render(<AiAppDetailPage uid="app-1" />);
 
-      expect(screen.getByRole('link', { name: /back to all/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
+      expect(screen.getByRole('link', { name: /^back$/i })).toHaveAttribute('href', '/pl-infra/ai-apps');
     });
 
     it('shows "App Details" only when the app has a one-pager, and opens the details modal', () => {
-      mockUseAiAppReturn = { app: buildApp({ prd: 'https://bucket.s3.amazonaws.com/ai-app-prds/app-1.md' }), isLoading: false, isError: false };
+      mockUseAiAppReturn = {
+        app: buildApp({ prd: 'https://bucket.s3.amazonaws.com/ai-app-prds/app-1.md' }),
+        isLoading: false,
+        isError: false,
+      };
       render(<AiAppDetailPage uid="app-1" />);
 
       const detailsButton = screen.getByRole('button', { name: /app details for news summarizer/i });
@@ -251,6 +259,130 @@ describe('AiAppDetailPage', () => {
       expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
       expect(screen.queryByText('Deploying')).not.toBeInTheDocument();
       expect(screen.getByText('Redeploying the app')).toBeInTheDocument();
+    });
+  });
+
+  describe('deploy-failure states', () => {
+    const WARNING_APP = () => buildApp({ status: 'ERROR', deployment: { serving: 'previous' }, notes: 'boom' });
+    const DANGER_APP = () => buildApp({ status: 'ERROR', deployment: { serving: 'none' }, notes: 'boom' });
+    const VISITOR = { canManage: false, member: { uid: 'member-2', name: 'Grace', image: null } } as const;
+
+    it('warning (previous still serving), creator: normal layout with banner; See logs opens the modal', () => {
+      mockUseAiAppReturn = { app: WARNING_APP(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      // Normal layout, not the setup card.
+      expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+      expect(screen.queryByText('AppSecretsPanel')).not.toBeInTheDocument();
+      expect(screen.getByText("Latest deploy didn't ship")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /see logs/i }));
+      expect(screen.getByText('DeploymentLogsModal')).toBeInTheDocument();
+      expect(mockAnalytics.onDeploymentLogsOpened).toHaveBeenCalledWith({
+        appUid: 'app-1',
+        appName: 'News Summarizer',
+        source: 'detail-banner',
+        variant: 'warning',
+      });
+    });
+
+    it('warning, visitor: normal layout with no banner and no See logs', () => {
+      mockCanLikelyManage.mockReturnValue(false);
+      mockUseAiAppReturn = {
+        app: buildApp({ status: 'ERROR', deployment: { serving: 'previous' }, ...VISITOR }),
+        isLoading: false,
+        isError: false,
+      };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByRole('link', { name: /^back$/i })).toBeInTheDocument();
+      expect(screen.queryByText("Latest deploy didn't ship")).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /see logs/i })).not.toBeInTheDocument();
+    });
+
+    it('danger (nothing serving), creator: setup card keeps notes + retry and gains See logs', () => {
+      mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByText('Deploy failed')).toBeInTheDocument();
+      expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
+      expect(screen.getByText('AppSecretsPanel')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /see logs/i }));
+      expect(screen.getByText('DeploymentLogsModal')).toBeInTheDocument();
+      expect(mockAnalytics.onDeploymentLogsOpened).toHaveBeenCalledWith({
+        appUid: 'app-1',
+        appName: 'News Summarizer',
+        source: 'detail-error-card',
+        variant: 'danger',
+      });
+    });
+
+    it('danger, non-manager: "Not deployed" placeholder with no failure details', () => {
+      mockCanLikelyManage.mockReturnValue(false);
+      mockUseAiAppReturn = {
+        app: buildApp({ status: 'ERROR', deployment: { serving: 'none' }, notes: 'boom', ...VISITOR }),
+        isLoading: false,
+        isError: false,
+      };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByText('Not deployed')).toBeInTheDocument();
+      expect(screen.getByText(/never been built successfully/)).toBeInTheDocument();
+      expect(screen.queryByText(/Last deploy failed/)).not.toBeInTheDocument();
+      expect(screen.queryByText('boom')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /see logs/i })).not.toBeInTheDocument();
+    });
+
+    it('legacy ERROR (no deployment info) still routes to the setup card; notes stay creator-only', () => {
+      mockUseAiAppReturn = { app: buildApp({ status: 'ERROR', notes: 'boom' }), isLoading: false, isError: false };
+      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByText('Deploy failed')).toBeInTheDocument();
+      expect(screen.getByText(/Last deploy failed: boom/)).toBeInTheDocument();
+      unmount();
+
+      mockCanLikelyManage.mockReturnValue(false);
+      mockUseAiAppReturn = {
+        app: buildApp({ status: 'ERROR', notes: 'boom', ...VISITOR }),
+        isLoading: false,
+        isError: false,
+      };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByText(/The last deploy of this app failed/)).toBeInTheDocument();
+      expect(screen.queryByText(/boom/)).not.toBeInTheDocument();
+    });
+
+    it('the warning banner hides during the creator’s own redeploy, and a warning→danger settle keeps the settings modal mounted', () => {
+      mockUseAiAppReturn = { app: WARNING_APP(), isLoading: false, isError: false };
+      const { rerender } = render(<AiAppDetailPage uid="app-1" />);
+
+      fireEvent.click(screen.getByText('Deployment settings'));
+      fireEvent.click(screen.getByText('Start redeploy'));
+      expect(screen.queryByText("Latest deploy didn't ship")).not.toBeInTheDocument();
+
+      // The redeploy settles ERROR with nothing serving: the page branch flips
+      // to the setup card — the open modal must survive the flip (hoisted
+      // modals regression guard).
+      mockUseAiAppReturn = { app: DANGER_APP(), isLoading: false, isError: false };
+      rerender(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
+    });
+
+    it('ignores the ?settings=deployment deep link for non-managers', () => {
+      mockSearchParams = new URLSearchParams('settings=deployment');
+      mockCanLikelyManage.mockReturnValue(false);
+      mockUseAiAppReturn = { app: buildApp(VISITOR), isLoading: false, isError: false };
+      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+
+      expect(screen.queryByText('DeploymentSettingsModal')).not.toBeInTheDocument();
+      unmount();
+
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+      expect(screen.getByText('DeploymentSettingsModal')).toBeInTheDocument();
     });
   });
 });

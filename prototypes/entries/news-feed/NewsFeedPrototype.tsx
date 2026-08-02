@@ -7,14 +7,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/common/Button';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  // Renamed in production (the pill now covers forum posts too); aliased here
+  // so this frozen prototype keeps compiling against its own semantics.
+  DISCUSSIONS_CAT as ACTIVE_DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY as ACTIVE_DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
   type TeamNewsCategoryId,
 } from '@/components/page/home/TeamNews/constants';
-import { hasExistingDiscussion } from '@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton/utils/hasExistingDiscussion';
+import { hasExistingDiscussion } from '@/components/page/home/TeamNews/utils/hasExistingDiscussion';
 import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
 import { NewsBase } from '@/components/page/home/TeamNews/components/NewsBase';

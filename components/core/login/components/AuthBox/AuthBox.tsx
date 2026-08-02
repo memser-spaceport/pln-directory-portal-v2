@@ -33,8 +33,10 @@ export function AuthBox({ isLoggedIn }: { isLoggedIn: boolean }) {
   // Prevent authenticated users from accessing login modal
   useEffect(() => {
     if (isLoggedIn && hash === '#login') {
-      // Only redirect if the hash is specifically #login, preserve other hashes
-      router.push(`${window.location.pathname}${window.location.search}`);
+      // Only redirect if the hash is specifically #login, preserve other hashes.
+      // scroll: false — same canonicalUrl-vs-actual-URL mismatch as AuthInfo's
+      // push can make this look like a real navigation and reset scroll.
+      router.push(`${window.location.pathname}${window.location.search}`, { scroll: false });
     }
   }, [router, hash, isLoggedIn]);
 

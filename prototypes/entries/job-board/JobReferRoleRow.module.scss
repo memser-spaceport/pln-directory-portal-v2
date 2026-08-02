@@ -1,0 +1,9 @@
+// Local extras on top of the reused production ReferRoleRow.module.scss.
+
+// The row is dense (12px padding, 40px-ish action line), so the Refer button sits
+// tighter than the default `s` Button: same type scale, less horizontal air.
+.referButton {
+  flex-shrink: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}

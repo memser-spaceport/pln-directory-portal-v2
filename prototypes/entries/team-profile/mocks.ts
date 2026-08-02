@@ -61,8 +61,39 @@ export const MOCK_TEAM = {
 } satisfies Partial<ITeam>;
 
 /* --------------- Demo Day participation (drives the header badge) --------------- */
-// Slug matches the completed demo day so the badge deep-links to its page.
-export const MOCK_TEAM_DEMO_DAY = { title: 'Demo Day F25', slug: 'pl-demo-day-f25' };
+// Points at a real demo day so the badge / contribution tile actually deep-links
+// to a page that loads (an invented slug renders an endless skeleton).
+export const MOCK_TEAM_DEMO_DAY = { title: 'PL Demo Day W26.2', slug: 'plw262', date: 'Mar 2026' };
+
+/* ---------------- IRL Contributions (event-primary) ----------------
+   Event-keyed, not role-keyed: each event is one tile and the role(s) the team
+   played hang off it as tags. Teams show up in many ways — hosting, sponsoring,
+   speaking, or simply participating — so an event can carry several roles.
+   Mirrors production's "MMM yyyy" date. */
+export interface ContributionEvent {
+  uid: string;
+  name: string;
+  date: string; // "MMM yyyy"
+  roles: string[]; // Host | Sponsor | Speaker | Participant
+  /** Real IRL gathering slug + location, so a tile deep-links to a page that loads. */
+  slugURL?: string;
+  location?: string;
+}
+
+// More events than fit in two rows, so the trailing "+N" tile shows and opens
+// the full list in a modal. Newest first.
+export const MOCK_CONTRIBUTIONS: ContributionEvent[] = [
+  { uid: 'e1', name: 'Pragma Cannes', date: 'Jul 2026', roles: ['Host'], location: 'Cannes', slugURL: 'u8Kc9Lj3klyQ' },
+  { uid: 'e2', name: 'EthBoulder 2026', date: 'Feb 2026', roles: ['Host', 'Speaker'], location: 'Lisbon', slugURL: '8ac0dtlC9wYw' },
+  { uid: 'e3', name: 'Token2049', date: 'Oct 2025', roles: ['Sponsor'], location: 'Singapore', slugURL: 'token2049-2025' },
+  { uid: 'e4', name: 'ETHCC', date: 'Jun 2025', roles: ['Speaker'], location: 'Cannes', slugURL: 'ethcc-cannes-2025' },
+  { uid: 'e5', name: 'Devcon', date: 'Nov 2024', roles: ['Sponsor', 'Speaker'], location: 'Bangkok', slugURL: 'dev-con' },
+  { uid: 'e6', name: 'LabWeek Web3', date: 'Nov 2024', roles: ['Participant'], location: 'Bangkok', slugURL: 'lw24-web3' },
+  { uid: 'e7', name: 'DePIN Day Bangkok', date: 'Nov 2024', roles: ['Participant'], location: 'Bangkok', slugURL: 'depin-day-bngk' },
+  { uid: 'e8', name: 'NPC Day Bangkok', date: 'Nov 2024', roles: ['Sponsor', 'Speaker'], location: 'Bangkok', slugURL: 'npc-day-bngk' },
+  { uid: 'e9', name: 'OpenAGI Summit', date: 'Nov 2024', roles: ['Speaker'], location: 'Bangkok', slugURL: 'open-agi-summit' },
+  { uid: 'e10', name: 'Investing in AI', date: 'Nov 2024', roles: ['Participant'], location: 'Bangkok', slugURL: 'invest-ai' },
+];
 
 /* ---------------- Followers (team view: who follows this team) ---------------- */
 export interface TeamFollower {

@@ -71,6 +71,20 @@ export function useAiAppsAnalytics() {
     onEditDetailsFailed: (appUid: string) => capture(AI_APPS_ANALYTICS.EDIT_DETAILS_FAILED, { appUid }),
     onDeploymentSettingsOpened: (params: { appUid: string; isDraft: boolean }) =>
       capture(AI_APPS_ANALYTICS.DEPLOYMENT_SETTINGS_OPENED, params),
+    // Logs events carry uids/streams/counts and closed unions ONLY — never log
+    // message text, search queries, or failureReason/notes, which can contain
+    // secrets and member PII. `variant` tracks which failure state drove the
+    // open (absent for the plain menu path).
+    onDeploymentLogsOpened: (params: {
+      appUid: string;
+      appName: string;
+      source: 'menu' | 'failure-strip' | 'detail-banner' | 'detail-error-card';
+      variant?: 'warning' | 'danger' | 'legacy';
+    }) => capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_OPENED, params),
+    onDeploymentLogsTabSwitched: (appUid: string, stream: 'build' | 'runtime') =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_TAB_SWITCHED, { appUid, stream }),
+    onDeploymentLogsExported: (appUid: string, stream: 'build' | 'runtime', rowCount: number) =>
+      capture(AI_APPS_ANALYTICS.DEPLOYMENT_LOGS_EXPORTED, { appUid, stream, rowCount }),
     onDeleteAppOpened: (appUid: string, appName: string) =>
       capture(AI_APPS_ANALYTICS.DELETE_APP_OPENED, { appUid, appName }),
     onDeleteAppCancelled: (appUid: string, appName: string) =>

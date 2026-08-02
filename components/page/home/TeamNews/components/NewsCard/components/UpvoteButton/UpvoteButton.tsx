@@ -4,15 +4,18 @@ import { clsx } from 'clsx';
 
 import s from '../../NewsCard.module.scss';
 
-function ArrowUpIcon() {
+// The UI says "Like"; the code, backend endpoint (/upvote), and analytics event
+// names all say "upvote" — a deliberate UI-only rename, not a naming drift.
+
+// The forum LikesButton thumbs-up (components/page/forum/LikesButton), copied
+// verbatim per the newsfeed-v0 prototype so a like in the news feed reads
+// exactly like a like in the forum.
+function LikeIcon() {
   return (
-    <svg width="10" height="11" viewBox="0 0 10 11" fill="none" aria-hidden>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path
-        d="M5 9.5V1.5m0 0L1.5 5.5M5 1.5L8.5 5.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M14.625 5.0075C14.4842 4.84795 14.3111 4.72019 14.1171 4.63269C13.9231 4.54519 13.7128 4.49996 13.5 4.5H10V3.5C10 2.83696 9.73661 2.20107 9.26777 1.73223C8.79893 1.26339 8.16304 1 7.5 1C7.40711 0.999934 7.31604 1.02574 7.237 1.07454C7.15795 1.12333 7.09407 1.19318 7.0525 1.27625L4.69125 6H2C1.73478 6 1.48043 6.10536 1.29289 6.29289C1.10536 6.48043 1 6.73478 1 7V12.5C1 12.7652 1.10536 13.0196 1.29289 13.2071C1.48043 13.3946 1.73478 13.5 2 13.5H12.75C13.1154 13.5001 13.4684 13.3668 13.7425 13.1252C14.0166 12.8835 14.1931 12.5501 14.2388 12.1875L14.9888 6.1875C15.0153 5.97626 14.9966 5.76179 14.9339 5.55833C14.8712 5.35488 14.7659 5.16711 14.625 5.0075ZM2 7H4.5V12.5H2V7ZM13.9963 6.0625L13.2463 12.0625C13.231 12.1834 13.1722 12.2945 13.0808 12.3751C12.9895 12.4556 12.8718 12.5 12.75 12.5H5.5V6.61812L7.79437 2.02875C8.13443 2.09681 8.4404 2.2806 8.66021 2.54884C8.88002 2.81708 9.0001 3.1532 9 3.5V5C9 5.13261 9.05268 5.25979 9.14645 5.35355C9.24021 5.44732 9.36739 5.5 9.5 5.5H13.5C13.571 5.49998 13.6411 5.51505 13.7058 5.54423C13.7704 5.5734 13.8282 5.61601 13.8751 5.66922C13.9221 5.72242 13.9571 5.78501 13.978 5.85282C13.9989 5.92063 14.0051 5.9921 13.9963 6.0625Z"
+        fill="currentColor"
       />
     </svg>
   );
@@ -24,27 +27,24 @@ interface UpvoteButtonProps {
   onToggle: () => void;
 }
 
-// Count hidden at 0 — a wall of zeros reads as a dead feed; your own vote makes it appear.
+// Count always renders (0 included) with tabular digits, so toggling a like
+// never changes the button's width and the actions row doesn't shift.
 export function UpvoteButton({ count, voted, onToggle }: UpvoteButtonProps) {
+  const label = voted ? `Remove like (${count})` : `Like (${count})`;
   return (
     <button
       type="button"
       className={clsx(s.upvote, voted && s.upvoteActive)}
       aria-pressed={voted}
-      aria-label={voted ? `Remove upvote (${count})` : `Upvote (${count})`}
+      aria-label={label}
+      title={label}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();
       }}
     >
-      <ArrowUpIcon />
-      <span className={s.upvoteLabel}>{voted ? 'Upvoted' : 'Upvote'}</span>
-      {count > 0 && (
-        <>
-          <span className={s.upvoteDivider} aria-hidden />
-          <span>{count}</span>
-        </>
-      )}
+      <LikeIcon />
+      <span>{count}</span>
     </button>
   );
 }

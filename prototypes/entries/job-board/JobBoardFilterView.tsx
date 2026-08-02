@@ -15,12 +15,7 @@ import {
 import { facetToFilterItems } from '@/components/page/jobs/JobsFilterBody/utils/facetToFilterItems';
 
 import { useMockJobsFilterStore } from './mockJobsFilterStore';
-import {
-  MOCK_ROLE_CATEGORY_FACETS,
-  MOCK_SENIORITY_FACETS,
-  MOCK_WORKMODE_FACETS,
-  MOCK_LOCATION_FACETS,
-} from './mocks';
+import { MOCK_ROLE_CATEGORY_FACETS, MOCK_SENIORITY_FACETS, MOCK_WORKMODE_FACETS, MOCK_LOCATION_FACETS } from './mocks';
 
 // Params that count toward the "applied filters" badge (mirrors production's tracked set, minus sort/q).
 const COUNTED_PARAMS = ['roleCategory', 'seniority', 'workplaceType', 'location'];

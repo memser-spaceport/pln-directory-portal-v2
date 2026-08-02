@@ -103,6 +103,7 @@ jest.mock('@tanstack/react-query', () => ({
     setQueriesData: jest.fn(),
     cancelQueries: jest.fn(() => Promise.resolve()),
     invalidateQueries: jest.fn(() => Promise.resolve()),
+    removeQueries: jest.fn(),
     isMutating: jest.fn(() => 1),
   }),
 }));

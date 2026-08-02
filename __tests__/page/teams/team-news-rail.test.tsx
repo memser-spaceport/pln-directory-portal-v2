@@ -9,6 +9,7 @@ const mockOnCardClicked = jest.fn();
 const mockOnViewAllClicked = jest.fn();
 const mockOnShowMoreClicked = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
+const mockOnUpvoteFailed = jest.fn();
 const mockUpvoteMutate = jest.fn();
 const mockUseCurrentUserStore = jest.fn(() => ({ currentUser: { uid: 'm-1' }, isHydrated: true }));
 let lastModalProps: Record<string, unknown> | null = null;
@@ -19,6 +20,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
     onTeamNewsShowMoreClicked: (...a: unknown[]) => mockOnShowMoreClicked(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
+    onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
   }),
 }));
 
@@ -45,10 +47,6 @@ jest.mock('@/services/team-news/hooks/useTeamNewsUpvoteToggle', () => ({
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => mockUseCurrentUserStore(),
-}));
-
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: () => <button type="button">Discuss</button>,
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -200,12 +198,12 @@ describe('TeamNewsRail', () => {
     );
 
     renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
 
     expect(mockUpvoteMutate).toHaveBeenCalledWith({ uid: 'news-1', isUpvoted: true }, expect.any(Object));
     // Reconciled with the server's authoritative count.
-    const voted = screen.getByRole('button', { name: 'Remove upvote (5)' });
-    expect(voted).toHaveTextContent('Upvoted');
+    const voted = screen.getByRole('button', { name: 'Remove like (5)' });
+
     expect(mockOnUpvoteToggled).toHaveBeenCalledWith(
       expect.objectContaining({ uid: 'news-1' }),
       0,
@@ -224,11 +222,19 @@ describe('TeamNewsRail', () => {
     mockUpvoteMutate.mockImplementation((_action, { onError }) => onError(new Error('nope')));
 
     renderRailWithOneItem();
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
 
-    const button = screen.getByRole('button', { name: 'Upvote (0)' });
-    expect(button).toHaveTextContent(/^Upvote$/);
+    const button = screen.getByRole('button', { name: 'Like (0)' });
+    expect(button).toHaveTextContent('0');
     expect(mockOnUpvoteToggled).not.toHaveBeenCalled();
+    // team-profile is the OTHER call site. Wiring only /home's would have made
+    // the failure rate read 0% here while the success event covered both.
+    expect(mockOnUpvoteFailed).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'news-1' }),
+      expect.any(Number),
+      true,
+      'team-profile-rail',
+    );
   });
 
   const summarized = (uid: string): ITeamNewsItem => ({

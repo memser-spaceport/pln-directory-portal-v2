@@ -1,0 +1,15 @@
+/* Local override: open the menu upward (used in the modal footer, which sits at
+   the bottom of the card). The base popover styling is reused from the forum
+   ReferMenu module. */
+.up.up {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+/* Left-align the menu (its base is right:0). Used when the trigger sits on the
+   left of a clipped container (the modal's Discuss footer), so it opens inward
+   instead of off the card edge. */
+.alignLeft.alignLeft {
+  left: 0;
+  right: auto;
+}

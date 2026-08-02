@@ -114,8 +114,8 @@ export const AdminContent = ({
 
           <Alert>
             <p>
-              Confidentiality notice: Materials presented here are confidential and are provided exclusively for your
-              review. DO NOT copy, screenshot, share, or distribute to others.
+              Confidentiality notice: Materials presented here are confidential. DO NOT copy, screenshot, share, or
+              distribute to others.
             </p>
           </Alert>
         </div>

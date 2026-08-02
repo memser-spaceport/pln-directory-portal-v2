@@ -12,7 +12,12 @@ import { QUICK_ACTIONS } from './quickActions';
 export function MobileQuickActions() {
   return (
     <section className={local.mqa} aria-label="Quick actions">
-      <h2 className={local.mqaTitle}>Quick Actions</h2>
+      {/* Count signals how many actions are in the horizontal scroller (only ~2.5
+          are visible at once on mobile). */}
+      <div className={local.mqaTitleRow}>
+        <h2 className={local.mqaTitle}>Quick Actions</h2>
+        <span className={local.mqaCount}>{QUICK_ACTIONS.length}</span>
+      </div>
       <div className={local.mqaRow}>
         {QUICK_ACTIONS.map((action) => (
           <a key={action.href} href={action.href} className={local.mqaCard}>

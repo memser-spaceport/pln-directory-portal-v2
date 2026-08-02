@@ -21,6 +21,7 @@ import { Tabs } from '@/components/common/Tabs/Tabs';
 // Reuse the production workspace styling so the prototype tracks production 1:1.
 import s from '@/components/page/investors/WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
 import {
+  DATA_SOURCE_LABEL,
   DEFAULT_LIST_ID,
   MOCK_INVESTOR_LISTS,
   MOCK_LISTS,
@@ -30,6 +31,8 @@ import {
   matchesFirstNode,
   pathChainNodes,
   resolveRoute,
+  routeMediators,
+  type DataSource,
   type MockInvestor,
 } from './mocks';
 import { PeopleChain } from './PeopleChain';
@@ -124,7 +127,7 @@ type Draft = { stage: string; sectors: SectorTag[]; check: string };
 // "Path via" connector tokens (PL member / founder); an investor matches a token
 // if ANY of their paths goes through it.
 function matchesToken(inv: MockInvestor, token: string): boolean {
-  if (token === 'direct') return inv.paths.some((p) => !resolveRoute(p).mediator);
+  if (token === 'direct') return inv.paths.some((p) => routeMediators(resolveRoute(p)).length === 0);
   if (token === 'founder') return inv.paths.some((p) => p.connector_type === 'F');
   if (token.startsWith('t:')) return matchesFirstNode(inv, token.slice(2));
   if (token.startsWith('f:')) {
@@ -303,6 +306,8 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const [sectors, setSectors] = useState<SectorTag[]>([]);
   const [query, setQuery] = useState('');
   const [pathSel, setPathSel] = useState<Set<string>>(new Set());
+  // Provenance filter — which upstream system the record came from ('' = All).
+  const [source, setSource] = useState<DataSource | ''>('');
 
   const togglePathToken = (token: string) =>
     setPathSel((prev) => {
@@ -317,6 +322,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     setCheck('');
     setSectors([]);
     setQuery('');
+    setSource('');
     setRelFilter({ co_invested: true, engaged: true, cold_match: true });
     setPlBackedOnly(false);
     setPathSel(new Set());
@@ -386,13 +392,14 @@ export default function WarmIntrosFilterUpdatePrototype() {
     if (stage) rows = rows.filter((m) => m.stage_focus === (stage as StageFocus));
     if (check) rows = rows.filter((m) => m.check_size_range === (check as CheckSizeRange));
     if (sectors.length) rows = rows.filter((m) => m.sector_tags.some((t) => sectors.includes(t)));
+    if (source) rows = rows.filter((m) => m.data_source === source);
     rows = rows.filter((m) => relFilter[m.relationship]);
     if (plBackedOnly) rows = rows.filter((m) => !!m.invested_in_pl);
     if (pathSel.size) rows = rows.filter((m) => matchesPathVia(m, pathSel));
     return rows
       .slice()
       .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
-  }, [onList, query, stage, check, sectors, relFilter, plBackedOnly, pathSel]);
+  }, [onList, query, stage, check, sectors, source, relFilter, plBackedOnly, pathSel]);
 
   // Connector pivots — teammates (direct) and founders (the broker).
   const teamChips = useMemo(() => firstNodeConnectors(members, currentListId), [members, currentListId]);
@@ -413,6 +420,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const activeChips: { key: string; name: string; value: string; remove: () => void }[] = [];
   if (stage) activeChips.push({ key: 'stage', name: 'Stage', value: STAGE_FOCUS_LABEL[stage as StageFocus], remove: () => setStage('') });
   if (check) activeChips.push({ key: 'check', name: 'Check', value: check, remove: () => setCheck('') });
+  if (source) activeChips.push({ key: 'source', name: 'Source', value: DATA_SOURCE_LABEL[source], remove: () => setSource('') });
   sectors.forEach((sec) =>
     activeChips.push({ key: `sec:${sec}`, name: INDUSTRY_SECTOR_LABEL, value: SECTOR_TAG_LABEL[sec], remove: () => toggleSector(sec) }),
   );
@@ -643,6 +651,23 @@ export default function WarmIntrosFilterUpdatePrototype() {
                   />
                 ))
               }
+            </FilterDropdown>
+
+            {/* Provenance — single-select: All (default) / LinkedIn / Affinity. */}
+            <FilterDropdown label={source ? DATA_SOURCE_LABEL[source] : 'Source'} active={!!source}>
+              {({ close }) => (
+                <>
+                  <FdRow label="All" selected={source === ''} onClick={() => { setSource(''); close(); }} />
+                  {(['linkedin', 'affinity'] as DataSource[]).map((src) => (
+                    <FdRow
+                      key={src}
+                      label={DATA_SOURCE_LABEL[src]}
+                      selected={source === src}
+                      onClick={() => { setSource(source === src ? '' : src); close(); }}
+                    />
+                  ))}
+                </>
+              )}
             </FilterDropdown>
           </div>
 

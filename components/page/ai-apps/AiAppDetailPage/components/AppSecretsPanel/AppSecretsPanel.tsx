@@ -115,6 +115,10 @@ export function AppSecretsPanel(props: Props) {
     // Refresh in both outcomes — a failed deploy still changes the app status/notes.
     // Do it before clearing the deploying flag so the parent swaps back to the
     // iframe only once the refreshed record (fresh updatedAt) is in the cache.
+    // Logs are dropped in both outcomes too: whether the deploy shipped or
+    // failed, the interesting log lines are the new attempt's, never a cached
+    // snapshot of the previous one.
+    queryClient.removeQueries({ queryKey: [AiAppsQueryKeys.AI_APP_LOGS, app.uid] });
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APP_DETAIL, app.uid] }),
       queryClient.invalidateQueries({ queryKey: [AiAppsQueryKeys.AI_APPS_LIST] }),

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
@@ -8,13 +8,19 @@ import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
-import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import {
+  useTeamNewsAnalytics,
+  type TeamNewsAnalyticsSource,
+  type TeamNewsCardClickVia,
+} from '@/analytics/team-news.analytics';
 import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { sortAllTabItemsByEventDate } from '../../utils/sortAllTabItemsByEventDate';
-import { StartConversationButton } from '../NewsCard/components/StartConversationButton';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
+import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
+import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -24,7 +30,13 @@ const VISIBLE_STORIES = 3;
 
 interface NewsGroupCardProps {
   cluster: TeamCluster;
-  onStoryClick?: (item: ITeamNewsItem) => void;
+  /** Row click/Enter opens the news detail modal — the single owner of
+   *  analytics + modal state + URL sync lives in TeamNews.handleStoryOpen.
+   *  (The old open-the-source-in-a-new-tab behavior moved into the modal's
+   *  SOURCE links; NewsCard — team-details — still opens the source.)
+   *  The comment badge no longer routes here; the only non-row caller is the
+   *  inline thread's "View all", which `via` distinguishes. */
+  onStoryOpen: (item: ITeamNewsItem, via?: TeamNewsCardClickVia) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
   isFollowing?: boolean;
   onFollowToggle?: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
@@ -37,7 +49,7 @@ interface NewsGroupCardProps {
 
 export function NewsGroupCard({
   cluster,
-  onStoryClick,
+  onStoryOpen,
   analyticsSource = 'home',
   isFollowing = false,
   onFollowToggle,
@@ -47,19 +59,64 @@ export function NewsGroupCard({
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+  const analytics = useTeamNewsAnalytics();
+
+  // Per-story inline threads. Local like the card's own `expanded`, so the
+  // composite-key remount on tab/category change resets open threads (and any
+  // unsent drafts — accepted, documented loss; in-flight submits still land
+  // because the mutation's cache writes live in its options callbacks).
+  const [openThreadUids, setOpenThreadUids] = useState<ReadonlySet<string>>(() => new Set());
+  // Threads holding an unsettled comment. They refuse to collapse: the write's
+  // error state dies with the unmount, so a stray badge click would drop a
+  // failed comment without ever saying so.
+  const [busyThreadUids, setBusyThreadUids] = useState<ReadonlySet<string>>(() => new Set());
+
+  const setThreadBusy = (storyUid: string, busy: boolean) => {
+    setBusyThreadUids((current) => {
+      if (current.has(storyUid) === busy) return current;
+      const next = new Set(current);
+      busy ? next.add(storyUid) : next.delete(storyUid);
+      return next;
+    });
+  };
+
+  const handleThreadToggle = (storyUid: string) => {
+    if (busyThreadUids.has(storyUid) && openThreadUids.has(storyUid)) return;
+    const next = new Set(openThreadUids);
+    const willOpen = !next.has(storyUid);
+    willOpen ? next.add(storyUid) : next.delete(storyUid);
+    setOpenThreadUids(next);
+    analytics.onFeedCommentThreadToggled(storyUid, 'news', willOpen, analyticsSource);
+    // Opening a thread on a card near the bottom of the viewport otherwise
+    // renders the whole thing off-screen — the badge just changes colour.
+    // `nearest` never scrolls the feed to the top.
+    if (willOpen) {
+      requestAnimationFrame(() => {
+        document.getElementById(feedThreadDomId(storyUid))?.scrollIntoView({ block: 'nearest' });
+      });
+    }
+  };
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onFollowToggle?.(cluster.teamUid, cluster.teamName, isFollowing);
   };
 
+  // Record which thread was open before bouncing to #login, so the round trip
+  // lands back on it (the modal's Follow gate does the same with ?news=).
+  const handleThreadSignIn = (storyUid: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('news', storyUid);
+    router.push(`${window.location.pathname}?${params.toString()}#login`, { scroll: false });
+  };
+
   const handleUpvoteClick = (story: ITeamNewsItem) => {
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle?.(story);
@@ -84,8 +141,7 @@ export function NewsGroupCard({
   }, [autoExpandStoryUid, stories, toggleExpanded]);
 
   const openStory = (item: ITeamNewsItem) => {
-    onStoryClick?.(item);
-    window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+    onStoryOpen(item);
   };
 
   return (
@@ -116,14 +172,19 @@ export function NewsGroupCard({
           <div
             key={story.uid}
             data-story-uid={story.uid}
-            role="link"
+            role="button"
+            aria-haspopup="dialog"
+            // Concise accessible name — without it the row's name is its entire
+            // text content (title + summary + meta), which is screen-reader noise
+            // and collides with other buttons in role queries.
+            aria-label={story.title}
             tabIndex={0}
             className={s.storyRow}
             onClick={() => openStory(story)}
             onKeyDown={(e) => {
               // Only act on keys pressed on the row itself — Enter/Space on a
-              // nested control (Upvote/Discuss/SourceList) must not also open
-              // the article. Same guard as NewsCard's handleKeyDown.
+              // nested control (Like/Share/SourceList) must not also open
+              // the modal. Same guard as NewsCard's handleKeyDown.
               if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -149,17 +210,31 @@ export function NewsGroupCard({
                 <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
               </div>
               <div className={newsCardStyles.actions}>
+                <NewsShareMenu item={story} source={analyticsSource} />
                 <UpvoteButton
                   count={story.upvoteCount ?? 0}
                   voted={Boolean(story.viewerHasUpvoted)}
                   onToggle={() => handleUpvoteClick(story)}
                 />
-                {/* `position` is this story's own index within its card, not the
-                    card's index — see TeamNews.tsx's handleCardClick for the
-                    card-level position used in onTeamNewsCardClicked. */}
-                <StartConversationButton item={story} position={storyIndex} analyticsSource={analyticsSource} />
+                <CommentButton
+                  itemUid={story.uid}
+                  open={openThreadUids.has(story.uid)}
+                  onToggle={() => handleThreadToggle(story.uid)}
+                  controls={feedThreadDomId(story.uid)}
+                />
               </div>
             </div>
+            {/* Mount = expanded (the lazy comments query keys off it). */}
+            {openThreadUids.has(story.uid) && (
+              <FeedCommentsThread
+                itemUid={story.uid}
+                kind="news"
+                source={analyticsSource}
+                onViewAll={() => onStoryOpen(story, 'view-all-comments')}
+                onSignIn={() => handleThreadSignIn(story.uid)}
+                onBusyChange={(busy) => setThreadBusy(story.uid, busy)}
+              />
+            )}
           </div>
         );
       })}

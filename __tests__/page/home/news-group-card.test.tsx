@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { NewsGroupCard } from '@/components/page/home/TeamNews/components/NewsGroupCard/NewsGroupCard';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
@@ -8,11 +8,30 @@ jest.mock('@/utils/formatTimeAgo', () => ({
   formatTimeAgo: () => '2d ago',
 }));
 
-const mockStartConversationButton = jest.fn();
-jest.mock('@/components/page/home/TeamNews/components/NewsCard/components/StartConversationButton', () => ({
-  StartConversationButton: (props: { position: number }) => {
-    mockStartConversationButton(props);
+// Captures the per-story `position` prop (story index within the card, not the
+// card's index) — SourceList is the remaining per-story consumer now that the
+// Discuss button is gone.
+const mockSourceList = jest.fn();
+jest.mock('@/components/page/home/TeamNews/components/SourceList/SourceList', () => ({
+  SourceList: (props: { position: number }) => {
+    mockSourceList(props);
     return null;
+  },
+}));
+
+// Stubbed like SourceList above: the thread's own behaviour is covered in
+// feed-comments-thread.test.tsx, and this file is about the card's wiring.
+const mockThread = jest.fn();
+jest.mock('@/components/page/home/TeamNews/components/FeedCommentsThread/FeedCommentsThread', () => ({
+  feedThreadDomId: (uid: string) => `feed-thread-${uid}`,
+  FeedCommentsThread: (props: {
+    itemUid: string;
+    source: string;
+    onViewAll: () => void;
+    onBusyChange: (busy: boolean) => void;
+  }) => {
+    mockThread(props);
+    return <div data-testid={`thread-${props.itemUid}`} />;
   },
 }));
 
@@ -45,6 +64,10 @@ const makeItem = (uid: string, eventDate: string, overrides: Partial<ITeamNewsIt
   ...overrides,
 });
 
+// Required prop: every row click routes through it (the old open-the-source
+// behavior moved into the detail modal). Cleared by clearAllMocks in setup.
+const noopStoryOpen = jest.fn();
+
 const clusterWith = (items: ITeamNewsItem[]): TeamCluster => ({
   teamUid: 'team-1',
   teamName: 'Acme',
@@ -59,19 +82,27 @@ describe('NewsGroupCard', () => {
   });
 
   it('renders the team header', () => {
-    render(<NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
+    render(
+      <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />,
+    );
     expect(screen.getByRole('link', { name: 'Acme' })).toHaveAttribute('href', '/teams/team-1');
   });
 
   it('renders no follow button when onFollowToggle is not provided, even once hydrated', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'm-1' }, isHydrated: true });
-    render(<NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />);
+    render(
+      <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} />,
+    );
     expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
   });
 
   it('does not render the follow button before the auth store hydrates, even with onFollowToggle provided', () => {
     render(
-      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onFollowToggle={jest.fn()} />,
+      <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
+        onFollowToggle={jest.fn()}
+      />,
     );
     expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument();
   });
@@ -81,6 +112,7 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         onFollowToggle={onFollowToggle}
       />,
@@ -96,6 +128,7 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         isFollowing
         onFollowToggle={onFollowToggle}
@@ -112,19 +145,20 @@ describe('NewsGroupCard', () => {
     const onFollowToggle = jest.fn();
     render(
       <NewsGroupCard
+        onStoryOpen={noopStoryOpen}
         cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])}
         onFollowToggle={onFollowToggle}
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Follow Acme' }));
     expect(onFollowToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('renders a story with its summary when present, and omits the paragraph when absent', () => {
     const withSummary = makeItem('a', '2026-05-03T00:00:00.000Z');
     const withoutSummary = makeItem('b', '2026-05-02T00:00:00.000Z', { summary: null });
-    render(<NewsGroupCard cluster={clusterWith([withSummary, withoutSummary])} />);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([withSummary, withoutSummary])} />);
     expect(screen.getByText('Summary a')).toBeInTheDocument();
     expect(screen.queryByText('Summary b')).not.toBeInTheDocument();
   });
@@ -135,7 +169,7 @@ describe('NewsGroupCard', () => {
       makeItem('newest', '2026-05-03T00:00:00.000Z'),
       makeItem('middle', '2026-05-02T00:00:00.000Z'),
     ];
-    render(<NewsGroupCard cluster={clusterWith(items)} />);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith(items)} />);
     const headlines = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
     expect(headlines).toEqual(['Headline newest', 'Headline middle', 'Headline oldest']);
     expect(screen.queryByRole('button', { name: /view all/i })).not.toBeInTheDocument();
@@ -143,7 +177,7 @@ describe('NewsGroupCard', () => {
 
   it('shows an expander when there are more than 3 stories, and toggles the visible list', () => {
     const items = Array.from({ length: 5 }, (_, i) => makeItem(`s${i}`, `2026-05-0${i + 1}T00:00:00.000Z`));
-    render(<NewsGroupCard cluster={clusterWith(items)} />);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith(items)} />);
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
     const expander = screen.getByRole('button', { name: 'View all 5 updates from Acme' });
 
@@ -155,16 +189,98 @@ describe('NewsGroupCard', () => {
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
   });
 
-  it('fires onStoryClick with the clicked story and opens its sourceUrl', () => {
+  it('fires onStoryOpen with the clicked story and never window.opens the source', () => {
     const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
-    const onStoryClick = jest.fn();
+    const onStoryOpen = jest.fn();
     const item = makeItem('a', '2026-05-03T00:00:00.000Z');
-    render(<NewsGroupCard cluster={clusterWith([item])} onStoryClick={onStoryClick} />);
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
 
     fireEvent.click(screen.getByText('Headline a'));
-    expect(onStoryClick).toHaveBeenCalledWith(item);
-    expect(openSpy).toHaveBeenCalledWith('https://example.com/a', '_blank', 'noopener,noreferrer');
+    expect(onStoryOpen).toHaveBeenCalledWith(item);
+    // The source link lives in the detail modal now — a row click must not navigate.
+    expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();
+  });
+
+  it('does NOT open the modal from the comment badge — it discloses the thread in place', () => {
+    const onStoryOpen = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+
+    expect(onStoryOpen).not.toHaveBeenCalled();
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+  });
+
+  it('renders the thread inline, collapsed by default, and toggles it closed again', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={noopStoryOpen} />,
+    );
+
+    // Mount = expanded, so nothing may be mounted before the first click.
+    expect(screen.queryByTestId('thread-a')).not.toBeInTheDocument();
+
+    const badge = screen.getByRole('button', { name: /Comments, show/ });
+    expect(badge).toHaveAttribute('aria-expanded', 'false');
+    expect(badge).toHaveAttribute('aria-controls', 'feed-thread-a');
+
+    fireEvent.click(badge);
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Comments, hide/ })).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, hide/ }));
+    expect(screen.queryByTestId('thread-a')).not.toBeInTheDocument();
+  });
+
+  it('escalates the inline thread to the modal, flagged as such for analytics', () => {
+    const onStoryOpen = jest.fn();
+    const item = makeItem('a', '2026-05-03T00:00:00.000Z');
+    render(<NewsGroupCard cluster={clusterWith([item])} onStoryOpen={onStoryOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    // "View all" is the only comment affordance that still reaches the modal.
+    mockThread.mock.calls.at(-1)?.[0].onViewAll();
+
+    expect(onStoryOpen).toHaveBeenCalledWith(item, 'view-all-comments');
+  });
+
+  it('opens each story’s thread independently', () => {
+    render(
+      <NewsGroupCard
+        cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z'), makeItem('b', '2026-05-02T00:00:00.000Z')])}
+        onStoryOpen={noopStoryOpen}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Comments, show/ })[0]);
+
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+    expect(screen.queryByTestId('thread-b')).not.toBeInTheDocument();
+  });
+
+  it('refuses to collapse a thread holding an unsettled comment', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={noopStoryOpen} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, show/ }));
+    act(() => mockThread.mock.calls.at(-1)?.[0].onBusyChange(true));
+
+    fireEvent.click(screen.getByRole('button', { name: /Comments, hide/ }));
+
+    // Unmounting would discard the mutation's error state — and with it any
+    // notice that the comment failed to post.
+    expect(screen.getByTestId('thread-a')).toBeInTheDocument();
+  });
+
+  it('exposes rows as dialog-opening buttons with the title as accessible name', () => {
+    render(
+      <NewsGroupCard cluster={clusterWith([makeItem('a', '2026-05-03T00:00:00.000Z')])} onStoryOpen={jest.fn()} />,
+    );
+    const row = screen.getByRole('button', { name: 'Headline a' });
+    expect(row).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(row).toHaveAttribute('tabindex', '0');
   });
 
   it('gives each story a distinct position within the card, not the card position', () => {
@@ -173,8 +289,8 @@ describe('NewsGroupCard', () => {
       makeItem('b', '2026-05-02T00:00:00.000Z'),
       makeItem('c', '2026-05-01T00:00:00.000Z'),
     ];
-    render(<NewsGroupCard cluster={clusterWith(items)} />);
-    const positions = mockStartConversationButton.mock.calls.map(([props]) => props.position);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith(items)} />);
+    const positions = mockSourceList.mock.calls.map(([props]) => props.position);
     expect(positions).toEqual([0, 1, 2]);
   });
 
@@ -190,8 +306,8 @@ describe('NewsGroupCard', () => {
 
     render(
       <>
-        <NewsGroupCard cluster={clusterA} />
-        <NewsGroupCard cluster={clusterB} />
+        <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterA} />
+        <NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterB} />
       </>,
     );
 
@@ -202,29 +318,29 @@ describe('NewsGroupCard', () => {
 
   it('resets to collapsed when remounted with a fresh key (simulating a filter change)', () => {
     const items = Array.from({ length: 5 }, (_, i) => makeItem(`s${i}`, `2026-05-0${i + 1}T00:00:00.000Z`));
-    const { rerender } = render(<NewsGroupCard key="tab-a" cluster={clusterWith(items)} />);
+    const { rerender } = render(<NewsGroupCard onStoryOpen={noopStoryOpen} key="tab-a" cluster={clusterWith(items)} />);
     fireEvent.click(screen.getByRole('button', { name: 'View all 5 updates from Acme' }));
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(5);
 
-    rerender(<NewsGroupCard key="tab-b" cluster={clusterWith(items)} />);
+    rerender(<NewsGroupCard onStoryOpen={noopStoryOpen} key="tab-b" cluster={clusterWith(items)} />);
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
   });
 
   it("renders an Upvote button reflecting the story's upvote state", () => {
     const item = makeItem('a', '2026-05-03T00:00:00.000Z', { viewerHasUpvoted: true, upvoteCount: 5 });
-    render(<NewsGroupCard cluster={clusterWith([item])} />);
-    expect(screen.getByRole('button', { name: 'Remove upvote (5)' })).toBeInTheDocument();
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([item])} />);
+    expect(screen.getByRole('button', { name: 'Remove like (5)' })).toBeInTheDocument();
   });
 
   it('redirects to login instead of calling onUpvoteToggle when unauthenticated', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: null, isHydrated: true });
     const onUpvoteToggle = jest.fn();
     const item = makeItem('a', '2026-05-03T00:00:00.000Z');
-    render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('#login'), { scroll: false });
   });
 
   it('calls onUpvoteToggle with the clicked story when authenticated, without opening the story', () => {
@@ -232,9 +348,9 @@ describe('NewsGroupCard', () => {
     const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
     const onUpvoteToggle = jest.fn();
     const item = makeItem('a', '2026-05-03T00:00:00.000Z');
-    render(<NewsGroupCard cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
+    render(<NewsGroupCard onStoryOpen={noopStoryOpen} cluster={clusterWith([item])} onUpvoteToggle={onUpvoteToggle} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upvote (0)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Like (0)' }));
     expect(onUpvoteToggle).toHaveBeenCalledWith(item);
     expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();

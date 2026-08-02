@@ -16,3 +16,12 @@
     font-size: 14px;
   }
 }
+
+// Darken the per-row Refer/Share trigger to match the newsfeed's share icon,
+// which sits at secondary weight (#455468) rather than the production ReferMenu's
+// tertiary #8897ae. Scoped to the closed state only ([aria-expanded='false']) so
+// the open state keeps its brand-blue tint. Targets the trigger by its
+// aria-haspopup hook since the production class is hashed and unreachable by name.
+.card [aria-haspopup='menu'][aria-expanded='false'] {
+  color: var(--foreground-neutral-secondary, #455468);
+}

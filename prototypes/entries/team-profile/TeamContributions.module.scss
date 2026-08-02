@@ -1,0 +1,311 @@
+@use 'styles/media';
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  // DetailsSection's own row gap is commented out in production, so the grid
+  // needs its own breathing room below the "Contributions (N)" header.
+  margin-top: 12px;
+}
+
+
+// One event = one tile. Event name is primary; role tags sit above it, date below.
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  // Exactly 4 tiles per row (3 × 8px gaps), so a row fills the line edge to edge.
+  // Uniform length — long event names crop with an ellipsis (like prod).
+  flex: 0 0 calc((100% - 24px) / 4);
+  width: auto;
+  min-width: 0;
+  padding: 8px 10px;
+  // Match production TeamIrlContributions event cards (raw hex, no DS token there).
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #f1f5f9;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+
+  // Mobile: two per row (one 8px gap between them).
+  @include media.mobile-only {
+    flex: 0 0 calc((100% - 8px) / 2);
+  }
+}
+
+// Only the linkable tiles (Demo Day, events with a slug) get the hover lift.
+a.tile:hover {
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+// Featured Demo Day tile: brand gradient *border* (not a fill), leads the grid.
+// Painted as a masked ::before ring rather than a transparent border — a
+// transparent border + border-box gradient leaves a dark antialiasing fringe on
+// the bright green edge (a thin black line). The ring has no border to fringe.
+.demoTile {
+  position: relative;
+  border: none;
+  background: #f1f5f9; // grey inner, matching the other tiles
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.12);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.1px; // ring thickness
+    background: linear-gradient(135deg, #1b4dff 0%, #4cee8c 100%);
+    // Fill the whole box, then subtract the inside so only the padded ring shows.
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+// Subtle shimmer on hover; the shared `a.tile:hover` still supplies the lift.
+a.demoTile:hover {
+  filter: brightness(0.98) saturate(1.04);
+}
+
+.roleTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+// Role pill — matches the IRL gathering event tags (IrlHostTag / IrlSpeakerTag /
+// IrlSponsorTag) exactly: 20px gradient pill, white 9px text, thin white border.
+// Gradients are the production hex values (no token form exists for these).
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid #ffffff66;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  color: #ffffff;
+  background: #8897ae; // neutral fallback for any unmapped role
+}
+
+.roleTagHost {
+  background: linear-gradient(97.17deg, #9e7eff 6.23%, #e58eff 99.44%);
+}
+
+.roleTagSponsor {
+  background: linear-gradient(97.17deg, #7ecbff 6.23%, #928eff 99.44%);
+}
+
+.roleTagSpeaker {
+  background: linear-gradient(97.17deg, #4fb68b 6.23%, #46b9cb 99.44%);
+}
+
+// Participant — quieter than the active roles (host/sponsor/speaker): neutral slate.
+.roleTagParticipant {
+  background: linear-gradient(97.17deg, #94a3b8 6.23%, #7c8aa3 99.44%);
+}
+
+// Demo Day tag on the featured tile: same pill shape, brand gradient fill that
+// echoes the tile's gradient border. Keeps the shared `#ffffff66` hairline from
+// `.roleTag` — a transparent border leaves a dark antialiasing fringe on the
+// bright green edge (visible as a thin black line).
+.roleTagDemo {
+  color: #fff;
+  background: linear-gradient(97.17deg, #1b4dff 6.23%, #4cee8c 99.44%);
+  // Clip the gradient to the padding box so the bright green edge doesn't reach
+  // the pill's antialiased outer edge (which premultiplies to a dark fringe line).
+  background-clip: padding-box;
+
+  svg {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    color: #fff;
+  }
+}
+
+/* Muted pills — quieter tinted fill + colored text instead of the filled IRL
+   gradient. Declared after the vibrant classes so they win on the shared
+   .roleTag element; border-color:transparent preserves the pill dimensions. */
+.roleTagMutedHost {
+  border-color: transparent;
+  color: #7c5ce6; // violet — matches the IRL host pill hue (no DS token exists)
+  background: rgba(158, 126, 255, 0.18);
+}
+
+.roleTagMutedSponsor {
+  border-color: transparent;
+  color: var(--foreground-brand-primary, #1b4dff);
+  background: rgba(27, 77, 255, 0.12);
+}
+
+.roleTagMutedSpeaker {
+  border-color: transparent;
+  color: var(--foreground-success-primary, #0a9952);
+  background: rgba(10, 153, 82, 0.12);
+}
+
+.roleTagMutedParticipant {
+  border-color: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  background: rgba(136, 151, 174, 0.18);
+}
+
+// "+N" overflow tile: same width as a normal tile so it fills the last slot,
+// with the count centred. Opens the full list in a modal.
+.tileMore {
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    border-color: #94a3b8;
+  }
+}
+
+/* ============================ All-contributions modal ============================ */
+
+// The shared Modal only supplies the overlay + positioning — the white surface
+// comes from the consumer (same pattern as the news modal on this page).
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  padding: 20px;
+  background: var(--Neutral-White, #fff);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.modalClose {
+  display: inline-flex;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+// One contribution per row: role tag(s), then name, with the date pinned right.
+.modalRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 2px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+a.modalRow:hover .modalName {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.modalTags {
+  flex: none;
+  display: inline-flex;
+  gap: 5px;
+}
+
+.modalName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.modalDate {
+  flex: none;
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// Name + date on one line, separated by a middot (tags stay on the row above).
+// nowrap + min-width:0 lets the name crop instead of pushing the date away.
+.tileMeta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.eventName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// The date always stays fully visible; only the name crops.
+.eventDate {
+  flex: none;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &::before {
+    content: '·';
+    margin: 0 6px;
+  }
+}

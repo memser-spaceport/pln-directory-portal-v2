@@ -1,0 +1,120 @@
+.iconTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    background: rgba(14, 15, 17, 0.04);
+    color: #156ff7;
+  }
+}
+
+// Quiet icon+"Share" trigger for the modal footer — same weight and treatment
+// as the Like button beside it (forum meta-item styling, see NewsCard's
+// .upvote), per prototype PR #2688.
+.buttonTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover,
+  &[data-popup-open] {
+    filter: brightness(0.8);
+  }
+}
+
+.positioner {
+  outline: 0;
+  // The popup portals to <body>, so it stacks against the news modal's
+  // overlay (components/common/Modal, z-index 9999) — anything lower leaves
+  // the menu open but invisible behind the overlay's backdrop.
+  z-index: 10000;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid rgba(27, 56, 96, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(14, 15, 17, 0.12);
+  // Base UI computes the origin from the rendered side/align (the popup can
+  // open up or down depending on the `side` prop and collision flips) — a
+  // hardcoded corner would scale the entrance animation from the wrong edge.
+  transform-origin: var(--transform-origin);
+  transition:
+    transform 150ms,
+    opacity 150ms;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.popupTitle {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin: 4px 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  outline: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-align: left;
+  color: #0a0c11;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-highlighted] {
+    background: rgba(14, 15, 17, 0.04);
+  }
+}
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemCopied {
+  color: #0f9f6e;
+}

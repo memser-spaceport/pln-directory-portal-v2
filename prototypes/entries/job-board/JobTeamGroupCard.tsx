@@ -13,7 +13,7 @@ import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useG
 import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import js from './JobTeamGroupCard.module.scss';
 
-import { ReferRoleRow } from './ReferRoleRow';
+import { JobReferRoleRow } from './JobReferRoleRow';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -24,8 +24,8 @@ interface JobTeamGroupCardProps {
 
 /**
  * COPY-SIMPLIFY of production `TeamGroupCard`: same markup + styling and the real
- * useGetFocusTags / TagsList, but renders the prototype-local ReferRoleRow (which
- * adds the per-job "Refer" → LinkedIn/X control) instead of the production RoleRow.
+ * useGetFocusTags / TagsList, but renders the prototype-local JobReferRoleRow (which
+ * adds the per-job "Refer" button + referral modal) instead of the production RoleRow.
  */
 export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
@@ -64,7 +64,7 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
       <ul className={s.roleList}>
         {visibleRoles.map((role) => (
           <li key={role.uid}>
-            <ReferRoleRow role={role} teamName={team.name} />
+            <JobReferRoleRow role={role} teamName={team.name} />
           </li>
         ))}
       </ul>

@@ -1,0 +1,40 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.inline {
+  margin-top: 0;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  background: #f3f4f6;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+}
+
+.pillInline {
+  font-weight: 500;
+}
+
+.listNeuro {
+  background: #eef2ff;
+  color: #1b4dff;
+  border-color: #c7d2fe;
+}
+
+.listGold {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}

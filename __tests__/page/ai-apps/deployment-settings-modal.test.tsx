@@ -103,4 +103,15 @@ describe('DeploymentSettingsModal — onDeployingChange', () => {
 
     expect(() => fireEvent.click(screen.getByRole('button', { name: /^redeploy$/i }))).not.toThrow();
   });
+
+  it('labels the action "Deploy" for a never-deployed draft, not "Redeploy"', () => {
+    mockDeployAiApp.mockReturnValue(new Promise(() => {}));
+    const app = buildApp({ status: 'DRAFT', requiredEnvVars: ['OPENAI_API_KEY'], providedEnvVars: [] });
+    mockUseAiAppReturn = { app };
+
+    render(<DeploymentSettingsModal app={app} onClose={onClose} />);
+
+    expect(screen.getByRole('button', { name: /^deploy$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^redeploy$/i })).not.toBeInTheDocument();
+  });
 });

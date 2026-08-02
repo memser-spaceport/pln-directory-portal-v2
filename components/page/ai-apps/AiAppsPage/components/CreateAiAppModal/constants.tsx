@@ -39,9 +39,11 @@ export const STEPS: { title: string; description: ReactNode }[] = [
           </li>
           <li>Open the LabOS link your agent gives you, sign in, and click Approve.</li>
           <li>
-            <em>Optional</em> — if the backend needs access to data or external services, your agent will send a second
-            LabOS link. Enter your <strong>secrets (API keys / passwords)</strong> there and click Deploy. Never paste
-            keys in chat.
+            <em>Optional</em> — if the backend needs a database, your agent will ask whether to let PLN provision one
+            automatically or connect one you already have. If it needs access to other data or external services, your
+            agent will send a second LabOS link. Enter your{' '}
+            <strong>secrets (API keys / passwords / your own database)</strong> there and click Deploy. Never paste keys
+            in chat.
           </li>
         </ol>
         When done, open the app from the AI Apps dashboard.
@@ -53,11 +55,31 @@ export const STEPS: { title: string; description: ReactNode }[] = [
 export const MODAL_INTRO =
   'The starter kit works whether you are building a new app or bringing one you have already built into LabOS infrastructure.';
 
-export const MODAL_WHATS_NEW_ITEMS = [
-  'Use signed-in PL member context in your app (name, photo, teams, and more)',
-  "Approve your app's name and description before the first deploy",
-  'Optionally add a one-pager/PRD after deploy',
-  '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
+  {
+    version: '1.6',
+    items: [
+      'Ask PLN to provision a database for your app automatically — no accounts or setup needed',
+      'Bringing your own database instead? Connect it the same way as any other secret',
+      'UI kit update: higher fidelity to the product, every state inspectable in Storybook, more control over individual components, and a broader component set',
+    ],
+  },
+  {
+    version: '1.5',
+    items: [
+      'Your agent can fetch build and runtime logs to diagnose failed deploys and runtime errors',
+      '(Via UI) View build and runtime logs from your app’s actions menu — no agent needed',
+    ],
+  },
+  {
+    version: '1.4',
+    items: [
+      'Use signed-in PL member context in your app (name, photo, teams, and more)',
+      "Approve your app's name and description before the first deploy",
+      'Optionally add a one-pager/PRD after deploy',
+      '(Via UI, not part of the download kit) Rename, edit description, or update the one-pager/PRD anytime through your agent — no redeploy',
+    ],
+  },
 ];
 
 export const SECURITY_NOTE =

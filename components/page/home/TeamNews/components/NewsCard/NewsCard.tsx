@@ -12,7 +12,6 @@ import { getTeamLogoFallback } from '../../utils/getTeamLogoFallback';
 import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
-import { StartConversationButton } from './components/StartConversationButton';
 import { UpvoteButton } from './components/UpvoteButton/UpvoteButton';
 import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
@@ -68,7 +67,7 @@ export const NewsCard = ({
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onFollowToggle?.(item.teamUid, item.teamName, isFollowing);
@@ -76,7 +75,7 @@ export const NewsCard = ({
 
   const handleUpvoteToggle = () => {
     if (!currentUser) {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
       return;
     }
     onUpvoteToggle?.(item);
@@ -89,7 +88,7 @@ export const NewsCard = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Only act on keys pressed on the card itself — Enter on an inner button
-    // (Upvote/Discuss) must not also open the article.
+    // (Upvote/SourceList) must not also open the article.
     if (e.target !== e.currentTarget) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -167,7 +166,6 @@ export const NewsCard = ({
           {isHydrated && onUpvoteToggle && (
             <UpvoteButton count={upvoteCount} voted={viewerHasUpvoted} onToggle={handleUpvoteToggle} />
           )}
-          <StartConversationButton item={item} position={position} analyticsSource={analyticsSource} />
         </span>
       </div>
     </div>

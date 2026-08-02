@@ -7,4 +7,6 @@ export enum TeamNewsQueryKeys {
 
 export const TEAM_NEWS_DEFAULT_WINDOW_DAYS = 14;
 export const TEAM_NEWS_PREVIEW_LIMIT = 3;
+/** Home "Popular this week" rail — matches server trending seed (top 5–7). */
+export const TEAM_NEWS_POPULAR_LIMIT = 7;
 export const TEAM_NEWS_MODAL_PAGE_SIZE = 20;

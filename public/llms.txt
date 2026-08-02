@@ -1,0 +1,40 @@
+# LabOS (Protocol Labs Directory)
+
+> LabOS is the Protocol Labs network directory: teams, members, projects, jobs, and Spotlight pitch pages for network companies.
+
+LabOS helps network members discover teams and people, and hosts time-boxed Spotlight pages where teams present to investors.
+
+Important notes:
+
+- Public pages include teams, members, projects, jobs, and Spotlight teasers (title, status, statement).
+- Full Spotlight pitch content (deck, profile details, video) requires a LabOS login.
+- Auth-gated areas: /deals, /founder-guides, /investors, and most settings.
+
+## Directory
+
+- [Teams](https://directory.plnetwork.io/teams): Browse network teams
+- [Members](https://directory.plnetwork.io/members): Browse network members
+- [Projects](https://directory.plnetwork.io/projects): Browse projects
+- [Jobs](https://directory.plnetwork.io/jobs): Open roles in the network
+- [Home](https://directory.plnetwork.io/home): Network home and news
+
+## Spotlight
+
+Spotlight pages live at `/spotlight/{slug}`. Shared links are the primary discovery path.
+
+Public (no login) on each Spotlight page:
+
+- Title, description, spotlight statement, team name, and status (DRAFT / OPEN / CLOSED)
+- HTML metadata and JSON-LD for agents and crawlers
+
+For machine-readable link health checks (no HTML parsing):
+
+- [Spotlight status API](https://directory.plnetwork.io/api/spotlight/{slug}/status): Returns `{ slug, status, title, teamName, teamUid, loginRequired, isOpen, url }`
+
+Replace `{slug}` with the Spotlight slug from the shared URL.
+
+## Optional
+
+- [robots.txt](https://directory.plnetwork.io/robots.txt): Crawl policy
+- [sitemap.xml](https://directory.plnetwork.io/sitemap.xml): Indexable URL inventory
+ 

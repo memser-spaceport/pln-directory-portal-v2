@@ -127,6 +127,12 @@ export type WarmIntrosV2ListParams = {
   rank?: number;
   limit?: number;
   offset?: number;
+  /** hopChain.relationKind: pl_direct | founder_bridge | coinvestor_bridge */
+  relationKind?: string;
+  /** When true, only hopCount=1 (PL direct) paths. */
+  directOnly?: boolean;
+  /** When true, only investors with MasterProfile.plBacking set. */
+  plBacker?: boolean;
 };
 
 export type WarmIntrosV2ListResponse = {
@@ -191,6 +197,17 @@ export type MasterProfileDetail = {
   investorMeta?: Record<string, unknown> | null;
   funds?: unknown;
   investedIn?: unknown;
+  /** Proven PL co-investments (teamUid + deal metadata). */
+  coInvestments?: unknown;
+  /** PL/FIL prior-backer flags from Affinity list 166215. */
+  plBacking?: {
+    backedProtocolLabs: boolean;
+    backedFilecoin: boolean;
+    matchKind: string;
+    firmName?: string;
+    affinityOrgId?: number;
+    source?: string;
+  } | null;
   locations?: unknown;
   listMemberships?: MasterProfileListMembership[] | unknown;
   bio?: string | null;

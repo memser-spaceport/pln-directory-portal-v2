@@ -1,6 +1,6 @@
 import { customFetch } from '@/utils/fetch-wrapper';
 import { getHeader } from '@/utils/common.utils';
-import { stripHtml } from '@/utils/forum';
+import { stripHtml, stripHtmlPreservingBreaks } from '@/utils/forum';
 import { buildCommentTree } from '@/utils/comments';
 import { sanitizeCommentHtml } from '@/utils/html';
 import { forumFetch, postForumReply } from '@/services/forum/forum.service';
@@ -110,7 +110,9 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
     tid: topic.tid,
     mainPid: topic.mainPid,
     title: stripHtml(topic.titleRaw || topic.title || ''),
-    body: stripHtml(topic.teaser?.content || ''),
+    // Breaks preserved so the modal's `white-space: pre-line` can render the
+    // post's paragraphs; the card's line-clamp collapses them back to spaces.
+    body: stripHtmlPreservingBreaks(topic.teaser?.content || ''),
     author: {
       memberUid: user?.memberUid ?? '',
       name: user?.displayname || user?.username || 'Unknown',
@@ -382,6 +384,10 @@ async function getForumPostComments(itemUid: ForumPostUid): Promise<IFeedComment
         likeCount: Number(mainPost?.upvotes) || 0,
         viewerHasLiked: Boolean(mainPost?.upvoted),
       },
+      // Raw on purpose, like a comment's `text` — ForumPostModal sanitizes at
+      // render. This is how the modal shows the post's real formatting and
+      // links: the card's `body` teaser is stripped and truncated.
+      bodyHtml: mainPost?.content ?? '',
     },
   };
 }

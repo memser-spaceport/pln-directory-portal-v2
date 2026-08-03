@@ -1,0 +1,121 @@
+@import 'styles/media.scss';
+
+/* One 16:9 media frame shared by the feed card's poster and the detail modal's
+   play-in-place hero, so a thumbnail and the video it opens read as one object. */
+.frame {
+  position: relative;
+  display: block;
+  appearance: none;
+  padding: 0;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* Card: a secondary column beside the headline — narrow enough that the text
+   still leads. Below tablet the text column has no room next to it, so the
+   poster takes the full width above the meta line. */
+.thumb {
+  flex: 0 0 168px;
+  width: 168px;
+
+  @include mobile-only {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* Modal: full-bleed within the body column, a step rounder to match the card.
+   The modal body is a scrolling flex column — without flex-shrink: 0 the frame
+   gets compressed out of its 16:9 by the body's fixed height. */
+.hero {
+  width: 100%;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* hqdefault is 4:3 with black bars — cropping to the frame drops them. */
+  object-fit: cover;
+}
+
+/* No poster for this id: a quiet brand-tinted surface, never a broken image. */
+.fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--transparent-brand-12, #1b4dff1f), var(--transparent-brand-4, #1b4dff0a));
+}
+
+.iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Centered play badge (inset + auto margins center it at a fixed size). */
+.play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--transparent-dark-72, rgba(14, 15, 17, 0.72));
+  color: #ffffff;
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px; /* optical centering of the triangle in the circle */
+  }
+}
+
+.playLarge {
+  width: 56px;
+  height: 56px;
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+.frame:hover .play {
+  background: var(--foreground-brand-primary, #1b4dff);
+  transform: scale(1.06);
+}
+
+/* Runtime chip, bottom-right of the poster. */
+.duration {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--transparent-dark-80, rgba(14, 15, 17, 0.8));
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+}

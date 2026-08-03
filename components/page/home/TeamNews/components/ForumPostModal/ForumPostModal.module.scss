@@ -36,3 +36,57 @@
   text-transform: uppercase;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+/* The post's full body, on the forum page's rendering pipeline. Layered over
+   the news modal's .content (paragraph/list margins, link color, wrapping);
+   these are the elements a real post has that AI news summaries never do —
+   mirroring /forum's .postContent, scaled to the modal's type. The <img>
+   rules replace the inline style the sanitizer strips off
+   processPostContent's markdown images. */
+.postBody {
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 16px 0 8px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--foreground-neutral-primary, #0a0c11);
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  blockquote {
+    margin: 0 0 12px;
+    padding-left: 12px;
+    border-left: 3px solid #e2e8f0;
+  }
+
+  pre {
+    margin: 0 0 12px;
+    padding: 12px;
+    overflow-x: auto;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+}

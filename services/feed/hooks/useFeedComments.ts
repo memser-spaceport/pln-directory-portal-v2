@@ -42,3 +42,17 @@ export function useFeedForumTopicLike(itemUid: string | null): IFeedForumPostLik
   });
   return data;
 }
+
+// The opening post's full content HTML, off the same cache entry the modal's
+// own FeedCommentsThread fetches (skipToken = observe only, never a second
+// request). Undefined until that fetch lands — the modal shows the card's
+// plain teaser meanwhile. RAW NodeBB HTML: the consumer sanitizes at render.
+export function useFeedForumTopicBodyHtml(itemUid: string | null): string | undefined {
+  const { data } = useQuery<IFeedCommentsResponse, Error, string | undefined>({
+    queryKey: feedQueryKeys.comments(itemUid ?? ''),
+    queryFn: skipToken,
+    select: (response) => response.forumTopic?.bodyHtml,
+    enabled: Boolean(itemUid),
+  });
+  return data;
+}

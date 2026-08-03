@@ -39,6 +39,9 @@ export async function listWarmIntrosV2Paths(params: WarmIntrosV2ListParams = {})
     rank: params.rank ?? 1,
     limit: params.limit ?? 50,
     offset: params.offset ?? 0,
+    relationKind: params.relationKind,
+    directOnly: params.directOnly ? 'true' : undefined,
+    plBacker: params.plBacker ? 'true' : undefined,
   });
   const res = await customFetch(`${BASE}/paths${qs}`, { method: 'GET' }, true);
   if (!res || !res.ok) return { paths: [], total: 0 };

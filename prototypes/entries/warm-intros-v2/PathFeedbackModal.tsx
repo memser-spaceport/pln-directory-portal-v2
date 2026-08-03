@@ -120,7 +120,7 @@ function FeedbackForm({ onClose, onSubmit, context, initial }: Omit<Props, 'open
           <h2 id="wi2-path-feedback-title" className={m.title}>
             Give feedback
           </h2>
-          <p className={m.subtitle}>Tell us what&rsquo;s wrong with this path so we can correct the graph.</p>
+          <p className={m.subtitle}>Tell us how this could be better so we can improve the graph.</p>
         </div>
         <button type="button" className={m.closeButton} onClick={onClose} aria-label="Close">
           <CloseIcon width={20} height={20} color="#0a0c11" />

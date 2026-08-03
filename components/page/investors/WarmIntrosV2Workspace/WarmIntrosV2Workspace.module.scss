@@ -77,6 +77,43 @@
   gap: 8px;
 }
 
+.quickFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.quickChip {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #455468;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #c7d2fe;
+    color: #1b4dff;
+  }
+}
+
+.quickChipActive {
+  background: #eef2ff;
+  border-color: #1b4dff;
+  color: #1b4dff;
+  font-weight: 600;
+}
+
+.quickChipToggle {
+  border-style: dashed;
+}
+
 .filterBarSearch {
   flex: 1 1 220px;
   min-width: 200px;

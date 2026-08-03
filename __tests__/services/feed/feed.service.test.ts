@@ -563,6 +563,26 @@ describe('feed.service', () => {
       expect(forumTopic?.totalReplyCount).toBe(50);
     });
 
+    it('carries the opening post’s full raw HTML for the modal body', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          mainPid: 263,
+          cid: 5,
+          postcount: 2,
+          posts: [
+            { pid: 263, content: '<p>First para.</p><p>See <a href="https://x.test">this</a></p>' },
+            { pid: 264, content: 'hi', timestamp: 1, user: {} },
+          ],
+        }),
+      });
+
+      const { forumTopic } = await getFeedComments('fp_96');
+
+      // Raw on purpose — the modal sanitizes at render, same as comment text.
+      expect(forumTopic?.bodyHtml).toBe('<p>First para.</p><p>See <a href="https://x.test">this</a></p>');
+    });
+
     it('treats a missing vote state as not-liked rather than undefined', async () => {
       customFetchMock.mockResolvedValue({
         ok: true,

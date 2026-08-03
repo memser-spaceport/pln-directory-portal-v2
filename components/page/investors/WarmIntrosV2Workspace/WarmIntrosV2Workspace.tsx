@@ -77,11 +77,22 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
       search: debouncedSearch.trim() || undefined,
       connectorProfileUid: filters.wi2_connector || undefined,
       sector: filters.wi2_sector || undefined,
+      relationKind: filters.wi2_relation_kind || undefined,
+      directOnly: filters.wi2_direct_only === true || undefined,
+      plBacker: filters.wi2_pl_backer === true || undefined,
       minScore: WARM_INTROS_V2_MIN_SCORE,
       rank: 1,
       limit: PAGE_LIMIT,
     }),
-    [apiTargetSet, debouncedSearch, filters.wi2_connector, filters.wi2_sector],
+    [
+      apiTargetSet,
+      debouncedSearch,
+      filters.wi2_connector,
+      filters.wi2_sector,
+      filters.wi2_relation_kind,
+      filters.wi2_direct_only,
+      filters.wi2_pl_backer,
+    ],
   );
 
   const { data, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
@@ -167,6 +178,37 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     },
     [setFilters],
   );
+
+  const relationKind = filters.wi2_relation_kind;
+  const directOnly = filters.wi2_direct_only === true;
+  const plBacker = filters.wi2_pl_backer === true;
+
+  const setPathKindFilter = useCallback(
+    (kind: 'founder_bridge' | 'coinvestor_bridge' | null) => {
+      void setFilters({
+        wi2_relation_kind: kind,
+        wi2_direct_only: null,
+        ...(kind ? { wi2_pl_backer: null } : {}),
+      });
+    },
+    [setFilters],
+  );
+
+  const toggleDirectOnly = useCallback(() => {
+    void setFilters({
+      wi2_direct_only: directOnly ? null : true,
+      wi2_relation_kind: null,
+      wi2_pl_backer: null,
+    });
+  }, [directOnly, setFilters]);
+
+  const togglePlBacker = useCallback(() => {
+    void setFilters({
+      wi2_pl_backer: plBacker ? null : true,
+      wi2_relation_kind: null,
+      wi2_direct_only: null,
+    });
+  }, [plBacker, setFilters]);
 
   const onExportCsv = useCallback(async () => {
     setExporting(true);
@@ -329,6 +371,41 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               aria-label="Industry / Sector"
               onChange={(opt) => void setFilters({ wi2_sector: opt?.value || null })}
             />
+          </div>
+
+          <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Path quick filters">
+            <button
+              type="button"
+              className={clsx(s.quickChip, relationKind === 'founder_bridge' && s.quickChipActive)}
+              aria-pressed={relationKind === 'founder_bridge'}
+              onClick={() => setPathKindFilter(relationKind === 'founder_bridge' ? null : 'founder_bridge')}
+            >
+              Founder bridge
+            </button>
+            <button
+              type="button"
+              className={clsx(s.quickChip, relationKind === 'coinvestor_bridge' && s.quickChipActive)}
+              aria-pressed={relationKind === 'coinvestor_bridge'}
+              onClick={() => setPathKindFilter(relationKind === 'coinvestor_bridge' ? null : 'coinvestor_bridge')}
+            >
+              Co-investor bridge
+            </button>
+            <button
+              type="button"
+              className={clsx(s.quickChip, plBacker && s.quickChipActive)}
+              aria-pressed={plBacker}
+              onClick={togglePlBacker}
+            >
+              PL/FIL investors
+            </button>
+            <button
+              type="button"
+              className={clsx(s.quickChip, s.quickChipToggle, directOnly && s.quickChipActive)}
+              aria-pressed={directOnly}
+              onClick={toggleDirectOnly}
+            >
+              Direct only
+            </button>
           </div>
 
           <div className={clsx(s.filterBarItem, s.filterBarActions)}>

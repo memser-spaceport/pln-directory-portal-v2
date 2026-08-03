@@ -61,7 +61,8 @@ export interface IFeedForumPost {
   mainPid: number;
   /** PLAIN TEXT (NodeBB HTML stripped + entities decoded by the service).
    *  Never raw or rendered HTML — rich content would be a new field with its
-   *  own sanitization contract. Same rule for `body`. */
+   *  own sanitization contract. Same rule for `body`, which additionally keeps
+   *  paragraph/line breaks as newlines (render with `white-space: pre-line`). */
   title: string;
   body: string;
   author: IFeedAuthor;
@@ -130,6 +131,10 @@ export interface IFeedForumTopicMeta {
   /** The topic's own vote state, which the /api/recent listing doesn't carry —
    *  the only way a forum card can learn whether the viewer already liked it. */
   like: IFeedForumPostLikeStatus;
+  /** The opening post's FULL content — what /forum itself renders — where the
+   *  card's `body` is a stripped, truncated teaser. RAW NodeBB HTML, same
+   *  contract as IFeedComment.text: sanitize at render, never trust it. */
+  bodyHtml: string;
 }
 
 /** Top-level comments, oldest first, each with its own `replies`. No `total`

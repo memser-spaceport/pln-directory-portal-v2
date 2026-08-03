@@ -392,7 +392,7 @@ export function FeedCommentsThread({
               value={draft}
               onChange={handleDraftChange}
               onSubmit={() => submit(draft)}
-              placeholder="Write your comment here…"
+              placeholder="Write your comment here, use @ to mention someone"
               submitLabel="Comment"
               disabled={addComment.isPending}
               onMentionSelected={reportMentionSelected}

@@ -236,6 +236,30 @@
   }
 }
 
+/* The saved filter's standing home, beside Sort. Same chip as the (parked)
+   saved-view row; the extra padding-left makes room for the bookmark mark, and
+   the gap keeps it off the Sort control. */
+.savedFilterChip {
+  gap: 6px;
+  padding-left: 8px;
+  margin-right: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  @include mobile-only {
+    max-width: 170px; /* the row also carries the Sort pill on one line */
+  }
+}
+
+.savedFilterChipIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.savedViewActive .savedFilterChipIcon {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
 /* ---------- Header search: expand-on-click icon ---------- */
 
 /* Sits inline right after the title: N-new badge · search. Grows to fill the

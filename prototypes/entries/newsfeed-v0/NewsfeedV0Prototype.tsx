@@ -64,6 +64,7 @@ import {
 import { FeedDetailModal, type FeedDetail } from './FeedDetailModal';
 import { ForumPostModal } from './ForumPostModal';
 import { SavedFilterBanner } from './SavedFilterBanner';
+import { SavedFilterChip } from './SavedFilterChip';
 import {
   DEFAULT_VIEW,
   loadStored,
@@ -624,6 +625,19 @@ export default function NewsfeedV0Prototype() {
                   "Sort by: …" dropdown. Mobile: the compact "Sort ▾" pill from
                   the Teams/Members mobile filter pattern. */}
                 <div className={local.filterActions}>
+                  {/* Standing entry point back to the saved filter — the banner
+                      is a one-time offer, this is where the filter lives after. */}
+                  {personalization === 'filter' && savedFilter && (
+                    <SavedFilterChip
+                      savedFilter={savedFilter}
+                      view={view}
+                      onApply={() => {
+                        setView(savedFilter);
+                        setExpanded(false);
+                      }}
+                      onClear={clearSavedFilter}
+                    />
+                  )}
                   <span className={local.sortDesktop}>
                     <SortDropdown
                       sortByLabel="Sort by:"
@@ -654,7 +668,6 @@ export default function NewsfeedV0Prototype() {
                           view={view}
                           savedFilter={savedFilter}
                           onSave={saveCurrentFilter}
-                          onClear={clearSavedFilter}
                           onDismiss={() => setBannerDismissed(true)}
                         />
                       )}

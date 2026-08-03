@@ -1,17 +1,16 @@
 'use client';
 
 import { Button } from '@/components/common/Button';
-import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 // The production job-alert banner, reused: the shell is a pure wrapper (info
-// glyph + space-between row + floating dismiss) and its two SCSS modules carry
-// the tinted slab and the type. Only the presentational innards are written
-// here — `JobAlertBanner` itself pulls React Query mutations, PostHog, the auth
-// store, the router and the toast container, none of which a prototype hosts.
+// glyph + space-between row) and its two SCSS modules carry the tinted slab and
+// the type. Only the presentational innards are written here — `JobAlertBanner`
+// itself pulls React Query mutations, PostHog, the auth store, the router and
+// the toast container, none of which a prototype hosts.
 import { JobAlertShell } from '@/components/page/jobs/JobAlertShell/JobAlertShell';
 import banner from '@/components/page/jobs/JobAlertBanner/JobAlertBanner.module.scss';
 import indicator from '@/components/page/jobs/JobAlertIndicator/JobAlertIndicator.module.scss';
 
-import { isNarrowed, summarizeView, viewHashKey, type FeedView } from './feedView';
+import { isNarrowed, summarizeView, type FeedView } from './feedView';
 import local from './NewsfeedV0.module.scss';
 
 interface Props {
@@ -20,93 +19,52 @@ interface Props {
   /** The one saved filter, or null when nothing is saved. */
   savedFilter: FeedView | null;
   onSave: () => void;
-  onClear: () => void;
   /** Session dismiss — a feed people read daily can't carry a permanent slab. */
   onDismiss: () => void;
 }
 
 /**
- * In-stream "save this filter" banner: the job board's affordance, with the
- * email swapped for a saved filter.
+ * In-stream "save this filter" offer: the job board's affordance, with the email
+ * swapped for a saved filter.
  *
  * It sits above the results the filters just produced rather than in the rail —
  * that placement is why the job-alert version converts, and a rail module is
- * ambient furniture people skip. Same three states, and the same demotion once
- * saved: the offer becomes a single quiet line.
+ * ambient furniture people skip.
  *
- * Saving is a singleton, not a collection: one filter, no naming step, labelled
- * from its own criteria (production's `summarizeFilterState` convention). The
- * payoff is that the feed opens on it next visit.
+ * It is strictly a *first-time* offer. It shows only while there is nothing
+ * saved; once you have a filter, the chip beside Sort is its permanent home and
+ * this never comes back. That means there is no in-banner "update" path — to
+ * change what's saved, clear it from the chip and save the new combination.
  *
- * Renders nothing on an unfiltered feed — production's `if (!hasActiveFilters)
- * return null`. On a daily surface that guard is the whole defence against this
- * becoming wallpaper.
+ * It also renders nothing on an unfiltered feed — production's
+ * `if (!hasActiveFilters) return null`. On a daily surface those two guards are
+ * the whole defence against this becoming wallpaper.
  */
-export function SavedFilterBanner({ view, savedFilter, onSave, onClear, onDismiss }: Props) {
-  if (!isNarrowed(view)) return null;
-
-  const summary = summarizeView(view);
-  const matches = savedFilter !== null && viewHashKey(savedFilter) === viewHashKey(view);
-
-  // Reading exactly what's saved: nothing to offer, so the slab drops to one
-  // line that says where you are and how to get out.
-  if (savedFilter && matches) {
-    return (
-      <div className={local.streamBanner}>
-        <JobAlertShell>
-          <p className={indicator.label}>Showing your saved filter: {summary}</p>
-          <div className={indicator.actions}>
-            <Button style="link" size="xl" underline type="button" onClick={onClear}>
-              Clear
-            </Button>
-            <button type="button" className={indicator.dismissBtn} onClick={onDismiss} aria-label="Dismiss">
-              <CloseIcon />
-            </button>
-          </div>
-        </JobAlertShell>
-      </div>
-    );
-  }
-
-  const updating = Boolean(savedFilter);
+export function SavedFilterBanner({ view, savedFilter, onSave, onDismiss }: Props) {
+  if (savedFilter || !isNarrowed(view)) return null;
 
   return (
     <div className={local.streamBanner}>
-      <JobAlertShell onDismiss={onDismiss}>
+      {/* The shell's own dismiss floats at top-right and would sit on top of the
+          action button — which is why production's banner never passes one. The
+          dismiss goes inline in the actions row instead, exactly as
+          `JobAlertIndicator` does it. */}
+      <JobAlertShell>
         <div className={banner.body}>
           <div className={banner.copy}>
-            <p className={banner.title}>
-              {updating ? 'These filters differ from your saved filter.' : 'Save these filters.'}
-            </p>
+            <p className={banner.title}>Save these filters.</p>
             <p className={banner.subtitle}>
-              {updating ? (
-                'Update it and your feed will open here instead.'
-              ) : (
-                <>
-                  Your feed will open on <strong>{summary}</strong> next time.
-                </>
-              )}
+              Your feed will open on <strong>{summarizeView(view)}</strong> next time.
             </p>
           </div>
         </div>
         <div className={banner.actions}>
-          <Button
-            size="m"
-            type="button"
-            style={updating ? 'border' : 'fill'}
-            variant="primary"
-            className={local.savedFilterBtn}
-            onClick={onSave}
-          >
-            {updating ? (
-              <>
-                <span>Update saved filter</span>
-                <ArrowUpRightIcon />
-              </>
-            ) : (
-              'Save filter'
-            )}
+          <Button size="m" type="button" style="fill" variant="primary" onClick={onSave}>
+            Save filter
           </Button>
+          <button type="button" className={indicator.dismissBtn} onClick={onDismiss} aria-label="Dismiss">
+            <CloseIcon />
+          </button>
         </div>
       </JobAlertShell>
     </div>

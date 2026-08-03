@@ -37,8 +37,10 @@ describe('RequestGuide', () => {
     const topicInput = screen.getByLabelText('Topic');
     const descriptionInput = screen.getByLabelText('What would you like this guide to help with?');
 
-    await user.type(topicInput, 'a'.repeat(120));
-    await user.type(descriptionInput, 'b'.repeat(650));
+    await user.click(topicInput);
+    await user.paste('a'.repeat(120));
+    await user.click(descriptionInput);
+    await user.paste('b'.repeat(650));
 
     expect(topicInput).toHaveValue('a'.repeat(100));
     expect(descriptionInput).toHaveValue('b'.repeat(600));

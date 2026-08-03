@@ -210,7 +210,7 @@ describe('FeedCommentsThread — list', () => {
     mockThread([]);
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
-    expect(screen.getByPlaceholderText('Write your comment here…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Write your comment here, use @ to mention someone')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /View all/ })).not.toBeInTheDocument();
   });
 
@@ -319,7 +319,7 @@ describe('FeedCommentsThread — replies', () => {
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
-    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), { target: { value: 'Top-level text' } });
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), { target: { value: 'Top-level text' } });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
     // No parentUid — typing in the main composer must never become a reply.
@@ -426,12 +426,12 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
 
     // `<p><br></p>` is truthy, so the old `!value.trim()` guard would have
     // enabled Comment and posted an empty comment.
-    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), {
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), {
       target: { value: '<p><br></p>' },
     });
 
     expect(screen.getByRole('button', { name: 'Comment' })).toBeDisabled();
-    fireEvent.submit(screen.getByPlaceholderText('Write your comment here…').closest('form')!);
+    fireEvent.submit(screen.getByPlaceholderText('Write your comment here, use @ to mention someone').closest('form')!);
     expect(mutation.mutate).not.toHaveBeenCalled();
   });
 
@@ -440,7 +440,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const field = screen.getByPlaceholderText('Write your comment here…');
+    const field = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     fireEvent.change(field, { target: { value: '<p>ship it</p>' } });
     fireEvent.keyDown(field, { key: 'Enter' });
 
@@ -452,7 +452,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const field = screen.getByPlaceholderText('Write your comment here…');
+    const field = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     fireEvent.change(field, { target: { value: '<p>line one</p>' } });
     fireEvent.keyDown(field, { key: 'Enter', shiftKey: true });
 
@@ -489,7 +489,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const field = screen.getByPlaceholderText('Write your comment here…');
+    const field = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     // Short to read, far too long on the wire — which is what a pile of
     // mention anchors does. The editor caps VISIBLE length, so only this
     // guard stands between the member and a bare 400.
@@ -509,7 +509,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     fireEvent.change(input, { target: { value: '  Hello there  ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
@@ -527,7 +527,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
     const mutation = mockMutation(useAddFeedCommentMock, { isPending: true, variables: { text: 'In flight' } });
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     fireEvent.change(input, { target: { value: 'Another one' } });
     fireEvent.submit(input.closest('form') as HTMLFormElement);
     expect(mutation.mutate).not.toHaveBeenCalled();
@@ -548,7 +548,7 @@ describe('FeedCommentsThread — composer (HTML content)', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Couldn’t post your comment — try again.');
 
-    const input = screen.getByPlaceholderText('Write your comment here…');
+    const input = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     fireEvent.change(input, { target: { value: 'retry text' } });
     expect(mutation.reset).toHaveBeenCalled();
   });
@@ -617,7 +617,7 @@ describe('FeedCommentsThread — forum posts', () => {
     const mutation = mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Write your comment here…'), { target: { value: 'Nice work' } });
+    fireEvent.change(screen.getByPlaceholderText('Write your comment here, use @ to mention someone'), { target: { value: 'Nice work' } });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
     expect(mutation.mutate).toHaveBeenCalledWith({ text: 'Nice work' }, expect.any(Object));
@@ -630,7 +630,7 @@ describe('FeedCommentsThread — forum posts', () => {
     render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="news-modal" forumMainPid={263} />);
 
     expect(screen.getByText('A real forum reply')).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument();
   });
 
@@ -640,7 +640,7 @@ describe('FeedCommentsThread — forum posts', () => {
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
 
-    expect(screen.getByPlaceholderText('Write your comment here…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Write your comment here, use @ to mention someone')).toBeInTheDocument();
   });
 
   it('links to the forum for the replies NodeBB’s single page left out', () => {
@@ -732,7 +732,7 @@ describe('FeedCommentsThread — signed-out gate', () => {
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
     expect(screen.getByText('Readable while signed out')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'sign in to comment' }));
@@ -759,7 +759,7 @@ describe('FeedCommentsThread — signed-out gate', () => {
 
     // Otherwise a fast guest types a comment and gets "couldn't post" instead
     // of a login prompt.
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'sign in to comment' })).not.toBeInTheDocument();
     expect(screen.getByText('Readable')).toBeInTheDocument();
   });
@@ -782,7 +782,7 @@ describe('FeedCommentsThread — drop-off analytics', () => {
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="n-1" kind="news" source="home" />);
 
-    const field = screen.getByPlaceholderText('Write your comment here…');
+    const field = screen.getByPlaceholderText('Write your comment here, use @ to mention someone');
     const oversize = `<p>${'a'.repeat(2100)}<a class="ql-mention" data-uid="m_1">@A</a></p>`;
     fireEvent.change(field, { target: { value: oversize } });
 
@@ -939,7 +939,7 @@ describe('FeedCommentsThread — read-path states', () => {
     mockMutation(useAddFeedCommentMock);
     render(<FeedCommentsThread itemUid="fp_96" kind="forum" source="home" onViewAll={jest.fn()} />);
 
-    expect(screen.queryByPlaceholderText('Write your comment here…')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Write your comment here, use @ to mention someone')).not.toBeInTheDocument();
     expect(screen.getByText('No comments yet.')).toBeInTheDocument();
   });
 });

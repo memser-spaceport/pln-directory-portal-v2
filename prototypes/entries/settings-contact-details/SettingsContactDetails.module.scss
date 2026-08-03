@@ -1,0 +1,220 @@
+@use 'styles/media';
+
+/**
+ * Prototype-local layer only. Everything that exists in production is imported:
+ * the settings shell (app/settings/email/page.module.css), the settings form
+ * frame (EmailPreferencesForm.module.scss), the contact rows + separator +
+ * switch labels (EditContactForm.module.scss), and the field chrome
+ * (FormField.module.scss). What is below is either a container adjustment for
+ * the settings context or genuinely new UI (the email change panel).
+ */
+
+/**
+ * EditContactForm's `.body` is a full-page container: it scrolls inside a fixed
+ * viewport (`max-height: calc(100dvh - 56px)`), reserves 92px at the bottom for
+ * the mobile save controls, and pads to 32px at desktop. Inside a settings
+ * section card it only needs the card's own padding — but it is still worth
+ * reusing, because it carries the grid behaviour and the rule that hides
+ * provider icons below tablet-landscape.
+ */
+.cardBody {
+  max-height: unset;
+  overflow: unset;
+  padding: 16px;
+  border-radius: 0;
+
+  @include media.tablet-landscape {
+    padding: 16px;
+    grid-gap: 16px;
+  }
+}
+
+/**
+ * Sign-in method rows. Production renders these as white rows on a grey `lc`
+ * panel; on a settings card that would nest a card inside a card, so the rows
+ * carry a border instead. Padding, gap and colors are production's.
+ */
+.methodRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.methodTitle {
+  margin: 0 8px;
+  flex: 1;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.methodBtn {
+  color: #156ff7;
+  font-size: 14px;
+  font-weight: 500;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.methodLinked {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #30c593;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/**
+ * `EditContactForm .row` bottom-aligns its provider icon (`align-items: flex-end`
+ * + `img { margin-bottom: 14px }`), which works when every row is one label over
+ * one 50px input. The email row is taller — helper text, and an expanding change
+ * panel — so bottom alignment drags the icon far below its field. Align to the
+ * input box instead: half of the 50px box, less half the 24px icon. (No label
+ * offset to add: the section card's header is this row's label.)
+ */
+.emailRow {
+  align-items: flex-start;
+
+  img {
+    margin-top: 13px;
+    margin-bottom: 0;
+  }
+}
+
+/* Read-only, not disabled: same box as an editable field, no caret, action inside. */
+.readonlyInput {
+  padding-left: 16px;
+  cursor: default;
+}
+
+.readonlyValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* The change-email flow. New UI — nothing in production covers it. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.panelDone {
+  border-color: var(--foreground-success-primary, #0a9952);
+  background: rgba(10, 153, 82, 0.06);
+}
+
+.panelTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.panelText {
+  margin-top: 4px;
+  max-width: 62ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.panelLabel {
+  margin-top: 16px;
+  margin-bottom: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.panelInput {
+  width: 100%;
+  padding-left: 16px;
+}
+
+.codeInput {
+  max-width: 160px;
+
+  input {
+    font-feature-settings: 'tnum' on;
+    letter-spacing: 4px;
+  }
+}
+
+.errorText {
+  margin-top: 8px;
+  max-width: 62ch;
+  /* Not FormField's own `.errorMsg` — that one writes a bare
+     `var(--action-border-error-focus)` with no fallback, which resolves to
+     nothing in portal-v2. This is the pair production uses everywhere else. */
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Save confirmation sits opposite the buttons in the save bar. */
+.savedNote {
+  margin-right: auto;
+}
+
+.hint {
+  margin-top: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+/**
+ * Settings pages save explicitly; the profile-page editor's own control bars
+ * belong to the inline editor and aren't reused here.
+ *
+ * Not sticky: `position: sticky; bottom: 0` on a bar whose natural position sits
+ * below the fold lifts it up over the last row of the form — it swallowed the
+ * visibility switch. The form is short enough that a bar at the end of it is
+ * always reachable.
+ */
+.saveBar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #fff;
+
+  @include media.tablet-landscape {
+    padding: 16px 0 0;
+  }
+}

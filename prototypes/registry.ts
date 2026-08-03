@@ -175,6 +175,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
   {
+    key: 'newsfeed-curated',
+    title: 'Newsfeed — curated feed + weekly email',
+    description:
+      'Quality for an investor audience, in two surfaces. A single network-wide Top Story leads the week, states why it won, and discloses whether a human or a model picked it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, follow suggestions carry the relational `reason` production already returns, and a Coverage module states the gap out loud. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card.',
+    category: 'Newsfeed',
+    load: () => import('./entries/newsfeed-curated/NewsfeedCuratedPrototype'),
+  },
+  {
     key: 'notifications-hub',
     title: 'Notifications — bell panel',
     description:
@@ -197,6 +205,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Recreation of the Settings › Email Preferences tab (settings menu + all sections) from the real components. The one change: the old "Forum Digest" is renamed "Digest" (it actually carries forum activity + network news) and gains per-content toggles, so a member can keep the digest but switch Network news off independently.',
     category: 'Newsfeed',
     load: () => import('./entries/email-preferences/EmailPreferencesPrototype'),
+  },
+  {
+    key: 'settings-contact-details',
+    title: 'Settings — Email & accounts',
+    description:
+      'The member settings surface, fully walkable, with one findable home for the email address. Today the only self-serve control is an unlabeled grey pencil inside a disabled field on the member\'s own profile page, so people write to support instead — while "Account settings" redirects to Connected Accounts (which omits email entirely) and "Email preferences" holds digest toggles. Two rail changes: "Email preferences" becomes "Notification preferences" under a bell, which frees the word "email"; and "Connected accounts" becomes "Email & accounts" under the envelope, absorbing the contact fields so there is exactly one plausible door rather than two adjacent ones. That tab holds three sections — the email address, the sign-in methods (Google / GitHub / Wallet), and the contact handles with their visibility switch. The email row is read-only with a labeled Change button rather than disabled with a hidden pencil, states that the address is also the login before any code is sent, names the cause and the way out when the address is refused, and says that the change signs you out. Notification preferences and Job Alert are reproduced as they ship, as is the shell: the mobile /settings menu page, the sticky back bar, and the 1024px rail breakpoint.',
+    category: 'Cross-product',
+    load: () => import('./entries/settings-contact-details/SettingsContactDetailsPrototype'),
   },
   {
     key: 'demoday-past-teams',

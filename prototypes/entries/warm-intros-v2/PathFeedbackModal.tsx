@@ -120,7 +120,7 @@ function FeedbackForm({ onClose, onSubmit, context, initial }: Omit<Props, 'open
           <h2 id="wi2-path-feedback-title" className={m.title}>
             Give feedback
           </h2>
-          <p className={m.subtitle}>Tell us what&rsquo;s wrong with this path so we can correct the graph.</p>
+          <p className={m.subtitle}>Tell us how this could be better so we can improve the graph.</p>
         </div>
         <button type="button" className={m.closeButton} onClick={onClose} aria-label="Close">
           <CloseIcon width={20} height={20} color="#0a0c11" />
@@ -166,7 +166,7 @@ function FeedbackForm({ onClose, onSubmit, context, initial }: Omit<Props, 'open
           <div className={m.fieldGroup}>
             <div className={t.labelWrapper}>
               <label className={t.label} htmlFor="wi2-path-feedback-note">
-                What&rsquo;s wrong with this path?
+                How can we improve this path?
               </label>
             </div>
             <div className={t.input}>
@@ -179,12 +179,12 @@ function FeedbackForm({ onClose, onSubmit, context, initial }: Omit<Props, 'open
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   autoFocus
-                  placeholder="Wrong connector, caliber too high or low, not a real path, investor details out of date — whatever it is, in your own words."
+                  placeholder="A better connector, a caliber that's off, details that need updating, a path that isn't real — whatever would make this more useful, in your own words."
                 />
               </div>
             </div>
             <div className={t.descriptionRow}>
-              <span className={m.helperText}>The more specific, the more we can fix.</span>
+              <span className={m.helperText}>The more specific, the more we can act on.</span>
               <span className={t.counter}>
                 {note.length} / {NOTE_MAX}
               </span>

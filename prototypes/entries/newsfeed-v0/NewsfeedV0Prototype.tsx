@@ -51,15 +51,30 @@ import {
   MOCK_GROUPS,
   FORUM_POSTS,
   BASE_LIKES,
+  viewsFor,
   COMMENTS_BY_UID,
   SOURCES_BY_UID,
   MODAL_EXTRA_BY_UID,
   MODAL_CITED_BODY_BY_UID,
+  VIDEO_BY_UID,
+  PL_TEAM_UID,
   type ForumPost,
   type FeedComment,
 } from './mocks';
 import { FeedDetailModal, type FeedDetail } from './FeedDetailModal';
 import { ForumPostModal } from './ForumPostModal';
+import { SavedFilterBanner } from './SavedFilterBanner';
+import {
+  DEFAULT_VIEW,
+  loadStored,
+  readViewParams,
+  SAVED_FILTER_STORAGE_KEY,
+  saveStored,
+  VIEW_STORAGE_KEY,
+  writeViewParams,
+  type FeedSort,
+  type FeedView,
+} from './feedView';
 import local from './NewsfeedV0.module.scss';
 
 const groups = MOCK_GROUPS;
@@ -69,8 +84,6 @@ const PAGE_SIZE = 6;
 // hard filter — "Following" floats followed teams to the top without
 // hiding the rest, so the network-wide feed stays intact. It's the default, so
 // it leads the list (like Reddit's "Best").
-type Sort = 'latest' | 'popular' | 'following';
-
 const SORT_OPTIONS = [
   { value: 'following', label: 'Following' },
   { value: 'latest', label: 'Latest' },
@@ -89,6 +102,24 @@ const MODE_OPTIONS: Array<{ value: CommentsMode; label: string }> = [
 const MODE_NOTE: Record<CommentsMode, string> = {
   with: 'News and posts open an inline comment thread (Like · Share · Comments).',
   without: 'News and posts show Like and Share only — no comment thread.',
+};
+
+// Two versions of "make a narrowed feed stick", on the same foundation: the view
+// (tab · category · sort · search) is one addressable object either way, carried
+// in the URL so a filtered feed is shareable.
+//
+// The saved-*collection* option (named views + chips) is parked in
+// `SavedViewsBar.tsx` — a feed with four tabs doesn't earn a collection.
+type Personalization = 'off' | 'filter';
+
+const PERSONALIZATION_OPTIONS: Array<{ value: Personalization; label: string }> = [
+  { value: 'off', label: 'Off' },
+  { value: 'filter', label: 'Saved filter' },
+];
+
+const PERSONALIZATION_NOTE: Record<Personalization, string> = {
+  off: 'The feed quietly reopens on your last view. Nothing is saved explicitly.',
+  filter: 'A banner offers to save the filters you’re using; the feed opens on them next time.',
 };
 
 // Event kicker colours for the modal, matching the meta-line event palette
@@ -183,11 +214,17 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
 export default function NewsfeedV0Prototype() {
   // Tabs are base-ui / client-only — gate render so SSR === first client render.
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
-  const [sort, setSort] = useState<Sort>('following');
+  // The four filter/rank axes as one value: what gets restored, shared, saved,
+  // and subscribed to. Starts at the default so SSR === first client render;
+  // the stored/URL view lands in the mount effect below.
+  const [view, setView] = useState<FeedView>(DEFAULT_VIEW);
+  const { tab: activeTab, category: activeCategory, sort, query } = view;
   const [commentsMode, setCommentsMode] = useState<CommentsMode>('without');
-  const [query, setQuery] = useState('');
+  const [personalization, setPersonalization] = useState<Personalization>('filter');
+  /** The one saved filter (mocked; null = nothing saved). */
+  const [savedFilter, setSavedFilter] = useState<FeedView | null>(null);
+  /** Banner dismissed for this session — it must not nag on a daily surface. */
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -208,7 +245,30 @@ export default function NewsfeedV0Prototype() {
   // The forum post whose simple-forum-post modal is open (null = closed).
   const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
 
-  useEffect(() => setMounted(true), []);
+  // Restore the view once, after mount, so the server render and the first
+  // client render still match. Priority: a shared link → your saved filter →
+  // the view you last left. The saved filter outranks the implicit last-view
+  // restore deliberately: two invisible mechanisms competing over what you see
+  // is worse than one explicit one, and "the feed opens where I saved it" is
+  // the whole payoff of saving.
+  useEffect(() => {
+    const saved = loadStored<FeedView | null>(SAVED_FILTER_STORAGE_KEY, null);
+    const fromUrl = readViewParams(new URLSearchParams(window.location.search));
+    const restored = fromUrl ?? saved ?? loadStored<FeedView | null>(VIEW_STORAGE_KEY, null);
+    if (saved) setSavedFilter({ ...DEFAULT_VIEW, ...saved });
+    if (restored) setView({ ...DEFAULT_VIEW, ...restored });
+    setMounted(true);
+  }, []);
+
+  // Mirror the view into the URL + storage. replaceState (not router.replace)
+  // for the same reason `useNewsDeepLink` uses it: filtering must not refetch
+  // the page, and it composes with the `?news=` param already living there.
+  useEffect(() => {
+    if (!mounted) return;
+    saveStored(VIEW_STORAGE_KEY, view);
+    const qs = writeViewParams(new URLSearchParams(window.location.search), view).toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, [view, mounted]);
 
   // Auto-dismiss the follow confirmation.
   useEffect(() => {
@@ -260,7 +320,8 @@ export default function NewsfeedV0Prototype() {
       return { ...prev, [uid]: [...existing, comment] };
     });
 
-  const openStoryDetail = (story: ITeamNewsItem) =>
+  /** `playVideo` = the card's poster was clicked, so the modal opens playing. */
+  const openStoryDetail = (story: ITeamNewsItem, playVideo = false) =>
     setDetail({
       id: story.uid,
       kind: 'news',
@@ -274,8 +335,12 @@ export default function NewsfeedV0Prototype() {
         ? story.summary + (MODAL_EXTRA_BY_UID[story.uid] ? `\n\n${MODAL_EXTRA_BY_UID[story.uid]}` : '')
         : (MODAL_EXTRA_BY_UID[story.uid] ?? null),
       time: story.eventDate,
+      views: viewsFor(story.uid),
       sources: SOURCES_BY_UID[story.uid],
       citedBody: MODAL_CITED_BODY_BY_UID[story.uid],
+      video: VIDEO_BY_UID[story.uid],
+      autoplayVideo: playVideo,
+      isProtocolLabs: story.teamUid === PL_TEAM_UID,
       // Kept for Share (copies the article link) — the modal no longer renders a
       // "Read full article" link, but a Discuss button instead.
       readUrl: story.sourceUrl ?? undefined,
@@ -400,25 +465,34 @@ export default function NewsfeedV0Prototype() {
   const visibleEntries = expanded ? entries : entries.slice(0, PAGE_SIZE);
   const newCount = allItems.length + FORUM_POSTS.length;
 
-  const handleTab = (id: string) => {
-    setActiveTab(id);
-    setActiveCategory(ALL_CAT);
+  /** Every axis moves through here; it also collapses the page back to the
+   *  first batch. The banner's dismissal is deliberately NOT reset — re-offering
+   *  on every pill click is how a banner becomes wallpaper. */
+  const updateView = (patch: Partial<FeedView>) => {
+    setView((prev) => ({ ...prev, ...patch }));
     setExpanded(false);
   };
 
-  const handleCategory = (id: TeamNewsCategoryId) => {
-    setActiveCategory(id);
-    setExpanded(false);
+  // Switching focus area resets the event-type pill (a category count only makes
+  // sense within its tab).
+  const handleTab = (id: string) => updateView({ tab: id, category: ALL_CAT });
+
+  const handleCategory = (id: TeamNewsCategoryId) => updateView({ category: id });
+
+  const handleSort = (value: string) => updateView({ sort: value as FeedSort });
+
+  const handleSearch = (value: string) => updateView({ query: value });
+
+  // One saved filter, no naming step: saving overwrites, clearing removes. The
+  // singleton is the point — it's what makes "your feed opens here" unambiguous.
+  const saveCurrentFilter = () => {
+    setSavedFilter(view);
+    saveStored(SAVED_FILTER_STORAGE_KEY, view);
   };
 
-  const handleSort = (value: string) => {
-    setSort(value as Sort);
-    setExpanded(false);
-  };
-
-  const handleSearch = (value: string) => {
-    setQuery(value);
-    setExpanded(false);
+  const clearSavedFilter = () => {
+    setSavedFilter(null);
+    saveStored(SAVED_FILTER_STORAGE_KEY, null);
   };
 
   const openSearch = () => setSearchOpen(true);
@@ -499,6 +573,25 @@ export default function NewsfeedV0Prototype() {
                   </div>
                   <span className={local.switchNote}>{MODE_NOTE[commentsMode]}</span>
                 </div>
+
+                <div className={local.switchBar}>
+                  <span className={local.switchLabel}>Personalization</span>
+                  <div className={local.switch} role="tablist" aria-label="Personalization version">
+                    {PERSONALIZATION_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={personalization === opt.value}
+                        className={clsx(local.switchBtn, personalization === opt.value && local.switchBtnActive)}
+                        onClick={() => setPersonalization(opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className={local.switchNote}>{PERSONALIZATION_NOTE[personalization]}</span>
+                </div>
               </div>
 
               {/* Constrain the tabs' underline to end at the news-card's right edge
@@ -553,6 +646,18 @@ export default function NewsfeedV0Prototype() {
                 <>
                   <div className={clsx(local.feedLayout, local.feedLayoutBanner)}>
                     <div className={local.feedList}>
+                      {/* Above the results the filters just produced — the job
+                          board's slot (toolbar → banner → list), and the reason
+                          that affordance converts where a rail module doesn't. */}
+                      {personalization === 'filter' && !bannerDismissed && (
+                        <SavedFilterBanner
+                          view={view}
+                          savedFilter={savedFilter}
+                          onSave={saveCurrentFilter}
+                          onClear={clearSavedFilter}
+                          onDismiss={() => setBannerDismissed(true)}
+                        />
+                      )}
                       {visibleEntries.map((entry) =>
                         entry.kind === 'news' ? (
                           <V0FeedCard

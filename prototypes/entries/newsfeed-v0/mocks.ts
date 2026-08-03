@@ -223,6 +223,37 @@ export const SOURCES_BY_UID: Record<string, NewsSource[]> = {
   ],
 };
 
+// ---------- Video: stories that carry a recorded talk / demo ----------
+
+/**
+ * A YouTube video attached to a news story. `id` is the video id — the poster
+ * frame is read straight from `img.youtube.com` and the detail modal plays that
+ * id's embed, so swapping in another video is a one-line change here.
+ */
+export interface NewsVideo {
+  id: string;
+  /** Runtime badge on the poster, e.g. "18:22". */
+  duration: string;
+}
+
+/**
+ * Keyed by story uid (same pattern as SOURCES_BY_UID) so the mock item shape
+ * stays untouched. Only a few stories carry video — a feed where every card has
+ * a poster reads as a video wall, not a news feed. Ids point at real Protocol
+ * Labs / Filecoin talks so the thumbnails resolve.
+ */
+export const VIDEO_BY_UID: Record<string, NewsVideo> = {
+  n1: { id: 'ARW0ABPzwtY', duration: '18:22' },
+  n5: { id: '1xloqhD5C_8', duration: '9:41' },
+  n7: { id: 'iaaAjbks9Nc', duration: '6:18' },
+};
+
+/**
+ * Protocol Labs is the network's own org, so its updates get the highlighted
+ * card treatment (brand border + left accent) wherever they appear in the feed.
+ */
+export const PL_TEAM_UID = 'protocol-labs';
+
 // ---------- Forum posts (interleaved into the feed, news-card style) ----------
 
 /**
@@ -250,6 +281,12 @@ export interface ForumPost {
   tags: string[];
   /** Read count, shown in the forum-post meta trio (Views · Likes · Comments). */
   views: number;
+  /**
+   * Canonical thread in the forum (`/forum/topics/[categoryId]/[topicId]` in
+   * production). The mock posts don't exist there, so this defaults to the forum
+   * index — enough to demo the "Open in forum" jump.
+   */
+  forumUrl?: string;
 }
 
 export const FORUM_POSTS: ForumPost[] = [
@@ -568,6 +605,23 @@ export const BASE_LIKES: Record<string, number> = { ...UPVOTES, ...FORUM_LIKES }
 
 /** Seed comment counts a story/post starts with, derived from the mock threads. */
 export const seedCommentCount = (uid: string): number => COMMENTS_BY_UID[uid]?.length ?? 0;
+
+/**
+ * Mock view count for a news story. Production's `ITeamNewsItem` carries no view
+ * count (only the forum tracks one), and a hand-written table would rot as the
+ * mock stories change — so derive a stable figure from the uid and the story's
+ * likes: read-to-like ratios in the tens are what the forum's own numbers look
+ * like. Deterministic — no `Math.random`, so the server and client render the
+ * same figure and the prototype doesn't hydrate-mismatch.
+ */
+export const viewsFor = (uid: string): number => {
+  let hash = 0;
+  for (let i = 0; i < uid.length; i++) hash = (hash * 31 + uid.charCodeAt(i)) >>> 0;
+  const likes = BASE_LIKES[uid] ?? 0;
+  // Floor keeps a zero-like story from reading as unread; the per-uid spread
+  // stops every story with N likes from showing the same number.
+  return 140 + (hash % 360) + likes * (40 + (hash % 45));
+};
 
 /** Rail suggestions: teams NOT already in the feed (suggesting what you already read is redundant). */
 export interface SuggestedTeam {

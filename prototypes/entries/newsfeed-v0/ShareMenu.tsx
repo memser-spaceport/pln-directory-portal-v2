@@ -46,7 +46,13 @@ export function ShareMenu({ url, variant, align = 'right' }: Props) {
     };
   }, [open]);
 
-  const link = () => url ?? (typeof window !== 'undefined' ? window.location.href : '');
+  // Absolute URL — a share intent (or a pasted link) must survive leaving the app,
+  // and callers may pass an in-app path like `/forum/topics/...`. Resolved at click
+  // time, never during render, since the prototype routes server-render.
+  const link = () => {
+    if (typeof window === 'undefined') return url ?? '';
+    return url ? new URL(url, window.location.origin).href : window.location.href;
+  };
 
   const share = (network: 'linkedin' | 'x') => {
     const u = encodeURIComponent(link());

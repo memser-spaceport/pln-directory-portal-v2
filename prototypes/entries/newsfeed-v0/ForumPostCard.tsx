@@ -51,6 +51,10 @@ export function ForumPostCard({
 }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
 
+  // The post's canonical address — the title links to it and Share copies it.
+  // Mock posts have no real thread, so they fall back to the forum index.
+  const forumUrl = post.forumUrl ?? '/forum';
+
   return (
     <div className={clsx(s.card, local.feedCard)}>
       <div className={s.head}>
@@ -67,22 +71,33 @@ export function ForumPostCard({
         <span className={local.authorRole}>· {post.role}</span>
       </div>
 
-      <div
-        role="link"
-        tabIndex={0}
-        className={local.feedStory}
-        onClick={onOpenDetail}
-        onKeyDown={(e) => {
-          // Only the row itself opens the modal — Enter/Space inside the comment
-          // composer must not (it bubbles up to this handler).
-          if (e.target !== e.currentTarget) return;
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onOpenDetail();
-          }
-        }}
-      >
-        <h3 className={clsx(s.headline, local.feedTitle)}>{post.title}</h3>
+      {/* The story body is a click convenience, not the link — the title below is
+          the real one, so it (not this div) carries the tab stop and the a11y role. */}
+      <div className={local.feedStory} onClick={onOpenDetail}>
+        <h3 className={clsx(s.headline, local.feedTitle)}>
+          {/* A genuine <a href> to the thread: ⌘/ctrl+click, middle-click, "Open in
+              new tab", and hover-to-see-the-URL all work for free. Only the plain
+              click is ours — that one opens the modal instead of navigating. This is
+              why no per-card "Open in forum" button is needed; the modal keeps the
+              explicit one, where there's room and the reader has committed. */}
+          <a
+            href={forumUrl}
+            className={local.titleLink}
+            onClick={(e) => {
+              // Modified click → let the browser have it. stopPropagation so the
+              // parent div doesn't ALSO open the modal behind the new tab.
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+                e.stopPropagation();
+                return;
+              }
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenDetail();
+            }}
+          >
+            {post.title}
+          </a>
+        </h3>
         <p className={local.summary}>{post.body}</p>
         <div className={local.footer}>
           <span className={local.source}>
@@ -91,7 +106,7 @@ export function ForumPostCard({
             {formatTimeAgo(post.createdAt)}
           </span>
           <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
-            <ShareMenu variant="card" />
+            <ShareMenu variant="card" url={forumUrl} />
             <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
             {showComments && (
               <CommentButton count={comments.length} open={threadOpen} onToggle={() => setThreadOpen((v) => !v)} />

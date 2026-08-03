@@ -51,6 +51,28 @@
   }
 }
 
+/* Protocol Labs update: the same full brand-gradient outline its feed card
+   carries, so the card and the modal it opens read as the same object. Drawn as
+   a masked ring (production's recipe, app/globals.scss .asks__tooltip::before)
+   rather than a border — the modal's height is fixed, so a border would shift
+   the scrolling body by its width. z-index keeps it above the sticky header and
+   footer, which sit flush with the card's edges. */
+.plCard.plCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 /* Scrolling middle: kicker, title, summary, meta, sources. */
 .body {
   flex: 1;
@@ -401,4 +423,21 @@
   display: inline-flex;
   align-items: center;
   gap: 16px;
+}
+
+/* Forum-post footer: the canonical-thread link sits opposite the like/comment
+   cluster. Separated by position, not weight — the modal already holds the full
+   post, so "open in forum" is an escape hatch, not the primary action. */
+.footerSplit.footerSplit {
+  justify-content: space-between;
+}
+
+/* "Open in forum" — meta-weight (it borrows FeedActions .subItem, so it reads at
+   the same level as Like/Comment) with a trailing ↗ marking the new tab. */
+.openInForum {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

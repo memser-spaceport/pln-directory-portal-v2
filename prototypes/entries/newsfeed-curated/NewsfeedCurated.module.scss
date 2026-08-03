@@ -1,0 +1,740 @@
+@import 'styles/media.scss';
+
+/* Layout, page backdrop, feed grid, rail chrome and card shells all come from
+   ../newsfeed-v0/NewsfeedV0.module.scss and the production modules it reuses.
+   This file only carries what is new here: the Top Story hero, the hiring
+   signal, the coverage note, the prototype control bar, and the email. */
+
+/* ---------- Prototype control bar ---------- */
+
+.controlBar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.controlLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  min-width: 76px;
+}
+
+/* The "today" spine is the broken one — its note carries the warning colour so
+   the state reads as a finding, not a preference. */
+.switchNoteWarn.switchNoteWarn {
+  color: var(--foreground-warning-primary, #b54708);
+}
+
+/* ---------- Top story ---------- */
+
+/* Reserve the rail column so the hero's right edge lines up with the feed card
+   below it, matching .tabsConstrainBanner. */
+.topSlot {
+  margin-bottom: 20px;
+}
+
+/* Deliberately not a bigger feed card: a brand-tinted band, a heavier border and
+   its own eyebrow row, so it reads as a different kind of object in the column.
+   Double class beats the production .card hover lift. */
+.topCard.topCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  cursor: default;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  background: linear-gradient(
+    180deg,
+    var(--transparent-brand-8, rgba(27, 77, 255, 0.06)) 0%,
+    #ffffff 140px,
+    #ffffff 100%
+  );
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.topEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.topBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.topWeek {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Who picked it, stated up front — an unattributed pick reads as arbitrary. */
+.topAttribution {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  margin-left: auto;
+
+  @include mobile-only {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+
+.topBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+}
+
+.topTeamRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+  }
+}
+
+.topSummary {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The reasoning block. Set apart from the story it justifies by a brand rule —
+   this is the part that makes the pick accountable rather than magic. */
+.whyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0 12px 14px;
+  border-left: 2px solid var(--foreground-brand-primary, #1b4dff);
+}
+
+.whyLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.whyText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* AI discloses both the criteria and the authorship; a human byline needs neither. */
+.whyDisclosure {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Runners-up make the pick legible as a choice rather than the only result. */
+.considered {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.consideredSummary {
+  cursor: pointer;
+  color: var(--foreground-neutral-secondary, #455468);
+  letter-spacing: -0.2px;
+  width: fit-content;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.consideredList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  letter-spacing: -0.2px;
+}
+
+.topFooter {
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* ---------- Hiring signal ---------- */
+
+.hiringCard.hiringCard {
+  gap: 14px;
+}
+
+.hiringBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The movement, not the count — that's what makes it a signal. */
+.hiringTrend {
+  margin: -4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.roleList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.roleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+}
+
+.roleTitle {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.roleLocation {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+/* Hiring's own meta colour, alongside the production event palette. Teal keeps
+   it distinct from Funding green while staying in the same family. */
+.kHiring {
+  color: #0e7090;
+}
+
+/* ---------- Rail: follow reasons + coverage ---------- */
+
+/* The reason a team is in front of you. Sits at content weight, not meta weight —
+   it is the thing being read, so it earns the darker of the two grays. */
+.railWhy {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coverageCard.coverageCard {
+  gap: 8px;
+}
+
+.coverageText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.coverageLink {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  width: fit-content;
+}
+
+.previewLink {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: -8px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+  text-align: center;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---------- The gap, stated on the spine that has it ---------- */
+
+.gapNote {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-warning-subtle, rgba(181, 71, 8, 0.2));
+  background: var(--background-warning-subtle, rgba(181, 71, 8, 0.05));
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-warning-primary, #b54708);
+    font-weight: 600;
+  }
+}
+
+/* Focus area sits beside Sort now — a filter, not the container. */
+.focusFilter {
+  display: inline-flex;
+  margin-right: 8px;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+/* ---------- Email digest ---------- */
+
+.emailPage {
+  padding: 32px 16px 64px;
+
+  @include mobile-only {
+    padding: 20px 12px 48px;
+  }
+}
+
+.emailWrap {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.emailStage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Fake client chrome, so this reads as an email and the subject line gets
+   reviewed as the design decision it is — for most recipients it's the only
+   part of this they will ever see. */
+.clientBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.clientRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.clientLabel {
+  flex-shrink: 0;
+  width: 56px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.clientValue {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.clientSubject {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The subject is the only part of this most people ever see, so its length is a
+   reviewable number rather than something discovered after send. */
+.charCount {
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.charCountOver {
+  color: var(--foreground-warning-primary, #b54708);
+}
+
+.email {
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.emailHead {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include mobile-only {
+    padding: 20px 18px 16px;
+  }
+}
+
+.masthead {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailWeek {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailTop {
+  padding: 28px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include mobile-only {
+    padding: 20px 18px;
+  }
+}
+
+.emailKicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailTopTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+  }
+}
+
+.emailTopSummary {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.emailWhy {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+.emailWhyLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailWhyText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.emailWhyBy {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailCta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+
+  &:hover {
+    background: #1a45e6;
+  }
+}
+
+.emailSourceLine {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailSection {
+  padding: 22px 28px;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  @include mobile-only {
+    padding: 18px;
+  }
+}
+
+.emailSectionTitle {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One line per story: chip, headline, team. Scannable in the two seconds an
+   email actually gets. */
+.emailItem {
+  display: grid;
+  /* Wide enough for the longest label — "ANNOUNCEMENT" at 12px/600 uppercase
+     runs ~100px, and a narrower column collides with the headline. */
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+
+  @include mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.emailHiringItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+}
+
+.emailChip {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+}
+
+/* Matches the production event palette (NewsCard.module.scss dots). */
+.eFunding {
+  color: #027a48;
+}
+
+.eLaunch {
+  color: #1849a9;
+}
+
+.ePartnership {
+  color: #5925dc;
+}
+
+.eAnnouncement {
+  color: #475467;
+}
+
+.eMilestone {
+  color: #b54708;
+}
+
+.emailItemLink {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.emailItemTeam {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  @include mobile-only {
+    grid-column: 1;
+  }
+}
+
+.emailFoot {
+  padding: 20px 28px 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  p {
+    margin: 0 0 6px;
+    font-size: 12px;
+    line-height: 18px;
+    letter-spacing: -0.2px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: var(--foreground-neutral-secondary, #455468);
+    text-decoration: underline;
+  }
+
+  @include mobile-only {
+    padding: 18px;
+  }
+}

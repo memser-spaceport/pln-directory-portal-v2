@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
@@ -30,12 +30,18 @@ interface Props {
 export function RecentUpdatesSection(props: Props) {
   const { isLoggedIn } = props;
 
-  const { markAsRead } = usePushNotificationsContext();
+  // unreadCount from the provider, NOT from the infinite query: pages[0]'s
+  // count is a snapshot from the first fetch, while the provider's is live —
+  // it zeroes the moment mark-all runs (from either surface, or another tab).
+  const { markAsRead, markAllAsRead, unreadCount } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
-  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, unreadCount } =
-    useInfiniteNotifications({
-      enabled: isLoggedIn,
-    });
+  const { notifications, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useInfiniteNotifications({
+    enabled: isLoggedIn,
+  });
+
+  // aria-live announcement — this flow's only feedback (no toast/undo by design).
+  const [statusMessage, setStatusMessage] = useState('');
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   // Sanitize notifications to remove HTML markup from title and description
   // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
@@ -49,14 +55,40 @@ export function RecentUpdatesSection(props: Props) {
     }
   };
 
+  const handleMarkAllClick = async () => {
+    const count = unreadCount;
+    // The clicked button unmounts when the count hits zero — park focus on the
+    // heading first so it never drops to <body>.
+    titleRef.current?.focus();
+    analytics.onMarkAllUpdatesReadClicked('recent_updates', count);
+    setStatusMessage('All notifications marked as read');
+    try {
+      await markAllAsRead();
+    } catch {
+      analytics.onMarkAllUpdatesReadFailed('recent_updates', count);
+      setStatusMessage('Could not mark notifications as read');
+    }
+  };
+
   const renderHeader = () => (
     <div className={s.header}>
-      <h2 className={s.title}>Recent Updates</h2>
+      <h2 className={s.title} tabIndex={-1} ref={titleRef}>
+        Recent Updates
+      </h2>
       {isLoggedIn && unreadCount > 0 && (
-        <div className={s.unreadBadge}>
-          <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
-        </div>
+        <>
+          <div className={s.unreadBadge}>
+            <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
+          </div>
+          {/* Hidden (not disabled) with nothing unread — same rule as the pill. */}
+          <button type="button" className={s.markAllButton} onClick={handleMarkAllClick}>
+            Mark all as read
+          </button>
+        </>
       )}
+      <span role="status" className={s.srOnly}>
+        {statusMessage}
+      </span>
     </div>
   );
 

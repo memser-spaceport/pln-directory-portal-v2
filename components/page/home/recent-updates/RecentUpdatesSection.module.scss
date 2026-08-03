@@ -63,3 +63,41 @@
   flex-direction: column;
   gap: 16px;
 }
+
+/* Quiet text action beside the unread pill; hidden entirely at zero unread. */
+.markAllButton {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: #156ff7;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* The heading doubles as the post-click focus target (tabindex="-1") —
+   programmatic focus shouldn't paint a ring on a non-interactive element. */
+.title:focus {
+  outline: none;
+}
+
+/* Visually hidden, still announced — the aria-live status region. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -183,6 +183,8 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   VIEW_ALL_UPDATES_CLICKED: 'view-all-updates-clicked',
   UPDATES_PANEL_NOTIFICATION_CLICKED: 'updates-panel-notification-clicked',
   RECENT_UPDATES_NOTIFICATION_CLICKED: 'recent-updates-notification-clicked',
+  MARK_ALL_UPDATES_READ_CLICKED: 'mark-all-updates-read-clicked',
+  MARK_ALL_UPDATES_READ_FAILED: 'mark-all-updates-read-failed',
 };
 
 export const SETTINGS_ANALYTICS_EVENTS = {

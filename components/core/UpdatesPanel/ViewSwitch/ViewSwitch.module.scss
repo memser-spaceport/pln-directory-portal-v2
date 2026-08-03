@@ -1,0 +1,56 @@
+/* Transcribed from the notifications-hub prototype's segmented control. */
+
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border-radius: 8px;
+}
+
+.segmentedBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  /* Selected reads as a raised white pill — shape and elevation, not colour
+     alone. */
+  &[aria-selected='true'] {
+    background: var(--background-neutral-primary, #ffffff);
+    color: var(--foreground-neutral-primary, #0a0c11);
+    box-shadow: 0 1px 2px rgba(14, 15, 17, 0.08);
+  }
+}
+
+.segmentCount {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  /* #1b4dff = 5.91:1 on white; the pill's #4174ff would fail AA at this size. */
+  color: var(--foreground-brand-primary, #1b4dff);
+}

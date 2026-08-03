@@ -90,6 +90,16 @@ export const useNotificationAnalytics = () => {
     captureEvent(NOTIFICATION_ANALYTICS_EVENTS.VIEW_ALL_UPDATES_CLICKED);
   }
 
+  function onMarkAllUpdatesReadClicked(source: 'updates_panel' | 'recent_updates', unreadCount: number) {
+    captureEvent(NOTIFICATION_ANALYTICS_EVENTS.MARK_ALL_UPDATES_READ_CLICKED, { source, unreadCount });
+  }
+
+  // The rollback path's only signal: this flow has no toast or undo, so a
+  // failed mark-all is invisible outside analytics.
+  function onMarkAllUpdatesReadFailed(source: 'updates_panel' | 'recent_updates', unreadCount: number) {
+    captureEvent(NOTIFICATION_ANALYTICS_EVENTS.MARK_ALL_UPDATES_READ_FAILED, { source, unreadCount });
+  }
+
   function onRecentUpdatesNotificationClicked(notification: PushNotification) {
     captureEvent(NOTIFICATION_ANALYTICS_EVENTS.RECENT_UPDATES_NOTIFICATION_CLICKED, {
       notificationId: notification.id,
@@ -109,6 +119,8 @@ export const useNotificationAnalytics = () => {
     onUpdatesPanelNotificationClicked,
     onNotificationActionLinkClicked,
     onViewAllUpdatesClicked,
+    onMarkAllUpdatesReadClicked,
+    onMarkAllUpdatesReadFailed,
     onRecentUpdatesNotificationClicked,
   };
 };

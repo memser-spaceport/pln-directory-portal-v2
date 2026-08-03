@@ -42,6 +42,26 @@
   object-fit: cover;
 }
 
+.avatarWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.directoryDot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #059669;
+  border: 1.5px solid #fff;
+  box-sizing: border-box;
+}
+
 .avatar {
   background: #e5e7eb;
   font-size: 8px;

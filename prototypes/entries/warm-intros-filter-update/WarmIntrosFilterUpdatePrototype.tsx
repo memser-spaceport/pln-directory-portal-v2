@@ -198,7 +198,13 @@ function FilterDropdown({
         <span>{label}</span>
         {count > 0 && <span className={x.fdCount}>{count}</span>}
         <svg className={clsx(x.fdCaret, open && x.fdCaretOpen)} viewBox="0 0 16 16" fill="none" aria-hidden>
-          <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M4 6L8 10L12 6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
       {open && (
@@ -220,7 +226,17 @@ function FilterDropdown({
 }
 
 // One option row inside a FilterDropdown menu (default size, single line).
-function FdRow({ label, count, selected, onClick }: { label: string; count?: number; selected: boolean; onClick: () => void }) {
+function FdRow({
+  label,
+  count,
+  selected,
+  onClick,
+}: {
+  label: string;
+  count?: number;
+  selected: boolean;
+  onClick: () => void;
+}) {
   return (
     <button type="button" className={clsx(x.fdRow, selected && x.fdRowOn)} onClick={onClick}>
       <input type="checkbox" className={x.fdCheckbox} checked={selected} readOnly tabIndex={-1} aria-hidden />
@@ -279,7 +295,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const [currentListId, setCurrentListId] = useState(DEFAULT_LIST_ID);
   const [drawerId, setDrawerId] = useState<string | null>(null);
 
-  const [draft, setDraft] = useState<Draft>({ stage: '', sectors: [] , check: '' });
+  const [draft, setDraft] = useState<Draft>({ stage: '', sectors: [], check: '' });
   const [applied, setApplied] = useState<Draft>({ stage: '', sectors: [], check: '' });
   const [relFilter, setRelFilter] = useState<Record<WarmIntroTier, boolean>>({
     co_invested: true,
@@ -380,10 +396,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
       return next;
     });
 
-  const onList = useMemo(
-    () => members.filter((m) => m.list_ids.includes(currentListId)),
-    [members, currentListId],
-  );
+  const onList = useMemo(() => members.filter((m) => m.list_ids.includes(currentListId)), [members, currentListId]);
 
   const visible = useMemo(() => {
     let rows = onList;
@@ -396,9 +409,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     rows = rows.filter((m) => relFilter[m.relationship]);
     if (plBackedOnly) rows = rows.filter((m) => !!m.invested_in_pl);
     if (pathSel.size) rows = rows.filter((m) => matchesPathVia(m, pathSel));
-    return rows
-      .slice()
-      .sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
+    return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
   }, [onList, query, stage, check, sectors, source, relFilter, plBackedOnly, pathSel]);
 
   // Connector pivots — teammates (direct) and founders (the broker).
@@ -418,11 +429,23 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
   // Active-filter chips below the bar — each removes just its own filter.
   const activeChips: { key: string; name: string; value: string; remove: () => void }[] = [];
-  if (stage) activeChips.push({ key: 'stage', name: 'Stage', value: STAGE_FOCUS_LABEL[stage as StageFocus], remove: () => setStage('') });
+  if (stage)
+    activeChips.push({
+      key: 'stage',
+      name: 'Stage',
+      value: STAGE_FOCUS_LABEL[stage as StageFocus],
+      remove: () => setStage(''),
+    });
   if (check) activeChips.push({ key: 'check', name: 'Check', value: check, remove: () => setCheck('') });
-  if (source) activeChips.push({ key: 'source', name: 'Source', value: DATA_SOURCE_LABEL[source], remove: () => setSource('') });
+  if (source)
+    activeChips.push({ key: 'source', name: 'Source', value: DATA_SOURCE_LABEL[source], remove: () => setSource('') });
   sectors.forEach((sec) =>
-    activeChips.push({ key: `sec:${sec}`, name: INDUSTRY_SECTOR_LABEL, value: SECTOR_TAG_LABEL[sec], remove: () => toggleSector(sec) }),
+    activeChips.push({
+      key: `sec:${sec}`,
+      name: INDUSTRY_SECTOR_LABEL,
+      value: SECTOR_TAG_LABEL[sec],
+      remove: () => toggleSector(sec),
+    }),
   );
   [...pathSel]
     .filter((t) => t !== 'direct') // 'direct' shows as a toggle, not a chip
@@ -473,7 +496,9 @@ export default function WarmIntrosFilterUpdatePrototype() {
     );
   const removeFromList = (investorId: string, listId: string) =>
     setMembers((prev) =>
-      prev.map((m) => (m.investor_id === investorId ? { ...m, list_ids: m.list_ids.filter((id) => id !== listId) } : m)),
+      prev.map((m) =>
+        m.investor_id === investorId ? { ...m, list_ids: m.list_ids.filter((id) => id !== listId) } : m,
+      ),
     );
 
   const exportCsv = () => {
@@ -504,7 +529,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
   return (
     <div className={x.page}>
-
       {/* Page header (mirrors the real Investors DB page) */}
       <div className={x.pageHeader}>
         <div className={x.pageTitleRow}>
@@ -623,7 +647,10 @@ export default function WarmIntrosFilterUpdatePrototype() {
                       key={st}
                       label={STAGE_FOCUS_LABEL[st]}
                       selected={stage === st}
-                      onClick={() => { setStage(stage === st ? '' : st); close(); }}
+                      onClick={() => {
+                        setStage(stage === st ? '' : st);
+                        close();
+                      }}
                     />
                   ))}
                 </>
@@ -634,7 +661,15 @@ export default function WarmIntrosFilterUpdatePrototype() {
               {({ close }) => (
                 <>
                   {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                    <FdRow key={c} label={c} selected={check === c} onClick={() => { setCheck(check === c ? '' : c); close(); }} />
+                    <FdRow
+                      key={c}
+                      label={c}
+                      selected={check === c}
+                      onClick={() => {
+                        setCheck(check === c ? '' : c);
+                        close();
+                      }}
+                    />
                   ))}
                 </>
               )}
@@ -657,13 +692,23 @@ export default function WarmIntrosFilterUpdatePrototype() {
             <FilterDropdown label={source ? DATA_SOURCE_LABEL[source] : 'Source'} active={!!source}>
               {({ close }) => (
                 <>
-                  <FdRow label="All" selected={source === ''} onClick={() => { setSource(''); close(); }} />
+                  <FdRow
+                    label="All"
+                    selected={source === ''}
+                    onClick={() => {
+                      setSource('');
+                      close();
+                    }}
+                  />
                   {(['linkedin', 'affinity'] as DataSource[]).map((src) => (
                     <FdRow
                       key={src}
                       label={DATA_SOURCE_LABEL[src]}
                       selected={source === src}
-                      onClick={() => { setSource(source === src ? '' : src); close(); }}
+                      onClick={() => {
+                        setSource(source === src ? '' : src);
+                        close();
+                      }}
                     />
                   ))}
                 </>
@@ -689,95 +734,95 @@ export default function WarmIntrosFilterUpdatePrototype() {
 
           {/* ── OLD filter controls — hidden behind SHOW_OLD_FILTERS, kept for later ── */}
           {SHOW_OLD_FILTERS && (
-          <div className={clsx(x.filterBar, x.builderRowResp)}>
-            <div className={x.listField}>
-              <span className={x.inlineLabel}>List</span>
-              <div className={x.listPickerWrap}>
-                <ListPicker lists={liveLists} selectedId={currentListId} onSelect={switchList} />
+            <div className={clsx(x.filterBar, x.builderRowResp)}>
+              <div className={x.listField}>
+                <span className={x.inlineLabel}>List</span>
+                <div className={x.listPickerWrap}>
+                  <ListPicker lists={liveLists} selectedId={currentListId} onSelect={switchList} />
+                </div>
+              </div>
+
+              <div className={x.searchField}>
+                <WorkspaceSearch onSelect={setConnectorLabel} />
+              </div>
+
+              <select
+                className={clsx(s.select, x.select)}
+                value={draft.stage}
+                onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
+                aria-label="Stage focus"
+              >
+                <option value="">Any stage</option>
+                {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
+                  <option key={st} value={st}>
+                    {STAGE_FOCUS_LABEL[st]}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className={clsx(s.select, x.select)}
+                value={draft.check}
+                onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
+                aria-label="Check size"
+              >
+                <option value="">Any check size</option>
+                {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+
+              <div className={x.sectorPopWrap} ref={sectorRef}>
+                <button
+                  type="button"
+                  className={clsx(s.select, x.select, x.sectorTrigger)}
+                  aria-expanded={sectorOpen}
+                  onClick={() => setSectorOpen((o) => !o)}
+                >
+                  {INDUSTRY_SECTOR_LABEL}
+                  {draft.sectors.length > 0 && <span className={x.sectorCount}>{draft.sectors.length}</span>}
+                </button>
+                {sectorOpen && (
+                  <div className={x.sectorPop}>
+                    <div className={x.sectorPopHead}>
+                      <span>{INDUSTRY_SECTOR_LABEL}</span>
+                      {draft.sectors.length > 0 && (
+                        <button
+                          type="button"
+                          className={x.sectorClear}
+                          onClick={() => setDraft((d) => ({ ...d, sectors: [] }))}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div className={s.sectorChips}>
+                      {SECTOR_TAGS.map((sec) => (
+                        <Tag
+                          key={sec}
+                          value={SECTOR_TAG_LABEL[sec]}
+                          keyValue={sec}
+                          variant="secondary"
+                          selected={draft.sectors.includes(sec)}
+                          callback={() => toggleDraftSector(sec)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className={clsx(s.actions, x.filterActions, x.builderActions)}>
+                <button className={s.btnPrimary} onClick={applyFilters}>
+                  Apply
+                </button>
+                <button className={s.btn} onClick={clearFilters} disabled={!hasActiveFilters}>
+                  Clear
+                </button>
               </div>
             </div>
-
-            <div className={x.searchField}>
-              <WorkspaceSearch onSelect={setConnectorLabel} />
-            </div>
-
-            <select
-              className={clsx(s.select, x.select)}
-              value={draft.stage}
-              onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
-              aria-label="Stage focus"
-            >
-              <option value="">Any stage</option>
-              {STAGE_FOCUSES.filter((st) => st !== 'unknown').map((st) => (
-                <option key={st} value={st}>
-                  {STAGE_FOCUS_LABEL[st]}
-                </option>
-              ))}
-            </select>
-
-            <select
-              className={clsx(s.select, x.select)}
-              value={draft.check}
-              onChange={(e) => setDraft((d) => ({ ...d, check: e.target.value }))}
-              aria-label="Check size"
-            >
-              <option value="">Any check size</option>
-              {CHECK_SIZE_RANGES.filter((c) => c !== 'unknown').map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-
-            <div className={x.sectorPopWrap} ref={sectorRef}>
-              <button
-                type="button"
-                className={clsx(s.select, x.select, x.sectorTrigger)}
-                aria-expanded={sectorOpen}
-                onClick={() => setSectorOpen((o) => !o)}
-              >
-                {INDUSTRY_SECTOR_LABEL}
-                {draft.sectors.length > 0 && <span className={x.sectorCount}>{draft.sectors.length}</span>}
-              </button>
-              {sectorOpen && (
-                <div className={x.sectorPop}>
-                  <div className={x.sectorPopHead}>
-                    <span>{INDUSTRY_SECTOR_LABEL}</span>
-                    {draft.sectors.length > 0 && (
-                      <button
-                        type="button"
-                        className={x.sectorClear}
-                        onClick={() => setDraft((d) => ({ ...d, sectors: [] }))}
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-                  <div className={s.sectorChips}>
-                    {SECTOR_TAGS.map((sec) => (
-                      <Tag
-                        key={sec}
-                        value={SECTOR_TAG_LABEL[sec]}
-                        keyValue={sec}
-                        variant="secondary"
-                        selected={draft.sectors.includes(sec)}
-                        callback={() => toggleDraftSector(sec)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className={clsx(s.actions, x.filterActions, x.builderActions)}>
-              <button className={s.btnPrimary} onClick={applyFilters}>
-                Apply
-              </button>
-              <button className={s.btn} onClick={clearFilters} disabled={!hasActiveFilters}>
-                Clear
-              </button>
-            </div>
-          </div>
           )}
 
           {/* Feature 1 — quick multi-select of PL teammates (first node of a path). */}
@@ -824,7 +869,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
               </span>
             </div>
           )}
-
         </section>
 
         <section className={s.results}>
@@ -835,7 +879,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
               <div className={s.relChips}>
-                {/* Two momentary quick-lenses: reach directly, or only our PL backers. */}
+                {/* Two momentary quick-lenses: reach directly, or only our PL/FIL investors. */}
                 <label className={x.directToggle}>
                   Direct only
                   <Switch.Root
@@ -848,7 +892,10 @@ export default function WarmIntrosFilterUpdatePrototype() {
                 </label>
                 {/* Narrow to investors who already back Protocol Labs — the warmest,
                     highest-trust relationships (co-invest / vouch / intro-makers). */}
-                <label className={clsx(x.directToggle, x.lensGap)} title="Show only investors who have invested in Protocol Labs">
+                <label
+                  className={clsx(x.directToggle, x.lensGap)}
+                  title="Show only investors who have invested in Protocol Labs"
+                >
                   PL investors only
                   <Switch.Root
                     className={x.directSwitch}
@@ -879,10 +926,18 @@ export default function WarmIntrosFilterUpdatePrototype() {
                   {/* Four content columns share ~17.5% each; Path has no width so in the
                       table's fixed layout it absorbs the remainder (~30%) — the widest
                       column, giving the people-chains the most room. */}
-                  <th className={s.th} style={{ width: '17.5%' }}>Investor</th>
-                  <th className={s.th} style={{ width: '17.5%' }}>Team</th>
-                  <th className={s.th} style={{ width: '17.5%' }}>{INDUSTRY_SECTOR_LABEL}</th>
-                  <th className={s.th} style={{ width: '17.5%' }}>Proximity</th>
+                  <th className={s.th} style={{ width: '17.5%' }}>
+                    Investor
+                  </th>
+                  <th className={s.th} style={{ width: '17.5%' }}>
+                    Team
+                  </th>
+                  <th className={s.th} style={{ width: '17.5%' }}>
+                    {INDUSTRY_SECTOR_LABEL}
+                  </th>
+                  <th className={s.th} style={{ width: '17.5%' }}>
+                    Proximity
+                  </th>
                   <th className={s.th}>Path</th>
                 </tr>
               </thead>
@@ -896,74 +951,74 @@ export default function WarmIntrosFilterUpdatePrototype() {
                       className={clsx(s.row, x.hoverRow)}
                       onClick={() => setDrawerId(inv.investor_id)}
                     >
-                        <td className={s.checkboxCol}>
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(inv.investor_id)}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={() => toggleSelected(inv.investor_id)}
-                          />
-                        </td>
-                        <td className={s.td}>
-                          <div className={x.nameCellRow}>
-                            <div>
-                              <div className={x.nameWithBadge}>
-                                <span className={s.nameCell}>
-                                  {inv.first_name} {inv.last_name}
-                                </span>
-                                <InLabOsPill profile={inv.lab_os_profile ?? null} />
-                                {/* PL investor tag — icon-only; label on hover + in the drawer. */}
-                                <InvestedInPlBadge investor={inv} />
-                              </div>
-                              <div className={s.subtle}>{inv.email}</div>
+                      <td className={s.checkboxCol}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(inv.investor_id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => toggleSelected(inv.investor_id)}
+                        />
+                      </td>
+                      <td className={s.td}>
+                        <div className={x.nameCellRow}>
+                          <div>
+                            <div className={x.nameWithBadge}>
+                              <span className={s.nameCell}>
+                                {inv.first_name} {inv.last_name}
+                              </span>
+                              <InLabOsPill profile={inv.lab_os_profile ?? null} />
+                              {/* PL investor tag — icon-only; label on hover + in the drawer. */}
+                              <InvestedInPlBadge investor={inv} />
                             </div>
-                            <span className={x.rowArrow} aria-hidden>
-                              <ArrowUpRightIcon />
-                            </span>
+                            <div className={s.subtle}>{inv.email}</div>
                           </div>
-                        </td>
-                        <td className={s.td}>
-                          <TeamCell investor={inv} />
-                        </td>
-                        <td className={s.td}>
-                          <MetaChips items={inv.sector_tags} max={3} />
-                        </td>
-                        <td className={s.td}>
-                          {hasProximity ? (
-                            <ProximityCodeBadge
-                              code={inv.best_proximity_code}
-                              cold={inv.has_path === false}
-                              confidence={bestPath?.caliber_confidence}
-                              className={x.proxBadge}
-                            />
+                          <span className={x.rowArrow} aria-hidden>
+                            <ArrowUpRightIcon />
+                          </span>
+                        </div>
+                      </td>
+                      <td className={s.td}>
+                        <TeamCell investor={inv} />
+                      </td>
+                      <td className={s.td}>
+                        <MetaChips items={inv.sector_tags} max={3} />
+                      </td>
+                      <td className={s.td}>
+                        {hasProximity ? (
+                          <ProximityCodeBadge
+                            code={inv.best_proximity_code}
+                            cold={inv.has_path === false}
+                            confidence={bestPath?.caliber_confidence}
+                            className={x.proxBadge}
+                          />
+                        ) : (
+                          <span className={s.muted}>—</span>
+                        )}
+                      </td>
+                      <td className={s.td}>
+                        <div className={x.bestPathCell}>
+                          {/* People-first: the warmest connector node chain. */}
+                          {bestPath && pathChainNodes(bestPath, inv).length > 0 ? (
+                            <div className={x.pathRow}>
+                              <PeopleChain nodes={pathChainNodes(bestPath, inv)} />
+                            </div>
                           ) : (
                             <span className={s.muted}>—</span>
                           )}
-                        </td>
-                        <td className={s.td}>
-                          <div className={x.bestPathCell}>
-                            {/* People-first: the warmest connector node chain. */}
-                            {bestPath && pathChainNodes(bestPath, inv).length > 0 ? (
-                              <div className={x.pathRow}>
-                                <PeopleChain nodes={pathChainNodes(bestPath, inv)} />
-                              </div>
-                            ) : (
-                              <span className={s.muted}>—</span>
-                            )}
-                            {inv.paths.length > 0 && (
-                              <button
-                                type="button"
-                                className={s.expandBtn}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDrawerId(inv.investor_id);
-                                }}
-                              >
-                                {inv.paths.length > 1 ? `View all (${inv.paths.length})` : 'View path'}
-                              </button>
-                            )}
-                          </div>
-                        </td>
+                          {inv.paths.length > 0 && (
+                            <button
+                              type="button"
+                              className={s.expandBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDrawerId(inv.investor_id);
+                              }}
+                            >
+                              {inv.paths.length > 1 ? `View all (${inv.paths.length})` : 'View path'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -1007,7 +1062,9 @@ export default function WarmIntrosFilterUpdatePrototype() {
                     <span className={x.mCardFirm}>{inv.firm || '—'}</span>
                   </div>
                   <MetaChips items={inv.sector_tags} max={4} />
-                  {bestPath && pathChainNodes(bestPath, inv).length > 0 && <PeopleChain nodes={pathChainNodes(bestPath, inv)} />}
+                  {bestPath && pathChainNodes(bestPath, inv).length > 0 && (
+                    <PeopleChain nodes={pathChainNodes(bestPath, inv)} />
+                  )}
                 </div>
               );
             })}

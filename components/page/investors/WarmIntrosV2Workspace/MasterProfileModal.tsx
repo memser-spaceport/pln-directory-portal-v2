@@ -11,6 +11,7 @@ import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
 import { affinityPersonUrl } from './parseWarmPathHopChain';
 import {
   eventsFromProfile,
+  parseCoInvestments,
   parseEducation,
   parseExperience,
   parseInvestorMetaFields,
@@ -48,16 +49,11 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
   const orgs = useMemo(() => parseOrganizationLabels(data?.organizations), [data?.organizations]);
   const locations = useMemo(() => parseLocationLabels(data?.locations), [data?.locations]);
   const lists = useMemo(() => parseListMemberships(data?.listMemberships), [data?.listMemberships]);
-  const investorFields = useMemo(
-    () => parseInvestorMetaFields(data?.investorMeta),
-    [data?.investorMeta],
-  );
+  const investorFields = useMemo(() => parseInvestorMetaFields(data?.investorMeta), [data?.investorMeta]);
+  const coInvestments = useMemo(() => parseCoInvestments(data?.coInvestments), [data?.coInvestments]);
   const projects = useMemo(() => (data ? projectsFromProfile(data) : []), [data]);
   const events = useMemo(() => (data ? eventsFromProfile(data) : []), [data]);
-  const snapshots = useMemo(
-    () => summarizeSourceSnapshots(data?.sourceSnapshots),
-    [data?.sourceSnapshots],
-  );
+  const snapshots = useMemo(() => summarizeSourceSnapshots(data?.sourceSnapshots), [data?.sourceSnapshots]);
 
   const name = data?.canonicalName?.trim() || profileUid || 'Profile';
   const types = Array.isArray(data?.types) ? data.types.filter((t): t is string => !!t) : [];
@@ -89,9 +85,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
             </div>
           )}
 
-          {!isLoading && !isError && !data && (
-            <div className={s.state}>Profile not found.</div>
-          )}
+          {!isLoading && !isError && !data && <div className={s.state}>Profile not found.</div>}
 
           {!isLoading && !isError && data ? (
             <>
@@ -123,13 +117,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                   <div className={s.channelsBox}>
                     {emails.map((email) => (
                       <div key={email} className={s.socialEmailGroup}>
-                        <Image
-                          src={getContactLogoByProvider('email')}
-                          alt=""
-                          aria-hidden
-                          width={18}
-                          height={18}
-                        />
+                        <Image src={getContactLogoByProvider('email')} alt="" aria-hidden width={18} height={18} />
                         <a href={`mailto:${email}`} className={s.socialEmailAddr}>
                           {email}
                         </a>
@@ -159,13 +147,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                         className={s.socialLink}
                         title={provider}
                       >
-                        <Image
-                          src={getContactLogoByProvider(provider)}
-                          alt=""
-                          aria-hidden
-                          width={18}
-                          height={18}
-                        />
+                        <Image src={getContactLogoByProvider(provider)} alt="" aria-hidden width={18} height={18} />
                         <span>{provider}</span>
                       </a>
                     ))}
@@ -214,6 +196,27 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                       </div>
                     ))}
                   </dl>
+                </section>
+              ) : null}
+
+              {coInvestments.length > 0 ? (
+                <section className={s.section}>
+                  <h4 className={s.sectionTitle}>
+                    Co-investments with PL <span className={s.count}>{coInvestments.length}</span>
+                  </h4>
+                  <ul className={s.itemList}>
+                    {coInvestments.map((item) => {
+                      const meta = [item.dealStage, item.dealDate, item.isLeadInvestor ? 'Lead' : null, item.dealAmount]
+                        .filter(Boolean)
+                        .join(' · ');
+                      return (
+                        <li key={item.teamUid || item.name} className={s.item}>
+                          <div className={s.itemPrimary}>{item.name}</div>
+                          {meta ? <div className={s.itemSecondary}>{meta}</div> : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </section>
               ) : null}
 
@@ -296,10 +299,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                   <h4 className={s.sectionTitle}>Lists</h4>
                   <div className={s.pillRow}>
                     {lists.map((list) => (
-                      <span
-                        key={list.slug}
-                        className={clsx(s.listPill, listPillClass(list.slug))}
-                      >
+                      <span key={list.slug} className={clsx(s.listPill, listPillClass(list.slug))}>
                         {list.label}
                       </span>
                     ))}
@@ -342,10 +342,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                   <h4 className={s.sectionTitle}>Provenance / sources</h4>
                   {data.enrichedAt ? (
                     <div className={s.metaSub}>
-                      Enriched{' '}
-                      {typeof data.enrichedAt === 'string'
-                        ? data.enrichedAt
-                        : String(data.enrichedAt)}
+                      Enriched {typeof data.enrichedAt === 'string' ? data.enrichedAt : String(data.enrichedAt)}
                     </div>
                   ) : null}
                   {snapshots.length > 0 ? (

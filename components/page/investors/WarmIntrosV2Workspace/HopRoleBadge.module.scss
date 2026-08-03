@@ -1,0 +1,39 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background: #f3f4f6;
+  color: #455468;
+  border: 1px solid #e5e7eb;
+}
+
+.pl {
+  background: #eef2ff;
+  color: #1b4dff;
+  border-color: #c7d2fe;
+}
+
+.founder {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.coInvestor {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.investor {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}

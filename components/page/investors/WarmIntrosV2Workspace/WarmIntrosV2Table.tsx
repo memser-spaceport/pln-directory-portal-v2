@@ -4,6 +4,7 @@ import type { ReactNode, Ref } from 'react';
 import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { HopRoleBadge } from './HopRoleBadge';
 import { ListMembershipTags } from './ListMembershipTags';
 import { PathProfileChip } from './PathProfileChip';
 import { parseWarmPathHopChain } from './parseWarmPathHopChain';
@@ -107,6 +108,11 @@ export function WarmIntrosV2Table({
                       >
                         {name}
                       </button>
+                      {investor?.memberUid ? (
+                        <span className={s.directoryBadge} title="Directory member">
+                          PL Network
+                        </span>
+                      ) : null}
                       {showListName ? (
                         <ListMembershipTags listSlugs={investor?.listSlugs} fallbackTargetSet={row.targetSet} inline />
                       ) : null}
@@ -157,7 +163,9 @@ export function WarmIntrosV2Table({
                                   imageUrl={hopImage}
                                   onOpen={onOpenProfileUid}
                                   nonInteractive={isOrg}
+                                  memberUid={isOrg ? null : hop.memberUid}
                                 />
+                                <HopRoleBadge role={hop.role} />
                               </span>
                             );
                           });
@@ -165,27 +173,35 @@ export function WarmIntrosV2Table({
                         return (
                           <>
                             {connector ? (
-                              <PathProfileChip
-                                name={connector.name}
-                                profileUid={connector.profileUid}
-                                imageUrl={
-                                  connector.memberUid
-                                    ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                                    : connector.imageUrl
-                                }
-                                onOpen={onOpenProfileUid}
-                              />
+                              <span className={s.pathHop}>
+                                <PathProfileChip
+                                  name={connector.name}
+                                  profileUid={connector.profileUid}
+                                  imageUrl={
+                                    connector.memberUid
+                                      ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                      : connector.imageUrl
+                                  }
+                                  onOpen={onOpenProfileUid}
+                                  memberUid={connector.memberUid}
+                                />
+                                <HopRoleBadge role="pl_connector" />
+                              </span>
                             ) : (
                               <span className={s.muted}>—</span>
                             )}
                             {connector && investor ? <span className={s.pathArrow}>→</span> : null}
                             {investor ? (
-                              <PathProfileChip
-                                name={investor.name}
-                                profileUid={investor.profileUid}
-                                imageUrl={avatarSrc}
-                                onOpen={onOpenProfileUid}
-                              />
+                              <span className={s.pathHop}>
+                                <PathProfileChip
+                                  name={investor.name}
+                                  profileUid={investor.profileUid}
+                                  imageUrl={avatarSrc}
+                                  onOpen={onOpenProfileUid}
+                                  memberUid={investor.memberUid}
+                                />
+                                <HopRoleBadge role="investor" />
+                              </span>
                             ) : null}
                           </>
                         );

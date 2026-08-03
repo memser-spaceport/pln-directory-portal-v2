@@ -13,9 +13,10 @@ import { useWarmIntrosV2PathsForInvestor } from '@/services/investors/hooks/useW
 import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ListMembershipTags } from './ListMembershipTags';
-import { parseListMemberships } from './masterProfileDisplay.util';
+import { parseCoInvestments, parseListMemberships } from './masterProfileDisplay.util';
 import { PathActions } from './PathActions';
 import { ScorePercentPill } from './ScorePercentPill';
+import { HopRoleBadge, hopRoleFromRelationKind } from './HopRoleBadge';
 import { PathProfileChip } from './PathProfileChip';
 import {
   affinityPersonUrl,
@@ -63,7 +64,9 @@ function PathHopRow({
               imageUrl={isOrg ? null : imageByUid.get(hop.profileUid)}
               onOpen={onOpen}
               nonInteractive={isOrg}
+              memberUid={isOrg ? null : hop.memberUid}
             />
+            <HopRoleBadge role={hop.role} />
           </span>
         );
       })}
@@ -90,6 +93,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
   });
 
   const [showAlternates, setShowAlternates] = useState(true);
+  const coInvestments = useMemo(() => parseCoInvestments(masterProfile?.coInvestments), [masterProfile?.coInvestments]);
 
   const bestPath = useMemo(() => {
     const paths = detail?.paths ?? [];
@@ -285,6 +289,21 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                   <SectorTagsList tags={sectors} max={20} />
                 </dd>
               </dl>
+              {coInvestments.length > 0 ? (
+                <div className={s.coInvestBlock}>
+                  <div className={s.coInvestLabel}>
+                    Co-investments with PL
+                    <span className={s.count}>{coInvestments.length}</span>
+                  </div>
+                  <div className={s.coInvestNames}>
+                    {coInvestments
+                      .slice(0, 5)
+                      .map((c) => c.name)
+                      .join(', ')}
+                    {coInvestments.length > 5 ? ` +${coInvestments.length - 5} more` : ''}
+                  </div>
+                </div>
+              ) : null}
               <button type="button" className={s.linkBtn} onClick={() => onOpenMasterProfile(investor.profileUid)}>
                 View full profile
               </button>
@@ -384,12 +403,15 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                                       {
                                         profileUid: alt.profileUid,
                                         name: alt.name,
-                                        role: 'pl_connector',
+                                        role: hopRoleFromRelationKind(altKind),
+                                        memberUid: alt.memberUid,
+                                        imageUrl: alt.imageUrl,
                                       },
                                       {
                                         profileUid: investor.profileUid,
                                         name: investor.name,
                                         role: 'investor',
+                                        memberUid: investor.memberUid,
                                       },
                                     ]}
                                     imageByUid={imageByUid}

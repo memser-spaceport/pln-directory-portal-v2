@@ -77,6 +77,12 @@ export const investorsFilterParsers = {
   wi2_connector: parseAsString.withDefault(''),
   /** Single sector filter → API `sector`. */
   wi2_sector: parseAsString.withDefault(''),
+  /** Path kind chip: founder_bridge | coinvestor_bridge. Empty = off. */
+  wi2_relation_kind: parseAsStringLiteral(['founder_bridge', 'coinvestor_bridge'] as const),
+  /** null = off, true = hopCount=1 (PL direct only). */
+  wi2_direct_only: parseAsBoolean,
+  /** null = off, true = investors with MasterProfile.plBacking. */
+  wi2_pl_backer: parseAsBoolean,
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

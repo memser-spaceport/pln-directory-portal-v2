@@ -3,10 +3,7 @@
  * Mirrors portal enrich util tolerance for Sourced wrappers / loose JSON.
  */
 
-import {
-  WARM_INTROS_V2_TARGET_SET_LABEL,
-  type WarmIntrosV2TargetSet,
-} from '@/services/investors/warm-intros-v2.types';
+import { WARM_INTROS_V2_TARGET_SET_LABEL, type WarmIntrosV2TargetSet } from '@/services/investors/warm-intros-v2.types';
 
 export function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -224,10 +221,7 @@ export function parseLocationLabels(raw: unknown): string[] {
           pickString(rec, ['region', 'state']),
           pickString(rec, ['country']),
         ].filter(Boolean);
-        label =
-          parts.length > 0
-            ? parts.join(', ')
-            : pickString(rec, ['name', 'label', 'location', 'value']);
+        label = parts.length > 0 ? parts.join(', ') : pickString(rec, ['name', 'label', 'location', 'value']);
       }
     }
     if (!label) continue;
@@ -248,10 +242,7 @@ export function parseListMemberships(raw: unknown): ListMembershipDisplay[] {
   for (const item of raw) {
     const rec = asRecord(item);
     if (!rec) continue;
-    const slug =
-      pickString(rec, ['listSlug', 'slug']) ||
-      pickString(rec, ['listId', 'listName', 'name']) ||
-      '';
+    const slug = pickString(rec, ['listSlug', 'slug']) || pickString(rec, ['listId', 'listName', 'name']) || '';
     if (!slug) continue;
     const key = slug.toLowerCase();
     if (seen.has(key)) continue;
@@ -353,19 +344,13 @@ function collectLabels(raw: unknown, preferredKeys: string[]): string[] {
   return out;
 }
 
-export function projectsFromProfile(profile: {
-  projects?: unknown;
-  raw?: unknown;
-}): string[] {
+export function projectsFromProfile(profile: { projects?: unknown; raw?: unknown }): string[] {
   if (profile.projects != null) return collectLabels(profile.projects, ['name', 'project', 'title']);
   const raw = asRecord(profile.raw);
   return collectLabels(raw?.projects, ['name', 'project', 'title']);
 }
 
-export function eventsFromProfile(profile: {
-  events?: unknown;
-  raw?: unknown;
-}): string[] {
+export function eventsFromProfile(profile: { events?: unknown; raw?: unknown }): string[] {
   if (profile.events != null) return collectLabels(profile.events, ['name', 'event', 'title']);
   const raw = asRecord(profile.raw);
   return collectLabels(raw?.events, ['name', 'event', 'title']);
@@ -379,9 +364,7 @@ export function summarizeSourceSnapshots(raw: unknown): SourceSnapshotSummary[] 
   if (!map) return [];
   return Object.entries(map).map(([key, value]) => {
     const rec = asRecord(value);
-    const type =
-      (rec && pickString(rec, ['sourceType', 'type'])) ||
-      (isNonEmptyString(value) ? value.trim() : null);
+    const type = (rec && pickString(rec, ['sourceType', 'type'])) || (isNonEmptyString(value) ? value.trim() : null);
     return { key, type };
   });
 }
@@ -399,4 +382,40 @@ export function typeLabel(type: string): string {
     default:
       return type.replace(/_/g, ' ');
   }
+}
+
+export type CoInvestmentItem = {
+  name: string;
+  teamUid?: string | null;
+  dealDate?: string | null;
+  dealStage?: string | null;
+  dealAmount?: string | null;
+  isLeadInvestor: boolean;
+};
+
+/** Proven PL co-investments from MasterProfile.coInvestments. */
+export function parseCoInvestments(raw: unknown): CoInvestmentItem[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CoInvestmentItem[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    const rec = asRecord(item);
+    if (!rec) continue;
+    const name =
+      pickString(rec, ['name', 'teamName', 'company']) ||
+      (isNonEmptyString(rec.teamUid) ? String(rec.teamUid).trim() : null);
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      name,
+      teamUid: pickString(rec, ['teamUid']),
+      dealDate: pickString(rec, ['dealDate', 'date']),
+      dealStage: pickString(rec, ['dealStage', 'stage']),
+      dealAmount: pickString(rec, ['dealAmount', 'amount']),
+      isLeadInvestor: Boolean(rec.isLeadInvestor),
+    });
+  }
+  return out;
 }

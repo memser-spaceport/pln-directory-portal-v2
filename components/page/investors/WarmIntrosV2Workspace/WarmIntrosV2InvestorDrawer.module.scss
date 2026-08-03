@@ -218,6 +218,30 @@
   color: #334155;
 }
 
+.coInvestBlock {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.coInvestLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c2410c;
+  margin-bottom: 4px;
+}
+
+.coInvestNames {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #0a0c11;
+}
+
 .linkBtn {
   margin-top: 12px;
   background: none;

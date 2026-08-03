@@ -5,6 +5,7 @@ import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBad
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { HopRoleBadge } from './HopRoleBadge';
+import { InLabOsBadge } from './InLabOsBadge';
 import { ListMembershipTags } from './ListMembershipTags';
 import { PathProfileChip } from './PathProfileChip';
 import { parseWarmPathHopChain } from './parseWarmPathHopChain';
@@ -108,11 +109,7 @@ export function WarmIntrosV2Table({
                       >
                         {name}
                       </button>
-                      {investor?.memberUid ? (
-                        <span className={s.directoryBadge} title="Directory member">
-                          PL Network
-                        </span>
-                      ) : null}
+                      {investor?.memberUid ? <InLabOsBadge memberUid={investor.memberUid} /> : null}
                       {showListName ? (
                         <ListMembershipTags listSlugs={investor?.listSlugs} fallbackTargetSet={row.targetSet} inline />
                       ) : null}

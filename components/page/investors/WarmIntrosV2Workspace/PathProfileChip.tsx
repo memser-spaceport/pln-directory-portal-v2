@@ -50,9 +50,7 @@ export function PathProfileChip({
             {initials || '?'}
           </span>
         )}
-        {inDirectory ? (
-          <span className={s.directoryDot} title="Directory member" aria-label="Directory member" />
-        ) : null}
+        {inDirectory ? <span className={s.directoryDot} title="In LabOS" aria-label="In LabOS" /> : null}
       </span>
       <span className={s.label}>{label}</span>
     </>

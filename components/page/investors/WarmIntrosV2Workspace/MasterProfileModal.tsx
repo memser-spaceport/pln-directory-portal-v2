@@ -2,13 +2,13 @@
 
 import { useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import clsx from 'clsx';
 import { Modal } from '@/components/common/Modal';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
 import { affinityPersonUrl } from './parseWarmPathHopChain';
+import { InLabOsBadge } from './InLabOsBadge';
 import {
   eventsFromProfile,
   parseCoInvestments,
@@ -155,16 +155,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                 ) : null}
 
                 <div className={s.extLinks}>
-                  {memberUid ? (
-                    <Link
-                      href={`/members/${encodeURIComponent(memberUid)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={s.extLink}
-                    >
-                      Directory member ↗
-                    </Link>
-                  ) : null}
+                  {memberUid ? <InLabOsBadge memberUid={memberUid} /> : null}
                   {affinityId ? (
                     <a
                       href={affinityPersonUrl(affinityId)}

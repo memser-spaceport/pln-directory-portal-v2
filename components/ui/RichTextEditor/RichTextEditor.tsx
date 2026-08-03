@@ -65,6 +65,16 @@ registerMentionBlot();
 (Quill.import('ui/icons') as Record<string, unknown>)['officeHours'] = officeHours;
 (Quill.import('ui/icons') as Record<string, unknown>)['mention'] = mentionIcon;
 
+const DEFAULT_TOOLBAR_CONTAINER = [
+  [{ header: [1, 2, 3, false] }],
+  ['bold', 'italic', 'strike', 'underline'],
+  [{ color: [] }, { background: [] }],
+  [{ list: ['ordered'] }, { list: 'bullet' }],
+  [{ align: [] }],
+  ['code-block', 'link', 'mention', 'image'],
+  // ['code-block', 'image', 'officeHours'],
+];
+
 const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
   const {
     value,
@@ -133,19 +143,20 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
     }
   }, [mentionState.query, mentionState.isOpen, mentionResults?.length, enableMentions, onMentionSearch]);
 
-  // 3. Define toolbar modules (with proper nesting)
-  const defaultToolbarContainer = [
-    [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'strike', 'underline'],
-    [{ color: [] }, { background: [] }],
-    [{ list: ['ordered'] }, { list: 'bullet' }],
-    [{ align: [] }],
-    ['code-block', 'link', 'mention', 'image'],
-    // ['code-block', 'image', 'officeHours'],
-  ];
+  // react-quill-new deep-compares `modules` (lodash isEqual) and on any
+  // mismatch destroys and recreates the whole Quill instance — invisibly,
+  // since it restores contents and selection. Distinct function references
+  // never compare equal, and this memo creates closures (clipboard matcher,
+  // toolbar handlers), so recomputing it on a mere identity change of
+  // `toolbarConfig` regenerates the editor every render — orphaning every
+  // listener attached via getEditor() (mention detection died this way under
+  // a caller passing an inline `toolbarConfig={[]}`). Key the memo on the
+  // config's content, not its identity.
+  const toolbarKey = JSON.stringify(toolbarConfig ?? null);
 
   const modules = useMemo(() => {
-    const container = toolbarConfig || defaultToolbarContainer;
+    const container: NonNullable<Props['toolbarConfig']> =
+      toolbarKey === 'null' ? DEFAULT_TOOLBAR_CONTAINER : JSON.parse(toolbarKey);
     const hasMention = container.some((group) => group.includes('mention'));
     const hasImage = container.some((group) => group.includes('image'));
 
@@ -226,7 +237,7 @@ const RichTextEditor = forwardRef<ReactQuill, Props>((props, ref) => {
         ],
       },
     };
-  }, [toolbarConfig]);
+  }, [toolbarKey]);
 
   // Prevent quill-image-uploader from treating emoji pastes as image uploads.
   // When clipboard contains both text and image data (common for emojis copied from

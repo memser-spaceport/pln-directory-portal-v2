@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY,
   ALL_CAT,
   ALL_TAB,
   CATEGORIES,
@@ -41,7 +41,7 @@ export const isNarrowed = (v: FeedView): boolean =>
 
 const CATEGORY_LABEL: Record<string, string> = {
   ...Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label])),
-  [ACTIVE_DISCUSSIONS_CAT]: ACTIVE_DISCUSSIONS_CATEGORY.label,
+  [DISCUSSIONS_CAT]: DISCUSSIONS_CATEGORY.label,
 };
 
 /**

@@ -36,8 +36,8 @@ import { SortDropdown } from '@/components/common/filters/SortDropdown';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 
 import {
-  ACTIVE_DISCUSSIONS_CAT,
-  ACTIVE_DISCUSSIONS_CATEGORY,
+  DISCUSSIONS_CAT,
+  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
@@ -359,7 +359,7 @@ export default function NewsfeedCuratedPrototype() {
     for (const c of base) {
       out.push(c);
       if (c.id === ALL_CAT && activeDiscussionsCount > 0) {
-        out.push({ ...ACTIVE_DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
+        out.push({ ...DISCUSSIONS_CATEGORY, count: activeDiscussionsCount });
       }
     }
     // Hiring joins the same pill row as a synthetic category, the way production
@@ -371,7 +371,7 @@ export default function NewsfeedCuratedPrototype() {
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return scopedItems;
     if (activeCategory === HIRING_CAT) return [];
-    if (activeCategory === ACTIVE_DISCUSSIONS_CAT) {
+    if (activeCategory === DISCUSSIONS_CAT) {
       return scopedItems.filter((i) => hasExistingDiscussion(i.discussion));
     }
     return scopedItems.filter((i) => i.eventType === activeCategory);

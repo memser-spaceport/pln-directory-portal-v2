@@ -24,6 +24,8 @@ function buildYAxisTicks(maxValue: number): number[] {
  * @param data - Chart section data from master JSON
  */
 export default function ChartSection({ data }: ChartSectionProps) {
+  const axisMaxValue = data.maxValue || 100;
+
   return (
     <>
       <section className="chart-section">
@@ -59,9 +61,9 @@ export default function ChartSection({ data }: ChartSectionProps) {
                     }}
                     dy={10}
                   />
-                  <YAxis 
-                    domain={[0, data.maxValue]}
-                    ticks={buildYAxisTicks(data.maxValue)}
+                  <YAxis
+                    domain={[0, axisMaxValue]}
+                    ticks={buildYAxisTicks(axisMaxValue)}
                     axisLine={false}
                     tickLine={false}
                     tick={{ 

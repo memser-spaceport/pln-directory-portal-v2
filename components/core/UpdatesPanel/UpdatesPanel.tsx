@@ -95,17 +95,21 @@ export function UpdatesPanel({
                     <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
                   </div>
                 )}
-                {/* Hidden (not disabled) with nothing unread — same rule as
-                    the pill above, and never shown to logged-out viewers. */}
+              </div>
+              <div className={s.headerActions}>
+                {/* The prototype's placement: right-aligned against the window
+                    controls, away from the identity cluster. Hidden (not
+                    disabled) with nothing unread — the rule the unread pill
+                    already follows — and never shown to logged-out viewers. */}
                 {isLoggedIn && unreadCount > 0 && onMarkAllAsRead && (
                   <button type="button" className={s.markAllButton} onClick={handleMarkAllClick}>
                     Mark all as read
                   </button>
                 )}
+                <button ref={closeButtonRef} className={s.closeButton} onClick={onClose} aria-label="Close">
+                  <CloseIcon />
+                </button>
               </div>
-              <button ref={closeButtonRef} className={s.closeButton} onClick={onClose} aria-label="Close">
-                <CloseIcon />
-              </button>
             </div>
             <span role="status" className={s.srOnly}>
               {statusMessage}

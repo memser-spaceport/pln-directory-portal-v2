@@ -82,22 +82,46 @@
   padding: 0 2px;
 }
 
-/* Quiet text action beside the unread pill; hidden entirely at zero unread. */
+/* Mark-all + close, right of the header. */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Quiet neutral action, transcribed from the notifications-hub prototype's
+   .markAllLink — reads as chrome, not as a link into content. Hidden entirely
+   at zero unread (production decision), so the prototype's :disabled state
+   never renders here. */
 .markAllButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
   border: none;
   background: none;
-  padding: 0;
-  cursor: pointer;
+  border-radius: 6px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
-  color: #156ff7;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
   white-space: nowrap;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
 
   &:hover {
-    text-decoration: underline;
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
   }
 }
 

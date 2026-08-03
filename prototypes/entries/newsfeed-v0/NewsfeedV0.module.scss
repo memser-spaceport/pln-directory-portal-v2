@@ -86,6 +86,180 @@
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
 
+/* ---------- Saved views: chip row above the tabs ---------- */
+
+/* Structure mirrors production's saved-view affordance (InvestorsFilterRail: a
+   body button to apply + an × to delete, active chip highlighted). Colours are
+   translated to the PL token+fallback palette rather than copied — the warm-
+   intros mirror of this component carries that page's own slate/tailwind hexes. */
+.savedViewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.savedViewLabel {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* One scrolling line on narrow screens — a wrapped stack of chips would push
+   the feed down before the reader has chosen anything. */
+.savedViewChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include tablet-portrait {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+.savedView {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  max-width: 220px;
+  padding: 4px 6px 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* Applied view: the brand outline + tint the platform uses for a selected chip. */
+.savedViewActive {
+  border-color: var(--transparent-brand-24, #1b4dff3d);
+  background: var(--transparent-brand-8, #1b4dff14);
+
+  .savedViewBody {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
+  &:hover {
+    border-color: var(--transparent-brand-24, #1b4dff3d);
+  }
+}
+
+.savedViewBody {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedViewDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  appearance: none;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+  transition: color 0.12s ease;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+/* PARKED with `SavedViewsBar` — the trigger slot for production's Save View
+   popover, kept in case the saved-collection option comes back. */
+.saveViewSlot {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12px;
+}
+
+/* ---------- Saved-filter banner (in-stream) ---------- */
+
+/* Production's own Update button references a `.alertBtn` class that doesn't
+   exist in JobAlertBanner.module.scss, so its label and arrow sit flush. The
+   banner is otherwise copied 1:1, but a missing gap is a bug, not a spec —
+   supply it rather than reproduce it. */
+.savedFilterBtn.savedFilterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The reused shell adds `margin: 0 8px` under 640px, because the job board's
+   results list has no gutters of its own there. Our feed column already has page
+   padding, so that inset pushes the banner in off the news cards' edge — zero it
+   so the two line up. */
+.streamBanner > div {
+  @include mobile-only {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+/* The saved filter's standing home, beside Sort. Same chip as the (parked)
+   saved-view row; the extra padding-left makes room for the bookmark mark, and
+   the gap keeps it off the Sort control. */
+.savedFilterChip {
+  gap: 6px;
+  padding-left: 8px;
+  margin-right: 12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  @include mobile-only {
+    max-width: 170px; /* the row also carries the Sort pill on one line */
+  }
+}
+
+.savedFilterChipIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.savedViewActive .savedFilterChipIcon {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
 /* ---------- Header search: expand-on-click icon ---------- */
 
 /* Sits inline right after the title: N-new badge · search. Grows to fill the
@@ -203,6 +377,42 @@
   }
 }
 
+/* Protocol Labs is the network's own org, so its card is outlined edge to edge
+   in brand blue — the whole box, not an edge accent, so it reads as one marked
+   card in a column of neutral ones. The team name sits inside the outline, so
+   the colour emphasises the card rather than being the only thing that
+   identifies it. Placed after .feedCard so the equal-specificity hover wins. */
+.plCard.plCard {
+  position: relative;
+
+  /* Gradient ring drawn as a masked pseudo-element — production's own recipe
+     (app/globals.scss .asks__tooltip::before), so the card keeps its white
+     background and its exact geometry (no border to shrink the content box).
+     The stops are the app-wide PL brand gradient, copied literally: it is
+     hardcoded everywhere in production and has no token. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    background: linear-gradient(71.47deg, #427dff 8.43%, #44d5bb 87.45%) border-box;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(27, 77, 255, 0.24),
+      0px 6px 12px 0px rgba(27, 77, 255, 0.1);
+  }
+}
+
 .feedStory {
   display: flex;
   flex-direction: column;
@@ -225,6 +435,27 @@
   }
 }
 
+/* Headline + teaser, with the video poster (when there is one) alongside. Below
+   tablet the text column has no room next to a poster, so they stack. */
+.storyMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  @include mobile-only {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.storyText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Hairline between stories (the card's own 14px gap provides the air). */
 .feedStory + .feedStory {
   border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
@@ -243,6 +474,21 @@
 
 .feedTitle {
   transition: color 0.12s ease;
+}
+
+/* The headline IS the link (a real <a href> to the thread), so it inherits the
+   heading's type and the hover colour below rather than looking like a link.
+   It carries the focus ring too — the story div around it is no longer a tab
+   stop, so there's exactly one. */
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid #1b4dff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 /* Story hover highlights its title (the story's click target) — not while the

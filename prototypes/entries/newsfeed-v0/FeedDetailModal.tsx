@@ -14,10 +14,11 @@ import { CloseIcon } from '@/components/icons';
 // modal standardizes on — so this detail modal matches the rest of the app.
 import dealModal from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 
-import type { NewsSource, FeedComment } from './mocks';
-import { LikeButton, CommentCount } from './FeedActions';
+import type { NewsSource, FeedComment, NewsVideo } from './mocks';
+import { LikeButton, CommentCount, ViewCount } from './FeedActions';
 import { CommentsThread } from './CommentsThread';
 import { ShareMenu } from './ShareMenu';
+import { VideoPlayer } from './NewsVideo';
 import s from './FeedDetailModal.module.scss';
 
 /**
@@ -44,6 +45,8 @@ export interface FeedDetail {
   summary: string | null;
   /** ISO date. */
   time: string;
+  /** Read count — the first of the forum's Views · Likes · Comments trio. */
+  views?: number;
   /** Outlets covering the story (news, when aggregated). */
   sources?: NewsSource[];
   /** Primary read-out link (news article / forum thread). */
@@ -51,6 +54,12 @@ export interface FeedDetail {
   readLabel?: string;
   /** Modal body as markdown with inline `[n](url)` citations (multi-source news only). */
   citedBody?: string;
+  /** YouTube video attached to the story (news only) — the modal's hero. */
+  video?: NewsVideo;
+  /** Open with the video already playing (the card's poster was the click target). */
+  autoplayVideo?: boolean;
+  /** Protocol Labs update — carries the same brand accent as its feed card. */
+  isProtocolLabs?: boolean;
 }
 
 /** Whether the modal renders per-claim citations (superscript markers). */
@@ -105,10 +114,10 @@ export function FeedDetailModal({
       ? [{ domain: hostOf(detail.readUrl), url: detail.readUrl }]
       : [];
 
-  // Share opens a destination menu (LinkedIn / X / Copy link). The footer actions
-  // are right-aligned, so the menu right-aligns too — it opens upward and inward,
-  // never off the clipped card edge.
-  const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="right" />;
+  // Share opens a destination menu (LinkedIn / X / Copy link). It sits on the left
+  // of the footer, so the menu aligns left — opening upward and inward, never off
+  // the clipped card edge.
+  const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="left" />;
 
   return (
     <Modal
@@ -118,7 +127,7 @@ export function FeedDetailModal({
       className={s.container}
     >
       {detail && (
-        <div className={s.card}>
+        <div className={clsx(s.card, detail.isProtocolLabs && s.plCard)}>
           {/* Sticky header: author/team identity on the left, standardized close
               button on the right, with the shared bottom divider. */}
           <div className={clsx(dealModal.header, s.head)}>
@@ -156,6 +165,18 @@ export function FeedDetailModal({
           </div>
 
           <h2 className={s.title}>{detail.title}</h2>
+
+          {/* Video sits under the headline and above the body — the poster only
+              becomes a player on click (or straight away when the card's poster
+              opened this modal). Keyed so switching stories resets playback. */}
+          {detail.video && (
+            <VideoPlayer
+              key={detail.id}
+              video={detail.video}
+              title={detail.title}
+              autoplay={detail.autoplayVideo}
+            />
+          )}
 
           {cited ? (
             // Superscript style: `[n](url)` → a raised ¹ marker with a hover/tap
@@ -216,10 +237,12 @@ export function FeedDetailModal({
           )}
           </div>
 
-          <div className={clsx(dealModal.footer, s.footer)}>
-            {/* Share leads, then Like and the comment count. */}
-            <span className={s.footerActions}>
-              {shareButton}
+          <div className={clsx(dealModal.footer, s.footer, s.footerSplit)}>
+            {/* Same footer grammar as the forum post modal: the outbound action on
+                the left, the read/like/comment metrics on the right. */}
+            <span className={s.footerActions}>{shareButton}</span>
+            <span className={s.forumMeta}>
+              {detail.views != null && <ViewCount count={detail.views} />}
               <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
               {detail.kind === 'news' && showComments && (
                 <CommentCount count={comments.length} onClick={scrollToComments} />

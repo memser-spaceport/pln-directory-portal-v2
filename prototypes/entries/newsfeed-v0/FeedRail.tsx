@@ -1,12 +1,10 @@
 'use client';
 
 import clsx from 'clsx';
-import { useState } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
-import { Button } from '@/components/common/Button';
 
 // Reuse the production news-card styling 1:1 (card shell, logo sizes).
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
@@ -15,6 +13,7 @@ import local from './NewsfeedV0.module.scss';
 // The same Follow button dev ships in the production "Teams to follow" rail.
 import { FollowButton } from '@/components/ui/FollowButton';
 import { SUGGESTED_TEAMS, UPVOTES } from './mocks';
+import { DigestBanner } from './DigestBanner';
 
 interface FeedRailProps {
   followedTeams: Set<string>;
@@ -30,7 +29,6 @@ interface FeedRailProps {
  */
 export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailProps) {
   const popular = [...allItems].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
-  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <>
@@ -84,22 +82,9 @@ export function FeedRail({ followedTeams, onToggleFollow, allItems }: FeedRailPr
         ))}
       </div>
 
-      <div className={local.digestPromo}>
-        <div className={local.digestPromoText}>
-          <h3 className={local.digestPromoTitle}>Weekly network digest</h3>
-          <p className={local.digestPromoBody}>
-            The best raises, launches, and discussions from across the network — in your inbox every Monday.
-          </p>
-        </div>
-        <Button
-          style={subscribed ? 'border' : 'fill'}
-          variant={subscribed ? 'neutral' : 'primary'}
-          className={local.digestPromoBtn}
-          onClick={() => setSubscribed((v) => !v)}
-        >
-          {subscribed ? 'Subscribed ✓' : 'Subscribe'}
-        </Button>
-      </div>
+      {/* The network-wide email digest — production's real feature, unrelated to
+          filters. Self-managed two-state card. */}
+      <DigestBanner />
     </>
   );
 }

@@ -16,13 +16,14 @@ import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
-import { SOURCES_BY_UID } from './mocks';
+import { PL_TEAM_UID, SOURCES_BY_UID, VIDEO_BY_UID } from './mocks';
 import type { FeedComment } from './mocks';
 import { SourceList } from './SourceList';
 import type { TeamCluster } from './V0NewsCard';
 import { LikeButton, CommentButton } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
+import { VideoThumb } from './NewsVideo';
 
 // Same event-color mapping as the grid card.
 const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
@@ -45,8 +46,9 @@ interface V0FeedCardProps {
   onToggleLike: (uid: string) => void;
   commentsFor: (uid: string) => FeedComment[];
   onAddComment: (uid: string, text: string, parentUid?: string) => void;
-  /** Open the story's detail modal (summary + share + sources). */
-  onOpenStory: (story: ITeamNewsItem) => void;
+  /** Open the story's detail modal (summary + share + sources). `playVideo` opens
+   *  it with the attached video already playing — the poster was the click target. */
+  onOpenStory: (story: ITeamNewsItem, playVideo?: boolean) => void;
 }
 
 /**
@@ -84,9 +86,11 @@ export function V0FeedCard({
   );
   const hiddenCount = Math.max(0, stories.length - VISIBLE_STORIES);
   const visibleStories = expanded ? stories : stories.slice(0, VISIBLE_STORIES);
+  // The network's own org: its card carries the brand border + left accent.
+  const isProtocolLabs = cluster.teamUid === PL_TEAM_UID;
 
   return (
-    <div className={clsx(s.card, local.feedCard)}>
+    <div className={clsx(s.card, local.feedCard, isProtocolLabs && local.plCard)}>
       <div className={s.head}>
         {cluster.teamLogoUrl ? (
           <img className={s.logo} src={cluster.teamLogoUrl} alt="" loading="lazy" />
@@ -110,6 +114,7 @@ export function V0FeedCard({
       {visibleStories.map((story) => {
         const threadOpen = openThreads.has(story.uid);
         const comments = commentsFor(story.uid);
+        const video = VIDEO_BY_UID[story.uid];
         return (
           <div
             key={story.uid}
@@ -127,8 +132,15 @@ export function V0FeedCard({
               }
             }}
           >
-            <h3 className={clsx(s.headline, local.feedTitle)}>{story.title}</h3>
-            {story.summary && <p className={local.summary}>{story.summary}</p>}
+            {/* Text leads; a story with video puts its poster in a narrow column
+                beside the headline (stacked under it on mobile). */}
+            <div className={local.storyMain}>
+              <div className={local.storyText}>
+                <h3 className={clsx(s.headline, local.feedTitle)}>{story.title}</h3>
+                {story.summary && <p className={local.summary}>{story.summary}</p>}
+              </div>
+              {video && <VideoThumb video={video} title={story.title} onPlay={() => onOpenStory(story, true)} />}
+            </div>
             <div className={local.footer}>
               <span className={local.source}>
                 <span className={clsx(local.metaEvent, local[KICKER_COLOR_CLASS[story.eventType]])}>

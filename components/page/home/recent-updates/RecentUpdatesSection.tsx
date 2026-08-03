@@ -10,6 +10,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { NotificationItem } from '@/components/core/UpdatesPanel/NotificationItem';
 import { LoadingIndicator } from './components/LoadingIndicator/LoadingIndicator';
 import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInState';
+import { ViewSwitch, applyView, type UpdatesView } from '@/components/core/UpdatesPanel/ViewSwitch/ViewSwitch';
 import s from './RecentUpdatesSection.module.scss';
 
 /**
@@ -43,9 +44,14 @@ export function RecentUpdatesSection(props: Props) {
   const [statusMessage, setStatusMessage] = useState('');
   const titleRef = useRef<HTMLHeadingElement>(null);
 
+  // All / Unread / Read scoping (the inbox prototype's arrangement). Filters
+  // the pages loaded so far; scrolling keeps feeding the filter.
+  const [view, setView] = useState<UpdatesView>('all');
+
   // Sanitize notifications to remove HTML markup from title and description
   // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
   const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
+  const visibleNotifications = applyView(sanitizedNotifications, view);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);
@@ -80,18 +86,25 @@ export function RecentUpdatesSection(props: Props) {
           <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
         </div>
       )}
-      {/* Grayed out (not hidden) at zero unread — the prototypes' behavior.
-          Logged-out viewers never see it. */}
-      {isLoggedIn && (
-        <button type="button" className={s.markAllButton} onClick={handleMarkAllClick} disabled={unreadCount === 0}>
-          Mark all as read
-        </button>
-      )}
       <span role="status" className={s.srOnly}>
         {statusMessage}
       </span>
     </div>
   );
+
+  // The inbox prototype's filter row, between the header and the card: view
+  // scoping sits against the list it scopes, beside the bulk action that
+  // operates on the same set. Mark-all is grayed out (not hidden) at zero
+  // unread. Logged-out viewers never see this row.
+  const renderFilters = () =>
+    isLoggedIn && (
+      <div className={s.filtersRow}>
+        <ViewSwitch view={view} unreadCount={unreadCount} onChange={setView} />
+        <button type="button" className={s.markAllButton} onClick={handleMarkAllClick} disabled={unreadCount === 0}>
+          Mark all as read
+        </button>
+      </div>
+    );
 
   if (!isLoggedIn) {
     return (
@@ -118,20 +131,39 @@ export function RecentUpdatesSection(props: Props) {
   return (
     <section id="recent-updates" className={s.section}>
       {renderHeader()}
+      {renderFilters()}
       <div className={s.card}>
         {sanitizedNotifications.length === 0 ? (
           <EmptyState />
+        ) : visibleNotifications.length === 0 ? (
+          // The list has items — just none in this segment (proto copy).
+          <div className={s.viewEmptyState}>
+            {view === 'unread' ? (
+              <>
+                <p className={s.viewEmptyTitle}>You&apos;re all caught up</p>
+                <p className={s.viewEmptyBody}>Nothing unread right now.</p>
+                <button type="button" className={s.viewEmptyAction} onClick={() => setView('all')}>
+                  Show all updates
+                </button>
+              </>
+            ) : (
+              <>
+                <p className={s.viewEmptyTitle}>Nothing read yet</p>
+                <p className={s.viewEmptyBody}>Updates you&apos;ve read will collect here.</p>
+              </>
+            )}
+          </div>
         ) : (
           <InfiniteScroll
             scrollableTarget="body"
             loader={null}
             hasMore={hasNextPage}
-            dataLength={sanitizedNotifications.length}
+            dataLength={visibleNotifications.length}
             next={fetchNextPage}
             style={{ overflow: 'unset' }}
           >
             <div className={s.notificationsList}>
-              {sanitizedNotifications.map((notification) => (
+              {visibleNotifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}

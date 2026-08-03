@@ -9,6 +9,7 @@ import { CloseIcon, ArrowRightIcon } from './icons';
 import { EmptyState } from './EmptyState';
 import { NotLoggedInState } from './NotLoggedInState';
 import { NotificationItem } from './NotificationItem';
+import { ViewSwitch, applyView, type UpdatesView } from './ViewSwitch/ViewSwitch';
 import s from './UpdatesPanel.module.scss';
 
 interface UpdatesPanelProps {
@@ -37,6 +38,12 @@ export function UpdatesPanel({
   // by design), and on failure the only signal a person gets at all.
   const [statusMessage, setStatusMessage] = useState('');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // All / Unread / Read scoping (prototype behavior). Deliberately NOT reset
+  // on close: reopening where you left off matches the proto's session-scoped
+  // view state.
+  const [view, setView] = useState<UpdatesView>('all');
+  const visibleNotifications = applyView(notifications, view);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onUpdatesPanelNotificationClicked(notification);
@@ -102,20 +109,24 @@ export function UpdatesPanel({
               </button>
             </div>
 
-            {/* The prototype's arrangement: the bulk action gets its own row
-                between the header and the list it operates on, right-aligned,
-                and stays visible-but-disabled at zero unread (a bulk
-                mark-as-read hides nothing). Logged-out viewers never see it. */}
-            {isLoggedIn && onMarkAllAsRead && (
+            {/* The prototype's filter row: All/Unread/Read scoping against the
+                list it scopes, beside the bulk action that operates on the same
+                set. Mark-all stays visible-but-disabled at zero unread (with a
+                Read segment present, a bulk mark-as-read hides nothing).
+                Logged-out viewers never see this row. */}
+            {isLoggedIn && (
               <div className={s.actionRow}>
-                <button
-                  type="button"
-                  className={s.markAllButton}
-                  onClick={handleMarkAllClick}
-                  disabled={unreadCount === 0}
-                >
-                  Mark all as read
-                </button>
+                <ViewSwitch view={view} unreadCount={unreadCount} onChange={setView} />
+                {onMarkAllAsRead && (
+                  <button
+                    type="button"
+                    className={s.markAllButton}
+                    onClick={handleMarkAllClick}
+                    disabled={unreadCount === 0}
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
             )}
             <span role="status" className={s.srOnly}>
@@ -127,9 +138,28 @@ export function UpdatesPanel({
                 <NotLoggedInState onClose={onClose} />
               ) : notifications.length === 0 ? (
                 <EmptyState />
+              ) : visibleNotifications.length === 0 ? (
+                // The list has items — just none in this segment. The proto's
+                // per-view copy, with an escape back to All where one helps.
+                <div className={s.viewEmptyState}>
+                  {view === 'unread' ? (
+                    <>
+                      <p className={s.viewEmptyTitle}>You&apos;re all caught up</p>
+                      <p className={s.viewEmptyBody}>Nothing unread right now.</p>
+                      <button type="button" className={s.viewEmptyAction} onClick={() => setView('all')}>
+                        Show all updates
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className={s.viewEmptyTitle}>Nothing read yet</p>
+                      <p className={s.viewEmptyBody}>Updates you&apos;ve read will collect here.</p>
+                    </>
+                  )}
+                </div>
               ) : (
                 <div className={s.notificationsList}>
-                  {notifications.map((notification) => (
+                  {visibleNotifications.map((notification) => (
                     <NotificationItem
                       key={notification.id}
                       notification={notification}

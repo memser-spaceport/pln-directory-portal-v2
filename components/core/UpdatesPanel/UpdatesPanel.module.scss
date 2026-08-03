@@ -82,17 +82,62 @@
   padding: 0 2px;
 }
 
-/* The bulk action's own row, between the header and the list — the
-   prototype's .searchRow chrome without the view tabs (out of scope here),
-   so the single control right-aligns the way it does there. */
+/* The prototype's filter row between the header and the list: All/Unread/Read
+   tabs on the left, the bulk action on the right (.searchRow chrome). */
 .actionRow {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 8px;
   padding: 10px 16px;
   border-bottom: 1px solid rgba(27, 56, 96, 0.12);
   flex-shrink: 0;
+}
+
+/* Segment-empty copy (list has items, this view doesn't) — the proto's
+   .emptyState/.emptyTitle/.emptyBody/.emptyAction, minus the icon. */
+.viewEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.viewEmptyTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.viewEmptyBody {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.viewEmptyAction {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Quiet neutral action, transcribed from the notifications-hub prototype's

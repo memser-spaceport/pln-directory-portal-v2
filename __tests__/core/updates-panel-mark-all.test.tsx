@@ -75,4 +75,37 @@ describe('UpdatesPanel mark all as read', () => {
     await waitFor(() => expect(mockOnMarkAllFailed).toHaveBeenCalledWith('updates_panel', 3));
     expect(screen.getByRole('status')).toHaveTextContent('Could not mark notifications as read');
   });
+
+  it('scopes the list with the All/Unread/Read tabs, with a caught-up escape hatch', () => {
+    const now = new Date().toISOString();
+    const notification = (id: string, title: string, isRead: boolean) =>
+      ({ id, uid: id, title, description: '', isRead, category: 'FORUM_POST', createdAt: now }) as never;
+    renderPanel({
+      notifications: [notification('n1', 'Unread thing', false), notification('n2', 'Read thing', true)],
+      unreadCount: 1,
+    });
+
+    expect(screen.getByRole('tablist', { name: 'Filter updates' })).toBeInTheDocument();
+    expect(screen.getByText('Unread thing')).toBeInTheDocument();
+    expect(screen.getByText('Read thing')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: /Unread/ }));
+    expect(screen.getByText('Unread thing')).toBeInTheDocument();
+    expect(screen.queryByText('Read thing')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Read' }));
+    expect(screen.queryByText('Unread thing')).not.toBeInTheDocument();
+    expect(screen.getByText('Read thing')).toBeInTheDocument();
+  });
+
+  it('offers "Show all updates" when the Unread segment is empty but the list is not', () => {
+    const notification = { id: 'n2', title: 'Read thing', isRead: true, category: 'FORUM_POST' } as never;
+    renderPanel({ notifications: [notification], unreadCount: 0 });
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Unread' }));
+    expect(screen.getByText("You're all caught up")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all updates' }));
+    expect(screen.getByText('Read thing')).toBeInTheDocument();
+  });
 });

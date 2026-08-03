@@ -144,6 +144,22 @@ export function UpdatesPanel({
                 <div className={s.viewEmptyState}>
                   {view === 'unread' ? (
                     <>
+                      <svg
+                        width="56"
+                        height="56"
+                        viewBox="0 0 56 56"
+                        fill="none"
+                        aria-hidden="true"
+                        className="NotificationsHub-module-scss-module__GrkIOW__emptyIcon"
+                      >
+                        <path
+                          d="M8 30.5 13.2 14a3 3 0 0 1 2.85-2.05h23.9A3 3 0 0 1 42.8 14L48 30.5m-40 0V40a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4v-9.5m-40 0h10.8a2 2 0 0 1 1.86 1.27l.62 1.56A2 2 0 0 0 23.14 35h9.72a2 2 0 0 0 1.86-1.27l.62-1.56A2 2 0 0 1 37.2 30.5H48"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        ></path>
+                      </svg>
                       <p className={s.viewEmptyTitle}>You&apos;re all caught up</p>
                       <p className={s.viewEmptyBody}>Nothing unread right now.</p>
                       <button type="button" className={s.viewEmptyAction} onClick={() => setView('all')}>

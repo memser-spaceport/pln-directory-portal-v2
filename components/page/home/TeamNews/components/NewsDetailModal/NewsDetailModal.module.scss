@@ -117,6 +117,9 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--foreground-neutral-secondary, #455468);
+  // Pasted URLs and other unbroken tokens wrap instead of stretching the
+  // scrolling body past the modal's width.
+  overflow-wrap: anywhere;
 
   // Sanitized contentHtml: paragraphs/lists with inline emphasis.
   p,

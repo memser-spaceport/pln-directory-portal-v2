@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { ChartSectionData } from '../types';
 
@@ -25,6 +26,7 @@ function buildYAxisTicks(maxValue: number): number[] {
  */
 export default function ChartSection({ data }: ChartSectionProps) {
   const axisMaxValue = data.maxValue || 100;
+  const isEmpty = !data.chartData.some((entry) => entry.value > 0);
 
   return (
     <>
@@ -97,6 +99,23 @@ export default function ChartSection({ data }: ChartSectionProps) {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+
+            {isEmpty && (
+              <div className="chart-section__empty-overlay">
+                <Image
+                  src="/icons/rounds/empty-illustration.svg"
+                  alt=""
+                  width={160}
+                  height={107}
+                  aria-hidden="true"
+                  className="chart-section__empty-icon"
+                />
+                <p className="chart-section__empty-title">Points Pending</p>
+                <p className="chart-section__empty-desc">
+                  No points have been collected yet for this snapshot period.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -140,6 +159,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
         }
 
         .chart-section__chart-wrapper {
+          position: relative;
           width: 100%;
           overflow-x: auto;
           overflow-y: hidden;
@@ -148,6 +168,40 @@ export default function ChartSection({ data }: ChartSectionProps) {
         .chart-section__chart {
           min-width: 800px;
           width: 100%;
+        }
+
+        .chart-section__empty-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 24px;
+          text-align: center;
+          background-color: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(2px);
+        }
+
+        .chart-section__empty-icon {
+          height: auto;
+          max-height: 120px;
+          width: auto;
+        }
+
+        .chart-section__empty-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #16161f;
+          margin: 0;
+        }
+
+        .chart-section__empty-desc {
+          font-size: 14px;
+          color: #475569;
+          margin: 0;
+          max-width: 320px;
         }
 
         @media (max-width: 768px) {

@@ -57,8 +57,8 @@ export function RecentUpdatesSection(props: Props) {
 
   const handleMarkAllClick = async () => {
     const count = unreadCount;
-    // The clicked button unmounts when the count hits zero — park focus on the
-    // heading first so it never drops to <body>.
+    // The clicked button disables when the count hits zero, which drops its
+    // focus — park it on the heading first so it never lands on <body>.
     titleRef.current?.focus();
     analytics.onMarkAllUpdatesReadClicked('recent_updates', count);
     setStatusMessage('All notifications marked as read');
@@ -76,15 +76,16 @@ export function RecentUpdatesSection(props: Props) {
         Recent Updates
       </h2>
       {isLoggedIn && unreadCount > 0 && (
-        <>
-          <div className={s.unreadBadge}>
-            <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
-          </div>
-          {/* Hidden (not disabled) with nothing unread — same rule as the pill. */}
-          <button type="button" className={s.markAllButton} onClick={handleMarkAllClick}>
-            Mark all as read
-          </button>
-        </>
+        <div className={s.unreadBadge}>
+          <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
+        </div>
+      )}
+      {/* Grayed out (not hidden) at zero unread — the prototypes' behavior.
+          Logged-out viewers never see it. */}
+      {isLoggedIn && (
+        <button type="button" className={s.markAllButton} onClick={handleMarkAllClick} disabled={unreadCount === 0}>
+          Mark all as read
+        </button>
       )}
       <span role="status" className={s.srOnly}>
         {statusMessage}

@@ -41,9 +41,13 @@ describe('UpdatesPanel mark all as read', () => {
     expect(screen.getByRole('button', { name: 'Mark all as read' })).toBeInTheDocument();
   });
 
-  it('hides the control at zero unread rather than disabling it', () => {
-    renderPanel({ unreadCount: 0 });
-    expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument();
+  it('shows the control grayed out at zero unread, and a click does nothing', () => {
+    const { onMarkAllAsRead } = renderPanel({ unreadCount: 0 });
+    const button = screen.getByRole('button', { name: 'Mark all as read' });
+
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(onMarkAllAsRead).not.toHaveBeenCalled();
   });
 
   it('never shows the control to logged-out viewers', () => {

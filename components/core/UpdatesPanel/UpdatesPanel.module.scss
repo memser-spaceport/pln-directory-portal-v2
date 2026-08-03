@@ -82,18 +82,22 @@
   padding: 0 2px;
 }
 
-/* Mark-all + close, right of the header. */
-.headerActions {
+/* The bulk action's own row, between the header and the list — the
+   prototype's .searchRow chrome without the view tabs (out of scope here),
+   so the single control right-aligns the way it does there. */
+.actionRow {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(27, 56, 96, 0.12);
   flex-shrink: 0;
 }
 
 /* Quiet neutral action, transcribed from the notifications-hub prototype's
-   .markAllLink — reads as chrome, not as a link into content. Hidden entirely
-   at zero unread (production decision), so the prototype's :disabled state
-   never renders here. */
+   .markAllLink — reads as chrome, not as a link into content. Grayed out
+   (not hidden) at zero unread, exactly like the prototype. */
 .markAllButton {
   display: inline-flex;
   align-items: center;
@@ -114,7 +118,7 @@
     background-color 0.12s ease,
     color 0.12s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
     color: var(--foreground-neutral-primary, #0a0c11);
   }
@@ -122,6 +126,11 @@
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 }
 

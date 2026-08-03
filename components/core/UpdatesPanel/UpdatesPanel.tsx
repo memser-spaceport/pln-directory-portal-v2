@@ -49,8 +49,9 @@ export function UpdatesPanel({
 
   const handleMarkAllClick = async () => {
     const count = unreadCount;
-    // The clicked button unmounts the moment the count hits zero — park focus
-    // on the close button first so it never drops to <body>. Panel stays open.
+    // The clicked button disables the moment the count hits zero, which drops
+    // its focus — park it on the close button first so it never lands on
+    // <body>. Panel stays open.
     closeButtonRef.current?.focus();
     analytics.onMarkAllUpdatesReadClicked('updates_panel', count);
     setStatusMessage('All notifications marked as read');
@@ -96,21 +97,27 @@ export function UpdatesPanel({
                   </div>
                 )}
               </div>
-              <div className={s.headerActions}>
-                {/* The prototype's placement: right-aligned against the window
-                    controls, away from the identity cluster. Hidden (not
-                    disabled) with nothing unread — the rule the unread pill
-                    already follows — and never shown to logged-out viewers. */}
-                {isLoggedIn && unreadCount > 0 && onMarkAllAsRead && (
-                  <button type="button" className={s.markAllButton} onClick={handleMarkAllClick}>
-                    Mark all as read
-                  </button>
-                )}
-                <button ref={closeButtonRef} className={s.closeButton} onClick={onClose} aria-label="Close">
-                  <CloseIcon />
+              <button ref={closeButtonRef} className={s.closeButton} onClick={onClose} aria-label="Close">
+                <CloseIcon />
+              </button>
+            </div>
+
+            {/* The prototype's arrangement: the bulk action gets its own row
+                between the header and the list it operates on, right-aligned,
+                and stays visible-but-disabled at zero unread (a bulk
+                mark-as-read hides nothing). Logged-out viewers never see it. */}
+            {isLoggedIn && onMarkAllAsRead && (
+              <div className={s.actionRow}>
+                <button
+                  type="button"
+                  className={s.markAllButton}
+                  onClick={handleMarkAllClick}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all as read
                 </button>
               </div>
-            </div>
+            )}
             <span role="status" className={s.srOnly}>
               {statusMessage}
             </span>

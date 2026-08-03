@@ -54,11 +54,14 @@ describe('RecentUpdatesSection mark all as read', () => {
     expect(screen.getByText('Unread 2')).toBeInTheDocument();
   });
 
-  it('hides the control at zero unread', () => {
+  it('shows the control grayed out at zero unread, and a click does nothing', () => {
     providerUnreadCount = 0;
     render(<RecentUpdatesSection isLoggedIn />);
+    const button = screen.getByRole('button', { name: 'Mark all as read' });
 
-    expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument();
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(mockMarkAllAsRead).not.toHaveBeenCalled();
   });
 
   it('never shows the control to logged-out viewers', () => {

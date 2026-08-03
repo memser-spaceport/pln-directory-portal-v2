@@ -67,8 +67,7 @@
 /* Quiet neutral action, transcribed from the notifications prototypes'
    .markAllLink, at the header's right edge (the inbox prototype's placement:
    the bulk action sits against the list it operates on, opposite the identity
-   cluster). Hidden entirely at zero unread, so the prototype's :disabled
-   state never renders here. */
+   cluster). Grayed out (not hidden) at zero unread, like the prototypes. */
 .markAllButton {
   display: inline-flex;
   align-items: center;
@@ -90,7 +89,7 @@
     background-color 0.12s ease,
     color 0.12s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
     color: var(--foreground-neutral-primary, #0a0c11);
   }
@@ -98,6 +97,11 @@
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 }
 

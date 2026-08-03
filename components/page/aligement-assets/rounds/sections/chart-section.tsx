@@ -112,7 +112,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                 />
                 <p className="chart-section__empty-title">Points Pending</p>
                 <p className="chart-section__empty-desc">
-                  No points have been collected yet for this snapshot period.
+                  Points for this snapshot currently being calculated. Updates soon.
                 </p>
               </div>
             )}

@@ -1,12 +1,16 @@
 'use client';
 
 import clsx from 'clsx';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import parse from 'html-react-parser';
 
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
+import { processPostContent } from '@/components/page/forum/Post';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { linkifyHtml, sanitizeForumPostHtml } from '@/utils/html';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { useFeedForumTopicBodyHtml } from '@/services/feed/hooks/useFeedComments';
 import type { IFeedForumPost } from '@/types/feed.types';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
@@ -43,16 +47,36 @@ interface ForumPostModalProps {
 /**
  * Detail modal for a feed forum post (ported from the newsfeed-v0 prototype's
  * ForumPostModal, on the production news-modal chrome): author on top,
- * "Discussion" kicker, plain-text body, the shared inline comment thread, and
- * Like + Share in the footer. `post.body` is contract-guaranteed plain text
- * and renders via JSX interpolation only — it never goes anywhere near the
- * news modal's sanitizer/dangerouslySetInnerHTML path.
+ * "Discussion" kicker, the post's FULL body, the shared inline comment thread,
+ * and Like + Share in the footer.
+ *
+ * The body renders the same content /forum does, through the forum page's own
+ * pipeline (processPostContent → linkify → parse) plus the feed's
+ * sanitize-on-read layer — /forum trusts NodeBB's HTML directly, the feed
+ * never does. It comes off the comments query (the thread below fetches the
+ * whole topic anyway); until that lands, the card's plain-text teaser
+ * (`post.body`) stands in via JSX interpolation.
  */
 export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalProps) {
   // Same share-popover layering rule as the news modal: while the popover is
   // open, the modal's Escape/backdrop closers stand down so one gesture never
   // dismisses both layers.
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Same order as FeedCommentContent, for the same reason: linkify FIRST so
+  // the sanitizer checks the anchors it emits, then sanitize, then parse.
+  // processPostContent runs before both — it's the forum page's own
+  // markdown-image/nbsp step, so an image post renders here exactly as there
+  // (its inline <img> style is dropped by the sanitizer; .postBody's CSS is
+  // the replacement).
+  const bodyHtml = useFeedForumTopicBodyHtml(post.uid);
+  const richBody = useMemo(() => {
+    // The typeof check is load-bearing: jest.setup.js's global useQuery mock
+    // ignores `select` and hands back its stub object, and NodeBB wire data
+    // carries no runtime guarantees either.
+    if (typeof bodyHtml !== 'string' || !bodyHtml) return null;
+    return parse(sanitizeForumPostHtml(linkifyHtml(processPostContent(bodyHtml).processedContent)));
+  }, [bodyHtml]);
 
   const focusOnAttach = useCallback((node: HTMLButtonElement | null) => {
     node?.focus();
@@ -115,7 +139,11 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
           {post.title}
         </h3>
 
-        <p className={clsx(modalStyles.content, modalStyles.contentPlain)}>{post.body}</p>
+        {richBody ? (
+          <div className={clsx(modalStyles.content, s.postBody)}>{richBody}</div>
+        ) : (
+          <p className={clsx(modalStyles.content, modalStyles.contentPlain)}>{post.body}</p>
+        )}
 
         {/* The post's real NodeBB thread. `forumMainPid` is the topic's opening
             post — the reply target for a top-level comment — passed down so the

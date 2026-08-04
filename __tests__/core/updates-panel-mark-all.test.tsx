@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const mockOnMarkAllClicked = jest.fn();
 const mockOnMarkAllFailed = jest.fn();
+const mockOnSearchOpened = jest.fn();
+const mockOnSearchQueried = jest.fn();
 
 jest.mock('@/analytics/notification.analytics', () => ({
   useNotificationAnalytics: () => ({
@@ -11,6 +13,8 @@ jest.mock('@/analytics/notification.analytics', () => ({
     onViewAllUpdatesClicked: jest.fn(),
     onMarkAllUpdatesReadClicked: (...a: unknown[]) => mockOnMarkAllClicked(...a),
     onMarkAllUpdatesReadFailed: (...a: unknown[]) => mockOnMarkAllFailed(...a),
+    onUpdatesSearchOpened: (...a: unknown[]) => mockOnSearchOpened(...a),
+    onUpdatesSearchQueried: (...a: unknown[]) => mockOnSearchQueried(...a),
   }),
 }));
 
@@ -107,5 +111,131 @@ describe('UpdatesPanel mark all as read', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Show all updates' }));
     expect(screen.getByText('Read thing')).toBeInTheDocument();
+  });
+});
+
+describe('UpdatesPanel search', () => {
+  const now = new Date().toISOString();
+  const notification = (id: string, title: string, category: string, description = '') =>
+    ({ id, uid: id, title, description, isRead: false, category, createdAt: now }) as never;
+
+  const SEARCH_PLACEHOLDER = 'Search by team or keyword…';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  function typeAndSettle(input: HTMLElement, value: string) {
+    fireEvent.change(input, { target: { value } });
+    act(() => {
+      jest.advanceTimersByTime(700);
+    });
+  }
+
+  it('is never shown to logged-out viewers', () => {
+    renderPanel({ isLoggedIn: false });
+    expect(screen.queryByRole('button', { name: 'Search updates' })).not.toBeInTheDocument();
+  });
+
+  it('renders collapsed for logged-in viewers', () => {
+    renderPanel();
+    const toggle = screen.getByRole('button', { name: 'Search updates' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).not.toBeInTheDocument();
+  });
+
+  it('expands on click, focuses the input, and reports the open event', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    const input = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
+    expect(input).toHaveFocus();
+    expect(mockOnSearchOpened).toHaveBeenCalledTimes(1);
+  });
+
+  it('filters by title and reports the queried event with the match count', () => {
+    renderPanel({
+      notifications: [
+        notification('n1', 'Founder office hours', 'EVENT'),
+        notification('n2', 'Quarterly update', 'SYSTEM'),
+      ],
+      unreadCount: 2,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    typeAndSettle(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'office');
+
+    expect(screen.getByText('Founder office hours')).toBeInTheDocument();
+    expect(screen.queryByText('Quarterly update')).not.toBeInTheDocument();
+    expect(mockOnSearchQueried).toHaveBeenCalledWith('office', 1);
+  });
+
+  it('filters by the same category label NotificationItem renders (not the raw CATEGORY_CONFIG label)', () => {
+    // GUIDE_POST renders as "Founder Guides" via getCategoryLabel(), but as
+    // "Forum" in CATEGORY_CONFIG — searching "guide" must use the former.
+    renderPanel({
+      notifications: [notification('n1', 'New guide posted', 'GUIDE_POST'), notification('n2', 'A forum reply', 'FORUM_POST')],
+      unreadCount: 2,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    typeAndSettle(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'guide');
+
+    expect(screen.getByText('New guide posted')).toBeInTheDocument();
+    expect(screen.queryByText('A forum reply')).not.toBeInTheDocument();
+  });
+
+  it('shows a distinct empty state when the search has zero matches', () => {
+    renderPanel({ notifications: [notification('n1', 'Founder office hours', 'EVENT')], unreadCount: 1 });
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    typeAndSettle(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'nonexistent');
+
+    expect(screen.getByText(/No results for/)).toBeInTheDocument();
+    expect(screen.queryByText('Founder office hours')).not.toBeInTheDocument();
+  });
+
+  it('Escape clears the query first, then collapses the field and returns focus to the toggle on a second press', () => {
+    renderPanel({ notifications: [notification('n1', 'Founder office hours', 'EVENT')], unreadCount: 1 });
+    const toggle = screen.getByRole('button', { name: 'Search updates' });
+    fireEvent.click(toggle);
+
+    const input = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
+    fireEvent.change(input, { target: { value: 'office' } });
+    expect(input).toHaveValue('office');
+
+    fireEvent.keyUp(input, { key: 'Escape' });
+    expect(screen.getByPlaceholderText(SEARCH_PLACEHOLDER)).toHaveValue('');
+
+    fireEvent.keyUp(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), { key: 'Escape' });
+    expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Search updates' })).toHaveFocus();
+  });
+
+  it('does not collapse on blur when focus moves to a notification link inside the panel', () => {
+    renderPanel({ notifications: [notification('n1', 'Founder office hours', 'EVENT')], unreadCount: 1 });
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    const input = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
+    const notificationLink = screen.getByText('Founder office hours').closest('a') as HTMLElement;
+
+    fireEvent.blur(input, { relatedTarget: notificationLink });
+    expect(screen.getByPlaceholderText(SEARCH_PLACEHOLDER)).toBeInTheDocument();
+  });
+
+  it('collapses on blur to somewhere outside the panel when the field is empty', () => {
+    renderPanel({ notifications: [notification('n1', 'Founder office hours', 'EVENT')], unreadCount: 1 });
+    fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));
+
+    const input = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
+    fireEvent.blur(input, { relatedTarget: document.body });
+
+    expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).not.toBeInTheDocument();
   });
 });

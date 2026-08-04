@@ -109,6 +109,14 @@ export const useNotificationAnalytics = () => {
     });
   }
 
+  function onUpdatesSearchOpened() {
+    captureEvent(NOTIFICATION_ANALYTICS_EVENTS.UPDATES_SEARCH_OPENED);
+  }
+
+  function onUpdatesSearchQueried(query: string, resultCount: number) {
+    captureEvent(NOTIFICATION_ANALYTICS_EVENTS.UPDATES_SEARCH_QUERIED, { query, resultCount });
+  }
+
   return {
     onNotificationCardClicked,
     onSeeAllNotificationsClicked,
@@ -122,5 +130,7 @@ export const useNotificationAnalytics = () => {
     onMarkAllUpdatesReadClicked,
     onMarkAllUpdatesReadFailed,
     onRecentUpdatesNotificationClicked,
+    onUpdatesSearchOpened,
+    onUpdatesSearchQueried,
   };
 };

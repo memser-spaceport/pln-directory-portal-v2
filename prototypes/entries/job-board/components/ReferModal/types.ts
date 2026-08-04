@@ -20,15 +20,6 @@ export interface DirectoryMember {
   isTeamLead?: boolean;
 }
 
-/** The person sending the referral, for the note's sign-off. */
-export interface Referrer {
-  name: string;
-  /** Role on their main team. Empty when the directory has none on record. */
-  title: string;
-  /** Their main team's name. Empty when they have none. */
-  team: string;
-}
-
 export interface RecipientOption {
   label: string;
   value: string;

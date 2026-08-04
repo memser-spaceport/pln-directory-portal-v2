@@ -3,23 +3,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobReferralRecipient, IJobRole } from '@/types/jobs.types';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
+import { toast } from '@/components/core/ToastContainer';
+
+import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
 import { DirectoryMember, RecipientOption } from './types';
 
-import { getGreeting } from './utils/getGreeting';
-import { getSignature } from './utils/getSignature';
-import { buildEmailTemplate } from './utils/buildEmailTemplate';
 import { getRecipientSummary } from './utils/getRecipientSummary';
+import { isEmailAddress } from './utils/isEmailAddress';
 import { toRecipientOption } from './utils/toRecipientOption';
 
-import { useReferrer } from './hooks/useReferrer';
 import { useTeamMembers } from './hooks/useTeamMembers';
 
 import { MemberSearchSelect } from './components/MemberSearchSelect';
@@ -29,7 +29,9 @@ import { EnvelopeIcon } from '../../icons';
 
 import s from './ReferModal.module.scss';
 
-const MESSAGE_MAX_LENGTH = 800;
+// The backend accepts up to 5000 (`CreateJobReferralSchema`); matching it rather than
+// picking a smaller number here, so the field never blocks a note the API would take.
+const MESSAGE_MAX_LENGTH = 5000;
 
 interface ReferModalProps {
   open: boolean;
@@ -44,17 +46,39 @@ type ReferFormData = {
   message: string;
 };
 
+/** The picker's options carry either a member uid or a typed address; the API takes
+ *  both, and resolves member addresses itself so the browser never holds them. */
+function toReferralRecipient(option: RecipientOption): IJobReferralRecipient {
+  if (option.isEmail || isEmailAddress(option.value)) {
+    return { email: option.value };
+  }
+
+  return { memberUid: option.value, name: option.label };
+}
+
 /**
- * Refer-someone modal: pick a directory member, choose who hears about it, and send a
- * pre-drafted referral note. Sending is still mocked; the people are real — both
- * pickers search `/api/members-search` (see `useMemberSearch`), and the recipients
- * prefilled for the hiring team come from the directory too (see `useTeamMembers`).
+ * Refer a network member for an open role: pick who you're referring, choose who hears
+ * about it, and send an intro email.
  *
- * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job,
- * an intro email to a team, you, and someone you name — with its stylesheet
- * transcribed into `ReferModal.module.scss`: centred envelope / title / desc, 24px
- * card, twin full-width actions. Wrapped in production `Modal` for the portal,
- * escape and scroll-lock the reference hand-rolls.
+ * Lives here but is the component the production jobs page renders (see
+ * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
+ * `GET /job-openings/:uid/referral-draft` composes the note from both members'
+ * directory records and the role's apply link — no wording lives in this file, the
+ * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it,
+ * making the first recipient the To and CCing the rest, plus the referrer and the
+ * referred member.
+ *
+ * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
+ * this, and the backend resolves the referrer from the authenticated email. Both calls
+ * need a real job-opening uid, so opening this from the mocked `/prototypes/job-board`
+ * entry can only get as far as the draft error — that entry demonstrates the layout,
+ * not the flow.
+ *
+ * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job, an
+ * intro email to a team, you, and someone you name — with its stylesheet transcribed
+ * into `ReferModal.module.scss`: centred envelope / title / desc, 24px card, twin
+ * full-width actions. Wrapped in production `Modal` for the portal, escape and
+ * scroll-lock the reference hand-rolls.
  *
  * The note is a production primitive (`FormTextArea`); both people fields search the
  * directory as you type, which no production select can drive — see
@@ -80,8 +104,17 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
   // Only fetched while the modal is open — a job board page holds one of these per role.
   const { members: hiringTeam, defaultRecipients, isLoading: isTeamLoading } = useTeamMembers(teamName, open);
 
-  // Signs the note. Null when signed out, which the template handles by not signing it.
-  const referrer = useReferrer();
+  const {
+    data: draft,
+    isFetching: isDrafting,
+    isError: isDraftError,
+  } = useJobReferralDraft({
+    jobUid: role.uid,
+    referredMemberUid: selectedMember?.uid,
+    enabled: open,
+  });
+
+  const { mutate: sendReferral, isPending: isSending } = useCreateJobReferral(role.uid);
 
   // The hiring team leads the recipients list — they're who a referral is actually
   // for. You can't be both the candidate and someone hearing about the referral, so
@@ -125,41 +158,53 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referee?.value]);
 
-  const draft = () =>
-    selectedMember ? buildEmailTemplate({ member: selectedMember, role, teamName, recipients, referrer }) : '';
-
-  // Seed (or re-seed) the template when the candidate, the greeting's basis or the
-  // sign-off changes — the referrer's role and team are fetched, so the signature can
-  // land a moment after the draft did. A hand-edited note is never overwritten.
-  const greetingKey = getGreeting(recipients, teamName);
-  const signatureKey = getSignature(referrer);
+  // Show the drafted note as soon as it lands, and clear the field when the candidate is
+  // removed. A hand-edited note is never overwritten — "Reset to template" is the way
+  // back. The draft depends only on the role and the referred member, so changing
+  // recipients no longer re-drafts anything.
   useEffect(() => {
     if (!open) return;
     if (!selectedMember) {
       if (!messageEdited) setValue('message', '');
       return;
     }
-    if (messageEdited) return;
-    setValue('message', draft());
+    if (messageEdited || !draft?.note) return;
+    setValue('message', draft.note);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid, greetingKey, signatureKey]);
+  }, [open, selectedMember?.uid, draft?.note]);
 
-  // Any keystroke that diverges from the generated template counts as an edit.
+  // Any keystroke that diverges from the drafted note counts as an edit.
   useEffect(() => {
-    if (!open || !selectedMember || messageEdited) return;
-    if (message && message !== draft()) {
+    if (!open || !selectedMember || messageEdited || !draft?.note) return;
+    if (message && message !== draft.note) {
       setMessageEdited(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message]);
 
   const resetTemplate = () => {
-    if (!selectedMember) return;
-    setValue('message', draft());
+    if (!draft?.note) return;
+    setValue('message', draft.note);
     setMessageEdited(false);
   };
 
-  const canSend = !!selectedMember && recipients.length > 0 && !!message?.trim();
+  const onSubmit = () => {
+    if (!selectedMember || !recipients.length || !message?.trim()) return;
+
+    sendReferral(
+      {
+        referredMemberUid: selectedMember.uid,
+        recipients: recipients.map(toReferralRecipient),
+        note: message.trim(),
+      },
+      {
+        onSuccess: () => setSent(true),
+        onError: () => toast.error('We couldn’t send that referral. Please try again.'),
+      },
+    );
+  };
+
+  const canSend = !!selectedMember && recipients.length > 0 && !!message?.trim() && !isSending;
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
   const sentTo = getRecipientSummary(recipients);
 
@@ -194,7 +239,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
               className={s.form}
               onSubmit={(e) => {
                 e.preventDefault();
-                if (canSend) setSent(true);
+                onSubmit();
               }}
             >
               <div className={s.fields}>
@@ -219,7 +264,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
                     <span className={s.templateLabel}>Your note</span>
-                    {messageEdited && selectedMember && (
+                    {messageEdited && !!draft?.note && (
                       <button type="button" className={s.resetLink} onClick={resetTemplate}>
                         Reset to template
                       </button>
@@ -229,10 +274,12 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                     name="message"
                     placeholder={
                       selectedMember
-                        ? 'Tell them why this is a fit...'
+                        ? isDrafting
+                          ? 'Drafting your note…'
+                          : 'Tell them why this is a fit...'
                         : 'Pick someone above and we’ll draft the note for you.'
                     }
-                    disabled={!selectedMember}
+                    disabled={!selectedMember || isDrafting}
                     // 6, not the 8 the wide gantry shell allowed — the reference card is
                     // narrower, so an empty 8-row box read as a hole in the layout.
                     rows={6}
@@ -243,10 +290,12 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
               </div>
 
               <p className={s.privacyNote}>
-                {recipients.length === 0
-                  ? 'Add at least one recipient — a network member or an email address.'
-                  : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-                    (selectedMember ? ` ${firstName} is notified too.` : '')}
+                {isDraftError
+                  ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
+                  : recipients.length === 0
+                    ? 'Add at least one recipient — a network member or an email address.'
+                    : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
+                      (selectedMember ? ` ${firstName} is notified too.` : '')}
               </p>
 
               <div className={s.actions}>
@@ -254,7 +303,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                   Cancel
                 </Button>
                 <Button type="submit" style="fill" variant="primary" className={s.actionButton} disabled={!canSend}>
-                  Send referral
+                  {isSending ? 'Sending…' : 'Send referral'}
                 </Button>
               </div>
             </form>

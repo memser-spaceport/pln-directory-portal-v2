@@ -135,7 +135,11 @@ export async function deployAgentSessionFeatureEnv(id: string, force = false): P
   const qs = force ? '?force=true' : '';
   const response = await customFetch(
     `${AGENT_SESSIONS_API_URL}/${encodeURIComponent(id)}/feature-env${qs}`,
-    { method: 'POST' },
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    },
     true,
   );
   return parseJson(response, 'Failed to deploy feature environment');

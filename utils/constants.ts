@@ -185,6 +185,8 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   RECENT_UPDATES_NOTIFICATION_CLICKED: 'recent-updates-notification-clicked',
   MARK_ALL_UPDATES_READ_CLICKED: 'mark-all-updates-read-clicked',
   MARK_ALL_UPDATES_READ_FAILED: 'mark-all-updates-read-failed',
+  UPDATES_SEARCH_OPENED: 'updates-search-opened',
+  UPDATES_SEARCH_QUERIED: 'updates-search-queried',
 };
 
 export const SETTINGS_ANALYTICS_EVENTS = {

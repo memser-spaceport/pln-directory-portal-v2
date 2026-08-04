@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { PushNotification } from '@/types/push-notifications.types';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -10,6 +10,7 @@ import { EmptyState } from './EmptyState';
 import { NotLoggedInState } from './NotLoggedInState';
 import { NotificationItem } from './NotificationItem';
 import { ViewSwitch, applyView, type UpdatesView } from './ViewSwitch/ViewSwitch';
+import { HeaderSearch, matchesQuery } from './HeaderSearch/HeaderSearch';
 import s from './UpdatesPanel.module.scss';
 
 interface UpdatesPanelProps {
@@ -38,12 +39,82 @@ export function UpdatesPanel({
   // by design), and on failure the only signal a person gets at all.
   const [statusMessage, setStatusMessage] = useState('');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // All / Unread / Read scoping (prototype behavior). Deliberately NOT reset
   // on close: reopening where you left off matches the proto's session-scoped
   // view state.
   const [view, setView] = useState<UpdatesView>('all');
-  const visibleNotifications = applyView(notifications, view);
+
+  // Search state, same "not reset on close" precedent as `view` above.
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchFieldRef = useRef<HTMLDivElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+  // Set on mousedown inside the list, cleared next tick — long enough to
+  // survive the blur that fires between mousedown and click on a
+  // notification, so an in-flight list click never gets collapsed out from
+  // under itself.
+  const listMouseDownRef = useRef(false);
+
+  const visibleNotifications = useMemo(
+    () => applyView(notifications, view).filter((n) => matchesQuery(n, query)),
+    [notifications, view, query],
+  );
+  const isSearching = query.trim().length > 0;
+
+  useEffect(() => {
+    if (searchOpen) searchFieldRef.current?.querySelector('input')?.focus();
+  }, [searchOpen]);
+
+  // Fires once per settled (already-debounced by SearchInput) query change —
+  // no separate debounce needed for the analytics call.
+  useEffect(() => {
+    if (!isSearching) return;
+    analytics.onUpdatesSearchQueried(query, visibleNotifications.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const handleSearchOpen = useCallback(() => {
+    setSearchOpen(true);
+    analytics.onUpdatesSearchOpened();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Stable identity is required here: SearchInput's DebouncedInput memoizes
+  // its debounce timer on this callback's identity (see DebouncedInput.tsx),
+  // so a fresh function each render would silently reset in-flight typing.
+  const handleSearchChange = useCallback((value: string) => setQuery(value), []);
+
+  const handleSearchBlur = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
+    const related = e.relatedTarget as Node | null;
+    const staysInsidePanel = !!related && !!panelRef.current?.contains(related);
+    const liveValue = searchFieldRef.current?.querySelector('input')?.value ?? '';
+    if (liveValue || staysInsidePanel || listMouseDownRef.current) return;
+    setSearchOpen(false);
+  }, []);
+
+  // DebouncedInput's own onKeyUp (on the nested <input>) runs first and
+  // clears the field synchronously on Escape, but React doesn't commit that
+  // state to the DOM until after this bubbled handler also finishes — so
+  // reading the live input value here still sees the pre-clear text on the
+  // first Escape (skip collapsing, let the clear stand alone) and only sees
+  // empty on a second, separate Escape press (collapse + return focus to the
+  // toggle button, per standard expand/collapse keyboard convention).
+  const handleSearchKeyUp = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Escape') return;
+    const liveValue = searchFieldRef.current?.querySelector('input')?.value ?? '';
+    if (liveValue) return;
+    setSearchOpen(false);
+    searchToggleRef.current?.focus();
+  }, []);
+
+  const handleListMouseDown = useCallback(() => {
+    listMouseDownRef.current = true;
+    setTimeout(() => {
+      listMouseDownRef.current = false;
+    }, 0);
+  }, []);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onUpdatesPanelNotificationClicked(notification);
@@ -88,6 +159,7 @@ export function UpdatesPanel({
             transition={{ duration: 0.15 }}
           />
           <motion.div
+            ref={panelRef}
             className={s.panel}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -98,10 +170,17 @@ export function UpdatesPanel({
             <div className={s.header}>
               <div className={s.titleRow}>
                 <h2 className={s.title}>Updates</h2>
-                {isLoggedIn && unreadCount > 0 && (
-                  <div className={s.unreadBadge}>
-                    <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
-                  </div>
+                {isLoggedIn && (
+                  <HeaderSearch
+                    open={searchOpen}
+                    value={query}
+                    onOpen={handleSearchOpen}
+                    onChange={handleSearchChange}
+                    onBlur={handleSearchBlur}
+                    onKeyUp={handleSearchKeyUp}
+                    fieldRef={searchFieldRef}
+                    toggleRef={searchToggleRef}
+                  />
                 )}
               </div>
               <button ref={closeButtonRef} className={s.closeButton} onClick={onClose} aria-label="Close">
@@ -138,6 +217,13 @@ export function UpdatesPanel({
                 <NotLoggedInState onClose={onClose} />
               ) : notifications.length === 0 ? (
                 <EmptyState />
+              ) : isSearching && visibleNotifications.length === 0 ? (
+                // Distinct from the tab-empty state below: the list (and this
+                // tab) has items, search just didn't match any of them.
+                <div className={s.viewEmptyState}>
+                  <p className={s.viewEmptyTitle}>No results for &lsquo;{query}&rsquo;</p>
+                  <p className={s.viewEmptyBody}>Try a different keyword.</p>
+                </div>
               ) : visibleNotifications.length === 0 ? (
                 // The list has items — just none in this segment. The proto's
                 // per-view copy, with an escape back to All where one helps.
@@ -174,7 +260,7 @@ export function UpdatesPanel({
                   )}
                 </div>
               ) : (
-                <div className={s.notificationsList}>
+                <div className={s.notificationsList} onMouseDown={handleListMouseDown}>
                   {visibleNotifications.map((notification) => (
                     <NotificationItem
                       key={notification.id}

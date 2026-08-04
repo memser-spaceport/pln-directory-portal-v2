@@ -90,6 +90,14 @@
  * `#cbd5e1`: the chips sit inside the drawer's other bordered blocks, and matching
  * them matters more here than matching a tile on another page.
  */
+/**
+ * A wrapping row: events run left to right and wrap when they run out of width.
+ *
+ * The trade against stacking them is height. This block is evidence hanging under
+ * a path, not the subject of the card — three tiles on one line keep it to a
+ * single row, where stacked they cost three and push `Can you refer?` off the
+ * bottom of a short drawer.
+ */
 .eventChips {
   display: flex;
   flex-wrap: wrap;

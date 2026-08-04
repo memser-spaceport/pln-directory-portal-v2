@@ -95,7 +95,12 @@ export function ReasonList({ reasons, listClassName }: { reasons: unknown[]; lis
  * event is a property of the *edge*, not of either person, so it is reported
  * against the pair rather than hung off one chip.
  */
-/** Past this many events the list collapses behind a toggle. */
+/**
+ * Past this many events the list collapses behind a `+N` tile.
+ *
+ * Three fits the wrapping row without forcing a second line at the widths this
+ * drawer runs at, so the block stays one row tall in the common case.
+ */
 const EVENTS_SHOWN = 3;
 
 /**
@@ -124,12 +129,12 @@ function attendedBy(people: string[]): string {
  * The shape is Confluence's "Worked on" — glyph, bold subject, grouped under a
  * heading — with Discord's count-first framing on the header.
  *
- * **The caption only appears when who is ambiguous.** On a two-hop chain there is
- * exactly one possible pair — the chain sitting right above — so there is no
- * caption at all: "Both attended" under a heading that already says "Shared
- * events" is one idea wearing two labels. Three hops or more can pair up more than
- * one way, and can put three people at a single event, so there the caption says
- * who.
+ * **The caption only appears when it narrows the field.** It is there to say
+ * *which* of the people on the path shared the event — so it renders when they are
+ * a subset of the chain, and not when they are all of it. On a two-hop path both
+ * hops always shared it, so there is no caption; on a longer path with only the
+ * last two involved, there is. An event all three attended gets none either, since
+ * naming all three just retypes the chain drawn directly above.
  *
  * The copy constraint stands: **never "met at"**. Two people at a conference did
  * not necessarily meet. "Shared events" carries that on its own — it states
@@ -169,9 +174,9 @@ export function SharedEventsNote({ hops }: { hops: WarmPathV2HopNode[] }) {
   if (groups.length === 0) return null;
 
   const total = peopleByEvent.size;
-  // More than two hops means more than one way to pair them up, so the caption has
-  // to say who. At exactly two, the pair is the chain above.
-  const namePairs = hops.length > 2;
+  // Everyone the chain actually names — org stubs like "Protocol Labs" have no
+  // profileUid and never take part in a pair, so they must not be counted.
+  const chainPeople = hops.filter((hop) => hop.profileUid).length;
   const overflow = total - EVENTS_SHOWN;
 
   /**
@@ -208,7 +213,14 @@ export function SharedEventsNote({ hops }: { hops: WarmPathV2HopNode[] }) {
                 already reads "Shared events" is the same statement twice, and the
                 pair it refers to is the chain sitting directly above. The caption
                 exists to say *who*, so it appears only when who is ambiguous. */}
-            {namePairs ? <div className={s.eventPair}>{attendedBy(group.people)}</div> : null}
+            {/* The caption exists to say *which* of the chain shared this event —
+                so it only appears when that is a subset of the chain. If everyone
+                on the path attended, naming them just retypes the chain drawn
+                directly above, which is what "Both attended" was doing on two-hop
+                paths before. Same rule now covers both. */}
+            {group.people.length < chainPeople ? (
+              <div className={s.eventPair}>{attendedBy(group.people)}</div>
+            ) : null}
             <div className={s.eventChips}>
               {events.map((event) => (
                 <span key={event} className={s.eventRow}>

@@ -1,17 +1,41 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { usePermissions } from '@/services/rbac/hooks/usePermissions';
+import { canAdminAgentSessions } from '@/services/rbac/utils/agentSessions/canAdminAgentSessions';
 import { useAgentSession } from '@/services/agent-sessions/hooks/useAgentSession';
 import { useAgentSessionProgress } from '@/services/agent-sessions/hooks/useAgentSessionProgress';
+import {
+  useDeleteAgentSessionFeatureEnv,
+  useDeployAgentSessionFeatureEnv,
+} from '@/services/agent-sessions/hooks/useAgentSessionFeatureEnv';
+import {
+  deriveProgressSteps,
+  type DerivedStepPhase,
+} from '@/services/agent-sessions/deriveProgressSteps';
+import type { AgentSession } from '@/services/agent-sessions/agent-sessions.service';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
 import s from '../shared/AgentSessions.module.scss';
 
-function stepDotClass(status: string, reached: boolean) {
-  if (status === 'failed' || status === 'cancelled') return s.stepDotFailed;
-  if (status === 'ready') return s.stepDotReady;
-  if (reached) return s.stepDotReached;
-  return '';
-}
+const ACTIVE_FEATURE_ENV_STATUSES = new Set([
+  'queued',
+  'cleanup_pending',
+  'dispatching',
+  'in_progress',
+  'deploying',
+  'ready',
+  'deleting',
+]);
+
+const STEP_DOT_CLASS: Record<DerivedStepPhase, string> = {
+  pending: '',
+  active: s.stepDotActive,
+  completed: s.stepDotCompleted,
+  failed: s.stepDotFailed,
+  cancelled: s.stepDotFailed,
+  skipped: s.stepDotSkipped,
+};
 
 function featureEnvUrlFromProgress(progress: ReturnType<typeof useAgentSessionProgress>['data']): string | null {
   const urls = progress?.terminal?.metadata?.urls as Record<string, unknown> | undefined;
@@ -22,13 +46,59 @@ function featureEnvUrlFromProgress(progress: ReturnType<typeof useAgentSessionPr
   return null;
 }
 
+function canDeployFeatureEnv(session: AgentSession) {
+  if (!session.pull_request_url || !session.working_branch) return false;
+  const status = session.feature_environment_status;
+  if (!status || status === 'deleted' || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed') {
+    return true;
+  }
+  return status === 'ready';
+}
+
+function canDeleteFeatureEnv(session: AgentSession) {
+  const status = session.feature_environment_status;
+  if (!status || status === 'deleted') return false;
+  return ACTIVE_FEATURE_ENV_STATUSES.has(status) || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed';
+}
+
 export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
+  const { permsSet } = usePermissions();
+  const canAdmin = canAdminAgentSessions(permsSet);
   const sessionQuery = useAgentSession(sessionId);
   const progressQuery = useAgentSessionProgress(sessionId);
+  const deployMutation = useDeployAgentSessionFeatureEnv(sessionId);
+  const deleteMutation = useDeleteAgentSessionFeatureEnv(sessionId);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const session = sessionQuery.data;
   const progress = progressQuery.data;
+  const derivedSteps = useMemo(
+    () => deriveProgressSteps(progress?.steps ?? [], progress?.status ?? session?.status),
+    [progress?.steps, progress?.status, session?.status],
+  );
   const featureEnvUrl = session?.feature_environment_url || featureEnvUrlFromProgress(progress);
+  const busy = deployMutation.isPending || deleteMutation.isPending;
+
+  const handleDeploy = async (force = false) => {
+    setActionError(null);
+    try {
+      await deployMutation.mutateAsync({ force });
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to deploy feature environment');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this feature environment? The PR and branch will be kept.')) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await deleteMutation.mutateAsync({});
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to delete feature environment');
+    }
+  };
 
   return (
     <div className={s.pageFrame}>
@@ -114,6 +184,39 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                 </div>
               </div>
 
+              {canAdmin ? (
+                <div className={s.featureEnvActions}>
+                  {canDeployFeatureEnv(session) ? (
+                    <button
+                      type="button"
+                      className={s.primaryButton}
+                      disabled={busy}
+                      onClick={() => handleDeploy(session.feature_environment_status === 'ready')}
+                    >
+                      {deployMutation.isPending
+                        ? 'Deploying…'
+                        : session.feature_environment_status === 'ready'
+                          ? 'Redeploy feature env'
+                          : 'Deploy feature env'}
+                    </button>
+                  ) : null}
+                  {canDeleteFeatureEnv(session) ? (
+                    <button
+                      type="button"
+                      className={s.dangerButton}
+                      disabled={busy}
+                      onClick={handleDelete}
+                    >
+                      {deleteMutation.isPending ? 'Deleting…' : 'Delete feature env'}
+                    </button>
+                  ) : null}
+                  {!session.pull_request_url ? (
+                    <span className={s.muted}>Feature env actions unlock after the PR is created.</span>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {actionError ? <p className={`${s.state} ${s.error}`}>{actionError}</p> : null}
               {session.error_message ? <p className={`${s.state} ${s.error}`}>{session.error_message}</p> : null}
 
               <h2 className={s.sectionTitle}>Prompt</h2>
@@ -127,15 +230,14 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                   {progressQuery.error instanceof Error ? progressQuery.error.message : 'Failed to load progress'}
                 </p>
               ) : null}
-              {progress?.steps?.length ? (
+              {derivedSteps.length ? (
                 <ol className={s.steps}>
-                  {progress.steps.map((step) => (
+                  {derivedSteps.map((step) => (
                     <li key={step.key} className={s.step}>
-                      <span className={`${s.stepDot} ${stepDotClass(step.status, step.reached)}`} aria-hidden />
+                      <span className={`${s.stepDot} ${STEP_DOT_CLASS[step.phase]}`} aria-hidden />
                       <div className={s.stepBody}>
                         <span className={s.stepKey}>
-                          {step.key.replace(/_/g, ' ')}
-                          {step.reached ? ` · ${step.status}` : ' · pending'}
+                          {step.key.replace(/_/g, ' ')} · {step.displayStatus}
                         </span>
                         {step.message ? <span className={s.stepMessage}>{step.message}</span> : null}
                         {step.createdAt ? <span className={s.stepMeta}>{formatDate(step.createdAt)}</span> : null}

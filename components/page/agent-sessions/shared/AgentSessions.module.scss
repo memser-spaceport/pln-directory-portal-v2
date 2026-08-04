@@ -265,7 +265,7 @@
   background: #cbd5e1;
 }
 
-.stepDotReached {
+.stepDotActive {
   background: #156ff7;
 }
 
@@ -273,8 +273,12 @@
   background: #b42318;
 }
 
-.stepDotReady {
+.stepDotCompleted {
   background: #16a34a;
+}
+
+.stepDotSkipped {
+  background: #94a3b8;
 }
 
 .stepBody {
@@ -366,9 +370,45 @@
   text-decoration: none;
   cursor: pointer;
 
-  &:hover {
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
     background: #f8fafc;
   }
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #fda29b;
+  background: #fff;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background: #fef3f2;
+  }
+}
+
+.featureEnvActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 16px;
 }
 
 .externalLink {

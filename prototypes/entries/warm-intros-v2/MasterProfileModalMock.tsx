@@ -24,6 +24,7 @@ import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvid
 import { affinityPersonUrl } from '@/components/page/investors/WarmIntrosV2Workspace/parseWarmPathHopChain';
 import {
   eventsFromProfile,
+  parseCoInvestments,
   parseEducation,
   parseExperience,
   parseInvestorMetaFields,
@@ -41,6 +42,8 @@ import s from '@/components/page/investors/WarmIntrosV2Workspace/MasterProfileMo
 import m from '@/components/page/deals/SubmitDealModal/SubmitDealModal.module.scss';
 import c from './ContactRow.module.scss';
 import chrome from './ModalChrome.module.scss';
+import { PlBackingMark, plBackingLabel } from './PlHistory';
+import h from './PlHistory.module.scss';
 import { MOCK_MASTER_PROFILES } from './mocks';
 
 interface Props {
@@ -63,6 +66,7 @@ export function MasterProfileModalMock({ profileUid, open, onClose }: Props) {
   const locations = useMemo(() => parseLocationLabels(data?.locations), [data?.locations]);
   const lists = useMemo(() => parseListMemberships(data?.listMemberships), [data?.listMemberships]);
   const investorFields = useMemo(() => parseInvestorMetaFields(data?.investorMeta), [data?.investorMeta]);
+  const coInvestments = useMemo(() => parseCoInvestments(data?.coInvestments), [data?.coInvestments]);
   const projects = useMemo(() => (data ? projectsFromProfile(data) : []), [data]);
   const events = useMemo(() => (data ? eventsFromProfile(data) : []), [data]);
   const snapshots = useMemo(() => summarizeSourceSnapshots(data?.sourceSnapshots), [data?.sourceSnapshots]);
@@ -217,6 +221,30 @@ export function MasterProfileModalMock({ profileUid, open, onClose }: Props) {
                       </div>
                     ))}
                   </dl>
+                </section>
+              ) : null}
+
+              {coInvestments.length > 0 || plBackingLabel(data.plBacking) ? (
+                <section className={s.section}>
+                  <h4 className={s.sectionTitle}>
+                    {coInvestments.length > 0 ? 'Co-investments with PL' : 'Relationship with PL'}
+                    {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
+                    {/* Same pill as the row and the drawer — one fact, one look. */}
+                    <PlBackingMark backing={data.plBacking} className={h.inline} />
+                  </h4>
+                  <ul className={s.itemList}>
+                    {coInvestments.map((item) => {
+                      const meta = [item.dealStage, item.dealDate, item.isLeadInvestor ? 'Lead' : null, item.dealAmount]
+                        .filter(Boolean)
+                        .join(' · ');
+                      return (
+                        <li key={item.teamUid || item.name} className={s.item}>
+                          <div className={s.itemPrimary}>{item.name}</div>
+                          {meta ? <div className={s.itemSecondary}>{meta}</div> : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </section>
               ) : null}
 

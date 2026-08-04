@@ -1,0 +1,37 @@
+/**
+ * Press and focus states for the person chips in a hop chain.
+ *
+ * `PathProfileChip` styles `:hover` and nothing else. On a pointer that is enough
+ * — the chip lights up before you commit. On touch no hover event fires at all, so
+ * the chip's entire affordance is the pill shape: you tap it and a modal appears,
+ * with nothing in between confirming the tap landed on something interactive.
+ *
+ * `:active` closes that gap using the values the chip already defines for hover
+ * (`PathProfileChip.module.scss`: `#eef2ff` fill, `#1b4dff` border and text), so
+ * this adds a state, not a colour. On a pointer it doubles as the press feedback
+ * hover was already implying.
+ *
+ * `:focus-visible` comes along for the same reason it did on the investor name:
+ * production defines no focus style anywhere on these chips, so a keyboard user
+ * tabbing through a three-hop chain gets no indication of where they are.
+ *
+ * Targeted by element rather than by class because `PathProfileChip` takes no
+ * `className`, and by `button` specifically because the non-interactive org stubs
+ * render as `<span>` — they should not light up, and this way they can't.
+ * `.chipPress button` (0,1,1) also clears production's single-class `.chip`
+ * without depending on stylesheet order.
+ */
+
+.chipPress button:active,
+.chipPress button:focus-visible {
+  background: var(--background-brand-subtle, #eef2ff);
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* Focus also gets a ring — press is momentary and self-evident, focus persists and
+   has to be findable at a glance. Matches the offset the DS `Checkbox` uses. */
+.chipPress button:focus-visible {
+  outline: 2px solid var(--action-background-brand-normal, #1b4dff);
+  outline-offset: 2px;
+}

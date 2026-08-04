@@ -3,12 +3,16 @@
    the panel is already a full-screen sheet below 480px with room to expand
    the field in place, unlike the newsfeed page these were built for. */
 
+/* 40px to match SearchInput/DebouncedInput's own rendered height
+   (DebouncedInput.module.scss's .root sets height: 40px) — the prototype's
+   30px button was sized for a different search field and caused a visible
+   height jump in .titleRow when toggling open. */
 .searchToggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 8px;
   border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
@@ -21,8 +25,8 @@
     color 0.12s ease;
 
   svg {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
 
   &:hover {

@@ -36,8 +36,10 @@
  * radius. Theirs is 8px. It also keeps the semantics: this is a momentary lens
  * deliberately kept out of the facet set, which is what a toggle reads as.
  */
-.axisToggle {
+.axisToggle.axisToggle {
   height: 40px;
+  /* Doubled: production's `.quickChip` carries `border-radius: 999px` and a single
+     class ties it, so which one won came down to bundle order. It lost. */
   border-radius: 8px;
 
   &:disabled {

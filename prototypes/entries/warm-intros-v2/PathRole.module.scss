@@ -64,3 +64,19 @@
   color: #9ca3af;
   white-space: nowrap;
 }
+
+/**
+ * "In LabOS" / "Fund in LabOS", sharing the role caption's line.
+ *
+ * Takes `LabOsBadge`'s green (`#047857`, its `.full__arrow`) and nothing else from
+ * it — not the `#ecfdf5` fill, not the 11px/600. A filled chip at that weight,
+ * under a 10px muted role caption, would make the sub-line louder than the
+ * person's name above it.
+ *
+ * This is the one colour on the caption row, and it is spent on presence in LabOS
+ * rather than on the role — the role repeats down the column, LabOS does not.
+ */
+.labOs {
+  font-weight: 600;
+  color: var(--foreground-success-primary, #047857);
+}

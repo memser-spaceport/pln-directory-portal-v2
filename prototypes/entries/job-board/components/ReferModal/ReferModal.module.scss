@@ -19,8 +19,9 @@
   padding: 20px;
   width: 100%;
   position: relative;
-  box-shadow: 0px 10px 20px -5px rgba(14, 15, 17, 0.06),
-  0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -36,12 +37,12 @@
   // and a full draft — adding people scrolls the field, it never moves the footer.
   // dvh (not vh) so mobile browser chrome collapsing doesn't clip the actions; the
   // subtraction covers the overlay's own padding at every breakpoint.
-  height: min(720px, calc(100dvh - 48px));
+  height: min(770px, calc(100dvh - 48px));
   overflow: hidden;
 
   @include media.mobile-only {
     max-width: 100%;
-    height: min(720px, calc(100dvh - 32px));
+    height: min(770px, calc(100dvh - 32px));
   }
 }
 
@@ -169,54 +170,10 @@
 }
 
 // --- People picker rows -------------------------------------------------------
-
-.optionRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.optionText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-// The selected value doubles as the "who you picked" confirmation: avatar, name,
-// and the same role · team line the menu row showed.
-.valueRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.valueName {
-  font-weight: 500;
-  color: var(--foreground-neutral-primary, #0a0c11);
-  white-space: nowrap;
-}
-
-.valueMeta {
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  // The collapsed control is too narrow on a phone to show more than "Prot…",
-  // and the full-screen picker already showed the role line. Name only there.
-  @include media.mobile-only {
-    display: none;
-  }
-}
+//
+// The candidate field's menu row and selected value moved to
+// `MemberSearchSelect.module.scss` with the field itself; the recipients field's rows
+// live in `RecipientPicker.module.scss`.
 
 // --- Recipients ---------------------------------------------------------------
 

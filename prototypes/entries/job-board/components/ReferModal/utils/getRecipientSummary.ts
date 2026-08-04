@@ -7,5 +7,9 @@ export function getRecipientSummary(recipients: RecipientOption[]): string {
   if (labels.length === 0) return '';
   if (labels.length === 1) return labels[0];
   if (labels.length <= 3) return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
-  return `${labels.slice(0, 3).join(', ')} and ${labels.length - 3} others`;
+
+  // Real teams put four names in this line routinely, where the mocked two never did —
+  // so the tail has to read as English at one as well as at nine.
+  const rest = labels.length - 3;
+  return `${labels.slice(0, 3).join(', ')} and ${rest} ${rest === 1 ? 'other' : 'others'}`;
 }

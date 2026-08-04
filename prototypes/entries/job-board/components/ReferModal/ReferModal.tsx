@@ -8,21 +8,24 @@ import type { IJobRole } from '@/types/jobs.types';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { CloseIcon } from '@/components/icons';
-import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 
-import { RecipientOption } from './types';
+import { DirectoryMember, RecipientOption } from './types';
 
 import { getGreeting } from './utils/getGreeting';
+import { getSignature } from './utils/getSignature';
 import { buildEmailTemplate } from './utils/buildEmailTemplate';
 import { getRecipientSummary } from './utils/getRecipientSummary';
+import { toRecipientOption } from './utils/toRecipientOption';
 
-import { MemberAvatar } from './components/MemberAvatar';
+import { useReferrer } from './hooks/useReferrer';
+import { useTeamMembers } from './hooks/useTeamMembers';
+
+import { MemberSearchSelect } from './components/MemberSearchSelect';
 import { RecipientPicker } from './components/RecipientPicker';
 
 import { EnvelopeIcon } from '../../icons';
-import { MOCK_MEMBERS, type MockMember } from '../../mockMembers';
 
 import s from './ReferModal.module.scss';
 
@@ -42,8 +45,10 @@ type ReferFormData = {
 };
 
 /**
- * Refer-someone modal (prototype-only, mocked): pick a directory member, choose who
- * hears about it, and send a pre-drafted referral note.
+ * Refer-someone modal: pick a directory member, choose who hears about it, and send a
+ * pre-drafted referral note. Sending is still mocked; the people are real — both
+ * pickers search `/api/members-search` (see `useMemberSearch`), and the recipients
+ * prefilled for the hiring team come from the directory too (see `useTeamMembers`).
  *
  * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job,
  * an intro email to a team, you, and someone you name — with its stylesheet
@@ -51,12 +56,14 @@ type ReferFormData = {
  * card, twin full-width actions. Wrapped in production `Modal` for the portal,
  * escape and scroll-lock the reference hand-rolls.
  *
- * Candidate and note are production primitives (`FormSelect`, `FormTextArea`);
- * recipients need a picker no production select can express — see `RecipientPicker`.
+ * The note is a production primitive (`FormTextArea`); both people fields search the
+ * directory as you type, which no production select can drive — see
+ * `MemberSearchSelect` and `RecipientPicker`.
  */
 export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
+  const [recipientsSeeded, setRecipientsSeeded] = useState(false);
 
   const methods = useForm<ReferFormData>({
     defaultValues: { referee: null, recipients: [], message: '' },
@@ -68,46 +75,43 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
   const recipients = useWatch({ control, name: 'recipients' }) ?? [];
   const message = useWatch({ control, name: 'message' });
 
-  const selectedMember: MockMember | null = (referee as any)?.originalObject ?? null;
+  const selectedMember: DirectoryMember | null = (referee as any)?.originalObject ?? null;
 
-  const refereeOptions = useMemo<Option[]>(
-    () =>
-      MOCK_MEMBERS.map((m) => ({
-        label: m.name,
-        value: m.uid,
-        description: `${m.title} · ${m.team}`,
-        originalObject: m,
-      })),
-    [],
-  );
+  // Only fetched while the modal is open — a job board page holds one of these per role.
+  const { members: hiringTeam, defaultRecipients, isLoading: isTeamLoading } = useTeamMembers(teamName, open);
 
-  // The hiring team leads the list — they're who a referral is actually for. You
-  // can't be both the candidate and someone hearing about the referral, so the
-  // person being referred drops out of both groups.
+  // Signs the note. Null when signed out, which the template handles by not signing it.
+  const referrer = useReferrer();
+
+  // The hiring team leads the recipients list — they're who a referral is actually
+  // for. You can't be both the candidate and someone hearing about the referral, so
+  // the person being referred drops out of it.
   const teamMembers = useMemo(
-    () => MOCK_MEMBERS.filter((m) => m.team === teamName && m.uid !== referee?.value),
-    [teamName, referee?.value],
-  );
-
-  const networkMembers = useMemo(
-    () => MOCK_MEMBERS.filter((m) => m.team !== teamName && m.uid !== referee?.value),
-    [teamName, referee?.value],
+    () => hiringTeam.filter((member) => member.uid !== referee?.value),
+    [hiringTeam, referee?.value],
   );
 
   // Fresh form every time the modal opens — a referral draft is per-role, not sticky.
   useEffect(() => {
     if (!open) return;
-    // Default recipients: whoever in the network is on the hiring team. Empty for
-    // teams with no mocked members, which is the "type an email address" case.
-    const teamContacts = MOCK_MEMBERS.filter((m) => m.team === teamName).map((m) => ({
-      label: m.name,
-      value: m.uid,
-      description: `${m.title} · ${m.team}`,
-    }));
-    reset({ referee: null, recipients: teamContacts, message: '' });
+    reset({ referee: null, recipients: [], message: '' });
     setMessageEdited(false);
     setSent(false);
-  }, [open, reset, teamName]);
+    setRecipientsSeeded(false);
+  }, [open, reset]);
+
+  // Default recipients: the hiring team's leads (see `useTeamMembers`). Seeded in its
+  // own pass because the team is fetched — it can land after the modal is already on
+  // screen — and only ever once per open, so it can't wipe an edit made in the
+  // meantime. Teams the directory has no members for seed nothing, which is the
+  // "type an email address" case.
+  useEffect(() => {
+    if (!open || recipientsSeeded || isTeamLoading) return;
+    if (defaultRecipients.length) {
+      setValue('recipients', defaultRecipients.map(toRecipientOption));
+    }
+    setRecipientsSeeded(true);
+  }, [open, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
 
   // Picking someone as the candidate drops them from the recipient list.
   useEffect(() => {
@@ -121,9 +125,14 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referee?.value]);
 
-  // Seed (or re-seed) the template when the candidate or the greeting's basis changes.
-  // A hand-edited note is never overwritten — "Reset to template" is the way back.
+  const draft = () =>
+    selectedMember ? buildEmailTemplate({ member: selectedMember, role, teamName, recipients, referrer }) : '';
+
+  // Seed (or re-seed) the template when the candidate, the greeting's basis or the
+  // sign-off changes — the referrer's role and team are fetched, so the signature can
+  // land a moment after the draft did. A hand-edited note is never overwritten.
   const greetingKey = getGreeting(recipients, teamName);
+  const signatureKey = getSignature(referrer);
   useEffect(() => {
     if (!open) return;
     if (!selectedMember) {
@@ -131,14 +140,14 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
       return;
     }
     if (messageEdited) return;
-    setValue('message', buildEmailTemplate(selectedMember, role, teamName, recipients));
+    setValue('message', draft());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, selectedMember?.uid, greetingKey]);
+  }, [open, selectedMember?.uid, greetingKey, signatureKey]);
 
   // Any keystroke that diverges from the generated template counts as an edit.
   useEffect(() => {
     if (!open || !selectedMember || messageEdited) return;
-    if (message && message !== buildEmailTemplate(selectedMember, role, teamName, recipients)) {
+    if (message && message !== draft()) {
       setMessageEdited(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +155,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
 
   const resetTemplate = () => {
     if (!selectedMember) return;
-    setValue('message', buildEmailTemplate(selectedMember, role, teamName, recipients));
+    setValue('message', draft());
     setMessageEdited(false);
   };
 
@@ -189,38 +198,19 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
               }}
             >
               <div className={s.fields}>
-                {/* The chosen value carries the same avatar + role line as the menu row, so no
-                    second "who you picked" card is needed under it. */}
-                <FormSelect
+                <MemberSearchSelect
                   name="referee"
                   label="Who are you referring?"
                   placeholder="Search members by name..."
-                  options={refereeOptions}
-                  isClearable
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                  renderOption={({ option, label, description }) => (
-                    <div className={s.optionRow}>
-                      <MemberAvatar name={option.label} size={32} />
-                      <div className={s.optionText}>
-                        {label}
-                        {description}
-                      </div>
-                    </div>
-                  )}
-                  formatOptionLabel={(option) => (
-                    <span className={s.valueRow}>
-                      <MemberAvatar name={option.label} size={24} />
-                      <span className={s.valueName}>{option.label}</span>
-                      {option.description && <span className={s.valueMeta}>{option.description}</span>}
-                    </span>
-                  )}
                 />
 
                 <RecipientPicker
                   label="Send to"
                   teamMembers={teamMembers}
-                  networkMembers={networkMembers}
+                  isTeamLoading={isTeamLoading}
                   teamName={teamName}
+                  excludeUids={referee?.value ? [referee.value] : undefined}
                   value={recipients}
                   onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}

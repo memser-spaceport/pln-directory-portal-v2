@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import { components, type GroupBase } from 'react-select';
 
@@ -13,29 +13,27 @@ import { CloseIcon } from '@/components/icons';
 import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
 import selectCss from '@/components/form/FormSelect/FormSelect.module.scss';
 
-import { RecipientOption } from '../../types';
+import { DirectoryMember, RecipientOption } from '../../types';
 
 import { isEmailAddress } from '../../utils/isEmailAddress';
+import { toRecipientOption } from '../../utils/toRecipientOption';
+
+import { useMemberSearch } from '../../hooks/useMemberSearch';
 
 import { MailIcon } from '../../../../icons';
-import type { MockMember } from '../../../../mockMembers';
 
 import { selectStyles } from './selectStyles';
 import s from './RecipientPicker.module.scss';
 
-const toOption = (m: MockMember): RecipientOption => ({
-  label: m.name,
-  value: m.uid,
-  description: `${m.title} · ${m.team}`,
-});
-
 interface RecipientPickerProps {
   label: string;
-  /** Members of the hiring team — listed first, under their own group heading. */
-  teamMembers: MockMember[];
-  /** Everyone else in the network. */
-  networkMembers: MockMember[];
+  /** Members of the hiring team — the group the menu opens on, before anything is typed. */
+  teamMembers: DirectoryMember[];
+  /** The hiring team is still on the wire — an empty menu means "not yet", not "nobody". */
+  isTeamLoading?: boolean;
   teamName: string;
+  /** Members who can't be recipients: the person being referred, and anyone already added. */
+  excludeUids?: string[];
   value: RecipientOption[];
   onChange: (value: RecipientOption[]) => void;
   menuPortalTarget?: HTMLElement | null;
@@ -56,18 +54,32 @@ interface RecipientPickerProps {
  * reinvented — see `selectStyles`.
  */
 export function RecipientPicker(props: RecipientPickerProps) {
-  const { label, teamMembers, networkMembers, teamName, value, onChange, menuPortalTarget, description } = props;
+  const { label, teamMembers, isTeamLoading, teamName, excludeUids, value, onChange, menuPortalTarget, description } =
+    props;
+
+  const [query, setQuery] = useState('');
+  const { results, isSearching, hasQuery, isUnauthorized } = useMemberSearch(query);
+
+  const teamUids = useMemo(() => new Set(teamMembers.map((member) => member.uid)), [teamMembers]);
 
   const groups = useMemo<GroupBase<RecipientOption>[]>(() => {
+    const excluded = new Set([...(excludeUids ?? []), ...value.map((option) => option.value)]);
+    const pickable = (members: DirectoryMember[]) => members.filter((member) => !excluded.has(member.uid));
+
+    // Nothing typed: the hiring team is the whole menu. Searching swaps in what the
+    // directory matched, split so the hiring team still reads first.
+    const team = hasQuery ? pickable(results.filter((member) => teamUids.has(member.uid))) : pickable(teamMembers);
+    const network = hasQuery ? pickable(results.filter((member) => !teamUids.has(member.uid))) : [];
+
     const result: GroupBase<RecipientOption>[] = [];
-    if (teamMembers.length) {
-      result.push({ label: `${teamName} team`, options: teamMembers.map(toOption) });
+    if (team.length) {
+      result.push({ label: `${teamName} team`, options: team.map(toRecipientOption) });
     }
-    if (networkMembers.length) {
-      result.push({ label: 'PL network', options: networkMembers.map(toOption) });
+    if (network.length) {
+      result.push({ label: 'PL network', options: network.map(toRecipientOption) });
     }
     return result;
-  }, [teamMembers, networkMembers, teamName]);
+  }, [teamMembers, teamUids, teamName, results, hasQuery, excludeUids, value]);
 
   return (
     <div className={fieldCss.field}>
@@ -81,6 +93,15 @@ export function RecipientPicker(props: RecipientPickerProps) {
         value={value}
         onChange={(next) => onChange([...(next ?? [])])}
         placeholder="Type a name or email address"
+        inputValue={query}
+        // Mirrors whatever react-select reports, typing or not: it clears the input
+        // after every pick, and holding on to the old text would keep the menu showing
+        // the last search instead of dropping back to the hiring team.
+        onInputChange={(next) => setQuery(next)}
+        // The directory already ranked and capped the matches, and the group split
+        // above is what orders them — filtering again would only drop rows.
+        filterOption={() => true}
+        isLoading={isSearching}
         menuPlacement="auto"
         menuPortalTarget={menuPortalTarget}
         menuPosition={menuPortalTarget ? 'fixed' : undefined}
@@ -99,7 +120,21 @@ export function RecipientPicker(props: RecipientPickerProps) {
           }) as RecipientOption
         }
         createOptionPosition="first"
-        noOptionsMessage={() => 'No members found'}
+        noOptionsMessage={() => {
+          if (!hasQuery && isTeamLoading) {
+            return `Loading the ${teamName} team…`;
+          }
+          if (!hasQuery) {
+            return 'Type a name to search the network';
+          }
+          // Searching the network needs a session; adding an email address doesn't, so
+          // this field still has something to offer signed out.
+          if (isUnauthorized) {
+            return 'Sign in to search members';
+          }
+          return 'No members found';
+        }}
+        loadingMessage={() => 'Searching members…'}
         styles={selectStyles}
         // The scrollbar can only be styled from CSS, so the value container gets a
         // real class alongside the emotion styles above.
@@ -112,7 +147,16 @@ export function RecipientPicker(props: RecipientPickerProps) {
           NoOptionsMessage: (noOptionProps) => (
             <div className={fieldCss.notFound}>
               <span>{noOptionProps.children}</span>
-              <span>Type a full email address to reach someone outside the network.</span>
+              {/* The way out is only worth offering once the search has actually come
+                  back empty — with nothing typed yet, nobody is missing. */}
+              {hasQuery && <span>Type a full email address to reach someone outside the network.</span>}
+            </div>
+          ),
+          // Same treatment while a request is out: react-select's default here is a
+          // centred "Loading...", which would make the menu jump between states.
+          LoadingMessage: (loadingProps) => (
+            <div className={fieldCss.notFound}>
+              <span>{loadingProps.children}</span>
             </div>
           ),
           Option: (optionProps) => (
@@ -128,7 +172,11 @@ export function RecipientPicker(props: RecipientPickerProps) {
                 </span>
               ) : (
                 <span className={s.optionRow}>
-                  <img src={getDefaultAvatar(optionProps.data.label)} alt="" className={s.optionAvatar} />
+                  <img
+                    src={optionProps.data.image || getDefaultAvatar(optionProps.data.label)}
+                    alt=""
+                    className={s.optionAvatar}
+                  />
                   <span className={s.optionText}>
                     <span className={s.optionName}>{optionProps.data.label}</span>
                     {optionProps.data.description && (
@@ -164,7 +212,11 @@ export function RecipientPicker(props: RecipientPickerProps) {
                     <MailIcon />
                   </span>
                 ) : (
-                  <img src={getDefaultAvatar(multiProps.data.label)} alt="" className={s.chipAvatar} />
+                  <img
+                    src={multiProps.data.image || getDefaultAvatar(multiProps.data.label)}
+                    alt=""
+                    className={s.chipAvatar}
+                  />
                 )}
                 {multiProps.data.label}
               </span>

@@ -16,10 +16,13 @@ import { ArrowIcon, ClockIcon } from './components/Icons';
 import { ReferModal } from '@/prototypes/entries/job-board/components/ReferModal/ReferModal';
 
 import s from './ReferRoleRow.module.scss';
+import { IUserInfo } from '@/types/shared.types';
+import { useRouter } from 'next/navigation';
 
 interface ReferRoleRowProps {
   role: IJobRole;
   teamName: string;
+  currentUser: IUserInfo | null;
   onClick?: () => void;
 }
 
@@ -29,7 +32,9 @@ interface ReferRoleRowProps {
  * the title + arrow are the apply link, and the ReferMenu sits alongside the meta.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamName, onClick } = props;
+  const { role, teamName, currentUser, onClick } = props;
+
+  const router = useRouter();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
@@ -46,6 +51,14 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const linkProps: HTMLProps<HTMLAnchorElement> = applyUrl
     ? { href: `${applyUrl}?${JOB_QUERY_PARAMS}`, target: '_blank', rel: 'noopener noreferrer', onClick }
     : {};
+
+  function onRefer() {
+    if (currentUser) {
+      toggleReferOpen();
+    } else {
+      router.push(`${window.location.pathname}${window.location.search}#login`);
+    }
+  }
 
   return (
     <div className={`${s.root} ${s.row}`}>
@@ -70,7 +83,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         )}
 
         <div className={s.actionButtons}>
-          <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={toggleReferOpen}>
+          <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={onRefer}>
             Refer
           </Button>
 

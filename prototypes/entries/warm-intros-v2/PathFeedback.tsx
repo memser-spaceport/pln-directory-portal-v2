@@ -46,6 +46,21 @@ type PathFeedbackRecord = {
  */
 const FEEDBACK_STORE = new Map<string, PathFeedbackRecord>();
 
+/**
+ * The referral question, off.
+ *
+ * Production's `PathActions` carries the same flag at the same value
+ * (`SHOW_CAN_REFER = false`, "re-enable when refer flow ships"), so this brings
+ * the prototype back in line with what actually ships rather than diverging from
+ * it. Off, the card ends in `Give feedback` alone: `.stripLeft:empty` collapses
+ * and the escape hatch stays pinned right.
+ *
+ * Everything behind it — the Yes / No answer, the answered state, Undo, and the
+ * module-level store that survives reopening the drawer — is left wired up, so
+ * turning it back on is this one line.
+ */
+const SHOW_CAN_REFER = false;
+
 interface Props {
   /** Stable per-path id — also the key the caller should mount this under. */
   pathKey: string;
@@ -79,7 +94,7 @@ export function PathActions({ pathKey, context }: Props) {
     <>
       <div className={f.strip}>
         <div className={f.stripLeft}>
-          {asking && !answered ? (
+          {SHOW_CAN_REFER && asking && !answered ? (
             <>
               <span className={f.askLabel}>
                 Can you refer
@@ -100,7 +115,7 @@ export function PathActions({ pathKey, context }: Props) {
             </>
           ) : null}
 
-          {answered ? (
+          {SHOW_CAN_REFER && answered ? (
             <>
               <span className={clsx(f.answered, answered === 'no' && f.answeredNo)}>
                 <CheckIcon className={f.checkMark} width={11} height={11} />
@@ -120,7 +135,7 @@ export function PathActions({ pathKey, context }: Props) {
               it's the rarer action of the two, so it gets no more weight than
               the escape hatch beside it. Clicking promotes the question to the
               left of the row, where Yes / No get real button affordance. */}
-          {resting ? (
+          {SHOW_CAN_REFER && resting ? (
             <>
               <Button
                 style="link"

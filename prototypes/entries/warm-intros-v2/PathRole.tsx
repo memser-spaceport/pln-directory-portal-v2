@@ -22,6 +22,7 @@
  */
 
 import clsx from 'clsx';
+import { labOsOf } from './mocks';
 import s from './PathRole.module.scss';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -36,10 +37,40 @@ export function roleLabel(role?: string | null): string | null {
   return ROLE_LABEL[role] ?? role.replace(/_/g, ' ');
 }
 
-export function HopRoleCaption({ role }: { role?: string | null }) {
+/**
+ * The caption line: the hop's role, and whether they are in LabOS.
+ *
+ * Wording is `LabOsBadge`'s own — "In LabOS" for a member profile, "Fund in LabOS"
+ * for a team — so the two surfaces call the same thing the same name. What is not
+ * borrowed is its chip: that is `#ecfdf5` at 11px/600, which next to a 10px muted
+ * role caption would make the sub-line louder than the person's name above it.
+ * Here it is words on the caption row, carrying only LabOS's green.
+ *
+ * No second dot, deliberately. The chip above already wears a green dot for
+ * "Directory member", and a second green dot 20px away meaning something adjacent
+ * but different is worse than no marker at all.
+ */
+export function HopRoleCaption({ role, profileUid }: { role?: string | null; profileUid?: string | null }) {
   const label = roleLabel(role);
-  if (!label) return null;
-  return <span className={s.roleCaption}>{label}</span>;
+  const labOs = labOsOf(profileUid);
+  if (!label && !labOs) return null;
+
+  return (
+    <span className={s.roleCaption}>
+      {label}
+      {label && labOs ? ' · ' : null}
+      {/* One wording for both profile types. `LabOsBadge` splits them into
+          "In LabOS" / "Fund in LabOS", but the caption is answering "can I reach
+          them here", and the answer is the same either way — whether the profile
+          happens to be a person or their fund is a detail of the record, not of
+          the reachability. The name still rides in the tooltip. */}
+      {labOs ? (
+        <span className={s.labOs} title={`${labOs.name} — open in LabOS`}>
+          In LabOS
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 /**
@@ -49,18 +80,26 @@ export function HopRoleCaption({ role }: { role?: string | null }) {
  */
 export function PathHop({
   role,
+  profileUid,
   isLast = false,
   children,
 }: {
   role?: string | null;
+  profileUid?: string | null;
   isLast?: boolean;
   children: React.ReactNode;
 }) {
+  // The role is suppressed on the last hop, but LabOS is not: that one is the
+  // investor the row is about, and whether *they* are reachable in LabOS is the
+  // most useful thing on the chain, not the least.
   const showRole = !isLast && !!roleLabel(role);
+  const labOs = labOsOf(profileUid);
+  const showCaption = showRole || !!labOs;
+
   return (
-    <span className={clsx(s.hop, showRole && s.hopWithRole)}>
+    <span className={clsx(s.hop, showCaption && s.hopWithRole)}>
       {children}
-      {showRole ? <HopRoleCaption role={role} /> : null}
+      {showCaption ? <HopRoleCaption role={showRole ? role : null} profileUid={profileUid} /> : null}
     </span>
   );
 }

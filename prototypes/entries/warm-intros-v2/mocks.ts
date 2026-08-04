@@ -11,6 +11,7 @@ import {
   hopCountFromRelationKind,
   proximityFamilyFromRelationKind,
 } from '@/components/page/investors/WarmIntrosV2Workspace/parseWarmPathHopChain';
+import type { LabOsProfileRef } from '@/services/investors/types';
 import type {
   MasterProfileDetail,
   WarmIntrosV2ConnectorSummary,
@@ -846,6 +847,34 @@ export function plHistoryOf(row: WarmIntrosV2PathListItem): {
     backing: seed?.plBacking ?? null,
     coInvestmentCount: seed?.coInvestments?.length ?? 0,
   };
+}
+
+/**
+ * Who on a path has a LabOS profile, keyed by profileUid.
+ *
+ * `type` matters: `member` resolves to `/members/:uid` — the same directory the
+ * path chip's green dot already stands for, so on those people the caption and the
+ * dot say one thing twice. `team` is a *fund* in LabOS, which a person-level dot
+ * cannot express, and is the case where the caption earns its place.
+ *
+ * Seeded deliberately across both: Mara is a directory member (dot + caption, the
+ * redundant case) and Renata is not (`memberUid: null`, so caption only — the
+ * informative one).
+ */
+const LAB_OS_PROFILES: Record<string, LabOsProfileRef> = {
+  'mp-pl-mara': { type: 'member', uid: 'member-mara', slug: 'mara-velasquez', name: 'Mara Velasquez' },
+  'mp-pl-tomas': { type: 'member', uid: 'member-tomas', slug: 'tomas-reyna', name: 'Tomás Reyna' },
+  'mp-ci-renata': { type: 'team', uid: 'team-atlantica', slug: 'atlantica-capital', name: 'Atlantica Capital' },
+  'mp-fd-priya': { type: 'team', uid: 'team-corticon', slug: 'corticon-bio', name: 'Corticon Bio' },
+  // Investors. Only some — the badge is only worth putting in the Investor column
+  // if it distinguishes rows, and it cannot do that if every row carries it.
+  'mp-inv-elena-marchand': { type: 'team', uid: 'team-au-ventures', slug: 'au-ventures', name: 'Au Ventures' },
+  'mp-inv-linnea-holm': { type: 'member', uid: 'member-linnea', slug: 'linnea-holm', name: 'Linnéa Holm' },
+  'mp-inv-thabo-mokoena': { type: 'team', uid: 'team-kalahari', slug: 'kalahari-capital', name: 'Kalahari Capital' },
+};
+
+export function labOsOf(profileUid: string | null | undefined): LabOsProfileRef | null {
+  return profileUid ? (LAB_OS_PROFILES[profileUid] ?? null) : null;
 }
 
 function matchesPathVia(row: WarmIntrosV2PathListItem, via: PathVia): boolean {

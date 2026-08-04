@@ -23,6 +23,7 @@ import {
 } from '@/components/page/investors/WarmIntrosV2Workspace/parseWarmPathHopChain';
 import s from '@/components/page/investors/WarmIntrosV2Workspace/WarmIntrosV2Table.module.scss';
 import { PathHop, roleLabel } from './PathRole';
+import { labOsOf } from './mocks';
 // Press + focus states the chips don't ship — see ChipPress.module.scss.
 import press from './ChipPress.module.scss';
 
@@ -37,7 +38,11 @@ export function chainHopsOf(row: WarmIntrosV2PathListItem): WarmPathV2HopNode[] 
  * `View all` has to clear. Rows on the two-chip fallback have no caption band.
  */
 export function hasRoleCaption(hops: WarmPathV2HopNode[] | null): boolean {
-  return !!hops && hops.some((hop, i) => i !== hops.length - 1 && !!roleLabel(hop.role));
+  return (
+    !!hops &&
+    // LabOS can caption the last hop too, where the role never does.
+    hops.some((hop, i) => (i !== hops.length - 1 && !!roleLabel(hop.role)) || !!labOsOf(hop.profileUid))
+  );
 }
 
 export function investorAvatarSrc(row: WarmIntrosV2PathListItem): string | null {
@@ -93,7 +98,7 @@ export function PathChain({ row, onOpenProfileUid, lead, className }: Props) {
                 {/* Every hop is labelled except the last — that one is the row's
                     own investor. A path can start at a founder, so hop 0's role
                     is read, never assumed. */}
-                <PathHop role={hop.role} isLast={i === hops.length - 1}>
+                <PathHop role={hop.role} profileUid={hop.profileUid} isLast={i === hops.length - 1}>
                   <PathProfileChip
                     name={hopName}
                     profileUid={hop.profileUid}

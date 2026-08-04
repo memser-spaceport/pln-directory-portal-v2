@@ -71,7 +71,7 @@ function PathHopRow({
           <span key={`${hop.profileUid}-${i}`} className={s.node}>
             {i > 0 && <span className={s.arrow}>→</span>}
             {/* Same rule as the table: label every hop but the last. */}
-            <PathHop role={hop.role} isLast={i === hops.length - 1}>
+            <PathHop role={hop.role} profileUid={hop.profileUid} isLast={i === hops.length - 1}>
               <PathProfileChip
                 name={hop.name}
                 profileUid={hop.profileUid}

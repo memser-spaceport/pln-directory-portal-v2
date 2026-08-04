@@ -1,0 +1,177 @@
+/**
+ * Evidence under a path: where each reason came from, and which events the two
+ * ends of the path both attended.
+ *
+ * Colours are `var(--token, #fallback)` pairs per `prototypes/CLAUDE.md` §3–4 —
+ * this is new UI, not a transcription of an existing production component.
+ */
+
+/* Trailing provenance marker on a reason line. */
+.source {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  white-space: nowrap;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/**
+ * Model-inferred reasons get no extra colour, only the word — but they do get
+ * italics, so a guess never reads with the same authority as a verified fact at
+ * a glance.
+ */
+.sourceWeak {
+  font-style: italic;
+}
+
+.eventsBlock {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  display: flex;
+  flex-direction: column;
+  /* Rows are two lines each now, so they need more air between them than the
+     3px that separated single sentences. */
+  gap: 6px;
+}
+
+.eventsHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.eventsLabel {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* One pair, its caption, and the events under it. */
+.eventGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/**
+ * The caption states the pair once for the whole group, so it recedes: it is the
+ * heading over a list, not a fact competing with the events themselves. On a
+ * two-hop chain it reads just "Both attended", because the pair is the chain
+ * directly above.
+ */
+.eventPair {
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/**
+ * Events as chips in a wrapping row, borrowed from the team page's IRL
+ * contribution tiles (`team-irl-contributions.tsx`
+ * `.root__irlCrbts__col__event__cnt`): radius 4, the same `#f1f5f9` fill, the same
+ * 12px/500 title.
+ *
+ * Two things about that tile deliberately do **not** come across:
+ *
+ * 1. It clamps its title to `width: 93px` with an ellipsis, leaning on a tooltip
+ *    and the fact that the tile links to the event. Here the event name *is* the
+ *    evidence — "Neuro Capital Roundtable" truncated to "Neuro Capit…" deletes the
+ *    only fact the row carries — so these size to their content and wrap.
+ * 2. Its 40px height holds a 12px title over an 8px date, and `EVENTS_BY_PROFILE`
+ *    has no dates. A 40px box with one line in it is just a chip with a hole, so
+ *    the height comes down to fit what is actually there.
+ *
+ * The border is this prototype's own token pair rather than the team page's raw
+ * `#cbd5e1`: the chips sit inside the drawer's other bordered blocks, and matching
+ * them matters more here than matching a tile on another page.
+ */
+/**
+ * A wrapping row: events run left to right and wrap when they run out of width.
+ *
+ * The trade against stacking them is height. This block is evidence hanging under
+ * a path, not the subject of the card — three tiles on one line keep it to a
+ * single row, where stacked they cost three and push `Can you refer?` off the
+ * bottom of a short drawer.
+ */
+.eventChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.eventRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-neutral-subtle, #f1f5f9);
+  max-width: 100%;
+}
+
+/**
+ * `CalendarBlankIcon` ships at 20px, which is heading scale. At 14px it sits
+ * between the 12px title and the 11px meta, which is where a supporting glyph
+ * belongs — present, not announcing itself. The 1px nudge puts its optical centre
+ * on the title's cap height rather than its line box.
+ */
+.eventIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* 12px/500 is the team tile's own title size; inside a filled chip it does not
+   need the extra weight the bare list rows were carrying. */
+.eventName {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/**
+ * The overflow control is the team page's `+N` tile
+ * (`.root__irlCrbts__col__event__cnts`) — same chip shape as the events it stands
+ * in for, so it reads as one of them rather than as a link beneath them.
+ *
+ * It expands in place rather than opening a modal the way the team page does:
+ * this already lives inside a drawer, and stacking a dialog on a drawer to reveal
+ * two more chips is a heavier gesture than the content deserves. Which is also why
+ * it can toggle back — a modal you must close is not a "show fewer".
+ */
+.eventsMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}

@@ -1,0 +1,175 @@
+/**
+ * Column widths for the five-column variant — Investor · Fund · Backed · Path ·
+ * Score.
+ *
+ * Production apportioned 22/18/18/14/28 across its own five. These are re-cut for
+ * a different set: Path keeps the largest share because a three-hop chain is the
+ * only cell whose content can double in width, and Score takes the smallest
+ * because a percentage is four characters no matter what.
+ *
+ * Layout only, apart from the card border and fill in the mobile block, which are
+ * the same two values `TableColumns.module.scss` borrows from production's
+ * `.tableWrap` frame and `.row` fill.
+ */
+
+@import 'styles/media.scss';
+
+.colInvestor {
+  width: 22%;
+}
+
+.colFund {
+  width: 16%;
+}
+
+.colBacked {
+  width: 15%;
+}
+
+.colPath {
+  width: 39%;
+}
+
+.colScore {
+  width: 8%;
+}
+
+/**
+ * Right-aligned, on the header as well as the cell.
+ *
+ * This is the reason score gets a column at all. A percentage is a quantity, and a
+ * quantity is compared down its last digit — left-aligned among other content it
+ * was a label you read one row at a time. `ScorePercentPill` already sets
+ * `font-variant-numeric: tabular-nums`, so the digits line up once the edge does.
+ *
+ * The header goes with it: a numeric column with its label hanging off the left of
+ * the digits reads as belonging to the column before it.
+ */
+.scoreCell {
+  text-align: right;
+}
+
+/* Production's `.pathChain` centres its items, so the badge needs nothing but the
+   gap the chain already provides — only the trailing space is its own. */
+.codeLead {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+/**
+ * The firm gets a column but not emphasis — it identifies the row's subject a
+ * second time (the investor works there), so it stays at the secondary weight the
+ * name's sub-line used to give it rather than becoming a second heading.
+ */
+.fund {
+  font-size: 13px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile: same card collapse as the compact variant.
+ *
+ * Five columns at 390px is less viable than two were, and the argument is
+ * identical — a row read sideways is not a row. The cells stack in reading order,
+ * which puts identity (name, fund, backing) above the route, so the card lands in
+ * the same shape the compact variant produces even though it starts from five
+ * cells instead of two.
+ *
+ * Score moves to the *top* of the route block rather than the bottom of the card:
+ * it is the reason to look at the row, and at the end it would sit below `View
+ * all` where nothing looks.
+ * ------------------------------------------------------------------------- */
+@include mobile-only {
+  .wideCards {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* Doubled — production's `.table` carries a 620px floor and a media query adds
+     no specificity, the same tie that left the compact cards 620px wide. */
+  .table.table {
+    min-width: 0;
+    display: block;
+  }
+
+  /* Visually hidden, not `display: none` — the column names stay in the a11y tree
+     even though the header row is gone. */
+  .wideCards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .wideCards tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Flex rather than block so `order` can lift score out of last place. */
+  .wideCard.wideCard {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .wideCards td {
+    display: block;
+    border-bottom: 0;
+    padding: 2px 14px;
+  }
+
+  /* Investor cell opens the card. */
+  .wideCards td:first-child {
+    padding-top: 12px;
+  }
+
+  /*
+   * Score (source order 5) moves ahead of Path (4), so the route block reads
+   * score → chain → View all. Left where the markup puts it, the number would sit
+   * below `View all` at the very bottom of the card, which is the one place nobody
+   * looks — and it is the reason to look at the row at all.
+   *
+   * Identity cells keep the default order 0, so this only reshuffles the two.
+   */
+  .wideCards td:last-child {
+    order: 1;
+    /* The divider opens the route block here now, keeping the identity/route
+       split the hidden column headers used to carry. */
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .wideCards td:nth-child(4) {
+    order: 2;
+    padding-bottom: 12px;
+  }
+
+  /* Back to the left edge: right-alignment buys a scannable column, and on a card
+     there is no column to scan. */
+  .scoreCell {
+    text-align: left;
+  }
+
+  /*
+   * The placeholder dash goes away too. It earns its place in the table because an
+   * empty cell there is a hole in a grid, which reads as data that failed to load.
+   * On a card there is no grid and no hole — the line is simply absent, which is
+   * what the compact variant does with the same fact.
+   */
+  .emptyMark {
+    display: none;
+  }
+}

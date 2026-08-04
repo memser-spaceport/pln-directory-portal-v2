@@ -1,0 +1,66 @@
+/**
+ * Layout only — no colours of its own beyond the muted grey production already
+ * uses for `.pathArrow` and `.subtle`.
+ *
+ * Dev puts a bordered role pill after every hop chip. Only the last one is
+ * redundant (it is always the row's own investor); every other position carries
+ * information, because a path can start at a founder just as well as at a PL
+ * member. So the labels stay, and what changes is their weight: pill chrome off,
+ * caption under the name — the pattern Workable / Aboard / Peerlist all use.
+ */
+
+.hop {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/**
+ * Only the bridge stacks, so the caption sits under its own name.
+ *
+ * Keeping the chip on the same line as its neighbours: production centres the
+ * chain, and a caption hanging below would drag this chip upward by half the
+ * caption's height. Top-aligning the chain instead just moves the problem — the
+ * arrows and the other chips then hang off the top edge.
+ *
+ * So the hop reserves the caption's height *above* the chip as well. The column
+ * becomes symmetric (13px, chip, 1px gap, 12px caption), which puts the chip
+ * back on the row's centre line while production's `align-items: center` is left
+ * exactly as it is.
+ */
+.hopWithRole {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 13px; /* .roleCaption line-height (12px) + the 1px gap */
+}
+
+/**
+ * Absorbs the row's own top margin in the drawer.
+ *
+ * `.chainRow` sets `margin-top: 8px`, measured back when the chain was just chips.
+ * `.hopWithRole` now reserves another 13px above each captioned chip — symmetric
+ * padding so a chip with a caption stays centred against one without — so the
+ * apparent gap between the path description and the nodes became 21px, and read as
+ * a hole in the card.
+ *
+ * The 13px stays: it is what keeps `Ilse Brandt` and `Linnéa Holm` on the same
+ * centre line when only the first has a caption. What goes is the 8px underneath
+ * it, which was spacing for a chain that no longer exists.
+ *
+ * Doubled to clear production's own `.chainRow` without depending on which
+ * stylesheet the bundler emits last.
+ */
+.chainRowTight.chainRowTight {
+  margin-top: 0;
+}
+
+.roleCaption {
+  padding-left: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  letter-spacing: 0.01em;
+  color: #9ca3af;
+  white-space: nowrap;
+}

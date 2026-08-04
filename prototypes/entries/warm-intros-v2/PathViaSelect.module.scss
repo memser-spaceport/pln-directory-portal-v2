@@ -1,0 +1,24 @@
+/**
+ * The checkbox row inside a "Path via" option.
+ *
+ * Layout only — the box is the DS `Checkbox` and the label keeps the type
+ * `filterSelectStyles.option` already sets, so there is nothing here to
+ * token-swap.
+ */
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/**
+ * The DS `Checkbox` is a 1.25rem box that shrinks under a long option label
+ * ("Priya Raghunathan (2)") unless it is told not to. `display: flex` keeps its
+ * own centring intact inside this row.
+ */
+.optionBox {
+  display: flex;
+  flex-shrink: 0;
+}

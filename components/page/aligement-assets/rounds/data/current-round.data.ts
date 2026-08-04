@@ -1,15 +1,17 @@
 /**
- * Master data for CurrentRound component
- * This file contains all section data in a centralized location
- * Can be replaced with API calls in the future
+ * Template + fallback data for the CurrentRoundComponent. Round-specific
+ * facts (meta, round description number/month, snapshot dates, chart,
+ * points/participants/activities/regions) are overridden at request time
+ * from GET /rounds/current/stats in app/alignment-asset/page.tsx and are
+ * NOT meant to be hand-updated here each round — this file only needs
+ * editing when the round-independent copy itself changes (hero, paragraph
+ * text, tip content, section labels), or as a degraded-mode fallback if the
+ * API is unreachable, in which case some numbers here will read stale.
  */
 
 import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
-/**
- * Current Round 18 (July 2026) Master Data
- */
 export const currentRoundData: CurrentRoundData = {
   // ============================================================================
   // Meta Information
@@ -151,6 +153,7 @@ export const currentRoundData: CurrentRoundData = {
       'Complete a Survey',
       'Refer New Alignment Asset Participants',
       'Top the Leaderboard',
+      'Give a Network Kudos',
       'Host or Co-Host an X Space',
       'Write and publish a case study about the Alignment Asset',
       'Refer a Potential Team Member to a PL Network Org',

@@ -14,6 +14,7 @@ import {
   StarFourIcon,
   ForumIcon,
 } from '../components/icons';
+import { MagicSparklesIcon } from '@/components/icons';
 
 export const INVESTOR_DB_LINK: ISubItem = {
   icon: <AnalyticsIcon />,
@@ -126,4 +127,11 @@ export const AI_APPS_LINK: ISubItem = {
   href: '/pl-infra/ai-apps',
   title: 'AI Apps',
   description: 'Deploy AI apps to LabOS and explore builds from other PL Infra members',
+};
+
+export const AGENT_SESSIONS_LINK: ISubItem = {
+  icon: <MagicSparklesIcon width={20} height={20} />,
+  href: '/pl-infra/agent-sessions',
+  title: 'Agent Sessions',
+  description: 'Create and track autonomous coding agent sessions',
 };

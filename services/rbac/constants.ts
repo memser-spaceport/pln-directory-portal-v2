@@ -23,6 +23,10 @@ export const PERMISSIONS = {
   AI_APPS: {
     PERM_VIEW: 'ai_apps.read',
   },
+  AGENT_SESSIONS: {
+    PERM_VIEW: 'code_agent_sessions.view',
+    PERM_ADMIN: 'code_agent_sessions.admin',
+  },
   FOUNDER_GUIDE: {
     PERM_VIEW: 'founder_guides.view',
   },

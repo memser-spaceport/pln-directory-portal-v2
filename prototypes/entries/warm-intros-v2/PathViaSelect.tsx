@@ -15,18 +15,24 @@
  * two keys don't exist there. Everything else is imported verbatim, so the
  * control matches its neighbours in the filter bar exactly.
  *
- * Single-select on purpose. One selection = one legible trigger label; and
- * combinations like "founder bridges, but only Mara's" would need two values in
- * one control, which is the two-controls problem again wearing a new coat.
+ * Multi-select, with checkboxes. It was single-select at first, on the argument
+ * that one selection keeps one legible trigger label — the control now shows a
+ * count (`Path via · 2`) instead of the label, so that objection is spent.
+ *
+ * Several selections are matched as **OR** (see `PathFilters.pathVia`): ticking a
+ * second box widens the result. The intersection would be the wrong reading and
+ * usually empty, since a path has one shape and one bridge.
  */
 
 import Select, { type GroupBase, type StylesConfig } from 'react-select';
 import type { CSSObjectWithLabel } from 'react-select';
-import { filterSelectStyles } from '@/components/common/filters/FilterSelect/filterSelectStyles';
+// The checkbox row and the settings that keep the menu still — shared with the
+// Industry / Sector select, so both behave identically.
+import { CheckboxOption, checkSelectStyles, steadyMenuProps } from './CheckSelect';
 import type { Option } from '@/components/form/FormSelect/types';
 import { MOCK_BRIDGES, MOCK_CONNECTORS, type PathVia, type PathViaFacets, type RelationKind } from './mocks';
 // Same chevron as the other two selects in the bar, so the three still match.
-import { thinChevron } from './FilterSelectThin';
+import { dsIndicators } from './FilterSelectThin';
 
 const KIND_LABEL: Record<RelationKind, string> = {
   pl_direct: 'Direct',
@@ -119,8 +125,10 @@ export function pathViaLabel(groups: GroupBase<Option>[], via: PathVia | null): 
  * Production's styles plus the two keys it never needed. Colours are lifted from
  * `filterSelectStyles`' own palette so the headings read as the same family.
  */
-const groupedStyles: StylesConfig<Option, false, GroupBase<Option>> = {
-  ...(filterSelectStyles as StylesConfig<Option, false, GroupBase<Option>>),
+const groupedStyles: StylesConfig<Option, true, GroupBase<Option>> = {
+  // Production's styles plus the placeholder-vs-value fix, shared with the
+  // Industry / Sector select so a selected control looks the same in both.
+  ...checkSelectStyles,
   group: (base: CSSObjectWithLabel) => ({ ...base, paddingTop: 4, paddingBottom: 4 }),
   groupHeading: (base: CSSObjectWithLabel) => ({
     ...base,
@@ -136,24 +144,31 @@ const groupedStyles: StylesConfig<Option, false, GroupBase<Option>> = {
 
 interface Props {
   facets: PathViaFacets;
-  value: PathVia | null;
-  onChange: (via: PathVia | null) => void;
+  /** Empty means unfiltered. Several values are matched as OR — see `PathFilters`. */
+  value: PathVia[];
+  onChange: (via: PathVia[]) => void;
 }
 
 export function PathViaSelect({ facets, value, onChange }: Props) {
   const groups = pathViaOptions(facets);
+  const selected = value.map((via) => pathViaLabel(groups, via)).filter((opt): opt is Option => !!opt);
 
   return (
-    <Select<Option, false, GroupBase<Option>>
+    <Select<Option, true, GroupBase<Option>>
+      {...steadyMenuProps}
       aria-label="Path via"
       options={groups}
-      value={pathViaLabel(groups, value)}
-      onChange={(opt) => onChange(opt ? decode(opt.value) : null)}
-      placeholder="Path via"
+      value={selected}
+      onChange={(opts) => onChange([...(opts ?? [])].map((opt) => decode(opt.value)).filter((v): v is PathVia => !!v))}
+      // The control never renders the chosen values, so this doubles as the
+      // summary line. Chips inside a 220px control wrap into two rows after the
+      // second pick, and what is selected is already spelled out by the
+      // active-filter pills under the bar — this would be the third time.
+      placeholder={selected.length > 0 ? `Path via · ${selected.length}` : 'Path via'}
       isClearable
       isSearchable
       styles={groupedStyles}
-      components={thinChevron}
+      components={{ ...dsIndicators, Option: CheckboxOption }}
       menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
       menuPosition="fixed"
       noOptionsMessage={() => 'No paths match the other filters'}

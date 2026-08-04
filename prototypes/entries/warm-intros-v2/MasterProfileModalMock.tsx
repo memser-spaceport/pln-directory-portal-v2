@@ -314,7 +314,18 @@ export function MasterProfileModalMock({ profileUid, open, onClose }: Props) {
                   <h4 className={s.sectionTitle}>Locations</h4>
                   <div className={s.pillRow}>
                     {locations.map((loc) => (
-                      <span key={loc} className={s.tag}>
+                      // The house pin (`/icons/location.svg`, the same asset
+                      // `member-list-view` and `irl-card` use, at the 11×13 the
+                      // member list renders it). Its `#94A3B8` is lighter than the
+                      // tag's `#455468` text, which is right for a glyph that
+                      // labels rather than competes — and it means the pin does not
+                      // need a colour decision of its own.
+                      //
+                      // Decorative, so `alt=""`: the section heading already says
+                      // "Locations", and "location Remote" read out twice helps
+                      // nobody.
+                      <span key={loc} className={`${s.tag} ${chrome.locationTag}`}>
+                        <img src="/icons/location.svg" alt="" width={11} height={13} aria-hidden />
                         {loc}
                       </span>
                     ))}

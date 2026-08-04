@@ -793,8 +793,16 @@ export type PathVia =
 export type PathFilters = {
   targetSet: TargetSetScope;
   search?: string;
-  sector?: string;
-  pathVia?: PathVia | null;
+  /** A set, matched as OR — same reading as `pathVia`. */
+  sector?: string[];
+  /**
+   * A set, matched as OR: a row survives if it satisfies *any* selected route.
+   * That is the standard reading of several values in one facet, and it is what
+   * the checkboxes in the menu promise — ticking a second box should widen the
+   * result, never narrow it to the intersection (which for these is usually
+   * empty, since a path has one shape and one bridge).
+   */
+  pathVia?: PathVia[] | null;
   /** Only investors whose MasterProfile carries plBacking. */
   plBacker?: boolean;
 };
@@ -858,8 +866,15 @@ export function filterPaths(params: PathFilters, omit?: 'pathVia' | 'sector' | '
 
   return MOCK_PATHS.filter((row) => {
     if (params.targetSet !== ALL_LISTS && row.targetSet !== params.targetSet) return false;
-    if (omit !== 'sector' && params.sector && !row.investor.sectors.includes(params.sector)) return false;
-    if (omit !== 'pathVia' && params.pathVia && !matchesPathVia(row, params.pathVia)) return false;
+    if (omit !== 'sector' && params.sector?.length && !params.sector.some((sec) => row.investor.sectors.includes(sec)))
+      return false;
+    if (
+      omit !== 'pathVia' &&
+      params.pathVia?.length &&
+      !params.pathVia.some((via) => matchesPathVia(row, via))
+    ) {
+      return false;
+    }
     if (omit !== 'plBacker' && params.plBacker && !seedForRow(row)?.plBacking) return false;
     if (q) {
       const haystack =

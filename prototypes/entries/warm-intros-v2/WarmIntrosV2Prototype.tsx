@@ -73,6 +73,7 @@ import {
   type TargetSetScope,
 } from './mocks';
 import { PathViaSelect, describePathVia } from './PathViaSelect';
+import { CheckSelect } from './CheckSelect';
 import f from './FilterBar.module.scss';
 import shell from './PageShell.module.scss';
 import { InvestorDrawerMock } from './InvestorDrawerMock';
@@ -97,14 +98,14 @@ export default function WarmIntrosV2Prototype() {
   const [variant, setVariant] = useState<TableVariant>('compact');
   // Opens unscoped: "All investor lists" is the default, the two real lists narrow it.
   const [targetSet, setTargetSet] = useState<TargetSetScope>(ALL_LISTS);
-  const [sector, setSector] = useState<string | null>(null);
+  const [sector, setSector] = useState<string[]>([]);
   // Already debounced when it arrives — `SearchInput` holds the keystrokes and
   // only calls back after 700ms, so this state is the settled value.
   const [searchInput, setSearchInput] = useState('');
 
   // One value for the whole mediation axis — a shape, a PL member, or a bridge
   // person. Nothing to silently clear, because there is nothing beside it.
-  const [pathVia, setPathVia] = useState<PathVia | null>(null);
+  const [pathVia, setPathVia] = useState<PathVia[]>([]);
   // A different question (about the investor, not the path), so it stays its own
   // control rather than joining the axis as a fourth pretend-shape.
   const [plBacker, setPlBacker] = useState(false);
@@ -118,7 +119,7 @@ export default function WarmIntrosV2Prototype() {
     () => ({
       targetSet,
       search: searchInput.trim() || undefined,
-      sector: sector || undefined,
+      sector,
       pathVia,
       plBacker: plBacker || undefined,
     }),
@@ -156,17 +157,16 @@ export default function WarmIntrosV2Prototype() {
     () => sectors.map((sec) => ({ value: sec.value, label: `${sec.value} (${sec.count})` })),
     [sectors],
   );
-  const sectorValue = sectorOptions.find((o) => o.value === sector) ?? null;
 
   const onPickTargetSet = useCallback((opt: Option | null) => {
     setTargetSet((opt?.value as TargetSetScope | undefined) ?? ALL_LISTS);
-    setPathVia(null);
-    setSector(null);
+    setPathVia([]);
+    setSector([]);
   }, []);
 
   const clearAll = useCallback(() => {
-    setPathVia(null);
-    setSector(null);
+    setPathVia([]);
+    setSector([]);
     setPlBacker(false);
     setSearchInput('');
   }, []);
@@ -179,18 +179,26 @@ export default function WarmIntrosV2Prototype() {
   const activePills = useMemo(() => {
     const pills: Array<{ key: string; label: string; value: string; onRemove: () => void }> = [];
 
-    if (pathVia) {
+    // One pill per selection, not one pill listing them all: each has to be
+    // removable on its own, and "Path via: Direct, Mara, Priya" with a single ×
+    // would only offer to drop the lot.
+    for (const via of pathVia) {
       pills.push({
-        key: 'pathVia',
+        key: `pathVia:${via.type}:${via.value}`,
         label: 'Path via',
         // No count on the pill: it belongs on the option you are choosing, and
         // the results line already says how many you got.
-        value: describePathVia(pathVia),
-        onRemove: () => setPathVia(null),
+        value: describePathVia(via),
+        onRemove: () => setPathVia((current) => current.filter((v) => !(v.type === via.type && v.value === via.value))),
       });
     }
-    if (sector) {
-      pills.push({ key: 'sector', label: 'Sector', value: sector, onRemove: () => setSector(null) });
+    for (const sec of sector) {
+      pills.push({
+        key: `sector:${sec}`,
+        label: 'Sector',
+        value: sec,
+        onRemove: () => setSector((current) => current.filter((s) => s !== sec)),
+      });
     }
     if (plBacker) {
       pills.push({
@@ -301,14 +309,12 @@ export default function WarmIntrosV2Prototype() {
             </div>
 
             <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-              <FilterSelectThin
+              <CheckSelect
                 options={sectorOptions}
-                value={sectorValue}
+                value={sector}
                 placeholder="Industry / Sector"
-                isClearable
-                isSearchable
                 aria-label="Industry / Sector"
-                onChange={(opt) => setSector(opt?.value || null)}
+                onChange={setSector}
               />
             </div>
 

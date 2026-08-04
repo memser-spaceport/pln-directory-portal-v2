@@ -24,8 +24,13 @@
  * `components` prop, so the indicator cannot be passed in from outside.
  */
 
-import Select, { components, type DropdownIndicatorProps, type GroupBase } from 'react-select';
-import { ChevronDownIcon } from '@/components/icons';
+import Select, {
+  components,
+  type ClearIndicatorProps,
+  type DropdownIndicatorProps,
+  type GroupBase,
+} from 'react-select';
+import { ChevronDownIcon, CloseIcon } from '@/components/icons';
 import { filterSelectStyles } from '@/components/common/filters/FilterSelect/filterSelectStyles';
 import type { Option } from '@/components/form/FormSelect/types';
 
@@ -39,8 +44,34 @@ function DropdownIndicator<IsMulti extends boolean, Group extends GroupBase<Opti
   );
 }
 
-/** Spread into any local react-select instance to pick up the same chevron. */
-export const thinChevron = { DropdownIndicator };
+/**
+ * The clear button, same substitution as the chevron.
+ *
+ * react-select's built-in clear glyph is a heavy filled X on a 20×20 viewBox — it
+ * arrived with the library, nothing here drew it, and beside a hairline chevron it
+ * is the heaviest mark in the control. `CloseIcon` is the house glyph (16×16,
+ * `currentColor`, 1.5px round-capped strokes) and is what the DS `SearchInput`
+ * already uses to clear itself, so the two clear affordances in this bar finally
+ * match.
+ *
+ * `filterSelectStyles.clearIndicator` still supplies the container's colour and
+ * padding — only the glyph inside changes.
+ */
+function ClearIndicator<IsMulti extends boolean, Group extends GroupBase<Option>>(
+  props: ClearIndicatorProps<Option, IsMulti, Group>,
+) {
+  return (
+    <components.ClearIndicator {...props}>
+      <CloseIcon />
+    </components.ClearIndicator>
+  );
+}
+
+/**
+ * Spread into any local react-select instance to pick up the house chevron and
+ * clear icon in place of react-select's built-ins.
+ */
+export const dsIndicators = { DropdownIndicator, ClearIndicator };
 
 interface Props {
   readonly options: Option[];
@@ -78,7 +109,7 @@ export function FilterSelectThin({
         isSearchable={isSearchable}
         isDisabled={isDisabled}
         styles={filterSelectStyles}
-        components={thinChevron}
+        components={dsIndicators}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
         menuPosition="fixed"
       />

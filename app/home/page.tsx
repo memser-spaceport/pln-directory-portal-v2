@@ -16,7 +16,6 @@ import { getFeaturedData } from '@/services/featured.service';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
-import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
@@ -47,7 +46,8 @@ export default async function Home() {
               <Welcome />
             </div>
           )}
-          {isLoggedIn && <QuickActions />}
+          {/* Quick Actions section is hidden for now — the <QuickActions /> component
+              (components/page/home/QuickActions) is kept for when it is re-enabled. */}
           <div className={styles.home__cn__teamnews}>
             <TeamNews
               groups={teamNewsGroups}

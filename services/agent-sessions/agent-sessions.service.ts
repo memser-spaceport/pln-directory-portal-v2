@@ -66,6 +66,16 @@ export interface CreateAgentSessionInput {
   createFeatureEnvironment?: boolean;
 }
 
+function extractErrorMessage(body: unknown, fallbackMessage: string): string {
+  if (!body || typeof body !== 'object') return fallbackMessage;
+  const record = body as Record<string, unknown>;
+  const message = record.message;
+  if (typeof message === 'string') return message;
+  if (Array.isArray(message) && typeof message[0] === 'string') return message[0];
+  if (typeof record.error === 'string') return record.error;
+  return fallbackMessage;
+}
+
 async function parseJson<T>(response: Response | undefined, fallbackMessage: string): Promise<T> {
   if (!response) {
     throw new Error(fallbackMessage);
@@ -73,12 +83,11 @@ async function parseJson<T>(response: Response | undefined, fallbackMessage: str
   if (!response.ok) {
     let detail = fallbackMessage;
     try {
-      const body = await response.json();
-      detail = body?.message || body?.error || detail;
+      detail = extractErrorMessage(await response.json(), fallbackMessage);
     } catch {
       // ignore parse errors
     }
-    throw new Error(typeof detail === 'string' ? detail : fallbackMessage);
+    throw new Error(detail);
   }
   return response.json() as Promise<T>;
 }
@@ -120,4 +129,24 @@ export async function createAgentSession(input: CreateAgentSessionInput): Promis
     true,
   );
   return parseJson<AgentSession>(response, 'Failed to create agent session');
+}
+
+export async function deployAgentSessionFeatureEnv(id: string, force = false): Promise<unknown> {
+  const qs = force ? '?force=true' : '';
+  const response = await customFetch(
+    `${AGENT_SESSIONS_API_URL}/${encodeURIComponent(id)}/feature-env${qs}`,
+    { method: 'POST' },
+    true,
+  );
+  return parseJson(response, 'Failed to deploy feature environment');
+}
+
+export async function deleteAgentSessionFeatureEnv(id: string, force = false): Promise<unknown> {
+  const qs = force ? '?force=true' : '';
+  const response = await customFetch(
+    `${AGENT_SESSIONS_API_URL}/${encodeURIComponent(id)}/feature-env${qs}`,
+    { method: 'DELETE' },
+    true,
+  );
+  return parseJson(response, 'Failed to delete feature environment');
 }

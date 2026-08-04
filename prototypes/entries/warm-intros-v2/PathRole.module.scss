@@ -80,3 +80,126 @@
   font-weight: 600;
   color: var(--foreground-success-primary, #047857);
 }
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Role colour-coding — inert unless `RoleColorProvider` turns it on.
+ *
+ * Everything below is dead weight on the shipped `warm-intros-v2` tab: `PathHop`
+ * only ever emits these classes under the `warm-intros-role-colors` entry, whose
+ * whole job is to test the "no second palette" line this file opens with.
+ *
+ * The hues are **production's**, lifted verbatim from
+ * `MasterProfileModal.module.scss` — the type pills at the top of the profile a
+ * chip opens. Not `HopRoleBadge.module.scss`, which is nearer by, but which
+ * disagrees with the modal on three of the four roles (its founder is green and
+ * its investor violet; the modal has those the other way round, and co-investor
+ * cyan rather than orange). A chip and the profile it opens must not need two
+ * readings of the same colour — see `RoleColor.tsx`.
+ *
+ * Each role sets three custom properties and no rules of its own;
+ * `.tintBorder` / `.tintFill` decide how loudly they get spent.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* PL Member — the brand indigo, for the hop that is inside the network. The one
+   role the two production palettes already agree on. */
+.tintPl {
+  --role-fg: var(--foreground-brand-primary, #1b4dff);
+  --role-line: var(--border-brand-subtle, #c7d2fe);
+  --role-bg: var(--background-brand-subtle, #eef2ff);
+}
+
+.tintFounder {
+  --role-fg: var(--foreground-warning-primary, #9a3412);
+  --role-line: var(--border-warning-subtle, #fed7aa);
+  --role-bg: var(--background-warning-subtle, #fff7ed);
+}
+
+.tintCoInvestor {
+  --role-fg: var(--foreground-info-primary, #0e7490);
+  --role-line: var(--border-info-subtle, #a5f3fc);
+  --role-bg: var(--background-info-subtle, #ecfeff);
+}
+
+/**
+ * Green, per the modal's `.typeInvestor` — the tag on the profile this chip opens.
+ *
+ * It lands on the last hop of every chain, which makes it a convention rather
+ * than a signal: it is not telling you which row is interesting, it is telling
+ * you what kind of thing you are looking at, in the colour you already learned
+ * from the profile. Worth the ink for the same reason a label is.
+ *
+ * The one thing to watch: this cell now has green in three weights — the score
+ * pill when the score is high, this chip, and the "In LabOS" caption. They are
+ * different shapes at different scales, and the chip's `#f0fdf4` is much paler
+ * than the pill's `#d1fae5`, so they separate — but that is the seam to look at
+ * first if `fill` starts feeling noisy.
+ */
+.tintInvestor {
+  --role-fg: var(--foreground-success-primary, #166534);
+  --role-line: var(--border-success-subtle, #bbf7d0);
+  --role-bg: var(--background-success-subtle, #f0fdf4);
+}
+
+/**
+ * Only `fill` touches the chip. `tag` mode leaves the nodes exactly as production
+ * draws them and spends the whole hue on the tag below — which is why there is one
+ * treatment block here and not two.
+ *
+ * There used to be a `.tintBorder` beside this, tinting the chip's 1px edge. It
+ * went: at 12px the edge was close to subliminal, so the tag was carrying that
+ * mode anyway, and the faint edge only made the chips look inconsistent with each
+ * other rather than deliberately coded. `tag` is that idea done honestly.
+ *
+ * It reaches the chip the same way `ChipPress.module.scss` does — by element,
+ * because `PathProfileChip` accepts no `className`. `:first-child` rather than
+ * `button`, because the org stubs render as `<span>` and they should take the tint
+ * too; only `ChipPress` has a reason to exclude them (they are not pressable,
+ * these are still roles).
+ *
+ * `.tintFill > :first-child` is (0,1,1), which clears production's `.chip` (0,1,0)
+ * without depending on which stylesheet the bundler emits last. It does *not*
+ * clear `.chip:hover` (0,2,0) — deliberately. Hover stays production's blue on
+ * every chip, so "the thing under my cursor" never has to compete with "what kind
+ * of person this is".
+ */
+.tintFill > :first-child {
+  background: var(--role-bg);
+  border-color: var(--role-line);
+  /* `.label` sets no colour of its own, so this cascades to the name. */
+  color: var(--role-fg);
+}
+
+/**
+ * The org stubs render as `<span>` and carry `.chipStatic`, whose `:hover` block
+ * exists only to *undo* the interactive hover — it repaints white. That is the
+ * right behaviour on a neutral chip and the wrong one here: passing the cursor
+ * over Protocol Labs would blank its tint for no reason, since nothing happens
+ * when you click it.
+ *
+ * `span` rather than `:not(button)` so the real chips keep production's blue
+ * hover untouched, and `:first-child` so the tag span beside it is not caught.
+ * (0,3,1) clears `.chipStatic:hover` (0,2,0).
+ */
+.tintFill > span:first-child:hover {
+  background: var(--role-bg);
+  border-color: var(--role-line);
+  color: var(--role-fg);
+}
+
+/**
+ * The tag carries the hue in both coloured modes, and in `tag` mode it is the only
+ * thing carrying it. Weight goes 500 → 600 with the colour: a 10px tinted line at
+ * 500 reads as faded rather than as coloured.
+ */
+.roleCaptionTinted {
+  font-weight: 600;
+  color: var(--role-fg);
+}
+
+/**
+ * `.labOsQuiet` greyed out "In LabOS" while roles were coloured, because the role
+ * palette then in use made Founder green as well. On the MasterProfile palette
+ * the only green role is Investor and the chain never tints it, so green belongs
+ * to LabOS and the Directory dot alone and the override is gone.
+ */

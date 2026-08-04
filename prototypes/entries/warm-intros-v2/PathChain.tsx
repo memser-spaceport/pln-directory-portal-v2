@@ -22,8 +22,7 @@ import {
   type WarmPathV2HopNode,
 } from '@/components/page/investors/WarmIntrosV2Workspace/parseWarmPathHopChain';
 import s from '@/components/page/investors/WarmIntrosV2Workspace/WarmIntrosV2Table.module.scss';
-import { PathHop, roleLabel } from './PathRole';
-import { labOsOf } from './mocks';
+import { PathHop } from './PathRole';
 // Press + focus states the chips don't ship — see ChipPress.module.scss.
 import press from './ChipPress.module.scss';
 
@@ -34,16 +33,10 @@ export function chainHopsOf(row: WarmIntrosV2PathListItem): WarmPathV2HopNode[] 
 }
 
 /**
- * Whether the chain hangs a role caption below itself — the only thing
- * `View all` has to clear. Rows on the two-chip fallback have no caption band.
+ * `hasRoleCaption` lived here to tell the table whether a row had a caption band
+ * for `View all` to tuck into. `View all` trails the chain now and tucks into
+ * nothing, so the question has no asker.
  */
-export function hasRoleCaption(hops: WarmPathV2HopNode[] | null): boolean {
-  return (
-    !!hops &&
-    // LabOS can caption the last hop too, where the role never does.
-    hops.some((hop, i) => (i !== hops.length - 1 && !!roleLabel(hop.role)) || !!labOsOf(hop.profileUid))
-  );
-}
 
 export function investorAvatarSrc(row: WarmIntrosV2PathListItem): string | null {
   const investor = row.investor;
@@ -54,12 +47,28 @@ export function investorAvatarSrc(row: WarmIntrosV2PathListItem): string | null 
 interface Props {
   row: WarmIntrosV2PathListItem;
   onOpenProfileUid: (profileUid: string) => void;
-  /** Rendered before the first hop — the compact table puts proximity here. */
+  /** Rendered before the first hop — the compact table puts the score % here. */
   lead?: React.ReactNode;
+  /**
+   * Rendered after the last hop, inside the chain's own flex row — `View all`
+   * lives here rather than on a line of its own beneath the cell.
+   *
+   * It used to sit below, tucked up into the role captions' band, which worked
+   * only while a ~95px proximity badge led the row and left an empty corner under
+   * itself. Dropping the code shrank the lead to a ~40px pill and the link began
+   * colliding with the first hop's caption; un-tucking it fixed the collision but
+   * spent a whole line on one 11px link.
+   *
+   * At the end of the chain it costs no line at all, and it reads in the order you
+   * think it: this route, then "…and 2 more". `.pathChain` already wraps, so on a
+   * narrow cell it simply falls to the next line with the chips instead of being
+   * pinned under them.
+   */
+  trail?: React.ReactNode;
   className?: string;
 }
 
-export function PathChain({ row, onOpenProfileUid, lead, className }: Props) {
+export function PathChain({ row, onOpenProfileUid, lead, trail, className }: Props) {
   const investor = row.investor;
   const name = investor?.name?.trim() || row.targetProfileUid;
   const connector = row.bestConnector;
@@ -144,6 +153,7 @@ export function PathChain({ row, onOpenProfileUid, lead, className }: Props) {
               ) : null}
             </>
           )}
+      {trail}
     </div>
   );
 }

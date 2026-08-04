@@ -28,7 +28,6 @@ import clsx from 'clsx';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { CloseIcon } from '@/components/icons';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { ScorePercentPill } from '@/components/page/investors/WarmIntrosV2Workspace/ScorePercentPill';
 import type { ScoreBand } from '@/services/investors/warm-intros-v2.types';
 // Shared content-modal chrome — the same module the Gantry item modal imports.
@@ -59,7 +58,6 @@ export interface PathContext {
   nodes: PathNode[];
   /** Who'd make the intro, for the card's "Can you refer via …?" label. */
   connectorName: string | null;
-  proximityCode?: string | null;
   scorePercent?: number | null;
   scoreBand?: ScoreBand;
 }
@@ -132,7 +130,6 @@ function FeedbackForm({ onClose, onSubmit, context, initial }: Omit<Props, 'open
           {/* Which path this is about — stated, not typed. */}
           <div className={f.context}>
             <div className={f.contextMeta}>
-              {context.proximityCode ? <ProximityCodeBadge code={context.proximityCode} /> : null}
               {context.scorePercent != null ? (
                 <ScorePercentPill scorePercent={context.scorePercent} scoreBand={context.scoreBand} />
               ) : null}

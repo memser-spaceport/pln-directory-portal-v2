@@ -5,7 +5,7 @@
  *
  * Reused from production (imported, not copied):
  *   WarmIntrosV2GlossaryDrawer, ScorePercentPill, PathProfileChip, HopRoleBadge,
- *   ProximityCodeBadge, SectorTagsList, FilterSelect, Drawer, Modal, CopyButton,
+ *   SectorTagsList, FilterSelect, Drawer, Modal, CopyButton,
  *   exportWarmIntrosV2Csv, parseWarmPathHopChain, masterProfileDisplay.util,
  *   and every WarmIntrosV2Workspace `.module.scss` — so this tracks production 1:1.
  *
@@ -28,6 +28,11 @@
  *     reading "(3)" returns three rows
  *   - active-filter pills + Clear all, and an empty state that can recover
  *   - Export CSV moves onto the results line, out of the row of filters
+ *   - the proximity code (`PL+1A`, `F+2B`) is gone; score % is the only path
+ *     metric left. The code packed family + hop count + caliber into five
+ *     characters, and the row already shows the first two by drawing the chain.
+ *     Note the CSV still carries the code — `exportWarmIntrosV2Csv` is production's
+ *     and prototypes don't edit production; see COMPONENTS.md.
  *
  * See COMPONENTS.md for the full map of both the dev sync and these changes.
  *

@@ -119,18 +119,40 @@
 }
 
 /**
- * The proximity badge leads the path cell rather than owning a column: the code
- * *is* a description of the chain (family = which bridge, +N = hops, A/B =
- * caliber), so it belongs with the chain it describes.
+ * `View all` riding at the end of the chain instead of on a line beneath it.
  *
- * Leading position is the whole trick. The badge's left edge lands at the same x
- * on every row, so the top-to-bottom scan a dedicated column was buying survives
- * — only the code's own width varies (`F+2A` is a character shorter than
- * `PL+1A`), about 8px of jitter on the % that follows it. Trailing the chain
- * instead would scatter it across a variable-width row and lose that entirely.
+ * `.pathChain` is `align-items: center`, so the link lands on the chips' centre
+ * line — level with the names, clear of the captions hanging below them. Nothing
+ * else is needed to place it; the chain's own layout does the work.
  *
- * Freeing the column pays for itself: Path goes 48% → 68%, so even after the
- * badge takes ~95px the chain has more room than it had with its own column.
+ * The 6px is on top of the chain's 4px gap, for 10px between the last chip and
+ * the link. The chain's 4px is spacing *within* one object — chip, arrow, chip —
+ * and the link is not part of that object: at 4px it read as a fourth node.
+ *
+ * `flex-shrink: 0` because it is a fixed short string and the chips beside it are
+ * the things that should give; without it, "View all (3)" is the first thing the
+ * browser squeezes when the cell tightens.
+ */
+.viewAllTrail {
+  margin-left: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/**
+ * The score % leads the path cell rather than owning a column — it is a measure
+ * of the chain, so it belongs with the chain it measures.
+ *
+ * Leading position is the whole trick. The pill's left edge lands at the same x
+ * on every row, so the top-to-bottom scan a dedicated column was buying survives.
+ * Trailing the chain instead would scatter it across a variable-width row and
+ * lose that entirely.
+ *
+ * The proximity code used to lead here alongside it, and dropping the code makes
+ * this better, not worse: the pill is a fixed ~40px where `PL+1A` and `F+2A`
+ * differed by a character, so the % no longer jitters ~8px row to row. Freeing
+ * the column pays twice over — Path goes 48% → 68% and now only ~40px of it goes
+ * to the lead.
  */
 .proximityLead {
   margin-right: 6px;
@@ -138,87 +160,46 @@
 }
 
 /**
- * Production's `.pathCell` uses `gap: 6px`, which was measured against a chain
- * that ended at the chips. The role caption now hangs below them, so that 6px
- * became ~19px of apparent distance between the nodes and `View all` — the link
- * read as detached from the path it belongs to.
- *
- * Zero here, not a smaller gap: the caption already contributes 13px of its own
- * between the chips and the link, which is all the separation the link needs.
+ * `.pathCellTight` zeroed production's 6px cell gap, which was the gap between the
+ * chain and `View all` on the line below it. There is no line below it any more —
+ * the link rides at the end of the chain — so the cell has one child and the gap
+ * separates nothing. Kept at 0 rather than deleted: it is also what keeps the cell
+ * from reserving space under the chain on rows the mobile block re-opens.
  *
  * Doubled class name — a single `.pathCellTight` ties with production's
- * `.pathCell` on specificity, so which one won came down to bundle order. It
- * lost.
+ * `.pathCell` on specificity, so which one won came down to bundle order. It lost.
  */
 .pathCellTight.pathCellTight {
   gap: 0;
 }
 
 /**
- * `View all` moves up onto the role caption's line instead of starting a line
- * below it.
+ * Two rules used to live here, and the history is worth keeping because it is the
+ * argument for where the link sits now.
  *
- * With the cell gap already at 0, the remaining distance *was* the caption's own
- * line box — the link was clearing a 13px band it never needed to clear, because
- * the two don't share any horizontal space: the caption starts under the first
- * chip (~100px in, past the proximity badge), and the link is ~70px wide at the
- * cell's left edge, under the badge. That corner is empty on every row.
+ * `.viewAllInCaptionBand` pulled `View all` up 11px onto the role captions' line,
+ * on the reasoning that the two never share horizontal space: the caption began
+ * under the first chip — *~100px in, past the proximity badge* — and the ~70px
+ * link sat at the cell's left edge, under that badge. An empty corner, reclaimed.
  *
- * `.hopWithRole` reserves 13px below the chip (12px caption + 1px gap), so -13px
- * would put the link's box exactly level with the caption's. -11px instead: two
- * pixels of the band are left standing, which drops the link just below the
- * caption's line rather than flush with it — still one visual band, but the link
- * reads as belonging to the cell rather than to the caption's row. Applied only
- * when a caption is actually rendered — the two-chip fallback has no band to
- * move into, and pulling up there would put the link under the chips.
+ * Removing the code removed the corner. With a ~40px score pill leading, the first
+ * caption starts around x=46 and the link ran straight into it —
+ * `View all (3)· PL Member · In LabOS`, overlapping, on every captioned row.
+ * Un-tucking it fixed that but spent a full line on one 11px link.
+ *
+ * Both are gone. `View all` now trails the chain instead (`.viewAllTrail`), which
+ * costs no line at all and never had a corner to depend on.
  */
-.viewAllInCaptionBand {
-  margin-top: -11px;
-}
 
 /**
- * Proximity code + score % joined into one object instead of two floating chips.
+ * `.joinGroup` / `.joinLeft` / `.joinRight` lived here: the proximity code and the
+ * score % welded into one object, no gap, inner corners squared, so two signals
+ * about the same path read as one shape.
  *
- * They stay two elements on purpose: the code is coloured by **caliber** and the
- * score by **band** (green >60 / yellow 25–60 / red <25). Folding the % inside
- * the badge via its `confidence` prop would make it inherit the caliber colour,
- * collapsing yellow and red together — and a 33% path reading the same as a 12%
- * one matters when the filter already cuts at 20%.
- *
- * So: no gap, inner corners squared, matched heights. One shape, two signals.
- * When caliber and band agree (A is always >60, so A pairs with green) the two
- * halves are the same fill and the seam simply disappears — which is correct,
- * since they are saying the same thing.
- *
- * Doubled class names raise specificity over the imported production rules
- * without needing !important, which would otherwise depend on CSS-module import
- * order to win.
- *
- * `.joinGroup` carries its own layout rather than inheriting the wrapper's,
- * because the two surfaces wrap it differently: the table hands it production's
- * `.proximityCell` (`gap: 6px`, wrap, centered) and the drawer hands it a bare
- * span. Undoubled, this tied `.proximityCell` on specificity and the seam came
- * down to bundle order — open in the table, flush in the drawer, and liable to
- * flip between dev and a production build. `nowrap` because a joined object that
- * can break across two lines is no longer one object.
+ * All three are gone with the code. A join needs two things to join, and the
+ * score is on its own now — a lone pill wearing half a squared-off border would be
+ * chrome describing a neighbour that no longer exists.
  */
-.joinGroup.joinGroup {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 0;
-}
-
-.joinLeft.joinLeft {
-  border-radius: 6px 0 0 6px;
-}
-
-.joinRight.joinRight {
-  border-radius: 0 6px 6px 0;
-  /* Matches the badge's 22px box: 18px line + 2px padding top and bottom. */
-  padding: 2px 6px;
-  line-height: 18px;
-}
 
 .colPath {
   width: 68%;
@@ -304,39 +285,22 @@
   }
 
   /*
-   * Proximity breaks to its own line and the chain starts under it.
+   * The lead used to break to its own line here (`flex-basis: 100%`) and the chain
+   * started under it. That was priced against the proximity badge: ~95px off the
+   * front of a ~330px line is most of a name, so giving it back let two chips share
+   * a line instead of one.
    *
-   * On desktop the badge leads the chain so its left edge lands at a constant x
-   * down the column — a scanning argument that doesn't exist once each row is a
-   * card. What it costs here is ~95px off the front of the first chain line, on
-   * a line that's only ~330px wide, which is most of a name. Giving it back lets
-   * two chips share a line instead of one, so a two-hop path fits on one row and
-   * a three-hop path on two.
-   *
-   * `flex-basis: 100%` rather than a wrapper element: `.pathChain` already wraps,
-   * so a full-width first item breaks the line on its own, and its 4px row gap
-   * becomes the separation — no extra DOM, and the desktop layout is untouched.
+   * The score pill is ~40px. The reason is spent — 40px does not cost a chip its
+   * line — and the break now wastes a whole row of a card to hold one small pill.
+   * So it stays inline at every width, and the desktop rule above is all there is.
    */
-  .proximityLead {
-    flex-basis: 100%;
-    /* The 6px that separated it from the first chip; now they're on two lines. */
-    margin-right: 0;
-  }
 
   /*
-   * Both of the desktop tweaks to `View all` come off here, because both were
-   * answers to a single-line chain.
-   *
-   * The chain wraps at this width, so the caption is no longer the last thing in
-   * the cell — pulling the link up would land it on a row of chips rather than in
-   * the caption's band. And with the pull gone, a 0 cell gap left the link sitting
-   * flush on the chain's bottom edge, so the cell goes back to production's own
-   * 6px.
+   * Production's own 6px cell gap comes back. It separates nothing now — `View all`
+   * moved inside the chain, so the cell has a single child — but at this width the
+   * mobile card also re-opens the chain to wrap freely, and 0 leaves the chain
+   * sitting flush against the row rule above it.
    */
-  .viewAllInCaptionBand {
-    margin-top: 0;
-  }
-
   .pathCellTight.pathCellTight {
     gap: 6px;
   }

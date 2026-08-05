@@ -9,6 +9,7 @@
  *   NewsBase.module.scss ............ section shell (mirrored locally for our own heading)
  *   app/home/page.module.css ........ outer home layout + section spacing
  *   TeamGroupCard.module.scss ....... jobs "View all N …" expander
+ *   DealCard.module.scss ............ vendor avatar + audience tag (perk card)
  *   SortDropdown, SearchInput ....... @/components/common/filters
  *   Button .......................... @/components/common/Button
  *   FollowButton .................... @/components/ui/FollowButton (rail size)
@@ -22,7 +23,11 @@
  *                                     FeedActions, eventMeta, QuickActions, mocks
  *   ../follow-shared ................ FollowButton (xs/tertiary), FollowToast
  *
- * New here (and only here): TopStoryCard, HiringCard, CuratedRail, EmailDigest.
+ * New here (and only here): TopStoryCard, HiringCard, PerkCard, CuratedRail.
+ *
+ * EmailDigest.tsx is still in this folder but is no longer mounted — the digest
+ * view was removed from this prototype. Kept because the Monday email is the
+ * thing that ships before the feed UI; it wants its own entry, not a tab here.
  */
 
 import clsx from 'clsx';
@@ -62,6 +67,8 @@ import { HeaderSearch } from '../newsfeed-v0/HeaderSearch';
 import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
 import { ForumPostModal } from '../newsfeed-v0/ForumPostModal';
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
+import { isNarrowed, summarizeView, viewHashKey, type FeedView } from '../newsfeed-v0/feedView';
+import { SavedFilterChip } from '../newsfeed-v0/SavedFilterChip';
 import { FollowToast } from '../follow-shared/FollowToast';
 import {
   MOCK_GROUPS,
@@ -73,22 +80,26 @@ import {
   MODAL_CITED_BODY_BY_UID,
   VIDEO_BY_UID,
   PL_TEAM_UID,
+  UPVOTES,
   type ForumPost,
   type FeedComment,
 } from '../newsfeed-v0/mocks';
 
-import { TopStoryCard } from './TopStoryCard';
+import { TopStoriesBlock } from './TopStoriesBlock';
 import { HiringCard } from './HiringCard';
+import { PerkCard } from './PerkCard';
+
+import { FollowTeamsScroller } from './FollowTeamsScroller';
+import { PopularScroller } from './PopularScroller';
+import { SubscribeBanner } from './SubscribeBanner';
 import { CuratedRail } from './CuratedRail';
-import { EmailDigest } from './EmailDigest';
+import type { Subscription } from './subscription';
 import {
   ALL_CURATED_ITEMS,
   CURATION_ATTRIBUTION,
-  FOCUS_AREAS,
   FOCUS_BY_UID,
-  GROUPED_ITEMS,
   HIRING_SIGNALS,
-  OFF_FOCUS_ITEMS,
+  PERK_SIGNALS,
   SUPERSEDED_BY_HIRING,
   TOP_STORY,
 } from './mocks';
@@ -106,47 +117,36 @@ const SORT_OPTIONS = [
   { value: 'popular', label: 'Most popular' },
 ] as const;
 
-/** Which surface you're looking at. The email is the one that ships first. */
-type View = 'feed' | 'email';
+/**
+ * Sourcing note, for the record.
+ *
+ * Production feeds the home stream from grouped-by-focus-area and derives its All
+ * tab as `groups.flatMap(g => g.items)` — so an item in no focus-area group is in
+ * no tab, including All. This prototype does not reproduce that: one ranked
+ * stream is the spine and focus area is a filter over it, which is what makes the
+ * untagged long tail (and this week's top story) reachable at all.
+ *
+ * The cost of that choice stays visible in the rail's Coverage card, which counts
+ * the stories carrying no focus area.
+ */
 
 /**
- * The sourcing comparison this prototype exists to make.
+ * The prototype's Path / Mix / Curated-by switches have been removed; the feed
+ * now renders one settled configuration:
  *
- * `today` reproduces production exactly: the feed is fed by
- * grouped-by-focus-area, and TeamNews.tsx derives its All tab as
- * `groups.flatMap(g => g.items)`. An item in no focus-area group is in no tab —
- * so the three untagged stories, including the one we'd lead the week with,
- * simply do not exist here.
- *
- * `curated` makes one ranked stream the spine and demotes focus area to a
- * filter, so the untagged long tail is reachable.
+ *   Path       — Read only. `MonitorView.tsx` is still in this folder but is no
+ *                longer mounted: Monitor is a separate surface, not a tab here,
+ *                and it wants its own entry.
+ *   Mix        — hiring and deals both on, with their caps intact
+ *                (`HIRING_IN_MIXED_FEED` = 2, `PERKS_IN_MIXED_FEED` = 1) and news
+ *                still holding the top slot.
+ *   Curated by — human. The attribution line reads "Picked by the network team";
+ *                `CURATION_ATTRIBUTION.ai` stays in the mock for when a model
+ *                takes the pick over.
  */
-type Spine = 'today' | 'curated';
-
-const SPINE_OPTIONS: Array<{ value: Spine; label: string }> = [
-  { value: 'today', label: 'Focus-area tabs (today)' },
-  { value: 'curated', label: 'One stream (proposed)' },
-];
-
-const SPINE_NOTE: Record<Spine, string> = {
-  today: `Focus area is the container. ${OFF_FOCUS_ITEMS.length} untagged stories — including this week's top story — cannot appear in any tab, including All.`,
-  curated: 'One ranked stream is the spine; focus area is a filter. The untagged long tail is reachable again.',
-};
-
-/** Who picked the top story. Start human — prove the pick before automating it. */
-type Curator = 'human' | 'ai';
-
-const CURATOR_OPTIONS: Array<{ value: Curator; label: string }> = [
-  { value: 'human', label: 'Human' },
-  { value: 'ai', label: 'AI' },
-];
-
-const CURATOR_NOTE: Record<Curator, string> = {
-  human: 'Weeks 1–4: an editor picks and writes the why-line. No model, no risk, and the misses get logged.',
-  ai: 'Once the criteria are proven, the model ranks and justifies — and discloses that it did.',
-};
 
 const HIRING_CAT = 'hiring' as const;
+const DEALS_CAT = 'deals' as const;
 
 const EVENT_HEX: Record<TeamNewsEventType, string> = {
   FUNDING: '#027a48',
@@ -205,7 +205,11 @@ function clusterByTeam(items: ITeamNewsItem[]): TeamCluster[] {
 type FeedEntry =
   | { kind: 'news'; cluster: TeamCluster }
   | { kind: 'forum'; post: ForumPost }
-  | { kind: 'hiring'; signal: (typeof HIRING_SIGNALS)[number] };
+  | { kind: 'hiring'; signal: (typeof HIRING_SIGNALS)[number] }
+  | { kind: 'perk'; perk: (typeof PERK_SIGNALS)[number] };
+
+/** News and discussion are the feed's reason to exist; everything else is supporting. */
+const isStory = (e: FeedEntry) => e.kind === 'news' || e.kind === 'forum';
 
 /** Local copy of production `NewsBase` with our own heading. */
 function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
@@ -224,13 +228,7 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
 export default function NewsfeedCuratedPrototype() {
   const [mounted, setMounted] = useState(false);
 
-  // Prototype-level switches.
-  const [view, setView] = useState<View>('feed');
-  const [spine, setSpine] = useState<Spine>('curated');
-  const [curator, setCurator] = useState<Curator>('human');
-
   // Feed state.
-  const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [activeFocus, setActiveFocus] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
@@ -246,6 +244,21 @@ export default function NewsfeedCuratedPrototype() {
   const [detail, setDetail] = useState<FeedDetail | null>(null);
   const [forumDetail, setForumDetail] = useState<ForumPost | null>(null);
 
+  // One subscription, shared by both paths — see `subscription.ts`.
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subscribeDismissed, setSubscribeDismissed] = useState(false);
+  const [subToast, setSubToast] = useState<string | null>(null);
+
+  /**
+   * Both doors go through here, so subscribing always confirms and always points
+   * at where it can be changed. A notification the reader can't find the switch
+   * for is the fastest way to lose the permission again.
+   */
+  const handleSubscribe = (next: Subscription) => {
+    setSubscription(next);
+    setSubToast(next.label);
+  };
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
@@ -253,6 +266,12 @@ export default function NewsfeedCuratedPrototype() {
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    if (!subToast) return;
+    const t = setTimeout(() => setSubToast(null), 6000);
+    return () => clearTimeout(t);
+  }, [subToast]);
 
   const toggleFollow = (teamUid: string, teamName: string) => {
     setFollowedTeams((prev) => {
@@ -314,39 +333,97 @@ export default function NewsfeedCuratedPrototype() {
       readUrl: story.sourceUrl ?? undefined,
     });
 
-  // ---------- The spine ----------
+  // ---------- The view, as one addressable value ----------
 
   /**
-   * `today` = exactly what grouped-by-focus-area can return. `curated` = that,
-   * plus the untagged stories no group can hold.
+   * The four axes collapsed into `FeedView` (`../newsfeed-v0/feedView`), which is
+   * what makes "is this narrowed?" a single question instead of four scattered
+   * comparisons — and what a subscription is made *of*.
    */
-  const sourceItems = useMemo(() => {
-    if (spine === 'today') return sortAllTabItemsByEventDate(dedupeByUid(GROUPED_ITEMS));
-    // On the curated spine the hiring roll-up carries the "opened N roles" fact,
-    // so the one-off announcement of the same thing is dropped rather than said twice.
-    return sortAllTabItemsByEventDate(dedupeByUid(ALL_CURATED_ITEMS)).filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid));
-  }, [spine]);
-
-  const topStoryItem = useMemo(() => sourceItems.find((i) => i.uid === TOP_STORY.uid) ?? null, [sourceItems]);
-  const showTopStory = spine === 'curated' && topStoryItem !== null;
-
-  // The hero owns the top story, so it must not also appear as a feed card.
-  const feedPool = useMemo(
-    () => (showTopStory ? sourceItems.filter((i) => i.uid !== TOP_STORY.uid) : sourceItems),
-    [sourceItems, showTopStory],
+  const view: FeedView = useMemo(
+    () => ({ tab: activeFocus, category: activeCategory as FeedView['category'], sort, query }),
+    [activeFocus, activeCategory, sort, query],
   );
 
-  // `today`: focus area gates the whole feed (tabs). `curated`: it narrows it (filter).
+  const narrowed = isNarrowed(view);
+
+  // ---------- The spine ----------
+
+  // Both on, permanently — the caps below are what keep them from crowding news.
+  const showHiring = true;
+  const showPerks = true;
+
+  /** One ranked stream: the grouped items plus the untagged stories no group holds. */
+  const sourceItems = useMemo(() => {
+    const items = sortAllTabItemsByEventDate(dedupeByUid(ALL_CURATED_ITEMS));
+    // The hiring roll-up carries the "opened N roles" fact, so the one-off
+    // announcement of the same thing is dropped rather than said twice. With
+    // hiring switched off the roll-up isn't there to carry it, so it stays.
+    return showHiring ? items.filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid)) : items;
+  }, [showHiring]);
+
+  /**
+   * Monitor reads the whole week, unfiltered by the editorial levers — a standing
+   * query must not silently inherit a curator's choices, and the Mix switch isn't
+   * even visible on that path.
+   */
+  const topStoryItem = useMemo(() => sourceItems.find((i) => i.uid === TOP_STORY.uid) ?? null, [sourceItems]);
+
+  const alsoItems = useMemo(
+    () => TOP_STORY.alsoUids.map((uid) => sourceItems.find((i) => i.uid === uid)).filter(Boolean) as ITeamNewsItem[],
+    [sourceItems],
+  );
+
+  /**
+   * The block is what you get when you've asked for nothing in particular.
+   *
+   * One predicate, two complementary outcomes: unfiltered, the curator tells you
+   * what mattered; filtered, you've said what matters to you and the subscribe
+   * offer takes over. Gating on `isNarrowed` rather than on the focus tab alone
+   * also fixes the case where a category pill ("Funding") left a global pick
+   * sitting on top of a filtered view.
+   */
+  const showTopStory = topStoryItem !== null && !narrowed;
+
+  /** Every uid the block owns, so none of them can also appear as a feed card. */
+  const blockUids = useMemo(() => new Set([TOP_STORY.uid, ...alsoItems.map((i) => i.uid)]), [alsoItems]);
+
+  /**
+   * The block owns its stories only where the block renders. Keyed on
+   * `showTopStory` rather than on the items, so a pick that carries a focus area
+   * demotes to an ordinary card inside its own tab instead of vanishing from the
+   * block and the stream at once.
+   */
+  const feedPool = useMemo(
+    () => (showTopStory ? sourceItems.filter((i) => !blockUids.has(i.uid)) : sourceItems),
+    [sourceItems, showTopStory, blockUids],
+  );
+
+  /**
+   * Focus area narrows the stream; it does not contain it. That distinction is
+   * what keeps the untagged stories reachable — they sit under All, which is also
+   * the only tab the hero appears in.
+   */
   const scopedItems = useMemo(() => {
-    if (spine === 'today') {
-      if (activeTab === ALL_TAB) return feedPool;
-      return feedPool.filter((i) => FOCUS_BY_UID[i.uid] === activeTab);
-    }
     if (activeFocus === ALL_TAB) return feedPool;
     return feedPool.filter((i) => FOCUS_BY_UID[i.uid] === activeFocus);
-  }, [spine, activeTab, activeFocus, feedPool]);
+  }, [activeFocus, feedPool]);
 
-  const showHiring = spine === 'curated';
+  /**
+   * Tab counts come from `sourceItems`, not `feedPool`. `feedPool` now varies with
+   * the active tab (the hero is extracted only under All), and a badge that reads
+   * 14 on one tab and 15 on the next is a defect. Counting the whole stream keeps
+   * every badge stable and literally true — the hero is a story in All, just
+   * rendered bigger.
+   */
+  const tabGroups = useMemo(
+    () =>
+      MOCK_GROUPS.map((g) => ({
+        ...g,
+        total: sourceItems.filter((i) => FOCUS_BY_UID[i.uid] === g.focusArea.title).length,
+      })),
+    [sourceItems],
+  );
 
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = scopedItems.filter((i) => hasExistingDiscussion(i.discussion)).length;
@@ -363,14 +440,34 @@ export default function NewsfeedCuratedPrototype() {
       }
     }
     // Hiring joins the same pill row as a synthetic category, the way production
-    // already injects "Active Discussions".
+    // already injects "Active Discussions". Deals follows the same pattern — and
+    // its count is deliberately the full set, so the gap between what exists and
+    // what earned a feed slot is one click away.
     if (showHiring) out.push({ id: HIRING_CAT, label: 'Hiring', count: HIRING_SIGNALS.length });
+    if (showPerks) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
     return out;
-  }, [scopedItems, showHiring]);
+  }, [scopedItems, showHiring, showPerks]);
+
+  /**
+   * The same list the pills rendered, shaped for a dropdown.
+   *
+   * Counts fold into the label because `SortDropdown` options are plain strings.
+   * Empty categories are dropped rather than disabled: the component has no
+   * disabled state, and a menu listing choices you cannot pick is worse than a
+   * pill row where they are visibly greyed. The trade is that a category with
+   * nothing this week disappears instead of showing as greyed-out.
+   */
+  const categoryOptions = useMemo(
+    () =>
+      categoriesWithCounts
+        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
+    [categoriesWithCounts],
+  );
 
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return scopedItems;
-    if (activeCategory === HIRING_CAT) return [];
+    if (activeCategory === HIRING_CAT || activeCategory === DEALS_CAT) return [];
     if (activeCategory === DISCUSSIONS_CAT) {
       return scopedItems.filter((i) => hasExistingDiscussion(i.discussion));
     }
@@ -393,14 +490,7 @@ export default function NewsfeedCuratedPrototype() {
 
   const forumPosts = useMemo(() => {
     if (activeCategory !== ALL_CAT) return [];
-    const scoped =
-      spine === 'today'
-        ? activeTab === ALL_TAB
-          ? FORUM_POSTS
-          : FORUM_POSTS.filter((p) => p.focusArea === activeTab)
-        : activeFocus === ALL_TAB
-          ? FORUM_POSTS
-          : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
+    const scoped = activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
     const q = query.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter(
@@ -411,7 +501,7 @@ export default function NewsfeedCuratedPrototype() {
         p.category.toLowerCase().includes(q) ||
         p.tags.some((t) => t.toLowerCase().includes(q)),
     );
-  }, [activeCategory, activeTab, activeFocus, spine, query]);
+  }, [activeCategory, activeFocus, query]);
 
   /**
    * Hiring is supporting signal, not the story — so the mixed feed carries at
@@ -433,17 +523,39 @@ export default function NewsfeedCuratedPrototype() {
     return activeCategory === HIRING_CAT ? matched : matched.slice(0, HIRING_IN_MIXED_FEED);
   }, [showHiring, activeCategory, query]);
 
+  /**
+   * Deals get a tighter cap than hiring, and a shape test on top of it: a perk
+   * only enters the mixed feed if something *happened* to it. A standing offer is
+   * true every week, so in a dated stream it is an ad — and it's shown to an
+   * audience that is mostly not eligible to redeem it.
+   */
+  const PERKS_IN_MIXED_FEED = 1;
+
+  const perkEntries = useMemo(() => {
+    if (!showPerks) return [];
+    if (activeCategory !== ALL_CAT && activeCategory !== DEALS_CAT) return [];
+    const q = query.trim().toLowerCase();
+    const matched = q
+      ? PERK_SIGNALS.filter(
+          (p) => p.vendorName.toLowerCase().includes(q) || p.shortDescription.toLowerCase().includes(q),
+        )
+      : PERK_SIGNALS;
+    // The pill shows everything /deals holds; the feed shows only what earned it.
+    if (activeCategory === DEALS_CAT) return matched;
+    return matched.filter((p) => p.shape === 'announcement').slice(0, PERKS_IN_MIXED_FEED);
+  }, [showPerks, activeCategory, query]);
+
   const entries = useMemo<FeedEntry[]>(() => {
     const clusterDate = (c: TeamCluster) =>
       Math.max(...[c.lead, ...c.rest].map((i) => new Date(i.eventDate).getTime()));
     const clusterLikes = (c: TeamCluster) => Math.max(...[c.lead, ...c.rest].map((i) => likeCount(i.uid)));
 
-    const dateOf = (e: FeedEntry) =>
-      e.kind === 'news'
-        ? clusterDate(e.cluster)
-        : e.kind === 'forum'
-          ? new Date(e.post.createdAt).getTime()
-          : new Date(e.signal.date).getTime();
+    const dateOf = (e: FeedEntry) => {
+      if (e.kind === 'news') return clusterDate(e.cluster);
+      if (e.kind === 'forum') return new Date(e.post.createdAt).getTime();
+      if (e.kind === 'hiring') return new Date(e.signal.date).getTime();
+      return new Date(e.perk.date).getTime();
+    };
     const likesOf = (e: FeedEntry) =>
       e.kind === 'news' ? clusterLikes(e.cluster) : e.kind === 'forum' ? likeCount(e.post.uid) : 0;
     const followedOf = (e: FeedEntry) => {
@@ -455,6 +567,7 @@ export default function NewsfeedCuratedPrototype() {
       ...clusters.map((cluster) => ({ kind: 'news' as const, cluster })),
       ...forumPosts.map((post) => ({ kind: 'forum' as const, post })),
       ...hiringEntries.map((signal) => ({ kind: 'hiring' as const, signal })),
+      ...perkEntries.map((perk) => ({ kind: 'perk' as const, perk })),
     ];
 
     const sorted = list.sort((a, b) => {
@@ -463,26 +576,38 @@ export default function NewsfeedCuratedPrototype() {
       return dateOf(b) - dateOf(a);
     });
 
-    // Hiring is the freshest thing most weeks, so on pure recency it takes the
-    // top of the feed — and an investor opening to a wall of job roll-ups reads
-    // this as a job board. News leads; hiring keeps its place below it.
-    if (sorted[0]?.kind === 'hiring') {
-      const firstStory = sorted.find((e) => e.kind !== 'hiring');
+    // Hiring and deals are the freshest things most weeks, so on pure recency
+    // they take the top of the feed — and an investor opening to a wall of job
+    // roll-ups and vendor perks reads this as a job board with ads. A story
+    // always leads; the supporting kinds keep their place below it.
+    if (sorted[0] && !isStory(sorted[0])) {
+      const firstStory = sorted.find(isStory);
       if (firstStory) return [firstStory, ...sorted.filter((e) => e !== firstStory)];
     }
     return sorted;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clusters, forumPosts, hiringEntries, sort, followedTeams, likedIds]);
+  }, [clusters, forumPosts, hiringEntries, perkEntries, sort, followedTeams, likedIds]);
 
   const visibleEntries = expanded ? entries : entries.slice(0, PAGE_SIZE);
   const newCount = sourceItems.length + FORUM_POSTS.length;
 
+  /**
+   * Popular this week, ranked once and rendered twice: the rail card on desktop,
+   * the in-feed strip below 960px.
+   *
+   * Drawn from `feedPool`, so where the block is showing it can't repeat the
+   * pick — the strip sits directly under it on mobile. Stories further down the
+   * feed can still appear: surfacing what you haven't scrolled to yet is the
+   * point of the module.
+   */
+  const popularItems = [...feedPool].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
+
   const resetPaging = () => setExpanded(false);
 
-  const handleSpine = (next: Spine) => {
-    setSpine(next);
-    setActiveTab(ALL_TAB);
-    setActiveFocus(ALL_TAB);
+  // Category counts are computed within the active focus area, so changing focus
+  // has to drop you back to All rather than into a pill that now holds nothing.
+  const handleFocus = (next: string) => {
+    setActiveFocus(next);
     setActiveCategory(ALL_CAT);
     resetPaging();
   };
@@ -498,126 +623,68 @@ export default function NewsfeedCuratedPrototype() {
     desktopFieldRef.current?.querySelector('input')?.focus();
   }, [searchOpen]);
 
-  const focusOptions = useMemo(
-    () => [{ value: ALL_TAB, label: 'All focus areas' }, ...FOCUS_AREAS.map((f) => ({ value: f, label: f }))],
-    [],
-  );
+  const attribution = CURATION_ATTRIBUTION.human;
 
-  const attribution = CURATION_ATTRIBUTION[curator];
-
-  // The email leads with the top story and lists the rest — ranked, deduped by
-  // team so one team can't take the whole edition.
-  const digestItems = useMemo(() => {
-    const seen = new Set<string>();
+  const renderEntry = (entry: FeedEntry) => {
+    if (entry.kind === 'news') {
+      return (
+        <V0FeedCard
+          key={`news-${entry.cluster.teamUid}`}
+          cluster={entry.cluster}
+          following={followedTeams.has(entry.cluster.teamUid)}
+          onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
+          showComments
+          likeCount={likeCount}
+          isLiked={isLiked}
+          onToggleLike={toggleLike}
+          commentsFor={commentsFor}
+          onAddComment={addComment}
+          onOpenStory={openStoryDetail}
+        />
+      );
+    }
+    if (entry.kind === 'hiring') {
+      return (
+        <HiringCard
+          key={`hiring-${entry.signal.uid}`}
+          signal={entry.signal}
+          following={followedTeams.has(entry.signal.teamUid)}
+          onToggleFollow={() => toggleFollow(entry.signal.teamUid, entry.signal.teamName)}
+        />
+      );
+    }
+    if (entry.kind === 'perk') {
+      return (
+        <PerkCard key={`perk-${entry.perk.uid}`} perk={entry.perk} offFeed={entry.perk.shape !== 'announcement'} />
+      );
+    }
     return (
-      sortAllTabItemsByEventDate(dedupeByUid(ALL_CURATED_ITEMS))
-        .filter((i) => i.uid !== TOP_STORY.uid)
-        // The email has its own hiring section, so the same fact doesn't get a
-        // second line above it.
-        .filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid))
-        .filter((i) => {
-          if (seen.has(i.teamUid)) return false;
-          seen.add(i.teamUid);
-          return true;
-        })
-        .slice(0, 6)
+      <ForumPostCard
+        key={`forum-${entry.post.uid}`}
+        post={entry.post}
+        showComments
+        likeCount={likeCount(entry.post.uid)}
+        liked={isLiked(entry.post.uid)}
+        onToggleLike={() => toggleLike(entry.post.uid)}
+        comments={commentsFor(entry.post.uid)}
+        onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
+        isCommentLiked={isLiked}
+        onToggleCommentLike={toggleLike}
+        onOpenDetail={() => setForumDetail(entry.post)}
+      />
     );
-  }, []);
+  };
 
   if (!mounted) return <div className={v0.page} />;
 
-  const prototypeControls = (
-    <div className={local.controlBar}>
-      <div className={local.controlGroup}>
-        <span className={local.controlLabel}>View</span>
-        <div className={v0.switch} role="tablist" aria-label="View">
-          {(
-            [
-              { value: 'feed', label: 'Feed' },
-              { value: 'email', label: 'Email digest' },
-            ] as Array<{ value: View; label: string }>
-          ).map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              role="tab"
-              aria-selected={view === opt.value}
-              className={clsx(v0.switchBtn, view === opt.value && v0.switchBtnActive)}
-              onClick={() => setView(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        <span className={v0.switchNote}>
-          {view === 'email'
-            ? 'Ships first: tests the editorial pick with no UI risk, and logs what the feed missed.'
-            : 'Where the email lands when someone clicks through.'}
-        </span>
-      </div>
-
-      {view === 'feed' && (
-        <div className={local.controlGroup}>
-          <span className={local.controlLabel}>Sourcing</span>
-          <div className={v0.switch} role="tablist" aria-label="Sourcing spine">
-            {SPINE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                role="tab"
-                aria-selected={spine === opt.value}
-                className={clsx(v0.switchBtn, spine === opt.value && v0.switchBtnActive)}
-                onClick={() => handleSpine(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <span className={clsx(v0.switchNote, spine === 'today' && local.switchNoteWarn)}>{SPINE_NOTE[spine]}</span>
-        </div>
-      )}
-
-      <div className={local.controlGroup}>
-        <span className={local.controlLabel}>Curated by</span>
-        <div className={v0.switch} role="tablist" aria-label="Curator">
-          {CURATOR_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              role="tab"
-              aria-selected={curator === opt.value}
-              className={clsx(v0.switchBtn, curator === opt.value && v0.switchBtnActive)}
-              onClick={() => setCurator(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        <span className={v0.switchNote}>{CURATOR_NOTE[curator]}</span>
-      </div>
-    </div>
-  );
-
-  if (view === 'email') {
-    return (
-      <div className={clsx(v0.page, local.emailPage)}>
-        <div className={local.emailWrap}>
-          {prototypeControls}
-          {topStoryItem && (
-            <EmailDigest
-              topStoryItem={topStoryItem}
-              top={TOP_STORY}
-              attribution={attribution}
-              isAi={curator === 'ai'}
-              items={digestItems}
-              hiring={HIRING_SIGNALS}
-              forumPosts={FORUM_POSTS.slice(0, 2)}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
+  /* Rendered on both paths — Monitor returns early, and a subscription set there
+     needs the same confirmation. */
+  const subscribeToast = subToast ? (
+    <FollowToast>
+      You&apos;ll be notified about <strong>{subToast}</strong> — new matches will appear in your notifications. Manage
+      what you get from <a href="/settings/recommendations">Settings</a>.
+    </FollowToast>
+  ) : null;
 
   return (
     <div className={clsx(v0.page, styles.home)}>
@@ -659,44 +726,23 @@ export default function NewsfeedCuratedPrototype() {
               />
             </div>
 
-            <div className={v0.versionRow}>{prototypeControls}</div>
+            {/* Navigation first, then content: focus tabs, category pills, and only
+                then the week's picks. The two filter rows read as a hierarchy —
+                which part of the network, then what kind of update — and the
+                editorial block leads the content rather than the page. */}
+            <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.focusTabs)}>
+              {/* allItems drives the All badge, so it takes the whole stream —
+                  same reason as tabGroups: badges must not move as you navigate. */}
+              <NewsTabs groups={tabGroups} allItems={sourceItems} activeTab={activeFocus} onTabChange={handleFocus} />
+            </div>
 
-            {/* Today's spine: focus area as tabs. Proposed: no tabs at all — the
-                stream is the spine and focus area moves beside Sort. */}
-            {spine === 'today' && (
-              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner)}>
-                <NewsTabs
-                  groups={MOCK_GROUPS}
-                  allItems={sourceItems}
-                  activeTab={activeTab}
-                  onTabChange={(id) => {
-                    setActiveTab(id);
-                    setActiveCategory(ALL_CAT);
-                    resetPaging();
-                  }}
-                />
-              </div>
-            )}
-
-            {showTopStory && topStoryItem && (
-              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.topSlot)}>
-                <TopStoryCard
-                  story={topStoryItem}
-                  top={TOP_STORY}
-                  attribution={attribution}
-                  isAi={curator === 'ai'}
-                  following={followedTeams.has(topStoryItem.teamUid)}
-                  onToggleFollow={() => toggleFollow(topStoryItem.teamUid, topStoryItem.teamName)}
-                  likeCount={likeCount(topStoryItem.uid)}
-                  liked={isLiked(topStoryItem.uid)}
-                  onToggleLike={() => toggleLike(topStoryItem.uid)}
-                  onOpen={() => openStoryDetail(topStoryItem)}
-                />
-              </div>
-            )}
-
+            {/* Event type is pills on desktop, a dropdown below 640px — the same
+                split `v0.sortDesktop` / `v0.sortMobile` already make for Sort.
+                Desktop has the width to show every type and its count at a glance;
+                on a 390px screen the same row wraps to three lines of chrome
+                before any news. */}
             <div className={v0.filterBar}>
-              <div className={s.catRow}>
+              <div className={clsx(s.catRow, local.catRowDesktop)}>
                 {categoriesWithCounts.map((c) => {
                   const isActive = activeCategory === c.id;
                   const isDisabled = c.count === 0 && c.id !== ALL_CAT;
@@ -718,22 +764,36 @@ export default function NewsfeedCuratedPrototype() {
                 })}
               </div>
 
-              <div className={v0.filterActions}>
-                {/* Focus area, demoted: one filter among several rather than the
-                    container the whole feed is built out of. */}
-                {spine === 'curated' && (
-                  <span className={local.focusFilter}>
-                    <SortDropdown
-                      sortByLabel="Focus:"
-                      options={focusOptions}
-                      currentSort={activeFocus}
-                      onSortChange={(value) => {
-                        setActiveFocus(value);
-                        resetPaging();
-                      }}
-                    />
-                  </span>
+              <div className={clsx(v0.filterActions, local.filterActionsLeft)}>
+                {/* Once subscribed, the chip is the standing way back to that
+                    filter — the banner is a one-time offer and goes quiet. */}
+                {subscription?.view && (
+                  <SavedFilterChip
+                    savedFilter={subscription.view}
+                    view={view}
+                    onApply={() => {
+                      const saved = subscription.view!;
+                      setActiveFocus(saved.tab);
+                      setActiveCategory(saved.category);
+                      setSort(saved.sort as Sort);
+                      setQuery(saved.query);
+                      resetPaging();
+                    }}
+                    onClear={() => setSubscription(null)}
+                  />
                 )}
+                {/* Mobile only — the pill row above holds desktop. */}
+                <span className={v0.sortMobile}>
+                  <MobileFeedSort
+                    label="Type:"
+                    options={categoryOptions}
+                    currentSort={activeCategory}
+                    onSortChange={(value) => {
+                      setActiveCategory(value);
+                      resetPaging();
+                    }}
+                  />
+                </span>
                 <span className={v0.sortDesktop}>
                   <SortDropdown
                     sortByLabel="Sort by:"
@@ -758,12 +818,31 @@ export default function NewsfeedCuratedPrototype() {
               </div>
             </div>
 
-            {/* The gap, stated inline on the spine that has it. */}
-            {spine === 'today' && (
-              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.gapNote)}>
-                <strong>{OFF_FOCUS_ITEMS.length} stories are missing from this view.</strong> They carry no focus area,
-                so they belong to no group — and the All tab is built as the union of the groups. Switch the sourcing
-                spine above to see them.
+            {narrowed && !subscription && !subscribeDismissed && (
+              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner)}>
+                <SubscribeBanner
+                  label={summarizeView(view)}
+                  onSubscribe={() =>
+                    handleSubscribe({
+                      key: viewHashKey(view),
+                      label: summarizeView(view),
+                      source: 'feed',
+                      view,
+                    })
+                  }
+                  onDismiss={() => setSubscribeDismissed(true)}
+                />
+              </div>
+            )}
+
+            {/* The Deals pill is the exhibit: everything /deals holds, including
+                the entries that did not earn a place in the stream. */}
+            {activeCategory === DEALS_CAT && (
+              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.pillNote)}>
+                All {PERK_SIGNALS.length} perks, including the{' '}
+                {PERK_SIGNALS.filter((p) => p.shape !== 'announcement').length} the feed did not carry. This is what
+                &ldquo;add deals to the feed&rdquo; injects if nothing filters it — standing offers with no event behind
+                them, most of them gated to an audience the average reader isn&apos;t in.
               </div>
             )}
 
@@ -775,57 +854,55 @@ export default function NewsfeedCuratedPrototype() {
               <>
                 <div className={clsx(v0.feedLayout, v0.feedLayoutBanner)}>
                   <div className={v0.feedList}>
-                    {visibleEntries.map((entry) => {
-                      if (entry.kind === 'news') {
-                        return (
-                          <V0FeedCard
-                            key={`news-${entry.cluster.teamUid}`}
-                            cluster={entry.cluster}
-                            following={followedTeams.has(entry.cluster.teamUid)}
-                            onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
-                            showComments
-                            likeCount={likeCount}
-                            isLiked={isLiked}
-                            onToggleLike={toggleLike}
-                            commentsFor={commentsFor}
-                            onAddComment={addComment}
-                            onOpenStory={openStoryDetail}
-                          />
-                        );
-                      }
-                      if (entry.kind === 'hiring') {
-                        return (
-                          <HiringCard
-                            key={`hiring-${entry.signal.uid}`}
-                            signal={entry.signal}
-                            following={followedTeams.has(entry.signal.teamUid)}
-                            onToggleFollow={() => toggleFollow(entry.signal.teamUid, entry.signal.teamName)}
-                          />
-                        );
-                      }
-                      return (
-                        <ForumPostCard
-                          key={`forum-${entry.post.uid}`}
-                          post={entry.post}
-                          showComments
-                          likeCount={likeCount(entry.post.uid)}
-                          liked={isLiked(entry.post.uid)}
-                          onToggleLike={() => toggleLike(entry.post.uid)}
-                          comments={commentsFor(entry.post.uid)}
-                          onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
-                          isCommentLiked={isLiked}
-                          onToggleCommentLike={toggleLike}
-                          onOpenDetail={() => setForumDetail(entry.post)}
-                        />
-                      );
-                    })}
+                    {/* The block lives in the feed column of the *same* grid as the
+                        rail, so the rail runs as one continuous column: Teams to
+                        follow, then Popular this week, Coverage, digest — no gap
+                        where the block used to sit in a grid of its own. */}
+                    {showTopStory && topStoryItem && (
+                      <TopStoriesBlock
+                        lead={topStoryItem}
+                        also={alsoItems}
+                        top={TOP_STORY}
+                        attribution={attribution}
+                        followedTeams={followedTeams}
+                        onToggleFollow={toggleFollow}
+                        likeCount={likeCount}
+                        isLiked={isLiked}
+                        onToggleLike={toggleLike}
+                        onOpenStory={openStoryDetail}
+                      />
+                    )}
+
+                    {/* Below 960px the rail stacks under the whole feed, which put
+                        Teams to follow ~3 screens down. This lifts it to just under
+                        the block; the rail copy hides at those widths so exactly one
+                        instance is ever on screen. */}
+                    {showTopStory && (
+                      <div className={local.followScrollSlot}>
+                        <FollowTeamsScroller followedTeams={followedTeams} onToggleFollow={toggleFollow} />
+                      </div>
+                    )}
+
+                    {/* Straight after Teams to follow, so the two lifted rail
+                        modules stay in their rail order instead of one of them
+                        turning up mid-stream. Unconditional, unlike the scroller:
+                        Popular is in the rail at every filter, so the strip
+                        stands in for it at every filter too. */}
+                    <div className={local.popularScrollSlot}>
+                      <PopularScroller items={popularItems} />
+                    </div>
+
+                    {visibleEntries.map(renderEntry)}
                   </div>
                   <aside className={v0.feedRail}>
                     <CuratedRail
                       followedTeams={followedTeams}
                       onToggleFollow={toggleFollow}
-                      allItems={sourceItems}
-                      onPreviewDigest={() => setView('email')}
+                      popularItems={popularItems}
+                      /* Hidden below 960px only while the scroller is rendering.
+                         When the block goes (narrowed view) the scroller goes with
+                         it, and the rail takes the module back at every width. */
+                      followCardClassName={showTopStory ? local.hideBelowDesktop : undefined}
                     />
                   </aside>
                 </div>
@@ -874,6 +951,8 @@ export default function NewsfeedCuratedPrototype() {
           your profile.
         </FollowToast>
       )}
+
+      {subscribeToast}
     </div>
   );
 }

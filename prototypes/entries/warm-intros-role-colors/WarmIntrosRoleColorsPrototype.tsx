@@ -47,23 +47,32 @@
  * Totality is what makes a colour system readable; minimality is what makes it a
  * puzzle.
  *
- * What it costs is green in three weights in one cell — the score pill, this chip,
- * and "In LabOS". Different shapes at different scales, and the chip's `#f0fdf4`
- * is much paler than the pill's `#d1fae5`, so they separate. Still the first seam
- * to look at if `fill` starts feeling noisy.
+ * What it costs is green in more than one place in the same cell. Two of those
+ * were real collisions and are handled: "In LabOS" goes neutral wherever roles are
+ * coloured, because in `tag` mode it sat directly beside a green `Investor` tag on
+ * the same line. What remains is the score pill — `#d1fae5` at the head of a
+ * high-scoring row, against the investor chip's much paler `#f0fdf4` in `fill`.
+ * Different shapes, different weights, opposite ends of the cell; the first seam to
+ * look at if `fill` starts feeling noisy, but not a collision.
  *
  * ── References ───────────────────────────────────────────────────────────────
  * Airtable's Role field and folk's Status column are the `fill` case: soft tint,
  * dark text of the same hue, one hue per value. Deel's people table is where
  * `tag` comes from — the person chip stays neutral and the colour lives in the
  * small line of type beside it, so a long column of people reads as people.
+ * `border` is the midpoint neither reference actually uses, which is itself worth
+ * knowing: outlined-only chips are rare in this class of tool, and the tab is
+ * partly a check on whether that is taste or a reason.
  *
- * ── Two tabs, not three ──────────────────────────────────────────────────────
- * There was a `No colour` tab. It went: the uncoloured table already exists one
- * entry up the list, as `warm-intros-v2`, on the same components and the same
- * rows — so the tab was a second door to a neighbour, and having it here made
- * this entry read as still deciding whether to colour at all. It isn't. `tag` is
- * the proposal and loads first; `fill` shows how far the idea goes.
+ * ── The three tabs ───────────────────────────────────────────────────────────
+ * `tag` → `border` → `fill`, quiet to loud, all on the same rows. `tag` is the
+ * proposal and loads first; the other two show how much further the idea can be
+ * pushed before it stops being worth it.
+ *
+ * There is no `No colour` tab. The uncoloured table already exists one entry up
+ * the list as `warm-intros-v2`, on the same components and the same rows, so a
+ * tab for it would be a second door to a neighbour — and having it here made this
+ * entry read as still deciding whether to colour at all. It isn't.
  *
  * `off` remains a real mode in `RoleColorMode` — it is the context default, and
  * therefore what every other surface in the app renders. It is simply not
@@ -96,11 +105,13 @@ type PickableMode = Exclude<RoleColorMode, 'off'>;
 
 const MODE_TABS: Array<{ value: PickableMode; label: string }> = [
   { value: 'tag', label: 'Tags only' },
+  { value: 'border', label: 'Border' },
   { value: 'fill', label: 'Fill' },
 ];
 
 const MODE_NOTE: Record<PickableMode, string> = {
   tag: 'Nodes stay exactly as they are; only the tag beneath takes the hue. The chain still reads as one row of people, and the colour lands on the word that already names the role. Investor keeps its tag here — nothing else is left to carry it.',
+  border: 'The tag, plus the chip’s 1px edge — fill left white, so the chain keeps its even texture. Stroke is the design system’s own border colour, not a thickened one: the question this tab settles is whether that reads at chip scale.',
   fill: 'Tint, edge and name together. Easiest to scan down a column, and the loudest option — judge it against the score pill leading each row.',
 };
 
@@ -113,8 +124,9 @@ const MODE_NOTE: Record<PickableMode, string> = {
  * `HopRoleCaption` use, out of the same stylesheet. If the tint changes, both
  * change together.
  *
- *   tag  → the role tag alone, in its hue, exactly as it appears under a node
- *   fill → the tinted chip
+ *   tag    → the role tag alone, in its hue, exactly as it appears under a node
+ *   border → the outlined chip
+ *   fill   → the tinted chip
  */
 function LegendSwatch({ role, label, mode }: { role: string; label: string; mode: PickableMode }) {
   const hue = r[ROLE_TINT_CLASS[role] ?? ''];
@@ -124,7 +136,7 @@ function LegendSwatch({ role, label, mode }: { role: string; label: string; mode
   }
 
   return (
-    <span className={clsx(s.legendChip, hue, r.tintFill)}>
+    <span className={clsx(s.legendChip, hue, mode === 'fill' ? r.tintFill : r.tintBorder)}>
       <PathProfileChip name={label} profileUid={`legend-${role}`} imageUrl={getDefaultAvatar(label)} onOpen={() => {}} nonInteractive />
     </span>
   );

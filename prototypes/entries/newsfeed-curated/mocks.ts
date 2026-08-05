@@ -1,4 +1,8 @@
 import type { ITeamNewsItem } from '@/types/team-news.types';
+// Production's own sector vocabulary — "robotics" already lives here, on the
+// investors surface. The Monitor path borrows it rather than inventing one.
+import { SECTOR_TAGS } from '@/services/investors/constants';
+import type { SectorTag } from '@/services/investors/types';
 
 import { MOCK_GROUPS } from '../newsfeed-v0/mocks';
 
@@ -36,6 +40,8 @@ const OFF_FOCUS_LOGOS: Record<string, string> = {
   'prime-intellect': '/icons/technology/libp2p.svg',
   'ritual-net': '/icons/technology/ipld.svg',
   'exo-labs': '/icons/technology/sourcecred.svg',
+  'proprio-labs': '/icons/technology/fvm.svg',
+  'kinetic-foundry': '/icons/technology/filecoin.svg',
 };
 
 function offFocus(
@@ -96,10 +102,94 @@ export const OFF_FOCUS_ITEMS: ITeamNewsItem[] = [
     sourceDomain: 'exolabs.net',
     tags: ['edge', 'inference'],
   }),
+
+  // Robotics, added so the Monitor path's flagship query ("what fundings are new
+  // in robotics?") has something to match. They are untagged like the rest of
+  // this array — which is the point: robotics is a *sector*, and the feed's
+  // focus-area taxonomy (Infrastructure / Storage / Networking here) has no
+  // bucket for it. The two vocabularies are not the same vocabulary.
+  offFocus({
+    uid: 'r1',
+    teamUid: 'proprio-labs',
+    teamName: 'Proprio Labs',
+    eventType: 'FUNDING',
+    eventDate: '2026-07-30T08:00:00.000Z',
+    title: 'Proprio Labs raises $26M for open-source robot foundation models',
+    summary:
+      'The round funds a shared manipulation model trained on pooled teleoperation data, with contributors keeping rights to their own recordings. Weights ship under Apache 2.0.',
+    sourceDomain: 'techcrunch.com',
+    discussion: { count: 4, latestTopicUrl: 'https://forum' },
+    tags: ['robotics', 'manipulation', 'open-source'],
+  }),
+  offFocus({
+    uid: 'r2',
+    teamUid: 'kinetic-foundry',
+    teamName: 'Kinetic Foundry',
+    eventType: 'FUNDING',
+    eventDate: '2026-07-26T13:45:00.000Z',
+    title: 'Kinetic Foundry closes $9M seed for verifiable robot telemetry',
+    summary:
+      'Signed sensor logs let a fleet operator prove what a machine actually did, which the team is pitching at insurers and safety regulators first.',
+    sourceDomain: 'kineticfoundry.com',
+    tags: ['robotics', 'provenance'],
+  }),
+  offFocus({
+    uid: 'r3',
+    teamUid: 'proprio-labs',
+    teamName: 'Proprio Labs',
+    eventType: 'LAUNCH',
+    eventDate: '2026-07-24T10:00:00.000Z',
+    title: 'Proprio open-sources its 2M-episode grasp dataset',
+    summary:
+      'The dataset covers 400 household objects across twelve gripper types, with provenance for every episode. Released alongside a reproduction harness.',
+    sourceDomain: 'proprio.dev',
+    tags: ['robotics', 'datasets'],
+  }),
 ];
 
 /** Every item the curated spine carries: grouped + the untagged long tail. */
 export const ALL_CURATED_ITEMS: ITeamNewsItem[] = [...OFF_FOCUS_ITEMS, ...GROUPED_ITEMS];
+
+// ---------- Sector, the axis the Monitor path actually queries ----------
+
+/**
+ * uid → sector, using **production's own vocabulary**: `SECTOR_TAGS` /
+ * `SECTOR_TAG_LABEL` from `services/investors/constants.ts`. That list is where
+ * "robotics" already exists in this codebase — on the investors surface, not on
+ * news. Nothing is invented here.
+ *
+ * Three items are deliberately absent (`n4`, `n9`, `n11`). That is the whole
+ * point of the Monitor prototype: an item with no sector can never match an
+ * alert, and the reader has no way to know it was missed. Editorial survives
+ * gaps like these because a human curator picks around them; a standing query
+ * does not. The coverage line under the results names the number out loud.
+ */
+export const SECTOR_BY_UID: Record<string, SectorTag> = {
+  // Robotics — the flagship query.
+  r1: 'robotics',
+  r2: 'robotics',
+  r3: 'robotics',
+  // AI
+  x1: 'ai',
+  x2: 'ai',
+  x3: 'ai',
+  n5: 'ai',
+  n12: 'ai',
+  // Infrastructure
+  n1: 'infrastructure',
+  n2: 'infrastructure',
+  n3: 'infrastructure',
+  n6: 'infrastructure',
+  n7: 'infrastructure',
+  n10: 'infrastructure',
+  n13: 'infrastructure',
+  // Crypto
+  n8: 'crypto',
+  // n4, n9, n11 — intentionally unclassified.
+};
+
+/** Sectors that actually occur this week, so the picker offers only live options. */
+export const ACTIVE_SECTORS: SectorTag[] = SECTOR_TAGS.filter((s) => Object.values(SECTOR_BY_UID).includes(s));
 
 // ---------- 2. Hiring, as a signal rather than a listing ----------
 
@@ -117,8 +207,12 @@ export interface HiringSignal {
   /** The read-in-one-line claim, e.g. "is scaling its infra team". */
   headline: string;
   totalRoles: number;
-  /** Roles to name explicitly; the rest collapse into "+N more". */
-  roles: Array<{ title: string; location: string }>;
+  /**
+   * Roles to name explicitly; the rest collapse into "+N more". `applyUrl`
+   * mirrors production's `IJobRole.applyUrl` — the row's click target is the
+   * posting itself, the same actionable unit the job board uses.
+   */
+  roles: Array<{ title: string; location: string; applyUrl: string }>;
   /** Movement against the prior period — the actual signal. */
   trend: string;
   date: string;
@@ -142,9 +236,13 @@ export const HIRING_SIGNALS: HiringSignal[] = [
     headline: 'is scaling its protocol team ahead of testnet',
     totalRoles: 6,
     roles: [
-      { title: 'Senior Distributed Systems Engineer', location: 'Remote' },
-      { title: 'Protocol Engineer', location: 'Remote · EU' },
-      { title: 'Developer Relations Lead', location: 'Remote' },
+      {
+        title: 'Senior Distributed Systems Engineer',
+        location: 'Remote',
+        applyUrl: 'https://jobs.lattice.computer/senior-distributed-systems',
+      },
+      { title: 'Protocol Engineer', location: 'Remote · EU', applyUrl: 'https://jobs.lattice.computer/protocol' },
+      { title: 'Developer Relations Lead', location: 'Remote', applyUrl: 'https://jobs.lattice.computer/devrel' },
     ],
     trend: 'First open roles in 8 months',
     date: '2026-07-28T10:00:00.000Z',
@@ -157,9 +255,21 @@ export const HIRING_SIGNALS: HiringSignal[] = [
     headline: 'opened 9 roles the week after its raise',
     totalRoles: 9,
     roles: [
-      { title: 'ML Infrastructure Engineer', location: 'San Francisco' },
-      { title: 'Research Scientist, Distributed Training', location: 'Remote' },
-      { title: 'Head of Partnerships', location: 'San Francisco' },
+      {
+        title: 'ML Infrastructure Engineer',
+        location: 'San Francisco',
+        applyUrl: 'https://primeintellect.ai/careers/ml-infra',
+      },
+      {
+        title: 'Research Scientist, Distributed Training',
+        location: 'Remote',
+        applyUrl: 'https://primeintellect.ai/careers/research-scientist',
+      },
+      {
+        title: 'Head of Partnerships',
+        location: 'San Francisco',
+        applyUrl: 'https://primeintellect.ai/careers/partnerships',
+      },
     ],
     trend: 'Headcount plan roughly doubles',
     date: '2026-07-29T15:00:00.000Z',
@@ -172,11 +282,106 @@ export const HIRING_SIGNALS: HiringSignal[] = [
     headline: 'is rebuilding its data-programs group',
     totalRoles: 4,
     roles: [
-      { title: 'Data Programs Manager', location: 'Remote' },
-      { title: 'Solutions Architect', location: 'Remote · US' },
+      { title: 'Data Programs Manager', location: 'Remote', applyUrl: 'https://fil.org/careers/data-programs' },
+      {
+        title: 'Solutions Architect',
+        location: 'Remote · US',
+        applyUrl: 'https://fil.org/careers/solutions-architect',
+      },
     ],
     trend: '4 roles opened this month',
     date: '2026-07-26T09:00:00.000Z',
+  },
+];
+
+// ---------- 2b. Perks, and the test they mostly fail ----------
+
+/**
+ * The second half of "put jobs and deals in the feed".
+ *
+ * Deals in this app are vendor perks — `SubmitDealModal` asks for a "Vendor Name
+ * (e.g. Stripe, Vercel, AWS)" and "Redemption instructions" — and `/deals` is
+ * described in the nav as "Exclusive tools and perks for founders". Two
+ * consequences the feed has to answer for:
+ *
+ *   1. A perk is a *state*, not an event. "AWS credits exist" is true every week,
+ *      so it has no cadence and lands in a chronological feed as an ad.
+ *   2. Deals are access-gated — production ships a `DealsNoAccessModal` reading
+ *      "you don't have access to Deals yet". Most people scrolling the feed are
+ *      not the founder audience, so a perk card is shown largely to people who
+ *      cannot redeem it.
+ *
+ * So the rule this prototype applies: only *announcement*-shaped perks enter the
+ * mixed feed, capped at one. The catalogue-shaped ones are kept in the corpus on
+ * purpose — the Deals pill shows them, so the difference between a perk that
+ * earned its slot and one that didn't is visible on screen rather than asserted.
+ */
+export interface PerkSignal {
+  uid: string;
+  vendorName: string;
+  logoUrl: string | null;
+  /** Mirrors production's `IDeal.shortDescription`. */
+  shortDescription: string;
+  /** Mirrors production's `IDeal.category` — the gray chip on `DealCard`. */
+  category: string;
+  /** One of production's `DEAL_AUDIENCE_LABELS` values. */
+  audience: string;
+  /** Whether the person reading the feed could actually redeem it. */
+  eligible: boolean;
+  /**
+   * Whether this is a dated event or a standing offer — the whole test.
+   * 'announcement' earns a feed slot; 'catalogue' does not.
+   */
+  shape: 'announcement' | 'catalogue';
+  /**
+   * Why this is in a dated stream at all, as a short footer phrase — the offer
+   * itself is carried by `shortDescription`, the way `DealCard` does it.
+   */
+  event: string;
+  date: string;
+  /** How long the offer has been live — the tell that gives a catalogue entry away. */
+  liveFor: string;
+}
+
+export const PERK_SIGNALS: PerkSignal[] = [
+  {
+    uid: 'd1',
+    vendorName: 'Vercel',
+    logoUrl: null,
+    shortDescription: 'Pro plan free for 12 months, then 20% off for network teams.',
+    category: 'Infrastructure & Hosting',
+    audience: 'All Founders',
+    eligible: true,
+    shape: 'announcement',
+    event: 'Joined the network',
+    date: '2026-07-28T12:00:00.000Z',
+    liveFor: 'Added this week',
+  },
+  {
+    uid: 'd2',
+    vendorName: 'AWS',
+    logoUrl: null,
+    shortDescription: 'Up to $100k in Activate credits for eligible teams.',
+    category: 'Cloud & Compute',
+    audience: 'PL Funded Founders',
+    eligible: false,
+    shape: 'catalogue',
+    event: 'Standing offer',
+    date: '2025-05-14T12:00:00.000Z',
+    liveFor: 'Live for 14 months',
+  },
+  {
+    uid: 'd3',
+    vendorName: 'Notion',
+    logoUrl: null,
+    shortDescription: 'Six months of Notion Plus with unlimited AI.',
+    category: 'AI & Developer Tools',
+    audience: 'Founders Forge',
+    eligible: false,
+    shape: 'catalogue',
+    event: 'Standing offer',
+    date: '2025-11-03T12:00:00.000Z',
+    liveFor: 'Live for 8 months',
   },
 ];
 
@@ -200,8 +405,18 @@ export interface TopStory {
   why: string;
   /** How many candidates the pick was made from — sizes the judgement. */
   consideredCount: number;
-  /** The runners-up, so the pick is legible as a choice rather than a lone result. */
-  alsoConsidered: string[];
+  /**
+   * The other two stories in the block, as uids.
+   *
+   * These were the runners-up hidden behind an "Also considered" disclosure. A
+   * collapsed list of titles nobody opens is worth less than two visible rows,
+   * and promoting them is what turns a single billboard into a three-story
+   * block — one pick can miss you entirely, three has a real chance of landing.
+   * Only the lead carries a why-line: three written justifications a week is
+   * three times the editorial cost, and the point of starting human is that one
+   * person can sustain it.
+   */
+  alsoUids: string[];
 }
 
 export const TOP_STORY: TopStory = {
@@ -210,10 +425,10 @@ export const TOP_STORY: TopStory = {
   subject: 'Prime Intellect raises $18M — plus 6 more from the network',
   why: 'Largest raise in the network this quarter, and the first time a decentralized-training team has shipped workloads onto two portfolio networks at once. Covered by four outlets in 48 hours.',
   consideredCount: 47,
-  alsoConsidered: [
-    'Ritual and Lattice Compute open a shared inference marketplace',
-    'IPFS mainnet upgrade cuts retrieval latency by a third',
-  ],
+  // x2 = Ritual × Lattice inference marketplace, n1 = IPFS retrieval latency.
+  // One untagged, one Infrastructure — so the block spans the focus taxonomy the
+  // same way the week does.
+  alsoUids: ['x2', 'n1'],
 };
 
 /** Who made this week's pick — the prototype's editorial-mode switch. */

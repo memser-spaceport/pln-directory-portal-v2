@@ -18,18 +18,23 @@ interface MobileFeedSortProps {
   options: readonly Option[];
   currentSort: string;
   onSortChange: (value: string) => void;
+  /**
+   * Defaults to "Sort by:" so existing callers are untouched. `newsfeed-curated`
+   * passes "Type:" to render the event-type filter in the same mobile style.
+   */
+  label?: string;
 }
 
 /**
  * Mobile sort control matching the Teams/Members pages: a "Sort by:" label next
  * to a pill showing the current value, opening a base-ui menu of options.
  */
-export function MobileFeedSort({ options, currentSort, onSortChange }: MobileFeedSortProps) {
+export function MobileFeedSort({ options, currentSort, onSortChange, label = 'Sort by:' }: MobileFeedSortProps) {
   const current = options.find((o) => o.value === currentSort)?.label ?? options[0]?.label;
 
   return (
     <span className={mf.rightSection}>
-      <span className={mf.sortByLabel}>Sort by:</span>
+      <span className={mf.sortByLabel}>{label}</span>
       <Menu.Root modal={false}>
         <Menu.Trigger className={mf.filtersButton}>
           {current} <ChevronDownIcon color="#455468" />

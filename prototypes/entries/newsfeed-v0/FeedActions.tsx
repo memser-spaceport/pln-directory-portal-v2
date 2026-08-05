@@ -71,11 +71,25 @@ export function CommentCount({ count, onClick }: { count: number; onClick?: () =
   return <span className={s.subItem}>{inner}</span>;
 }
 
-/** Static view-count meta item — the third of the forum's Views · Likes · Comments trio. */
-export function ViewCount({ count }: { count: number }) {
+/**
+ * Thousands as "1.2k". Cards run four meta items in a row that already wraps on
+ * mobile, and a four-digit count is the widest thing in it — the detail modals
+ * have the room for the exact figure, the cards don't.
+ *
+ * Not `toLocaleString()`: prototype routes server-render, and that formats
+ * against the *system* locale, so a browser on a non-en locale would hydrate
+ * "1.204" over the server's "1,204" and mismatch. This is locale-independent.
+ */
+const compactViews = (n: number): string => (n < 1000 ? String(n) : `${Math.round(n / 100) / 10}k`);
+
+/**
+ * Static view-count meta item — the first of the forum's Views · Likes · Comments
+ * trio (`components/page/forum/Posts/Posts.tsx` renders it in that order).
+ */
+export function ViewCount({ count, compact }: { count: number; compact?: boolean }) {
   return (
     <span className={s.subItem}>
-      <ViewIcon /> {count.toLocaleString()} {count === 1 ? 'View' : 'Views'}
+      <ViewIcon /> {compact ? compactViews(count) : count.toLocaleString()} {count === 1 ? 'View' : 'Views'}
     </span>
   );
 }

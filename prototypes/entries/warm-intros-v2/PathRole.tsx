@@ -44,19 +44,18 @@ export function roleLabel(role?: string | null): string | null {
 }
 
 /**
- * The hue class for the **chip**, which only `fill` ever tints.
+ * The hue class for the **chip** — nothing in `off`, and nothing in `tag` either.
  *
- * `tag` deliberately returns nothing here: the whole point of that mode is that
- * the nodes stay one uniform object and the colour lands on the tag beneath. The
- * hue still reaches the tag, which carries its own copy of the class — see
- * `HopRoleCaption`.
+ * `tag` returning nothing here is the whole point of that mode: the nodes stay one
+ * uniform object and the colour lands on the tag beneath. The hue still reaches
+ * the tag, which carries its own copy of the class — see `HopRoleCaption`.
  *
  * Two classes, not one: the hue lives on `.tintPl` / `.tintFounder` / … as CSS
- * custom properties, and `.tintFill` decides how much of that hue gets spent. So
- * adding a third treatment later touches one block, not four.
+ * custom properties, and `.tintBorder` / `.tintFill` decide how much of it gets
+ * spent. So adding a fourth treatment later touches one block, not four.
  */
 function chipTintClass(mode: RoleColorMode, role?: string | null): string | undefined {
-  if (mode !== 'fill' || !role) return undefined;
+  if (mode === 'off' || mode === 'tag' || !role) return undefined;
   // Every hop, including the last. The `isLast` rule stays where it belongs — on
   // the *label*, which is a word that restates the row — and does not extend to
   // the tint.
@@ -69,7 +68,7 @@ function chipTintClass(mode: RoleColorMode, role?: string | null): string | unde
   // A colour system earns its keep by being total, not by being minimal.
   const hue = s[ROLE_TINT_CLASS[role] ?? ''];
   if (!hue) return undefined;
-  return clsx(hue, s.tintFill);
+  return clsx(hue, mode === 'fill' ? s.tintFill : s.tintBorder);
 }
 
 /**
@@ -106,14 +105,17 @@ export function HopRoleCaption({ role, profileUid }: { role?: string | null; pro
           them here", and the answer is the same either way — whether the profile
           happens to be a person or their fund is a detail of the record, not of
           the reachability. The name still rides in the tooltip. */}
-      {/* Keeps its green in every mode. It briefly did not: while the roles took
-          `HopRoleBadge`'s palette, Founder was green too, and two greens 20px
-          apart meaning different things is worse than one going quiet. On the
-          MasterProfile palette founder is orange and the only green role is the
-          investor, which the chain never tints — so green is LabOS's again, and
-          the Directory dot's, and nothing else's. */}
+      {/* Brighter green wherever roles are coloured — the Directory dot's
+          `#059669`, already on the avatar of this very chip.
+
+          Against `.labOs`'s own `#047857` the last hop read `Investor · In LabOS`
+          as one phrase in one colour: four points of lightness between two greens
+          meaning unrelated things. Borrowing the dot's green instead of inventing
+          a third makes the pair legible *and* coherent — dark flat green is the
+          role, bright saturated green is presence, which is what the dot above
+          already says. See `.labOsPresence`. */}
       {labOs ? (
-        <span className={s.labOs} title={`${labOs.name} — open in LabOS`}>
+        <span className={clsx(s.labOs, mode !== 'off' && s.labOsPresence)} title={`${labOs.name} — open in LabOS`}>
           In LabOS
         </span>
       ) : null}

@@ -5,7 +5,6 @@ import { useState } from 'react';
 
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
-import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 import { Button } from '@/components/common/Button';
 
 // Production news-card styling, reused 1:1 for the rail modules.
@@ -13,16 +12,25 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
 import local from './NewsfeedCurated.module.scss';
 
-import { FollowButton } from '@/components/ui/FollowButton';
-import { CURATED_SUGGESTED_TEAMS, COVERAGE } from './mocks';
+import { FollowTeamsCard } from './FollowTeamsCard';
+import { COVERAGE } from './mocks';
 import { UPVOTES } from '../newsfeed-v0/mocks';
 
 interface CuratedRailProps {
   followedTeams: Set<string>;
   onToggleFollow: (teamUid: string, teamName: string) => void;
-  allItems: ITeamNewsItem[];
-  /** Jump to the digest view — the rail is where someone decides they'd rather get this by email. */
-  onPreviewDigest: () => void;
+  /**
+   * The three most-upvoted stories. Ranked by the page, not here, because the
+   * sub-desktop `PopularScroller` shows the same three — one list, two shells.
+   */
+  popularItems: ITeamNewsItem[];
+  /**
+   * Visibility class for the Teams-to-follow card. The page passes a
+   * hide-below-desktop class while the mobile scroller is rendering, so exactly
+   * one copy is on screen; when the block goes, so does the scroller, and this
+   * one comes back at every width.
+   */
+  followCardClassName?: string;
 }
 
 /**
@@ -36,44 +44,20 @@ interface CuratedRailProps {
  * 2. A coverage line, so the feed's blind spot is visible and reportable rather
  *    than silent.
  */
-export function CuratedRail({ followedTeams, onToggleFollow, allItems, onPreviewDigest }: CuratedRailProps) {
-  const popular = [...allItems].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
+export function CuratedRail({ followedTeams, onToggleFollow, popularItems, followCardClassName }: CuratedRailProps) {
   const [subscribed, setSubscribed] = useState(false);
 
   return (
     <>
-      <div className={clsx(s.card, v0.railCard, v0.followRailCard)}>
-        <h3 className={v0.railTitle}>Teams to follow</h3>
-        {CURATED_SUGGESTED_TEAMS.map((team) => (
-          <div key={team.uid} className={v0.railRow}>
-            {team.logo ? (
-              <img className={s.logo} src={team.logo} alt="" loading="lazy" />
-            ) : (
-              <div className={s.logoFallback}>{getTeamLogoFallback(team.name)}</div>
-            )}
-            <span className={v0.railInfo}>
-              <span className={v0.railNameRow}>
-                <span className={v0.railName}>{team.name}</span>
-                <FollowButton
-                  following={followedTeams.has(team.uid)}
-                  onClick={() => onToggleFollow(team.uid, team.name)}
-                  name={team.name}
-                  size="default"
-                  className={v0.railFollowBtn}
-                />
-              </span>
-              {/* The change: why *you*, not what they are. */}
-              <span className={local.railWhy} title={team.reason}>
-                {team.reason}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* First in the rail, so on desktop it sits level with the top of the
+          block and everything below follows straight after it. */}
+      <FollowTeamsCard followedTeams={followedTeams} onToggleFollow={onToggleFollow} className={followCardClassName} />
 
-      <div className={clsx(s.card, v0.railCard)}>
+      {/* Desktop only: below 960px the rail stacks under the whole feed, so the
+          strip spliced into the feed column carries this module instead. */}
+      <div className={clsx(s.card, v0.railCard, v0.railHideMobile)}>
         <h3 className={v0.railTitle}>Popular this week</h3>
-        {popular.map((item) => (
+        {popularItems.map((item) => (
           <div
             key={item.uid}
             role="link"
@@ -124,9 +108,6 @@ export function CuratedRail({ followedTeams, onToggleFollow, allItems, onPreview
         >
           {subscribed ? 'Subscribed ✓' : 'Subscribe'}
         </Button>
-        <button type="button" className={local.previewLink} onClick={onPreviewDigest}>
-          Preview this week&apos;s email →
-        </button>
       </div>
     </>
   );

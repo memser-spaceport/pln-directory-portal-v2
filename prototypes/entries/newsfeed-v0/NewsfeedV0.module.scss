@@ -953,11 +953,21 @@
   color: var(--foreground-brand-primary, #1b4dff);
 }
 
-/* Upvote + comment pair on the footer's right. */
+/* Share + the Views · Likes · Comments trio on the footer's right. */
 .footerActions {
   display: inline-flex;
   align-items: center;
   gap: 16px;
+
+  /* Four items now, and "1.2k Views" + "12 Comments" is the widest pair — on a
+     360px phone that lands within a few px of the card's inner width, so it
+     wraps to a second line instead of overflowing. */
+  flex-wrap: wrap;
+  row-gap: 8px;
+
+  @include mobile-only {
+    column-gap: 12px;
+  }
 }
 
 /* ---------- Multi-source: same story, several outlets ---------- */
@@ -1124,6 +1134,16 @@
 .filterActions {
   display: inline-flex;
   align-items: center;
+  /**
+   * The row had no gap, which only showed once it held more than one control:
+   * on mobile `newsfeed-curated` puts two pills here — `Type: …` and
+   * `Sort by: …` — and they met with nothing between them but their own padding,
+   * reading as one long control rather than two.
+   *
+   * 12px is this file's own spacing for adjacent controls (`.filterRow`, the
+   * header row), not a new value.
+   */
+  gap: 12px;
   flex-shrink: 0;
 
   @include mobile-only {

@@ -60,6 +60,13 @@ function decode(raw: string): PathVia | null {
 
 const withCount = (label: string, count: number) => `${label} (${count})`;
 
+/** A selection's display name, resolved from the current facets — for the active-filter pill. */
+export function describePathVia(via: PathVia, facets: WarmIntrosV2Facets): string {
+  if (via.type === 'kind') return KIND_LABEL[via.value];
+  const source = via.type === 'member' ? facets.connectors : facets.bridges;
+  return source.find((p) => p.profileUid === via.value)?.name ?? via.value;
+}
+
 function pathViaGroups(facets: WarmIntrosV2Facets): GroupBase<Option>[] {
   const groups: GroupBase<Option>[] = [];
 

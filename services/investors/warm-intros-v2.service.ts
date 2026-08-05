@@ -90,13 +90,14 @@ export async function getWarmIntrosV2PathsForInvestor(
 export async function getWarmIntrosV2Facets(opts: { targetSet?: string } = {}): Promise<WarmIntrosV2Facets> {
   const qs = buildQuery({ targetSet: opts.targetSet });
   const res = await customFetch(`${BASE}/facets${qs}`, { method: 'GET' }, true);
-  if (!res || !res.ok) return { connectors: [], sectors: [], kinds: [], bridges: [] };
+  if (!res || !res.ok) return { connectors: [], sectors: [], kinds: [], bridges: [], plBackerCount: 0 };
   const json = await res.json();
   return {
     connectors: Array.isArray(json.connectors) ? json.connectors : [],
     sectors: Array.isArray(json.sectors) ? json.sectors : [],
     kinds: Array.isArray(json.kinds) ? json.kinds : [],
     bridges: Array.isArray(json.bridges) ? json.bridges : [],
+    plBackerCount: typeof json.plBackerCount === 'number' ? json.plBackerCount : 0,
   };
 }
 

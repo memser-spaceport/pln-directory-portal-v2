@@ -22,6 +22,7 @@ import {
   WARM_INTROS_V2_MIN_SCORE,
   WARM_INTROS_V2_TARGET_SET_LABEL,
   WARM_INTROS_V2_TARGET_SETS,
+  type WarmIntrosV2Facets,
   type WarmIntrosV2InvestorSummary,
   type WarmIntrosV2PathListItem,
   type WarmIntrosV2SelectorValue,
@@ -29,12 +30,15 @@ import {
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
 import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
-import { PathViaSelect } from './PathViaSelect';
+import { describePathVia, PathViaSelect } from './PathViaSelect';
 import { usePathViaFilter } from './usePathViaFilter';
 import { WarmIntrosV2GlossaryDrawer } from './WarmIntrosV2GlossaryDrawer';
 import { WarmIntrosV2InvestorDrawer } from './WarmIntrosV2InvestorDrawer';
 import { WarmIntrosV2Table } from './WarmIntrosV2Table';
 import s from './WarmIntrosV2Workspace.module.scss';
+// Active-filter pills + Clear all already exist in Warm Intros v1 — same feature
+// family, same bar. Reused rather than re-styled.
+import v1 from '../WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
 
 interface Props {
   onCountChange?: (count: number) => void;
@@ -42,6 +46,7 @@ interface Props {
 
 const PAGE_LIMIT = 50;
 const SEARCH_DEBOUNCE_MS = 300;
+const EMPTY_FACETS: WarmIntrosV2Facets = { connectors: [], sectors: [], kinds: [], bridges: [], plBackerCount: 0 };
 
 /**
  * Warm Intros v2 workspace: filter bar + polished table + glossary + CSV + investor drawer + MasterProfile modal.
@@ -267,6 +272,50 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     void setFilters({ wi2_q: null });
   }, [setFilters]);
 
+  const plBackerAvailable = facets?.plBackerCount ?? 0;
+
+  const clearAll = useCallback(() => {
+    pathVia.setValue([]);
+    void setFilters({ wi2_sector: [], wi2_pl_backer: null });
+    clearSearch();
+  }, [pathVia, setFilters, clearSearch]);
+
+  /**
+   * What's currently on, and how to switch each thing off individually. The list
+   * picker is deliberately absent — it always has a value, so a pill for it would
+   * never be removable.
+   */
+  const activePills = useMemo(() => {
+    const pills: Array<{ key: string; label: string; value: string; onRemove: () => void }> = [];
+
+    // One pill per selection, not one pill listing them all — each has to be
+    // removable on its own.
+    for (const via of pathVia.value) {
+      pills.push({
+        key: `pathVia:${via.type}:${via.value}`,
+        label: 'Path via',
+        value: describePathVia(via, facets ?? EMPTY_FACETS),
+        onRemove: () =>
+          pathVia.setValue(pathVia.value.filter((v) => !(v.type === via.type && v.value === via.value))),
+      });
+    }
+    for (const sec of filters.wi2_sector) {
+      pills.push({
+        key: `sector:${sec}`,
+        label: 'Sector',
+        value: sec,
+        onRemove: () => void setFilters({ wi2_sector: filters.wi2_sector.filter((s) => s !== sec) }),
+      });
+    }
+    if (plBacker) {
+      pills.push({ key: 'plBacker', label: 'Backed', value: 'PL / Filecoin', onRemove: () => void togglePlBacker() });
+    }
+    if (searchInput.trim()) {
+      pills.push({ key: 'search', label: 'Search', value: searchInput.trim(), onRemove: clearSearch });
+    }
+    return pills;
+  }, [pathVia, filters.wi2_sector, setFilters, plBacker, togglePlBacker, searchInput, clearSearch, facets]);
+
   return (
     <div className={s.root}>
       <section className={s.builder}>
@@ -278,16 +327,23 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               filter.
             </p>
           </div>
-          <button
-            type="button"
-            className={s.howScoredLink}
-            onClick={() => {
-              analytics.trackGlossaryOpened();
-              setGlossaryOpen(true);
-            }}
-          >
-            What do these terms mean?
-          </button>
+          <div className={s.headerLinks}>
+            {access.canEdit ? (
+              <button type="button" className={s.howScoredLink} onClick={() => setFeedbackQueueOpen(true)}>
+                Path feedback
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={s.howScoredLink}
+              onClick={() => {
+                analytics.trackGlossaryOpened();
+                setGlossaryOpen(true);
+              }}
+            >
+              What do these terms mean?
+            </button>
+          </div>
         </header>
 
         <div className={s.filterBar}>
@@ -331,7 +387,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
           <div className={s.filterBarItem} style={{ minWidth: 200 }}>
             <PathViaSelect
-              facets={facets ?? { connectors: [], sectors: [], kinds: [], bridges: [] }}
+              facets={facets ?? EMPTY_FACETS}
               value={pathVia.value}
               onChange={pathVia.setValue}
             />
@@ -349,33 +405,43 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             />
           </div>
 
+          {/* Not part of the "Path via" axis: this one is about the investor, not
+              the route to them. Disabled rather than hidden when nothing in the
+              current set qualifies — a control that vanishes is worse. */}
           <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Investor filters">
             <button
               type="button"
-              className={clsx(s.quickChip, plBacker && s.quickChipActive)}
+              className={clsx(s.quickChip, s.backedToggle, plBacker && s.quickChipActive)}
               aria-pressed={plBacker}
+              disabled={!plBacker && plBackerAvailable === 0}
+              title="Investors whose firm has already backed Protocol Labs or Filecoin"
               onClick={togglePlBacker}
             >
-              PL/FIL investors
-            </button>
-          </div>
-
-          <div className={clsx(s.filterBarItem, s.filterBarActions)}>
-            {access.canEdit ? (
-              <button type="button" className={s.exportBtn} onClick={() => setFeedbackQueueOpen(true)}>
-                Path feedback
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={s.exportBtn}
-              onClick={() => void onExportCsv()}
-              disabled={exporting || (!isLoading && paths.length === 0)}
-            >
-              {exporting ? 'Exporting…' : 'Export CSV'}
+              Backed PL/FIL ({plBackerAvailable})
             </button>
           </div>
         </div>
+
+        {activePills.length > 0 ? (
+          <div className={v1.filterPills}>
+            {activePills.map((pill) => (
+              <span key={pill.key} className={v1.pill}>
+                {pill.label}: <strong>{pill.value}</strong>
+                <button
+                  type="button"
+                  className={v1.pillRemove}
+                  onClick={pill.onRemove}
+                  aria-label={`Remove ${pill.label} filter`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <button type="button" className={v1.clearAll} onClick={clearAll}>
+              Clear all
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {isLoading && <div className={s.state}>Loading paths…</div>}
@@ -387,13 +453,35 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
         </div>
       )}
 
-      {!isLoading && !isError && paths.length === 0 && <div className={s.state}>No paths match these filters.</div>}
+      {!isLoading && !isError && paths.length === 0 && (
+        <div className={clsx(s.state, s.emptyState)}>
+          <span>No paths match these filters.</span>
+          {activePills.length > 0 ? (
+            <button type="button" className={v1.clearAll} onClick={clearAll}>
+              Clear all
+            </button>
+          ) : null}
+        </div>
+      )}
 
       {!isLoading && !isError && paths.length > 0 && (
         <div className={s.listWrap}>
-          <div className={s.meta}>
-            Showing {paths.length}
-            {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue]}
+          <div className={clsx(s.meta, s.metaRow)}>
+            <span>
+              Showing {paths.length}
+              {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue]}
+            </span>
+            {/* Export is an action on the result set, so it belongs with the
+                sentence that says how many there are, not the row of controls
+                that changes which results there are. */}
+            <button
+              type="button"
+              className={clsx(s.exportPrimary, s.metaRowSpacer)}
+              onClick={() => void onExportCsv()}
+              disabled={exporting || (!isLoading && paths.length === 0)}
+            >
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
           </div>
           <WarmIntrosV2Table
             rows={paths}

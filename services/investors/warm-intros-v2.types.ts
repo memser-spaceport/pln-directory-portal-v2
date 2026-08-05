@@ -173,6 +173,8 @@ export type WarmIntrosV2Facets = {
   kinds: Array<{ value: WarmIntrosV2PathRelationKind; count: number }>;
   /** Founder/co-investor bridge people (the middle hop of a 2-hop path). */
   bridges: Array<{ profileUid: string; name: string; pathCount: number }>;
+  /** Investors with MasterProfile.plBacking set, within the current target set. */
+  plBackerCount: number;
 };
 
 /** Provenance reference on a Sourced field value. */

@@ -1,5 +1,4 @@
 @use 'styles/media';
-@use 'styles/mixins';
 
 .body {
   display: grid;
@@ -42,22 +41,6 @@
 
   img {
     margin-bottom: 14px;
-  }
-}
-
-.editEmailBtn {
-  @include mixins.centralize;
-  color: #156ff7;
-  font-feature-settings:
-    'liga' off,
-    'clig' off;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 20px; /* 166.667% */
-
-  :hover {
-    filter: brightness(80%);
   }
 }
 

@@ -6,8 +6,14 @@ import { useRouter } from 'next/navigation';
 import s from './ConnectedAccounts.module.scss';
 import { triggerLoader } from '@/utils/common.utils';
 import LinkAuthAccounts from '@/components/page/member-info/link-auth-accounts';
+import { EmailAddressSettings } from '@/components/page/connected-accounts/components/EmailAddressSettings';
+import { IUserInfo } from '@/types/shared.types';
 
-export const ConnectedAccounts = () => {
+interface Props {
+  userInfo: IUserInfo;
+}
+
+export const ConnectedAccounts = ({ userInfo }: Props) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -30,6 +36,7 @@ export const ConnectedAccounts = () => {
 
   return (
     <div className={s.root}>
+      <EmailAddressSettings userInfo={userInfo} />
       <h5 className={s.title}>Connected Accounts</h5>
       <LinkAuthAccounts />
     </div>

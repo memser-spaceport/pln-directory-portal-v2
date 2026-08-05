@@ -51,7 +51,7 @@ async function AccountsPage(props: { searchParams: Promise<any> }) {
             />
           </aside>
           <div className={styles.privacy__main__content}>
-            <ConnectedAccounts />
+            <ConnectedAccounts userInfo={userInfo} />
           </div>
         </div>
       </div>

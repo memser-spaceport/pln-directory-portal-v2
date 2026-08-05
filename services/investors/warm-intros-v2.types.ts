@@ -5,6 +5,16 @@
 
 export type ScoreBand = 'green' | 'yellow' | 'red' | 'none';
 
+/** PL/FIL prior-backer flags from MasterProfile.plBacking (Affinity list 166215). */
+export type WarmIntrosV2PlBacking = {
+  backedProtocolLabs: boolean;
+  backedFilecoin: boolean;
+  matchKind: string;
+  firmName?: string;
+  affinityOrgId?: number;
+  source?: string;
+};
+
 export type WarmIntrosV2InvestorSummary = {
   profileUid: string;
   personKey: string;
@@ -19,6 +29,10 @@ export type WarmIntrosV2InvestorSummary = {
   imageUrl?: string | null;
   /** Known cohort list slugs (neuro-fund-i / gold-co-investors). */
   listSlugs?: string[];
+  /** PL/FIL prior-backer flags, null when the investor has none on record. */
+  plBacking?: WarmIntrosV2PlBacking | null;
+  /** Length of MasterProfile.coInvestments — row-level count without fetching the full detail record. */
+  coInvestmentsCount?: number;
 };
 
 export type WarmIntrosV2ConnectorSummary = {
@@ -121,14 +135,18 @@ export type WarmPathFeedbackQueueResponse = {
 export type WarmIntrosV2ListParams = {
   targetSet?: string;
   search?: string;
-  connectorProfileUid?: string;
-  sector?: string;
+  /** Connector MasterProfile uid(s) — OR-matched when multiple. */
+  connectorProfileUid?: string | string[];
+  /** Sector value(s) — OR-matched when multiple. */
+  sector?: string | string[];
   minScore?: number;
   rank?: number;
   limit?: number;
   offset?: number;
-  /** hopChain.relationKind: pl_direct | founder_bridge | coinvestor_bridge */
-  relationKind?: string;
+  /** hopChain.relationKind(s): pl_direct | founder_bridge | coinvestor_bridge — OR-matched when multiple. */
+  relationKind?: WarmIntrosV2PathRelationKind | WarmIntrosV2PathRelationKind[];
+  /** Founder/co-investor bridge-person MasterProfile uid(s) — OR-matched when multiple. */
+  bridgeProfileUid?: string | string[];
   /** When true, only hopCount=1 (PL direct) paths. */
   directOnly?: boolean;
   /** When true, only investors with MasterProfile.plBacking set. */
@@ -145,9 +163,16 @@ export type WarmIntrosV2InvestorPathsResponse = {
   investor: WarmIntrosV2InvestorSummary;
 };
 
+/** hopChain.relationKind: pl_direct | founder_bridge | coinvestor_bridge */
+export type WarmIntrosV2PathRelationKind = 'pl_direct' | 'founder_bridge' | 'coinvestor_bridge';
+
 export type WarmIntrosV2Facets = {
   connectors: Array<{ profileUid: string; name: string; pathCount: number }>;
   sectors: Array<{ value: string; count: number }>;
+  /** Path-shape counts — always includes pl_direct, not just the bridge kinds. */
+  kinds: Array<{ value: WarmIntrosV2PathRelationKind; count: number }>;
+  /** Founder/co-investor bridge people (the middle hop of a 2-hop path). */
+  bridges: Array<{ profileUid: string; name: string; pathCount: number }>;
 };
 
 /** Provenance reference on a Sourced field value. */
@@ -200,14 +225,7 @@ export type MasterProfileDetail = {
   /** Proven PL co-investments (teamUid + deal metadata). */
   coInvestments?: unknown;
   /** PL/FIL prior-backer flags from Affinity list 166215. */
-  plBacking?: {
-    backedProtocolLabs: boolean;
-    backedFilecoin: boolean;
-    matchKind: string;
-    firmName?: string;
-    affinityOrgId?: number;
-    source?: string;
-  } | null;
+  plBacking?: WarmIntrosV2PlBacking | null;
   locations?: unknown;
   listMemberships?: MasterProfileListMembership[] | unknown;
   bio?: string | null;

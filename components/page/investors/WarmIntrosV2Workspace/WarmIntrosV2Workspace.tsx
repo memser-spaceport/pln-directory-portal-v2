@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
 import { FilterSelect } from '@/components/common/filters/FilterSelect/FilterSelect';
 import type { Option } from '@/components/form/FormSelect/types';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -28,6 +29,8 @@ import {
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
 import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
+import { PathViaSelect } from './PathViaSelect';
+import { usePathViaFilter } from './usePathViaFilter';
 import { WarmIntrosV2GlossaryDrawer } from './WarmIntrosV2GlossaryDrawer';
 import { WarmIntrosV2InvestorDrawer } from './WarmIntrosV2InvestorDrawer';
 import { WarmIntrosV2Table } from './WarmIntrosV2Table';
@@ -54,6 +57,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
   const selectorValue = (filters.wi2_target_set ?? WARM_INTROS_V2_DEFAULT_TARGET_SET) as WarmIntrosV2SelectorValue;
   /** Omit targetSet on API when "All" is selected. */
   const apiTargetSet = selectorValue === WARM_INTROS_V2_ALL_TARGET_SET ? undefined : selectorValue;
+  const pathVia = usePathViaFilter(filters, setFilters);
   const [searchInput, setSearchInput] = useState(filters.wi2_q);
   const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
@@ -71,28 +75,33 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     }
   }, [debouncedSearch, filters.wi2_q, setFilters]);
 
+  const pathViaKinds = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'kind').map((v) => v.value),
+    [pathVia.value],
+  );
+  const pathViaMembers = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'member').map((v) => v.value),
+    [pathVia.value],
+  );
+  const pathViaBridges = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'bridge').map((v) => v.value),
+    [pathVia.value],
+  );
+
   const listParams = useMemo(
     () => ({
       targetSet: apiTargetSet,
       search: debouncedSearch.trim() || undefined,
-      connectorProfileUid: filters.wi2_connector || undefined,
-      sector: filters.wi2_sector || undefined,
-      relationKind: filters.wi2_relation_kind || undefined,
-      directOnly: filters.wi2_direct_only === true || undefined,
+      connectorProfileUid: pathViaMembers.length ? pathViaMembers : undefined,
+      sector: filters.wi2_sector.length ? filters.wi2_sector : undefined,
+      relationKind: pathViaKinds.length ? pathViaKinds : undefined,
+      bridgeProfileUid: pathViaBridges.length ? pathViaBridges : undefined,
       plBacker: filters.wi2_pl_backer === true || undefined,
       minScore: WARM_INTROS_V2_MIN_SCORE,
       rank: 1,
       limit: PAGE_LIMIT,
     }),
-    [
-      apiTargetSet,
-      debouncedSearch,
-      filters.wi2_connector,
-      filters.wi2_sector,
-      filters.wi2_relation_kind,
-      filters.wi2_direct_only,
-      filters.wi2_pl_backer,
-    ],
+    [apiTargetSet, debouncedSearch, pathViaMembers, pathViaKinds, pathViaBridges, filters.wi2_sector, filters.wi2_pl_backer],
   );
 
   const { data, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
@@ -145,17 +154,6 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
   const targetSetValue = targetSetOptions.find((o) => o.value === selectorValue) ?? targetSetOptions[0];
 
-  const connectorOptions = useMemo<Option[]>(
-    () =>
-      (facets?.connectors ?? []).map((c) => ({
-        value: c.profileUid,
-        label: `${c.name} (${c.pathCount})`,
-      })),
-    [facets],
-  );
-
-  const connectorValue = connectorOptions.find((o) => o.value === filters.wi2_connector) ?? null;
-
   const sectorOptions = useMemo<Option[]>(
     () =>
       (facets?.sectors ?? []).map((sec) => ({
@@ -165,49 +163,31 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     [facets],
   );
 
-  const sectorValue = sectorOptions.find((o) => o.value === filters.wi2_sector) ?? null;
+  const sectorValue = useMemo(
+    () => sectorOptions.filter((o) => filters.wi2_sector.includes(o.value)),
+    [sectorOptions, filters.wi2_sector],
+  );
 
   const onPickTargetSet = useCallback(
     (opt: Option | null) => {
       const next = (opt?.value as WarmIntrosV2SelectorValue | undefined) ?? WARM_INTROS_V2_DEFAULT_TARGET_SET;
       void setFilters({
         wi2_target_set: next,
-        wi2_connector: null,
-        wi2_sector: null,
+        wi2_path_kind: [],
+        wi2_path_members: [],
+        wi2_path_bridges: [],
+        wi2_sector: [],
       });
     },
     [setFilters],
   );
 
-  const relationKind = filters.wi2_relation_kind;
-  const directOnly = filters.wi2_direct_only === true;
   const plBacker = filters.wi2_pl_backer === true;
 
-  const setPathKindFilter = useCallback(
-    (kind: 'founder_bridge' | 'coinvestor_bridge' | null) => {
-      void setFilters({
-        wi2_relation_kind: kind,
-        wi2_direct_only: null,
-        ...(kind ? { wi2_pl_backer: null } : {}),
-      });
-    },
-    [setFilters],
-  );
-
-  const toggleDirectOnly = useCallback(() => {
-    void setFilters({
-      wi2_direct_only: directOnly ? null : true,
-      wi2_relation_kind: null,
-      wi2_pl_backer: null,
-    });
-  }, [directOnly, setFilters]);
-
+  // Backed PL/FIL describes the investor, not the route to them, so it's independent
+  // of — and combines freely with — the Path via selection (both AND together server-side).
   const togglePlBacker = useCallback(() => {
-    void setFilters({
-      wi2_pl_backer: plBacker ? null : true,
-      wi2_relation_kind: null,
-      wi2_direct_only: null,
-    });
+    void setFilters({ wi2_pl_backer: plBacker ? null : true });
   }, [plBacker, setFilters]);
 
   const onExportCsv = useCallback(async () => {
@@ -349,47 +329,27 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             </div>
           </div>
 
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <FilterSelect
-              options={connectorOptions}
-              value={connectorValue}
-              placeholder="PL member"
-              isClearable
-              isSearchable
-              aria-label="PL member"
-              onChange={(opt) => void setFilters({ wi2_connector: opt?.value || null })}
+          <div className={s.filterBarItem} style={{ minWidth: 200 }}>
+            <PathViaSelect
+              facets={facets ?? { connectors: [], sectors: [], kinds: [], bridges: [] }}
+              value={pathVia.value}
+              onChange={pathVia.setValue}
             />
           </div>
 
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <FilterSelect
+          <div className={s.filterBarItem} style={{ minWidth: 200 }}>
+            <FilterMultiSelect
               options={sectorOptions}
               value={sectorValue}
               placeholder="Industry / Sector"
-              isClearable
               isSearchable
               aria-label="Industry / Sector"
-              onChange={(opt) => void setFilters({ wi2_sector: opt?.value || null })}
+              checkbox
+              onChange={(opts) => void setFilters({ wi2_sector: opts.map((o) => o.value) })}
             />
           </div>
 
-          <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Path quick filters">
-            <button
-              type="button"
-              className={clsx(s.quickChip, relationKind === 'founder_bridge' && s.quickChipActive)}
-              aria-pressed={relationKind === 'founder_bridge'}
-              onClick={() => setPathKindFilter(relationKind === 'founder_bridge' ? null : 'founder_bridge')}
-            >
-              Founder bridge
-            </button>
-            <button
-              type="button"
-              className={clsx(s.quickChip, relationKind === 'coinvestor_bridge' && s.quickChipActive)}
-              aria-pressed={relationKind === 'coinvestor_bridge'}
-              onClick={() => setPathKindFilter(relationKind === 'coinvestor_bridge' ? null : 'coinvestor_bridge')}
-            >
-              Co-investor bridge
-            </button>
+          <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Investor filters">
             <button
               type="button"
               className={clsx(s.quickChip, plBacker && s.quickChipActive)}
@@ -397,14 +357,6 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               onClick={togglePlBacker}
             >
               PL/FIL investors
-            </button>
-            <button
-              type="button"
-              className={clsx(s.quickChip, s.quickChipToggle, directOnly && s.quickChipActive)}
-              aria-pressed={directOnly}
-              onClick={toggleDirectOnly}
-            >
-              Direct only
             </button>
           </div>
 

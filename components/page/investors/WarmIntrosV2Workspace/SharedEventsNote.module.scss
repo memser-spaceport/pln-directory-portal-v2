@@ -1,0 +1,100 @@
+.eventsBlock {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eef0f3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eventsHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.eventsLabel {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  color: #8897ae;
+}
+
+// One pair, its caption, and the events under it.
+.eventGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+// States the pair once for the whole group, so it recedes as a heading over a
+// list rather than a fact competing with the events themselves.
+.eventPair {
+  font-size: 11px;
+  line-height: 15px;
+  color: #8897ae;
+}
+
+.eventChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.eventRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #eef0f3;
+  background: #f1f5f9;
+  max-width: 100%;
+}
+
+.eventIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #8897ae;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.eventName {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #0a0c11;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Same chip shape as the events it stands in for, so it reads as one of them
+// rather than a link beneath them. Expands in place — no modal-on-a-drawer.
+.eventsMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #eef0f3;
+  background: rgba(14, 15, 17, 0.04);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #455468;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(27, 56, 96, 0.24);
+    color: #1b4dff;
+  }
+}

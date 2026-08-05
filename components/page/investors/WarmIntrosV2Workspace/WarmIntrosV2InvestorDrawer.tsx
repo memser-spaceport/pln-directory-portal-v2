@@ -16,8 +16,11 @@ import { ListMembershipTags } from './ListMembershipTags';
 import { parseCoInvestments, parseListMemberships } from './masterProfileDisplay.util';
 import { PathActions } from './PathActions';
 import { ScorePercentPill } from './ScorePercentPill';
-import { HopRoleBadge, hopRoleFromRelationKind } from './HopRoleBadge';
+import { hopRoleFromRelationKind } from './HopRoleBadge';
+import { PathHop } from './PathHop';
 import { PathProfileChip } from './PathProfileChip';
+import { PlBackingMark, plBackingLabel } from '@/components/page/investors/PlBackingMark/PlBackingMark';
+import { SharedEventsNote } from './SharedEventsNote';
 import {
   affinityPersonUrl,
   allReasonDescriptions,
@@ -58,15 +61,23 @@ function PathHopRow({
         return (
           <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.node}>
             {i > 0 && <span className={s.arrow}>→</span>}
-            <PathProfileChip
-              name={hop.name}
-              profileUid={hop.profileUid}
-              imageUrl={isOrg ? null : imageByUid.get(hop.profileUid)}
-              onOpen={onOpen}
-              nonInteractive={isOrg}
+            <PathHop
+              role={hop.role}
               memberUid={isOrg ? null : hop.memberUid}
-            />
-            <HopRoleBadge role={hop.role} />
+              teamUid={isOrg ? null : hop.teamUid}
+              name={hop.name}
+              isLast={i === hops.length - 1}
+            >
+              <PathProfileChip
+                name={hop.name}
+                profileUid={hop.profileUid}
+                imageUrl={isOrg ? null : imageByUid.get(hop.profileUid)}
+                onOpen={onOpen}
+                nonInteractive={isOrg}
+                memberUid={isOrg ? null : hop.memberUid}
+                teamUid={isOrg ? null : hop.teamUid}
+              />
+            </PathHop>
           </span>
         );
       })}
@@ -289,11 +300,12 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                   <SectorTagsList tags={sectors} max={20} />
                 </dd>
               </dl>
-              {coInvestments.length > 0 ? (
+              {coInvestments.length > 0 || plBackingLabel(masterProfile?.plBacking) ? (
                 <div className={s.coInvestBlock}>
                   <div className={s.coInvestLabel}>
-                    Co-investments with PL
-                    <span className={s.count}>{coInvestments.length}</span>
+                    {coInvestments.length > 0 ? 'Co-investments with PL' : 'Relationship with PL'}
+                    {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
+                    <PlBackingMark backing={masterProfile?.plBacking} />
                   </div>
                   <div className={s.coInvestNames}>
                     {coInvestments
@@ -340,6 +352,7 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                     <div className={s.chainRow}>
                       <PathHopRow hops={hops} imageByUid={imageByUid} onOpen={onOpenMasterProfile} />
                     </div>
+                    <SharedEventsNote hops={hops} enabled={open} />
                     {bestPath.uid && bestPath.bestConnectorProfileUid ? (
                       <PathActions
                         key={`${bestPath.uid}:${bestPath.bestConnectorProfileUid}`}

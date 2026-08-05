@@ -1,0 +1,16 @@
+// The checkbox row inside a checkbox-mode option. Layout only — the box is the
+// DS Checkbox and the label keeps the type filterSelectStyles.option already sets.
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The DS Checkbox is a 1.25rem box that shrinks under a long option label
+// unless told not to. display: flex keeps its own centring intact in this row.
+.optionBox {
+  display: flex;
+  flex-shrink: 0;
+}

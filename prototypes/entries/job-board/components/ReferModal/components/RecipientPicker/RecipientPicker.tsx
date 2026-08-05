@@ -194,23 +194,50 @@ export function RecipientPicker(props: RecipientPickerProps) {
           // use a one-off close-gray.svg asset. CloseIcon is the shared component
           // (67 files, incl. FormSelect's clear and every modal header), and it takes
           // its colour from `currentColor`, so size and tone are set in CSS.
-          MultiValueRemove: (removeProps) => (
-            <components.MultiValueRemove {...removeProps}>
-              <span className={s.chipRemove}>
-                <CloseIcon width={14} height={14} />
-              </span>
-            </components.MultiValueRemove>
-          ),
+          MultiValueRemove: (removeProps) => {
+            const { innerProps } = removeProps;
+
+            return (
+              <components.MultiValueRemove
+                {...removeProps}
+                innerProps={{
+                  ...innerProps,
+                  // Member chips are wrapped in a profile link.
+                  // Without this, removing the chip also fires that navigation.
+                  onClick: (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    innerProps?.onClick?.(event);
+                  },
+                }}
+              >
+                <span className={s.chipRemove}>
+                  <CloseIcon width={14} height={14} />
+                </span>
+              </components.MultiValueRemove>
+            );
+          },
           ClearIndicator: (clearProps) => (
             <components.ClearIndicator {...clearProps} className={selectCss.clearIndicator}>
               <CloseIcon />
             </components.ClearIndicator>
           ),
           MultiValue: (multiProps) => {
-            const { data } = multiProps;
+            const { data, innerProps } = multiProps;
 
             const content = (
-              <components.MultiValue {...multiProps}>
+              <components.MultiValue
+                {...multiProps}
+                innerProps={{
+                  ...innerProps,
+                  // Сlicking a chip to follow its profile link or hit
+                  // remove reopens the picker's menu underneath it.
+                  onMouseDown: (event) => {
+                    event.preventDefault();
+                    innerProps?.onMouseDown?.(event);
+                  },
+                }}
+              >
                 <span className={s.chip}>
                   {data.isEmail ? (
                     <span className={s.chipMail}>

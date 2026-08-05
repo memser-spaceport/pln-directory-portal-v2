@@ -51,11 +51,6 @@ export const selectStyles: StylesConfig<RecipientOption, true, GroupBase<Recipie
     '> div': {
       gap: '4px',
       padding: '6px 8px',
-      // Three 30px rows + two 4px gaps + the 12px vertical padding. Two rows of
-      // chips and the typing line all fit, so the common case never scrolls — at
-      // two rows the input wrapped onto a hidden third row and typing scrolled
-      // the field out from under you.
-      maxHeight: '110px',
       overflowY: 'auto',
       alignContent: 'flex-start',
       // Keeps chips clear of the scrollbar track when one appears.

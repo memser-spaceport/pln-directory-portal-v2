@@ -1,0 +1,150 @@
+/**
+ * The control bar above the workspace — a review affordance, not part of the
+ * feature. So it deliberately does not look like the product: it sits on white
+ * above the workspace's `#f1f5f9` gutter, and it never adopts the card chrome the
+ * rows below use, because nothing here would ever ship.
+ *
+ * Colours are the canonical token + fallback pairs (prototypes/CLAUDE.md §4);
+ * geometry matches the workspace it sits on (24px gutter, 40px controls).
+ */
+
+/**
+ * `z-index: 3` — deliberately low, and the reason is the whole ladder this page
+ * sits in:
+ *
+ *   1     table sticky header (`WarmIntrosV2Table`), workspace filter bar
+ *   3     this bar
+ *   5     the investor drawer's inner panel
+ *   10    `Drawer`'s root (portalled to <body>), and the site navbar
+ *   9999  `Modal` — MasterProfile, path feedback
+ *
+ * It started at 20, which cleared everything: opening an investor drawer left the
+ * mode tabs and the legend painted on top of the drawer panel, and the review
+ * control read as part of the record being reviewed. Sticky positioning creates a
+ * stacking context, so being portalled later in the DOM does not save the drawer —
+ * only a lower number does.
+ *
+ * 3 rather than 2: it has to clear the table's own sticky header on the way past,
+ * and 1 is exactly what that header uses.
+ */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--background-neutral-primary, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.barInner {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Same 24px gutter the workspace below takes from DashboardPagesLayout. */
+  padding: 16px 24px 14px;
+}
+
+.barHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/**
+ * Reads back what the current mode is doing, so the choice is argued in words
+ * beside the thing being chosen rather than only in the rows below.
+ *
+ * Width-capped rather than left to the flex row: at 1440px an uncapped line runs
+ * past 100 characters and the eye loses the return sweep.
+ */
+.note {
+  margin: 3px 0 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.tabs {
+  flex-shrink: 0;
+}
+
+.tab {
+  white-space: nowrap;
+}
+
+.tabLabel {
+  font-size: 13px;
+}
+
+/**
+ * The legend. Wraps rather than scrolls — four items is a fixed, small set, and a
+ * horizontal scroller would hide the fourth on a laptop.
+ */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/**
+ * Carries the same two classes `PathHop` puts on a real hop, so `> :first-child`
+ * in PathRole.module.scss reaches this chip exactly as it reaches those.
+ */
+.legendChip {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/**
+ * The `tag`-mode swatch: the role tag on its own, wearing `.roleCaption` +
+ * `.roleCaptionTinted` straight from PathRole.module.scss, so it is character-for-
+ * character the tag the table draws.
+ *
+ * The one addition is a floor on the box. At 10px on its own — no chip above it to
+ * give the row height — a legend item was a third the height of its neighbours in
+ * the other two modes, and switching tabs made the whole bar jump. `line-height`
+ * matched to `.legendChip`'s 26px chip holds the row still.
+ */
+.legendTag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  flex-shrink: 0;
+  /* `.roleCaption` sets 2px of optical inset against a chip edge that is not here. */
+  padding-left: 0;
+}
+
+.legendNote {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Below the workspace's own 1024px breakpoint the gutter closes up, so the bar
+   should too — otherwise it hangs 24px inside a table that starts at the edge. */
+@media (max-width: 1023px) {
+  .barInner {
+    padding: 14px 16px 12px;
+  }
+
+  .legendNote {
+    display: none;
+  }
+}

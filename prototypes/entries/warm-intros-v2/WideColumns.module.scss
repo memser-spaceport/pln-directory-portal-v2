@@ -49,14 +49,9 @@
   text-align: right;
 }
 
-/* Production's `.pathChain` centres its items, so the badge needs nothing but the
-   gap the chain already provides — only the trailing space is its own. */
-.codeLead {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  margin-right: 6px;
-}
+/* `.codeLead` spaced the proximity badge off the front of the chain. The code is
+   gone from every prototype and nothing leads the chain here any more, so the
+   chain starts at the cell's left edge and the rule went with the badge. */
 
 /**
  * The firm gets a column but not emphasis — it identifies the row's subject a

@@ -20,12 +20,9 @@
  * cell it was a label; right-aligned in a column of its own it is a ranking you can
  * scan without reading.
  *
- * The cost, stated plainly: the proximity code and the score were joined into one
- * object in the compact fork *because* they describe the same path — caliber and
- * band, one shape. Giving score a column breaks that pairing. The code stays with
- * the chain it describes; the score becomes scannable. Which trade is right depends
- * on whether you are reading one row or ranking fourteen, which is exactly what
- * having both variants is for.
+ * The pairing this used to cost — code beside score, one joined object — is no
+ * longer a cost: the proximity code is gone from every prototype, so score is the
+ * only path metric left and a column is simply where it belongs.
  *
  * Everything else — the chain, the role captions, the row and cell chrome — is the
  * same code the compact table uses (`PathChain`, production's
@@ -34,7 +31,6 @@
 
 import type { ReactNode, Ref } from 'react';
 import { ArrowUpRightIcon } from '@/components/icons';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ScorePercentPill } from '@/components/page/investors/WarmIntrosV2Workspace/ScorePercentPill';
 import { ListMembershipTags } from '@/components/page/investors/WarmIntrosV2Workspace/ListMembershipTags';
@@ -170,38 +166,32 @@ export function WarmIntrosV2WideTableMock({
                 </td>
 
                 <td className={s.td} role="cell">
-                  {/* Production's own 6px cell gap, not the compact variant's 0 +
-                      caption-band pull. That pull assumes the chain is one line and
-                      the caption is the last thing in the cell; at 39% of the width
-                      this column wraps routinely, and on a wrapped chain the pull
-                      lands `View all` on a row of chips. Same reason it is switched
-                      off in the compact variant's mobile block. */}
                   <div className={s.pathCell}>
                     <PathChain
                       row={row}
                       onOpenProfileUid={onOpenProfileUid}
-                      lead={
-                        /* The code alone here, not the joined code+% object: the
-                           score has a column now. The code still leads, because it
-                           still describes this chain. */
-                        row.proximityCode ? (
-                          <span className={w.codeLead}>
-                            <ProximityCodeBadge code={row.proximityCode} />
-                          </span>
-                        ) : null
+                      /* Nothing leads the chain here any more. The code used to,
+                         and the score has its own column — so the chain starts at
+                         the cell's left edge, which is what a chain wants. */
+                      /* Trailing the chain, as in the compact variant. This column
+                         is 39% of the width and wraps routinely, which is an
+                         argument *for* riding inside the chain: the link wraps with
+                         the chips instead of anchoring to a left edge the chain's
+                         last line no longer reaches. */
+                      trail={
+                        <button
+                          type="button"
+                          className={`${s.viewAllLink} ${c.viewAllQuiet} ${c.viewAllTrail}`}
+                          aria-label={`View all ${count} paths for ${name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewAllPaths(row);
+                          }}
+                        >
+                          View all ({count})
+                        </button>
                       }
                     />
-                    <button
-                      type="button"
-                      className={`${s.viewAllLink} ${c.viewAllQuiet}`}
-                      aria-label={`View all ${count} paths for ${name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewAllPaths(row);
-                      }}
-                    >
-                      View all ({count})
-                    </button>
                   </div>
                 </td>
 

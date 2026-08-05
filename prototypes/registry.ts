@@ -66,7 +66,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'warm-intros-columns',
     title: 'Warm intros — connection columns',
     description:
-      'Investor spine with Proximity + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
+      'Investor spine with Score + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-columns/WarmIntrosColumnsPrototype'),
   },
@@ -82,9 +82,17 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'warm-intros-v2',
     title: 'Warm intros v2 — mocked clone',
     description:
-      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (proximity code, score %, connector → investor path chips), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
+      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (score %, connector → investor path chips — the proximity code is dropped), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-v2/WarmIntrosV2Prototype'),
+  },
+  {
+    key: 'warm-intros-role-colors',
+    title: 'Warm intros — role-coloured nodes',
+    description:
+      'The v2 workspace imported whole, with one variable changed: whether a path node says what kind of person it is in colour as well as in words. Opens on “Tags only” — the nodes stay exactly as they are and only the role tag beneath each one takes its hue; “Fill” tints the chip too, for comparison on the same rows. The uncoloured baseline is the Warm intros v2 entry above. Hues come from MasterProfileModal’s type pills, the tags on the profile a node opens — PL member indigo, founder orange, co-investor cyan, investor green — not from HopRoleBadge, which contradicts them on three of the four roles.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-role-colors/WarmIntrosRoleColorsPrototype'),
   },
   {
     key: 'members',

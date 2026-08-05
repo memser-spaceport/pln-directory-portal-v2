@@ -12,7 +12,6 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { CopyButton } from '@/components/ui/CopyButton';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -313,20 +312,9 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                 <>
                   <div className={s.pathItem}>
                     <div className={s.pathMeta}>
-                      {/* Same joined object as the table — one fact should not
-                          have two shapes across two surfaces. Wrapped rather
-                          than collapsing `.pathMeta`'s gap, so "Best path" keeps
-                          its spacing. */}
-                      <span className={c.joinGroup}>
-                        {bestPath.proximityCode ? (
-                          <ProximityCodeBadge code={bestPath.proximityCode} className={c.joinLeft} />
-                        ) : null}
-                        <ScorePercentPill
-                          scorePercent={bestPath.scorePercent}
-                          scoreBand={bestPath.scoreBand}
-                          className={bestPath.proximityCode ? c.joinRight : undefined}
-                        />
-                      </span>
+                      {/* Same single metric as the table — one fact should not
+                          have two shapes across two surfaces. */}
+                      <ScorePercentPill scorePercent={bestPath.scorePercent} scoreBand={bestPath.scoreBand} />
                       <span className={s.warmth}>Best path</span>
                     </div>
                     <p className={s.warmthSubtitle}>How strong this intro route is</p>
@@ -357,7 +345,6 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                           imageUrl: imageByUid.get(hop.profileUid),
                         })),
                         connectorName: bestPath.bestConnector?.name ?? hops[0]?.name ?? null,
-                        proximityCode: bestPath.proximityCode,
                         scorePercent: bestPath.scorePercent,
                         scoreBand: bestPath.scoreBand,
                       }}
@@ -378,15 +365,20 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                         <ul className={s.altList}>
                           {alternates.map((alt) => {
                             // An alternate can reach the investor through a
-                            // different shape than the best path, so its code
-                            // and its role badge come from its own kind.
+                            // different shape than the best path, so its role
+                            // badge comes from its own kind.
+                            //
+                            // `derivePathProximity` stays even with the code gone:
+                            // it is also where a missing `scorePercent` comes from,
+                            // and it is production's own derivation — re-deriving
+                            // the percentage here by hand would be a second source
+                            // of truth for the one number left on the card.
                             const altKind = alt.relationKind ?? hopChain?.relationKind;
                             const derived = derivePathProximity(
                               alt.score,
                               hopCountFromRelationKind(altKind),
                               proximityFamilyFromRelationKind(altKind),
                             );
-                            const proximityCode = alt.proximityCode ?? derived?.proximityCode ?? null;
                             const pct = alt.scorePercent ?? derived?.scorePercent ?? null;
                             const scoreBand = alt.scoreBand ?? derived?.scoreBand;
                             const altReason = Array.isArray(alt.reasons)
@@ -395,18 +387,7 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                             return (
                               <li key={alt.profileUid} className={s.pathItem}>
                                 <div className={s.pathMeta}>
-                                  <span className={c.joinGroup}>
-                                    {proximityCode ? (
-                                      <ProximityCodeBadge code={proximityCode} className={c.joinLeft} />
-                                    ) : null}
-                                    {pct != null ? (
-                                      <ScorePercentPill
-                                        scorePercent={pct}
-                                        scoreBand={scoreBand}
-                                        className={proximityCode ? c.joinRight : undefined}
-                                      />
-                                    ) : null}
-                                  </span>
+                                  {pct != null ? <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} /> : null}
                                 </div>
                                 {altReason ? <div className={s.explanation}>{altReason}</div> : null}
                                 <div className={`${s.chainRow} ${role.chainRowTight}`}>
@@ -450,7 +431,6 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                                       },
                                     ],
                                     connectorName: alt.name,
-                                    proximityCode,
                                     scorePercent: pct,
                                     scoreBand,
                                   }}

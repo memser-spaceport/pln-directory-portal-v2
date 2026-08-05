@@ -21,6 +21,11 @@ import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamN
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import { LatestJobs } from '@/components/page/home/LatestJobs';
+import { getJobsList } from '@/app/actions/jobs.actions';
+import { flattenLatestJobRoles, type ILatestJobRole } from '@/utils/jobs.utils';
+
+const LATEST_JOBS_LIMIT = 10;
 
 export default async function Home() {
   const {
@@ -32,6 +37,7 @@ export default async function Home() {
     teamNewsAllTabExtraItems,
     popularItems,
     initialDigestSettings,
+    latestJobRoles,
   } = await getPageData();
 
   if (isError) {
@@ -55,6 +61,9 @@ export default async function Home() {
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
             />
+          </div>
+          <div className={styles.home__cn__latestjobs}>
+            <LatestJobs roles={latestJobRoles} />
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
@@ -80,6 +89,7 @@ const getPageData = async () => {
   let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
+  let latestJobRoles: ILatestJobRole[] = [];
 
   // Seeded server-side (like Settings > Email does) so NewsRail's digest card
   // shows the correct subscribed/not-subscribed state on first paint, instead
@@ -102,6 +112,7 @@ const getPageData = async () => {
       teamNewsResponse,
       popularResponse,
       digestSettingsResponse,
+      jobsListResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -110,12 +121,19 @@ const getPageData = async () => {
       getTeamNewsGroupedByFocusArea({}, authToken),
       getTeamNewsPopular(undefined, authToken),
       digestSettingsPromise,
+      // Same job-openings API the /jobs board uses (via app/actions/jobs.actions.ts);
+      // sorted newest-first and flattened to the top N for the homepage teaser.
+      getJobsList('sort=newest'),
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
+    // A failed jobs fetch shouldn't take down the whole homepage — just hide the section.
+    latestJobRoles = 'data' in jobsListResponse
+      ? flattenLatestJobRoles(jobsListResponse.data.groups, LATEST_JOBS_LIMIT)
+      : [];
     if (
       teamFocusAreaResponse?.error ||
       projectFocusAreaResponse?.error ||
@@ -136,6 +154,7 @@ const getPageData = async () => {
         teamNewsAllTabExtraItems,
         popularItems,
         initialDigestSettings,
+        latestJobRoles,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -160,6 +179,7 @@ const getPageData = async () => {
       teamNewsAllTabExtraItems,
       popularItems,
       initialDigestSettings,
+      latestJobRoles,
     };
   } catch (error) {
     console.error(error);
@@ -178,6 +198,7 @@ const getPageData = async () => {
       teamNewsAllTabExtraItems,
       popularItems,
       initialDigestSettings,
+      latestJobRoles,
     };
   }
 };

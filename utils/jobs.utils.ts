@@ -1,5 +1,5 @@
 import type { ReadonlyURLSearchParams } from 'next/navigation';
-import type { IJobRole, IJobsFacetItem } from '@/types/jobs.types';
+import type { IJobRole, IJobsFacetItem, IJobTeam, IJobTeamGroup } from '@/types/jobs.types';
 
 const WORKPLACE_TYPE_LABELS: Record<string, string> = {
   remote: 'Remote',
@@ -76,6 +76,24 @@ export const isNew = (iso: string, maxDays = 7): boolean => {
   if (!Number.isFinite(then)) return false;
   const days = (Date.now() - then) / (1000 * 60 * 60 * 24);
   return days >= 0 && days <= maxDays;
+};
+
+export interface ILatestJobRole {
+  role: IJobRole;
+  team: IJobTeam;
+}
+
+/**
+ * Flattens the team-grouped job board response into a single list of roles
+ * (each paired with its team), newest first, capped at `limit`. Used by the
+ * homepage "Latest Job Openings" section, which shows a flat top-N list
+ * rather than the job board's per-team grouping.
+ */
+export const flattenLatestJobRoles = (groups: IJobTeamGroup[], limit = 10): ILatestJobRole[] => {
+  const flattened = groups.flatMap((group) => group.roles.map((role) => ({ role, team: group.team })));
+  return flattened
+    .sort((a, b) => new Date(getJobDate(b.role)).getTime() - new Date(getJobDate(a.role)).getTime())
+    .slice(0, limit);
 };
 
 export const teamInitials = (name: string): string => {

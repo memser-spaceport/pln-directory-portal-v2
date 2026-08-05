@@ -16,9 +16,9 @@ import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks
 
 import { DirectoryMember, RecipientOption } from './types';
 
-import { getRecipientSummary } from './utils/getRecipientSummary';
-import { isEmailAddress } from './utils/isEmailAddress';
 import { toRecipientOption } from './utils/toRecipientOption';
+import { toReferralRecipient } from './utils/toReferralRecipient';
+import { getRecipientSummary } from './utils/getRecipientSummary';
 
 import { useTeamMembers } from './hooks/useTeamMembers';
 
@@ -45,16 +45,6 @@ type ReferFormData = {
   recipients: RecipientOption[];
   message: string;
 };
-
-/** The picker's options carry either a member uid or a typed address; the API takes
- *  both, and resolves member addresses itself so the browser never holds them. */
-function toReferralRecipient(option: RecipientOption): IJobReferralRecipient {
-  if (option.isEmail || isEmailAddress(option.value)) {
-    return { email: option.value };
-  }
-
-  return { memberUid: option.value, name: option.label };
-}
 
 /**
  * Refer a network member for an open role: pick who you're referring, choose who hears
@@ -250,16 +240,21 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
 
-                <RecipientPicker
-                  label="Send to"
-                  teamMembers={teamMembers}
-                  isTeamLoading={isTeamLoading}
-                  teamName={teamName}
-                  excludeUids={referee?.value ? [referee.value] : undefined}
-                  value={recipients}
-                  onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
-                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                />
+                <div>
+                  <RecipientPicker
+                    label="Send to"
+                    teamMembers={teamMembers}
+                    isTeamLoading={isTeamLoading}
+                    teamName={teamName}
+                    excludeUids={referee?.value ? [referee.value] : undefined}
+                    value={recipients}
+                    onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  />
+                  <div className={s.hint}>
+                    The first person on the list gets the email directly, everyone else is CC’d.
+                  </div>
+                </div>
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>

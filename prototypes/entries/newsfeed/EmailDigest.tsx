@@ -7,7 +7,7 @@ import type { ITeamNewsItem } from '@/types/team-news.types';
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 import type { ForumPost } from '../newsfeed-v0/mocks';
 import type { HiringSignal, TopStory } from './mocks';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 const WEEK_FORMAT: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric' };
 

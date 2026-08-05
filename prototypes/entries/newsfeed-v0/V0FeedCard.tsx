@@ -16,11 +16,11 @@ import local from './NewsfeedV0.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import { EVENT_TYPE_LABEL } from './eventMeta';
-import { PL_TEAM_UID, SOURCES_BY_UID, VIDEO_BY_UID } from './mocks';
+import { PL_TEAM_UID, SOURCES_BY_UID, VIDEO_BY_UID, viewsFor } from './mocks';
 import type { FeedComment } from './mocks';
 import { SourceList } from './SourceList';
 import type { TeamCluster } from './V0NewsCard';
-import { LikeButton, CommentButton } from './FeedActions';
+import { LikeButton, CommentButton, ViewCount } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 import { VideoThumb } from './NewsVideo';
@@ -153,6 +153,12 @@ export function V0FeedCard({
               </span>
               <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
                 <ShareMenu variant="card" url={story.sourceUrl ?? undefined} />
+                {/* Views · Likes · Comments, in the forum listing's order
+                    (`page/forum/Posts`), kept contiguous: they're all counts, so
+                    Share — the one control here — stays at the edge rather than
+                    splitting the trio. The figure is the same `viewsFor(uid)` the
+                    detail modal shows, so opening a story can't change its count. */}
+                <ViewCount count={viewsFor(story.uid)} compact />
                 <LikeButton
                   count={likeCount(story.uid)}
                   liked={isLiked(story.uid)}

@@ -22,18 +22,22 @@
 import { createContext, useContext } from 'react';
 
 /**
- * `off`  — every chip neutral, the way the workspace reads today.
- * `tag`  — only the role tag under the chip takes the hue. The nodes stay one
- *          uniform object, so the chain still reads as a chain and the colour
- *          lands on the words that name the thing being coloured.
- * `fill` — the chip takes the tint too. Loudest, most scannable.
+ * Three treatments, quiet to loud, plus the `off` every other surface renders.
  *
- * `tag` replaced a `border` mode that tinted the chip's 1px edge *and* the tag.
- * It was neither thing: a 1px edge on a 12px chip is close to subliminal, so the
- * tag was doing the work anyway, and the faint edge just made the chips look
- * slightly inconsistent with each other rather than deliberately coded.
+ * `off`    — every chip neutral, the way the workspace reads today.
+ * `tag`    — only the role tag under the chip takes the hue. The nodes stay one
+ *            uniform object, so the chain still reads as a chain and the colour
+ *            lands on the words that name the thing being coloured.
+ * `border` — the tag, plus the chip's 1px edge. The fill stays white, so the
+ *            chain keeps its even texture while each node picks up an outline.
+ * `fill`   — the chip takes the tint and the name too. Loudest, most scannable.
+ *
+ * `border` was cut once, on the argument that a 1px edge at chip scale is close
+ * to subliminal and the tag was carrying the mode anyway. That is a claim about
+ * how it looks, which is the kind of claim a comparison tab settles better than a
+ * comment does — so it is back, on the same rows as the other two.
  */
-export type RoleColorMode = 'off' | 'tag' | 'fill';
+export type RoleColorMode = 'off' | 'tag' | 'border' | 'fill';
 
 const RoleColorContext = createContext<RoleColorMode>('off');
 

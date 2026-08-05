@@ -97,8 +97,9 @@
  * cyan rather than orange). A chip and the profile it opens must not need two
  * readings of the same colour — see `RoleColor.tsx`.
  *
- * Each role sets three custom properties and no rules of its own;
- * `.tintBorder` / `.tintFill` decide how loudly they get spent.
+ * Each role sets three custom properties and no rules of its own; `.tintFill`
+ * decides how loudly they get spent, and `tag` mode spends them on the caption
+ * alone.
  * ───────────────────────────────────────────────────────────────────────────── */
 
 /* PL Member — the brand indigo, for the hop that is inside the network. The one
@@ -129,11 +130,10 @@
  * you what kind of thing you are looking at, in the colour you already learned
  * from the profile. Worth the ink for the same reason a label is.
  *
- * The one thing to watch: this cell now has green in three weights — the score
- * pill when the score is high, this chip, and the "In LabOS" caption. They are
- * different shapes at different scales, and the chip's `#f0fdf4` is much paler
- * than the pill's `#d1fae5`, so they separate — but that is the seam to look at
- * first if `fill` starts feeling noisy.
+ * This is the darkest of the three greens the cell can hold, and that ordering is
+ * doing work: `#166534` role tag, `#059669` LabOS presence, `#d1fae5` score pill.
+ * Flat-and-dark, bright-and-saturated, pale-and-large — three different jobs at
+ * three different weights, rather than three shades of the same emphasis.
  */
 .tintInvestor {
   --role-fg: var(--foreground-success-primary, #166534);
@@ -142,27 +142,37 @@
 }
 
 /**
- * Only `fill` touches the chip. `tag` mode leaves the nodes exactly as production
- * draws them and spends the whole hue on the tag below — which is why there is one
- * treatment block here and not two.
+ * The two treatments that touch the chip. `tag` mode is absent from both by
+ * design: it leaves the nodes exactly as production draws them and spends the
+ * whole hue on the tag below.
  *
- * There used to be a `.tintBorder` beside this, tinting the chip's 1px edge. It
- * went: at 12px the edge was close to subliminal, so the tag was carrying that
- * mode anyway, and the faint edge only made the chips look inconsistent with each
- * other rather than deliberately coded. `tag` is that idea done honestly.
- *
- * It reaches the chip the same way `ChipPress.module.scss` does — by element,
+ * Both reach the chip the same way `ChipPress.module.scss` does — by element,
  * because `PathProfileChip` accepts no `className`. `:first-child` rather than
  * `button`, because the org stubs render as `<span>` and they should take the tint
  * too; only `ChipPress` has a reason to exclude them (they are not pressable,
  * these are still roles).
  *
- * `.tintFill > :first-child` is (0,1,1), which clears production's `.chip` (0,1,0)
- * without depending on which stylesheet the bundler emits last. It does *not*
- * clear `.chip:hover` (0,2,0) — deliberately. Hover stays production's blue on
- * every chip, so "the thing under my cursor" never has to compete with "what kind
- * of person this is".
+ * `> :first-child` is (0,1,1), which clears production's `.chip` (0,1,0) without
+ * depending on which stylesheet the bundler emits last. It does *not* clear
+ * `.chip:hover` (0,2,0) — deliberately. Hover stays production's blue on every
+ * chip, so "the thing under my cursor" never has to compete with "what kind of
+ * person this is".
  */
+
+/**
+ * Border — the outline only, fill left white.
+ *
+ * `--role-line` is MasterProfile's own `border-color`, not a strengthened version
+ * of it. That is the honest test: this mode was cut once for being close to
+ * subliminal at chip scale, and thickening the stroke to make the tab look better
+ * would settle the question by changing it. If `#bbf7d0` at 1px is too quiet to
+ * read down a column, that is the finding.
+ */
+.tintBorder > :first-child {
+  border-color: var(--role-line);
+}
+
+/* Fill — tint, edge and name together. */
 .tintFill > :first-child {
   background: var(--role-bg);
   border-color: var(--role-line);
@@ -181,6 +191,10 @@
  * hover untouched, and `:first-child` so the tag span beside it is not caught.
  * (0,3,1) clears `.chipStatic:hover` (0,2,0).
  */
+.tintBorder > span:first-child:hover {
+  border-color: var(--role-line);
+}
+
 .tintFill > span:first-child:hover {
   background: var(--role-bg);
   border-color: var(--role-line);
@@ -198,8 +212,31 @@
 }
 
 /**
- * `.labOsQuiet` greyed out "In LabOS" while roles were coloured, because the role
- * palette then in use made Founder green as well. On the MasterProfile palette
- * the only green role is Investor and the chain never tints it, so green belongs
- * to LabOS and the Directory dot alone and the override is gone.
+ * "In LabOS" takes a second, brighter green wherever roles are coloured.
+ *
+ * The problem it solves: the role tag and this share one 10px line, separated by
+ * a middot, and the investor's tag is `#166534` (the MasterProfile pill). Against
+ * `.labOs`'s own `#047857` the last hop read `Investor · In LabOS` as one phrase
+ * in one colour — two greens four pixels apart, four points of lightness between
+ * them, meaning unrelated things.
+ *
+ * `#059669` is not a third green invented to break the tie. It is the **Directory
+ * dot** — `PathProfileChip.module.scss`, the 7px dot already sitting on the
+ * avatar of the very chip this caption belongs to. So the cell ends up with two
+ * greens that each mean something consistent:
+ *
+ *   #166534  dark, flat        the *role* — investor, as on their profile pill
+ *   #059669  bright, saturated *presence* — we hold a record of this person,
+ *                              which is what the dot above already says
+ *
+ * The gap is 17 points of lightness and a clear shift toward cyan, which reads at
+ * 10px where a four-point gap did not. Two greens are fine when they are the same
+ * idea at two scales; they are only a collision when they are two ideas.
+ *
+ * `off` keeps `#047857`, LabOsBadge's own, since nothing competes for it there.
+ *
+ * Doubled so it beats `.labOs`'s colour regardless of source order.
  */
+.labOsPresence.labOsPresence {
+  color: var(--foreground-success-secondary, #059669);
+}

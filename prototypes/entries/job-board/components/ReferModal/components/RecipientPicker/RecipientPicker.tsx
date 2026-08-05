@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import { components, type GroupBase } from 'react-select';
 
+import { PAGE_ROUTES } from '@/utils/constants';
+
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CloseIcon } from '@/components/icons';
 
@@ -204,24 +206,32 @@ export function RecipientPicker(props: RecipientPickerProps) {
               <CloseIcon />
             </components.ClearIndicator>
           ),
-          MultiValue: (multiProps) => (
-            <components.MultiValue {...multiProps}>
-              <span className={s.chip}>
-                {multiProps.data.isEmail ? (
-                  <span className={s.chipMail}>
-                    <MailIcon />
-                  </span>
-                ) : (
-                  <img
-                    src={multiProps.data.image || getDefaultAvatar(multiProps.data.label)}
-                    alt=""
-                    className={s.chipAvatar}
-                  />
-                )}
-                {multiProps.data.label}
-              </span>
-            </components.MultiValue>
-          ),
+          MultiValue: (multiProps) => {
+            const { data } = multiProps;
+
+            const content = (
+              <components.MultiValue {...multiProps}>
+                <span className={s.chip}>
+                  {data.isEmail ? (
+                    <span className={s.chipMail}>
+                      <MailIcon />
+                    </span>
+                  ) : (
+                    <img src={data.image || getDefaultAvatar(data.label)} alt="" className={s.chipAvatar} />
+                  )}
+                  {data.label}
+                </span>
+              </components.MultiValue>
+            );
+
+            return data.isEmail ? (
+              content
+            ) : (
+              <a target="_blank" href={`${PAGE_ROUTES.MEMBERS}/${data.value}`}>
+                {content}
+              </a>
+            );
+          },
           GroupHeading: (groupProps) => (
             <components.GroupHeading {...groupProps} className={s.groupHeading}>
               {groupProps.children}

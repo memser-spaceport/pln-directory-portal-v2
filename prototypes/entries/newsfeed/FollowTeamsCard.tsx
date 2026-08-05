@@ -8,7 +8,7 @@ import { FollowButton } from '@/components/ui/FollowButton';
 // Production news-card styling, reused 1:1 for the rail module.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { CURATED_SUGGESTED_TEAMS } from './mocks';
 
@@ -21,7 +21,7 @@ interface FollowTeamsCardProps {
 /**
  * "Teams to follow", lifted out of `CuratedRail` so it can render in two places:
  * beside the top-stories block on desktop, and in the rail everywhere else.
- * Only one instance is ever visible — see `NewsfeedCuratedPrototype`.
+ * Only one instance is ever visible — see `NewsfeedPrototype`.
  *
  * Every row states a *reason*, not a tagline. Production's `ISuggestedTeam` has
  * carried a `reason` field all along and newsfeed-v0's mock dropped it. A tagline

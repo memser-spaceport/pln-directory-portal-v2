@@ -11,7 +11,7 @@ import { JobAlertShell } from '@/components/page/jobs/JobAlertShell/JobAlertShel
 import banner from '@/components/page/jobs/JobAlertBanner/JobAlertBanner.module.scss';
 import indicator from '@/components/page/jobs/JobAlertIndicator/JobAlertIndicator.module.scss';
 
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 interface SubscribeBannerProps {
   /** Human summary of the filter in force, from `summarizeView`. */

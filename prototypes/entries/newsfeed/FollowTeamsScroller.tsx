@@ -6,7 +6,7 @@ import { FollowButton } from '@/components/ui/FollowButton';
 // Production news-card styling, reused 1:1 for the card surface and logo.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { MobileScrollRow } from './MobileScrollRow';
 import { CURATED_SUGGESTED_TEAMS } from './mocks';

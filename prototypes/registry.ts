@@ -183,12 +183,12 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
   {
-    key: 'newsfeed-curated',
+    key: 'newsfeed',
     title: 'Newsfeed — curated feed + weekly email',
     description:
-      'Quality for an investor audience, in two surfaces. A single network-wide Top Story leads the week, states why it won, and discloses whether a human or a model picked it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, follow suggestions carry the relational `reason` production already returns, and a Coverage module states the gap out loud. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card.',
+      'Quality for an investor audience, in two surfaces. A single network-wide Top Story leads the week, states why it won, and discloses whether a human or a model picked it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card.',
     category: 'Newsfeed',
-    load: () => import('./entries/newsfeed-curated/NewsfeedCuratedPrototype'),
+    load: () => import('./entries/newsfeed/NewsfeedPrototype'),
   },
   {
     key: 'notifications-hub',

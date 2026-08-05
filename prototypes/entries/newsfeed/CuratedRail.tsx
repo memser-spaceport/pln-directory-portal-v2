@@ -10,10 +10,9 @@ import { Button } from '@/components/common/Button';
 // Production news-card styling, reused 1:1 for the rail modules.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { FollowTeamsCard } from './FollowTeamsCard';
-import { COVERAGE } from './mocks';
 import { UPVOTES } from '../newsfeed-v0/mocks';
 
 interface CuratedRailProps {
@@ -34,15 +33,13 @@ interface CuratedRailProps {
 }
 
 /**
- * Right rail. Same three modules as newsfeed-v0, with two changes.
+ * Right rail. Same three modules as newsfeed-v0, with one change.
  *
- * 1. Every follow suggestion states a *reason*, not a tagline. Production's
- *    `ISuggestedTeam` has carried a `reason` field all along — newsfeed-v0's mock
- *    dropped it. A tagline tells you what a team is, which you can get from its
- *    profile; a reason tells you why it's in front of you, which is the only
- *    thing that earns a follow from a rail.
- * 2. A coverage line, so the feed's blind spot is visible and reportable rather
- *    than silent.
+ * Every follow suggestion states a *reason*, not a tagline. Production's
+ * `ISuggestedTeam` has carried a `reason` field all along — newsfeed-v0's mock
+ * dropped it. A tagline tells you what a team is, which you can get from its
+ * profile; a reason tells you why it's in front of you, which is the only
+ * thing that earns a follow from a rail.
  */
 export function CuratedRail({ followedTeams, onToggleFollow, popularItems, followCardClassName }: CuratedRailProps) {
   const [subscribed, setSubscribed] = useState(false);
@@ -77,20 +74,6 @@ export function CuratedRail({ followedTeams, onToggleFollow, popularItems, follo
             </span>
           </div>
         ))}
-      </div>
-
-      {/* Coverage, stated. A gap nobody can see is a gap nobody fixes. */}
-      <div className={clsx(s.card, v0.railCard, local.coverageCard)}>
-        <h3 className={v0.railTitle}>Coverage</h3>
-        <p className={local.coverageText}>
-          Tracking <strong>{COVERAGE.teamsTracked} teams</strong> across the network.
-        </p>
-        <p className={local.coverageText}>
-          {COVERAGE.untaggedThisWeek} stories this week carry no focus area — they reach the feed, but no focus filter.
-        </p>
-        <a className={local.coverageLink} href="#missing-team">
-          Missing a team? Tell us →
-        </a>
       </div>
 
       <div className={v0.digestPromo}>

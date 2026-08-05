@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 interface MobileScrollRowProps {
   title: string;

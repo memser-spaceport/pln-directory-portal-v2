@@ -19,7 +19,7 @@ import refer from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/R
 import { ArrowIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { FollowButton } from '../follow-shared/FollowButton';
 import type { HiringSignal } from './mocks';

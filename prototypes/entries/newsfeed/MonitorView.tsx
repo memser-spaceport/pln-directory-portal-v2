@@ -22,7 +22,7 @@ import banner from '@/components/page/jobs/JobAlertBanner/JobAlertBanner.module.
 
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { ACTIVE_SECTORS, SECTOR_BY_UID } from './mocks';
 import type { Subscription } from './subscription';

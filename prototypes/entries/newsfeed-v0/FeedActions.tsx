@@ -99,12 +99,28 @@ export function ViewCount({ count, compact }: { count: number; compact?: boolean
  * meta-row item, opening/closing an inline thread. Active (thread open) borrows
  * the liked brand-blue so an open thread is legible at a glance.
  */
-export function CommentButton({ count, open, onToggle }: { count: number; open: boolean; onToggle: () => void }) {
+export function CommentButton({
+  count,
+  open,
+  onToggle,
+  opensDetail,
+}: {
+  count: number;
+  open: boolean;
+  onToggle: () => void;
+  /**
+   * The thread lives in the detail modal rather than inline under this element —
+   * `newsfeed`'s top-stories band, where an expanding thread would break
+   * the band open. Drops `aria-expanded`, which would otherwise promise an
+   * in-place disclosure that never happens.
+   */
+  opensDetail?: boolean;
+}) {
   return (
     <button
       type="button"
       className={clsx(s.subItem, s.button, open && s.liked)}
-      aria-expanded={open}
+      aria-expanded={opensDetail ? undefined : open}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();

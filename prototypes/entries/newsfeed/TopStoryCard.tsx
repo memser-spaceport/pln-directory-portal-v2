@@ -11,12 +11,12 @@ import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTe
 // Production news-card shell (card chrome, logo sizes), reused 1:1.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 import { SourceList } from '../newsfeed-v0/SourceList';
 import { ShareMenu } from '../newsfeed-v0/ShareMenu';
-import { LikeButton, ViewCount } from '../newsfeed-v0/FeedActions';
+import { LikeButton, ViewCount, CommentButton } from '../newsfeed-v0/FeedActions';
 import { viewsFor } from '../newsfeed-v0/mocks';
 import { FollowButton } from '../follow-shared/FollowButton';
 import type { TopStory } from './mocks';
@@ -61,6 +61,7 @@ interface TopStoryCardProps {
   likeCount: number;
   liked: boolean;
   onToggleLike: () => void;
+  commentCount: number;
   onOpen: () => void;
   /** Hidden on the "today" spine, where this story never reaches the feed. */
   className?: string;
@@ -84,6 +85,7 @@ export function TopStoryCard({
   likeCount,
   liked,
   onToggleLike,
+  commentCount,
   onOpen,
   className,
 }: TopStoryCardProps) {
@@ -165,6 +167,11 @@ export function TopStoryCard({
                 in the column showing likes but no reads. */}
             <ViewCount count={viewsFor(story.uid)} compact />
             <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
+            {/* Same Views · Likes · Comments row every other card in the column
+                carries. The thread itself opens in the detail modal rather than
+                inline: `.topBlock` clips to its rounded corners, and an expanding
+                thread inside the band would push the two runners-up down a screen. */}
+            <CommentButton count={commentCount} open={false} onToggle={onOpen} opensDetail />
           </span>
         </div>
       </div>

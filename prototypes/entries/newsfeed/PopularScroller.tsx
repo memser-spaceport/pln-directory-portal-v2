@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { MobileScrollRow } from './MobileScrollRow';
 import { UPVOTES } from '../newsfeed-v0/mocks';

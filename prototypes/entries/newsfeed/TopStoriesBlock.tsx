@@ -10,9 +10,11 @@ import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTe
 // Production news-card shell, reused 1:1 for the secondary rows' logo + headline.
 import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
+import { LikeButton, ViewCount, CommentButton } from '../newsfeed-v0/FeedActions';
+import { viewsFor } from '../newsfeed-v0/mocks';
 import { FollowButton } from '../follow-shared/FollowButton';
 import { TopStoryCard } from './TopStoryCard';
 import type { TopStory } from './mocks';
@@ -37,6 +39,7 @@ interface TopStoriesBlockProps {
   likeCount: (uid: string) => number;
   isLiked: (uid: string) => boolean;
   onToggleLike: (uid: string) => void;
+  commentCount: (uid: string) => number;
   onOpenStory: (story: ITeamNewsItem) => void;
 }
 
@@ -63,6 +66,7 @@ export function TopStoriesBlock({
   likeCount,
   isLiked,
   onToggleLike,
+  commentCount,
   onOpenStory,
 }: TopStoriesBlockProps) {
   return (
@@ -76,6 +80,7 @@ export function TopStoriesBlock({
         likeCount={likeCount(lead.uid)}
         liked={isLiked(lead.uid)}
         onToggleLike={() => onToggleLike(lead.uid)}
+        commentCount={commentCount(lead.uid)}
         onOpen={() => onOpenStory(lead)}
       />
 
@@ -122,14 +127,33 @@ export function TopStoriesBlock({
                   the stream under the fold. */}
               {item.summary && <p className={local.alsoSummary}>{item.summary}</p>}
 
-              {/* Team name lives in the head row now, so it isn't repeated here. */}
-              <span className={local.alsoMeta}>
-                <span className={clsx(v0.metaEvent, v0[KICKER_COLOR_CLASS[item.eventType]])}>
-                  {EVENT_TYPE_LABEL[item.eventType]}
+              {/* Team name lives in the head row now, so it isn't repeated here.
+                  These rows carry the same Views · Likes · Comments as the lead
+                  and as every feed card below: they are top stories, and a pick
+                  that shows no reads reads as an editorial aside nobody opened. */}
+              <div className={v0.footer}>
+                <span className={local.alsoMeta}>
+                  <span className={clsx(v0.metaEvent, v0[KICKER_COLOR_CLASS[item.eventType]])}>
+                    {EVENT_TYPE_LABEL[item.eventType]}
+                  </span>
+                  {' · '}
+                  {formatTimeAgo(item.eventDate)}
                 </span>
-                {' · '}
-                {formatTimeAgo(item.eventDate)}
-              </span>
+                <span className={v0.footerActions}>
+                  <ViewCount count={viewsFor(item.uid)} compact />
+                  <LikeButton
+                    count={likeCount(item.uid)}
+                    liked={isLiked(item.uid)}
+                    onToggle={() => onToggleLike(item.uid)}
+                  />
+                  <CommentButton
+                    count={commentCount(item.uid)}
+                    open={false}
+                    onToggle={() => onOpenStory(item)}
+                    opensDetail
+                  />
+                </span>
+              </div>
             </li>
           ))}
         </ul>

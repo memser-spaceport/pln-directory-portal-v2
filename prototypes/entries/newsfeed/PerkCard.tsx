@@ -14,7 +14,7 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 // it. Only the scale is adapted below; the structure and colours are dev's.
 import dealCss from '@/components/page/deals/DealCard/DealCard.module.scss';
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 import type { PerkSignal } from './mocks';
 

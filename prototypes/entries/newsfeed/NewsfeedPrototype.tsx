@@ -105,7 +105,7 @@ import {
 } from './mocks';
 
 import v0 from '../newsfeed-v0/NewsfeedV0.module.scss';
-import local from './NewsfeedCurated.module.scss';
+import local from './Newsfeed.module.scss';
 
 const PAGE_SIZE = 6;
 
@@ -125,9 +125,6 @@ const SORT_OPTIONS = [
  * no tab, including All. This prototype does not reproduce that: one ranked
  * stream is the spine and focus area is a filter over it, which is what makes the
  * untagged long tail (and this week's top story) reachable at all.
- *
- * The cost of that choice stays visible in the rail's Coverage card, which counts
- * the stories carrying no focus area.
  */
 
 /**
@@ -225,7 +222,7 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
   );
 }
 
-export default function NewsfeedCuratedPrototype() {
+export default function NewsfeedPrototype() {
   const [mounted, setMounted] = useState(false);
 
   // Feed state.
@@ -856,8 +853,8 @@ export default function NewsfeedCuratedPrototype() {
                   <div className={v0.feedList}>
                     {/* The block lives in the feed column of the *same* grid as the
                         rail, so the rail runs as one continuous column: Teams to
-                        follow, then Popular this week, Coverage, digest — no gap
-                        where the block used to sit in a grid of its own. */}
+                        follow, then Popular this week, digest — no gap where the
+                        block used to sit in a grid of its own. */}
                     {showTopStory && topStoryItem && (
                       <TopStoriesBlock
                         lead={topStoryItem}
@@ -869,6 +866,7 @@ export default function NewsfeedCuratedPrototype() {
                         likeCount={likeCount}
                         isLiked={isLiked}
                         onToggleLike={toggleLike}
+                        commentCount={(uid) => commentsFor(uid).length}
                         onOpenStory={openStoryDetail}
                       />
                     )}

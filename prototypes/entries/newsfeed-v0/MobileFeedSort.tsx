@@ -19,7 +19,7 @@ interface MobileFeedSortProps {
   currentSort: string;
   onSortChange: (value: string) => void;
   /**
-   * Defaults to "Sort by:" so existing callers are untouched. `newsfeed-curated`
+   * Defaults to "Sort by:" so existing callers are untouched. `newsfeed`
    * passes "Type:" to render the event-type filter in the same mobile style.
    */
   label?: string;

@@ -3,7 +3,7 @@
 /* Layout, page backdrop, feed grid, rail chrome and card shells all come from
    ../newsfeed-v0/NewsfeedV0.module.scss and the production modules it reuses.
    This file only carries what is new here: the Top Story hero, the hiring
-   signal, the coverage note, the prototype control bar, and the email. */
+   signal, the prototype control bar, and the email. */
 
 /* The `.controlBar` / `.controlGroup` / `.controlLabel` rules styled the
    prototype's Path / Mix / Curated-by switch row. The switches are gone — the
@@ -802,7 +802,7 @@
   }
 }
 
-/* ---------- Rail: follow reasons + coverage ---------- */
+/* ---------- Rail: follow reasons ---------- */
 
 /* The reason a team is in front of you. Sits at content weight, not meta weight —
    it is the thing being read, so it earns the darker of the two grays. */
@@ -815,33 +815,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.coverageCard.coverageCard {
-  gap: 8px;
-}
-
-.coverageText {
-  margin: 0;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  strong {
-    color: var(--foreground-neutral-primary, #0a0c11);
-    font-weight: 600;
-  }
-}
-
-.coverageLink {
-  margin-top: 2px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: -0.2px;
-  color: var(--foreground-brand-primary, #1b4dff);
-  width: fit-content;
 }
 
 /* Framing for a synthetic pill's view — explanatory, so it stays neutral rather

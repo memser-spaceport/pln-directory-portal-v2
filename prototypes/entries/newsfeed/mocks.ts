@@ -474,15 +474,3 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
   },
 ];
 
-// ---------- Coverage, made visible ----------
-
-/**
- * The gap the feed silently has today. Stated in the UI so a missing team is a
- * reportable thing rather than an invisible one — and so the number itself
- * becomes a metric someone can be accountable for.
- */
-export const COVERAGE = {
-  teamsTracked: 214,
-  /** Stories this week carrying no focus area — unreachable under the group spine. */
-  untaggedThisWeek: OFF_FOCUS_ITEMS.length,
-};

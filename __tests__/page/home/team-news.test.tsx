@@ -24,6 +24,16 @@ function renderTeamNews(ui: ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+// The mobile "Type:" dropdown's trigger shows the active category's label,
+// which for the default (All categories) is byte-identical to the desktop
+// pill's own text — jsdom doesn't evaluate the media query that hides one of
+// them, so both are in the DOM at once and a bare name-based query is
+// ambiguous. Scope to the pill row (`.catRow`) for anything that queries by
+// category label; the dropdown has its own dedicated tests.
+function catRow(): HTMLElement {
+  return document.querySelector('.catRow') as HTMLElement;
+}
+
 /** Default sort is Most popular — switch to Following when a test needs followed-first order. */
 function selectFollowingSort() {
   fireEvent.click(screen.getByRole('button', { name: 'Most popular' }));
@@ -230,7 +240,7 @@ describe('TeamNews', () => {
     expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Digital Human Rights/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+    expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
   });
 
   it('switches to a focus-area tab and reports analytics', () => {
@@ -257,7 +267,7 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /^Funding$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /^Launch$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Milestone/ })).not.toBeDisabled();
-    expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
+    expect(within(catRow()).getByRole('button', { name: /All categories/ })).not.toBeDisabled();
   });
 
   it('renders an Other category chip, disabled when no OTHER items exist', () => {
@@ -278,6 +288,53 @@ describe('TeamNews', () => {
     expect(mockOnCategoryClicked).toHaveBeenCalledWith('OTHER', 1, 'All');
     expect(screen.getByText(/Headline ai-other/)).toBeInTheDocument();
     expect(screen.queryByText(/Headline ai-1/)).not.toBeInTheDocument();
+  });
+
+  describe('mobile "Type:" category dropdown', () => {
+    // jsdom doesn't evaluate the media query that hides this dropdown at
+    // desktop widths and the pill row below mobile, so both are always in the
+    // DOM in tests — scope to `.typeMobile` the same way category-pill tests
+    // scope to `.catRow`.
+    const typeDropdown = (): HTMLElement => document.querySelector('.typeMobile') as HTMLElement;
+
+    it('defaults to the plain "All categories" label, with no count', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      expect(within(typeDropdown()).getByRole('button', { name: 'All categories' })).toBeInTheDocument();
+    });
+
+    it('omits zero-count categories and folds counts into the label for the rest', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(within(typeDropdown()).getByRole('button', { name: 'All categories' }));
+
+      // aiItems: FUNDING, LAUNCH, PARTNERSHIP (1 each); dhrItems: MILESTONE, ANNOUNCEMENT (1 each).
+      expect(screen.getByRole('menuitem', { name: 'Funding (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Milestone (1)' })).toBeInTheDocument();
+      // OTHER has zero items in this fixture — dropped, not shown disabled
+      // (SortDropdown has no disabled state; see the memo's own comment).
+      expect(screen.queryByRole('menuitem', { name: /Other/ })).not.toBeInTheDocument();
+    });
+
+    it('filters the feed and reports the same analytics event a pill click would', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(within(typeDropdown()).getByRole('button', { name: 'All categories' }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Funding (1)' }));
+
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('FUNDING', 1, 'All');
+      expect(screen.getByText(/Headline ai-1/)).toBeInTheDocument();
+      expect(screen.queryByText(/Headline ai-2/)).not.toBeInTheDocument();
+      // The trigger now reflects the selection, count folded in — same label
+      // format the menu offered it under.
+      expect(within(typeDropdown()).getByRole('button', { name: 'Funding (1)' })).toBeInTheDocument();
+    });
+
+    it('stays in sync with the desktop pill row — selecting a pill updates the dropdown label too', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      // The pill's accessible name is "Launch" + its count span concatenated
+      // with no separator (e.g. "Launch1") — matching other tests in this file.
+      fireEvent.click(within(catRow()).getByRole('button', { name: /^Launch/ }));
+
+      expect(within(typeDropdown()).getByRole('button', { name: 'Launch (1)' })).toBeInTheDocument();
+    });
   });
 
   it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
@@ -373,9 +430,9 @@ describe('TeamNews', () => {
 
     it('shows Discussions after All categories when at least one item has a thread', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
-      const allCat = screen.getByRole('button', { name: /All categories/ });
-      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      const chips = within(catRow()).getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
+      const allCat = within(catRow()).getByRole('button', { name: /All categories/ });
+      const discussions = within(catRow()).getByRole('button', { name: /Discussions/ });
       expect(chips.indexOf(discussions)).toBeGreaterThan(chips.indexOf(allCat));
       expect(within(discussions).getByText('1')).toBeInTheDocument();
     });

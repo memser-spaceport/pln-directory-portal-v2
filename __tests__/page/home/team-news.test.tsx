@@ -109,6 +109,10 @@ const mockUseFeedHiring = jest.fn((): { hiring: IJobTeamGroup[] | undefined } =>
 jest.mock('@/components/page/home/TeamNews/hooks/useFeedHiring', () => ({
   useFeedHiring: () => mockUseFeedHiring(),
 }));
+const mockUseIsBelowDesktop = jest.fn(() => false);
+jest.mock('@/hooks/useIsBelowDesktop', () => ({
+  useIsBelowDesktop: () => mockUseIsBelowDesktop(),
+}));
 const mockUseFeedDeals = jest.fn((): { deals: IDeal[] | undefined } => ({ deals: undefined }));
 jest.mock('@/components/page/home/TeamNews/hooks/useFeedDeals', () => ({
   useFeedDeals: () => mockUseFeedDeals(),
@@ -206,6 +210,7 @@ describe('TeamNews', () => {
     mockUseFeedSocial.mockReturnValue(feedSocial(undefined, false));
     mockUseFeedHiring.mockReturnValue({ hiring: undefined });
     mockUseFeedDeals.mockReturnValue({ deals: undefined });
+    mockUseIsBelowDesktop.mockReturnValue(false);
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
     window.history.replaceState(null, '', '/home');
@@ -1577,6 +1582,113 @@ describe('TeamNews', () => {
 
       fireEvent.click(screen.getByRole('heading', { name: 'Vendor d1' }));
       expect(mockOnFeedDealClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'd1' }), expect.any(Number));
+    });
+  });
+
+  describe('sub-desktop rails', () => {
+    const suggestions = [
+      { uid: 's1', name: 'Banyan Storage', logo: null, reason: 'Storage · 1.2k followers' },
+      { uid: 's2', name: 'Helia Labs', logo: null, reason: 'Infrastructure · 890 followers' },
+    ];
+    const popular = [
+      {
+        uid: 'ai-1',
+        teamUid: 'team-ai-1',
+        teamName: 'Team ai-1',
+        title: 'Headline ai-1',
+        sourceUrl: 'https://example.com/ai-1',
+        upvoteCount: 5,
+      },
+    ];
+
+    const railAside = () => screen.queryByRole('complementary', { name: /sidebar/i });
+    // The rail's own cards are labelled sections too, so a bare role query would
+    // match either surface — scope to the feed column, which is where the
+    // scrollers live.
+    const scroller = (name: string) =>
+      within(document.querySelector('[data-news-feed-root]') as HTMLElement).queryByRole('region', { name });
+
+    beforeEach(() => {
+      mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
+    });
+
+    it('keeps both modules in the rail at desktop width, with no scrollers', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(within(railAside()!).getByText('Banyan Storage')).toBeInTheDocument();
+      expect(within(railAside()!).getByText('Popular this week')).toBeInTheDocument();
+      expect(scroller('Teams to follow')).not.toBeInTheDocument();
+      expect(scroller('Popular this week')).not.toBeInTheDocument();
+    });
+
+    it('lifts both modules into horizontal rows below desktop', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(scroller('Teams to follow')).toBeInTheDocument();
+      expect(scroller('Popular this week')).toBeInTheDocument();
+      // The rail is still in the tree for the digest card — it just no longer
+      // carries these two.
+      expect(within(railAside()!).queryByText('Banyan Storage')).not.toBeInTheDocument();
+    });
+
+    it('keeps the digest card in the rail at both widths', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(within(railAside()!).getByText(/Get network news Digest/i)).toBeInTheDocument();
+      unmount();
+
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(within(railAside()!).getByText(/Get network news Digest/i)).toBeInTheDocument();
+    });
+
+    it('mounts exactly one instance of each module at either width', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(screen.getAllByText('Banyan Storage')).toHaveLength(1);
+      expect(screen.getAllByText('Popular this week')).toHaveLength(1);
+    });
+
+    // The events live in TeamNews now precisely so the count doesn't depend on
+    // which surface rendered.
+    it('fires each view event exactly once, on either surface', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(1);
+
+      jest.clearAllMocks();
+      mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('follows a team from the scroller with the same payload as the rail row', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+      try {
+        renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+        const row = scroller('Teams to follow')!;
+        fireEvent.click(within(row).getByRole('button', { name: /follow banyan storage/i }));
+
+        expect(mockFollowMutate).toHaveBeenCalled();
+      } finally {
+        useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+      }
+    });
+
+    it('reveals the story in the feed when a scroller card is tapped', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      const row = scroller('Popular this week')!;
+      fireEvent.click(within(row).getByRole('button', { name: /Headline ai-1/ }));
+
+      expect(mockOnPopularStoryClicked).toHaveBeenCalled();
     });
   });
 

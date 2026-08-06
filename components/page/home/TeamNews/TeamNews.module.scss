@@ -119,6 +119,15 @@
   margin-bottom: 16px;
 }
 
+// The lifted rail modules, sub-desktop only. Same 16px separation from the
+// stream that `.topStories` uses, so band → rails → feed reads as one rhythm.
+.feedScrollers {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .feed {
   display: flex;
   flex-direction: column;

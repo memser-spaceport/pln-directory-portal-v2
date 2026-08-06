@@ -261,6 +261,25 @@ export const TeamNews = ({
     return withDiscussions;
   }, [countForCategory]);
 
+  /**
+   * The same list the pills render, shaped for the mobile "Type:" dropdown.
+   *
+   * Counts fold into the label because `SortDropdown` options are plain text —
+   * there's no separate count slot the way the pill has its own `<span>`.
+   * Empty categories are DROPPED rather than shown disabled: `SortDropdown`
+   * has no disabled state today, and a menu listing choices you can't pick is
+   * worse than a pill row where they're visibly greyed. A category with
+   * nothing in the current window just doesn't appear, matching the pill
+   * row's `isDisabled` rule in spirit (nothing to filter to ⇒ not offered).
+   */
+  const categoryOptions = useMemo(
+    () =>
+      categoriesWithCounts
+        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
+    [categoriesWithCounts],
+  );
+
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
     return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
@@ -822,6 +841,18 @@ export const TeamNews = ({
           })}
         </div>
         <div className={s.filterActions}>
+          {/* Mobile only — `.catRow`'s pill row holds the category filter at
+              every wider breakpoint (see TeamNews.module.scss `.catRow` /
+              `.typeMobile`). Same SortDropdown "Sort by:" already uses, so the
+              two read as one control family on a narrow screen. */}
+          <span className={s.typeMobile}>
+            <SortDropdown
+              sortByLabel="Type:"
+              options={categoryOptions}
+              currentSort={activeCategory}
+              onSortChange={(value) => handleCategory(value as TeamNewsCategoryId)}
+            />
+          </span>
           <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
         </div>
       </div>

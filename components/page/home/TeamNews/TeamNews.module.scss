@@ -47,6 +47,7 @@
 .filterActions {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 
   @include mobile-only {
@@ -54,10 +55,29 @@
   }
 }
 
+// "Type:" dropdown, mobile only — `.catRow`'s pill row replaces it at every
+// wider breakpoint. Hidden here rather than unmounted, so there's no layout
+// jump crossing the breakpoint mid-resize.
+.typeMobile {
+  display: none;
+
+  @include mobile-only {
+    display: inline-flex;
+  }
+}
+
 .catRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+
+  // Replaced by the "Type:" dropdown (`.typeMobile`) below tablet-portrait —
+  // a wrapping pill row costs two lines of vertical space the mobile layout
+  // doesn't have to spare, and the prototype's own mobile treatment collapses
+  // it into the same dropdown family as "Sort by:".
+  @include mobile-only {
+    display: none;
+  }
 }
 
 .cat {

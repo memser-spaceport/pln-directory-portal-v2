@@ -5,7 +5,6 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { CopyButton } from '@/components/ui/CopyButton';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
@@ -335,7 +334,6 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                 <>
                   <div className={s.pathItem}>
                     <div className={s.pathMeta}>
-                      {bestPath.proximityCode ? <ProximityCodeBadge code={bestPath.proximityCode} /> : null}
                       <ScorePercentPill scorePercent={bestPath.scorePercent} scoreBand={bestPath.scoreBand} />
                       <span className={s.warmth}>Best path</span>
                     </div>
@@ -370,7 +368,6 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                             imageUrl: imageByUid.get(hop.profileUid),
                           })),
                           connectorName: bestPath.bestConnector?.name ?? hops[0]?.name ?? null,
-                          proximityCode: bestPath.proximityCode,
                           scorePercent: bestPath.scorePercent,
                           scoreBand: bestPath.scoreBand,
                         }}
@@ -397,7 +394,6 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                               hopCountFromRelationKind(altKind),
                               proximityFamilyFromRelationKind(altKind),
                             );
-                            const proximityCode = alt.proximityCode ?? derived?.proximityCode ?? null;
                             const pct = alt.scorePercent ?? derived?.scorePercent ?? null;
                             const scoreBand = alt.scoreBand ?? derived?.scoreBand;
                             const altReason = Array.isArray(alt.reasons)
@@ -406,7 +402,6 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                             return (
                               <li key={alt.profileUid} className={s.pathItem}>
                                 <div className={s.pathMeta}>
-                                  {proximityCode ? <ProximityCodeBadge code={proximityCode} /> : null}
                                   {pct != null ? <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} /> : null}
                                 </div>
                                 {altReason ? <div className={s.explanation}>{altReason}</div> : null}
@@ -455,7 +450,6 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                                         },
                                       ],
                                       connectorName: alt.name,
-                                      proximityCode,
                                       scorePercent: pct,
                                       scoreBand,
                                     }}

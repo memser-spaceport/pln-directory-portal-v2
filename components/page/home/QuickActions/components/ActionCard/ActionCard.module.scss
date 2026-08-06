@@ -32,8 +32,8 @@
   @include mobile-only {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 14px;
   }
 }
 
@@ -48,6 +48,21 @@
   border-radius: 50%;
   color: #1b4dff;
   box-shadow: inset 0px -1px 4px 0px rgba(27, 77, 255, 0.08);
+
+  // Prototype's mobile icon is smaller, and shrinks its glyph to match —
+  // otherwise a 20-24px svg (each icon's own native size) would overflow a
+  // 32px circle. The svg selector overrides the icons' own width/height
+  // attributes: CSS beats a presentational HTML attribute regardless of
+  // specificity, so no !important is needed.
+  @include mobile-only {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
 
 .text {
@@ -73,6 +88,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  // Prototype's mobile card clamps to two lines rather than ellipsizing a
+  // single one — sized for a narrower (150px) card at a smaller font, where a
+  // longer title like "Book Office Hours" no longer reliably fits on one line.
+  // `white-space: nowrap` has to go too: it wins over `-webkit-line-clamp`,
+  // which needs to wrap to produce more than one line.
+  @include mobile-only {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 }
 
 .description {
@@ -85,6 +115,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @include mobile-only {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 .arrow {

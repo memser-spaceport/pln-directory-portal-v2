@@ -8,7 +8,7 @@
 }
 
 .title {
-  letter-spacing: -.2px;
+  letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
   margin-bottom: 12px;
   font-size: 16px;
@@ -41,6 +41,7 @@
   @include mobile-only {
     display: flex;
     grid-template-columns: none;
+    gap: 10px;
     overflow-x: scroll;
     scroll-snap-type: x mandatory;
     margin-inline: -14px;
@@ -60,13 +61,15 @@
     );
     @include mixins.hide-scrollbar;
 
-    // Fixed width (not a %) sized to comfortably fit the longest title ("Book
-    // Office Hours", ~152px at this weight/tracking in Inter) plus the card's
-    // 16px side padding, so it never ellipsizes. min-width: 0 overrides the
-    // flex-item default of min-width: auto, which would otherwise let a card
-    // grow past this to fit its unbreakable (white-space: nowrap) text anyway.
+    // 150px, matching the prototype's MobileQuickActions card — narrower than
+    // the desktop grid's cards so more of the row peeks into view at once.
+    // Titles now clamp to two lines (ActionCard.module.scss) instead of
+    // ellipsizing, so this width doesn't need to fit "Book Office Hours" on one
+    // line the way the old 200px card did. min-width: 0 overrides the flex-item
+    // default of min-width: auto, which would otherwise let a card grow past
+    // this to fit unbreakable text anyway.
     > * {
-      flex: 0 0 200px;
+      flex: 0 0 150px;
       min-width: 0;
       scroll-snap-align: start;
     }

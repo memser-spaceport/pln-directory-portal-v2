@@ -48,6 +48,7 @@ import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matche
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useFeedSocial } from './hooks/useFeedSocial';
+import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
 import { useFeedHiring } from './hooks/useFeedHiring';
 import { useFeedDeals } from './hooks/useFeedDeals';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
@@ -62,6 +63,12 @@ import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
 import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
+import {
+  useDelayedHideFollowedSuggestions,
+  useFeedModulesViewAnalytics,
+} from './components/NewsRail/useSuggestionsModule';
+import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
+import { PopularScroller } from './components/FeedScrollers/PopularScroller';
 import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 
@@ -424,6 +431,29 @@ export const TeamNews = ({
   const { currentUser } = useCurrentUserStore();
   const { suggestions: suggestedTeams, isLoading: isLoadingSuggestedTeams } = useSuggestedTeamsToFollow({
     currentUserUid: currentUser?.uid ?? null,
+  });
+
+  // Below 1200px the grid drops the rail's column and the sidebar stacks under
+  // the whole feed, which buries Teams-to-follow and Popular about three screens
+  // down. They lift into horizontal rows just under the top-stories band
+  // instead. A JS switch rather than CSS show/hide: NewsRail animates its cards
+  // through AnimatePresence, so a hidden second copy would still mount a motion
+  // tree — and would double-count the view events below.
+  const isBelowDesktop = useIsBelowDesktop();
+
+  // Owned here, not in NewsRail, because both surfaces need the same list AND
+  // the same delayed-hide-after-follow confirm — computing it twice would let
+  // the two drift.
+  const visibleSuggestions = useDelayedHideFollowedSuggestions(suggestedTeams, followedTeamUids);
+
+  const showSuggestionsModule = isLoadingSuggestedTeams || visibleSuggestions.length > 0;
+
+  // Fired from the parent, which mounts exactly one surface, so the count is one
+  // per session at either width.
+  useFeedModulesViewAnalytics({
+    suggestionsShown: showSuggestionsModule && !isLoadingSuggestedTeams ? visibleSuggestions.length : 0,
+    isLoadingSuggestedTeams,
+    popularCount: railPopularItems.length,
   });
 
   const handleTab = (id: string) => {
@@ -814,6 +844,25 @@ export const TeamNews = ({
               />
             </div>
           )}
+
+          {/* The rail's two modules, lifted to just under the band at widths
+              where the rail itself stacks below the whole feed. Rendered only
+              here — NewsRail drops them at the same breakpoint, so exactly one
+              instance of each is ever on screen. Kept in the rail's own order
+              so the modules don't swap places between widths. */}
+          {isBelowDesktop && (
+            <div className={s.feedScrollers}>
+              {showSuggestionsModule && (
+                <FollowTeamsScroller
+                  suggestions={visibleSuggestions}
+                  followedTeamUids={followedTeamUids}
+                  onFollowToggle={handleFollowToggle}
+                />
+              )}
+              <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
+            </div>
+          )}
+
           {/* Suppressed when the band is showing: a window whose every story is
               in the band leaves the stream empty, and "No network news in this
               filter" directly under three stories reads as a bug. */}
@@ -905,8 +954,9 @@ export const TeamNews = ({
         <NewsRail
           initialDigestSettings={initialDigestSettings}
           popularItems={railPopularItems}
-          suggestedTeams={suggestedTeams}
           isLoadingSuggestedTeams={isLoadingSuggestedTeams}
+          visibleSuggestions={visibleSuggestions}
+          renderModules={!isBelowDesktop}
           followedTeamUids={followedTeamUids}
           onFollowToggle={handleFollowToggle}
           onPopularItemClick={handlePopularItemClick}

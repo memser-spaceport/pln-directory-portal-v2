@@ -2,7 +2,6 @@
 
 import type { ReactNode, Ref } from 'react';
 import clsx from 'clsx';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { CoInvestmentCountBadge, PlBackingMark } from '@/components/page/investors/PlBackingMark/PlBackingMark';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
@@ -82,12 +81,7 @@ export function WarmIntrosV2Table({
 
             const leadBadge = (
               <span className={clsx(s.proximityCell, s.joinGroup, s.proximityLead)}>
-                {row.proximityCode ? <ProximityCodeBadge code={row.proximityCode} className={s.joinLeft} /> : null}
-                <ScorePercentPill
-                  scorePercent={row.scorePercent}
-                  scoreBand={row.scoreBand}
-                  className={row.proximityCode ? s.joinRight : undefined}
-                />
+                <ScorePercentPill scorePercent={row.scorePercent} scoreBand={row.scoreBand} />
               </span>
             );
 

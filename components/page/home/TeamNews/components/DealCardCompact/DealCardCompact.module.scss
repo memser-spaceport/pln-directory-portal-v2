@@ -1,0 +1,83 @@
+@import '../../../../../../styles/media';
+
+// Shell is production NewsCard's `.card` so the deal sits in the column as a
+// peer of a news card; the anatomy inside is production DealCard's. Only the
+// three scale deltas and the feed-native footer live here.
+.card {
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .title {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.content {
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+// 48px, not the deals page's 64px — still larger than a news logo's 32px, so
+// the card reads as its own kind of object without dominating the column.
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+
+  @include mobile-only {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// 18px, not the deals page's 24px: level with the feed's own headline scale.
+.title {
+  font-size: 18px;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+  transition: color 0.12s ease;
+
+  @include mobile-only {
+    font-size: 17px;
+    line-height: 24px;
+  }
+}
+
+.kindBadge {
+  flex-shrink: 0;
+  background: rgba(27, 77, 255, 0.08);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+// The deals page sets chips at 14px against a 24px title; against an 18px one
+// they compete with the subtitle.
+.tag {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.foot {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

@@ -42,11 +42,14 @@ import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
 import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
+import { injectFeedSignals } from './utils/injectFeedSignals';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useFeedSocial } from './hooks/useFeedSocial';
+import { useFeedHiring } from './hooks/useFeedHiring';
+import { useFeedDeals } from './hooks/useFeedDeals';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
 
 import { NewsDetailModal } from './components/NewsDetailModal';
@@ -54,6 +57,8 @@ import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
+import { HiringCard } from './components/HiringCard/HiringCard';
+import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
 import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
@@ -197,6 +202,12 @@ export const TeamNews = ({
 
   const [sort, setSort] = useState<TeamNewsSort>('popular');
 
+  // Both are client-side and non-blocking: the feed renders without them and
+  // the cards pop in, the same arrival forum posts already have. `undefined`
+  // (not loaded / no deals access / request failed) leaves the feed untouched.
+  const { hiring: feedHiring } = useFeedHiring();
+  const { deals: feedDeals } = useFeedDeals();
+
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
@@ -300,7 +311,7 @@ export const TeamNews = ({
   // byte-identical to the pre-feature feed) and ranks posts by their frozen
   // query-data likeCount — the live postLikeOverlay is applied at render only,
   // so likes never reorder anything.
-  const entries = useMemo(
+  const rankedEntries = useMemo(
     () =>
       mergeFeedEntries({
         sortedClusters,
@@ -310,6 +321,22 @@ export const TeamNews = ({
         upvoteCounts: initialUpvoteCounts,
       }),
     [sortedClusters, visibleForumPosts, sort, initialFollowedTeamUids, initialUpvoteCounts],
+  );
+
+  // Hiring roll-ups and deals are slotted in AFTER the ranked merge, never
+  // through it: they carry no popularity signal, so ranking them would mean
+  // inventing one — and under 'popular' (the default) an honest zero would sink
+  // them past pageSize forever. See injectFeedSignals for the full rationale.
+  //
+  // Both are unfiltered by tab/category/search on purpose: neither carries a
+  // focus area or an event type, so every narrowed view drops them. That falls
+  // out of `isNarrowedView` below rather than being re-derived per stream.
+  const entries = useMemo(
+    () =>
+      isNarrowedView
+        ? rankedEntries
+        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+    [rankedEntries, isNarrowedView, feedHiring, feedDeals],
   );
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
@@ -837,6 +864,27 @@ export const TeamNews = ({
                           position={index}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
+                        />
+                      );
+                    case 'hiring':
+                      return (
+                        <HiringCard
+                          key={key}
+                          group={entry.group}
+                          isFollowing={followedTeamUids.has(entry.group.team.uid)}
+                          onFollowToggle={handleFollowToggle}
+                          onRoleClick={(group, role, rolePosition) =>
+                            analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)
+                          }
+                          onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
+                        />
+                      );
+                    case 'deal':
+                      return (
+                        <DealCardCompact
+                          key={key}
+                          deal={entry.deal}
+                          onClick={(deal) => analytics.onFeedDealClicked(deal, index)}
                         />
                       );
                     default:

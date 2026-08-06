@@ -1,10 +1,30 @@
 import type { TeamCluster } from '@/types/team-news.types';
 import type { IFeedForumPost } from '@/types/feed.types';
+import type { IJobTeamGroup } from '@/types/jobs.types';
+import type { IDeal } from '@/types/deals.types';
 import type { TeamNewsSort } from './sortTeamNewsClusters';
 
 // Client-derived view shape (like TeamCluster, unlike the I-prefixed wire types
 // in types/feed.types.ts) — lives here with the merge that produces it.
-export type FeedEntry = { kind: 'news'; cluster: TeamCluster } | { kind: 'forum'; post: IFeedForumPost };
+//
+// 'news' and 'forum' are the RANKED kinds: they carry both a date and a like
+// count, so mergeFeedEntries below can order them against each other under
+// every sort mode. 'hiring' and 'deal' are supporting kinds with no popularity
+// signal at all — they are never ranked, only slotted, which is why they enter
+// through injectFeedSignals as a separate pass and not through this file's
+// merge. See that file's docblock for why that distinction matters.
+export type FeedEntry =
+  | { kind: 'news'; cluster: TeamCluster }
+  | { kind: 'forum'; post: IFeedForumPost }
+  | { kind: 'hiring'; group: IJobTeamGroup }
+  | { kind: 'deal'; deal: IDeal };
+
+/** The kinds this file ranks. Everything else is slotted in afterwards. */
+export type RankedFeedEntry = Extract<FeedEntry, { kind: 'news' } | { kind: 'forum' }>;
+
+export function isRankedEntry(entry: FeedEntry): entry is RankedFeedEntry {
+  return entry.kind === 'news' || entry.kind === 'forum';
+}
 
 export function assertNever(x: never): never {
   throw new Error(`Unexpected feed entry kind: ${JSON.stringify(x)}`);
@@ -18,6 +38,10 @@ export function feedEntryKey(entry: FeedEntry): string {
       return `news:${entry.cluster.teamUid}`;
     case 'forum':
       return `forum:${entry.post.uid}`;
+    case 'hiring':
+      return `hiring:${entry.group.team.uid}`;
+    case 'deal':
+      return `deal:${entry.deal.uid}`;
     default:
       return assertNever(entry);
   }
@@ -65,8 +89,8 @@ export function mergeFeedEntries({
   sort: TeamNewsSort;
   followedTeamUids: ReadonlySet<string>;
   upvoteCounts: ReadonlyMap<string, number>;
-}): FeedEntry[] {
-  const newsEntries: FeedEntry[] = sortedClusters.map((cluster) => ({ kind: 'news', cluster }));
+}): RankedFeedEntry[] {
+  const newsEntries: RankedFeedEntry[] = sortedClusters.map((cluster) => ({ kind: 'news', cluster }));
   if (!forumPosts || forumPosts.length === 0) return newsEntries;
 
   // A post outranks a cluster when the cluster ranks strictly below it — ties
@@ -81,7 +105,7 @@ export function mergeFeedEntries({
     sort === 'popular' ? b.likeCount - a.likeCount : b.createdAt.localeCompare(a.createdAt),
   );
 
-  const merged: FeedEntry[] = [];
+  const merged: RankedFeedEntry[] = [];
   let postIndex = 0;
   for (const cluster of sortedClusters) {
     const clusterIsFollowed = sort === 'following' && followedTeamUids.has(cluster.teamUid);

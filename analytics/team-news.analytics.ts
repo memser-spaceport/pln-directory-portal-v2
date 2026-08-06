@@ -287,6 +287,51 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onFeedHiringRoleClicked = (
+    group: { team: { uid: string; name: string }; totalRoles: number },
+    role: { uid: string; roleTitle: string },
+    rolePosition: number,
+    feedPosition: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_HIRING_ROLE_CLICKED, {
+      teamUid: group.team.uid,
+      teamName: group.team.name,
+      roleUid: role.uid,
+      roleTitle: role.roleTitle,
+      totalRoles: group.totalRoles,
+      rolePosition,
+      position: feedPosition,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
+  const onFeedHiringViewAllClicked = (
+    group: { team: { uid: string; name: string }; totalRoles: number },
+    feedPosition: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED, {
+      teamUid: group.team.uid,
+      teamName: group.team.name,
+      totalRoles: group.totalRoles,
+      position: feedPosition,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
+  const onFeedDealClicked = (
+    deal: { uid: string; vendorName: string; category: string; audience: string },
+    feedPosition: number,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEED_DEAL_CLICKED, {
+      dealUid: deal.uid,
+      vendorName: deal.vendorName,
+      category: deal.category,
+      audience: deal.audience,
+      position: feedPosition,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onPopularCardViewed = (itemCount: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_CARD_VIEWED, { itemCount });
   };
@@ -575,6 +620,9 @@ export const useTeamNewsAnalytics = () => {
     onPopularStoryFallbackOpened,
     onTopStoriesBlockViewed,
     onTopStoryClicked,
+    onFeedHiringRoleClicked,
+    onFeedHiringViewAllClicked,
+    onFeedDealClicked,
     onTeamsToFollowViewed,
     onTeamsToFollowHidden,
     onFeedForumPostCardClicked,

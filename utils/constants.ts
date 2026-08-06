@@ -613,6 +613,11 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // without it a low click count can't be told apart from a block nobody saw.
   TEAM_NEWS_TOP_STORIES_BLOCK_VIEWED: 'team-news-top-stories-block-viewed',
   TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
+  // Supporting kinds in the feed. Both carry `position` so a card that only
+  // ever converts from the first slot can be told from one that converts anywhere.
+  TEAM_NEWS_FEED_HIRING_ROLE_CLICKED: 'team-news-feed-hiring-role-clicked',
+  TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED: 'team-news-feed-hiring-view-all-clicked',
+  TEAM_NEWS_FEED_DEAL_CLICKED: 'team-news-feed-deal-clicked',
   // Feed social layer (forum posts in the feed + feed-only comments).
   TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED: 'team-news-feed-forum-post-card-clicked',
   TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED: 'team-news-feed-forum-post-modal-opened',

@@ -1,0 +1,124 @@
+@import '../../../../../../styles/media';
+
+// The card shell is production NewsCard's `.card`, applied alongside this
+// class — a hiring signal sits in the column as a peer of a news card, not as
+// a foreign object. Only the deltas live here.
+.card {
+  // NewsCard's own cursor is `pointer` because the whole card is a click
+  // target. This one has no card-level click: the headline, the role rows and
+  // the expander each go somewhere different.
+  cursor: default;
+  gap: 12px;
+}
+
+// Brand-tinted rather than the default grey: it names the kind of object, and
+// at 12px next to a team name the default reads as a disabled chip.
+.kindBadge {
+  flex-shrink: 0;
+  background: rgba(27, 77, 255, 0.08);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.headline {
+  margin: 0;
+}
+
+.headlineLink {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.roleList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px;
+  margin: 0 -8px;
+  border-radius: 6px;
+
+  &:hover {
+    background: rgba(27, 56, 96, 0.04);
+  }
+}
+
+.roleTitle,
+.roleTitleLink {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roleTitleLink {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.roleRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.roleLocation {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+
+  @include mobile-only {
+    // The arrow is the affordance; on a narrow card the location is what gives.
+    display: none;
+  }
+}
+
+.roleArrow {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+// Production Job Board's expander treatment, left-aligned here: the board
+// centres it under a full-width group card, but in a feed column a centred
+// link reads as a section footer rather than as this card's own control.
+.expander {
+  align-self: flex-start;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

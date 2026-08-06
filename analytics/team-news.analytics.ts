@@ -262,6 +262,31 @@ export const useTeamNewsAnalytics = () => {
 
   /** The Popular-this-week card appeared with stories on it — the denominator
    *  for its click-through, which was measured with no impression count. */
+  const onTopStoriesBlockViewed = (leadUid: string, rowCount: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TOP_STORIES_BLOCK_VIEWED, {
+      leadUid,
+      rowCount,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
+  /** Block items aren't in `visibleEntries`, so the feed's position lookup
+   *  reports -1 for all of them — the block passes its own slot and position
+   *  instead. `slot` separates the lead's pull from the runners-up's, which is
+   *  the only way to tell whether the asymmetry is earning anything. */
+  const onTopStoryClicked = (item: ITeamNewsItem, slot: 'lead' | 'row', position: number) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_TOP_STORY_CLICKED, {
+      itemUid: item.uid,
+      teamUid: item.teamUid,
+      teamName: item.teamName,
+      eventType: item.eventType,
+      upvoteCount: item.upvoteCount ?? 0,
+      slot,
+      position,
+      source: 'home' satisfies TeamNewsAnalyticsSource,
+    });
+  };
+
   const onPopularCardViewed = (itemCount: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_POPULAR_CARD_VIEWED, { itemCount });
   };
@@ -548,6 +573,8 @@ export const useTeamNewsAnalytics = () => {
     onPopularCardViewed,
     onPopularStoryScrollSucceeded,
     onPopularStoryFallbackOpened,
+    onTopStoriesBlockViewed,
+    onTopStoryClicked,
     onTeamsToFollowViewed,
     onTeamsToFollowHidden,
     onFeedForumPostCardClicked,

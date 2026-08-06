@@ -31,6 +31,7 @@ import {
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
+  TOP_STORIES_WINDOW_LABEL,
   type TeamNewsCategoryId,
 } from './constants';
 
@@ -40,6 +41,7 @@ import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
+import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 import { useStoryReveal } from './hooks/useStoryReveal';
@@ -51,6 +53,7 @@ import { NewsDetailModal } from './components/NewsDetailModal';
 import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
+import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
 import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
@@ -253,7 +256,33 @@ export const TeamNews = ({
     return filteredItems.filter((i) => matchesTeamNewsQuery(i, q));
   }, [filteredItems, query]);
 
-  const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
+  // The band is network-wide, so it only exists on the unfiltered view: ranking
+  // it inside a focus area or a category pill would make "Top stories" mean
+  // something different on every filter. This one flag drives the band's
+  // visibility, the stream exclusion below, and the rail's Popular dedup — three
+  // separate conditions would drift.
+  const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+
+  // Ranked from the frozen snapshot, rendered from the live overlay (allItems is
+  // already overlay-merged): liking the featured story updates its count without
+  // re-ranking the band under the cursor that just clicked it.
+  // The band exists to sit above a feed, so it only appears once the window can
+  // supply both it and a full first page (TOP_STORIES_MIN_CORPUS).
+  const topStories = useMemo(
+    () => (isNarrowedView ? null : selectTopStories(allItems, initialUpvoteCounts, TOP_STORIES_MIN_CORPUS)),
+    [isNarrowedView, allItems, initialUpvoteCounts],
+  );
+  const hasTopStories = Boolean(topStories?.lead);
+
+  // Excluded BEFORE clusterByTeam: pulling items out of already-built clusters
+  // would leave one with a hole, or leave an empty card behind. A team whose
+  // only story is in the band simply produces no cluster.
+  const streamItems = useMemo(
+    () => (topStories && hasTopStories ? searchedItems.filter((i) => !topStories.uids.has(i.uid)) : searchedItems),
+    [searchedItems, topStories, hasTopStories],
+  );
+
+  const clusters = useMemo(() => clusterByTeam(streamItems), [streamItems]);
 
   const sortedClusters = useMemo(
     () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids, initialUpvoteCounts),
@@ -285,6 +314,14 @@ export const TeamNews = ({
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
+
+  // Both the band and the rail's "Popular this week" rank by likes, so left
+  // alone they show the same three stories a few hundred pixels apart. The rail
+  // surfaces #4–#6 instead; it hides itself when the list comes back empty.
+  const railPopularItems = useMemo(
+    () => (topStories && hasTopStories ? popularItems.filter((p) => !topStories.uids.has(p.uid)) : popularItems),
+    [popularItems, topStories, hasTopStories],
+  );
 
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
@@ -398,6 +435,16 @@ export const TeamNews = ({
     analytics.onTeamNewsCardClicked(item, position >= 0 ? position : 0, 'home', via);
     // One modal, one URL param at a time — closing the other side first keeps
     // ?news= and ?post= mutually exclusive (both writes are synchronous).
+    if (activePostUid) closePost();
+    openNews(item.uid);
+  };
+
+  // Top-stories counterpart of handleStoryOpen. Its own event, not
+  // onTeamNewsCardClicked: band items aren't in `visibleEntries`, so that
+  // handler's position lookup would report -1 for every one of them, and the
+  // lead's pull can't be told from a runner-up's without `slot`.
+  const handleTopStoryOpen = (item: ITeamNewsItem, slot: TopStorySlot, position: number) => {
+    analytics.onTopStoryClicked(item, slot, position);
     if (activePostUid) closePost();
     openNews(item.uid);
   };
@@ -727,13 +774,34 @@ export const TeamNews = ({
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
-          {entries.length === 0 ? (
-            <div className={s.empty}>
-              {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+          {topStories?.lead && (
+            <div className={s.topStories}>
+              <TopStoriesBlock
+                lead={topStories.lead}
+                also={topStories.also}
+                windowLabel={TOP_STORIES_WINDOW_LABEL}
+                followedTeamUids={followedTeamUids}
+                onFollowToggle={handleFollowToggle}
+                onUpvoteToggle={handleUpvoteToggle}
+                onStoryOpen={handleTopStoryOpen}
+              />
             </div>
+          )}
+          {/* Suppressed when the band is showing: a window whose every story is
+              in the band leaves the stream empty, and "No network news in this
+              filter" directly under three stories reads as a bug. */}
+          {entries.length === 0 ? (
+            !topStories?.lead && (
+              <div className={s.empty}>
+                {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+              </div>
+            )
           ) : (
             <>
-              <div className={s.feed}>
+              {/* The stream, marked so it can be addressed apart from the
+                  top-stories band above it — which renders its own copies of
+                  the same stories. */}
+              <div className={s.feed} data-news-feed-list>
                 {visibleEntries.map((entry, index) => {
                   // Composite key intentionally forces a remount on every tab/category
                   // change so each card's local state (expanded stories, open comment
@@ -788,7 +856,7 @@ export const TeamNews = ({
         </div>
         <NewsRail
           initialDigestSettings={initialDigestSettings}
-          popularItems={popularItems}
+          popularItems={railPopularItems}
           suggestedTeams={suggestedTeams}
           isLoadingSuggestedTeams={isLoadingSuggestedTeams}
           followedTeamUids={followedTeamUids}

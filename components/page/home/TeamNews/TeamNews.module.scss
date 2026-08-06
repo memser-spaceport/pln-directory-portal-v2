@@ -113,6 +113,12 @@
   min-width: 0;
 }
 
+// `.main` has no gap of its own, so the band carries its own separation from
+// the stream — same 16px the feed uses between cards.
+.topStories {
+  margin-bottom: 16px;
+}
+
 .feed {
   display: flex;
   flex-direction: column;

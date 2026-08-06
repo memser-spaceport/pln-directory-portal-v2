@@ -31,24 +31,35 @@ interface CommentButtonProps {
   itemUid: string;
   open: boolean;
   onToggle: () => void;
-  /** id of the thread region this button discloses. */
-  controls: string;
+  /** id of the thread region this button discloses. Unused (and not required)
+   *  when `opensDetail` — there is no thread region to point at. */
+  controls?: string;
+  /**
+   * Opens the detail modal instead of disclosing an inline thread — the
+   * top-stories band, where an expanding thread would push the runners-up a
+   * screen down. Swaps the disclosure ARIA (`aria-expanded`/`aria-controls`,
+   * which would be a lie here: nothing expands and `controls` points at
+   * nothing) for `aria-haspopup="dialog"`, matching how NewsGroupCard's story
+   * rows announce the same modal.
+   */
+  opensDetail?: boolean;
 }
 
-export function CommentButton({ itemUid, open, onToggle, controls }: CommentButtonProps) {
+export function CommentButton({ itemUid, open, onToggle, controls, opensDetail = false }: CommentButtonProps) {
   const count = useFeedCommentCount(itemUid);
   const noun = count === 1 ? 'Comment' : 'Comments';
   const visibleLabel = count !== undefined ? `${count} ${noun}` : noun;
   // The accessible name has to CARRY the visible text, not replace it: a bare
   // "Show comments" hides the count from screen readers and leaves voice
   // control with no way to say what it can see.
-  const label = `${visibleLabel}, ${open ? 'hide' : 'show'}`;
+  const label = opensDetail ? `${visibleLabel}, open` : `${visibleLabel}, ${open ? 'hide' : 'show'}`;
   return (
     <button
       type="button"
       className={clsx(s.comment, open && s.commentOpen)}
-      aria-expanded={open}
-      aria-controls={controls}
+      aria-expanded={opensDetail ? undefined : open}
+      aria-controls={opensDetail ? undefined : controls}
+      aria-haspopup={opensDetail ? 'dialog' : undefined}
       aria-label={label}
       title={label}
       onClick={(e) => {

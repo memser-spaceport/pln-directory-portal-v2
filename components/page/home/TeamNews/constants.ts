@@ -1,4 +1,5 @@
 import type { TeamNewsEventType } from '@/types/team-news.types';
+import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from '@/services/team-news/constants';
 
 import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
@@ -32,3 +33,11 @@ export const CATEGORIES: Array<{ id: TeamNewsEventType | typeof ALL_CAT; label: 
   // so its keys are exactly TeamNewsEventType (Object.keys itself only returns string[]).
   ...(Object.keys(EVENT_TYPE_LABEL) as TeamNewsEventType[]).map((id) => ({ id, label: EVENT_TYPE_LABEL[id] })),
 ];
+
+/**
+ * The window the top-stories band ranks over, stated on the band itself so the
+ * claim "top" is bounded by something the reader can see. Derived from the same
+ * constant the grouped-by-focus-area fetch sends as `?windowDays=`, so the label
+ * can't drift from the data behind it.
+ */
+export const TOP_STORIES_WINDOW_LABEL = `Last ${TEAM_NEWS_DEFAULT_WINDOW_DAYS} days`;

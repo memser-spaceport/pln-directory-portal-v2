@@ -609,6 +609,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
   TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED: 'team-news-popular-story-scroll-succeeded',
   TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED: 'team-news-popular-story-fallback-opened',
+  // Top-stories band above the feed. VIEWED is the denominator CLICKED needs —
+  // without it a low click count can't be told apart from a block nobody saw.
+  TEAM_NEWS_TOP_STORIES_BLOCK_VIEWED: 'team-news-top-stories-block-viewed',
+  TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
   // Feed social layer (forum posts in the feed + feed-only comments).
   TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED: 'team-news-feed-forum-post-card-clicked',
   TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED: 'team-news-feed-forum-post-modal-opened',

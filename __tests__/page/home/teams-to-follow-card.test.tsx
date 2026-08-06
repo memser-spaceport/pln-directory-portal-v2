@@ -97,7 +97,9 @@ describe('TeamsToFollowCard', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('prefers the short description as the subtitle when available', () => {
+  // A tagline says what a team is, which its profile already does; the reason
+  // says why it is in front of *you*, which is what earns a follow here.
+  it('prefers the recommendation reason as the subtitle, stripped of the follower count', () => {
     render(
       <TeamsToFollowCard
         suggestions={[
@@ -113,24 +115,29 @@ describe('TeamsToFollowCard', () => {
         onFollowToggle={mockOnFollowToggle}
       />,
     );
-    expect(screen.getByText('Decentralized hot storage for large datasets.')).toBeInTheDocument();
-    expect(screen.queryByText('Storage')).not.toBeInTheDocument();
+    expect(screen.getByText('Storage')).toBeInTheDocument();
+    expect(screen.queryByText('Decentralized hot storage for large datasets.')).not.toBeInTheDocument();
   });
 
-  it('falls back to the focus-area reason when the short description is missing or blank', () => {
+  it('falls back to the short description when the reason is missing or blank', () => {
     render(
       <TeamsToFollowCard
         suggestions={[
-          team({ uid: 't1', name: 'Banyan Storage', shortDescription: '   ' }),
-          team({ uid: 't2', name: 'Other Team', reason: 'Infrastructure · 890 followers' }),
+          team({
+            uid: 't1',
+            name: 'Banyan Storage',
+            reason: '',
+            shortDescription: 'Decentralized hot storage for large datasets.',
+          }),
+          team({ uid: 't2', name: 'Other Team', reason: '   ', shortDescription: 'Runs the indexer.' }),
         ]}
         isLoading={false}
         followedTeamUids={emptyFollowed}
         onFollowToggle={mockOnFollowToggle}
       />,
     );
-    expect(screen.getByText('Storage')).toBeInTheDocument();
-    expect(screen.getByText('Infrastructure')).toBeInTheDocument();
+    expect(screen.getByText('Decentralized hot storage for large datasets.')).toBeInTheDocument();
+    expect(screen.getByText('Runs the indexer.')).toBeInTheDocument();
   });
 
   it('redirects to login on follow click when anonymous, without calling onFollowToggle', () => {

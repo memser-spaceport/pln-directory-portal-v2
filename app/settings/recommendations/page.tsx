@@ -14,7 +14,7 @@ import { getSelectedFrequency } from '@/components/page/recommendations/componen
 
 const getPageData = async (userInfo: any, authToken: string, isLoggedIn: boolean) => {
   const [memberResponse, preferences, notificationSettings] = await Promise.all([
-    getMember(userInfo?.uid, {}, isLoggedIn, userInfo),
+    getMember(userInfo?.uid, {}, isLoggedIn, userInfo, true, false, authToken),
     getMemberPreferences(userInfo.uid, authToken),
     getMemberNotificationSettings(userInfo?.uid, authToken),
   ]);

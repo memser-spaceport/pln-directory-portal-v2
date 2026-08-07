@@ -57,6 +57,13 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.7',
+    items: [
+      'Your agent now knows the CPU/memory budget for building and running your app, and designs within it',
+      'If a deploy or build ever hits that limit, your agent recognizes it and fixes the app instead of just retrying',
+    ],
+  },
+  {
     version: '1.6',
     items: [
       'Ask PLN to provision a database for your app automatically — no accounts or setup needed',

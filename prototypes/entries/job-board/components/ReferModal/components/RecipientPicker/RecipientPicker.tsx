@@ -24,6 +24,8 @@ import { useMemberSearch } from '../../hooks/useMemberSearch';
 
 import { MailIcon } from '../../../../icons';
 
+import { AutosizeInput } from './components/AutosizeInput';
+
 import { selectStyles } from './selectStyles';
 import s from './RecipientPicker.module.scss';
 
@@ -142,6 +144,9 @@ export function RecipientPicker(props: RecipientPickerProps) {
         // real class alongside the emotion styles above.
         classNames={{ valueContainer: () => s.valueContainer }}
         components={{
+          // Flexbox auto-width input (mirror span + absolute overlay) in place of
+          // react-select's own CSS-Grid-based one.
+          Input: AutosizeInput,
           // Production's no-results treatment, not react-select's centred default:
           // FormSelect and FormMultiSelect both render `.notFound` — a left-aligned
           // column whose spans are 12px/400 in --Neutral-Slate-600 — with the second

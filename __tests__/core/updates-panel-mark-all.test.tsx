@@ -80,7 +80,7 @@ describe('UpdatesPanel mark all as read', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Could not mark notifications as read');
   });
 
-  it('scopes the list with the All/Unread/Read tabs, with a caught-up escape hatch', () => {
+  it('defaults to Unread when there are unreads, and scopes All/Unread/Read with a caught-up escape hatch', () => {
     const now = new Date().toISOString();
     const notification = (id: string, title: string, isRead: boolean) =>
       ({ id, uid: id, title, description: '', isRead, category: 'FORUM_POST', createdAt: now }) as never;
@@ -90,15 +90,24 @@ describe('UpdatesPanel mark all as read', () => {
     });
 
     expect(screen.getByRole('tablist', { name: 'Filter updates' })).toBeInTheDocument();
-    expect(screen.getByText('Unread thing')).toBeInTheDocument();
-    expect(screen.getByText('Read thing')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('tab', { name: /Unread/ }));
+    expect(screen.getByRole('tab', { name: /Unread/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Unread thing')).toBeInTheDocument();
     expect(screen.queryByText('Read thing')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('tab', { name: 'All' }));
+    expect(screen.getByText('Unread thing')).toBeInTheDocument();
+    expect(screen.getByText('Read thing')).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('tab', { name: 'Read' }));
     expect(screen.queryByText('Unread thing')).not.toBeInTheDocument();
+    expect(screen.getByText('Read thing')).toBeInTheDocument();
+  });
+
+  it('defaults to All when there are no unreads', () => {
+    const notification = { id: 'n2', title: 'Read thing', isRead: true, category: 'FORUM_POST' } as never;
+    renderPanel({ notifications: [notification], unreadCount: 0 });
+
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Read thing')).toBeInTheDocument();
   });
 
@@ -180,7 +189,10 @@ describe('UpdatesPanel search', () => {
     // GUIDE_POST renders as "Founder Guides" via getCategoryLabel(), but as
     // "Forum" in CATEGORY_CONFIG — searching "guide" must use the former.
     renderPanel({
-      notifications: [notification('n1', 'New guide posted', 'GUIDE_POST'), notification('n2', 'A forum reply', 'FORUM_POST')],
+      notifications: [
+        notification('n1', 'New guide posted', 'GUIDE_POST'),
+        notification('n2', 'A forum reply', 'FORUM_POST'),
+      ],
       unreadCount: 2,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Search updates' }));

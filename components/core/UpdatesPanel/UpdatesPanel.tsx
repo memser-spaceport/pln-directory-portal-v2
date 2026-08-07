@@ -41,12 +41,21 @@ export function UpdatesPanel({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // All / Unread / Read scoping (prototype behavior). Deliberately NOT reset
-  // on close: reopening where you left off matches the proto's session-scoped
-  // view state.
+  // All / Unread / Read scoping. Re-defaults each time the panel opens:
+  // Unread when there are any, otherwise All — so an empty Unread tab is
+  // never the first thing you see.
   const [view, setView] = useState<UpdatesView>('all');
 
-  // Search state, same "not reset on close" precedent as `view` above.
+  useEffect(() => {
+    if (!open) return;
+    setView(unreadCount > 0 ? 'unread' : 'all');
+    // Re-default only when the panel opens — while open, the user's tab
+    // choice sticks even as mark-as-read changes the count.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Search state. Deliberately NOT reset on close: reopening where you left
+  // off matches the proto's session-scoped search.
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchFieldRef = useRef<HTMLDivElement>(null);

@@ -890,7 +890,9 @@ export const TeamNews = ({
                   onFollowToggle={handleFollowToggle}
                 />
               )}
+              {/* Temporarily hidden
               <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
+              */}
             </div>
           )}
 

@@ -35,6 +35,8 @@ jest.mock('@/analytics/notification.analytics', () => ({
     onNotificationActionLinkClicked: jest.fn(),
     onMarkAllUpdatesReadClicked: (...a: unknown[]) => mockOnMarkAllClicked(...a),
     onMarkAllUpdatesReadFailed: (...a: unknown[]) => mockOnMarkAllFailed(...a),
+    onUpdatesSearchOpened: jest.fn(),
+    onUpdatesSearchQueried: jest.fn(),
   }),
 }));
 

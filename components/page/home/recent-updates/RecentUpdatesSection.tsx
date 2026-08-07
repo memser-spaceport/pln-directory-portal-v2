@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { stripHtml, usePushNotificationsContext } from '@/providers/PushNotificationsProvider';
 import { useInfiniteNotifications } from '@/services/push-notifications/hooks';
@@ -11,6 +11,7 @@ import { NotificationItem } from '@/components/core/UpdatesPanel/NotificationIte
 import { LoadingIndicator } from './components/LoadingIndicator/LoadingIndicator';
 import { NotLoggedInState } from '@/components/core/UpdatesPanel/NotLoggedInState';
 import { ViewSwitch, applyView, type UpdatesView } from '@/components/core/UpdatesPanel/ViewSwitch/ViewSwitch';
+import { HeaderSearch, matchesQuery } from '@/components/core/UpdatesPanel/HeaderSearch/HeaderSearch';
 import s from './RecentUpdatesSection.module.scss';
 
 /**
@@ -43,15 +44,76 @@ export function RecentUpdatesSection(props: Props) {
   // aria-live announcement — this flow's only feedback (no toast/undo by design).
   const [statusMessage, setStatusMessage] = useState('');
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   // All / Unread / Read scoping (the inbox prototype's arrangement). Filters
-  // the pages loaded so far; scrolling keeps feeding the filter.
+  // the pages loaded so far; scrolling keeps feeding the filter. Defaults to
+  // Unread once the list has loaded — but only when there are any unreads,
+  // so an empty Unread tab is never the first thing you see.
   const [view, setView] = useState<UpdatesView>('all');
+  const didInitViewRef = useRef(false);
+
+  useEffect(() => {
+    if (didInitViewRef.current || isLoading) return;
+    didInitViewRef.current = true;
+    if (unreadCount > 0) setView('unread');
+  }, [isLoading, unreadCount]);
+
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchFieldRef = useRef<HTMLDivElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+  const listMouseDownRef = useRef(false);
 
   // Sanitize notifications to remove HTML markup from title and description
   // TODO: REMOVE MOCK_IRL_GATHERING_NOTIFICATION from the array below when done testing
   const sanitizedNotifications = useMemo(() => notifications.map(sanitizeNotification), [notifications]);
-  const visibleNotifications = applyView(sanitizedNotifications, view);
+  const visibleNotifications = useMemo(
+    () => applyView(sanitizedNotifications, view).filter((n) => matchesQuery(n, query)),
+    [sanitizedNotifications, view, query],
+  );
+  const isSearching = query.trim().length > 0;
+
+  useEffect(() => {
+    if (searchOpen) searchFieldRef.current?.querySelector('input')?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!isSearching) return;
+    analytics.onUpdatesSearchQueried(query, visibleNotifications.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const handleSearchOpen = useCallback(() => {
+    setSearchOpen(true);
+    analytics.onUpdatesSearchOpened();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => setQuery(value), []);
+
+  const handleSearchBlur = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
+    const related = e.relatedTarget as Node | null;
+    const staysInsideSection = !!related && !!sectionRef.current?.contains(related);
+    const liveValue = searchFieldRef.current?.querySelector('input')?.value ?? '';
+    if (liveValue || staysInsideSection || listMouseDownRef.current) return;
+    setSearchOpen(false);
+  }, []);
+
+  const handleSearchKeyUp = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Escape') return;
+    const liveValue = searchFieldRef.current?.querySelector('input')?.value ?? '';
+    if (liveValue) return;
+    setSearchOpen(false);
+    searchToggleRef.current?.focus();
+  }, []);
+
+  const handleListMouseDown = useCallback(() => {
+    listMouseDownRef.current = true;
+    setTimeout(() => {
+      listMouseDownRef.current = false;
+    }, 0);
+  }, []);
 
   const handleNotificationClick = (notification: PushNotification) => {
     analytics.onRecentUpdatesNotificationClicked(notification);
@@ -78,14 +140,28 @@ export function RecentUpdatesSection(props: Props) {
 
   const renderHeader = () => (
     <div className={s.header}>
-      <h2 className={s.title} tabIndex={-1} ref={titleRef}>
-        Recent Updates
-      </h2>
-      {isLoggedIn && unreadCount > 0 && (
-        <div className={s.unreadBadge}>
-          <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
-        </div>
-      )}
+      <div className={s.titleRow}>
+        <h2 className={s.title} tabIndex={-1} ref={titleRef}>
+          Recent Updates
+        </h2>
+        {isLoggedIn && unreadCount > 0 && (
+          <div className={s.unreadBadge}>
+            <span className={s.unreadBadgeText}>Unread {unreadCount}</span>
+          </div>
+        )}
+        {isLoggedIn && (
+          <HeaderSearch
+            open={searchOpen}
+            value={query}
+            onOpen={handleSearchOpen}
+            onChange={handleSearchChange}
+            onBlur={handleSearchBlur}
+            onKeyUp={handleSearchKeyUp}
+            fieldRef={searchFieldRef}
+            toggleRef={searchToggleRef}
+          />
+        )}
+      </div>
       <span role="status" className={s.srOnly}>
         {statusMessage}
       </span>
@@ -108,7 +184,7 @@ export function RecentUpdatesSection(props: Props) {
 
   if (!isLoggedIn) {
     return (
-      <section id="recent-updates" className={s.section}>
+      <section id="recent-updates" className={s.section} ref={sectionRef}>
         {renderHeader()}
         <div className={s.card}>
           <NotLoggedInState />
@@ -119,7 +195,7 @@ export function RecentUpdatesSection(props: Props) {
 
   if (isLoading) {
     return (
-      <section id="recent-updates" className={s.section}>
+      <section id="recent-updates" className={s.section} ref={sectionRef}>
         {renderHeader()}
         <div className={s.card}>
           <LoadingIndicator />
@@ -129,12 +205,17 @@ export function RecentUpdatesSection(props: Props) {
   }
 
   return (
-    <section id="recent-updates" className={s.section}>
+    <section id="recent-updates" className={s.section} ref={sectionRef}>
       {renderHeader()}
       {renderFilters()}
       <div className={s.card}>
         {sanitizedNotifications.length === 0 ? (
           <EmptyState />
+        ) : isSearching && visibleNotifications.length === 0 ? (
+          <div className={s.viewEmptyState}>
+            <p className={s.viewEmptyTitle}>No results for &lsquo;{query}&rsquo;</p>
+            <p className={s.viewEmptyBody}>Try a different keyword.</p>
+          </div>
         ) : visibleNotifications.length === 0 ? (
           // The list has items — just none in this segment (proto copy).
           <div className={s.viewEmptyState}>
@@ -162,7 +243,7 @@ export function RecentUpdatesSection(props: Props) {
             next={fetchNextPage}
             style={{ overflow: 'unset' }}
           >
-            <div className={s.notificationsList}>
+            <div className={s.notificationsList} onMouseDown={handleListMouseDown}>
               {visibleNotifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}

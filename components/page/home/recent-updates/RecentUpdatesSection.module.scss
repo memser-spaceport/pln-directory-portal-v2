@@ -12,6 +12,14 @@
   gap: 12px;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
 .title {
   font-family: 'Inter', sans-serif;
   font-size: 24px;

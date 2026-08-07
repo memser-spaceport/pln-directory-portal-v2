@@ -157,9 +157,11 @@ export function NewsRail({
             onFollowToggle={onFollowToggle!}
           />
         )}
+        {/* Temporarily hidden 
         {showPopular && (
           <PopularThisWeekCard key="popular-this-week" items={popularItems} onPopularItemClick={onPopularItemClick} />
         )}
+        */}
 
         {/* The digest CTA is open to everyone — members without forum access
             get a network-news-only digest (forum posts are suppressed

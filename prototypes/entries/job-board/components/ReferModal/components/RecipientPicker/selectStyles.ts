@@ -57,26 +57,6 @@ export const selectStyles: StylesConfig<RecipientOption, true, GroupBase<Recipie
       paddingRight: '4px',
     },
   }),
-  // The typing area is allowed to shrink to nothing by default, so a long address
-  // typed next to a chip gets squeezed under it and paints over the chip. Giving it
-  // a floor makes it wrap onto its own line instead, and hiding overflow stops any
-  // text escaping the box it was measured for.
-  input: (base) => ({
-    ...base,
-    fontSize: '14px',
-    padding: 0,
-    margin: 0,
-    flexGrow: 'var(--recipient-input-grow, 0)',
-    flexShrink: 1,
-    flexBasis: 'auto',
-    // Set by the control above: 2px at rest, 60px focused. A fixed 140px floor
-    // wrapped this onto a line of its own almost every time, which read as
-    // unexplained empty space under the chips. `overflow: hidden` is what actually
-    // prevents text painting over a chip, so the floor is free to collapse.
-    minWidth: 'var(--recipient-input-floor, 2px)',
-    maxWidth: '100%',
-    overflow: 'hidden',
-  }),
   placeholder: (base) => ({ ...base, color: '#AFBACA', fontSize: '14px' }),
   menu: (base) => ({ ...base, outline: 'none', zIndex: 3, overflow: 'hidden' }),
   menuList: (base) => ({ ...base, padding: '4px' }),

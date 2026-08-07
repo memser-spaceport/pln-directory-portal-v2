@@ -12,6 +12,15 @@ import {
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
+import { getCookiesFromClient } from '@/utils/third-party.helper';
+
+const resolveAuthToken = (authToken?: string) => {
+  if (authToken) return authToken;
+  if (typeof window !== 'undefined') {
+    return getCookiesFromClient().authToken || '';
+  }
+  return '';
+};
 
 export const getFilterValuesForQuery = async (options?: IMemberListOptions | null, authToken?: string) => {
   handleHostAndSpeaker(options);
@@ -38,15 +47,18 @@ export const getMembers = async (
   currentPage: number,
   limit: number,
   isLoggedIn: boolean,
+  authToken?: string,
 ) => {
   handleHostAndSpeaker(options);
+  const token = resolveAuthToken(authToken);
   const response = await fetch(
     `${process.env.DIRECTORY_API_URL}/v1/members?page=${currentPage}&limit=${limit}&${new URLSearchParams(options as any)}`,
     {
       method: 'GET',
-      // cache: 'force-cache',
-      next: { tags: ['member-list'] },
-      headers: getHeader(''),
+      headers: getHeader(token),
+      ...(token
+        ? { cache: 'no-store' as RequestCache }
+        : { next: { tags: ['member-list'] } }),
     },
   );
 
@@ -130,9 +142,11 @@ export const getMember = async (
   userInfo?: any,
   isHidePref: boolean = true,
   fetchNew?: boolean,
+  authToken?: string,
 ) => {
-  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader('') };
-  if (fetchNew) {
+  const token = resolveAuthToken(authToken);
+  const requestOPtions: RequestInit = { method: 'GET', headers: getHeader(token) };
+  if (fetchNew || token) {
     requestOPtions.cache = 'no-store';
   } else {
     requestOPtions.cache = 'force-cache';
@@ -391,13 +405,14 @@ export const getMembersForAttendeeForm = async () => {
   return { data: formattedData };
 };
 
-export const getMemberInfo = async (memberUid: string) => {
+export const getMemberInfo = async (memberUid: string, authToken?: string) => {
+  const token = resolveAuthToken(authToken);
   const response = await fetch(
     `${process.env.DIRECTORY_API_URL}/v1/members/${memberUid}?${new URLSearchParams({ with: 'image,skills,location,teamMemberRoles.team,memberRoles' })}`,
     {
       cache: 'no-store',
       method: 'GET',
-      headers: getHeader(''),
+      headers: getHeader(token),
     },
   );
   if (!response?.ok) {

@@ -22,7 +22,7 @@ const getPageData = async (selectedMemberId: string, authToken: string, isVerifi
 
   const members = dpResult?.data ?? [];
   const [memberResult, preferenceResult] = await Promise.all([
-    getMemberInfo(selectedMemberId ?? members[0].id),
+    getMemberInfo(selectedMemberId ?? members[0].id, authToken),
     getMemberPreferences(selectedMemberId ?? members[0].id, authToken),
   ]);
   if (memberResult.isError || preferenceResult.isError) {

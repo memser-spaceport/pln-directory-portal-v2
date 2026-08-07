@@ -48,7 +48,7 @@ async function RecommendationsPage(props: { searchParams: Promise<any> }) {
         Authorization: `Bearer ${authToken}`,
       },
     }),
-    getMemberInfo(userInfo.uid),
+    getMemberInfo(userInfo.uid, authToken),
   ]);
 
   if (!settingResponse.ok) {

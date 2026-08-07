@@ -11,9 +11,19 @@
 /* ---------------------------------------------------------------- card strip */
 
 /**
- * One quiet row at the foot of the card, divided from the path content above.
- * The referral answer sits left (it's the action), feedback sits right (it's
- * the escape hatch) — so the eye lands on the thing people actually do.
+ * One quiet row at the foot of the card. The referral answer sits left (it's the
+ * action), feedback sits right (it's the escape hatch) — so the eye lands on the
+ * thing people actually do.
+ *
+ * No rule above it. It had one, from when this strip followed the chain directly
+ * and needed something to separate two adjacent blocks of text. The evidence block
+ * (`PathEvidence.module.scss` `.eventsBlock`) now sits between them and draws its
+ * own, so the card was ending in two rules about 100px apart — banding a small
+ * card into three sections, where the last band holds two links.
+ *
+ * Space does the separating instead. The strip is already set apart by being
+ * right-aligned, quiet, and the only interactive thing in the card; a line to say
+ * so as well is the second time it is said.
  */
 .strip {
   display: flex;
@@ -21,9 +31,9 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  /* Was 10 + 10 across a border; kept as one value now there is nothing to sit
+     either side of. */
+  margin-top: 14px;
 }
 
 .stripLeft,

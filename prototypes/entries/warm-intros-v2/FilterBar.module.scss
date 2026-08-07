@@ -1,0 +1,161 @@
+/**
+ * Layout-only additions for the reworked filter bar. No colors, no type sizes —
+ * those all come from the production modules the prototype imports
+ * (`WarmIntrosV2Workspace.module.scss` for the bar, `WarmIntrosWorkspace.module.scss`
+ * for the active-filter pills), so there is nothing here to token-swap.
+ *
+ * Two things production's own classes can't do:
+ *   - `.meta` is a bare text line; Export now sits on it, so it needs to be a row
+ *   - the pill row and the empty state need their own spacing under the bar
+ */
+
+/**
+ * Production's `.quickChip` is 32px because it lived in a row of other chips.
+ * Here it sits beside 40px selects, so it takes their height — and it needs a
+ * disabled state, which production never defined: at 0 matches the toggle was
+ * inert but looked identical to a live one.
+ */
+/**
+ * Squared off to match the selects.
+ *
+ * Production's `.quickChip` is `border-radius: 999px` at `height: 32px` — a small
+ * pill among other small chips, which is where it was designed to sit. Raising it
+ * to 40px to line up with the selects is what made the roundness conspicuous: a
+ * 999px radius at 40px tall stops being a chip and becomes a stadium beside three
+ * 8px fields.
+ *
+ * It stays a toggle rather than becoming a checkbox. Across the B2B data-table
+ * products on Mobbin (Deel, Twenty, Databricks, Amplitude, Base44, Clay, Attio,
+ * LangChain, Braintrust, Basedash, Confluence) checkboxes appear only *inside*
+ * dropdown panels, never loose in the toolbar; toolbar filters are small-radius
+ * chips, and Databricks' one binary switch lives inside the filter popover. Deel's
+ * bar is the closest analogue — uniform-height, uniform-radius chips, one carrying
+ * a count badge, which is exactly this control.
+ *
+ * The rule is not "8px" as such, it is that the toggle and the selects share one
+ * radius. Theirs is 8px. It also keeps the semantics: this is a momentary lens
+ * deliberately kept out of the facet set, which is what a toggle reads as.
+ */
+.axisToggle.axisToggle {
+  height: 40px;
+  /* Doubled: production's `.quickChip` carries `border-radius: 999px` and a single
+     class ties it, so which one won came down to bundle order. It lost. */
+  border-radius: 8px;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: #e5e7eb;
+      color: #455468;
+    }
+  }
+}
+
+/**
+ * Present for screen readers, gone visually — the same technique the table's
+ * `mobile-only` block uses to keep column names in the a11y tree. `display: none`
+ * would remove the label from that tree along with the pixels, which is the whole
+ * thing being fixed.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Results count on the left, view tabs beside it, Export at the right edge. */
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/**
+ * The variant switcher, on the results line rather than above the table: it
+ * changes how the same result set is drawn, so it belongs with the sentence that
+ * says how many results there are — not in the row of controls that change *which*
+ * results there are.
+ *
+ * DS `Tabs` at `variant="pill"` is already a segmented control (grey track, white
+ * raised indicator, 8px radius). Only the type scale comes down: it ships at 16px
+ * for page-level tabs, which would outweigh the 13px count it sits next to.
+ */
+.viewTabs {
+  flex: 0 0 auto;
+}
+
+.viewTab {
+  padding: 4px 10px;
+}
+
+.viewTabLabel {
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: normal;
+}
+
+.metaRowSpacer {
+  margin-left: auto;
+}
+
+/**
+ * Export CSV becomes the blue primary its siblings already are.
+ *
+ * Production's `.exportBtn` is white because in `WarmIntrosV2Workspace.tsx` that
+ * class dresses *two* buttons — the feedback queue and Export — sitting in the row
+ * of 40px filter selects. It is generic secondary chrome sized to match the
+ * selects, not an export treatment. The two sibling table pages both render the
+ * same action as a blue primary:
+ * `InvestorsTableSection.module.scss` `.exportBtn` and
+ * `FoundersTableSection.module.scss` `.exportBtn` are byte-for-byte the same rule
+ * — `#1b4dff` on `#fff`, 36px, radius 6, weight 600, hover `#1a3fd9`.
+ *
+ * Export has moved onto the results line here, so it is no longer one of a row of
+ * filter controls and no longer needs to match their height. Its geometry is
+ * copied from `InvestorsTableSection` — the closest sibling, same feature area —
+ * rather than kept at production's select-matching 40px/8px.
+ *
+ * Note on tokens: `--action-background-brand-normal` is verified in
+ * `Tabs.module.scss` and `UnsavedChangesPrompt.module.scss`. No token name exists
+ * anywhere for the `#1a3fd9` hover — every file writes it raw — so the name below
+ * is extrapolated from the sibling `--action-foreground-brand-hover` that forum's
+ * `CommentItem.module.scss` uses. The fallback renders identically today.
+ */
+.exportPrimary.exportPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  background: var(--action-background-brand-normal, #1b4dff);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) {
+    background: var(--action-background-brand-hover, #1a3fd9);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+  }
+}
+
+/* The empty state has to hold a recovery action, so it stops being a bare line. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}

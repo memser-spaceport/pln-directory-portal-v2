@@ -12,7 +12,7 @@ import s from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.modu
 import local from './NewsfeedV0.module.scss';
 
 import type { ForumPost, FeedComment } from './mocks';
-import { LikeButton, CommentButton } from './FeedActions';
+import { LikeButton, CommentButton, ViewCount } from './FeedActions';
 import { ShareMenu } from './ShareMenu';
 import { CommentsThread } from './CommentsThread';
 
@@ -107,6 +107,10 @@ export function ForumPostCard({
           </span>
           <span className={local.footerActions} onClick={(e) => e.stopPropagation()}>
             <ShareMenu variant="card" url={forumUrl} />
+            {/* A forum post carries a real view count in production, and this is
+                the number the post's own thread shows — same order as the forum
+                listing card's Views · Likes · Comments. */}
+            <ViewCount count={post.views} compact />
             <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />
             {showComments && (
               <CommentButton count={comments.length} open={threadOpen} onToggle={() => setThreadOpen((v) => !v)} />

@@ -25,6 +25,13 @@
   flex: 1;
 }
 
+.headerLinks {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
 .howScoredLink {
   flex-shrink: 0;
   margin-top: 2px;
@@ -108,6 +115,23 @@
   border-color: #1b4dff;
   color: #1b4dff;
   font-weight: 600;
+}
+
+// "Backed PL/FIL" sits beside 40px selects, not a row of other chips, so it takes
+// their height and radius instead of the 32px/999px pill shape .quickChip uses.
+.backedToggle {
+  height: 40px;
+  border-radius: 8px;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: #e5e7eb;
+      color: #455468;
+    }
+  }
 }
 
 .quickChipToggle {
@@ -226,15 +250,68 @@
   color: #b42318;
 }
 
+// The empty state holds a recovery action, so it's no longer a bare line.
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
 .listWrap {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+// Results count on the left, Export at the right edge — Export is an action on
+// the result set, so it belongs with the sentence that says how many there are,
+// not in the row of controls that changes which results there are.
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.metaRowSpacer {
+  margin-left: auto;
+}
+
 .meta {
   font-size: 12px;
   color: #64748b;
+}
+
+// Export CSV becomes the blue primary its sibling table pages (Investors,
+// Founders) already use for the same action, now that it's out of the row of
+// 40px filter selects it used to need to visually match.
+.exportPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  font-family: inherit;
+  background: #1b4dff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) {
+    background: #1a3fd9;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 .sentinelLoader {

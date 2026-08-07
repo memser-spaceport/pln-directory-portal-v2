@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import type { IJobRole } from '@/types/jobs.types';
 
 import { JOB_QUERY_PARAMS } from '../../constants';
@@ -12,6 +13,7 @@ import s from './ReferMenu.module.scss';
 
 interface ReferMenuProps {
   role: IJobRole;
+  teamId: string;
   teamName: string;
 }
 
@@ -24,10 +26,20 @@ interface ReferMenuProps {
  * (base-ui Menu, encoded intents, cleared copy timer) — a third share surface
  * should extract from there, not copy this one again.
  */
-export function ReferMenu({ role, teamName }: ReferMenuProps) {
+export function ReferMenu({ role, teamId, teamName }: ReferMenuProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const analytics = useJobsAnalytics();
+
+  const referBase = {
+    job_id: role.uid,
+    team_id: teamId,
+    team_name: teamName,
+    role_title: role.roleTitle,
+    role_category: role.roleCategory,
+    seniority: role.seniority,
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -66,6 +78,7 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
         ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
         : `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
 
+    analytics.onJobReferShared({ ...referBase, network });
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
     setOpen(false);
   };
@@ -73,6 +86,7 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(getJobLink());
+      analytics.onJobReferShared({ ...referBase, network: 'copy_link' });
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -80,9 +94,16 @@ export function ReferMenu({ role, teamName }: ReferMenuProps) {
     }
   };
 
+  const toggleMenu = () => {
+    setOpen((wasOpen) => {
+      if (!wasOpen) analytics.onJobReferShareMenuOpened(referBase);
+      return !wasOpen;
+    });
+  };
+
   return (
     <div className={s.wrap} ref={wrapRef}>
-      <span className={s.trigger} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <span className={s.trigger} aria-haspopup="menu" aria-expanded={open} onClick={toggleMenu}>
         <ShareIcon />
       </span>
 

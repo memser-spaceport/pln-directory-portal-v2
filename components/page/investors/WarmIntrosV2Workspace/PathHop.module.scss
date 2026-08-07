@@ -1,0 +1,43 @@
+// Layout only — no colours of its own beyond the muted grey already used for
+// .pathArrow / .subtle elsewhere in this workspace.
+
+.hop {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+// Only a captioned hop stacks, so the caption sits under its own name. The hop
+// reserves the caption's height above the chip too (13px = 12px line-height + 1px
+// gap), keeping every chip on the row's centre line whether or not it has a caption.
+.hopWithRole {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 13px;
+}
+
+.roleCaption {
+  padding-left: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  letter-spacing: 0.01em;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+// "In LabOS" — the one colour on the caption row, spent on presence in LabOS
+// rather than on the role, since the role repeats down the column and LabOS
+// doesn't. A real link (not a styled span), so the underline is a non-color
+// signal alongside the weight — no second dot next to the chip's own.
+.labOs {
+  font-weight: 600;
+  color: #047857;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}

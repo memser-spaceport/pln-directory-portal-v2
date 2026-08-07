@@ -147,3 +147,10 @@
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
   }
 }
+
+.referButton {
+  flex-shrink: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+

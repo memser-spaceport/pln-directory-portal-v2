@@ -1,7 +1,6 @@
 'use client';
 
 import { Fragment, useState, type ReactNode } from 'react';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { Badge } from '@/components/common/Badge/Badge';
 import { Button } from '@/components/common/Button/Button';
 import { CopyButton } from '@/components/ui/CopyButton/CopyButton';
@@ -73,7 +72,7 @@ export function WarmPathPanel({ paths, investor }: Props) {
   );
 }
 
-// One path card: header (proximity + rank + a quiet "suggest a correction" icon),
+// One path card: header (rank + score % + a quiet "suggest a correction" icon),
 // description, the people chain, the PL tie stat, and the contact disclosure.
 function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }) {
   const route = resolveRoute(path);
@@ -103,7 +102,6 @@ function PathCard({ path, investor }: { path: MockPath; investor: MockInvestor }
   return (
     <li className={`${pd.pathItem} ${x.pathCardFill}`}>
       <div className={`${pd.pathHead} ${x.pathHeadWrap}`}>
-        <ProximityCodeBadge code={path.proximity_code} />
         <span className={`${pd.rank} ${x.rankSm}`}>
           {path.rank <= 1 ? 'Best path' : `Alternative #${path.rank}`}
           {pathDirectness(path) ? ` · ${pathDirectness(path)}` : ''} · {Math.round(path.score * 100)}% warm

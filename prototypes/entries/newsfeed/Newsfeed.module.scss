@@ -1,0 +1,1338 @@
+@import 'styles/media.scss';
+
+/* Layout, page backdrop, feed grid, rail chrome and card shells all come from
+   ../newsfeed-v0/NewsfeedV0.module.scss and the production modules it reuses.
+   This file only carries what is new here: the Top Story hero, the hiring
+   signal, the prototype control bar, and the email. */
+
+/* The `.controlBar` / `.controlGroup` / `.controlLabel` rules styled the
+   prototype's Path / Mix / Curated-by switch row. The switches are gone — the
+   feed renders one settled configuration — so their styles went with them. */
+
+/* ---------- Event-type filter ---------- */
+
+/* Pills on desktop, a "Type:" dropdown below 640px — the same split
+   `v0.sortDesktop` / `v0.sortMobile` already make for Sort, so the two controls
+   change together rather than at different widths. */
+.catRowDesktop {
+  @include mobile-only {
+    display: none;
+  }
+}
+
+/* ---------- Focus-area tabs ---------- */
+
+/* Between the hero and the category pills. `.topSlot` already carries 20px below
+   the hero, so the tabs sit close to the pills they lead rather than to the story
+   they follow. */
+.focusTabs {
+  margin-bottom: 4px;
+}
+
+/* ---------- Top stories block ---------- */
+
+/* ---------- Teams to follow: one instance at every width ---------- */
+
+/* The block now sits inside `.feedList`, so the rail is one continuous column
+   starting with Teams to follow. Below 960px that column stacks under the whole
+   feed, so the scroller takes over there and the rail card hides — the two rules
+   are exact complements. */
+.followScrollSlot {
+  @include tablet-landscape {
+    display: none;
+  }
+}
+
+.hideBelowDesktop {
+  display: none;
+
+  @include tablet-landscape {
+    display: flex;
+  }
+}
+
+/* One band holding a lead plus two rows. Without the shared border the rows read
+   as feed items that happen to sit high, rather than as part of the pick.
+   `overflow: hidden` clips the lead's gradient to the rounded corners. */
+.topBlock {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  overflow: hidden;
+
+  /* Production `NewsCard.module.scss .card:hover`, verbatim — the block is a card
+     among cards. `overflow: hidden` clips descendants, not the element's own
+     shadow, so this renders fine. The lift belongs to the whole band: a per-item
+     hover inside it read as a grey wash, because an inset blur is a fill. */
+  transition: box-shadow 0.12s ease;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.16),
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* The band carries the outline, so the lead drops its own — otherwise the card
+   draws a second 1px brand border just inside the band's.
+   Three classes deliberately: `.topCard.topCard` further down this file is
+   already 0,2,0, so a plain `.topBlock .topCard` ties it and then loses on
+   source order. This has to out-specify it, not match it. */
+.topBlock .topCard.topCard {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* No per-item hover inside the band — the band itself is the card that lifts.
+   Only the headline still responds, which is the ordinary link affordance every
+   other card in the column uses. */
+
+.alsoList {
+  margin: 0;
+  padding: 0 20px 6px;
+  list-style: none;
+  background: #ffffff;
+}
+
+/* Same anatomy as a feed card — head row, headline, summary, meta — just without
+   the card's own border and shadow, because the band supplies those. */
+.alsoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 8px;
+  margin: 0 -8px;
+
+  /* One rule above every row — including the first, so the line separating the
+     lead from story two is the same line that separates two from three. The band
+     used to carry that first divider itself, which made it full-bleed and a
+     shade darker than the others. */
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+
+  /* No grey fill on hover — these use the same lift as every other card in the
+     column (see the shared rule above). */
+  &:hover .alsoTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* The headline is the click target, since the row now holds a Follow button and
+   a button can't nest inside a button. */
+.alsoTitleBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+.alsoTitle {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.12s ease;
+}
+
+/* These are top stories too, so they get a summary — a bare headline reads as an
+   afterthought. Two lines each, or three summaries push the stream off screen. */
+.alsoSummary {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.alsoMeta {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---------- The sub-desktop scroller ---------- */
+
+/* The shell both lifted rail modules share — Teams to follow and Popular this
+   week. Neutral `rail*` names because it is no longer follow-specific; the markup
+   lives in `MobileScrollRow.tsx` so the scroll mechanics below exist once. */
+.railScroller {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Copied from `../newsfeed-v0/NewsfeedV0.module.scss .mqaRow` — the mobile Quick
+   Actions row. CSS-only: the right-edge mask makes the next card peek, so unlike
+   production's `QuickActions.module.scss` there is no JS scroll listener to port. */
+.railScrollRow {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 28px 8px 0; /* right room = fade so the next card peeks; bottom = shadow */
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Scrolls horizontally at every sub-desktop width. It used to flatten into a
+     3-up row at 640–959px, which made the same module behave differently either
+     side of an invisible line — one behaviour is easier to trust. */
+}
+
+/* 240px, not chip-sized: the reason line is the only thing that earns a follow,
+   and it needs two lines to land. */
+.followScrollCard {
+  flex: 0 0 240px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+}
+
+.followScrollHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.followScrollName {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Same two-line clamp as `.alsoSummary`. */
+.followScrollReason {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- Popular this week: one instance at every width ---------- */
+
+/* The strip is spliced into `.feedList` after the third card; the rail card
+   carries `v0.railHideMobile` below 960px. Same complement pair as
+   `.followScrollSlot` / `.hideBelowDesktop`, but unconditional — Popular is
+   always in the rail, so the strip always stands in for it here. */
+.popularScrollSlot {
+  @include tablet-landscape {
+    display: none;
+  }
+}
+
+/* The card is `.followScrollCard` plus `v0.railStory` — the latter brings the
+   hover title colour and focus ring the rail rows already have, and can only be
+   inherited, not restated, since `.railStoryTitle` is hashed into that module.
+   Doubled to out-specify `.railStory`'s own `gap`, whose cross-module source
+   order isn't ours to rely on. Button, so it is one tap target, not three. */
+.popularScrollCard.popularScrollCard {
+  gap: 4px;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s ease;
+
+  /* 12px, not the 16px the follow cards inherit from production's `.card`. These
+     hold two lines of text with no logo and no button, so the same radius reads
+     as a much rounder object at a smaller size — the top-stories band's 12px is
+     the step down this column already uses. */
+  border-radius: 12px;
+
+  /* Production `NewsCard.module.scss .card:hover`, verbatim. */
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.16),
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* ---------- Subscribe on filter ---------- */
+
+/* The job board's alert slab is sized to be the loudest thing on its page. Here
+   it interrupts a feed, under a hero, tabs, pills, sort and search — at
+   production's scale it out-weighed the stories it sits between. Same chrome,
+   same colours, roughly two-thirds the height: the offer still reads, but as an
+   aside rather than a second headline.
+
+   Overridden from this side because `JobAlertShell` takes no `className` — the
+   shell is the slot's only child, so `> div` is exact. */
+.subscribeSlot {
+  margin-bottom: 16px;
+
+  > div {
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin: 0;
+
+    /* The shell's leading info icon, 24px in production. */
+    > svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* `.inner` — the copy/actions split. */
+    > div {
+      gap: 12px;
+    }
+  }
+
+  @include mobile-only {
+    /* Production's mobile rule indents the shell 8px and adds its own bottom
+       margin; in this column the slot already owns both. */
+    > div {
+      padding: 12px;
+      margin: 0;
+
+      /* Below 640px production stacks `.inner` into a column but leaves the
+         shell centring its info icon and the column centring its children — so
+         the icon floated beside the middle of the copy and the Subscribe/dismiss
+         row sat centred under left-aligned text. Both are the same fix: start,
+         not centre. The shell's icon then reads as a marker on the title, which
+         is what it is. */
+      align-items: flex-start;
+
+      > div {
+        align-items: flex-start;
+      }
+    }
+  }
+}
+
+/* Below 640px the category pills are gone (a `Type:` dropdown replaces them), so
+   `.filterActions`' `margin-left: auto` had nothing to push against but the row's
+   left edge — it drove Type and Sort to the right while every other line on the
+   page starts at the left margin. Doubled to beat the v0 rule it overrides. */
+.filterActionsLeft.filterActionsLeft {
+  @include mobile-only {
+    margin-left: 0;
+  }
+}
+
+/* Production's job-board expander is centred because it closes a wide two-column
+   card. Here it closes a feed card whose every other line — headline, role rows,
+   footer — starts at the left margin, and on a 375px screen a centred link in a
+   left-aligned stack reads as a stray. Three classes: `v0.viewAllExpander` is
+   already doubled, so a tie would be settled by bundler order. */
+.viewAllLeftMobile.viewAllLeftMobile.viewAllLeftMobile {
+  @include mobile-only {
+    text-align: left;
+  }
+}
+
+/* Doubled throughout: these sit alongside the production `banner.*` class on the
+   same element, so they tie on specificity and would be decided by whichever
+   module the bundler emits last. Same trick as `.topCard.topCard` above.
+
+   18/24 in production. 14/20 is the same size as a feed card's summary, which is
+   the register this belongs in. */
+.subscribeTitle.subscribeTitle {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+/* 16/24 in production — one step below the title, matching `.alsoMeta`. */
+.subscribeSubtitle.subscribeSubtitle {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+/* Production stacks title and subtitle 6px apart at 18/16px; at 14/12px that
+   reads as a gap rather than a pair. */
+.subscribeCopy.subscribeCopy {
+  gap: 2px;
+  padding-right: 12px;
+}
+
+.subscribeActions.subscribeActions {
+  gap: 6px;
+}
+
+/* The dismiss is 8px-padded around a 20px cross; the cross is now 16px. */
+.subscribeDismiss.subscribeDismiss {
+  padding: 6px;
+}
+
+/* Deliberately not a bigger feed card: a brand-tinted band, a heavier border and
+   its own eyebrow row, so it reads as a different kind of object in the column.
+   Double class beats the production .card hover lift. */
+.topCard.topCard {
+  display: flex;
+  flex-direction: column;
+  /* Tighter than the 24px/16px it started at — inside a band that already has its
+     own border and two rows below, that much air made the lead read as loose.
+     20px matches production `.card` padding. */
+  gap: 12px;
+  padding: 20px;
+  cursor: default;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  background: linear-gradient(
+    180deg,
+    var(--transparent-brand-8, rgba(27, 77, 255, 0.06)) 0%,
+    #ffffff 140px,
+    #ffffff 100%
+  );
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.topEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  /* +2px on top of `.topCard`'s 12px gap, so the badge row breathes a little more
+     than the tight rhythm inside the body below it. */
+  margin-bottom: 2px;
+}
+
+/* An editorial kicker, not a chip.
+   A filled pill is what this app uses for an *active filter*, and this label sits
+   directly under a row of them — so the fill, the radius and the size were all
+   saying "selected tab". Uppercase + letterspaced + no fill is the same kicker
+   treatment `.emailKicker` and `.masthead` already use in this file, and nothing
+   interactive in the app looks like it. */
+.topBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// 12px = the filled pin's native size in production's asset, and the same size
+// as the uppercase eyebrow beside it — so it renders unscaled and reads as a
+// mark next to the caps rather than an icon leading them.
+.topBadgeIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.topWeek {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Who picked it, stated up front — an unattributed pick reads as arbitrary. */
+.topAttribution {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  margin-left: auto;
+
+  @include mobile-only {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+
+.topBody {
+  display: flex;
+  flex-direction: column;
+  /* 8px tighter than it was: header → headline → description was reading loose
+     against the rows below, which sit at 6px. */
+  gap: 6px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+}
+
+.topTeamRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Team name → headline lands on 14px, production `.card`'s own gap, so the lead
+     matches every other card. `.topBody`'s 6px covers headline → description. */
+  margin-bottom: 8px;
+}
+
+.topTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+  }
+}
+
+.topSummary {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The reasoning block. Set apart from the story it justifies by a brand rule —
+   this is the part that makes the pick accountable rather than magic. */
+/* The `.whyBlock` / `.whyLabel` / `.whyText` / `.whyDisclosure` rules styled the
+   "Why this made the top" reasoning, and `.considered*` styled the "Also
+   considered" disclosure. Both are gone from the card: the runners-up are visible
+   rows in `.alsoList` now, and the attribution line in the eyebrow is what still
+   says who made the pick. (`EmailDigest` keeps its own `.emailWhy*` rules.) */
+
+/* No rule above the footer. Every row below the lead now carries its own
+   `border-top`, so a line here put two horizontal rules within ~20px of each
+   other at the bottom of the card. */
+/* Also 8px tighter (was 2px margin + 14px padding). */
+.topFooter {
+  margin-top: 0;
+  padding-top: 8px;
+}
+
+/* ---------- Hiring signal ---------- */
+
+.hiringCard.hiringCard {
+  gap: 14px;
+}
+
+.hiringBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The movement, not the count — that's what makes it a signal. */
+.hiringTrend {
+  margin: -4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.roleList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The headline click target. Inherits the production headline's type; only the
+   link behaviour is added, so a hiring card reads the same as a news card until
+   you reach for it. */
+.hiringHeadlineLink {
+  color: inherit;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* A row is a link now, so it gets a hover ground and negative side padding —
+   the target extends past the text without the list shifting. */
+.roleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px;
+  margin: 0 -8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  /* The arrow is ambient until the row is reached for, the same as the board's. */
+  &:hover .roleArrow,
+  &:focus-within .roleArrow {
+    opacity: 1;
+  }
+}
+
+.roleTitle.roleTitle {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+.roleRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.roleLocation {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.roleArrow {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ---------- Object-type label (Hiring / Deal) ---------- */
+
+/* News is the default object in this column, so only the exceptions get a label —
+   badging everything would defeat the point. Production `Badge` supplies the
+   geometry; this only drops it from 14px to meta scale so a label placed beside a
+   team name doesn't outweigh the name. */
+.kindBadge.kindBadge {
+  flex-shrink: 0;
+  margin-left: 2px;
+  padding: 1px 8px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* Teal keeps Hiring distinct from Funding green while staying in the same family.
+   Same hue as the old footer chip, now carrying a tinted ground. */
+.kindHiring.kindHiring {
+  background: rgba(14, 112, 144, 0.08);
+  color: #0e7090;
+}
+
+/* Production `Badge`'s brand ground is 2% — invisible at this size, so the label
+   read as floating text. Same hue as DealCard's .tagBrand, given a ground with
+   the same weight as Hiring's so the two labels carry equal visual force. */
+.kindDeal.kindDeal {
+  background: rgba(65, 116, 255, 0.1);
+  color: #4174ff;
+}
+
+/* ---------- Perk (deal) signal ---------- */
+
+/* The card ground is the feed's; everything inside is DealCard's anatomy at
+   feed scale. Production's own card padding already applies. */
+.perkCard.perkCard {
+  display: block;
+  color: inherit;
+}
+
+/* Production's avatar is 64px, sized for the two-column catalogue on /deals.
+   48px keeps the vendor mark clearly bigger than a news logo — so the card still
+   reads as its own kind of object — without letting it dominate the column. */
+.perkAvatar.perkAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+
+  span {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}
+
+/* Dev stacks details at 16px; a feed row is denser than a catalogue row. */
+.perkDetails.perkDetails {
+  gap: 10px;
+}
+
+.perkTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Dev's title is 24px/34 — right on a deals page, far too loud beside an 18px
+   news headline. Matched to the feed's headline scale instead. */
+.perkTitle.perkTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+/* Dev's chips are 14px/20; dropped a step so two of them don't outweigh the
+   offer text they sit under. */
+.perkTag.perkTag {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Why it's in a dated stream, and when. The only line here that isn't dev's. */
+.perkFoot {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Ineligibility is the cost of putting a gated surface in an ungated feed, so it
+   renders as a warning rather than as fine print. */
+.perkGate {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-warning-subtle, rgba(181, 71, 8, 0.2));
+  background: var(--background-warning-subtle, rgba(181, 71, 8, 0.05));
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-warning-primary, #b54708);
+    font-weight: 600;
+  }
+}
+
+/* ---------- The perk that did not earn a slot ---------- */
+
+/* Reachable only under the Deals pill. Muted and dashed so it reads as an
+   exhibit — this is what a naive "put deals in the feed" would inject. */
+.perkCardOff.perkCardOff {
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  box-shadow: none;
+
+  &:hover {
+    box-shadow: none;
+  }
+}
+
+.perkVerdict {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  strong {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-weight: 600;
+  }
+}
+
+/* ---------- Rail: follow reasons ---------- */
+
+/* The reason a team is in front of you. Sits at content weight, not meta weight —
+   it is the thing being read, so it earns the darker of the two grays. */
+.railWhy {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Framing for a synthetic pill's view — explanatory, so it stays neutral rather
+   than borrowing .gapNote's warning colour. */
+.pillNote {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- Monitor (path 2) ---------- */
+
+/* Narrower than the feed and with no rail. A standing query is read as a list,
+   not browsed as a column, so the extra width would only lengthen the lines. */
+.monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.monitorHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.monitorTitle.monitorTitle {
+  margin: 0;
+}
+
+.monitorSub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.queryBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.monitorCount {
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-neutral-primary, #0a0c11);
+    font-weight: 600;
+  }
+}
+
+.alertOn {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  background: rgba(10, 153, 82, 0.1);
+  color: var(--foreground-success-primary, #0a9952);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.monitorEmpty {
+  margin: 0;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.matchList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* A result row, not a feed card: no summary, no actions, no clustering. The
+   production card shell supplies the ground; everything else is stripped. */
+.matchRow.matchRow {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: default;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+      0px 4px 4px 0px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.matchBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.matchTitle {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.matchMeta {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* The coverage gap, as a warning rather than a footnote — on this surface an
+   untagged item is a silent miss, which is the failure this path can't absorb. */
+.coverageWarn {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-warning-subtle, rgba(181, 71, 8, 0.2));
+  background: var(--background-warning-subtle, rgba(181, 71, 8, 0.05));
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    color: var(--foreground-warning-primary, #b54708);
+    font-weight: 600;
+  }
+}
+
+/* ---------- Email digest ---------- */
+/* Still used by EmailDigest.tsx, which is no longer mounted from this entry. */
+
+.emailPage {
+  padding: 32px 16px 64px;
+
+  @include mobile-only {
+    padding: 20px 12px 48px;
+  }
+}
+
+.emailWrap {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.emailStage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Fake client chrome, so this reads as an email and the subject line gets
+   reviewed as the design decision it is — for most recipients it's the only
+   part of this they will ever see. */
+.clientBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.clientRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.clientLabel {
+  flex-shrink: 0;
+  width: 56px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.clientValue {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.clientSubject {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The subject is the only part of this most people ever see, so its length is a
+   reviewable number rather than something discovered after send. */
+.charCount {
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  white-space: nowrap;
+}
+
+.charCountOver {
+  color: var(--foreground-warning-primary, #b54708);
+}
+
+.email {
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.emailHead {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include mobile-only {
+    padding: 20px 18px 16px;
+  }
+}
+
+.masthead {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailWeek {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailTop {
+  padding: 28px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.06));
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  @include mobile-only {
+    padding: 20px 18px;
+  }
+}
+
+.emailKicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailTopTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  @include mobile-only {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+  }
+}
+
+.emailTopSummary {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.emailWhy {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+.emailWhyLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.emailWhyText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.emailWhyBy {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailCta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+
+  &:hover {
+    background: #1a45e6;
+  }
+}
+
+.emailSourceLine {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailSection {
+  padding: 22px 28px;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+
+  @include mobile-only {
+    padding: 18px;
+  }
+}
+
+.emailSectionTitle {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.emailList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One line per story: chip, headline, team. Scannable in the two seconds an
+   email actually gets. */
+.emailItem {
+  display: grid;
+  /* Wide enough for the longest label — "ANNOUNCEMENT" at 12px/600 uppercase
+     runs ~100px, and a narrower column collides with the headline. */
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+
+  @include mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.emailHiringItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+  }
+}
+
+.emailChip {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+}
+
+/* Matches the production event palette (NewsCard.module.scss dots). */
+.eFunding {
+  color: #027a48;
+}
+
+.eLaunch {
+  color: #1849a9;
+}
+
+.ePartnership {
+  color: #5925dc;
+}
+
+.eAnnouncement {
+  color: #475467;
+}
+
+.eMilestone {
+  color: #b54708;
+}
+
+.emailItemLink {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.emailItemTeam {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  @include mobile-only {
+    grid-column: 1;
+  }
+}
+
+.emailFoot {
+  padding: 20px 28px 24px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  p {
+    margin: 0 0 6px;
+    font-size: 12px;
+    line-height: 18px;
+    letter-spacing: -0.2px;
+    color: var(--foreground-neutral-tertiary, #8897ae);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: var(--foreground-neutral-secondary, #455468);
+    text-decoration: underline;
+  }
+
+  @include mobile-only {
+    padding: 18px;
+  }
+}

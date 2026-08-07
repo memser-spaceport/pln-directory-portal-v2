@@ -12,6 +12,14 @@
   gap: 12px;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
 .title {
   font-family: 'Inter', sans-serif;
   font-size: 24px;
@@ -62,4 +70,118 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* The inbox prototype's filter row, between the header and the card: view
+   tabs left, bulk action right. */
+.filtersRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Quiet neutral action, transcribed from the notifications prototypes'
+   .markAllLink — the bulk action sits against the list it operates on,
+   opposite the view tabs. Grayed out (not hidden) at zero unread. */
+.markAllButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+/* The heading doubles as the post-click focus target (tabindex="-1") —
+   programmatic focus shouldn't paint a ring on a non-interactive element. */
+.title:focus {
+  outline: none;
+}
+
+/* Visually hidden, still announced — the aria-live status region. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Segment-empty copy (list has items, this view doesn't) — the proto's
+   .emptyState/.emptyTitle/.emptyBody/.emptyAction, minus the icon. */
+.viewEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.viewEmptyTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 26px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.viewEmptyBody {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.viewEmptyAction {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

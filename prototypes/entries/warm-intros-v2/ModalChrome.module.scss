@@ -42,3 +42,18 @@
   line-height: 24px;
   letter-spacing: -0.2px;
 }
+
+/**
+ * A location tag carries the house pin.
+ *
+ * Production's `.tag` is already `inline-flex; align-items: center` — it just has
+ * no gap, because until now nothing sat inside it but text. 6px is the same
+ * distance the shared-events chips put between their calendar glyph and label, so
+ * the two icon-plus-label chips in this feature space themselves alike.
+ *
+ * The glyph is the shared `/icons/location.svg` asset, so there is no colour to
+ * declare here and nothing to keep in sync if the asset changes.
+ */
+.locationTag {
+  gap: 6px;
+}

@@ -19,10 +19,15 @@ import type {
 const BASE = `${process.env.DIRECTORY_API_URL}/v1/warm-intros-v2`;
 const MASTER_PROFILES_BASE = `${process.env.DIRECTORY_API_URL}/v1/master-profiles`;
 
-function buildQuery(params: Record<string, string | number | undefined | null>): string {
+function buildQuery(params: Record<string, string | number | string[] | undefined | null>): string {
   const qs = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === '') continue;
+    if (Array.isArray(value)) {
+      if (value.length === 0) continue;
+      qs.set(key, value.join(','));
+      continue;
+    }
     qs.set(key, String(value));
   }
   const s = qs.toString();
@@ -40,6 +45,7 @@ export async function listWarmIntrosV2Paths(params: WarmIntrosV2ListParams = {})
     limit: params.limit ?? 50,
     offset: params.offset ?? 0,
     relationKind: params.relationKind,
+    bridgeProfileUid: params.bridgeProfileUid,
     directOnly: params.directOnly ? 'true' : undefined,
     plBacker: params.plBacker ? 'true' : undefined,
   });
@@ -84,11 +90,14 @@ export async function getWarmIntrosV2PathsForInvestor(
 export async function getWarmIntrosV2Facets(opts: { targetSet?: string } = {}): Promise<WarmIntrosV2Facets> {
   const qs = buildQuery({ targetSet: opts.targetSet });
   const res = await customFetch(`${BASE}/facets${qs}`, { method: 'GET' }, true);
-  if (!res || !res.ok) return { connectors: [], sectors: [] };
+  if (!res || !res.ok) return { connectors: [], sectors: [], kinds: [], bridges: [], plBackerCount: 0 };
   const json = await res.json();
   return {
     connectors: Array.isArray(json.connectors) ? json.connectors : [],
     sectors: Array.isArray(json.sectors) ? json.sectors : [],
+    kinds: Array.isArray(json.kinds) ? json.kinds : [],
+    bridges: Array.isArray(json.bridges) ? json.bridges : [],
+    plBackerCount: typeof json.plBackerCount === 'number' ? json.plBackerCount : 0,
   };
 }
 

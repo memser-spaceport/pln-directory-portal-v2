@@ -66,7 +66,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'warm-intros-columns',
     title: 'Warm intros — connection columns',
     description:
-      'Investor spine with Proximity + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
+      'Investor spine with Score + Direct + 1-hop connector columns (founders, co-investors, and org/person-unknown), a "direct only" quick filter, and per-connector filtering.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-columns/WarmIntrosColumnsPrototype'),
   },
@@ -82,9 +82,17 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'warm-intros-v2',
     title: 'Warm intros v2 — mocked clone',
     description:
-      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (proximity code, score %, connector → investor path chips), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
+      'Faithful mocked clone of the production Warm Intros v2 workspace: list picker + search + PL-member / sector filters + CSV export, the real results table (score %, connector → investor path chips — the proximity code is dropped), the glossary drawer, the investor drawer with best path, reasons and alternate connectors, and the MasterProfile modal.',
     category: 'Investor DB',
     load: () => import('./entries/warm-intros-v2/WarmIntrosV2Prototype'),
+  },
+  {
+    key: 'warm-intros-role-colors',
+    title: 'Warm intros — role-coloured nodes',
+    description:
+      'The v2 workspace imported whole, with one variable changed: whether a path node says what kind of person it is in colour as well as in words. Opens on “Tags only” — the nodes stay exactly as they are and only the role tag beneath each one takes its hue; “Fill” tints the chip too, for comparison on the same rows. The uncoloured baseline is the Warm intros v2 entry above. Hues come from MasterProfileModal’s type pills, the tags on the profile a node opens — PL member indigo, founder orange, co-investor cyan, investor green — not from HopRoleBadge, which contradicts them on three of the four roles.',
+    category: 'Investor DB',
+    load: () => import('./entries/warm-intros-role-colors/WarmIntrosRoleColorsPrototype'),
   },
   {
     key: 'members',
@@ -162,7 +170,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'job-board',
     title: 'Job Board',
     description:
-      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link.',
+      'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link. The roles are mocked but the people are not: both pickers in the referral modal search live directory members, and the hiring team\'s leads are prefilled as recipients from the directory.',
     category: 'Jobs',
     load: () => import('./entries/job-board/JobBoardPrototype'),
   },
@@ -175,12 +183,12 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/newsfeed-v0/NewsfeedV0Prototype'),
   },
   {
-    key: 'newsfeed-curated',
+    key: 'newsfeed',
     title: 'Newsfeed — curated feed + weekly email',
     description:
-      'Quality for an investor audience, in two surfaces. A single network-wide Top Story leads the week, states why it won, and discloses whether a human or a model picked it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, follow suggestions carry the relational `reason` production already returns, and a Coverage module states the gap out loud. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card.',
+      'Quality for an investor audience, in two surfaces. A single network-wide Top Story leads the week, states why it won, and discloses whether a human or a model picked it. A Sourcing switch demonstrates the recall bug behind it: production builds the All tab as the union of the focus-area groups, so an untagged story — including this week\'s top story — reaches no tab at all; flipping to "One stream" demotes focus area to a filter beside Sort and the untagged long tail comes back. Job-board activity joins the feed as a per-team hiring signal rather than pasted listings, and follow suggestions carry the relational `reason` production already returns. The Email digest view is the same curation as the Monday send — client chrome, subject line, top story with its why-line, the week in one line each, who started hiring — because the editorial bet is cheaper and more measurable to test in an inbox than in a hero card.',
     category: 'Newsfeed',
-    load: () => import('./entries/newsfeed-curated/NewsfeedCuratedPrototype'),
+    load: () => import('./entries/newsfeed/NewsfeedPrototype'),
   },
   {
     key: 'notifications-hub',

@@ -456,13 +456,9 @@ $border: var(--border-neutral-subtle, #e5e7eb);
 // scrolling drawer so it stays visible while reading the lower sections.
 // Production .header already has padding + bottom border; we add the sticky
 // behaviour + an opaque background so content doesn't bleed through.
-// Proximity badge: bump the confidence "%" suffix up from its 10px default so it
-// reads a bit stronger in the column. It's the 2nd span inside the badge root
-// (the `.code` span comes first), so `span + span` targets only the % — never
-// the code — and never the "Cold" badge (which has no child spans).
-.proxBadge span + span {
-  font-size: 12px;
-}
+// `.proxBadge` bumped the confidence "%" suffix inside the proximity badge up
+// from its 10px default. The badge is gone and the column now holds a plain
+// `ScorePercentPill`, which is already 11px and needs no override.
 
 // Extra breathing room between the two quick-lens toggles (Direct only / PL
 // investors only) — adds to the 6px flex gap on their .relChips container.

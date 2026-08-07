@@ -1,45 +1,307 @@
 /**
- * Column widths for the 3-column table fork (Investor · Path · Proximity).
- * Production apportions 22/18/18/14/28 across five columns; with Team and
- * Industry / Sector gone, the remaining three are re-balanced here.
+ * Column widths for the 2-column table fork (Investor · Path). Production
+ * apportions 22/18/18/14/28 across five columns; Team and Industry / Sector are
+ * gone, and Proximity folded into the head of the path cell, so what's left is
+ * re-balanced here.
  *
- * Layout only — no colors, so nothing to token-swap. Everything else still
- * comes from the production WarmIntrosV2Table.module.scss.
+ * Below 640px the same table lays out as cards — see the `mobile-only` block at
+ * the bottom.
+ *
+ * Layout only, apart from the card's own border and fill, which are copied from
+ * the frame production already draws around the table (`.tableWrap`) and the row
+ * fill (`.row`) — the same two values, moved from around the list onto each item.
  */
 
-.table {
-  /* Production's 960px floor was sized for five columns. */
-  min-width: 620px;
-}
+@import 'styles/media.scss';
+
+/*
+ * No `.table` rule at this width: it used to re-declare `min-width: 620px` with
+ * a comment about overriding a 960px floor, but production's `.table` already
+ * *is* 620px. The class is still applied — the mobile block below uses it.
+ */
 
 .colInvestor {
-  width: 34%;
+  width: 32%;
 }
 
-/* Name and its list badge share a line; wraps rather than squeezing the name. */
-.nameLine {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+/*
+ * `.nameLine` and the list-chip overrides that used to live here are gone —
+ * production already ships both. `WarmIntrosV2Table.module.scss` has its own
+ * `.nameLine`, and `ListMembershipTags` is the real chip (11px, weight 500 when
+ * inline), tighter than the 12px MasterProfile pill this had been borrowing and
+ * then shrinking by hand.
+ */
+
+/**
+ * Investor name: neutral, with an arrow carrying the affordance instead of colour.
+ *
+ * **Deliberate deviation from production's visual layer** — a proposal to take
+ * back to dev, not accidental drift.
+ *
+ * Production paints the name `#1b4dff`. That is the only clickable entity name in
+ * the whole portal rendered brand-blue at rest — every other surface (members
+ * grid and list, teams, projects, forum, founders table, demo-day, global search,
+ * ~23 in all) keeps it neutral. Warm Intros v2 also disagrees with itself: its own
+ * drawer renders the same investor at `#0a0c11`
+ * (`WarmIntrosV2InvestorDrawer.module.scss` `.name`, hover → `#1b4dff`), which is
+ * exactly what this now matches.
+ *
+ * Blue was still doing a real job, though — it was the only at-rest signal that
+ * the name opens something, and it is the one element in the row with a different
+ * destination (MasterProfile modal; everything else opens the path drawer). So the
+ * signal moves to a glyph rather than being deleted: see `.nameArrow`.
+ */
+.nameNeutral.nameNeutral {
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
 
 /**
- * The shared listPill is already 12px — its bulk comes from weight 600 and
- * 2px 10px padding, sized for the MasterProfile modal where it sits in a row of
- * its own. Beside a 14px name in a table row it needs to recede, so the size
- * stays and the weight and padding come down.
+ * The open-in affordance. Always visible — it is replacing a resting colour, so
+ * it has to be there at rest too, and hover doesn't exist on touch at all.
+ *
+ * `OutreachInvestorTable.module.scss` `.arrowIcon` reveals its arrow on row hover,
+ * but that is the lone exception in this codebase: every other Warm Intros surface
+ * (`RouteChip`, `WarmPathDetail`, `LabOsBadge`, `InvestorDrawer`,
+ * `MasterProfileModal`) shows its `↗` permanently. Its colour ramp is still the
+ * one borrowed — `#94a3b8`, the same tertiary grey — so the glyph sits below the
+ * name and the firm line rather than competing with them.
+ *
+ * The icon is the shared `@/components/icons/ArrowUpRightIcon` (`currentColor`),
+ * not the literal `↗` character the older surfaces type inline, and not the
+ * stroked local duplicate inside `OutreachInvestorTable.tsx`.
  */
-.listBadge {
-  font-weight: 500;
-  line-height: 16px;
-  padding: 1px 8px;
+.nameArrow {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--foreground-neutral-tertiary, #94a3b8);
+  /* `.nameLine`'s 8px gap is spacing between the name and the *list chip*; the
+     glyph belongs to the name, so it claws half of it back and hugs instead. */
+  margin-left: -4px;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
 }
 
-.colProximity {
-  width: 18%;
+/**
+ * `View all (n)` goes quiet so the name doesn't have to.
+ *
+ * **Deliberate deviation from production's visual layer** — a proposal to take
+ * back to dev, not accidental drift.
+ *
+ * Once `.nameArrow` marks the name, nothing in the row needs a link colour, and
+ * `View all` has the weakest claim on one: `onViewAllPaths` and `onRowClick` are
+ * literally the same handler, so it is a second affordance for what the whole row
+ * already does — no unique destination to advertise, and no discoverability cost
+ * if it recedes, because tapping anywhere on the row does the same thing. Its
+ * count is the part that carries information, and the count survives at any
+ * colour.
+ *
+ * The underline stays: it sits beside the grey role caption, and without it a
+ * grey `View all` would read as a second caption rather than a control.
+ */
+.viewAllQuiet.viewAllQuiet {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
+
+/**
+ * `View all` riding at the end of the chain instead of on a line beneath it.
+ *
+ * `.pathChain` is `align-items: center`, so the link lands on the chips' centre
+ * line — level with the names, clear of the captions hanging below them. Nothing
+ * else is needed to place it; the chain's own layout does the work.
+ *
+ * The 6px is on top of the chain's 4px gap, for 10px between the last chip and
+ * the link. The chain's 4px is spacing *within* one object — chip, arrow, chip —
+ * and the link is not part of that object: at 4px it read as a fourth node.
+ *
+ * `flex-shrink: 0` because it is a fixed short string and the chips beside it are
+ * the things that should give; without it, "View all (3)" is the first thing the
+ * browser squeezes when the cell tightens.
+ */
+.viewAllTrail {
+  margin-left: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/**
+ * The score % leads the path cell rather than owning a column — it is a measure
+ * of the chain, so it belongs with the chain it measures.
+ *
+ * Leading position is the whole trick. The pill's left edge lands at the same x
+ * on every row, so the top-to-bottom scan a dedicated column was buying survives.
+ * Trailing the chain instead would scatter it across a variable-width row and
+ * lose that entirely.
+ *
+ * The proximity code used to lead here alongside it, and dropping the code makes
+ * this better, not worse: the pill is a fixed ~40px where `PL+1A` and `F+2A`
+ * differed by a character, so the % no longer jitters ~8px row to row. Freeing
+ * the column pays twice over — Path goes 48% → 68% and now only ~40px of it goes
+ * to the lead.
+ */
+.proximityLead {
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/**
+ * `.pathCellTight` zeroed production's 6px cell gap, which was the gap between the
+ * chain and `View all` on the line below it. There is no line below it any more —
+ * the link rides at the end of the chain — so the cell has one child and the gap
+ * separates nothing. Kept at 0 rather than deleted: it is also what keeps the cell
+ * from reserving space under the chain on rows the mobile block re-opens.
+ *
+ * Doubled class name — a single `.pathCellTight` ties with production's
+ * `.pathCell` on specificity, so which one won came down to bundle order. It lost.
+ */
+.pathCellTight.pathCellTight {
+  gap: 0;
+}
+
+/**
+ * Two rules used to live here, and the history is worth keeping because it is the
+ * argument for where the link sits now.
+ *
+ * `.viewAllInCaptionBand` pulled `View all` up 11px onto the role captions' line,
+ * on the reasoning that the two never share horizontal space: the caption began
+ * under the first chip — *~100px in, past the proximity badge* — and the ~70px
+ * link sat at the cell's left edge, under that badge. An empty corner, reclaimed.
+ *
+ * Removing the code removed the corner. With a ~40px score pill leading, the first
+ * caption starts around x=46 and the link ran straight into it —
+ * `View all (3)· PL Member · In LabOS`, overlapping, on every captioned row.
+ * Un-tucking it fixed that but spent a full line on one 11px link.
+ *
+ * Both are gone. `View all` now trails the chain instead (`.viewAllTrail`), which
+ * costs no line at all and never had a corner to depend on.
+ */
+
+/**
+ * `.joinGroup` / `.joinLeft` / `.joinRight` lived here: the proximity code and the
+ * score % welded into one object, no gap, inner corners squared, so two signals
+ * about the same path read as one shape.
+ *
+ * All three are gone with the code. A join needs two things to join, and the
+ * score is on its own now — a lone pill wearing half a squared-off border would be
+ * chrome describing a neighbour that no longer exists.
+ */
 
 .colPath {
-  width: 48%;
+  width: 68%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile: the table becomes a list of cards.
+ *
+ * 640px is the exact point where it stops working — `.table` has a 620px floor
+ * and the workspace has no page padding below 1024px, so the two columns fit
+ * down to 640 and horizontally scroll below it. A row read sideways is not a
+ * row, and the two columns are already "who they are" / "how you reach them",
+ * which is a card front and back.
+ *
+ * Same DOM, restyled — no second render tree to keep in sync, and no
+ * `useMediaQuery`, which would need a mounted flag here since prototype routes
+ * server-render.
+ *
+ * Two notes for production:
+ *   - `.tableWrap` stops being a scroll box. Production uses it as the
+ *     IntersectionObserver root for infinite scroll, so that root has to fall
+ *     back to the viewport (`root: null`) at this width. Nesting a 70vh scroller
+ *     inside the page scroller is worse on touch than a long page.
+ *   - `display: block` drops the implicit table roles in every browser, which is
+ *     why the markup names them explicitly and why `thead` is hidden visually
+ *     rather than with `display: none` — the column names stay in the a11y tree.
+ * ------------------------------------------------------------------------- */
+@include mobile-only {
+  .mobileCards {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* Doubled: production's `.table` carries the 620px floor, and a media query
+     adds no specificity — undoubled this tied and lost, leaving 620px-wide cards
+     on a 390px screen with the chain running off the edge. */
+  .table.table {
+    min-width: 0;
+    display: block;
+  }
+
+  /* Present for screen readers, gone visually — `display: none` would take the
+     column names out of the a11y tree along with the header row. */
+  .mobileCards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .mobileCards tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* The frame and fill production draws once around the whole table, drawn
+     around each record instead. */
+  .mobileCard.mobileCard {
+    display: block;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .cardIdentity.cardIdentity,
+  .cardRoute.cardRoute {
+    display: block;
+    border-bottom: 0;
+    padding: 12px 14px;
+  }
+
+  /* Keeps the split the column header used to carry, now that the header is
+     hidden: identity above the line, route below it. Production's own row rule
+     (#f1f5f9), reused at a smaller scale. */
+  .cardRoute.cardRoute {
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  /*
+   * The lead used to break to its own line here (`flex-basis: 100%`) and the chain
+   * started under it. That was priced against the proximity badge: ~95px off the
+   * front of a ~330px line is most of a name, so giving it back let two chips share
+   * a line instead of one.
+   *
+   * The score pill is ~40px. The reason is spent — 40px does not cost a chip its
+   * line — and the break now wastes a whole row of a card to hold one small pill.
+   * So it stays inline at every width, and the desktop rule above is all there is.
+   */
+
+  /*
+   * Production's own 6px cell gap comes back. It separates nothing now — `View all`
+   * moved inside the chain, so the cell has a single child — but at this width the
+   * mobile card also re-opens the chain to wrap freely, and 0 leaves the chain
+   * sitting flush against the row rule above it.
+   */
+  .pathCellTight.pathCellTight {
+    gap: 6px;
+  }
 }

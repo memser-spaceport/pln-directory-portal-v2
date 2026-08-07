@@ -1,0 +1,109 @@
+/**
+ * PL relationship line: a marker plus plain text, not a pill.
+ *
+ * Attio renders connection strength this way — a small coloured glyph and plain
+ * words, no border, no fill. Once the email line went, a filled pill here was the
+ * loudest thing in the cell after the name, over-weighting a secondary fact.
+ *
+ * The violet is production's own (`HopRoleBadge.module.scss` `.investor`,
+ * `#6d28d9`). That module writes raw hex with no token pair to copy, so the pair
+ * is named here and the fallback keeps the rendered colour identical.
+ */
+
+/**
+ * Untints production's `.coInvestBlock`, which ships a filled amber box
+ * (`#fff7ed` on `#fed7aa`, label `#c2410c`).
+ *
+ * Dev's reasoning is sound in production: that triplet is `HopRoleBadge`'s
+ * `.coInvestor`, so orange consistently means co-investor. It doesn't survive
+ * here. A filled amber box with an amber border is the shape of a *warning*, and
+ * this is good news — plus it's the only tinted box in the drawer, so it alerts
+ * on the one section that should reassure. And the orange↔co-investor link it
+ * leans on is broken in this prototype, because role badges became plain grey
+ * captions and `.coInvestor` orange no longer renders anywhere nearby.
+ *
+ * **Deliberate deviation from production's visual layer** — a proposal to take
+ * back to dev, not accidental drift. Doubled class names win over the imported
+ * rules without depending on CSS-module import order.
+ */
+.coInvestPlain.coInvestPlain {
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 0;
+  padding: 10px 0 0;
+}
+
+.coInvestPlainLabel.coInvestPlainLabel {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Last fact-line in the investor cell, under firm · title. */
+.line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  /* Wide enough to separate the two facts without spending a `·` glyph on it. */
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  /**
+   * In the MasterProfile modal this rides inside `.sectionTitle`, which is
+   * `text-transform: uppercase`. The mark is a value, not a heading, so it opts
+   * out — otherwise it shouts "BACKED PL + FIL" next to real acronyms.
+   */
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.marker {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  /* Rotated square — distinct from the round Directory dot on the path chips. */
+  transform: rotate(45deg);
+  background: var(--foreground-brand-secondary, #6d28d9);
+  /* Nudged onto the text baseline, since the row aligns on it. */
+  align-self: center;
+}
+
+/**
+ * The words are neutral; only the 6px marker carries the colour. Violet text at
+ * weight 600 made a secondary fact shout as loudly as the name two lines up, and
+ * it put a fourth hue into a cell that already had three.
+ */
+.backing {
+  font-weight: 500;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/**
+ * The noun repeats on every row while only the number varies, so the number
+ * takes the ink and the word recedes — you scan the digits, not the label.
+ */
+.countNum {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.countNoun {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* In the drawer the badge sits beside a heading rather than on its own line. */
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+}

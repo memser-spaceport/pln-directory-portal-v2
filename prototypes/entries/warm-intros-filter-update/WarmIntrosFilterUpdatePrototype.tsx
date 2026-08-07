@@ -12,7 +12,7 @@ import {
   STAGE_FOCUS_LABEL,
 } from '@/services/investors/constants';
 import type { CheckSizeRange, InvestorList, SectorTag, StageFocus, WarmIntroTier } from '@/services/investors/types';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
+import { ScorePercentPill } from '@/components/page/investors/WarmIntrosV2Workspace/ScorePercentPill';
 import { Tag } from '@/components/ui/Tag/Tag';
 import { ListPicker } from '@/components/page/investors/WarmIntrosWorkspace/ListPicker';
 import { GlossaryModal } from '@/components/page/investors/WarmIntrosWorkspace/GlossaryModal';
@@ -110,15 +110,16 @@ export function MetaChips({ items, max = 3 }: { items: readonly string[]; max?: 
   );
 }
 
-// Warmer first: caliber A < B < none, then fewer hops; cold (no path) last.
-function proximityRank(inv: MockInvestor): number {
-  if (!inv.has_path || !inv.best_proximity_code) return 999;
-  const code = inv.best_proximity_code;
-  const cal = code.slice(-1);
-  const calRank = cal === 'A' ? 0 : cal === 'B' ? 1 : 2;
-  const hopMatch = code.match(/\+(\d)/);
-  const hops = hopMatch ? Number(hopMatch[1]) : 9;
-  return calRank * 10 + hops;
+// Warmest first — by the score, which is now the only path metric on the row.
+//
+// This used to parse the proximity code (caliber A < B < none, then fewer hops).
+// With the code off the screen, sorting by something you can no longer see would
+// leave the column in an order the page can't explain: two rows at 86% and 50%
+// could sit either way round and both look right. Sort by what's rendered.
+function pathRank(inv: MockInvestor): number {
+  const best = inv.paths[0];
+  if (!inv.has_path || !best) return -1;
+  return best.score;
 }
 
 type Draft = { stage: string; sectors: SectorTag[]; check: string };
@@ -409,7 +410,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
     rows = rows.filter((m) => relFilter[m.relationship]);
     if (plBackedOnly) rows = rows.filter((m) => !!m.invested_in_pl);
     if (pathSel.size) rows = rows.filter((m) => matchesPathVia(m, pathSel));
-    return rows.slice().sort((a, b) => proximityRank(a) - proximityRank(b) || a.last_name.localeCompare(b.last_name));
+    return rows.slice().sort((a, b) => pathRank(b) - pathRank(a) || a.last_name.localeCompare(b.last_name));
   }, [onList, query, stage, check, sectors, source, relFilter, plBackedOnly, pathSel]);
 
   // Connector pivots — teammates (direct) and founders (the broker).
@@ -504,13 +505,14 @@ export default function WarmIntrosFilterUpdatePrototype() {
   const exportCsv = () => {
     const rows = visible.filter((m) => selectedIds.has(m.investor_id));
     if (rows.length === 0) return;
-    const head = ['name', 'firm', 'email', 'proximity', 'best_connector'];
+    // Exports what the table shows: the code is gone from both.
+    const head = ['name', 'firm', 'email', 'score', 'best_connector'];
     const lines = rows.map((m) =>
       [
         `${m.first_name} ${m.last_name}`,
         m.firm,
         m.email,
-        m.best_proximity_code ?? 'Cold',
+        m.paths[0] ? `${Math.round(m.paths[0].score * 100)}%` : '',
         m.paths[0]?.contact?.name ?? m.paths[0]?.orgConnector?.name ?? '',
       ]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -875,7 +877,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
           <div className={clsx(s.resultsHeader, x.resultsHeaderResp)}>
             <div className={s.resultsCount}>
               <strong>{visible.length}</strong> shown · {totalOnList.toLocaleString()} in {currentListName} · sorted by
-              proximity (warmest first)
+              score (warmest first)
             </div>
             <div className={clsx(s.resultsActions, x.resultsActionsResp)}>
               <div className={s.relChips}>
@@ -936,7 +938,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                     {INDUSTRY_SECTOR_LABEL}
                   </th>
                   <th className={s.th} style={{ width: '17.5%' }}>
-                    Proximity
+                    Score
                   </th>
                   <th className={s.th}>Path</th>
                 </tr>
@@ -944,7 +946,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
               <tbody>
                 {visible.map((inv) => {
                   const bestPath = inv.paths[0];
-                  const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
                   return (
                     <tr
                       key={inv.investor_id}
@@ -984,13 +985,11 @@ export default function WarmIntrosFilterUpdatePrototype() {
                         <MetaChips items={inv.sector_tags} max={3} />
                       </td>
                       <td className={s.td}>
-                        {hasProximity ? (
-                          <ProximityCodeBadge
-                            code={inv.best_proximity_code}
-                            cold={inv.has_path === false}
-                            confidence={bestPath?.caliber_confidence}
-                            className={x.proxBadge}
-                          />
+                        {/* The `cold` badge went with the code: an em dash already
+                            says "no path here" in the column's own vocabulary,
+                            without a second badge style to learn. */}
+                        {bestPath ? (
+                          <ScorePercentPill scorePercent={Math.round(bestPath.score * 100)} />
                         ) : (
                           <span className={s.muted}>—</span>
                         )}
@@ -1031,7 +1030,6 @@ export default function WarmIntrosFilterUpdatePrototype() {
             {visible.map((inv) => {
               const rel = relationshipMeta(inv.relationship);
               const bestPath = inv.paths[0];
-              const hasProximity = !!inv.best_proximity_code || inv.has_path === false;
               return (
                 <div
                   key={inv.investor_id}
@@ -1047,14 +1045,7 @@ export default function WarmIntrosFilterUpdatePrototype() {
                       </div>
                       <div className={s.subtle}>{inv.email}</div>
                     </div>
-                    {hasProximity && (
-                      <ProximityCodeBadge
-                        code={inv.best_proximity_code}
-                        cold={inv.has_path === false}
-                        confidence={bestPath?.caliber_confidence}
-                        className={x.proxBadge}
-                      />
-                    )}
+                    {bestPath && <ScorePercentPill scorePercent={Math.round(bestPath.score * 100)} />}
                   </div>
                   <div className={x.mCardMeta}>
                     <span className={clsx(s.relPill, rel.cls)}>{rel.label}</span>

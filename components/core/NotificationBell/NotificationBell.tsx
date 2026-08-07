@@ -9,7 +9,7 @@ import s from './NotificationBell.module.scss';
 
 export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead } = usePushNotificationsContext();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = usePushNotificationsContext();
   const analytics = useNotificationAnalytics();
   const controls = useAnimation();
   const prevUnreadCountRef = useRef(unreadCount);
@@ -68,6 +68,7 @@ export function NotificationBell({ isLoggedIn }: { isLoggedIn: boolean }) {
         unreadCount={unreadCount}
         onClose={handleClose}
         onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
         isLoggedIn={isLoggedIn}
       />
     </>

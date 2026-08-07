@@ -12,7 +12,6 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Drawer } from '@/components/common/Drawer/Drawer';
 import { CopyButton } from '@/components/ui/CopyButton';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
 import { SectorTagsList } from '@/components/page/investors/SectorTagsList/SectorTagsList';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
@@ -20,16 +19,27 @@ import type { SectorTag } from '@/services/investors/types';
 import type { WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
 import { ScorePercentPill } from '@/components/page/investors/WarmIntrosV2Workspace/ScorePercentPill';
 import { PathProfileChip } from '@/components/page/investors/WarmIntrosV2Workspace/PathProfileChip';
+import { hopRoleFromRelationKind } from '@/components/page/investors/WarmIntrosV2Workspace/HopRoleBadge';
+import { parseCoInvestments } from '@/components/page/investors/WarmIntrosV2Workspace/masterProfileDisplay.util';
 import {
   affinityPersonUrl,
   allReasonDescriptions,
   derivePathProximity,
   explanationFromHopChain,
+  hopCountFromRelationKind,
   parseWarmPathHopChain,
+  proximityFamilyFromRelationKind,
   reasonDescription,
   type WarmPathV2HopNode,
 } from '@/components/page/investors/WarmIntrosV2Workspace/parseWarmPathHopChain';
 import s from '@/components/page/investors/WarmIntrosV2Workspace/WarmIntrosV2InvestorDrawer.module.scss';
+import c from './TableColumns.module.scss';
+import { PathHop } from './PathRole';
+import role from './PathRole.module.scss';
+import { ReasonList, SharedEventsNote } from './PathEvidence';
+import { PlBackingMark, plBackingLabel } from './PlHistory';
+import h from './PlHistory.module.scss';
+import press from './ChipPress.module.scss';
 import { PathActions } from './PathFeedback';
 import { MOCK_MASTER_PROFILES, pathsForInvestor } from './mocks';
 
@@ -51,18 +61,28 @@ function PathHopRow({
 }) {
   if (hops.length === 0) return null;
   return (
-    <div className={s.chain}>
-      {hops.map((hop, i) => (
-        <span key={`${hop.profileUid}-${i}`} className={s.node}>
-          {i > 0 && <span className={s.arrow}>→</span>}
-          <PathProfileChip
-            name={hop.name}
-            profileUid={hop.profileUid}
-            imageUrl={imageByUid.get(hop.profileUid)}
-            onOpen={onOpen}
-          />
-        </span>
-      ))}
+    // Same chips as the table, so the same press/focus states — the drawer is a
+    // touch surface too, and hover reaches neither.
+    <div className={`${s.chain} ${press.chipPress}`}>
+      {hops.map((hop, i) => {
+        const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+        return (
+          <span key={`${hop.profileUid}-${i}`} className={s.node}>
+            {i > 0 && <span className={s.arrow}>→</span>}
+            {/* Same rule as the table: label every hop but the last. */}
+            <PathHop role={hop.role} profileUid={hop.profileUid} isLast={i === hops.length - 1}>
+              <PathProfileChip
+                name={hop.name}
+                profileUid={hop.profileUid}
+                imageUrl={isOrg ? null : imageByUid.get(hop.profileUid)}
+                onOpen={onOpen}
+                nonInteractive={isOrg}
+                memberUid={isOrg ? null : hop.memberUid}
+              />
+            </PathHop>
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -81,6 +101,7 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
   const masterProfile = open && profileUid ? MOCK_MASTER_PROFILES[profileUid] : undefined;
 
   const [showAlternates, setShowAlternates] = useState(true);
+  const coInvestments = useMemo(() => parseCoInvestments(masterProfile?.coInvestments), [masterProfile?.coInvestments]);
 
   const bestPath = useMemo(() => {
     const paths = detail?.paths ?? [];
@@ -248,6 +269,30 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                   <SectorTagsList tags={sectors} max={20} />
                 </dd>
               </dl>
+              {/* Dev filters on plBacking but never renders it. The drawer was
+                  showing one half of the PL relationship and not the other.
+
+                  Untinted via `h.coInvestPlain` — production ships this as a
+                  filled amber box, which reads as a warning on what is good news.
+                  Deliberate deviation, flagged in COMPONENTS.md. */}
+              {coInvestments.length > 0 || plBackingLabel(masterProfile?.plBacking) ? (
+                <div className={`${s.coInvestBlock} ${h.coInvestPlain}`}>
+                  <div className={`${s.coInvestLabel} ${h.coInvestPlainLabel}`}>
+                    {coInvestments.length > 0 ? 'Co-investments with PL' : 'Relationship with PL'}
+                    {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
+                    <PlBackingMark backing={masterProfile?.plBacking} className={h.inline} />
+                  </div>
+                  {coInvestments.length > 0 ? (
+                    <div className={s.coInvestNames}>
+                      {coInvestments
+                        .slice(0, 5)
+                        .map((c) => c.name)
+                        .join(', ')}
+                      {coInvestments.length > 5 ? ` +${coInvestments.length - 5} more` : ''}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               <button type="button" className={s.linkBtn} onClick={() => onOpenMasterProfile(investor.profileUid)}>
                 View full profile
               </button>
@@ -267,23 +312,26 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                 <>
                   <div className={s.pathItem}>
                     <div className={s.pathMeta}>
-                      {bestPath.proximityCode ? <ProximityCodeBadge code={bestPath.proximityCode} /> : null}
+                      {/* Same single metric as the table — one fact should not
+                          have two shapes across two surfaces. */}
                       <ScorePercentPill scorePercent={bestPath.scorePercent} scoreBand={bestPath.scoreBand} />
                       <span className={s.warmth}>Best path</span>
                     </div>
                     <p className={s.warmthSubtitle}>How strong this intro route is</p>
+                    {/* Reasons keep their `sourceType` here — production drops it
+                        on the floor, so a verified fact and a model's guess look
+                        the same. */}
                     {reasonLines.length > 0 ? (
-                      <ul className={s.reasonList}>
-                        {reasonLines.map((line) => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ul>
+                      <ReasonList reasons={hopChain?.reasons ?? []} listClassName={s.reasonList} />
                     ) : explanation ? (
                       <div className={s.explanation}>{explanation}</div>
                     ) : null}
-                    <div className={s.chainRow}>
+                    <div className={`${s.chainRow} ${role.chainRowTight}`}>
                       <PathHopRow hops={hops} imageByUid={imageByUid} onOpen={onOpenMasterProfile} />
                     </div>
+                    {/* Overlap between adjacent hops — a property of the edge, so
+                        it sits under the chain rather than on either chip. */}
+                    <SharedEventsNote hops={hops} />
                     {/* Design change: the card ends in a referral answer + a
                         feedback escape hatch. Keyed by path so re-opening the
                         drawer shows what was already answered. */}
@@ -297,7 +345,6 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                           imageUrl: imageByUid.get(hop.profileUid),
                         })),
                         connectorName: bestPath.bestConnector?.name ?? hops[0]?.name ?? null,
-                        proximityCode: bestPath.proximityCode,
                         scorePercent: bestPath.scorePercent,
                         scoreBand: bestPath.scoreBand,
                       }}
@@ -317,8 +364,21 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                       {showAlternates ? (
                         <ul className={s.altList}>
                           {alternates.map((alt) => {
-                            const derived = derivePathProximity(alt.score, bestPath.hopCount ?? 1);
-                            const proximityCode = alt.proximityCode ?? derived?.proximityCode ?? null;
+                            // An alternate can reach the investor through a
+                            // different shape than the best path, so its role
+                            // badge comes from its own kind.
+                            //
+                            // `derivePathProximity` stays even with the code gone:
+                            // it is also where a missing `scorePercent` comes from,
+                            // and it is production's own derivation — re-deriving
+                            // the percentage here by hand would be a second source
+                            // of truth for the one number left on the card.
+                            const altKind = alt.relationKind ?? hopChain?.relationKind;
+                            const derived = derivePathProximity(
+                              alt.score,
+                              hopCountFromRelationKind(altKind),
+                              proximityFamilyFromRelationKind(altKind),
+                            );
                             const pct = alt.scorePercent ?? derived?.scorePercent ?? null;
                             const scoreBand = alt.scoreBand ?? derived?.scoreBand;
                             const altReason = Array.isArray(alt.reasons)
@@ -327,22 +387,24 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                             return (
                               <li key={alt.profileUid} className={s.pathItem}>
                                 <div className={s.pathMeta}>
-                                  {proximityCode ? <ProximityCodeBadge code={proximityCode} /> : null}
                                   {pct != null ? <ScorePercentPill scorePercent={pct} scoreBand={scoreBand} /> : null}
                                 </div>
                                 {altReason ? <div className={s.explanation}>{altReason}</div> : null}
-                                <div className={s.chainRow}>
+                                <div className={`${s.chainRow} ${role.chainRowTight}`}>
                                   <PathHopRow
                                     hops={[
                                       {
                                         profileUid: alt.profileUid,
                                         name: alt.name,
-                                        role: 'pl_connector',
+                                        role: hopRoleFromRelationKind(altKind),
+                                        memberUid: alt.memberUid,
+                                        imageUrl: alt.imageUrl,
                                       },
                                       {
                                         profileUid: investor.profileUid,
                                         name: investor.name,
                                         role: 'investor',
+                                        memberUid: investor.memberUid,
                                       },
                                     ]}
                                     imageByUid={imageByUid}
@@ -369,7 +431,6 @@ export function InvestorDrawerMock({ row, open, onClose, onOpenMasterProfile }: 
                                       },
                                     ],
                                     connectorName: alt.name,
-                                    proximityCode,
                                     scorePercent: pct,
                                     scoreBand,
                                   }}

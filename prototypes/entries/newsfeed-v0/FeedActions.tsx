@@ -71,11 +71,25 @@ export function CommentCount({ count, onClick }: { count: number; onClick?: () =
   return <span className={s.subItem}>{inner}</span>;
 }
 
-/** Static view-count meta item — the third of the forum's Views · Likes · Comments trio. */
-export function ViewCount({ count }: { count: number }) {
+/**
+ * Thousands as "1.2k". Cards run four meta items in a row that already wraps on
+ * mobile, and a four-digit count is the widest thing in it — the detail modals
+ * have the room for the exact figure, the cards don't.
+ *
+ * Not `toLocaleString()`: prototype routes server-render, and that formats
+ * against the *system* locale, so a browser on a non-en locale would hydrate
+ * "1.204" over the server's "1,204" and mismatch. This is locale-independent.
+ */
+const compactViews = (n: number): string => (n < 1000 ? String(n) : `${Math.round(n / 100) / 10}k`);
+
+/**
+ * Static view-count meta item — the first of the forum's Views · Likes · Comments
+ * trio (`components/page/forum/Posts/Posts.tsx` renders it in that order).
+ */
+export function ViewCount({ count, compact }: { count: number; compact?: boolean }) {
   return (
     <span className={s.subItem}>
-      <ViewIcon /> {count.toLocaleString()} {count === 1 ? 'View' : 'Views'}
+      <ViewIcon /> {compact ? compactViews(count) : count.toLocaleString()} {count === 1 ? 'View' : 'Views'}
     </span>
   );
 }
@@ -85,12 +99,28 @@ export function ViewCount({ count }: { count: number }) {
  * meta-row item, opening/closing an inline thread. Active (thread open) borrows
  * the liked brand-blue so an open thread is legible at a glance.
  */
-export function CommentButton({ count, open, onToggle }: { count: number; open: boolean; onToggle: () => void }) {
+export function CommentButton({
+  count,
+  open,
+  onToggle,
+  opensDetail,
+}: {
+  count: number;
+  open: boolean;
+  onToggle: () => void;
+  /**
+   * The thread lives in the detail modal rather than inline under this element —
+   * `newsfeed`'s top-stories band, where an expanding thread would break
+   * the band open. Drops `aria-expanded`, which would otherwise promise an
+   * in-place disclosure that never happens.
+   */
+  opensDetail?: boolean;
+}) {
   return (
     <button
       type="button"
       className={clsx(s.subItem, s.button, open && s.liked)}
-      aria-expanded={open}
+      aria-expanded={opensDetail ? undefined : open}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();

@@ -1,8 +1,13 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import {
+  patchInfiniteNotificationsAllRead,
+  restoreInfiniteNotifications,
+} from '@/services/push-notifications/hooks/useInfiniteNotifications';
 import {
   PushNotification,
   NotificationUpdatePayload,
@@ -34,6 +39,15 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   const [notifications, setNotifications] = useState<PushNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  // The /recent-updates list renders from the infinite-notifications react-query
+  // cache, not from this provider's state — bulk read-state changes have to
+  // reach both, and only the provider sees both (the navbar bell is global, so
+  // mark-all can be clicked from the bell while that page is on screen).
+  const queryClient = useQueryClient();
+
+  // One mark-all API call at a time, across every surface that can trigger it.
+  const markAllInFlightRef = useRef(false);
 
   // Ref mirror of notifications for synchronous access in callbacks
   // (avoids calling setUnreadCount inside setNotifications updater, which React strict mode double-invokes)
@@ -127,8 +141,9 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
         const normalized = normalizeLink(link);
 
         if (normalized === pathToCompareNotyLink) {
-          markNotificationAsRead(authToken, uid)
-            .catch((err) => console.error('Failed to auto-mark notification:', err));
+          markNotificationAsRead(authToken, uid).catch((err) =>
+            console.error('Failed to auto-mark notification:', err),
+          );
           wsMarkAsReadRef.current(uid);
 
           return;
@@ -177,12 +192,18 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
   }, []);
 
   // Handle count update from WebSocket
-  const handleCountUpdate = useCallback((payload: NotificationCountPayload) => {
-    setUnreadCount(payload.unreadCount);
-    if (payload.unreadCount === 0) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    }
-  }, []);
+  const handleCountUpdate = useCallback(
+    (payload: NotificationCountPayload) => {
+      setUnreadCount(payload.unreadCount);
+      if (payload.unreadCount === 0) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        // A mark-all in another tab reaches this tab as count:0 — its
+        // /recent-updates rows live in the query cache, not in this state.
+        patchInfiniteNotificationsAllRead(queryClient);
+      }
+    },
+    [queryClient],
+  );
 
   const {
     isConnected,
@@ -307,33 +328,55 @@ export function PushNotificationsProvider({ children, authToken, enabled = true 
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
-    const hadUnread = notifications.some((n) => !n.isRead);
-    if (!hadUnread) return;
+    // Count-based guard, not `some(!isRead)` over the loaded list: this state
+    // holds only the newest 50, so unread items older than that would
+    // otherwise silently skip the API call.
+    if (markAllInFlightRef.current || unreadCount === 0) return;
+    markAllInFlightRef.current = true;
+
+    // Snapshots for rollback. id → isRead (not a copy of the array), so a
+    // notification that arrives over the WebSocket mid-flight survives the
+    // rollback with its own read state instead of being clobbered.
+    const previousReadById = new Map(notificationsRef.current.map((n) => [n.id, n.isRead]));
+    const previousCount = unreadCount;
+    const previousPages = patchInfiniteNotificationsAllRead(queryClient);
 
     // Optimistic update
-    const previousNotifications = [...notifications];
-    const previousCount = unreadCount;
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
 
-    // Call REST API
-    if (authToken) {
-      try {
+    try {
+      if (authToken) {
         await markAllNotificationsAsRead(authToken);
-      } catch (err) {
-        console.error('Failed to mark all notifications as read:', err);
-        // Revert optimistic update on error
-        setNotifications(previousNotifications);
-        setUnreadCount(previousCount);
       }
+
+      // Success-only side effects: a failed request must not tell other tabs
+      // "all read", and auto-mark-on-navigation must keep its map so it can
+      // still PATCH the notifications that are in fact unread.
+      wsMarkAllAsRead();
+      unreadLinksMapRef.current.clear();
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err);
+
+      // Revert optimistic updates on error (merge, never replace)
+      setNotifications((prev) =>
+        prev.map((n) => {
+          const wasRead = previousReadById.get(n.id);
+          return wasRead === undefined ? n : { ...n, isRead: wasRead };
+        }),
+      );
+      setUnreadCount(previousCount);
+      if (previousPages) {
+        restoreInfiniteNotifications(queryClient, previousPages);
+      }
+
+      // Surfaces report the failure (analytics is the only failure signal —
+      // this flow has no toast or undo by design).
+      throw err;
+    } finally {
+      markAllInFlightRef.current = false;
     }
-
-    // Notify other devices via WebSocket
-    wsMarkAllAsRead();
-
-    // Clear the unread links map — everything is read now
-    unreadLinksMapRef.current.clear();
-  }, [notifications, unreadCount, authToken, wsMarkAllAsRead]);
+  }, [unreadCount, authToken, wsMarkAllAsRead, queryClient]);
 
   const value = useMemo(
     () => ({

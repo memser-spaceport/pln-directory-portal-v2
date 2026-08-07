@@ -90,9 +90,11 @@ export function TeamsToFollowCard({
       <h3 className={s.railTitle}>Teams to follow</h3>
       {suggestions.map((team, position) => {
         const isFollowing = followedTeamUids.has(team.uid);
-        // Prefer the team's own one-liner (same field the teams grid shows);
-        // the recommendation reason (focus area) is only the fallback.
-        const subtitle = team.shortDescription?.trim() || stripFollowerCountFromReason(team.reason);
+        // Reason first, tagline as the fallback. A tagline says what a team is,
+        // which its profile already does; the reason says why it is in front of
+        // *you*, which is the only thing that earns a follow from a module
+        // nobody asked for.
+        const subtitle = stripFollowerCountFromReason(team.reason || '') || team.shortDescription?.trim() || '';
         return (
           <div key={team.uid} className={s.railRow}>
             {team.logo ? (

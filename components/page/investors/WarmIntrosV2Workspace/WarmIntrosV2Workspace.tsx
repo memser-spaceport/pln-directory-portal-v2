@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import clsx from 'clsx';
 import { investorsFilterParsers } from '@/app/investors/(investors-page)/searchParams';
+import { FilterMultiSelect } from '@/components/common/filters/FilterSelect/FilterMultiSelect';
 import { FilterSelect } from '@/components/common/filters/FilterSelect/FilterSelect';
 import type { Option } from '@/components/form/FormSelect/types';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -21,6 +22,7 @@ import {
   WARM_INTROS_V2_MIN_SCORE,
   WARM_INTROS_V2_TARGET_SET_LABEL,
   WARM_INTROS_V2_TARGET_SETS,
+  type WarmIntrosV2Facets,
   type WarmIntrosV2InvestorSummary,
   type WarmIntrosV2PathListItem,
   type WarmIntrosV2SelectorValue,
@@ -28,10 +30,15 @@ import {
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
 import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
+import { describePathVia, PathViaSelect } from './PathViaSelect';
+import { usePathViaFilter } from './usePathViaFilter';
 import { WarmIntrosV2GlossaryDrawer } from './WarmIntrosV2GlossaryDrawer';
 import { WarmIntrosV2InvestorDrawer } from './WarmIntrosV2InvestorDrawer';
 import { WarmIntrosV2Table } from './WarmIntrosV2Table';
 import s from './WarmIntrosV2Workspace.module.scss';
+// Active-filter pills + Clear all already exist in Warm Intros v1 — same feature
+// family, same bar. Reused rather than re-styled.
+import v1 from '../WarmIntrosWorkspace/WarmIntrosWorkspace.module.scss';
 
 interface Props {
   onCountChange?: (count: number) => void;
@@ -39,6 +46,7 @@ interface Props {
 
 const PAGE_LIMIT = 50;
 const SEARCH_DEBOUNCE_MS = 300;
+const EMPTY_FACETS: WarmIntrosV2Facets = { connectors: [], sectors: [], kinds: [], bridges: [], plBackerCount: 0 };
 
 /**
  * Warm Intros v2 workspace: filter bar + polished table + glossary + CSV + investor drawer + MasterProfile modal.
@@ -54,6 +62,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
   const selectorValue = (filters.wi2_target_set ?? WARM_INTROS_V2_DEFAULT_TARGET_SET) as WarmIntrosV2SelectorValue;
   /** Omit targetSet on API when "All" is selected. */
   const apiTargetSet = selectorValue === WARM_INTROS_V2_ALL_TARGET_SET ? undefined : selectorValue;
+  const pathVia = usePathViaFilter(filters, setFilters);
   const [searchInput, setSearchInput] = useState(filters.wi2_q);
   const debouncedSearch = useDebounce(searchInput, SEARCH_DEBOUNCE_MS);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
@@ -71,28 +80,33 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     }
   }, [debouncedSearch, filters.wi2_q, setFilters]);
 
+  const pathViaKinds = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'kind').map((v) => v.value),
+    [pathVia.value],
+  );
+  const pathViaMembers = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'member').map((v) => v.value),
+    [pathVia.value],
+  );
+  const pathViaBridges = useMemo(
+    () => pathVia.value.filter((v) => v.type === 'bridge').map((v) => v.value),
+    [pathVia.value],
+  );
+
   const listParams = useMemo(
     () => ({
       targetSet: apiTargetSet,
       search: debouncedSearch.trim() || undefined,
-      connectorProfileUid: filters.wi2_connector || undefined,
-      sector: filters.wi2_sector || undefined,
-      relationKind: filters.wi2_relation_kind || undefined,
-      directOnly: filters.wi2_direct_only === true || undefined,
+      connectorProfileUid: pathViaMembers.length ? pathViaMembers : undefined,
+      sector: filters.wi2_sector.length ? filters.wi2_sector : undefined,
+      relationKind: pathViaKinds.length ? pathViaKinds : undefined,
+      bridgeProfileUid: pathViaBridges.length ? pathViaBridges : undefined,
       plBacker: filters.wi2_pl_backer === true || undefined,
       minScore: WARM_INTROS_V2_MIN_SCORE,
       rank: 1,
       limit: PAGE_LIMIT,
     }),
-    [
-      apiTargetSet,
-      debouncedSearch,
-      filters.wi2_connector,
-      filters.wi2_sector,
-      filters.wi2_relation_kind,
-      filters.wi2_direct_only,
-      filters.wi2_pl_backer,
-    ],
+    [apiTargetSet, debouncedSearch, pathViaMembers, pathViaKinds, pathViaBridges, filters.wi2_sector, filters.wi2_pl_backer],
   );
 
   const { data, isLoading, isError, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
@@ -145,17 +159,6 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
   const targetSetValue = targetSetOptions.find((o) => o.value === selectorValue) ?? targetSetOptions[0];
 
-  const connectorOptions = useMemo<Option[]>(
-    () =>
-      (facets?.connectors ?? []).map((c) => ({
-        value: c.profileUid,
-        label: `${c.name} (${c.pathCount})`,
-      })),
-    [facets],
-  );
-
-  const connectorValue = connectorOptions.find((o) => o.value === filters.wi2_connector) ?? null;
-
   const sectorOptions = useMemo<Option[]>(
     () =>
       (facets?.sectors ?? []).map((sec) => ({
@@ -165,49 +168,31 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     [facets],
   );
 
-  const sectorValue = sectorOptions.find((o) => o.value === filters.wi2_sector) ?? null;
+  const sectorValue = useMemo(
+    () => sectorOptions.filter((o) => filters.wi2_sector.includes(o.value)),
+    [sectorOptions, filters.wi2_sector],
+  );
 
   const onPickTargetSet = useCallback(
     (opt: Option | null) => {
       const next = (opt?.value as WarmIntrosV2SelectorValue | undefined) ?? WARM_INTROS_V2_DEFAULT_TARGET_SET;
       void setFilters({
         wi2_target_set: next,
-        wi2_connector: null,
-        wi2_sector: null,
+        wi2_path_kind: [],
+        wi2_path_members: [],
+        wi2_path_bridges: [],
+        wi2_sector: [],
       });
     },
     [setFilters],
   );
 
-  const relationKind = filters.wi2_relation_kind;
-  const directOnly = filters.wi2_direct_only === true;
   const plBacker = filters.wi2_pl_backer === true;
 
-  const setPathKindFilter = useCallback(
-    (kind: 'founder_bridge' | 'coinvestor_bridge' | null) => {
-      void setFilters({
-        wi2_relation_kind: kind,
-        wi2_direct_only: null,
-        ...(kind ? { wi2_pl_backer: null } : {}),
-      });
-    },
-    [setFilters],
-  );
-
-  const toggleDirectOnly = useCallback(() => {
-    void setFilters({
-      wi2_direct_only: directOnly ? null : true,
-      wi2_relation_kind: null,
-      wi2_pl_backer: null,
-    });
-  }, [directOnly, setFilters]);
-
+  // Backed PL/FIL describes the investor, not the route to them, so it's independent
+  // of — and combines freely with — the Path via selection (both AND together server-side).
   const togglePlBacker = useCallback(() => {
-    void setFilters({
-      wi2_pl_backer: plBacker ? null : true,
-      wi2_relation_kind: null,
-      wi2_direct_only: null,
-    });
+    void setFilters({ wi2_pl_backer: plBacker ? null : true });
   }, [plBacker, setFilters]);
 
   const onExportCsv = useCallback(async () => {
@@ -287,6 +272,50 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
     void setFilters({ wi2_q: null });
   }, [setFilters]);
 
+  const plBackerAvailable = facets?.plBackerCount ?? 0;
+
+  const clearAll = useCallback(() => {
+    pathVia.setValue([]);
+    void setFilters({ wi2_sector: [], wi2_pl_backer: null });
+    clearSearch();
+  }, [pathVia, setFilters, clearSearch]);
+
+  /**
+   * What's currently on, and how to switch each thing off individually. The list
+   * picker is deliberately absent — it always has a value, so a pill for it would
+   * never be removable.
+   */
+  const activePills = useMemo(() => {
+    const pills: Array<{ key: string; label: string; value: string; onRemove: () => void }> = [];
+
+    // One pill per selection, not one pill listing them all — each has to be
+    // removable on its own.
+    for (const via of pathVia.value) {
+      pills.push({
+        key: `pathVia:${via.type}:${via.value}`,
+        label: 'Path via',
+        value: describePathVia(via, facets ?? EMPTY_FACETS),
+        onRemove: () =>
+          pathVia.setValue(pathVia.value.filter((v) => !(v.type === via.type && v.value === via.value))),
+      });
+    }
+    for (const sec of filters.wi2_sector) {
+      pills.push({
+        key: `sector:${sec}`,
+        label: 'Sector',
+        value: sec,
+        onRemove: () => void setFilters({ wi2_sector: filters.wi2_sector.filter((s) => s !== sec) }),
+      });
+    }
+    if (plBacker) {
+      pills.push({ key: 'plBacker', label: 'Backed', value: 'PL / Filecoin', onRemove: () => void togglePlBacker() });
+    }
+    if (searchInput.trim()) {
+      pills.push({ key: 'search', label: 'Search', value: searchInput.trim(), onRemove: clearSearch });
+    }
+    return pills;
+  }, [pathVia, filters.wi2_sector, setFilters, plBacker, togglePlBacker, searchInput, clearSearch, facets]);
+
   return (
     <div className={s.root}>
       <section className={s.builder}>
@@ -298,16 +327,23 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
               filter.
             </p>
           </div>
-          <button
-            type="button"
-            className={s.howScoredLink}
-            onClick={() => {
-              analytics.trackGlossaryOpened();
-              setGlossaryOpen(true);
-            }}
-          >
-            What do these terms mean?
-          </button>
+          <div className={s.headerLinks}>
+            {access.canEdit ? (
+              <button type="button" className={s.howScoredLink} onClick={() => setFeedbackQueueOpen(true)}>
+                Path feedback
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={s.howScoredLink}
+              onClick={() => {
+                analytics.trackGlossaryOpened();
+                setGlossaryOpen(true);
+              }}
+            >
+              What do these terms mean?
+            </button>
+          </div>
         </header>
 
         <div className={s.filterBar}>
@@ -349,81 +385,63 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             </div>
           </div>
 
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <FilterSelect
-              options={connectorOptions}
-              value={connectorValue}
-              placeholder="PL member"
-              isClearable
-              isSearchable
-              aria-label="PL member"
-              onChange={(opt) => void setFilters({ wi2_connector: opt?.value || null })}
+          <div className={s.filterBarItem} style={{ minWidth: 200 }}>
+            <PathViaSelect
+              facets={facets ?? EMPTY_FACETS}
+              value={pathVia.value}
+              onChange={pathVia.setValue}
             />
           </div>
 
-          <div className={s.filterBarItem} style={{ minWidth: 160 }}>
-            <FilterSelect
+          <div className={s.filterBarItem} style={{ minWidth: 200 }}>
+            <FilterMultiSelect
               options={sectorOptions}
               value={sectorValue}
               placeholder="Industry / Sector"
-              isClearable
               isSearchable
               aria-label="Industry / Sector"
-              onChange={(opt) => void setFilters({ wi2_sector: opt?.value || null })}
+              checkbox
+              onChange={(opts) => void setFilters({ wi2_sector: opts.map((o) => o.value) })}
             />
           </div>
 
-          <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Path quick filters">
+          {/* Not part of the "Path via" axis: this one is about the investor, not
+              the route to them. Disabled rather than hidden when nothing in the
+              current set qualifies — a control that vanishes is worse. */}
+          <div className={clsx(s.filterBarItem, s.quickFilters)} role="group" aria-label="Investor filters">
             <button
               type="button"
-              className={clsx(s.quickChip, relationKind === 'founder_bridge' && s.quickChipActive)}
-              aria-pressed={relationKind === 'founder_bridge'}
-              onClick={() => setPathKindFilter(relationKind === 'founder_bridge' ? null : 'founder_bridge')}
-            >
-              Founder bridge
-            </button>
-            <button
-              type="button"
-              className={clsx(s.quickChip, relationKind === 'coinvestor_bridge' && s.quickChipActive)}
-              aria-pressed={relationKind === 'coinvestor_bridge'}
-              onClick={() => setPathKindFilter(relationKind === 'coinvestor_bridge' ? null : 'coinvestor_bridge')}
-            >
-              Co-investor bridge
-            </button>
-            <button
-              type="button"
-              className={clsx(s.quickChip, plBacker && s.quickChipActive)}
+              className={clsx(s.quickChip, s.backedToggle, plBacker && s.quickChipActive)}
               aria-pressed={plBacker}
+              disabled={!plBacker && plBackerAvailable === 0}
+              title="Investors whose firm has already backed Protocol Labs or Filecoin"
               onClick={togglePlBacker}
             >
-              PL/FIL investors
-            </button>
-            <button
-              type="button"
-              className={clsx(s.quickChip, s.quickChipToggle, directOnly && s.quickChipActive)}
-              aria-pressed={directOnly}
-              onClick={toggleDirectOnly}
-            >
-              Direct only
-            </button>
-          </div>
-
-          <div className={clsx(s.filterBarItem, s.filterBarActions)}>
-            {access.canEdit ? (
-              <button type="button" className={s.exportBtn} onClick={() => setFeedbackQueueOpen(true)}>
-                Path feedback
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={s.exportBtn}
-              onClick={() => void onExportCsv()}
-              disabled={exporting || (!isLoading && paths.length === 0)}
-            >
-              {exporting ? 'Exporting…' : 'Export CSV'}
+              Backed PL/FIL ({plBackerAvailable})
             </button>
           </div>
         </div>
+
+        {activePills.length > 0 ? (
+          <div className={v1.filterPills}>
+            {activePills.map((pill) => (
+              <span key={pill.key} className={v1.pill}>
+                {pill.label}: <strong>{pill.value}</strong>
+                <button
+                  type="button"
+                  className={v1.pillRemove}
+                  onClick={pill.onRemove}
+                  aria-label={`Remove ${pill.label} filter`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <button type="button" className={v1.clearAll} onClick={clearAll}>
+              Clear all
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {isLoading && <div className={s.state}>Loading paths…</div>}
@@ -435,13 +453,35 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
         </div>
       )}
 
-      {!isLoading && !isError && paths.length === 0 && <div className={s.state}>No paths match these filters.</div>}
+      {!isLoading && !isError && paths.length === 0 && (
+        <div className={clsx(s.state, s.emptyState)}>
+          <span>No paths match these filters.</span>
+          {activePills.length > 0 ? (
+            <button type="button" className={v1.clearAll} onClick={clearAll}>
+              Clear all
+            </button>
+          ) : null}
+        </div>
+      )}
 
       {!isLoading && !isError && paths.length > 0 && (
         <div className={s.listWrap}>
-          <div className={s.meta}>
-            Showing {paths.length}
-            {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue]}
+          <div className={clsx(s.meta, s.metaRow)}>
+            <span>
+              Showing {paths.length}
+              {total > paths.length ? ` of ${total}` : ''} paths · {WARM_INTROS_V2_TARGET_SET_LABEL[selectorValue]}
+            </span>
+            {/* Export is an action on the result set, so it belongs with the
+                sentence that says how many there are, not the row of controls
+                that changes which results there are. */}
+            <button
+              type="button"
+              className={clsx(s.exportPrimary, s.metaRowSpacer)}
+              onClick={() => void onExportCsv()}
+              disabled={exporting || (!isLoading && paths.length === 0)}
+            >
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
           </div>
           <WarmIntrosV2Table
             rows={paths}

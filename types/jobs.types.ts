@@ -54,3 +54,33 @@ export interface IJobsFiltersResponse {
 export type JobsSortKey = 'newest' | 'company_az';
 
 export type JobsFilterKey = 'roleCategory' | 'seniority' | 'focus' | 'location' | 'workplaceType';
+
+/** One recipient of a referral email. Mirrors the backend's `JobReferralRecipientSchema`:
+ *  either half identifies someone, and at least one must be present. A directory member
+ *  is sent as `memberUid` (the server resolves their address), a typed address as
+ *  `email`. */
+export type IJobReferralRecipient = { memberUid: string; name?: string } | { email: string; name?: string };
+
+export interface IJobReferralDraft {
+  /** The complete note, ready to show in an editable field. */
+  note: string;
+  referrerName: string;
+  referrerTitle: string | null;
+  referrerCompany: string | null;
+  referredName: string;
+  referredTitle: string | null;
+  referredCompany: string | null;
+  roleTitle: string;
+  teamName: string;
+  applyUrl: string | null;
+}
+
+export interface IJobReferralResult {
+  uid: string;
+  jobUid: string;
+  /** The address the email was sent to — the first recipient. */
+  to: string;
+  /** Everyone else, plus the referrer and the referred member. */
+  cc: string[];
+  sentAt: string;
+}

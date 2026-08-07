@@ -15,10 +15,11 @@ import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
-import { ReferModal } from './ReferModal';
+import { ReferModal } from './components/ReferModal';
 
 interface JobReferRoleRowProps {
   role: IJobRole;
+  teamId: string;
   teamName: string;
   onClick?: () => void;
 }
@@ -29,7 +30,7 @@ interface JobReferRoleRowProps {
  * to LinkedIn/X, the Refer button opens the in-network referral modal.
  */
 export function JobReferRoleRow(props: JobReferRoleRowProps) {
-  const { role, teamName, onClick } = props;
+  const { role, teamId, teamName, onClick } = props;
   const [referOpen, setReferOpen] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
@@ -81,7 +82,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               Refer
             </Button>
 
-            <ReferMenu role={role} teamName={teamName} />
+            <ReferMenu role={role} teamId={teamId} teamName={teamName} />
 
             <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
               <ArrowIcon />
@@ -90,7 +91,13 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         </div>
       </div>
 
-      <ReferModal open={referOpen} onClose={() => setReferOpen(false)} role={role} teamName={teamName} />
+      <ReferModal
+        open={referOpen}
+        onClose={() => setReferOpen(false)}
+        role={role}
+        teamId={teamId}
+        teamName={teamName}
+      />
     </>
   );
 }

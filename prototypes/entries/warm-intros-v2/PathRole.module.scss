@@ -1,0 +1,242 @@
+/**
+ * Layout only — no colours of its own beyond the muted grey production already
+ * uses for `.pathArrow` and `.subtle`.
+ *
+ * Dev puts a bordered role pill after every hop chip. Only the last one is
+ * redundant (it is always the row's own investor); every other position carries
+ * information, because a path can start at a founder just as well as at a PL
+ * member. So the labels stay, and what changes is their weight: pill chrome off,
+ * caption under the name — the pattern Workable / Aboard / Peerlist all use.
+ */
+
+.hop {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/**
+ * Only the bridge stacks, so the caption sits under its own name.
+ *
+ * Keeping the chip on the same line as its neighbours: production centres the
+ * chain, and a caption hanging below would drag this chip upward by half the
+ * caption's height. Top-aligning the chain instead just moves the problem — the
+ * arrows and the other chips then hang off the top edge.
+ *
+ * So the hop reserves the caption's height *above* the chip as well. The column
+ * becomes symmetric (13px, chip, 1px gap, 12px caption), which puts the chip
+ * back on the row's centre line while production's `align-items: center` is left
+ * exactly as it is.
+ */
+.hopWithRole {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 13px; /* .roleCaption line-height (12px) + the 1px gap */
+}
+
+/**
+ * Absorbs the row's own top margin in the drawer.
+ *
+ * `.chainRow` sets `margin-top: 8px`, measured back when the chain was just chips.
+ * `.hopWithRole` now reserves another 13px above each captioned chip — symmetric
+ * padding so a chip with a caption stays centred against one without — so the
+ * apparent gap between the path description and the nodes became 21px, and read as
+ * a hole in the card.
+ *
+ * The 13px stays: it is what keeps `Ilse Brandt` and `Linnéa Holm` on the same
+ * centre line when only the first has a caption. What goes is the 8px underneath
+ * it, which was spacing for a chain that no longer exists.
+ *
+ * Doubled to clear production's own `.chainRow` without depending on which
+ * stylesheet the bundler emits last.
+ */
+.chainRowTight.chainRowTight {
+  margin-top: 0;
+}
+
+.roleCaption {
+  padding-left: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  letter-spacing: 0.01em;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+/**
+ * "In LabOS" / "Fund in LabOS", sharing the role caption's line.
+ *
+ * Takes `LabOsBadge`'s green (`#047857`, its `.full__arrow`) and nothing else from
+ * it — not the `#ecfdf5` fill, not the 11px/600. A filled chip at that weight,
+ * under a 10px muted role caption, would make the sub-line louder than the
+ * person's name above it.
+ *
+ * This is the one colour on the caption row, and it is spent on presence in LabOS
+ * rather than on the role — the role repeats down the column, LabOS does not.
+ */
+.labOs {
+  font-weight: 600;
+  color: var(--foreground-success-primary, #047857);
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Role colour-coding — inert unless `RoleColorProvider` turns it on.
+ *
+ * Everything below is dead weight on the shipped `warm-intros-v2` tab: `PathHop`
+ * only ever emits these classes under the `warm-intros-role-colors` entry, whose
+ * whole job is to test the "no second palette" line this file opens with.
+ *
+ * The hues are **production's**, lifted verbatim from
+ * `MasterProfileModal.module.scss` — the type pills at the top of the profile a
+ * chip opens. Not `HopRoleBadge.module.scss`, which is nearer by, but which
+ * disagrees with the modal on three of the four roles (its founder is green and
+ * its investor violet; the modal has those the other way round, and co-investor
+ * cyan rather than orange). A chip and the profile it opens must not need two
+ * readings of the same colour — see `RoleColor.tsx`.
+ *
+ * Each role sets three custom properties and no rules of its own; `.tintFill`
+ * decides how loudly they get spent, and `tag` mode spends them on the caption
+ * alone.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* PL Member — the brand indigo, for the hop that is inside the network. The one
+   role the two production palettes already agree on. */
+.tintPl {
+  --role-fg: var(--foreground-brand-primary, #1b4dff);
+  --role-line: var(--border-brand-subtle, #c7d2fe);
+  --role-bg: var(--background-brand-subtle, #eef2ff);
+}
+
+.tintFounder {
+  --role-fg: var(--foreground-warning-primary, #9a3412);
+  --role-line: var(--border-warning-subtle, #fed7aa);
+  --role-bg: var(--background-warning-subtle, #fff7ed);
+}
+
+.tintCoInvestor {
+  --role-fg: var(--foreground-info-primary, #0e7490);
+  --role-line: var(--border-info-subtle, #a5f3fc);
+  --role-bg: var(--background-info-subtle, #ecfeff);
+}
+
+/**
+ * Green, per the modal's `.typeInvestor` — the tag on the profile this chip opens.
+ *
+ * It lands on the last hop of every chain, which makes it a convention rather
+ * than a signal: it is not telling you which row is interesting, it is telling
+ * you what kind of thing you are looking at, in the colour you already learned
+ * from the profile. Worth the ink for the same reason a label is.
+ *
+ * This is the darkest of the three greens the cell can hold, and that ordering is
+ * doing work: `#166534` role tag, `#059669` LabOS presence, `#d1fae5` score pill.
+ * Flat-and-dark, bright-and-saturated, pale-and-large — three different jobs at
+ * three different weights, rather than three shades of the same emphasis.
+ */
+.tintInvestor {
+  --role-fg: var(--foreground-success-primary, #166534);
+  --role-line: var(--border-success-subtle, #bbf7d0);
+  --role-bg: var(--background-success-subtle, #f0fdf4);
+}
+
+/**
+ * The two treatments that touch the chip. `tag` mode is absent from both by
+ * design: it leaves the nodes exactly as production draws them and spends the
+ * whole hue on the tag below.
+ *
+ * Both reach the chip the same way `ChipPress.module.scss` does — by element,
+ * because `PathProfileChip` accepts no `className`. `:first-child` rather than
+ * `button`, because the org stubs render as `<span>` and they should take the tint
+ * too; only `ChipPress` has a reason to exclude them (they are not pressable,
+ * these are still roles).
+ *
+ * `> :first-child` is (0,1,1), which clears production's `.chip` (0,1,0) without
+ * depending on which stylesheet the bundler emits last. It does *not* clear
+ * `.chip:hover` (0,2,0) — deliberately. Hover stays production's blue on every
+ * chip, so "the thing under my cursor" never has to compete with "what kind of
+ * person this is".
+ */
+
+/**
+ * Border — the outline only, fill left white.
+ *
+ * `--role-line` is MasterProfile's own `border-color`, not a strengthened version
+ * of it. That is the honest test: this mode was cut once for being close to
+ * subliminal at chip scale, and thickening the stroke to make the tab look better
+ * would settle the question by changing it. If `#bbf7d0` at 1px is too quiet to
+ * read down a column, that is the finding.
+ */
+.tintBorder > :first-child {
+  border-color: var(--role-line);
+}
+
+/* Fill — tint, edge and name together. */
+.tintFill > :first-child {
+  background: var(--role-bg);
+  border-color: var(--role-line);
+  /* `.label` sets no colour of its own, so this cascades to the name. */
+  color: var(--role-fg);
+}
+
+/**
+ * The org stubs render as `<span>` and carry `.chipStatic`, whose `:hover` block
+ * exists only to *undo* the interactive hover — it repaints white. That is the
+ * right behaviour on a neutral chip and the wrong one here: passing the cursor
+ * over Protocol Labs would blank its tint for no reason, since nothing happens
+ * when you click it.
+ *
+ * `span` rather than `:not(button)` so the real chips keep production's blue
+ * hover untouched, and `:first-child` so the tag span beside it is not caught.
+ * (0,3,1) clears `.chipStatic:hover` (0,2,0).
+ */
+.tintBorder > span:first-child:hover {
+  border-color: var(--role-line);
+}
+
+.tintFill > span:first-child:hover {
+  background: var(--role-bg);
+  border-color: var(--role-line);
+  color: var(--role-fg);
+}
+
+/**
+ * The tag carries the hue in both coloured modes, and in `tag` mode it is the only
+ * thing carrying it. Weight goes 500 → 600 with the colour: a 10px tinted line at
+ * 500 reads as faded rather than as coloured.
+ */
+.roleCaptionTinted {
+  font-weight: 600;
+  color: var(--role-fg);
+}
+
+/**
+ * "In LabOS" takes a second, brighter green wherever roles are coloured.
+ *
+ * The problem it solves: the role tag and this share one 10px line, separated by
+ * a middot, and the investor's tag is `#166534` (the MasterProfile pill). Against
+ * `.labOs`'s own `#047857` the last hop read `Investor · In LabOS` as one phrase
+ * in one colour — two greens four pixels apart, four points of lightness between
+ * them, meaning unrelated things.
+ *
+ * `#059669` is not a third green invented to break the tie. It is the **Directory
+ * dot** — `PathProfileChip.module.scss`, the 7px dot already sitting on the
+ * avatar of the very chip this caption belongs to. So the cell ends up with two
+ * greens that each mean something consistent:
+ *
+ *   #166534  dark, flat        the *role* — investor, as on their profile pill
+ *   #059669  bright, saturated *presence* — we hold a record of this person,
+ *                              which is what the dot above already says
+ *
+ * The gap is 17 points of lightness and a clear shift toward cyan, which reads at
+ * 10px where a four-point gap did not. Two greens are fine when they are the same
+ * idea at two scales; they are only a collision when they are two ideas.
+ *
+ * `off` keeps `#047857`, LabOsBadge's own, since nothing competes for it there.
+ *
+ * Doubled so it beats `.labOs`'s colour regardless of source order.
+ */
+.labOsPresence.labOsPresence {
+  color: var(--foreground-success-secondary, #059669);
+}

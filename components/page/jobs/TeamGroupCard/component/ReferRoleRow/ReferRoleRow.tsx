@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
 import { Button } from '@/components/common/Button';
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 
 import type { IJobRole } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
@@ -21,6 +22,7 @@ import { useRouter } from 'next/navigation';
 
 interface ReferRoleRowProps {
   role: IJobRole;
+  teamId: string;
   teamName: string;
   currentUser: IUserInfo | null;
   onClick?: () => void;
@@ -32,9 +34,10 @@ interface ReferRoleRowProps {
  * the title + arrow are the apply link, and the ReferMenu sits alongside the meta.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamName, currentUser, onClick } = props;
+  const { role, teamId, teamName, currentUser, onClick } = props;
 
   const router = useRouter();
+  const analytics = useJobsAnalytics();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
@@ -52,7 +55,19 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     ? { href: `${applyUrl}?${JOB_QUERY_PARAMS}`, target: '_blank', rel: 'noopener noreferrer', onClick }
     : {};
 
+  const referBase = {
+    job_id: role.uid,
+    team_id: teamId,
+    team_name: teamName,
+    role_title: roleTitle,
+    role_category: roleCategory,
+    seniority,
+  };
+
   function onRefer() {
+    const authRequired = !currentUser;
+    analytics.onJobReferClicked({ ...referBase, auth_required: authRequired });
+
     if (currentUser) {
       toggleReferOpen();
     } else {
@@ -87,7 +102,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
             Refer
           </Button>
 
-          <ReferMenu role={role} teamName={teamName} />
+          <ReferMenu role={role} teamId={teamId} teamName={teamName} />
 
           <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
             <ArrowIcon />
@@ -95,7 +110,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         </div>
       </div>
 
-      <ReferModal open={referOpen} onClose={toggleReferOpen} role={role} teamName={teamName} />
+      <ReferModal open={referOpen} onClose={toggleReferOpen} role={role} teamId={teamId} teamName={teamName} />
     </div>
   );
 }

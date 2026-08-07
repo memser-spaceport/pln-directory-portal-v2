@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import type { IJobReferralRecipient, IJobRole } from '@/types/jobs.types';
@@ -11,6 +11,7 @@ import { CloseIcon } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
+import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 
 import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
@@ -37,6 +38,7 @@ interface ReferModalProps {
   open: boolean;
   onClose: () => void;
   role: IJobRole;
+  teamId: string;
   teamName: string;
 }
 
@@ -74,10 +76,12 @@ type ReferFormData = {
  * directory as you type, which no production select can drive — see
  * `MemberSearchSelect` and `RecipientPicker`.
  */
-export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
+export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   const [recipientsSeeded, setRecipientsSeeded] = useState(false);
+  const noteEditedTracked = useRef(false);
+  const analytics = useJobsAnalytics();
 
   const methods = useForm<ReferFormData>({
     defaultValues: { referee: null, recipients: [], message: '' },
@@ -90,6 +94,15 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
   const message = useWatch({ control, name: 'message' });
 
   const selectedMember: DirectoryMember | null = (referee as any)?.originalObject ?? null;
+
+  const referBase = {
+    job_id: role.uid,
+    team_id: teamId,
+    team_name: teamName,
+    role_title: role.roleTitle,
+    role_category: role.roleCategory,
+    seniority: role.seniority,
+  };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
   const { members: hiringTeam, defaultRecipients, isLoading: isTeamLoading } = useTeamMembers(teamName, open);
@@ -121,6 +134,9 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     setMessageEdited(false);
     setSent(false);
     setRecipientsSeeded(false);
+    noteEditedTracked.current = false;
+    analytics.onJobReferModalOpened(referBase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset]);
 
   // Default recipients: the hiring team's leads (see `useTeamMembers`). Seeded in its
@@ -148,6 +164,15 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referee?.value]);
 
+  useEffect(() => {
+    if (!open || !selectedMember?.uid) return;
+    analytics.onJobReferRefereeSelected({
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, selectedMember?.uid]);
+
   // Show the drafted note as soon as it lands, and clear the field when the candidate is
   // removed. A hand-edited note is never overwritten — "Reset to template" is the way
   // back. The draft depends only on the role and the referred member, so changing
@@ -168,18 +193,64 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
     if (!open || !selectedMember || messageEdited || !draft?.note) return;
     if (message && message !== draft.note) {
       setMessageEdited(true);
+      if (!noteEditedTracked.current) {
+        noteEditedTracked.current = true;
+        analytics.onJobReferNoteEdited({
+          ...referBase,
+          referred_member_uid: selectedMember.uid,
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message]);
 
+  const hasExternalEmail = (list: RecipientOption[]) => list.some((r) => Boolean(r.isEmail));
+
+  const handleRecipientsChange = (next: RecipientOption[]) => {
+    setValue('recipients', next, { shouldDirty: true });
+    if (!recipientsSeeded) return;
+    analytics.onJobReferRecipientsChanged({
+      ...referBase,
+      recipient_count: next.length,
+      has_external_email: hasExternalEmail(next),
+    });
+  };
+
   const resetTemplate = () => {
-    if (!draft?.note) return;
+    if (!draft?.note || !selectedMember) return;
     setValue('message', draft.note);
     setMessageEdited(false);
+    noteEditedTracked.current = false;
+    analytics.onJobReferNoteReset({
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+    });
+  };
+
+  const handleClose = () => {
+    if (!sent) {
+      analytics.onJobReferModalCancelled({
+        ...referBase,
+        had_referee: Boolean(selectedMember),
+        recipient_count: recipients.length,
+        note_was_edited: messageEdited,
+      });
+    }
+    onClose();
   };
 
   const onSubmit = () => {
     if (!selectedMember || !recipients.length || !message?.trim()) return;
+
+    const submitParams = {
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+      recipient_count: recipients.length,
+      has_external_email: hasExternalEmail(recipients),
+      note_was_edited: messageEdited,
+    };
+
+    analytics.onJobReferSubmitted(submitParams);
 
     sendReferral(
       {
@@ -188,8 +259,20 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
         note: message.trim(),
       },
       {
-        onSuccess: () => setSent(true),
-        onError: () => toast.error('We couldn’t send that referral. Please try again.'),
+        onSuccess: (result) => {
+          analytics.onJobReferSucceeded({
+            ...submitParams,
+            referral_uid: result?.uid,
+          });
+          setSent(true);
+        },
+        onError: (error) => {
+          analytics.onJobReferFailed({
+            ...submitParams,
+            error_type: error instanceof Error ? error.name : 'unknown',
+          });
+          toast.error('We couldn’t send that referral. Please try again.');
+        },
       },
     );
   };
@@ -199,9 +282,9 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
   const sentTo = getRecipientSummary(recipients);
 
   return (
-    <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false} lockScroll>
+    <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
       <div className={s.modal}>
-        <Button style="link" variant="neutral" className={s.closeButton} onClick={onClose} aria-label="Close modal">
+        <Button style="link" variant="neutral" className={s.closeButton} onClick={handleClose} aria-label="Close modal">
           <CloseIcon />
         </Button>
 
@@ -209,12 +292,12 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
           <EnvelopeIcon />
         </div>
 
-        <h2 className={s.title}>{sent ? 'Referral sent' : `Refer someone for ${role.roleTitle}`}</h2>
+        <h2 className={s.title}>{sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}</h2>
 
         <p className={s.desc}>
           {sent
             ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
-            : `This will send an intro email to ${teamName}, yourself, and the people you list below.`}
+            : 'Referral email will be sent to everyone listed including you.'}
         </p>
 
         {sent ? (
@@ -248,12 +331,9 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
                     teamName={teamName}
                     excludeUids={referee?.value ? [referee.value] : undefined}
                     value={recipients}
-                    onChange={(next) => setValue('recipients', next, { shouldDirty: true })}
+                    onChange={handleRecipientsChange}
                     menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                   />
-                  <div className={s.hint}>
-                    The first person on the list gets the email directly, everyone else is CC’d.
-                  </div>
                 </div>
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
@@ -294,7 +374,7 @@ export function ReferModal({ open, onClose, role, teamName }: ReferModalProps) {
               </p>
 
               <div className={s.actions}>
-                <Button style="border" variant="primary" className={s.actionButton} onClick={onClose}>
+                <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>
                   Cancel
                 </Button>
                 <Button type="submit" style="fill" variant="primary" className={s.actionButton} disabled={!canSend}>

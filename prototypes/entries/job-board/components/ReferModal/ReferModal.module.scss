@@ -227,16 +227,6 @@
   color: var(--foreground-error-secondary, #ff3838);
 }
 
-.hint {
-  margin-top: .25rem;
-
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
-
 // --- Template block -----------------------------------------------------------
 
 // FormTextArea's own label is dropped here so the label line can carry the

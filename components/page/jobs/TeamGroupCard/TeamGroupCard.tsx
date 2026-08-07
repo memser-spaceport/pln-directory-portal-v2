@@ -62,6 +62,7 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
         {visibleRoles.map((role, idx) => (
           <ReferRoleRow
             currentUser={currentUser}
+            teamId={team.uid}
             teamName={team.name}
             key={role.uid}
             role={role}

@@ -74,6 +74,18 @@ export const JOBS_ANALYTICS = {
   ON_JOB_ALERT_RENAMED: 'job-alert-renamed',
   ON_JOB_ALERT_DELETED: 'job-alert-deleted',
   ON_JOB_ALERT_EMAIL_LINK_CLICKED: 'job-alert-email-link-clicked',
+  ON_JOB_REFER_CLICKED: 'job-refer-clicked',
+  ON_JOB_REFER_MODAL_OPENED: 'job-refer-modal-opened',
+  ON_JOB_REFER_MODAL_CANCELLED: 'job-refer-modal-cancelled',
+  ON_JOB_REFER_REFEREE_SELECTED: 'job-refer-referee-selected',
+  ON_JOB_REFER_RECIPIENTS_CHANGED: 'job-refer-recipients-changed',
+  ON_JOB_REFER_NOTE_EDITED: 'job-refer-note-edited',
+  ON_JOB_REFER_NOTE_RESET: 'job-refer-note-reset',
+  ON_JOB_REFER_SUBMITTED: 'job-refer-submitted',
+  ON_JOB_REFER_SUCCEEDED: 'job-refer-succeeded',
+  ON_JOB_REFER_FAILED: 'job-refer-failed',
+  ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
+  ON_JOB_REFER_SHARED: 'job-refer-shared',
 };
 
 export const EVENTS = {

@@ -64,7 +64,7 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
       <ul className={s.roleList}>
         {visibleRoles.map((role) => (
           <li key={role.uid}>
-            <JobReferRoleRow role={role} teamName={team.name} />
+            <JobReferRoleRow role={role} teamId={team.uid} teamName={team.name} />
           </li>
         ))}
       </ul>

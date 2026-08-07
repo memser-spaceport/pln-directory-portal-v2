@@ -12,6 +12,8 @@ import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 import type { FollowAnalyticsSource } from '@/analytics/follow.analytics';
 import type { ISuggestedTeam, ITeamNewsPopularItem } from '@/types/team-news.types';
 
+import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
+
 import { TeamsToFollowCard } from './components/TeamsToFollowCard';
 import { PopularThisWeekCard } from './components/PopularThisWeekCard';
 
@@ -139,7 +141,7 @@ export function NewsRail({
   // card below — which has no scroller counterpart — is unaffected.
   const showTeamsToFollow =
     renderModules && Boolean(onFollowToggle) && (isLoadingSuggestedTeams || visibleSuggestions.length > 0);
-  const showPopular = renderModules && popularItems.length > 0;
+  const showPopular = SHOW_POPULAR_THIS_WEEK && renderModules && popularItems.length > 0;
 
   // The view-once analytics used to live here. They moved up to TeamNews (see
   // useFeedModulesViewAnalytics): with two possible surfaces, an effect next to
@@ -157,11 +159,9 @@ export function NewsRail({
             onFollowToggle={onFollowToggle!}
           />
         )}
-        {/* Temporarily hidden 
         {showPopular && (
           <PopularThisWeekCard key="popular-this-week" items={popularItems} onPopularItemClick={onPopularItemClick} />
         )}
-        */}
 
         {/* The digest CTA is open to everyone — members without forum access
             get a network-news-only digest (forum posts are suppressed

@@ -838,6 +838,26 @@ export const OH_GUIDELINE_URL =
 
 export const ChangeLogList = [
   {
+    title: 'Version 4.5.24 - Top Stories, Job Referrals & Warm Intros',
+    tag: 'New Feature',
+    date: '7, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Top stories</span> - The week's standout news now sits at the top of the feed, with a lead story and a couple of runners-up.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer a member</span> - Recommend someone from the directory for an open role and send an intro email to the hiring team.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mark all as read</span> - Clear your unread updates in one click from the bell panel or the Updates page.</li>
+        </ul>
+        </div>`,
+  },
+  {
     title: 'Version 4.5.23 - Feed Discussions & AI Apps',
     tag: 'New Feature',
     date: '30, Jul 2026',

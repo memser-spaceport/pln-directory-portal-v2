@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
+import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IDeal } from '@/types/deals.types';
@@ -1308,7 +1309,7 @@ describe('TeamNews', () => {
     });
   });
 
-  describe('popular this week — scroll to story', () => {
+  (SHOW_POPULAR_THIS_WEEK ? describe : describe.skip)('popular this week — scroll to story', () => {
     const popularItem = (
       partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>,
     ): ITeamNewsPopularItem => ({
@@ -1669,21 +1670,29 @@ describe('TeamNews', () => {
       mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
     });
 
-    it('keeps both modules in the rail at desktop width, with no scrollers', () => {
+    it('keeps Teams to follow in the rail at desktop width, with no scrollers', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
 
       expect(within(railAside()!).getByText('Banyan Storage')).toBeInTheDocument();
-      expect(within(railAside()!).getByText('Popular this week')).toBeInTheDocument();
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(within(railAside()!).getByText('Popular this week')).toBeInTheDocument();
+      } else {
+        expect(within(railAside()!).queryByText('Popular this week')).not.toBeInTheDocument();
+      }
       expect(scroller('Teams to follow')).not.toBeInTheDocument();
       expect(scroller('Popular this week')).not.toBeInTheDocument();
     });
 
-    it('lifts both modules into horizontal rows below desktop', () => {
+    it('lifts Teams to follow into a horizontal row below desktop', () => {
       mockUseIsBelowDesktop.mockReturnValue(true);
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
 
       expect(scroller('Teams to follow')).toBeInTheDocument();
-      expect(scroller('Popular this week')).toBeInTheDocument();
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(scroller('Popular this week')).toBeInTheDocument();
+      } else {
+        expect(scroller('Popular this week')).not.toBeInTheDocument();
+      }
       // The rail is still in the tree for the digest card — it just no longer
       // carries these two.
       expect(within(railAside()!).queryByText('Banyan Storage')).not.toBeInTheDocument();
@@ -1704,7 +1713,11 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
 
       expect(screen.getAllByText('Banyan Storage')).toHaveLength(1);
-      expect(screen.getAllByText('Popular this week')).toHaveLength(1);
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(screen.getAllByText('Popular this week')).toHaveLength(1);
+      } else {
+        expect(screen.queryByText('Popular this week')).not.toBeInTheDocument();
+      }
     });
 
     // The events live in TeamNews now precisely so the count doesn't depend on
@@ -1712,7 +1725,7 @@ describe('TeamNews', () => {
     it('fires each view event exactly once, on either surface', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
       expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
-      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(SHOW_POPULAR_THIS_WEEK ? 1 : 0);
 
       jest.clearAllMocks();
       mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
@@ -1720,7 +1733,7 @@ describe('TeamNews', () => {
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
 
       expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
-      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(SHOW_POPULAR_THIS_WEEK ? 1 : 0);
     });
 
     it('follows a team from the scroller with the same payload as the rail row', () => {
@@ -1738,7 +1751,7 @@ describe('TeamNews', () => {
       }
     });
 
-    it('reveals the story in the feed when a scroller card is tapped', () => {
+    (SHOW_POPULAR_THIS_WEEK ? it : it.skip)('reveals the story in the feed when a scroller card is tapped', () => {
       mockUseIsBelowDesktop.mockReturnValue(true);
       renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
 
@@ -1817,7 +1830,7 @@ describe('TeamNews', () => {
 
     // Both rank by likes, so left alone they show the same three stories a few
     // hundred pixels apart.
-    it('keeps band stories out of the rail’s Popular this week', () => {
+    (SHOW_POPULAR_THIS_WEEK ? it : it.skip)('keeps band stories out of the rail’s Popular this week', () => {
       const items = bandItems(9, { 4: 50, 7: 40, 1: 30 });
       renderTeamNews(
         <TeamNews

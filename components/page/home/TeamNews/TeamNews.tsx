@@ -31,6 +31,7 @@ import {
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
+  SHOW_POPULAR_THIS_WEEK,
   TOP_STORIES_WINDOW_LABEL,
   type TeamNewsCategoryId,
 } from './constants';
@@ -472,7 +473,7 @@ export const TeamNews = ({
   useFeedModulesViewAnalytics({
     suggestionsShown: showSuggestionsModule && !isLoadingSuggestedTeams ? visibleSuggestions.length : 0,
     isLoadingSuggestedTeams,
-    popularCount: railPopularItems.length,
+    popularCount: SHOW_POPULAR_THIS_WEEK ? railPopularItems.length : 0,
   });
 
   const handleTab = (id: string) => {
@@ -890,9 +891,9 @@ export const TeamNews = ({
                   onFollowToggle={handleFollowToggle}
                 />
               )}
-              {/* Temporarily hidden
-              <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
-              */}
+              {SHOW_POPULAR_THIS_WEEK && (
+                <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
+              )}
             </div>
           )}
 

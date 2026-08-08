@@ -9,7 +9,9 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     # CRITICAL: this condition makes sure that it only run on release- branches
-    if: startsWith(github.ref_name, 'release/')
+    # release/plaa-uat is excluded: it drives the plaa-uat feature environment
+    # instead (see plaa-uat-feature-env-trigger.yml), not the legacy Vercel UAT deploy.
+    if: startsWith(github.ref_name, 'release/') && github.ref_name != 'release/plaa-uat'
 
     steps:
       - uses: actions/checkout@v4

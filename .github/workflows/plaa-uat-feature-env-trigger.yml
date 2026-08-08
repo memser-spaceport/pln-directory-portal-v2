@@ -1,0 +1,63 @@
+name: Trigger plaa-uat feature environment
+
+# Pushing to release/plaa-uat redeploys the plaa-uat feature environment
+# (PLAA-52) instead of the legacy Vercel UAT deploy. uat-release-automation.yml
+# excludes this branch so the old and new pipelines never both fire on the
+# same push. Unlike that workflow (which only fires once, on branch
+# creation, to nudge Vercel), this fires on every push, since
+# deploy-feature-env.yaml has no auto-redeploy of its own.
+#
+# Requires a repo secret matching the token used in plaa-service's
+# equivalent trigger, with workflow scope on
+# memser-spaceport/pl-infra-pipeline. No such token exists in this repo
+# yet -- only Vercel deploy hooks are configured.
+
+on:
+  push:
+    branches:
+      - release/plaa-uat
+
+jobs:
+  redeploy:
+    name: Redeploy and verify plaa-uat
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.PLAA_UAT_DISPATCH_TOKEN }}
+    steps:
+      - name: Dispatch feature-env deploy
+        run: |
+          set -euo pipefail
+          echo "BEFORE=$(date -u +%s)" >> "$GITHUB_ENV"
+          gh workflow run deploy-feature-env.yaml \
+            --repo memser-spaceport/pl-infra-pipeline \
+            -f env_name=plaa-uat \
+            -f frontend_ref="${{ github.sha }}" \
+            -f plaa_ref=release/plaa-uat \
+            -f directory_service_ref=main \
+            -f auth_ref=master \
+            -f notification_ref=master
+
+      - name: Wait for the deploy run to finish
+        run: |
+          set -euo pipefail
+          run_id=""
+          for i in $(seq 1 20); do
+            run_id=$(gh run list --repo memser-spaceport/pl-infra-pipeline \
+              --workflow=deploy-feature-env.yaml --limit 5 \
+              --json databaseId,createdAt \
+              --jq "[.[] | select((.createdAt | fromdateiso8601) >= ${BEFORE})][0].databaseId // empty")
+            [ -n "$run_id" ] && break
+            sleep 10
+          done
+          if [ -z "$run_id" ]; then
+            echo "Could not find the dispatched run"
+            exit 1
+          fi
+          gh run watch "$run_id" --repo memser-spaceport/pl-infra-pipeline --exit-status
+
+      - name: Trigger PLAA UAT env prep (email alias + smoke checks)
+        run: |
+          gh workflow run plaa_uat_env.yaml \
+            --repo memser-spaceport/plaa-service \
+            -f env_name=plaa-uat \
+            -f alias_inbox="${{ vars.PLAA_UAT_ALIAS_INBOX }}"

@@ -237,7 +237,11 @@ function StoryRow({
   // every unrelated re-render of the card (e.g. a sibling row's thread
   // toggling).
   const handleVisible = useCallback(() => onVisible(story.uid), [onVisible, story.uid]);
-  const rowRef = useCardVisibilityTracking<HTMLDivElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
+  const rowRef = useCardVisibilityTracking<HTMLDivElement>({
+    onVisible: handleVisible,
+    threshold: 0.5,
+    trackOnce: true,
+  });
 
   return (
     <div
@@ -281,10 +285,19 @@ function StoryRow({
           <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
         </div>
         <div className={newsCardStyles.actions}>
-          <ViewCount count={story.viewCount} />
           <NewsShareMenu item={story} source={analyticsSource} />
-          <UpvoteButton count={story.upvoteCount ?? 0} voted={Boolean(story.viewerHasUpvoted)} onToggle={onUpvoteClick} />
-          <CommentButton itemUid={story.uid} open={isThreadOpen} onToggle={onThreadToggle} controls={feedThreadDomId(story.uid)} />
+          <ViewCount count={story.viewCount} />
+          <UpvoteButton
+            count={story.upvoteCount ?? 0}
+            voted={Boolean(story.viewerHasUpvoted)}
+            onToggle={onUpvoteClick}
+          />
+          <CommentButton
+            itemUid={story.uid}
+            open={isThreadOpen}
+            onToggle={onThreadToggle}
+            controls={feedThreadDomId(story.uid)}
+          />
         </div>
       </div>
       {/* Mount = expanded (the lazy comments query keys off it). */}

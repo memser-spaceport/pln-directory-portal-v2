@@ -15,6 +15,7 @@ import { hasNewsSource } from '../../utils/getNewsSources';
 import { UpvoteButton } from './components/UpvoteButton/UpvoteButton';
 import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
+import { ViewCount } from '../ViewCount/ViewCount';
 
 import s from './NewsCard.module.scss';
 
@@ -161,6 +162,7 @@ export const NewsCard = ({
           <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
         <span className={s.actions}>
+          <ViewCount count={item.viewCount} />
           {/* Gated on hydration (like FollowButton) so a pre-hydration click
               can't misread a signed-in viewer as a guest. */}
           {isHydrated && onUpvoteToggle && (

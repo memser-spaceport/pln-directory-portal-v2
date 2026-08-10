@@ -20,6 +20,7 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
+import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
@@ -210,6 +211,7 @@ export function NewsGroupCard({
                 <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
               </div>
               <div className={newsCardStyles.actions}>
+                <ViewCount count={story.viewCount} />
                 <NewsShareMenu item={story} source={analyticsSource} />
                 <UpvoteButton
                   count={story.upvoteCount ?? 0}

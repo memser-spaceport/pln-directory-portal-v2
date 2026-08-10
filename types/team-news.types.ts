@@ -38,6 +38,9 @@ export interface ITeamNewsItem {
   upvoteCount?: number;
   /** 1 = Top Stories lead, 2–3 = runners-up; null/absent when not featured. */
   editorialRank?: number | null;
+  /** Raw feed-card impression count, not deduplicated by user/session/repeat
+   *  viewing. Incremented via POST /v1/team-news/impressions. */
+  viewCount?: number;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */

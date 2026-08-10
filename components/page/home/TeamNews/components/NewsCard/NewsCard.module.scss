@@ -365,3 +365,18 @@
 .upvoteActive {
   color: #156ff7;
 }
+
+// Read-only sibling to .upvote — same visual weight, no interactive states
+// (no hover/cursor), since view counts aren't clickable.
+.viewCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+}

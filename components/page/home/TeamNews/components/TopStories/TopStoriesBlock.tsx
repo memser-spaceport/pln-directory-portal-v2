@@ -16,6 +16,7 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
+import { ViewCount } from '../ViewCount/ViewCount';
 import { TopStoryCard } from './TopStoryCard';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -162,6 +163,7 @@ export function TopStoriesBlock({
                     <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
                   </div>
                   <div className={newsCardStyles.actions}>
+                    <ViewCount count={item.viewCount} />
                     <NewsShareMenu item={item} source={analyticsSource} />
                     <UpvoteButton
                       count={item.upvoteCount ?? 0}

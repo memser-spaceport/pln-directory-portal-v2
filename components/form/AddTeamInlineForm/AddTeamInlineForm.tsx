@@ -84,7 +84,7 @@ export const AddTeamInlineForm = ({
 
         <FormField
           name={fieldNames.website}
-          placeholder="Enter website address"
+          placeholder="Enter website"
           label="Website Address"
           description="Paste a URL (LinkedIn, company website, etc.)"
           isRequired
@@ -94,7 +94,7 @@ export const AddTeamInlineForm = ({
 
         <FormField
           name={fieldNames.role}
-          placeholder="Enter your primary role"
+          placeholder="Enter your role"
           label="Role"
           isRequired
           rules={{ required: 'Role is required' }}

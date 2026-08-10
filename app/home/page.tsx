@@ -5,6 +5,7 @@ import { getDiscoverData } from '@/services/discovery.service';
 import Error from '@/components/core/error';
 // import Discover from '@/components/page/home/discover/discover';
 import { FocusAreaSection } from '@/components/page/home/FocusAreaSection';
+import { LatestJobsSection } from '@/components/page/home/LatestJobsSection';
 import { getFocusAreas } from '@/services/common.service';
 import { IFocusArea } from '@/components/page/team-form-info/focus-area/focus-area';
 import HuskyDialog from '@/components/page/home/husky-dialog';
@@ -58,6 +59,9 @@ export default async function Home() {
           </div>
           <div className={styles.home__cn__focusarea}>
             <FocusAreaSection focusAreas={focusAreas} userInfo={userInfo} />
+          </div>
+          <div className={styles.home__cn__latestjobs}>
+            <LatestJobsSection />
           </div>
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>

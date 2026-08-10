@@ -36,6 +36,8 @@ export interface ITeamNewsItem {
   isFollowed?: boolean;
   viewerHasUpvoted?: boolean;
   upvoteCount?: number;
+  /** 1 = Top Stories lead, 2–3 = runners-up; null/absent when not featured. */
+  editorialRank?: number | null;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */

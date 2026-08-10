@@ -112,3 +112,39 @@ export async function toggleTeamNewsUpvote(uid: string, upvoted: boolean): Promi
   if (!response?.ok) throw new Error('Failed to toggle team news upvote');
   return (await response.json()) as ITeamNewsUpvoteStatus;
 }
+
+// ── View impressions ─────────────────────────────────────────────────────────
+
+const IMPRESSIONS_BATCH_SIZE = 200;
+
+// Public endpoint (no auth needed/sent — signed-out visitors record views the
+// same as signed-in ones). Every occurrence of a uid increments viewCount by
+// 1 server-side; unknown uids are silently ignored.
+export async function recordTeamNewsImpressions(uids: string[]): Promise<void> {
+  const batches: string[][] = [];
+  for (let i = 0; i < uids.length; i += IMPRESSIONS_BATCH_SIZE) {
+    batches.push(uids.slice(i, i + IMPRESSIONS_BATCH_SIZE));
+  }
+  // allSettled, not all: each chunk is independently best-effort — one
+  // rejected batch shouldn't be entangled with the others' outcomes.
+  await Promise.allSettled(batches.map(postImpressionsBatch));
+}
+
+async function postImpressionsBatch(newsItemUids: string[]): Promise<void> {
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/team-news/impressions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newsItemUids }),
+  });
+  if (!response.ok) throw new Error('Failed to record team news impressions');
+}
+
+// Used only for the leave-flush (see useTeamNewsImpressions): sendBeacon
+// survives an actual tab-close/navigation, where a plain fetch can be
+// aborted mid-flight. Returns false (caller keeps its queue) if the browser
+// can't accept the beacon, so nothing is silently dropped.
+export function sendTeamNewsImpressionsBeacon(uids: string[]): boolean {
+  if (typeof navigator === 'undefined' || !navigator.sendBeacon || uids.length === 0) return false;
+  const blob = new Blob([JSON.stringify({ newsItemUids: uids })], { type: 'application/json' });
+  return navigator.sendBeacon(`${process.env.DIRECTORY_API_URL}/v1/team-news/impressions`, blob);
+}

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -36,6 +37,8 @@ interface TopStoriesBlockProps {
    *  math: block items are not in `visibleEntries`, so the feed's findIndex
    *  would report -1 for every one of them. */
   onStoryOpen: (item: ITeamNewsItem, slot: TopStorySlot, position: number) => void;
+  /** Fired once a card (lead or row) scrolls into the viewport (view-impression recording). */
+  onStoryVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
 }
 
@@ -58,6 +61,7 @@ export function TopStoriesBlock({
   onFollowToggle,
   onUpvoteToggle,
   onStoryOpen,
+  onStoryVisible,
   analyticsSource = 'home',
 }: TopStoriesBlockProps) {
   const router = useRouter();
@@ -98,91 +102,118 @@ export function TopStoriesBlock({
         onFollowToggle={onFollowToggle}
         onUpvoteToggle={onUpvoteToggle}
         onOpen={(item) => onStoryOpen(item, 'lead', 0)}
+        onVisible={onStoryVisible}
         analyticsSource={analyticsSource}
       />
 
       {also.length > 0 && (
         <ul className={s.alsoList}>
-          {also.map((item, index) => {
-            const { label: eventTypeLabel, dotClassName } = getEventTypeConfig(item.eventType);
-            const isFollowing = followedTeamUids.has(item.teamUid);
-            return (
-              <li key={item.uid} className={s.alsoRow}>
-                <div className={newsCardStyles.head}>
-                  {item.teamLogoUrl ? (
-                    <img className={newsCardStyles.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
-                  ) : (
-                    <div className={newsCardStyles.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
-                  )}
-                  <a
-                    href={`/teams/${item.teamUid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={newsCardStyles.teamName}
-                  >
-                    {item.teamName}
-                  </a>
-                  {isHydrated && (
-                    <FollowButton
-                      following={isFollowing}
-                      onClick={handleFollowClick(item)}
-                      name={item.teamName}
-                      size="compact"
-                    />
-                  )}
-                </div>
-
-                {/* The headline is the click target, not the row: the row holds a
-                    Follow button and a team link, and a button can't nest inside
-                    a button (production hit exactly this in ReferRoleRow). */}
-                <button
-                  type="button"
-                  aria-haspopup="dialog"
-                  aria-label={item.title}
-                  className={s.alsoTitleBtn}
-                  onClick={() => onStoryOpen(item, 'row', index + 1)}
-                >
-                  <span className={s.alsoTitle}>{item.title}</span>
-                </button>
-
-                {item.summary && <p className={s.alsoSummary}>{item.summary}</p>}
-
-                <div className={newsCardStyles.metaLine}>
-                  <div className={newsCardStyles.meta}>
-                    <span className={newsCardStyles.eventType}>
-                      <span className={`${newsCardStyles.eventDot} ${dotClassName}`} aria-hidden="true" />
-                      <span className={newsCardStyles.eventLabel}>{eventTypeLabel}</span>
-                    </span>
-                    {hasNewsSource(item) && (
-                      <>
-                        <span className={newsCardStyles.sep} aria-hidden="true" />
-                        <SourceList item={item} position={index + 1} analyticsSource={analyticsSource} />
-                      </>
-                    )}
-                    <span className={newsCardStyles.sep} aria-hidden="true" />
-                    <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
-                  </div>
-                  <div className={newsCardStyles.actions}>
-                    <ViewCount count={item.viewCount} />
-                    <NewsShareMenu item={item} source={analyticsSource} />
-                    <UpvoteButton
-                      count={item.upvoteCount ?? 0}
-                      voted={Boolean(item.viewerHasUpvoted)}
-                      onToggle={handleUpvoteClick(item)}
-                    />
-                    <CommentButton
-                      itemUid={item.uid}
-                      open={false}
-                      onToggle={() => onStoryOpen(item, 'row', index + 1)}
-                      opensDetail
-                    />
-                  </div>
-                </div>
-              </li>
-            );
-          })}
+          {also.map((item, index) => (
+            <AlsoRow
+              key={item.uid}
+              item={item}
+              index={index}
+              isFollowing={followedTeamUids.has(item.teamUid)}
+              isHydrated={isHydrated}
+              analyticsSource={analyticsSource}
+              onFollowClick={handleFollowClick(item)}
+              onUpvoteClick={handleUpvoteClick(item)}
+              onOpen={() => onStoryOpen(item, 'row', index + 1)}
+              onVisible={onStoryVisible}
+            />
+          ))}
         </ul>
       )}
     </section>
+  );
+}
+
+interface AlsoRowProps {
+  item: ITeamNewsItem;
+  index: number;
+  isFollowing: boolean;
+  isHydrated: boolean;
+  analyticsSource: TeamNewsAnalyticsSource;
+  onFollowClick: (e: React.MouseEvent) => void;
+  onUpvoteClick: () => void;
+  onOpen: () => void;
+  onVisible: (uid: string) => void;
+}
+
+// Extracted so useCardVisibilityTracking has a legal, stable hook call site —
+// it can't be called directly inside the `also.map()` callback above (rules
+// of hooks). Same file as TopStoriesBlock, not a new one; nothing about this
+// row is reused elsewhere.
+function AlsoRow({
+  item,
+  index,
+  isFollowing,
+  isHydrated,
+  analyticsSource,
+  onFollowClick,
+  onUpvoteClick,
+  onOpen,
+  onVisible,
+}: AlsoRowProps) {
+  const { label: eventTypeLabel, dotClassName } = getEventTypeConfig(item.eventType);
+
+  // Memoized so this row's IntersectionObserver isn't torn down/rebuilt on
+  // every unrelated re-render of the block.
+  const handleVisible = useCallback(() => onVisible(item.uid), [onVisible, item.uid]);
+  const rowRef = useCardVisibilityTracking<HTMLLIElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
+
+  return (
+    <li ref={rowRef} className={s.alsoRow}>
+      <div className={newsCardStyles.head}>
+        {item.teamLogoUrl ? (
+          <img className={newsCardStyles.logo} src={item.teamLogoUrl} alt="" loading="lazy" />
+        ) : (
+          <div className={newsCardStyles.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
+        )}
+        <a
+          href={`/teams/${item.teamUid}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={newsCardStyles.teamName}
+        >
+          {item.teamName}
+        </a>
+        {isHydrated && (
+          <FollowButton following={isFollowing} onClick={onFollowClick} name={item.teamName} size="compact" />
+        )}
+      </div>
+
+      {/* The headline is the click target, not the row: the row holds a
+          Follow button and a team link, and a button can't nest inside
+          a button (production hit exactly this in ReferRoleRow). */}
+      <button type="button" aria-haspopup="dialog" aria-label={item.title} className={s.alsoTitleBtn} onClick={onOpen}>
+        <span className={s.alsoTitle}>{item.title}</span>
+      </button>
+
+      {item.summary && <p className={s.alsoSummary}>{item.summary}</p>}
+
+      <div className={newsCardStyles.metaLine}>
+        <div className={newsCardStyles.meta}>
+          <span className={newsCardStyles.eventType}>
+            <span className={`${newsCardStyles.eventDot} ${dotClassName}`} aria-hidden="true" />
+            <span className={newsCardStyles.eventLabel}>{eventTypeLabel}</span>
+          </span>
+          {hasNewsSource(item) && (
+            <>
+              <span className={newsCardStyles.sep} aria-hidden="true" />
+              <SourceList item={item} position={index + 1} analyticsSource={analyticsSource} />
+            </>
+          )}
+          <span className={newsCardStyles.sep} aria-hidden="true" />
+          <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
+        </div>
+        <div className={newsCardStyles.actions}>
+          <ViewCount count={item.viewCount} />
+          <NewsShareMenu item={item} source={analyticsSource} />
+          <UpvoteButton count={item.upvoteCount ?? 0} voted={Boolean(item.viewerHasUpvoted)} onToggle={onUpvoteClick} />
+          <CommentButton itemUid={item.uid} open={false} onToggle={onOpen} opensDetail />
+        </div>
+      </div>
+    </li>
   );
 }

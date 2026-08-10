@@ -1,11 +1,12 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { useToggle } from 'react-use';
 import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { ITeamNewsItem, TeamCluster } from '@/types/team-news.types';
 import {
@@ -46,6 +47,8 @@ interface NewsGroupCardProps {
    * this card that's beyond VISIBLE_STORIES — forces this card's own truncation
    * open. One-directional (never collapses); see the scroll-to-story plan. */
   autoExpandStoryUid?: string;
+  /** Fired once a story row scrolls into the viewport (view-impression recording). */
+  onStoryVisible: (uid: string) => void;
 }
 
 export function NewsGroupCard({
@@ -56,6 +59,7 @@ export function NewsGroupCard({
   onFollowToggle,
   onUpvoteToggle,
   autoExpandStoryUid,
+  onStoryVisible,
 }: NewsGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const router = useRouter();
@@ -167,84 +171,132 @@ export function NewsGroupCard({
         )}
       </div>
 
-      {visibleStories.map((story, storyIndex) => {
-        const { label, dotClassName } = getEventTypeConfig(story.eventType);
-        return (
-          <div
-            key={story.uid}
-            data-story-uid={story.uid}
-            role="button"
-            aria-haspopup="dialog"
-            // Concise accessible name — without it the row's name is its entire
-            // text content (title + summary + meta), which is screen-reader noise
-            // and collides with other buttons in role queries.
-            aria-label={story.title}
-            tabIndex={0}
-            className={s.storyRow}
-            onClick={() => openStory(story)}
-            onKeyDown={(e) => {
-              // Only act on keys pressed on the row itself — Enter/Space on a
-              // nested control (Like/Share/SourceList) must not also open
-              // the modal. Same guard as NewsCard's handleKeyDown.
-              if (e.target !== e.currentTarget) return;
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openStory(story);
-              }
-            }}
-          >
-            <h3 className={newsCardStyles.headline}>{story.title}</h3>
-            {story.summary && <p className={s.summary}>{story.summary}</p>}
-            <div className={newsCardStyles.metaLine}>
-              <div className={newsCardStyles.meta}>
-                <span className={newsCardStyles.eventType}>
-                  <span className={`${newsCardStyles.eventDot} ${dotClassName}`} aria-hidden="true" />
-                  <span className={newsCardStyles.eventLabel}>{label}</span>
-                </span>
-                {hasNewsSource(story) && (
-                  <>
-                    <span className={newsCardStyles.sep} aria-hidden="true" />
-                    <SourceList item={story} position={storyIndex} analyticsSource={analyticsSource} />
-                  </>
-                )}
-                <span className={newsCardStyles.sep} aria-hidden="true" />
-                <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
-              </div>
-              <div className={newsCardStyles.actions}>
-                <ViewCount count={story.viewCount} />
-                <NewsShareMenu item={story} source={analyticsSource} />
-                <UpvoteButton
-                  count={story.upvoteCount ?? 0}
-                  voted={Boolean(story.viewerHasUpvoted)}
-                  onToggle={() => handleUpvoteClick(story)}
-                />
-                <CommentButton
-                  itemUid={story.uid}
-                  open={openThreadUids.has(story.uid)}
-                  onToggle={() => handleThreadToggle(story.uid)}
-                  controls={feedThreadDomId(story.uid)}
-                />
-              </div>
-            </div>
-            {/* Mount = expanded (the lazy comments query keys off it). */}
-            {openThreadUids.has(story.uid) && (
-              <FeedCommentsThread
-                itemUid={story.uid}
-                kind="news"
-                source={analyticsSource}
-                onViewAll={() => onStoryOpen(story, 'view-all-comments')}
-                onSignIn={() => handleThreadSignIn(story.uid)}
-                onBusyChange={(busy) => setThreadBusy(story.uid, busy)}
-              />
-            )}
-          </div>
-        );
-      })}
+      {visibleStories.map((story, storyIndex) => (
+        <StoryRow
+          key={story.uid}
+          story={story}
+          storyIndex={storyIndex}
+          analyticsSource={analyticsSource}
+          isThreadOpen={openThreadUids.has(story.uid)}
+          onOpen={() => openStory(story)}
+          onUpvoteClick={() => handleUpvoteClick(story)}
+          onThreadToggle={() => handleThreadToggle(story.uid)}
+          onThreadViewAll={() => onStoryOpen(story, 'view-all-comments')}
+          onThreadSignIn={() => handleThreadSignIn(story.uid)}
+          onThreadBusyChange={(busy) => setThreadBusy(story.uid, busy)}
+          onVisible={onStoryVisible}
+        />
+      ))}
 
       {hiddenCount > 0 && (
         <button type="button" className={s.expander} aria-expanded={expanded} onClick={toggleExpanded}>
           {expanded ? 'Show less' : `View all ${stories.length} updates from ${cluster.teamName}`}
         </button>
+      )}
+    </div>
+  );
+}
+
+interface StoryRowProps {
+  story: ITeamNewsItem;
+  storyIndex: number;
+  analyticsSource: TeamNewsAnalyticsSource;
+  isThreadOpen: boolean;
+  onOpen: () => void;
+  onUpvoteClick: () => void;
+  onThreadToggle: () => void;
+  onThreadViewAll: () => void;
+  onThreadSignIn: () => void;
+  onThreadBusyChange: (busy: boolean) => void;
+  onVisible: (uid: string) => void;
+}
+
+// Extracted so useCardVisibilityTracking has a legal, stable hook call site —
+// it can't be called directly inside the `visibleStories.map()` callback
+// above (rules of hooks). Same file as NewsGroupCard, not a new one; nothing
+// about this row is reused elsewhere. A row unmounts on collapse ("Show
+// less") or a tab/category change (composite-key remount) without losing any
+// already-queued impression — the queue lives one level up, in TeamNews.tsx's
+// useTeamNewsImpressions instance.
+function StoryRow({
+  story,
+  storyIndex,
+  analyticsSource,
+  isThreadOpen,
+  onOpen,
+  onUpvoteClick,
+  onThreadToggle,
+  onThreadViewAll,
+  onThreadSignIn,
+  onThreadBusyChange,
+  onVisible,
+}: StoryRowProps) {
+  const { label, dotClassName } = getEventTypeConfig(story.eventType);
+
+  // Memoized so this row's IntersectionObserver isn't torn down/rebuilt on
+  // every unrelated re-render of the card (e.g. a sibling row's thread
+  // toggling).
+  const handleVisible = useCallback(() => onVisible(story.uid), [onVisible, story.uid]);
+  const rowRef = useCardVisibilityTracking<HTMLDivElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
+
+  return (
+    <div
+      ref={rowRef}
+      data-story-uid={story.uid}
+      role="button"
+      aria-haspopup="dialog"
+      // Concise accessible name — without it the row's name is its entire
+      // text content (title + summary + meta), which is screen-reader noise
+      // and collides with other buttons in role queries.
+      aria-label={story.title}
+      tabIndex={0}
+      className={s.storyRow}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        // Only act on keys pressed on the row itself — Enter/Space on a
+        // nested control (Like/Share/SourceList) must not also open
+        // the modal. Same guard as NewsCard's handleKeyDown.
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
+      <h3 className={newsCardStyles.headline}>{story.title}</h3>
+      {story.summary && <p className={s.summary}>{story.summary}</p>}
+      <div className={newsCardStyles.metaLine}>
+        <div className={newsCardStyles.meta}>
+          <span className={newsCardStyles.eventType}>
+            <span className={`${newsCardStyles.eventDot} ${dotClassName}`} aria-hidden="true" />
+            <span className={newsCardStyles.eventLabel}>{label}</span>
+          </span>
+          {hasNewsSource(story) && (
+            <>
+              <span className={newsCardStyles.sep} aria-hidden="true" />
+              <SourceList item={story} position={storyIndex} analyticsSource={analyticsSource} />
+            </>
+          )}
+          <span className={newsCardStyles.sep} aria-hidden="true" />
+          <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
+        </div>
+        <div className={newsCardStyles.actions}>
+          <ViewCount count={story.viewCount} />
+          <NewsShareMenu item={story} source={analyticsSource} />
+          <UpvoteButton count={story.upvoteCount ?? 0} voted={Boolean(story.viewerHasUpvoted)} onToggle={onUpvoteClick} />
+          <CommentButton itemUid={story.uid} open={isThreadOpen} onToggle={onThreadToggle} controls={feedThreadDomId(story.uid)} />
+        </div>
+      </div>
+      {/* Mount = expanded (the lazy comments query keys off it). */}
+      {isThreadOpen && (
+        <FeedCommentsThread
+          itemUid={story.uid}
+          kind="news"
+          source={analyticsSource}
+          onViewAll={onThreadViewAll}
+          onSignIn={onThreadSignIn}
+          onBusyChange={onThreadBusyChange}
+        />
       )}
     </div>
   );

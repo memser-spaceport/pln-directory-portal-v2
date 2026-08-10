@@ -43,4 +43,4 @@ export const CATEGORIES: Array<{ id: TeamNewsEventType | typeof ALL_CAT; label: 
 export const TOP_STORIES_WINDOW_LABEL = `Last ${TEAM_NEWS_DEFAULT_WINDOW_DAYS} days`;
 
 /** Set back to true to re-enable the rail/scroller "Popular this week" module. */
-export const SHOW_POPULAR_THIS_WEEK = false;
+export const SHOW_POPULAR_THIS_WEEK = true;

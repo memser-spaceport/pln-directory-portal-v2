@@ -301,14 +301,13 @@ export const TeamNews = ({
   // separate conditions would drift.
   const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
 
-  // Ranked from the frozen snapshot, rendered from the live overlay (allItems is
-  // already overlay-merged): liking the featured story updates its count without
-  // re-ranking the band under the cursor that just clicked it.
-  // The band exists to sit above a feed, so it only appears once the window can
-  // supply both it and a full first page (TOP_STORIES_MIN_CORPUS).
+  // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
+  // overlay. Independent of upvote counts so the band stays distinct from
+  // Popular this week. The band exists to sit above a feed, so it only appears
+  // once the window can supply both it and a full first page (TOP_STORIES_MIN_CORPUS).
   const topStories = useMemo(
-    () => (isNarrowedView ? null : selectTopStories(allItems, initialUpvoteCounts, TOP_STORIES_MIN_CORPUS)),
-    [isNarrowedView, allItems, initialUpvoteCounts],
+    () => (isNarrowedView ? null : selectTopStories(allItems, TOP_STORIES_MIN_CORPUS)),
+    [isNarrowedView, allItems],
   );
   const hasTopStories = Boolean(topStories?.lead);
 
@@ -369,9 +368,8 @@ export const TeamNews = ({
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
 
-  // Both the band and the rail's "Popular this week" rank by likes, so left
-  // alone they show the same three stories a few hundred pixels apart. The rail
-  // surfaces #4–#6 instead; it hides itself when the list comes back empty.
+  // Band is editorialRank; rail is upvotes — they should already diverge, but
+  // still drop any accidental overlap so the same story isn't shown twice.
   const railPopularItems = useMemo(
     () => (topStories && hasTopStories ? popularItems.filter((p) => !topStories.uids.has(p.uid)) : popularItems),
     [popularItems, topStories, hasTopStories],

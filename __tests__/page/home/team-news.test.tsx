@@ -1764,12 +1764,16 @@ describe('TeamNews', () => {
 
   describe('top stories band', () => {
     // TOP_STORIES_MIN_CORPUS is 9: the band's three plus a full default page.
-    const bandItems = (count: number, upvotesByIndex: Record<number, number> = {}): ITeamNewsItem[] =>
+    // Editorial ranks 1–3 on b-4 / b-7 / b-1 match the previous upvote-based
+    // fixture so assertions on those headlines stay stable.
+    const bandItems = (count: number, editorialByIndex: Record<number, number> = {}): ITeamNewsItem[] =>
       Array.from({ length: count }, (_, i) => ({
         ...makeItem(`b-${i}`, 'FUNDING', ['AI & Robotics']),
-        upvoteCount: upvotesByIndex[i] ?? 0,
+        editorialRank: editorialByIndex[i] ?? null,
         eventDate: `2026-05-${String(count - i).padStart(2, '0')}T12:00:00.000Z`,
       }));
+
+    const defaultEditorial = { 4: 1, 7: 2, 1: 3 };
 
     const bandGroups = (items: ITeamNewsItem[]): ITeamNewsGroup[] => [{ focusArea: FA_AI, total: items.length, items }];
 
@@ -1779,14 +1783,14 @@ describe('TeamNews', () => {
     const band = () => screen.queryByRole('region', { name: 'Top stories' });
 
     it('renders nothing below the minimum corpus', () => {
-      renderTeamNews(<TeamNews groups={bandGroups(bandItems(8))} />);
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(8, defaultEditorial))} />);
 
       expect(band()).not.toBeInTheDocument();
       expect(feed().getByText('Headline b-0')).toBeInTheDocument();
     });
 
     it('renders the lead plus two rows once the corpus is met', () => {
-      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, { 4: 50, 7: 40, 1: 30 }))} />);
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
 
       const region = band()!;
       expect(region).toBeInTheDocument();
@@ -1797,7 +1801,7 @@ describe('TeamNews', () => {
     });
 
     it('removes the band stories from the stream below it', () => {
-      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, { 4: 50, 7: 40, 1: 30 }))} pageSize={20} />);
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} pageSize={20} />);
 
       for (const uid of ['b-4', 'b-7', 'b-1']) {
         expect(feed().queryByText(`Headline ${uid}`)).not.toBeInTheDocument();
@@ -1807,7 +1811,7 @@ describe('TeamNews', () => {
     });
 
     it('hides the band on a focus-area tab, a category pill, and a search query', () => {
-      const items = bandItems(9, { 4: 50 });
+      const items = bandItems(9, defaultEditorial);
       renderTeamNews(
         <TeamNews
           groups={[
@@ -1828,10 +1832,9 @@ describe('TeamNews', () => {
       expect(band()).not.toBeInTheDocument();
     });
 
-    // Both rank by likes, so left alone they show the same three stories a few
-    // hundred pixels apart.
+    // Safety net: even though signals differ, still drop accidental overlap.
     (SHOW_POPULAR_THIS_WEEK ? it : it.skip)('keeps band stories out of the rail’s Popular this week', () => {
-      const items = bandItems(9, { 4: 50, 7: 40, 1: 30 });
+      const items = bandItems(9, defaultEditorial);
       renderTeamNews(
         <TeamNews
           groups={bandGroups(items)}
@@ -1862,7 +1865,7 @@ describe('TeamNews', () => {
     });
 
     it('reports its own view and click analytics with slot and position', () => {
-      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, { 4: 50, 7: 40, 1: 30 }))} />);
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
 
       expect(mockOnTopStoriesBlockViewed).toHaveBeenCalledWith('b-4', 2);
 
@@ -1874,7 +1877,7 @@ describe('TeamNews', () => {
     });
 
     it('opens the detail modal and writes ?news= when a band story is clicked', () => {
-      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, { 4: 50 }))} />);
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
 
       fireEvent.click(within(band()!).getByRole('button', { name: 'Headline b-4' }));
 
@@ -1882,14 +1885,13 @@ describe('TeamNews', () => {
       expect(new URLSearchParams(window.location.search).get('news')).toBe('b-4');
     });
 
-    // The band ranks from the mount-time snapshot for the same reason the feed
-    // does (#2677) — otherwise liking the lead demotes it under the cursor.
+    // Editorial ranks are fixed at ingest — liking must not re-order the band.
     it('does not re-rank when the lead is liked', () => {
       // Same reason the upvotes block above signs in: UpvoteButton has no
       // isHydrated gate, so an anonymous click just redirects to login.
       useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
       try {
-        renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, { 4: 50, 7: 40, 1: 30 }))} />);
+        renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
 
         const leadBefore = within(band()!).getByRole('heading', { level: 2 }).textContent;
         fireEvent.click(within(band()!).getAllByRole('button', { name: /^Like/ })[0]);

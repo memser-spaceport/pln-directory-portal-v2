@@ -56,7 +56,7 @@ function EmailPicker({
             {`+${additionalEmails.length} email${additionalEmails.length === 1 ? '' : 's'}`}
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Positioner align="start" sideOffset={4}>
+            <Popover.Positioner align="start" sideOffset={4} style={{ zIndex: 10 }}>
               <Popover.Popup className={s.emailPop}>
                 {additionalEmails.map((em) => (
                   <span key={em} className={s.emailRow}>

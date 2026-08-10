@@ -24,11 +24,12 @@ const DEFAULT_FEED_PAGE = 6;
 export const TOP_STORIES_MIN_CORPUS = TOP_STORIES_TOTAL + DEFAULT_FEED_PAGE;
 
 export interface TopStoriesSelection {
-  /** null when the window is below `minItems` — the caller renders nothing. */
+  /** null when the window is below `minItems` or fewer than TOP_STORIES_TOTAL
+   *  editorial picks exist — the caller renders nothing. */
   lead: ITeamNewsItem | null;
-  /** The runners-up. Always two when `lead` is set, since `minItems` is floored
-   *  at TOP_STORIES_TOTAL — but typed as a list so the band's own render still
-   *  guards on length rather than trusting the caller. */
+  /** The runners-up. Always two when `lead` is set, since we require exactly
+   *  TOP_STORIES_TOTAL editorial ranks — but typed as a list so the band's own
+   *  render still guards on length rather than trusting the caller. */
   also: ITeamNewsItem[];
   /** Every uid in the block. The one exclusion set — used for the stream below
    *  and for the rail's "Popular this week", so the two can't drift. */
@@ -37,19 +38,18 @@ export interface TopStoriesSelection {
 
 const EMPTY: TopStoriesSelection = { lead: null, also: [], uids: new Set() };
 
+function isEditorialRank(rank: number | null | undefined): rank is number {
+  return typeof rank === 'number' && rank >= 1 && rank <= TOP_STORIES_TOTAL;
+}
+
 /**
- * Picks the block's stories: most-upvoted in the window, ties broken by
- * `eventDate` descending.
+ * Picks the block's stories from LLM-assigned `editorialRank` (1 = lead, 2–3 =
+ * runners-up). Independent of upvote counts so Top Stories and Popular this
+ * week stay visually distinct.
  *
- * `upvoteCounts` must be the MOUNT-TIME snapshot (TeamNews.tsx's
- * `initialUpvoteCounts`), never live counts. Same reason `sortTeamNewsClusters`
- * takes the same map: liking the featured story would otherwise re-rank the
- * block under the cursor that just clicked it. Display reads the live overlay;
- * only the ordering is frozen.
- *
- * A window where nothing has been upvoted degenerates to "the three most recent
- * stories" via the tie-break, which is a defensible top-stories block rather
- * than a broken one — so there is no zero-engagement special case.
+ * Requires exactly TOP_STORIES_TOTAL (3) editorial picks in the window — no
+ * upvote/recency fallback. A quiet window or a seed run that has not yet run
+ * simply hides the band.
  *
  * `minItems` is the corpus the band needs to exist at all — normally
  * `TOP_STORIES_MIN_CORPUS`. The band's whole premise is that it sits ABOVE a
@@ -58,19 +58,16 @@ const EMPTY: TopStoriesSelection = { lead: null, also: [], uids: new Set() };
  * different styling. Parameterised rather than hardcoded so the gate is
  * directly testable.
  */
-export function selectTopStories(
-  items: ITeamNewsItem[],
-  upvoteCounts: ReadonlyMap<string, number>,
-  minItems: number,
-): TopStoriesSelection {
+export function selectTopStories(items: ITeamNewsItem[], minItems: number): TopStoriesSelection {
   if (items.length < Math.max(minItems, TOP_STORIES_TOTAL)) return EMPTY;
 
-  const ranked = [...items].sort((a, b) => {
-    const byUpvotes = (upvoteCounts.get(b.uid) ?? 0) - (upvoteCounts.get(a.uid) ?? 0);
-    return byUpvotes !== 0 ? byUpvotes : b.eventDate.localeCompare(a.eventDate);
-  });
+  const editorial = items
+    .filter((item) => isEditorialRank(item.editorialRank))
+    .sort((a, b) => (a.editorialRank as number) - (b.editorialRank as number));
 
-  const picked = ranked.slice(0, TOP_STORIES_TOTAL);
+  if (editorial.length < TOP_STORIES_TOTAL) return EMPTY;
+
+  const picked = editorial.slice(0, TOP_STORIES_TOTAL);
   return {
     lead: picked[0] ?? null,
     also: picked.slice(1),

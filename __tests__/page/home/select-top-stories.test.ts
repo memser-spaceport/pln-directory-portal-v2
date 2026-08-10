@@ -20,84 +20,106 @@ const makeItem = (uid: string, overrides: Partial<ITeamNewsItem> = {}): ITeamNew
   ...overrides,
 });
 
-const counts = (entries: Record<string, number>): ReadonlyMap<string, number> => new Map(Object.entries(entries));
-
 /** Ranking cases pass 0 so the corpus gate is out of the way; the function still
  *  floors at TOP_STORIES_TOTAL, which the gating cases below cover. */
 const NO_MINIMUM = 0;
 
+const withEditorial = (items: ITeamNewsItem[], ranks: Record<string, number>): ITeamNewsItem[] =>
+  items.map((item) => (ranks[item.uid] != null ? { ...item, editorialRank: ranks[item.uid] } : item));
+
 describe('selectTopStories', () => {
   it('returns an empty selection for an empty window', () => {
-    const result = selectTopStories([], counts({}), NO_MINIMUM);
+    const result = selectTopStories([], NO_MINIMUM);
 
     expect(result.lead).toBeNull();
     expect(result.also).toEqual([]);
     expect(result.uids.size).toBe(0);
   });
 
-  it('ranks by upvote count, highest first', () => {
-    const items = [makeItem('a'), makeItem('b'), makeItem('c'), makeItem('d')];
-    const result = selectTopStories(items, counts({ a: 2, b: 40, c: 9, d: 30 }), NO_MINIMUM);
+  it('ranks by editorialRank, lowest first (1 = lead)', () => {
+    const items = withEditorial([makeItem('a'), makeItem('b'), makeItem('c'), makeItem('d')], {
+      a: 3,
+      b: 1,
+      c: 2,
+      d: 99,
+    });
+    const result = selectTopStories(items, NO_MINIMUM);
 
     expect(result.lead?.uid).toBe('b');
-    expect(result.also.map((i) => i.uid)).toEqual(['d', 'c']);
+    expect(result.also.map((i) => i.uid)).toEqual(['c', 'a']);
   });
 
-  it('takes at most three items, whatever the window size', () => {
-    const items = Array.from({ length: 10 }, (_, i) => makeItem(`i${i}`));
-    const result = selectTopStories(items, counts({}), NO_MINIMUM);
+  it('takes at most three editorial items', () => {
+    const items = Array.from({ length: 10 }, (_, i) => makeItem(`i${i}`, { editorialRank: i < 5 ? i + 1 : null }));
+    const result = selectTopStories(items, NO_MINIMUM);
 
     expect(result.uids.size).toBe(3);
     expect(result.also).toHaveLength(2);
+    expect(result.lead?.uid).toBe('i0');
+    expect(result.also.map((i) => i.uid)).toEqual(['i1', 'i2']);
   });
 
   it('exposes every picked uid as the exclusion set', () => {
-    const items = [makeItem('a'), makeItem('b'), makeItem('c'), makeItem('d')];
-    const result = selectTopStories(items, counts({ a: 5, b: 4, c: 3, d: 2 }), NO_MINIMUM);
+    const items = withEditorial([makeItem('a'), makeItem('b'), makeItem('c'), makeItem('d')], {
+      a: 1,
+      b: 2,
+      c: 3,
+    });
+    const result = selectTopStories(items, NO_MINIMUM);
 
     expect([...result.uids]).toEqual(['a', 'b', 'c']);
     expect(result.uids.has('d')).toBe(false);
   });
 
-  // The tie-break is what makes a zero-engagement window still produce a
-  // sensible block rather than an arbitrary one — see selectTopStories' docblock.
-  it('breaks ties on eventDate, most recent first', () => {
-    const items = [
-      makeItem('old', { eventDate: '2026-05-01T00:00:00.000Z' }),
-      makeItem('new', { eventDate: '2026-05-09T00:00:00.000Z' }),
-      makeItem('mid', { eventDate: '2026-05-05T00:00:00.000Z' }),
-    ];
-    const result = selectTopStories(items, counts({ old: 7, new: 7, mid: 7 }), NO_MINIMUM);
-
-    expect([result.lead?.uid, ...result.also.map((i) => i.uid)]).toEqual(['new', 'mid', 'old']);
-  });
-
-  it('falls back to pure recency when nothing has been upvoted', () => {
-    const items = [
-      makeItem('a', { eventDate: '2026-05-02T00:00:00.000Z' }),
-      makeItem('b', { eventDate: '2026-05-08T00:00:00.000Z' }),
-      makeItem('c', { eventDate: '2026-05-05T00:00:00.000Z' }),
-    ];
-    const result = selectTopStories(items, counts({}), NO_MINIMUM);
+  it('ignores upvote counts entirely', () => {
+    const items = withEditorial(
+      [makeItem('a', { upvoteCount: 99 }), makeItem('b', { upvoteCount: 1 }), makeItem('c', { upvoteCount: 50 })],
+      { a: 2, b: 1, c: 3 },
+    );
+    const result = selectTopStories(items, NO_MINIMUM);
 
     expect(result.lead?.uid).toBe('b');
-    expect(result.also.map((i) => i.uid)).toEqual(['c', 'a']);
+    expect(result.also.map((i) => i.uid)).toEqual(['a', 'c']);
+  });
+
+  it('hides the band when fewer than three editorial picks exist', () => {
+    const items = withEditorial([makeItem('a'), makeItem('b'), makeItem('c'), makeItem('d')], {
+      a: 1,
+      b: 2,
+    });
+    const result = selectTopStories(items, NO_MINIMUM);
+
+    expect(result.lead).toBeNull();
+    expect(result.uids.size).toBe(0);
+  });
+
+  it('hides the band when no editorial ranks are set', () => {
+    const items = [makeItem('a'), makeItem('b'), makeItem('c')];
+    const result = selectTopStories(items, NO_MINIMUM);
+
+    expect(result.lead).toBeNull();
   });
 
   describe('corpus gate', () => {
     // The band sits ABOVE a feed. If it would swallow most of the window there
     // is no feed under it, and the band is just the feed restyled.
     it('renders nothing below the caller-supplied minimum', () => {
-      const items = Array.from({ length: 8 }, (_, i) => makeItem(`i${i}`));
-      const result = selectTopStories(items, counts({}), 9);
+      const items = withEditorial(
+        Array.from({ length: 8 }, (_, i) => makeItem(`i${i}`)),
+        { i0: 1, i1: 2, i2: 3 },
+      );
+      const result = selectTopStories(items, 9);
 
       expect(result.lead).toBeNull();
       expect(result.uids.size).toBe(0);
     });
 
     it('renders once the minimum is met exactly', () => {
-      const items = Array.from({ length: 9 }, (_, i) => makeItem(`i${i}`));
-      const result = selectTopStories(items, counts({}), 9);
+      const items = withEditorial(
+        Array.from({ length: 9 }, (_, i) => makeItem(`i${i}`)),
+        { i0: 1, i1: 2, i2: 3 },
+      );
+      const result = selectTopStories(items, 9);
 
       expect(result.lead).not.toBeNull();
       expect(result.also).toHaveLength(2);
@@ -106,27 +128,18 @@ describe('selectTopStories', () => {
     // A caller passing 0 (or anything under three) must not get a partial band —
     // the floor is what guarantees `also` is always two rows when `lead` is set.
     it('floors the minimum at the three stories the band needs', () => {
-      const twoItems = [makeItem('a'), makeItem('b')];
+      const twoItems = withEditorial([makeItem('a'), makeItem('b')], { a: 1, b: 2 });
 
-      expect(selectTopStories(twoItems, counts({}), NO_MINIMUM).lead).toBeNull();
-      expect(selectTopStories([makeItem('solo')], counts({}), NO_MINIMUM).lead).toBeNull();
-      expect(selectTopStories(twoItems, counts({}), TOP_STORIES_TOTAL).lead).toBeNull();
+      expect(selectTopStories(twoItems, NO_MINIMUM).lead).toBeNull();
+      expect(selectTopStories([makeItem('solo', { editorialRank: 1 })], NO_MINIMUM).lead).toBeNull();
+      expect(selectTopStories(twoItems, TOP_STORIES_TOTAL).lead).toBeNull();
     });
   });
 
-  // The mount-time snapshot is the whole point: a live count would let an
-  // optimistic like re-rank the block under the cursor that just clicked it.
-  it('ignores live item upvoteCount in favour of the pinned snapshot', () => {
-    const items = [makeItem('a', { upvoteCount: 99 }), makeItem('b', { upvoteCount: 1 }), makeItem('c')];
-    const result = selectTopStories(items, counts({ a: 1, b: 50, c: 0 }), NO_MINIMUM);
-
-    expect(result.lead?.uid).toBe('b');
-  });
-
   it('does not mutate the input array', () => {
-    const items = [makeItem('a'), makeItem('b'), makeItem('c')];
+    const items = withEditorial([makeItem('a'), makeItem('b'), makeItem('c')], { c: 1, b: 2, a: 3 });
     const order = items.map((i) => i.uid);
-    selectTopStories(items, counts({ c: 10 }), NO_MINIMUM);
+    selectTopStories(items, NO_MINIMUM);
 
     expect(items.map((i) => i.uid)).toEqual(order);
   });

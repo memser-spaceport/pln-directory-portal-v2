@@ -133,36 +133,40 @@ export function AgentSessionChat({ sessionId, session }: Props) {
       </div>
 
       <form className={s.composer} onSubmit={handleSubmit}>
-        <label className={s.composerLabel} htmlFor="agent-session-message">
-          Message the agent
-        </label>
-        <textarea
-          id="agent-session-message"
-          className={s.textarea}
-          value={draft}
-          autoFocus={isWaitingForInput}
-          disabled={sendMutation.isPending}
-          placeholder="Describe the change you want — vague instructions cost a full agent run."
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-              void handleSubmit(event);
-            }
-          }}
-        />
-        <div className={s.composerFooter}>
-          {/* Sending is not a chat bubble — it launches a Kubernetes job that
-              continues the agent from this branch. Say so plainly. */}
-          <span className={s.composerHint}>
-            {session?.working_branch
-              ? `Sending starts a new agent run on ${session.working_branch}.`
-              : 'Sending starts a new agent run.'}
-          </span>
-          <button type="submit" className={s.sendButton} disabled={!draft.trim() || sendMutation.isPending}>
-            {sendMutation.isPending ? 'Sending…' : 'Send'}
-          </button>
+        {/* Inner wrapper keeps the controls aligned with the page column while the
+            bar itself spans the viewport. */}
+        <div className={s.composerInner}>
+          <label className={s.composerLabel} htmlFor="agent-session-message">
+            Message the agent
+          </label>
+          <textarea
+            id="agent-session-message"
+            className={s.textarea}
+            value={draft}
+            autoFocus={isWaitingForInput}
+            disabled={sendMutation.isPending}
+            placeholder="Describe the change you want — vague instructions cost a full agent run."
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                void handleSubmit(event);
+              }
+            }}
+          />
+          <div className={s.composerFooter}>
+            {/* Sending is not a chat bubble — it launches a Kubernetes job that
+                continues the agent from this branch. Say so plainly. */}
+            <span className={s.composerHint}>
+              {session?.working_branch
+                ? `Sending starts a new agent run on ${session.working_branch}.`
+                : 'Sending starts a new agent run.'}
+            </span>
+            <button type="submit" className={s.sendButton} disabled={!draft.trim() || sendMutation.isPending}>
+              {sendMutation.isPending ? 'Sending…' : 'Send'}
+            </button>
+          </div>
+          {sendError ? <p className={`${s.state} ${s.error}`}>{sendError}</p> : null}
         </div>
-        {sendError ? <p className={`${s.state} ${s.error}`}>{sendError}</p> : null}
       </form>
     </div>
   );

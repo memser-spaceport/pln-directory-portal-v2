@@ -1,8 +1,14 @@
 @use 'styles/media';
 
+// Takes the leftover height of the page column so the panel ends where the
+// viewport does. `min-height: 0` is what lets it shrink below its content —
+// without it the panel grows to fit the whole thread, the page starts
+// scrolling, and the composer rides off the bottom of the screen.
 .root {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -18,13 +24,16 @@
   color: #78350f;
 }
 
+// The only scrolling region. `min-height: 0` again: a flex item defaults to
+// min-height auto, which refuses to shrink below its content and would push the
+// composer out of the panel instead of scrolling.
 .thread {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  max-height: 55vh;
-  min-height: 220px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -178,10 +187,12 @@
   color: #b42318;
 }
 
+// Never shrinks and never scrolls away — the composer is the point of the tab.
 .composer {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
   padding: 16px;
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;

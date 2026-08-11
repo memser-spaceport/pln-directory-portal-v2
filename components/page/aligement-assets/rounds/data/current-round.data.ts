@@ -214,12 +214,12 @@ export const currentRoundData: CurrentRoundData = {
         },
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
-          label: 'Tokens Purchased',
+          label: 'PLAA Redeemed',
           value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
-          label: 'Winning Bidders',
+          label: 'Accepted Bidders',
           value: 'TBD'
         }
       ]

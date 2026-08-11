@@ -96,8 +96,8 @@ function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimulationSe
         { icon: '/icons/rounds/buy_action_results/pie-chart.svg', label: 'Pool Used', value: formatPercent(buyback.poolUsed) },
         { icon: '/icons/rounds/buy_action_results/coins-02.svg', label: 'Clearing Price', value: formatCurrency(buyback.clearingPrice) },
         { icon: '/icons/rounds/buy_action_results/analytics-01.svg', label: 'Capped Allocation', value: buyback.cappedAllocation ?? 'TBD' },
-        { icon: '/icons/rounds/buy_action_results/dollar-02.svg', label: 'Tokens Purchased', value: formatCount(buyback.tokensPurchased) },
-        { icon: '/icons/rounds/buy_action_results/user-multiple.svg', label: 'Winning Bidders', value: formatCount(buyback.winningBidders) },
+        { icon: '/icons/rounds/buy_action_results/dollar-02.svg', label: 'PLAA Redeemed', value: formatCount(buyback.tokensPurchased) },
+        { icon: '/icons/rounds/buy_action_results/user-multiple.svg', label: 'Accepted Bidders', value: formatCount(buyback.winningBidders) },
       ],
     },
     bids: buyback.bids.map(mapBid),
@@ -112,7 +112,14 @@ function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimulationSe
  * round-independent.
  */
 function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
-  const hasSettledBuyback = stats.buyback !== null && stats.buyback.totalBuybackPool !== null;
+  // Simulation rows (rounds 7 and 9) carry a complete buyback record in
+  // Airtable but were test runs, not real auctions — they stay out of the
+  // user-facing buyback experience entirely. Only rounds 11 and 18 are live.
+  // Note this deliberately does not gate stats.totalTokensDistributed below:
+  // that figure is a per-round emission every round has, and simply happens
+  // to be stored on the same Airtable table.
+  const hasSettledBuyback =
+    stats.buyback !== null && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation;
 
   return {
     meta: {
@@ -133,9 +140,9 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
         stats.buyback?.totalTokensDistributed != null
           ? stats.buyback.totalTokensDistributed.toLocaleString('en-US')
           : 'TBD',
-      // Original data counted any buyback event (simulation or live) as 1 —
-      // rounds 7, 9, and 11 all show numberOfBuybacks: 1 regardless of the
-      // simulation flag.
+      // Counts live auctions only. The original data counted any buyback
+      // event as 1, so rounds 7 and 9 used to show 1 here off the back of
+      // their simulations; with simulations removed they now show 0.
       numberOfBuybacks: hasSettledBuyback ? 1 : 0,
       ...(stats.labweek25IncentivizedActivities.length > 0
         ? { labweek25IncentivizedActivities: stats.labweek25IncentivizedActivities }

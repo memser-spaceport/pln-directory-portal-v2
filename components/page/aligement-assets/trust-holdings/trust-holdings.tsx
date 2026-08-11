@@ -182,16 +182,20 @@ function NavChart({ data }: { data: NavPoint[] }) {
 }
 
 /**
- * One collapsible auction panel. Collapsed by default; the button carries the
- * round and the month alongside the auction number, because "Buyback #2" and
- * "Round 18" are two different numbering schemes and nothing else on the page
- * connects them.
+ * Every completed auction in one collapsible table, one row each. Column
+ * headers come from the first entry's own summary items rather than a literal
+ * list, so they stay in step with whatever the round pages render — including
+ * the labels, which is how "PLAA Redeemed" and "Accepted Bidders" reach this
+ * table without being named here.
+ *
+ * The round is its own column because "Buyback #2" and "Round 18" are separate
+ * numbering schemes and nothing else connects them; it doubles as the link to
+ * the round page.
  */
-function BuybackAccordion({ entry }: { entry: TrustBuyback }) {
+function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const { section } = entry;
-  const heading = section.summary.title.replace(/ - Key Results$/, '');
+  const metricLabels = buybacks[0].section.summary.items.map((item) => item.label);
 
   return (
     <div className={`th-accordion ${open ? 'th-accordion--open' : ''}`}>
@@ -203,9 +207,9 @@ function BuybackAccordion({ entry }: { entry: TrustBuyback }) {
         onClick={() => setOpen((prev) => !prev)}
       >
         <span className="th-accordion__heading">
-          <span className="th-accordion__title">{heading}</span>
+          <span className="th-accordion__title">Past Buyback Key Results</span>
           <span className="th-accordion__meta">
-            Round {entry.roundNumber} · {entry.monthYear}
+            {buybacks.length} completed {buybacks.length === 1 ? 'auction' : 'auctions'}
           </span>
         </span>
         <Image
@@ -218,26 +222,38 @@ function BuybackAccordion({ entry }: { entry: TrustBuyback }) {
       </button>
 
       <div id={panelId} className="th-accordion__panel" hidden={!open}>
-        <p className="th-accordion__summary">{section.headerDescription}</p>
-
-        <div className="th-metrics th-metrics--accordion">
-          {section.summary.items.map((item) => (
-            <div key={item.label} className="th-metric">
-              <span className="th-metric__label">{item.label}</span>
-              <span className="th-metric__value">{item.value}</span>
-            </div>
-          ))}
-          {section.totalFilled ? (
-            <div className="th-metric">
-              <span className="th-metric__label">Total Filled</span>
-              <span className="th-metric__value">{section.totalFilled}</span>
-            </div>
-          ) : null}
+        <div className="th-table-wrapper">
+          <table className="th-table th-table--buyback">
+            <thead>
+              <tr>
+                <th>AUCTION</th>
+                <th>ROUND</th>
+                {metricLabels.map((label) => (
+                  <th key={label}>{label.toUpperCase()}</th>
+                ))}
+                <th>TOTAL FILLED</th>
+              </tr>
+            </thead>
+            <tbody>
+              {buybacks.map((entry) => (
+                <tr key={entry.roundNumber}>
+                  <td className="th-table__date th-buyback-row__auction">
+                    {entry.section.summary.title.replace(/ - Key Results$/, '')}
+                  </td>
+                  <td className="th-buyback-row__round">
+                    <a className="th-link" href={`/alignment-asset/rounds/${entry.roundNumber}`}>
+                      Round {entry.roundNumber} · {entry.monthYear}
+                    </a>
+                  </td>
+                  {entry.section.summary.items.map((item) => (
+                    <td key={item.label}>{item.value}</td>
+                  ))}
+                  <td>{entry.section.totalFilled ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        <a className="th-link" href={`/alignment-asset/rounds/${entry.roundNumber}`}>
-          View round {entry.roundNumber} →
-        </a>
       </div>
     </div>
   );
@@ -428,9 +444,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         {buybacks.length > 0 && (
           <div className="th-accordions">
-            {buybacks.map((entry) => (
-              <BuybackAccordion key={entry.roundNumber} entry={entry} />
-            ))}
+            <BuybackResultsAccordion buybacks={buybacks} />
           </div>
         )}
       </section>
@@ -908,14 +922,21 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           display: none;
         }
 
-        .th-accordion__summary {
-          margin: 0;
-          font-size: 14px;
-          line-height: 20px;
-          color: #475569;
-          /* header_description is authored in Airtable, where line breaks are
-             deliberate — matches the round pages' treatment. */
-          white-space: pre-line;
+        /* Nine columns, two of which carry unbreakable labels — the NAV
+           table's 24px gutters would push Total Filled off the card and force
+           a scroll on desktop, so this table runs tighter. */
+        .th-table--buyback {
+          min-width: 860px;
+        }
+
+        .th-table--buyback th,
+        .th-table--buyback td {
+          padding: 14px 12px;
+        }
+
+        .th-buyback-row__auction,
+        .th-buyback-row__round {
+          white-space: nowrap;
         }
 
         .th-metrics {
@@ -924,11 +945,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           gap: 16px;
         }
 
-        .th-metrics--accordion {
-          border-radius: 12px;
-          background-color: #f8fafc;
-          padding: 20px;
-        }
 
         .th-metric {
           flex: 1 1 200px;

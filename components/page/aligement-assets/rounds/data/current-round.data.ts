@@ -17,10 +17,10 @@ export const currentRoundData: CurrentRoundData = {
   // Meta Information
   // ============================================================================
   meta: {
-    roundId: 'round-18-jul-2026',
-    roundNumber: 18,
+    roundId: 'round-19-aug-2026',
+    roundNumber: 19,
     isCurrentRound: true,
-    lastUpdated: '2026-07-02T00:00:00'
+    lastUpdated: '2026-08-11T00:00:00'
   },
 
   // ============================================================================
@@ -50,8 +50,8 @@ export const currentRoundData: CurrentRoundData = {
   // Round Description Section Data
   // ============================================================================
   roundDescription: {
-    roundNumber: 18,
-    monthYear: 'July 2026',
+    roundNumber: 19,
+    monthYear: 'August 2026',
     badgeText: 'Current Round',
     paragraphs: [
       {
@@ -87,8 +87,8 @@ export const currentRoundData: CurrentRoundData = {
   // Snapshot Progress Section Data
   // ============================================================================
   snapshotProgress: {
-    startDate: '2026-07-01T00:00:00',
-    endDate: '2026-07-31T23:59:59',
+    startDate: '2026-08-01T00:00:00',
+    endDate: '2026-08-31T23:59:59',
     tipContent: {
       tipText: 'Lower activity in a category generally means more PLAA is available to collect per contributor, while higher activity means PLAA is distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
@@ -112,8 +112,8 @@ export const currentRoundData: CurrentRoundData = {
         }
       ],
       bottomLink: {
-        text: 'See what happened in the last round (Round 17)',
-        url: '/alignment-asset/rounds/17'
+        text: 'See what happened in the last round (Round 18)',
+        url: '/alignment-asset/rounds/18'
       }
     }
   },

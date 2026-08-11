@@ -128,7 +128,7 @@ describe('AgentSessionChat thread', () => {
       />,
     );
 
-    expect(screen.getByText('failed')).toBeInTheDocument();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
     expect(screen.getByText('Code-change Job failed with exit code 1')).toBeInTheDocument();
   });
 });

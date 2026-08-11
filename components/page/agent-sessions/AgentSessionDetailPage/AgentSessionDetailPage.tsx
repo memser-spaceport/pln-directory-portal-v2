@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
 import { canAdminAgentSessions } from '@/services/rbac/utils/agentSessions/canAdminAgentSessions';
@@ -10,10 +10,7 @@ import {
   useDeleteAgentSessionFeatureEnv,
   useDeployAgentSessionFeatureEnv,
 } from '@/services/agent-sessions/hooks/useAgentSessionFeatureEnv';
-import {
-  deriveProgressSteps,
-  type DerivedStepPhase,
-} from '@/services/agent-sessions/deriveProgressSteps';
+import { deriveProgressSteps, type DerivedStepPhase } from '@/services/agent-sessions/deriveProgressSteps';
 import type { AgentSession } from '@/services/agent-sessions/agent-sessions.service';
 import { AgentSessionChat } from '../AgentSessionChat';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
@@ -61,7 +58,12 @@ function canDeployFeatureEnv(session: AgentSession) {
 function canDeleteFeatureEnv(session: AgentSession) {
   const status = session.feature_environment_status;
   if (!status || status === 'deleted') return false;
-  return ACTIVE_FEATURE_ENV_STATUSES.has(status) || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed';
+  return (
+    ACTIVE_FEATURE_ENV_STATUSES.has(status) ||
+    status === 'failed' ||
+    status === 'cancelled' ||
+    status === 'cleanup_failed'
+  );
 }
 
 export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
@@ -111,7 +113,7 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
             and leaving them to scroll out from under a pinned title reads as broken. */}
         <div className={s.stickyHeader}>
           <Link href="/pl-infra/agent-sessions" className={s.backLink}>
-            ← Back to sessions
+            <ChevronLeftIcon /> Back to sessions
           </Link>
 
           <div className={s.header}>
@@ -214,8 +216,12 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                       <a className={s.externalLink} href={featureEnvUrl} target="_blank" rel="noreferrer">
                         {featureEnvUrl}
                       </a>
+                    ) : session.feature_environment_status ? (
+                      // Same vocabulary as the session status, so it gets the same
+                      // treatment rather than a bare `dispatched` string.
+                      <SessionStatusBadge status={session.feature_environment_status} />
                     ) : (
-                      session.feature_environment_status || '—'
+                      '—'
                     )}
                   </span>
                 </div>
@@ -238,12 +244,7 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
                     </button>
                   ) : null}
                   {canDeleteFeatureEnv(session) ? (
-                    <button
-                      type="button"
-                      className={s.dangerButton}
-                      disabled={busy}
-                      onClick={handleDelete}
-                    >
+                    <button type="button" className={s.dangerButton} disabled={busy} onClick={handleDelete}>
                       {deleteMutation.isPending ? 'Deleting…' : 'Delete feature env'}
                     </button>
                   ) : null}
@@ -292,3 +293,9 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
     </div>
   );
 }
+
+const ChevronLeftIcon = () => (
+  <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11 14.5L5 8.5L11 2.5" stroke="#156FF7" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

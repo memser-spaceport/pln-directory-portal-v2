@@ -31,6 +31,7 @@ import {
   CookieChecker,
   PostHogPageview,
   RatingContainer,
+  AppFeedbackButton,
 } from './ClientDynamics';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -85,6 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <ToastContainer />
                 <BroadCastChannel />
                 <RatingContainer userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                <AppFeedbackButton />
                 <MemberRegisterDialog />
                 {/* <OnboardingFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} /> */}
                 <LoginFlowTrigger isLoggedIn={isLoggedIn} userInfo={userInfo} />

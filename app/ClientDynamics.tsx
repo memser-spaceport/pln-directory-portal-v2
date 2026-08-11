@@ -32,3 +32,7 @@ export const BotpressWebchat = dynamic(
   () => import('@/components/core/botpress/BotpressWebchat').then((m) => m.BotpressWebchat),
   { ssr: false },
 );
+export const AppFeedbackButton = dynamic(
+  () => import('@/components/core/AppFeedbackButton').then((m) => m.AppFeedbackButton),
+  { ssr: false },
+);

@@ -104,6 +104,13 @@ export const useCommonAnalytics = () => {
     captureEvent(COMMON_ANALYTICS_EVENTS.SUBMIT_A_TEAM_BTN_CLICKED);
   }
 
+  function onAppFeedbackButtonClicked(pathname: string) {
+    const params = {
+      pathname,
+    };
+    captureEvent(COMMON_ANALYTICS_EVENTS.APP_FEEDBACK_BUTTON_CLICKED, params);
+  }
+
   return {
     onNavItemClicked,
     onNavGetHelpItemClicked,
@@ -117,5 +124,6 @@ export const useCommonAnalytics = () => {
     onNotificationMenuClickHandler,
     onAppLogoClicked,
     onSubmitATeamBtnClicked,
+    onAppFeedbackButtonClicked,
   };
 };

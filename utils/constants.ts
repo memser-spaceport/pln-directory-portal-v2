@@ -182,6 +182,7 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
   NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
+  APP_FEEDBACK_BUTTON_CLICKED: 'app-feedback-button-clicked',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {

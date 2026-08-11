@@ -4,7 +4,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { NavBar } from '@components/NavBar/NavBar';
 import { Button } from '@components/Button/Button';
-import { ForumPostCard } from '@components/ForumPostCard/ForumPostCard';
+import { ForumPostCard } from '@components/ForumPostCard';
 import { mockForumPosts, forumTabs, type ForumTab } from './mock-data';
 import s from './ForumMockup.module.scss';
 

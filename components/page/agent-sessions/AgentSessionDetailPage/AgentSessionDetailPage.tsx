@@ -107,42 +107,46 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
   return (
     <div className={s.pageFrame}>
       <div className={s.content}>
-        <Link href="/pl-infra/agent-sessions" className={s.backLink}>
-          ← Back to sessions
-        </Link>
+        {/* Back link, identity and tabs travel together: the tabs are page chrome,
+            and leaving them to scroll out from under a pinned title reads as broken. */}
+        <div className={s.stickyHeader}>
+          <Link href="/pl-infra/agent-sessions" className={s.backLink}>
+            ← Back to sessions
+          </Link>
 
-        <div className={s.header}>
-          <div className={s.titleBlock}>
-            <h1 className={s.title}>Agent Session</h1>
-            <p className={s.description}>{sessionId}</p>
+          <div className={s.header}>
+            <div className={s.titleBlock}>
+              <h1 className={s.title}>Agent Session</h1>
+              <p className={s.description}>{sessionId}</p>
+            </div>
+            {session ? <SessionStatusBadge status={session.status} /> : null}
           </div>
-          {session ? <SessionStatusBadge status={session.status} /> : null}
+
+          {/* Chat is admin-only: a message starts a new agent run, so a VIEW-only
+              user gets no tab bar at all rather than a read-only thread. */}
+          {canAdmin ? (
+            <div className={s.tabs} role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'overview'}
+                className={`${s.tab} ${activeTab === 'overview' ? s.tabActive : ''}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                Overview
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'chat'}
+                className={`${s.tab} ${activeTab === 'chat' ? s.tabActive : ''}`}
+                onClick={() => setActiveTab('chat')}
+              >
+                Chat
+              </button>
+            </div>
+          ) : null}
         </div>
-
-        {/* Chat is admin-only: a message starts a new agent run, so a VIEW-only
-            user gets no tab bar at all rather than a read-only thread. */}
-        {canAdmin ? (
-          <div className={s.tabs} role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'overview'}
-              className={`${s.tab} ${activeTab === 'overview' ? s.tabActive : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              Overview
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'chat'}
-              className={`${s.tab} ${activeTab === 'chat' ? s.tabActive : ''}`}
-              onClick={() => setActiveTab('chat')}
-            >
-              Chat
-            </button>
-          </div>
-        ) : null}
 
         {(sessionQuery.isLoading || progressQuery.isLoading) && !session ? (
           <div className={s.panel}>

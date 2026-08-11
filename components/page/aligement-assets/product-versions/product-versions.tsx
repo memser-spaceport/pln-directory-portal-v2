@@ -67,31 +67,23 @@ const productVersions: VersionData[] = [
     ],
     learned: [
       {
-        text: 'Live buyback auction results validated improvements made post-simulations:',
+        text: 'Live buyback auction results validated improvements:',
         subItems: [
-          'Buyback increased the understanding of the token value',
-          'Price discovery evolved: Clearing price adjusted from $20 -> $14.00 between the second simulation and live auction',
+          'Buyback increased the understanding of the PLAA value',
+          'Price discovery evolved: The auction cleared at $14.00',
         ],
       },
-      
     ],
   },
   {
     version: 'v0.2',
     dateRange: 'June 2025 - November 2025',
     added: [
-      'First token issuance (49,219 PLAA1 tokens)',
-      'Two buyback simulations',
+      'First PLAA issuance (49,219 PLAA1 tokens)',
       'Two new activities: Custom Incentive Experiment, Referral Program',
       'Trust NAV tracking',
       'Two new regions unlocked: Germany, Switzerland',
       'Launched Alignment Asset webpage',
-      {
-        text: 'New buyback auction mechanism: Per-bidder cap (50% of pool max) prevents any single participant from dominating allocation',
-      },
-      {
-        text: 'New buyback auction mechanism: Each bid can only be filled up to the total value of that bid (Tokens Bid x Bid Price) ensures bidders cannot "game the system" by bidding unrealistically low prices to maximize tokens at higher payouts',
-      },
     ],
     changed: [
       'Expanded cohort from 38 to 46 participants',
@@ -100,16 +92,8 @@ const productVersions: VersionData[] = [
       'Pay-as-bid to batch auction model',
     ],
     learned: [
-      'Token issuance created tangible ownership sense',
-      {
-        text: 'Buyback simulation results validated improvements:',
-        subItems: [
-          'Simulated buyback increased the understanding of the token value',
-          'More equitable distribution: increased winner count, no whale dominance',
-          'Price discovery evolved: Clearing price adjusted from $20.40 -> $20.00 between rounds',
-          'Fairness mechanisms worked without breaking auction dynamics',
-        ],
-      },
+      'PLAA issuance created tangible ownership sense',
+      'Conducted buyback user research',
     ],
   },
   {
@@ -128,8 +112,8 @@ const productVersions: VersionData[] = [
       'Recognitions nominations surfaced hidden contributions',
       'Onboarding friction too high (26.95% conversion rate)',
       'Lack of clarity in onboarding materials and process',
-      'Confusion about points-to-tokens conversion',
-      'Confusion about token value',
+      'Confusion about points-to-PLAA conversion',
+      'Confusion about PLAA value',
     ],
   },
 ];

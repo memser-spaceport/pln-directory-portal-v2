@@ -11,22 +11,12 @@ import {
   useDeployAgentSessionFeatureEnv,
 } from '@/services/agent-sessions/hooks/useAgentSessionFeatureEnv';
 import { deriveProgressSteps, type DerivedStepPhase } from '@/services/agent-sessions/deriveProgressSteps';
-import type { AgentSession } from '@/services/agent-sessions/agent-sessions.service';
+import { canDeleteFeatureEnv, canDeployFeatureEnv } from '@/services/agent-sessions/featureEnvActions';
 import { AgentSessionChat } from '../AgentSessionChat';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
 import s from '../shared/AgentSessions.module.scss';
 
 type DetailTab = 'overview' | 'chat';
-
-const ACTIVE_FEATURE_ENV_STATUSES = new Set([
-  'queued',
-  'cleanup_pending',
-  'dispatching',
-  'in_progress',
-  'deploying',
-  'ready',
-  'deleting',
-]);
 
 const STEP_DOT_CLASS: Record<DerivedStepPhase, string> = {
   pending: '',
@@ -44,26 +34,6 @@ function featureEnvUrlFromProgress(progress: ReturnType<typeof useAgentSessionPr
   const readyUrls = readyStep?.metadata?.urls as Record<string, unknown> | undefined;
   if (readyUrls && typeof readyUrls.frontend === 'string') return readyUrls.frontend;
   return null;
-}
-
-function canDeployFeatureEnv(session: AgentSession) {
-  if (!session.pull_request_url || !session.working_branch) return false;
-  const status = session.feature_environment_status;
-  if (!status || status === 'deleted' || status === 'failed' || status === 'cancelled' || status === 'cleanup_failed') {
-    return true;
-  }
-  return status === 'ready';
-}
-
-function canDeleteFeatureEnv(session: AgentSession) {
-  const status = session.feature_environment_status;
-  if (!status || status === 'deleted') return false;
-  return (
-    ACTIVE_FEATURE_ENV_STATUSES.has(status) ||
-    status === 'failed' ||
-    status === 'cancelled' ||
-    status === 'cleanup_failed'
-  );
 }
 
 export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {

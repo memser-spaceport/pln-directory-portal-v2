@@ -241,9 +241,7 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
                     {entry.section.summary.title.replace(/ - Key Results$/, '')}
                   </td>
                   <td className="th-buyback-row__round">
-                    <a className="th-link" href={`/alignment-asset/rounds/${entry.roundNumber}`}>
-                      Round {entry.roundNumber} · {entry.monthYear}
-                    </a>
+                    Round {entry.roundNumber} · {entry.monthYear}
                   </td>
                   {entry.section.summary.items.map((item) => (
                     <td key={item.label}>{item.value}</td>
@@ -986,18 +984,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           font-size: 24px;
           font-weight: 700;
           color: #0f172a;
-        }
-
-        .th-link {
-          display: inline-block;
-          font-size: 14px;
-          font-weight: 600;
-          color: #156ff7;
-          text-decoration: none;
-        }
-
-        .th-link:hover {
-          text-decoration: underline;
         }
 
         /* CTA */

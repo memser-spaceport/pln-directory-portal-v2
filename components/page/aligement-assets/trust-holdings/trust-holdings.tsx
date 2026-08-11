@@ -934,6 +934,14 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           padding: 14px 12px;
         }
 
+        /* Every column reads left-aligned here, headers and values together —
+           a header sitting at the opposite edge from its own figures is worse
+           than losing the numeric right-alignment. */
+        .th-table--buyback th,
+        .th-table--buyback td {
+          text-align: left;
+        }
+
         .th-buyback-row__auction,
         .th-buyback-row__round {
           white-space: nowrap;

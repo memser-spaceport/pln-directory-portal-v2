@@ -113,4 +113,15 @@ describe('useLatestJobOpenings', () => {
 
     expect(result.current.openings).toEqual([]);
   });
+
+  it('surfaces an error and an empty openings list when the fetch fails', async () => {
+    mockFetchJobsList.mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useLatestJobOpenings(), { wrapper });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(result.current.openings).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+  });
 });

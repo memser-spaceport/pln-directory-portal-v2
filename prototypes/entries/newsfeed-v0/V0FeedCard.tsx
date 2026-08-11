@@ -33,6 +33,8 @@ const KICKER_COLOR_CLASS: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: 'kAnnouncement',
   MILESTONE: 'kMilestone',
   OTHER: 'kAnnouncement',
+  HIRING: 'kAnnouncement',
+  DEALS: 'kAnnouncement',
 };
 
 interface V0FeedCardProps {

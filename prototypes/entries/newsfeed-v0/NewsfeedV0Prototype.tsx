@@ -134,6 +134,8 @@ const EVENT_HEX: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: '#475467',
   MILESTONE: '#b54708',
   OTHER: '#475467',
+  HIRING: '#475467',
+  DEALS: '#475467',
 };
 
 // How much each event type matters when picking a cluster's lead story.
@@ -144,6 +146,8 @@ const EVENT_TYPE_WEIGHT: Record<ITeamNewsItem['eventType'], number> = {
   MILESTONE: 2,
   ANNOUNCEMENT: 1,
   OTHER: 0,
+  HIRING: 0,
+  DEALS: 0,
 };
 
 /**

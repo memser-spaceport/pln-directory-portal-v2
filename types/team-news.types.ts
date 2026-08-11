@@ -1,4 +1,12 @@
-export type TeamNewsEventType = 'FUNDING' | 'LAUNCH' | 'PARTNERSHIP' | 'ANNOUNCEMENT' | 'MILESTONE' | 'OTHER';
+export type TeamNewsEventType =
+  | 'FUNDING'
+  | 'LAUNCH'
+  | 'PARTNERSHIP'
+  | 'ANNOUNCEMENT'
+  | 'MILESTONE'
+  | 'OTHER'
+  | 'DEALS'
+  | 'HIRING';
 
 export interface ITeamNewsDiscussion {
   count: number;

@@ -243,6 +243,4 @@ export interface IPastRoundData {
   /** Leaderboard section with current and all-time rankings */
   leaderboard: LeaderboardEntry[];
   stats: StatsSectionData;
-  /** Buyback simulation data (optional - only available for rounds that had simulations) */
-  buybackSimulation?: BuybackSimulationSectionData;
 }

@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
 import { getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
-import { buildBuybackSimulation } from '@/components/page/aligement-assets/rounds/buyback.mapper';
 import { IPastRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 import styles from './page.module.css';
 
@@ -55,7 +54,6 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
         : {}),
     },
     leaderboard: [],
-    buybackSimulation: hasSettledBuyback ? buildBuybackSimulation(stats.buyback!) : undefined,
   };
 }
 

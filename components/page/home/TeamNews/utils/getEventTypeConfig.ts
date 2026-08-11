@@ -9,6 +9,7 @@ export const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: 'Announcement',
   MILESTONE: 'Milestone',
   HIRING: 'Hiring',
+  DEALS: 'Deals',
   OTHER: 'Other',
 };
 
@@ -19,6 +20,7 @@ const DOT_CLASS: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: s.dotAnnouncement,
   MILESTONE: s.dotMilestone,
   HIRING: s.dotOther,
+  DEALS: s.dotOther,
   OTHER: s.dotOther,
 };
 

@@ -5,6 +5,7 @@ export type TeamNewsEventType =
   | 'ANNOUNCEMENT'
   | 'MILESTONE'
   | 'OTHER'
+  | 'DEALS'
   | 'HIRING';
 
 export interface ITeamNewsDiscussion {

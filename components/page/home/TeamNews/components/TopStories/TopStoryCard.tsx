@@ -1,10 +1,12 @@
 'use client';
 
 import type { SVGProps } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { FollowButton } from '@/components/ui/FollowButton';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -16,6 +18,7 @@ import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
+import { ViewCount } from '../ViewCount/ViewCount';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './TopStories.module.scss';
@@ -50,6 +53,8 @@ interface TopStoryCardProps {
   onFollowToggle: (teamUid: string, teamName: string, isCurrentlyFollowing: boolean) => void;
   onUpvoteToggle: (item: ITeamNewsItem) => void;
   onOpen: (item: ITeamNewsItem) => void;
+  /** Fired once this card scrolls into the viewport (view-impression recording). */
+  onVisible: (uid: string) => void;
   analyticsSource?: TeamNewsAnalyticsSource;
 }
 
@@ -73,11 +78,19 @@ export function TopStoryCard({
   onFollowToggle,
   onUpvoteToggle,
   onOpen,
+  onVisible,
   analyticsSource = 'home',
 }: TopStoryCardProps) {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { label: eventTypeLabel, dotClassName } = getEventTypeConfig(story.eventType);
+
+  // Memoized so this row's IntersectionObserver isn't torn down/rebuilt on
+  // every unrelated re-render — an inline arrow here would be a fresh
+  // reference every render, and useCardVisibilityTracking's effect depends
+  // on `onVisible`.
+  const handleVisible = useCallback(() => onVisible(story.uid), [onVisible, story.uid]);
+  const cardRef = useCardVisibilityTracking<HTMLElement>({ onVisible: handleVisible, threshold: 0.5, trackOnce: true });
 
   const requireSignIn = () => {
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
@@ -95,7 +108,7 @@ export function TopStoryCard({
   };
 
   return (
-    <article className={isOnly ? `${s.lead} ${s.leadOnly}` : s.lead}>
+    <article ref={cardRef} className={isOnly ? `${s.lead} ${s.leadOnly}` : s.lead}>
       <div className={s.eyebrow}>
         <span className={s.badge}>
           <PinFilledIcon className={s.badgeIcon} aria-hidden />
@@ -155,6 +168,7 @@ export function TopStoryCard({
           <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
         </div>
         <div className={newsCardStyles.actions}>
+          <ViewCount count={story.viewCount} />
           <NewsShareMenu item={story} source={analyticsSource} />
           <UpvoteButton
             count={story.upvoteCount ?? 0}

@@ -213,6 +213,17 @@ const groups: ITeamNewsGroup[] = [
 ];
 
 describe('TeamNews', () => {
+  beforeAll(() => {
+    // No global mock exists in jest.setup.js — feed/band rows now call
+    // useCardVisibilityTracking (view-impression recording).
+    class IO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });

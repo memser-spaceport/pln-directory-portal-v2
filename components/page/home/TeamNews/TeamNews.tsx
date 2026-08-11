@@ -14,6 +14,7 @@ import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/foll
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
 import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -139,6 +140,10 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // One instance for the whole page: holds every rendered card's dedup/queue
+  // state, regardless of tab/category remounts below it (see the hook's own
+  // unmount-vs-page-load-scoped comments).
+  const { recordVisible } = useTeamNewsImpressions();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -871,6 +876,7 @@ export const TeamNews = ({
                 onFollowToggle={handleFollowToggle}
                 onUpvoteToggle={handleUpvoteToggle}
                 onStoryOpen={handleTopStoryOpen}
+                onStoryVisible={recordVisible}
               />
             </div>
           )}
@@ -932,6 +938,7 @@ export const TeamNews = ({
                           autoExpandStoryUid={
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
+                          onStoryVisible={recordVisible}
                         />
                       );
                     case 'forum':

@@ -256,6 +256,17 @@ describe('NewsCard with a multi-source item', () => {
 });
 
 describe('NewsGroupCard with a multi-source story', () => {
+  beforeAll(() => {
+    // No global mock exists in jest.setup.js — story rows now call
+    // useCardVisibilityTracking.
+    class IO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
+  });
+
   const story = makeItem('a', { sourceUrls: TWO_SOURCE_URLS, upvoteCount: 3 });
   const cluster: TeamCluster = {
     teamUid: 'team-1',
@@ -264,14 +275,15 @@ describe('NewsGroupCard with a multi-source story', () => {
     items: [story],
   };
   const onStoryOpen = jest.fn();
+  const onStoryVisible = jest.fn();
 
   it('shows the pill in the story row', () => {
-    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} onStoryVisible={onStoryVisible} />);
     expect(screen.getByRole('button', { name: /2 sources/i })).toBeInTheDocument();
   });
 
   it('does not open the story when the pill is activated by keyboard or click', () => {
-    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} onStoryVisible={onStoryVisible} />);
     const pill = screen.getByRole('button', { name: /2 sources/i });
 
     fireEvent.keyDown(pill, { key: 'Enter' });
@@ -282,7 +294,7 @@ describe('NewsGroupCard with a multi-source story', () => {
   });
 
   it('still opens the story on Enter pressed on the row itself', () => {
-    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} />);
+    render(<NewsGroupCard cluster={cluster} onStoryOpen={onStoryOpen} onStoryVisible={onStoryVisible} />);
     const row = document.querySelector('[data-story-uid="a"]') as HTMLElement;
     fireEvent.keyDown(row, { key: 'Enter' });
     expect(onStoryOpen).toHaveBeenCalledWith(story);

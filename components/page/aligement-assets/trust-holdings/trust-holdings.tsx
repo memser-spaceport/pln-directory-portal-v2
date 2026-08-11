@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
-import { DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
 import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
 import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
 
@@ -50,15 +50,29 @@ const SERIES_COLORS = {
   nav: '#1e3a8a',
 };
 
+// A buyback is not part of the NAV dataset, so its track deliberately sits
+// outside the series palette — maroon reads against every bar segment and
+// against the green total, which would otherwise be the nearest neighbour.
+const BUYBACK_COLOR = '#800000';
+
 /** Combined digital-asset value (BTC + ETH + FIL) for the stacked bar. */
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
 const KEY_ITEMS = [
-  { label: 'PLVH', color: SERIES_COLORS.plvh, line: false },
-  { label: 'Digital assets', color: SERIES_COLORS.digital, line: false },
-  { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false },
-  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true },
+  { label: 'PLVH', color: SERIES_COLORS.plvh, line: false, dashed: false },
+  { label: 'Digital assets', color: SERIES_COLORS.digital, line: false, dashed: false },
+  { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
+  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false },
+  // Both are per-PLAA prices on one scale, so this reads as the line series
+  // it is, dashed the way the track is drawn.
+  { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true },
 ];
+
+// A dashed swatch for the dashed series, a solid fill for every other key.
+const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
+  item.dashed
+    ? { backgroundImage: `repeating-linear-gradient(to right, ${item.color} 0 4px, transparent 4px 8px)` }
+    : { backgroundColor: item.color };
 
 const formatCurrency = (value: number) => {
   if (!value) return '—';
@@ -111,6 +125,111 @@ const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any)
   );
 };
 
+// The clearing price of the auction that settled in this period, centered on
+// its point so the dotted track runs through the chip centers exactly as the
+// NAV line runs through its pills.
+const BUYBACK_CHIP_HEIGHT = 22;
+const renderBuybackChip = (props: any) => {
+  const { cx, cy, index, payload } = props;
+  const text = payload?.buybackLabel;
+  if (!text || cx == null || cy == null) return <g key={`buyback-${index}`} />;
+  const width = 20 + text.length * 7;
+  return (
+    <g key={`buyback-${index}`} transform={`translate(${cx - width / 2}, ${cy - BUYBACK_CHIP_HEIGHT / 2})`}>
+      <rect width={width} height={BUYBACK_CHIP_HEIGHT} rx={6} fill={BUYBACK_COLOR} />
+      <text
+        x={width / 2}
+        y={BUYBACK_CHIP_HEIGHT / 2 + 4}
+        textAnchor="middle"
+        fill="#ffffff"
+        fontSize={11.5}
+        fontWeight={700}
+      >
+        {text}
+      </text>
+    </g>
+  );
+};
+
+// The NAV/PLAA line and the buyback track share one scale, so how far apart
+// their two markers land is decided by the prices themselves: the plot area
+// (the 420 chart less its 48/8 margins) spans the per-PLAA domain.
+const PER_PLAA_PLOT_HEIGHT = 364;
+const PER_PLAA_DOMAIN_MAX = 30;
+const perPlaaPixels = (units: number) => (units / PER_PLAA_DOMAIN_MAX) * PER_PLAA_PLOT_HEIGHT;
+const perPlaaUnits = (pixels: number) => (pixels / PER_PLAA_PLOT_HEIGHT) * PER_PLAA_DOMAIN_MAX;
+const MARKER_CLEARANCE = (PILL_HEIGHT + BUYBACK_CHIP_HEIGHT) / 2 + 3;
+
+/**
+ * Where to plot a clearing price. An auction tends to clear within cents of
+ * NAV per PLAA, which on a shared scale prints the chip straight through the
+ * navy pill; a price that close is lifted (or dropped) by exactly the overlap
+ * so the higher of the two sits cleanly above the lower. The track is drawn
+ * through these points, so the dotted line always meets the chip rather than
+ * pointing at a spot beside it — and the chip itself still reads the price
+ * exactly as it was reported.
+ */
+function plottedClearingPrice(price: number, navPerPlaa: number): number {
+  const overlap = Math.max(0, MARKER_CLEARANCE - perPlaaPixels(Math.abs(price - navPerPlaa)));
+  if (!overlap) return price;
+  return price >= navPerPlaa ? price + perPlaaUnits(overlap) : price - perPlaaUnits(overlap);
+}
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/**
+ * Chart labels for the period an auction settled in, in both vocabularies the
+ * two graph views use — "July 2026" is the Q3 '26 quarter and the Jul 26
+ * month. Note this is the calendar quarter: the NAV series currently reports
+ * July holdings inside Q2 '26, so a July auction has no quarterly bar to sit
+ * above until plaa-service buckets July into Q3.
+ */
+function periodLabels(monthYear: string): string[] {
+  const [month, year] = monthYear.split(' ');
+  const monthIndex = MONTH_NAMES.indexOf(month);
+  if (monthIndex < 0 || !/^\d{4}$/.test(year ?? '')) return [];
+  const shortYear = year.slice(2);
+  return [`Q${Math.floor(monthIndex / 3) + 1} '${shortYear}`, `${month.slice(0, 3)} ${shortYear}`];
+}
+
+/** A clearing price to plot: the number positions the chip, the text fills it. */
+interface BuybackMarker {
+  value: number;
+  text: string;
+}
+
+/**
+ * Clearing prices keyed by every chart label they could appear under, so
+ * either graph view can look up its own bars. Buybacks arrive newest first,
+ * so when two auctions share a quarter the newer one keeps the marker. A
+ * price that never settled reads 'TBD' and has nothing to plot.
+ */
+function buybackMarkersByLabel(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
+  const markers: Record<string, BuybackMarker> = {};
+  buybacks.forEach((entry) => {
+    const text = entry.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
+    const value = text ? Number(text.replace(/[^0-9.]/g, '')) : NaN;
+    if (!text || !Number.isFinite(value)) return;
+    periodLabels(entry.monthYear).forEach((label) => {
+      if (!(label in markers)) markers[label] = { value, text };
+    });
+  });
+  return markers;
+}
+
 // X-axis tick: the final category (current quarter) is highlighted in blue.
 const renderAxisTick = (lastLabel: string) => (props: any) => {
   const { x, y, payload } = props;
@@ -130,15 +249,26 @@ const renderAxisTick = (lastLabel: string) => (props: any) => {
   );
 };
 
-function NavChart({ data }: { data: NavPoint[] }) {
-  // Stacked bars use the combined digital-asset value (BTC + ETH + FIL)
-  const chartData = data.map((d) => ({ ...d, digital: digitalTotal(d) }));
+function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string, BuybackMarker> }) {
+  // Stacked bars use the combined digital-asset value (BTC + ETH + FIL); a
+  // period with no auction plots no point, which is what breaks the buyback
+  // track into the dotted spans between auctions.
+  const chartData = data.map((d) => {
+    const marker = markers[d.label];
+    return {
+      ...d,
+      digital: digitalTotal(d),
+      buyback: marker ? plottedClearingPrice(marker.value, d.navPerPlaa) : null,
+      buybackLabel: marker?.text ?? '',
+    };
+  });
   // A quarterly series is at most a handful of bars, so it keeps the wide bars
   // from the design. A 12-month series would overflow its category width at
   // that size, so denser series get proportionally narrower bars — the only
   // thing that varies between the two graph views.
   const dense = chartData.length > 8;
   const barSize = dense ? 40 : 92;
+  const hasBuybacks = chartData.some((d) => d.buyback != null);
   if (!chartData.length) {
     return <p className="th-chart__empty">No data available for this view yet.</p>;
   }
@@ -174,6 +304,22 @@ function NavChart({ data }: { data: NavPoint[] }) {
             label={renderNavLabel}
             isAnimationActive={false}
           />
+          {/* Auctions are months apart, so the track is dotted through the
+              periods that had none rather than implying a price in between. */}
+          {hasBuybacks && (
+            <Line
+              yAxisId="perPlaa"
+              type="linear"
+              dataKey="buyback"
+              stroke={BUYBACK_COLOR}
+              strokeWidth={1.5}
+              strokeDasharray="4 5"
+              connectNulls
+              dot={renderBuybackChip}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
       </div>
@@ -341,6 +487,38 @@ function Donut({
   );
 }
 
+// The date of the next auction is a schedule decision, not a result, so no
+// completed buyback carries it and the trust dataset's own copy has gone
+// stale. Hardcoded here until plaa-service publishes the schedule — this
+// belongs in the data layer, not in a component.
+const NEXT_ANTICIPATED_BUYBACK = 'September 2026';
+
+/**
+ * The three capstone tiles. Last Clearing Price and Date come from the newest
+ * completed auction rather than data.buybackMetrics: both surfaces claim to
+ * describe the same auction, but the metrics are entered separately from the
+ * auction record and drift behind it, while the accordion below reads the
+ * auction record directly. Only a page with no completed auction at all falls
+ * back to the dataset's figures.
+ */
+function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): BuybackMetric[] {
+  const latest = buybacks[0]; // completed buybacks arrive newest first
+  const clearingPrice = latest?.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
+
+  const metrics: BuybackMetric[] =
+    latest && clearingPrice
+      ? [
+          { label: 'Last Clearing Price', value: clearingPrice },
+          { label: 'Date', value: latest.monthYear },
+          { label: 'Next Anticipated', value: '' },
+        ]
+      : data.buybackMetrics;
+
+  return metrics.map((metric) =>
+    metric.label === 'Next Anticipated' ? { ...metric, value: NEXT_ANTICIPATED_BUYBACK } : metric,
+  );
+}
+
 export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {
   const [view, setView] = useState<ViewMode>('quarterly-graph');
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
@@ -349,6 +527,8 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   // Table View keeps the full monthly series it has always shown; the Monthly
   // Graph is limited to the most recent MONTHLY_WINDOW months.
   const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
+  const buybackMarkers = buybackMarkersByLabel(buybacks);
+  const metrics = capstoneMetrics(data, buybacks);
 
   return (
     <div className="th">
@@ -399,7 +579,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
               <li key={item.label} className="th-key__item">
                 <span
                   className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
-                  style={{ backgroundColor: item.color }}
+                  style={keyMarkerStyle(item)}
                 />
                 {item.label}
               </li>
@@ -407,15 +587,9 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           </ul>
         </div>
 
-        {view === 'quarterly-graph' && <NavChart data={data.quarterly} />}
-        {view === 'monthly-graph' && <NavChart data={monthlyWindow} />}
+        {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} />}
+        {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
         {view === 'table' && <NavTable data={data.monthly} />}
-
-        <p className="th-card__footnote">
-          * Q2 &apos;26 figures include holdings data as of July 1, 2026. Although July 1 technically falls in Q3, it is
-          reflected here as part of the most recent Q2 snapshot.
-        </p>
-
       </section>
 
       {/* Buybacks & Past Results */}
@@ -425,7 +599,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
         <div className="th-buyback-panel">
           <div className="th-metrics">
-            {data.buybackMetrics.map((metric) => (
+            {metrics.map((metric) => (
               <div key={metric.label} className="th-metric">
                 <span className="th-metric__label">{metric.label}</span>
                 <span className="th-metric__value">{metric.value}</span>
@@ -653,13 +827,6 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin-top: 12px;
           font-size: 13px;
           font-weight: 400;
-          line-height: 18px;
-          color: #94a3b8;
-        }
-
-        .th-card__footnote {
-          margin: 16px 0 0;
-          font-size: 12.5px;
           line-height: 18px;
           color: #94a3b8;
         }
@@ -971,7 +1138,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           color: #0f172a;
         }
 
-        /* Per-card label accents (backend returns a fixed order: price, date, next). */
+        /* Per-card label accents (the tiles render in a fixed order: price, date, next). */
         .th-metric:nth-child(1) .th-metric__label {
           color: #16a34a;
         }

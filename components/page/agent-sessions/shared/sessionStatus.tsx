@@ -12,6 +12,7 @@ const STATUS_CLASS: Record<string, string> = {
   pushing: s.statusPushing,
   pr_created: s.statusPr_created,
   queued: s.statusQueued,
+  waiting_for_input: s.statusWaiting_for_input,
 };
 
 export function SessionStatusBadge({ status }: { status: string }) {

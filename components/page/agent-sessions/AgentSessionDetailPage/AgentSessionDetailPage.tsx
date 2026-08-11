@@ -15,8 +15,11 @@ import {
   type DerivedStepPhase,
 } from '@/services/agent-sessions/deriveProgressSteps';
 import type { AgentSession } from '@/services/agent-sessions/agent-sessions.service';
+import { AgentSessionChat } from '../AgentSessionChat';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
 import s from '../shared/AgentSessions.module.scss';
+
+type DetailTab = 'overview' | 'chat';
 
 const ACTIVE_FEATURE_ENV_STATUSES = new Set([
   'queued',
@@ -69,6 +72,7 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
   const deployMutation = useDeployAgentSessionFeatureEnv(sessionId);
   const deleteMutation = useDeleteAgentSessionFeatureEnv(sessionId);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DetailTab>('overview');
 
   const session = sessionQuery.data;
   const progress = progressQuery.data;
@@ -115,6 +119,31 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
           {session ? <SessionStatusBadge status={session.status} /> : null}
         </div>
 
+        {/* Chat is admin-only: a message starts a new agent run, so a VIEW-only
+            user gets no tab bar at all rather than a read-only thread. */}
+        {canAdmin ? (
+          <div className={s.tabs} role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'overview'}
+              className={`${s.tab} ${activeTab === 'overview' ? s.tabActive : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'chat'}
+              className={`${s.tab} ${activeTab === 'chat' ? s.tabActive : ''}`}
+              onClick={() => setActiveTab('chat')}
+            >
+              Chat
+            </button>
+          </div>
+        ) : null}
+
         {(sessionQuery.isLoading || progressQuery.isLoading) && !session ? (
           <div className={s.panel}>
             <p className={s.state}>Loading session…</p>
@@ -129,7 +158,11 @@ export function AgentSessionDetailPage({ sessionId }: { sessionId: string }) {
           </div>
         ) : null}
 
-        {session ? (
+        {/* Mounted only while its tab is active, so the messages poll stops when
+            the admin is looking at Overview. */}
+        {canAdmin && activeTab === 'chat' ? <AgentSessionChat sessionId={sessionId} session={session} /> : null}
+
+        {session && activeTab === 'overview' ? (
           <>
             <div className={s.panel}>
               <h2 className={s.sectionTitle}>Overview</h2>

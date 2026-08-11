@@ -152,6 +152,13 @@
   text-transform: lowercase;
 }
 
+// The agent has stopped to ask something and needs an admin reply — amber rather
+// than the in-flight blue, because nothing is progressing until someone answers.
+.statusWaiting_for_input {
+  background: #fef3c7;
+  color: #78350f;
+}
+
 .statusReady {
   background: #dcfce7;
   color: #166534;
@@ -173,6 +180,32 @@
 .statusQueued {
   background: #dbeafe;
   color: #1d4ed8;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tab {
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover {
+    color: #0a0c11;
+  }
+}
+
+.tabActive {
+  color: #156ff7;
+  border-bottom-color: #156ff7;
 }
 
 .backLink {

@@ -17,8 +17,15 @@ import {
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
 
-type ViewMode = 'quarterly' | 'monthly';
+type ViewMode = 'quarterly-graph' | 'monthly-graph' | 'table';
+
+const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
+  { id: 'quarterly-graph', label: 'Quarterly Graph' },
+  { id: 'monthly-graph', label: 'Monthly Graph' },
+  { id: 'table', label: 'Table View' },
+];
 
 // Presentation theme — the chart series palette (the dataset itself comes from
 // the API; these are view concerns kept alongside the component).
@@ -72,14 +79,14 @@ const renderNavLabel = (props: any) => {
 
 // Total trust value drawn above each stacked bar. The final (PLVH-bearing) bar
 // is highlighted in green to match the design.
-const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
+const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
   const highlight = rows[index] && rows[index].plvh > 0;
   return (
     <text
       x={x + width / 2}
-      y={y - 10}
+      y={y - offset}
       textAnchor="middle"
       fill={highlight ? SERIES_COLORS.plvh : '#475569'}
       fontSize={13}
@@ -112,6 +119,15 @@ const renderAxisTick = (lastLabel: string) => (props: any) => {
 function NavChart({ data }: { data: NavPoint[] }) {
   // Stacked bars use the combined digital-asset value (BTC + ETH + FIL)
   const chartData = data.map((d) => ({ ...d, digital: digitalTotal(d) }));
+  // A quarterly series is at most a handful of bars, so it keeps the wide bars
+  // from the design. A 12-month series would overflow its category width at
+  // that size, so denser series get proportionally narrower bars — the only
+  // thing that varies between the two graph views.
+  const dense = chartData.length > 8;
+  const barSize = dense ? 40 : 92;
+  if (!chartData.length) {
+    return <p className="th-chart__empty">No data available for this view yet.</p>;
+  }
   return (
     <div className="th-chart">
       <ResponsiveContainer width="100%" height={420}>
@@ -126,10 +142,12 @@ function NavChart({ data }: { data: NavPoint[] }) {
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
           <YAxis yAxisId="perPlaa" hide domain={[0, 30]} />
-          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={92} />
-          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={92} />
-          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={92} radius={[4, 4, 0, 0]}>
-            <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
+          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
+          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
+          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>
+            {/* A dense series packs the NAV/PLAA pills close to the bar tops,
+                so the total sits clear of a pill's height instead of 10px up. */}
+            <LabelList dataKey="nav" content={renderTotalLabel(chartData, dense ? PILL_HEIGHT + 10 : 10)} />
           </Bar>
           <Line
             yAxisId="perPlaa"
@@ -232,11 +250,13 @@ function Donut({
 }
 
 export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
-  const [view, setView] = useState<ViewMode>('quarterly');
+  const [view, setView] = useState<ViewMode>('quarterly-graph');
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
 
-  const navData = view === 'quarterly' ? data.quarterly : data.monthly;
+  // Table View keeps the full monthly series it has always shown; the Monthly
+  // Graph is limited to the most recent MONTHLY_WINDOW months.
+  const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
 
   return (
     <div className="th">
@@ -268,23 +288,18 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         {/* Controls */}
         <div className="th-controls">
-          <div className="th-toggle" role="tablist" aria-label="NAV view">
-            <button
-              role="tab"
-              aria-selected={view === 'quarterly'}
-              className={`th-toggle__btn ${view === 'quarterly' ? 'th-toggle__btn--active' : ''}`}
-              onClick={() => setView('quarterly')}
-            >
-              Quarterly
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === 'monthly'}
-              className={`th-toggle__btn ${view === 'monthly' ? 'th-toggle__btn--active' : ''}`}
-              onClick={() => setView('monthly')}
-            >
-              Monthly
-            </button>
+          <div className="th-toggle" role="group" aria-label="NAV view">
+            {VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={view === option.id}
+                className={`th-toggle__btn ${view === option.id ? 'th-toggle__btn--active' : ''}`}
+                onClick={() => setView(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
 
           <ul className="th-key">
@@ -300,7 +315,9 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           </ul>
         </div>
 
-        {view === 'quarterly' ? <NavChart data={navData} /> : <NavTable data={navData} />}
+        {view === 'quarterly-graph' && <NavChart data={data.quarterly} />}
+        {view === 'monthly-graph' && <NavChart data={monthlyWindow} />}
+        {view === 'table' && <NavTable data={data.monthly} />}
 
         <p className="th-card__footnote">
           * Q2 &apos;26 figures include holdings data as of July 1, 2026. Although July 1 technically falls in Q3, it is
@@ -636,6 +653,15 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           margin-top: 8px;
           padding-top: 16px;
           background-color: #f8fafc;
+        }
+
+        .th-chart__empty {
+          margin: 8px 0 0;
+          padding: 48px 16px;
+          background-color: #f8fafc;
+          color: #64748b;
+          font-size: 14px;
+          text-align: center;
         }
 
         /* Table */

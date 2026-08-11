@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import Image from 'next/image';
 import {
   Bar,
   CartesianGrid,
@@ -17,7 +18,20 @@ import {
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
 import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
+
+/**
+ * One completed auction, already mapped through the round pages' own buyback
+ * mapper — this component renders whatever it is handed and knows nothing
+ * about which rounds ran an auction.
+ */
+export interface TrustBuyback {
+  roundNumber: number;
+  monthYear: string;
+  auctionNumber: number | null;
+  section: BuybackSimulationSectionData;
+}
 
 type ViewMode = 'quarterly-graph' | 'monthly-graph' | 'table';
 
@@ -165,6 +179,68 @@ function NavChart({ data }: { data: NavPoint[] }) {
   );
 }
 
+/**
+ * One collapsible auction panel. Collapsed by default; the button carries the
+ * round and the month alongside the auction number, because "Buyback #2" and
+ * "Round 18" are two different numbering schemes and nothing else on the page
+ * connects them.
+ */
+function BuybackAccordion({ entry }: { entry: TrustBuyback }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  const { section } = entry;
+  const heading = section.summary.title.replace(/ - Key Results$/, '');
+
+  return (
+    <div className={`th-accordion ${open ? 'th-accordion--open' : ''}`}>
+      <button
+        type="button"
+        className="th-accordion__trigger"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span className="th-accordion__heading">
+          <span className="th-accordion__title">{heading}</span>
+          <span className="th-accordion__meta">
+            Round {entry.roundNumber} · {entry.monthYear}
+          </span>
+        </span>
+        <Image
+          src={open ? '/icons/arrow-up.svg' : '/icons/arrow-down-light.svg'}
+          alt=""
+          width={14}
+          height={14}
+          aria-hidden="true"
+        />
+      </button>
+
+      <div id={panelId} className="th-accordion__panel" hidden={!open}>
+        <p className="th-accordion__summary">{section.headerDescription}</p>
+
+        <div className="th-metrics th-metrics--accordion">
+          {section.summary.items.map((item) => (
+            <div key={item.label} className="th-metric">
+              <span className="th-metric__label">{item.label}</span>
+              <span className="th-metric__value">{item.value}</span>
+            </div>
+          ))}
+          {section.totalFilled ? (
+            <div className="th-metric">
+              <span className="th-metric__label">Total Filled</span>
+              <span className="th-metric__value">{section.totalFilled}</span>
+            </div>
+          ) : null}
+        </div>
+
+        <a className="th-link" href={`/alignment-asset/rounds/${entry.roundNumber}`}>
+          View round {entry.roundNumber} →
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // Asset columns show a muted dash when the holding is not yet held.
 const assetCell = (value: number) =>
   value ? formatAsset(value) : <span className="th-table__dash">—</span>;
@@ -249,7 +325,7 @@ function Donut({
   );
 }
 
-export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
+export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {
   const [view, setView] = useState<ViewMode>('quarterly-graph');
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
@@ -346,21 +422,15 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
             value of any right.
           </p>
 
-          <a
-            className="th-link"
-            href="https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() =>
-              onNavMenuClicked(
-                'View full buyback results',
-                'https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5'
-              )
-            }
-          >
-            View full buyback results →
-          </a>
         </div>
+
+        {buybacks.length > 0 && (
+          <div className="th-accordions">
+            {buybacks.map((entry) => (
+              <BuybackAccordion key={entry.roundNumber} entry={entry} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA */}
@@ -754,10 +824,89 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           color: #64748b;
         }
 
+        .th-accordions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .th-accordion {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          background-color: #ffffff;
+          overflow: hidden;
+        }
+
+        .th-accordion--open {
+          border-color: #cbd5e1;
+        }
+
+        .th-accordion__trigger {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 16px 20px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .th-accordion__trigger:hover {
+          background-color: #f8fafc;
+        }
+
+        .th-accordion__heading {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .th-accordion__title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #16161f;
+        }
+
+        .th-accordion__meta {
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .th-accordion__panel {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          padding: 0 20px 20px;
+        }
+
+        .th-accordion__panel[hidden] {
+          display: none;
+        }
+
+        .th-accordion__summary {
+          margin: 0;
+          font-size: 14px;
+          line-height: 20px;
+          color: #475569;
+          /* header_description is authored in Airtable, where line breaks are
+             deliberate — matches the round pages' treatment. */
+          white-space: pre-line;
+        }
+
         .th-metrics {
           display: flex;
           flex-wrap: wrap;
           gap: 16px;
+        }
+
+        .th-metrics--accordion {
+          border-radius: 12px;
+          background-color: #f8fafc;
+          padding: 20px;
         }
 
         .th-metric {

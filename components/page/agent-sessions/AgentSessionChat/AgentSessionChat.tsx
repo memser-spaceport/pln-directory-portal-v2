@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 import {
@@ -11,9 +11,6 @@ import { HIDDEN_MESSAGE_TYPES, WAITING_FOR_INPUT_STATUS } from '@/services/agent
 import type { AgentSession, AgentSessionMessage } from '@/services/agent-sessions/agent-sessions.service';
 import { formatDate, SessionStatusBadge } from '../shared/sessionStatus';
 import s from './AgentSessionChat.module.scss';
-
-/** How close to the bottom counts as "following along" for autoscroll purposes. */
-const NEAR_BOTTOM_PX = 80;
 
 function MarkdownLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (
@@ -64,8 +61,7 @@ export function AgentSessionChat({ sessionId, session }: Props) {
   const sendMutation = useSendAgentSessionMessage(sessionId);
   const [draft, setDraft] = useState('');
   const [sendError, setSendError] = useState<string | null>(null);
-  const threadRef = useRef<HTMLDivElement | null>(null);
-  const wasNearBottomRef = useRef(true);
+  const threadEndRef = useRef<HTMLDivElement | null>(null);
 
   const messages = useMemo(
     () => (messagesQuery.data ?? []).filter((message) => !HIDDEN_MESSAGE_TYPES.has(message.message_type)),
@@ -73,21 +69,6 @@ export function AgentSessionChat({ sessionId, session }: Props) {
   );
 
   const isWaitingForInput = session?.status === WAITING_FOR_INPUT_STATUS;
-  const newestId = messages.length ? messages[messages.length - 1].id : null;
-
-  // Track the scroll position *before* the DOM updates, so a polling refresh never
-  // yanks an admin who scrolled up to read a long reply.
-  const handleScroll = () => {
-    const el = threadRef.current;
-    if (!el) return;
-    wasNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_BOTTOM_PX;
-  };
-
-  useEffect(() => {
-    const el = threadRef.current;
-    if (!el || !wasNearBottomRef.current) return;
-    el.scrollTop = el.scrollHeight;
-  }, [newestId]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -97,11 +78,16 @@ export function AgentSessionChat({ sessionId, session }: Props) {
     setSendError(null);
     try {
       await sendMutation.mutateAsync(message);
-      setDraft('');
-      wasNearBottomRef.current = true;
     } catch (error) {
       setSendError(error instanceof Error ? error.message : 'Failed to send message');
+      return;
     }
+
+    setDraft('');
+    // Deliberately outside the try: scrolling is presentation, and a failure here
+    // must never be reported as a failed send. Only ever scrolls on the admin's own
+    // send — polling must not yank someone who scrolled up to read a long reply.
+    threadEndRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
   };
 
   return (
@@ -113,7 +99,7 @@ export function AgentSessionChat({ sessionId, session }: Props) {
         </div>
       ) : null}
 
-      <div className={s.thread} ref={threadRef} onScroll={handleScroll}>
+      <div className={s.thread}>
         {messagesQuery.isLoading ? <p className={s.state}>Loading messages…</p> : null}
 
         {messagesQuery.isError ? (
@@ -142,6 +128,8 @@ export function AgentSessionChat({ sessionId, session }: Props) {
             {session.error_message ? <span className={s.outcomeError}>{session.error_message}</span> : null}
           </div>
         ) : null}
+
+        <div ref={threadEndRef} />
       </div>
 
       <form className={s.composer} onSubmit={handleSubmit}>

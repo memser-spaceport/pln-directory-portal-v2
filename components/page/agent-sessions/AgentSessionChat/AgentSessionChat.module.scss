@@ -1,18 +1,19 @@
 @use 'styles/media';
 
-// Takes the leftover height of the page column so the panel ends where the
-// viewport does. `min-height: 0` is what lets it shrink below its content —
-// without it the panel grows to fit the whole thread, the page starts
-// scrolling, and the composer rides off the bottom of the screen.
+// Deliberately no height math and no `overflow: hidden`.
+//
+// Sizing the panel to the viewport cannot work here: the app header is
+// `position: sticky` with `min-height: var(--app-header-height)`, so it renders
+// taller than the variable claims, and any `calc(100vh - …)` lands the bottom of
+// the panel below the fold by that difference. Instead the page scrolls normally
+// and the composer sticks to the viewport — which needs a non-clipping ancestor,
+// hence no `overflow: hidden`.
 .root {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
 }
 
 .waitingBanner {
@@ -24,17 +25,13 @@
   color: #78350f;
 }
 
-// The only scrolling region. `min-height: 0` again: a flex item defaults to
-// min-height auto, which refuses to shrink below its content and would push the
-// composer out of the panel instead of scrolling.
+// Grows with its content; the page is the single scroll region. A nested scroller
+// here would put two scrollbars on screen and trap the wheel over the thread.
 .thread {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .messages {
@@ -187,14 +184,20 @@
   color: #b42318;
 }
 
-// Never shrinks and never scrolls away — the composer is the point of the tab.
+// Sticks to the bottom of the viewport for as long as the panel is on screen, so
+// however long the thread grows the composer stays reachable. Sticky elements keep
+// their place in flow, so nothing is permanently hidden behind it.
 .composer {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   padding: 16px;
   border-top: 1px solid #e2e8f0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
   background: #f8fafc;
 }
 

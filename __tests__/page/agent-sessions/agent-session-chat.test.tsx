@@ -155,6 +155,31 @@ describe('AgentSessionChat composer', () => {
     await waitFor(() => expect(textarea).toHaveValue(''));
   });
 
+  // Scrolling the thread is presentation. If it can throw into the send's catch
+  // block, a delivered message reports itself as failed — so this drops
+  // scrollIntoView (absent in older jsdom and in some embedded browsers) and
+  // asserts the send still reads as successful.
+  it('still reports success when scrollIntoView is unavailable', async () => {
+    const original = Element.prototype.scrollIntoView;
+    // @ts-expect-error — simulating an environment that lacks the API
+    delete Element.prototype.scrollIntoView;
+
+    try {
+      render(<AgentSessionChat sessionId="task-1" session={session()} />);
+
+      const textarea = screen.getByLabelText('Message the agent');
+      fireEvent.change(textarea, { target: { value: 'ship it' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+      await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith('ship it'));
+      await waitFor(() => expect(textarea).toHaveValue(''));
+      expect(screen.queryByText(/failed to send/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/is not a function/i)).not.toBeInTheDocument();
+    } finally {
+      Element.prototype.scrollIntoView = original;
+    }
+  });
+
   it('keeps the draft when the send fails', async () => {
     mockMutateAsync.mockRejectedValue(new Error('Forbidden resource'));
 

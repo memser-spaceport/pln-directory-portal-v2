@@ -143,7 +143,8 @@ function NavChart({ data }: { data: NavPoint[] }) {
     return <p className="th-chart__empty">No data available for this view yet.</p>;
   }
   return (
-    <div className="th-chart">
+    <div className={`th-chart ${dense ? 'th-chart--dense' : ''}`}>
+      <div className="th-chart__inner">
       <ResponsiveContainer width="100%" height={420}>
         <ComposedChart data={chartData} margin={{ top: 48, right: 16, left: 16, bottom: 8 }} barCategoryGap="42%">
           <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
@@ -175,6 +176,7 @@ function NavChart({ data }: { data: NavPoint[] }) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -723,6 +725,25 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           margin-top: 8px;
           padding-top: 16px;
           background-color: #f8fafc;
+        }
+
+        .th-chart__inner {
+          width: 100%;
+        }
+
+        /* Twelve months of bars stop being legible below roughly 900px — the
+           NAV/PLAA pills start overlapping each other. Rather than thin the
+           labels or shrink the type, the dense view scrolls sideways below a
+           readable minimum, matching how wide tables behave elsewhere. The
+           quarterly view never takes this branch. */
+        @media (max-width: 900px) {
+          .th-chart--dense {
+            overflow-x: auto;
+          }
+
+          .th-chart--dense .th-chart__inner {
+            min-width: 760px;
+          }
         }
 
         .th-chart__empty {

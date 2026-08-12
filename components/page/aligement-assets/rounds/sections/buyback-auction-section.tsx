@@ -36,7 +36,7 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             <div className="buyback-section__header-left">
               <h2 className="buyback-section__title">Buyback Auction Results</h2>
               <p className="buyback-section__description">
-                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how much of the buyback pool was used, the number of winning bidders, and the total tokens purchased.
+                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how much of the buyback pool was used, the number of accepted bidders, and the total PLAA redeemed.
               </p>
             </div>
             <div className="buyback-section__header-right">

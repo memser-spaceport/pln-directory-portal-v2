@@ -27,11 +27,12 @@ const allRounds = [
   { id: 16, month: 'May 2026' },
   { id: 17, month: 'June 2026' },
   { id: 18, month: 'July 2026' },
+  { id: 19, month: 'August 2026' },
 ];
 
 // Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 18;
-const TOTAL_ROUNDS = 18;
+const CURRENT_ROUND = 19;
+const TOTAL_ROUNDS = 19;
 
 // Mock data for each round (month)
 const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
@@ -185,12 +186,21 @@ const chartDataByRound: Record<number, Array<{ category: string; points: number;
     { category: 'Capital', points: 0, tokens: 0 },
   ],
   18: [
-    { category: 'Projects', points: 550, tokens: 0 },
+    { category: 'Projects', points: 1600, tokens: 0 },
     { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 300, tokens: 0 },
-    { category: 'Network Tooling', points: 9200, tokens: 0 },
-    { category: 'People/Talent', points: 300, tokens: 0 },
-    { category: 'Knowledge', points: 1350, tokens: 0 },
+    { category: 'Programs', points: 3500, tokens: 0 },
+    { category: 'Network Tooling', points: 11750, tokens: 0 },
+    { category: 'People/Talent', points: 100, tokens: 0 },
+    { category: 'Knowledge', points: 1100, tokens: 0 },
+    { category: 'Capital', points: 0, tokens: 0 },
+  ],
+  19: [
+    { category: 'Projects', points: 0, tokens: 0 },
+    { category: 'Brand', points: 0, tokens: 0 },
+    { category: 'Programs', points: 500, tokens: 0 },
+    { category: 'Network Tooling', points: 0, tokens: 0 },
+    { category: 'People/Talent', points: 290, tokens: 0 },
+    { category: 'Knowledge', points: 0, tokens: 0 },
     { category: 'Capital', points: 0, tokens: 0 },
   ],
 };

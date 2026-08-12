@@ -89,13 +89,13 @@ const workingGroupRows = [
   },
   {
     team: 'Polaris',
-    contributors: ['Victoria DeVesty', 'Kevin Houng', 'Lynnette Nolan', 'Shae Biron'],
+    contributors: ['Victoria DeVesty', 'Shae Biron'],
     responsibilities:
       'Provides input on Distribution and Allocation Strategy (network incentives) to Surus and Telegram Forum DRI.',
   },
   {
     team: 'PL Init',
-    contributors: ['Juan Benet', 'Diana Stern', 'Chris Broom', 'Patrick Kim', 'Derrick Lam', 'Theresa Therriault', 'Matt Davidson', 'Camille Bagnall', 'Javier Fierro', 'Bill Warren'],
+    contributors: ['Juan Benet', 'Diana Stern', 'Chris Brocoum', 'Patrick Kim', 'Derrick Lam', 'Theresa Therriault', 'Matt Davidson', 'Camille Bagnall', 'Javier Fierro', 'Bill Warren'],
     responsibilities: 'Originator of the Trust.',
   },
   {

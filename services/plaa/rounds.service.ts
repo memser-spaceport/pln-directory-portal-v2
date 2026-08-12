@@ -85,6 +85,50 @@ export const getCurrentRoundStats = async (): Promise<{
  * Stats for an arbitrary round by number. Used by the past-round archive
  * page for rounds that don't have a hand-authored data file (round 18+).
  */
+/** A round that ran a real (non-simulated) buyback which has since settled. */
+export interface CompletedBuyback {
+  roundNumber: number;
+  month: string;
+  year: number;
+  buyback: RoundBuybackStats;
+}
+
+/**
+ * Every settled, non-simulated buyback, most recent auction first.
+ *
+ * Ordered by round, not by auctionNumber: rounds run in calendar order and
+ * always carry a number, whereas auctionNumber is nullable, so an auction
+ * published before it has been numbered would sort to the back and leave a
+ * stale one at the head — which is where Trust & Holdings reads "the most
+ * recent buyback" from.
+ *
+ * There is no index endpoint for buybacks, so this walks the rounds that exist
+ * (1..current) and keeps the ones carrying a real result. That makes the list
+ * self-maintaining — a new auction appears as soon as the backend publishes
+ * it, with no code change — at the cost of one request per round. If that cost
+ * matters, the fix is a `GET /rounds/buybacks` endpoint, not a hardcoded list.
+ */
+export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
+  const { data: current } = await getCurrentRoundStats();
+  if (!current) return [];
+
+  const results = await Promise.all(
+    Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)),
+  );
+
+  return results
+    .map((result) => result.data)
+    .filter((stats): stats is RoundStatsResponse => Boolean(stats))
+    .filter((stats) => stats.buyback && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation)
+    .map((stats) => ({
+      roundNumber: stats.roundNumber,
+      month: stats.month,
+      year: stats.year,
+      buyback: stats.buyback as RoundBuybackStats,
+    }))
+    .sort((a, b) => b.roundNumber - a.roundNumber);
+};
+
 export const getRoundStats = async (
   roundNumber: number,
 ): Promise<{

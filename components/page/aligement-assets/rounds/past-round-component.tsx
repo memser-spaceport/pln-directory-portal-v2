@@ -7,7 +7,6 @@ import StatsSection from "./sections/stats-section";
 import { IPastRoundData, LeaderboardEntry } from "./types/current-round.types";
 import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
-import BuybackSimulationSection from "./sections/buyback-simulation-section";
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
 import { currentRoundData } from './data';
@@ -59,7 +58,6 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
             leaderboardData={resolvedLeaderboard}
           />
         )}
-        {data.buybackSimulation && <BuybackSimulationSection data={data.buybackSimulation} />}
         <SupportSection />
       </div>
 

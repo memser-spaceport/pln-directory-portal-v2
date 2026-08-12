@@ -1,6 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import Select, { type SelectInstance } from 'react-select';
+import { filterSelectStyles } from '@/components/common/filters/FilterSelect/filterSelectStyles';
+import type { Option } from '@/components/form/FormSelect/types';
 import { useAgentSessionRepositories } from '@/services/agent-sessions/hooks/useAgentSessionRepositories';
 import s from './BuildWithAgentsRepoPicker.module.scss';
 
@@ -17,6 +20,17 @@ interface Props {
 /** Breathing room kept between the popover and the viewport edges. */
 const VIEWPORT_MARGIN = 12;
 
+/* The house filter styling, with the menu lifted above this popover's own layer.
+   FilterSelect portals its menu to document.body at z-index 20, which sits under
+   our backdrop (299) — inside an overlay that renders the menu unclickable. The
+   rest of the look is shared, so the control still matches every other select in
+   the app. */
+const repoSelectStyles: typeof filterSelectStyles = {
+  ...filterSelectStyles,
+  menu: (base, props) => ({ ...filterSelectStyles.menu?.(base, props), zIndex: 320 }),
+  menuPortal: (base, props) => ({ ...filterSelectStyles.menuPortal?.(base, props), zIndex: 320 }),
+};
+
 /* A Gantry item has no repository and none can be inferred from it, so this one
    field is the whole reason the flow isn't a bare button. Anchored popover
    rather than a Modal to match PinSwapPicker, its neighbour in this directory.
@@ -26,14 +40,22 @@ const VIEWPORT_MARGIN = 12;
    every Gantry detail open, for every admin, whether or not they build. */
 export function BuildWithAgentsRepoPicker({ pos, isCreating, error, notice, onCreate, onDismiss }: Props) {
   const { data: repositories, isLoading, isError } = useAgentSessionRepositories();
-  const selectRef = useRef<HTMLSelectElement>(null);
+  const selectRef = useRef<SelectInstance<Option, false> | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [picked, setPicked] = useState<string | null>(null);
+  /* Controlled so Escape can close the menu without also closing the popover —
+     see the key handler below. */
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const enabledRepos = useMemo(() => (repositories ?? []).filter((repo) => repo.enabled), [repositories]);
+  const options = useMemo<Option[]>(
+    () => enabledRepos.map((repo) => ({ value: repo.key, label: `${repo.displayName} (${repo.key})` })),
+    [enabledRepos],
+  );
   /* Derived rather than synced into state: the default is simply "whatever the
      list leads with" until the user chooses otherwise. */
   const repository = picked ?? enabledRepos[0]?.key ?? '';
+  const selected = options.find((option) => option.value === repository) ?? null;
 
   useEffect(() => {
     selectRef.current?.focus();
@@ -69,17 +91,25 @@ export function BuildWithAgentsRepoPicker({ pos, isCreating, error, notice, onCr
      that may be hosting us listens for Escape on `document` in the bubble phase
      (Drawer.tsx) — without claiming the key first, dismissing the picker would
      also tear down the whole drawer behind it. We swallow the key even while
-     creating, so a blocked dismissal doesn't fall through to the drawer. */
+     creating, so a blocked dismissal doesn't fall through to the drawer.
+
+     Claiming it this early also takes it away from the repo dropdown, so an open
+     menu has to be unwound here: one Escape closes the menu, the next closes the
+     popover — what the dropdown would have done on its own. */
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();
       event.preventDefault();
+      if (isMenuOpen) {
+        setIsMenuOpen(false);
+        return;
+      }
       dismiss();
     };
     document.addEventListener('keydown', onKeyDown, true);
     return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [dismiss]);
+  }, [dismiss, isMenuOpen]);
 
   const isRepoListEmpty = !isLoading && !isError && enabledRepos.length === 0;
   const isBlocked = isLoading || isError || isRepoListEmpty || !repository;
@@ -118,22 +148,27 @@ export function BuildWithAgentsRepoPicker({ pos, isCreating, error, notice, onCr
           <label className={s.label} htmlFor="build-with-ai-repository">
             Repository
           </label>
-          <select
-            id="build-with-ai-repository"
+          <Select
             ref={selectRef}
-            className={s.select}
-            value={repository}
-            disabled={isLoading || isError || isRepoListEmpty || isCreating}
-            onChange={(event) => setPicked(event.target.value)}
-          >
-            {enabledRepos.map((repo) => (
-              <option key={repo.key} value={repo.key}>
-                {repo.displayName} ({repo.key})
-              </option>
-            ))}
-          </select>
+            inputId="build-with-ai-repository"
+            options={options}
+            value={selected}
+            onChange={(option) => setPicked(option?.value ?? null)}
+            isDisabled={isLoading || isError || isRepoListEmpty || isCreating}
+            isLoading={isLoading}
+            isSearchable={false}
+            placeholder={isLoading ? 'Loading repositories…' : 'Select a repository'}
+            styles={repoSelectStyles}
+            menuIsOpen={isMenuOpen}
+            onMenuOpen={() => setIsMenuOpen(true)}
+            onMenuClose={() => setIsMenuOpen(false)}
+            /* Escapes the popover's `overflow: hidden`, which would otherwise
+               clip the menu to the card. */
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            menuPosition="fixed"
+          />
 
-          {isLoading && <p className={s.muted}>Loading repositories…</p>}
+          {/* No loading line — the control carries its own spinner and placeholder. */}
           {isError && <p className={s.error}>Could not load repositories. Close and try again.</p>}
           {isRepoListEmpty && <p className={s.error}>No repositories are enabled for agent sessions.</p>}
           {notice && <p className={s.muted}>{notice}</p>}

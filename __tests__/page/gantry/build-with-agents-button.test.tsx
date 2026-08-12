@@ -96,9 +96,26 @@ describe('BuildWithAgentsButton', () => {
       const user = userEvent.setup();
       renderButton();
       await user.click(screen.getByRole('button', { name: /build with ai/i }));
+      // The dropdown renders its options only once the menu is open.
+      await user.click(screen.getByLabelText('Repository'));
 
       expect(screen.getByRole('option', { name: 'Directory (directory)' })).toBeInTheDocument();
       expect(screen.queryByRole('option', { name: /Legacy/ })).not.toBeInTheDocument();
+    });
+
+    it('closes only the dropdown on the first Escape, then the popover', async () => {
+      const user = userEvent.setup();
+      renderButton();
+      await user.click(screen.getByRole('button', { name: /build with ai/i }));
+      await user.click(screen.getByLabelText('Repository'));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     it('creates a session with a prompt built from title and description, then navigates', async () => {

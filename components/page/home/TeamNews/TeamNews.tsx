@@ -35,6 +35,7 @@ import {
   SHOW_POPULAR_THIS_WEEK,
   TOP_STORIES_WINDOW_LABEL,
   type TeamNewsCategoryId,
+  SHOW_HIRING_NEWS,
 } from './constants';
 
 import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
@@ -74,42 +75,13 @@ import { PopularScroller } from './components/FeedScrollers/PopularScroller';
 import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 
-import s from './TeamNews.module.scss';
-
+import { getSearchInputEl } from './utils/getSearchInputEl';
+import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
+import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
 
-// DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
-// a forwarded ref, so this is the only way to read its live (undebounced)
-// value or focus it programmatically. Centralized so there's one place — not
-// two — that assumes it renders exactly one bare <input>.
-function getSearchInputEl(container: HTMLDivElement | null): HTMLInputElement | null {
-  return container?.querySelector('input') ?? null;
-}
-
-// Shared by searchedItems' useMemo and handleSearch's synchronous result-count
-// computation, so the two never drift into different definitions of "matches".
-function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): boolean {
-  if (!lowerCaseQuery) return true;
-  return (
-    item.teamName.toLowerCase().includes(lowerCaseQuery) ||
-    item.title.toLowerCase().includes(lowerCaseQuery) ||
-    (item.summary?.toLowerCase().includes(lowerCaseQuery) ?? false) ||
-    item.tags.some((t) => t.toLowerCase().includes(lowerCaseQuery))
-  );
-}
-
-// Shared by filteredItems' useMemo and handlePopularItemClick's synchronous
-// category-mismatch check, so the two never drift into different definitions
-// of "matches" — same rationale as matchesTeamNewsQuery above.
-function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
-  if (categoryId === ALL_CAT) return true;
-  // A news item counts as a discussion when it has a forum thread of its own.
-  // Forum posts also live under this pill, but they aren't news items — see
-  // filterFeedForumPosts for that half.
-  if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
-  return item.eventType === categoryId;
-}
+import s from './TeamNews.module.scss';
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
@@ -372,6 +344,8 @@ export const TeamNews = ({
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
+
+  console.log('>>>', visibleEntries);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
   // still drop any accidental overlap so the same story isn't shown twice.
@@ -959,7 +933,7 @@ export const TeamNews = ({
                         />
                       );
                     case 'hiring':
-                      return (
+                      return SHOW_HIRING_NEWS ? (
                         <HiringCard
                           key={key}
                           group={entry.group}
@@ -970,7 +944,7 @@ export const TeamNews = ({
                           }
                           onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
                         />
-                      );
+                      ) : null;
                     case 'deal':
                       return (
                         <DealCardCompact

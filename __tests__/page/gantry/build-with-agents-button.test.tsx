@@ -161,6 +161,34 @@ describe('BuildWithAgentsButton', () => {
     });
   });
 
+  describe('single-flight', () => {
+    it('ignores Escape, backdrop and close while the session is being created', async () => {
+      const user = userEvent.setup();
+      let resolveCreate: (value: { id: string }) => void = () => undefined;
+      mockMutateAsync.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      );
+
+      renderButton();
+      await user.click(screen.getByRole('button', { name: /build with ai/i }));
+      await user.click(screen.getByRole('button', { name: /create session/i }));
+
+      // The request is in flight and cannot be recalled, so no dismissal path may
+      // hide the navigation that follows it.
+      await user.keyboard('{Escape}');
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      resolveCreate({ id: 'session-42' });
+      await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/pl-infra/agent-sessions/session-42'));
+    });
+  });
+
   describe('errors', () => {
     it('shows an inline error and keeps the picker open for retry', async () => {
       const user = userEvent.setup();

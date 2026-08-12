@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentSessionRepositories } from '@/services/agent-sessions/hooks/useAgentSessionRepositories';
 import s from './BuildWithAgentsRepoPicker.module.scss';
 
@@ -43,20 +43,29 @@ export function BuildWithAgentsRepoPicker({
     selectRef.current?.focus();
   }, [enabledRepos.length]);
 
+  /* Single-flight, matching BoostImpactPopover: once the session request is out
+     there is no way to recall it, so every dismissal path is a no-op until it
+     settles. Closing the popover wouldn't cancel anything — it would just hide
+     the pending navigation the caller performs on success. */
+  const dismiss = useCallback(() => {
+    if (!isCreating) onDismiss();
+  }, [isCreating, onDismiss]);
+
   /* Capture phase, so Escape closes this popover and stops there. The Drawer
      that may be hosting us listens for Escape on `document` in the bubble phase
      (Drawer.tsx) — without claiming the key first, dismissing the picker would
-     also tear down the whole drawer behind it. */
+     also tear down the whole drawer behind it. We swallow the key even while
+     creating, so a blocked dismissal doesn't fall through to the drawer. */
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();
       event.preventDefault();
-      onDismiss();
+      dismiss();
     };
     document.addEventListener('keydown', onKeyDown, true);
     return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [onDismiss]);
+  }, [dismiss]);
 
   const isRepoListEmpty = !isLoading && !isError && enabledRepos.length === 0;
   const isBlocked = isLoading || isError || isRepoListEmpty || !repository || !canSubmit;
@@ -67,7 +76,7 @@ export function BuildWithAgentsRepoPicker({
         className={s.backdrop}
         onClick={(event) => {
           event.stopPropagation();
-          onDismiss();
+          dismiss();
         }}
       />
       <div
@@ -82,7 +91,7 @@ export function BuildWithAgentsRepoPicker({
           <span className={s.headerTitle} id="build-with-ai-title">
             Build with AI
           </span>
-          <button type="button" className={s.closeBtn} onClick={onDismiss} aria-label="Close">
+          <button type="button" className={s.closeBtn} onClick={dismiss} disabled={isCreating} aria-label="Close">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
               <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
@@ -121,7 +130,7 @@ export function BuildWithAgentsRepoPicker({
         </div>
 
         <div className={s.footer}>
-          <button type="button" className={s.secondaryBtn} onClick={onDismiss} disabled={isCreating}>
+          <button type="button" className={s.secondaryBtn} onClick={dismiss} disabled={isCreating}>
             Cancel
           </button>
           <button

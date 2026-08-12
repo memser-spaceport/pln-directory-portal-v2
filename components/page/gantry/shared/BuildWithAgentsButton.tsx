@@ -36,6 +36,11 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
   const isSubmittingRef = useRef(false);
   const [pickerPos, setPickerPos] = useState<{ top: number; left: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /* Owned here rather than read off `createMutation.isPending`, so the in-flight
+     state has one source of truth that flips in the same commit as the ref
+     above. The mutation's own flag lands a render later — the same lag that let
+     a double-click through before. */
+  const [isCreating, setIsCreating] = useState(false);
 
   const canAdmin = canAdminAgentSessions(permsSet);
   const existingSessionId = useSyncExternalStore(
@@ -83,6 +88,7 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
     }
 
     isSubmittingRef.current = true;
+    setIsCreating(true);
     try {
       const session = await createMutation.mutateAsync({ repository, prompt });
       rememberGantryAgentSession(uid, session.id);
@@ -96,6 +102,7 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
       /* Only release the latch on failure. After a success we're navigating
          away, and staying latched covers the gap before the route changes. */
       isSubmittingRef.current = false;
+      setIsCreating(false);
       setError(err instanceof Error ? err.message : 'Failed to create session');
     }
   };
@@ -120,7 +127,7 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
 
   return (
     <div ref={triggerRef} className={s.buildAction}>
-      <HeaderActionBtn onClick={openPicker} disabled={createMutation.isPending}>
+      <HeaderActionBtn onClick={openPicker} disabled={isCreating}>
         <MagicSparklesIcon className={s.buildButtonIcon} />
         Build with AI
       </HeaderActionBtn>
@@ -128,7 +135,7 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
       {pickerPos && (
         <BuildWithAgentsRepoPicker
           pos={pickerPos}
-          isCreating={createMutation.isPending}
+          isCreating={isCreating}
           error={error}
           notice={
             isTruncated

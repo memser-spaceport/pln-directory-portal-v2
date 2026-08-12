@@ -191,18 +191,48 @@ const MONTH_NAMES = [
 ];
 
 /**
- * Chart labels for the period an auction settled in, in both vocabularies the
- * two graph views use — "July 2026" is the Q3 '26 quarter and the Jul 26
- * month. Note this is the calendar quarter: the NAV series currently reports
- * July holdings inside Q2 '26, so a July auction has no quarterly bar to sit
- * above until plaa-service buckets July into Q3.
+ * The period a label refers to, as a key that survives however the two ends
+ * spell it. A bar's label is formatted by plaa-service and an auction's by the
+ * rounds API, and matching them on the exact string means a marker silently
+ * disappears the day either side writes "Q3 2026" where it used to write
+ * "Q3 '26". Matching on the period itself does not care:
+ *
+ *   Q3 '26 · Q3 2026 · Q3-26   → Q3-2026
+ *   Jul 26 · Jul '26 · July 2026 → M7-2026
+ *
+ * Anything that parses as neither a quarter nor a month simply has no key,
+ * and no marker is drawn against it.
  */
-function periodLabels(monthYear: string): string[] {
-  const [month, year] = monthYear.split(' ');
-  const monthIndex = MONTH_NAMES.indexOf(month);
-  if (monthIndex < 0 || !/^\d{4}$/.test(year ?? '')) return [];
-  const shortYear = year.slice(2);
-  return [`Q${Math.floor(monthIndex / 3) + 1} '${shortYear}`, `${month.slice(0, 3)} ${shortYear}`];
+function periodKey(label: string): string | null {
+  const text = label.trim();
+  // A 4-digit year, or a 2-digit one that isn't part of a longer number.
+  const year = text.match(/(\d{4})(?!\d)|(?:^|\D)(\d{2})(?!\d)/);
+  if (!year) return null;
+  const digits = year[1] ?? year[2];
+  const fullYear = digits.length === 4 ? Number(digits) : 2000 + Number(digits);
+
+  const quarter = text.match(/\bQ\s*([1-4])\b/i);
+  if (quarter) return `Q${quarter[1]}-${fullYear}`;
+
+  const name = text.match(/^([A-Za-z]{3,})/);
+  if (!name) return null;
+  const stem = name[1].slice(0, 3).toLowerCase();
+  const monthIndex = MONTH_NAMES.findIndex((month) => month.slice(0, 3).toLowerCase() === stem);
+  return monthIndex < 0 ? null : `M${monthIndex + 1}-${fullYear}`;
+}
+
+/**
+ * The keys an auction can be matched under: its own month, for the monthly
+ * graph, and the calendar quarter containing it, for the quarterly one. Note
+ * that quarter is the calendar one — the NAV series currently reports July
+ * holdings inside Q2 '26, so a July auction has no quarterly bar to sit above
+ * until plaa-service buckets July into Q3.
+ */
+function auctionPeriodKeys(monthYear: string): string[] {
+  const key = periodKey(monthYear);
+  if (!key?.startsWith('M')) return key ? [key] : [];
+  const [month, year] = key.slice(1).split('-');
+  return [key, `Q${Math.floor((Number(month) - 1) / 3) + 1}-${year}`];
 }
 
 /** A clearing price to plot: the number positions the chip, the text fills it. */
@@ -212,19 +242,19 @@ interface BuybackMarker {
 }
 
 /**
- * Clearing prices keyed by every chart label they could appear under, so
- * either graph view can look up its own bars. Buybacks arrive newest first,
- * so when two auctions share a quarter the newer one keeps the marker. A
- * price that never settled reads 'TBD' and has nothing to plot.
+ * Clearing prices keyed by every period they could appear under, so either
+ * graph view can look up its own bars. Buybacks arrive newest first, so when
+ * two auctions share a quarter the newer one keeps the marker. A price that
+ * never settled reads 'TBD' and has nothing to plot.
  */
-function buybackMarkersByLabel(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
+function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
   const markers: Record<string, BuybackMarker> = {};
   buybacks.forEach((entry) => {
     const text = entry.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
     const value = text ? Number(text.replace(/[^0-9.]/g, '')) : NaN;
     if (!text || !Number.isFinite(value)) return;
-    periodLabels(entry.monthYear).forEach((label) => {
-      if (!(label in markers)) markers[label] = { value, text };
+    auctionPeriodKeys(entry.monthYear).forEach((key) => {
+      if (!(key in markers)) markers[key] = { value, text };
     });
   });
   return markers;
@@ -254,7 +284,7 @@ function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string,
   // period with no auction plots no point, which is what breaks the buyback
   // track into the dotted spans between auctions.
   const chartData = data.map((d) => {
-    const marker = markers[d.label];
+    const marker = markers[periodKey(d.label) ?? ''];
     return {
       ...d,
       digital: digitalTotal(d),
@@ -527,7 +557,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   // Table View keeps the full monthly series it has always shown; the Monthly
   // Graph is limited to the most recent MONTHLY_WINDOW months.
   const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
-  const buybackMarkers = buybackMarkersByLabel(buybacks);
+  const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);
 
   return (

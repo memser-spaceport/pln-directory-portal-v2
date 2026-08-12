@@ -96,6 +96,12 @@ export interface CompletedBuyback {
 /**
  * Every settled, non-simulated buyback, most recent auction first.
  *
+ * Ordered by round, not by auctionNumber: rounds run in calendar order and
+ * always carry a number, whereas auctionNumber is nullable, so an auction
+ * published before it has been numbered would sort to the back and leave a
+ * stale one at the head — which is where Trust & Holdings reads "the most
+ * recent buyback" from.
+ *
  * There is no index endpoint for buybacks, so this walks the rounds that exist
  * (1..current) and keeps the ones carrying a real result. That makes the list
  * self-maintaining — a new auction appears as soon as the backend publishes
@@ -120,7 +126,7 @@ export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
       year: stats.year,
       buyback: stats.buyback as RoundBuybackStats,
     }))
-    .sort((a, b) => (b.buyback.auctionNumber ?? 0) - (a.buyback.auctionNumber ?? 0));
+    .sort((a, b) => b.roundNumber - a.roundNumber);
 };
 
 export const getRoundStats = async (

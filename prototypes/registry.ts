@@ -111,6 +111,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/member-profile/MemberProfilePrototype'),
   },
   {
+    key: 'person-city-calendar',
+    title: 'Person city calendar',
+    description:
+      "Signal which city you'll be in over time, defaulting to your home city. Four real pages at production fidelity — the IRL gathering RSVP that seeds a trip, a Travel plans section on your profile beside Office Hours, /members with a third Travel view (person × day overlap matrix), and a visitor's profile. State carries across tabs: RSVP on the gathering and the trip appears everywhere else.",
+    category: 'Members',
+    load: () => import('./entries/person-city-calendar/PersonCityCalendarPrototype'),
+  },
+  {
     key: 'demoday-tag-placements',
     title: 'Demo Day tag — placement options',
     description:
@@ -173,6 +181,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Faithful mocked copy of the production /jobs page: the two-pane dashboard shell with a filters rail (search, role category, seniority, workplace type, location) and the team-grouped role cards (real TeamGroupCard + RoleRow, "New" badges, relative dates, expandable role lists) with a Sort by dropdown. Each role carries two referral controls: a "Refer" button that opens the referral modal (search the directory for the person you\'re referring, choose who receives it in one "type a name or email" field (hiring team listed first with role lines, external addresses added straight from the same menu) and send a note pre-drafted from a template that re-drafts as the person or recipients change, and that you can edit or reset), and the share icon popover for pushing the role out to LinkedIn / X / copy link.',
     category: 'Jobs',
     load: () => import('./entries/job-board/JobBoardPrototype'),
+  },
+  {
+    key: 'newsfeed-discovery',
+    title: 'Newsfeed discoverability — labelled door + unread signal',
+    description:
+      "The feed isn't hard to find — `/` redirects to `/home`, so every session starts on it. It's hard to get *back* to: the navbar has no Home or News item, and the logo is the only route there. Rather than a second /newsfeed route competing with the page that already owns network news, this adds a labelled News item to the real navbar, reorders home so the feed leads and Quick Actions demotes to a chip strip, and puts the unread signal on that item — a dot, never a count. Cards published since your last visit carry a New tag (a Badge, right-aligned into one scan column), which suppresses itself entirely once new items pass a third of the list, since a tag on everything labels nothing. Both signals read one primitive, `newsLastSeenAt`: no per-item read state, no viewport tracking, no mark-all-as-read. A Last visit switch flips between nothing new, a few new, and everything new; clicking News clears the dot and the tags together.",
+    category: 'Newsfeed',
+    load: () => import('./entries/newsfeed-discovery/NewsfeedDiscoveryPrototype'),
   },
   {
     key: 'newsfeed-v0',
@@ -269,6 +285,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
       'Every visible string that needs the log→sign change, with file, line, current text and replacement: wrong verb, wrong case, body copy and assistive text. Also lists the identifiers a sweep will match but must not rename — the #login route, auth events, PostHog names, CSS classes — and a suggested order.',
     category: 'Cross-product',
     load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
+  },
+  {
+    key: 'pl-spotlight-table',
+    title: 'PL Spotlight — back-office participants table',
+    description:
+      'Recreation of the PL Spotlight participants table from the Back Office Figma file (node 750:690): the ten-column grid — select, member (name + email + avatar), team link, investor-type badge (Angel / Fund / not provided), invite-accepted check or cross, follow-up count over its date, the clipped Template vars JSON, the purple Type pill, the wide blue Access pill, and the three action buttons. Column widths, row heights, badge ramps and the Send-vs-Resend state of every button are transcribed from the frame; the controls are real, so checkboxes select (with an indeterminate header), both dropdowns change, invites and follow-ups update the row they act on, and removing a participant is undoable. Type and Access take their option sets from production enums rather than invented ones, since the frame renders native selects and the canvas cannot draw their labels.',
+    category: 'Back office',
+    load: () => import('./entries/pl-spotlight-table/PlSpotlightTablePrototype'),
   },
   // TODO: prototype not built yet — folder entries/warm-intros-side-drawer-improvements/ is missing.
   // Re-enable this entry once WarmIntrosSideDrawerPrototype.tsx exists (the import below breaks the build otherwise).

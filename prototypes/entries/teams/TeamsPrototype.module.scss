@@ -61,8 +61,11 @@
   }
 }
 
+/* The link is the grid item, so it's what the row stretches — it has to pass
+   that height down to the card rather than shrink-wrap it. */
 .cardLink {
   display: block;
+  height: 100%;
   text-decoration: none;
   color: inherit;
 }
@@ -85,44 +88,27 @@
   }
 }
 
-/* Let the card grow to fit the in-card Follow button (production sets a fixed
-   168px height) and fill its grid column. Double class beats production sizing. */
+/* Fill the grid cell in both axes — cards in a row are as tall as the tallest,
+   so their bottom edges line up instead of stepping. Double class beats
+   production's fixed height. */
 .teamCard.teamCard {
-  height: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding-bottom: 2px;
   width: 100%;
   position: relative;
 }
 
-/* 'top' variant, desktop: tertiary Follow link pinned to the card's top-right.
-   Hidden on mobile, where the secondary button below takes over. */
-.topFollow {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-
-  @media (max-width: 1023.98px) {
-    display: none;
-  }
+/* Production's `.detailsContainer` is the card's last child (the absolutely
+   positioned corner badge comes first). Reached by position because it's a
+   production module class the prototype can't name. It absorbs the row's extra
+   height so the white card body fills to the bottom edge. */
+.teamCard.teamCard > :last-child {
+  flex: 1;
 }
 
-/* 'pill' variant: upvote-style pill pinned to the card's top-right on every
-   viewport — at 24px tall it fits the mobile card without a fallback. */
-.cornerPill {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-}
-
-.followRow.followRowSecondaryMobile {
-  @include breakpoint-1024 {
-    display: none;
-  }
-}
-
-/* Demo-only bar to switch the Follow-control card design. */
+/* Demo-only bar to switch how the updates badge labels itself. */
 .demoBar {
   display: flex;
   align-items: center;
@@ -139,11 +125,53 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Full-width follow button placed in-card, after the tags. */
-.followRow {
+/* "N new updates" badge in the card's top-right corner — the slot the Follow
+   control used to hold. With Follow gone it's the only thing on the card you can
+   act on, so it takes the corner the eye already checks. */
+.cornerUpdates {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+
+  /* The two-up mobile card is ~170px wide and its logo is centred at the top —
+     a corner badge lands on top of it, so mobile uses the row below the tags. */
+  @media (max-width: 1023.98px) {
+    display: none;
+  }
+}
+
+/* Mobile home for the badge, under the tags. `margin-top: auto` pins it to the
+   card's bottom edge, so on equal-height cards the badges line up across the
+   row instead of chasing each description. */
+.updatesRow {
   display: flex;
-  width: 100%;
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 8px;
+
+  @include breakpoint-1024 {
+    display: none;
+  }
+}
+
+/* Headline experiment. Same bottom-pinned slot as .updatesRow, but at every
+   width — the corner can't hold a headline — and with a hairline above it,
+   because a line of text under the tags otherwise reads as more description. */
+.headlineRow {
+  display: flex;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* No tags on this card, so the rule under the logo band is the only section
+   break it needs — a second one directly under the description just draws a
+   line through a short card. The padding stays: the headline still needs air
+   above it, it just doesn't need announcing. */
+.headlineRowFlush {
+  border-top: none;
 }
 
 .empty {
@@ -156,4 +184,3 @@
   font-size: 14px;
   line-height: 20px;
 }
-

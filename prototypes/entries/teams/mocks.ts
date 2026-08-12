@@ -1,8 +1,8 @@
 import type { ITeam } from '@/types/teams.types';
 
 // Minimal shape the TeamGridView card actually reads: name, shortDescription,
-// logo (left undefined so the card uses its local default-profile fallback),
-// and industryTags. Cast to ITeam at the call site.
+// logo (left undefined — the card generates a monogram tile from the name, see
+// placeholderLogo.ts), and industryTags. Cast to ITeam at the call site.
 export type MockTeamCard = Pick<ITeam, 'id' | 'name' | 'shortDescription' | 'industryTags'> & {
   logo?: string;
 };

@@ -76,11 +76,15 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
   {
     id: 'n-04',
     category: 'TEAM_NEWS',
-    title: 'Fleek raised a $25M Series B',
-    description: 'Led by Polychain, with participation from Protocol Labs and Multicoin Capital.',
+    title: 'Prime Intellect raised $18M',
+    description: 'To train frontier models across decentralized compute, with verifiable checkpoints between stages.',
     minutesAgo: 240,
     isRead: false,
-    link: '/teams',
+    // A notification about one story lands on that story, in the feed — not on
+    // the teams directory, which is where these used to go. `?news=<uid>` is the
+    // deep link production's /home already understands (`useNewsDeepLink`), so
+    // this is the one hand-off that needs no new URL vocabulary.
+    link: '/prototypes/newsfeed?news=x1',
   },
   {
     id: 'n-05',
@@ -162,11 +166,11 @@ export const MOCK_NOTIFICATIONS: HubNotification[] = [
   {
     id: 'n-13',
     category: 'TEAM_NEWS',
-    title: 'Textile shipped Basin v2',
-    description: 'Verifiable data pipelines with a new SDK and a hosted gateway.',
+    title: 'Exo shipped on-device model sharding',
+    description: 'Consumer hardware can now run a slice of a larger model locally.',
     minutesAgo: 60 * 144,
     isRead: true,
-    link: '/teams',
+    link: '/prototypes/newsfeed?news=x3',
   },
   {
     id: 'n-14',

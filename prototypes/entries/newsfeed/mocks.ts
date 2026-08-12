@@ -403,6 +403,17 @@ export interface TopStory {
    * pick reads as arbitrary, and an arbitrary pick costs trust in the whole feed.
    */
   why: string;
+  /**
+   * The single-story version's body, as sections. Only that version reads it —
+   * with three stories in the block there is no room, and with one there is
+   * nothing else to spend the space on.
+   *
+   * Subheads exist because past three or four paragraphs an unbroken column stops
+   * being scannable, and the block's whole job is to be readable at a glance
+   * first and in depth second. The opening section carries no heading: a reader
+   * should get the story before they get its structure.
+   */
+  longSummary: Array<{ heading?: string; paragraphs: string[] }>;
   /** How many candidates the pick was made from — sizes the judgement. */
   consideredCount: number;
   /**
@@ -424,6 +435,37 @@ export const TOP_STORY: TopStory = {
   weekOf: '2026-07-27T00:00:00.000Z',
   subject: 'Prime Intellect raises $18M — plus 6 more from the network',
   why: 'Largest raise in the network this quarter, and the first time a decentralized-training team has shipped workloads onto two portfolio networks at once. Covered by four outlets in 48 hours.',
+  /**
+   * The single-story version's body. One pick means the space that carried two
+   * runner-up rows goes back into the pick itself — so this is what the editor
+   * writes instead of a headline and a clamped teaser: what happened, who it
+   * touches in the network, and what to watch next.
+   */
+  longSummary: [
+    {
+      paragraphs: [
+        'The largest raise in the network this quarter, led by existing backers. It funds a scheduler that splits training runs across volunteer and spot GPU capacity, with verifiable checkpoints between stages — so a job can resume on different hardware without trusting the machine that ran it.',
+      ],
+    },
+    {
+      heading: 'What is already running',
+      paragraphs: [
+        'Lattice Compute is contributing idle capacity between its own jobs; Ritual is routing through the shared inference marketplace it opened this week. That makes Prime Intellect the first decentralized-training team to ship onto two portfolio networks at once.',
+      ],
+    },
+    {
+      heading: 'Why it matters',
+      paragraphs: [
+        'Decentralized training has had a credibility problem — plenty of schedulers, little evidence anyone trains anything real on them. Two live integrations inside one network is the closest thing to that evidence so far.',
+      ],
+    },
+    {
+      heading: 'What to watch',
+      paragraphs: [
+        'Public sign-ups follow in the autumn. The team opened nine roles the week after the raise, weighted toward ML infrastructure — a pattern that reads as scaling the scheduler, not the research bet.',
+      ],
+    },
+  ],
   consideredCount: 47,
   // x2 = Ritual × Lattice inference marketplace, n1 = IPFS retrieval latency.
   // One untagged, one Infrastructure — so the block spans the focus taxonomy the
@@ -473,4 +515,3 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
     reason: 'Same focus area as Lattice Compute',
   },
 ];
-

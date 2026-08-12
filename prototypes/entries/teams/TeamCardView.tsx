@@ -6,20 +6,23 @@ import { ITag } from '@/types/teams.types';
 import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 
 import type { MockTeamCard } from './mocks';
-import { FollowButton } from '../follow-shared/FollowButton';
-import { FollowPill } from '../follow-shared/FollowPill';
+import { TeamUpdatesLink } from '../news-shared/TeamUpdatesLink';
+import { TeamUpdateStrip } from '../news-shared/TeamUpdateStrip';
+import { getTeamNews } from '../news-shared/mockTeamNews';
+import { placeholderLogo } from './placeholderLogo';
 // Reuse the production card styling so the prototype tracks production 1:1.
 import s from '@/components/page/teams/TeamList/components/TeamGridView/TeamGridView.module.scss';
 import local from './TeamsPrototype.module.scss';
 
+/**
+ * What the card says about the team's news: count it ("3 new") or tell it (the
+ * latest headline). Two live options — recency and off were tried and cut.
+ */
+export type TeamUpdatesMode = 'new' | 'headline';
+
 interface Props {
   team: MockTeamCard;
-  following: boolean;
-  onToggleFollow: () => void;
-  /** 'cta' = primary Follow button below the tags; 'top' = tertiary Follow at the
-   *  card's top-right; 'pill' = Follow button (upvote-pill style, no count) at
-   *  the card's top-right. */
-  variant?: 'cta' | 'top' | 'pill';
+  updates?: TeamUpdatesMode;
 }
 
 /**
@@ -28,31 +31,34 @@ interface Props {
  * `useCarousel` (embla). The carousel branch only renders when `team.asks`
  * exist (always empty here) so it's dropped; analytics is stripped. The static
  * presentational markup + production `.module.scss` are kept verbatim.
+ *
+ * The card carries no Follow control — browsing is for reading, and following
+ * happens on the team profile. The corner it used to occupy now holds the
+ * updates badge, the one thing on the card worth reacting to.
  */
-export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' }: Props) {
-  const profile = team?.logo ?? '/icons/team-default-profile.svg';
-
-  const stopNav = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+export function TeamCardView({ team, updates = 'new' }: Props) {
+  // A monogram beats the shared default-profile glyph: twelve identical grey
+  // avatars make the grid one repeating shape, and the logo slot is the first
+  // thing the eye lands on — it should tell the cards apart, not blur them.
+  const profile = team?.logo ?? placeholderLogo(team?.name);
+  const news = getTeamNews(team.id, team.name ?? '');
+  // 'headline' tells the story instead of counting it, so it needs a full-width
+  // row rather than the corner — a headline can't live in a 12px pill.
+  const isHeadline = updates === 'headline';
+  const hasTags = (team?.industryTags ?? []).length > 0;
+  const badge = (
+    // No ↗ here, unlike every other surface that carries this badge. One arrow
+    // marks an exit; twelve down a grid is wallpaper, and the card is already a
+    // link — the whole thing goes somewhere when you click it.
+    <TeamUpdatesLink teamName={team.name ?? 'team'} items={news} size="small" label="new" arrow={false} nested />
+  );
 
   return (
     <div className={`${s.grid} ${local.teamCard}`}>
-      {/* 'top' variant, desktop: tertiary link pinned to the card's top-right. */}
-      {variant === 'top' && (
-        <span className={local.topFollow} onClick={stopNav}>
-          <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="xs" bell link />
-        </span>
-      )}
-
-      {/* 'pill' variant: Follow button in the top-right corner, all viewports
-          (compact enough to keep on mobile — no secondary fallback needed). */}
-      {variant === 'pill' && (
-        <span className={local.cornerPill}>
-          <FollowPill following={following} onToggle={onToggleFollow} name={team?.name ?? 'team'} />
-        </span>
-      )}
+      {/* Desktop: top-right corner — the slot the Follow control used to hold.
+          Outside .detailsContainer because the card root is the positioning
+          context. */}
+      {news.length > 0 && !isHeadline && <span className={local.cornerUpdates}>{badge}</span>}
 
       <div className={s.profileContainer}>
         <Image
@@ -79,18 +85,23 @@ export function TeamCardView({ team, following, onToggleFollow, variant = 'cta' 
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
 
-        {/* Follow control below the tags: secondary (outlined) button for the
-            'cta' variant, tertiary text link (left-aligned) for the 'top' variant. */}
-        {variant === 'cta' && (
-          <span className={local.followRow} onClick={stopNav}>
-            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
-          </span>
-        )}
-        {/* 'top' variant, mobile: fall back to the secondary button (better tap target). */}
-        {variant === 'top' && (
-          <span className={`${local.followRow} ${local.followRowSecondaryMobile}`} onClick={stopNav}>
-            <FollowButton following={following} onClick={onToggleFollow} name={team?.name ?? 'team'} size="s" bell block secondary />
-          </span>
+        {/* Mobile home for the badge: the two-up card is ~170px wide with a
+            centred logo, so a corner badge would land on top of it. */}
+        {news.length > 0 && !isHeadline && <div className={local.updatesRow}>{badge}</div>}
+
+        {/* Headline experiment: the latest story instead of a tally of them.
+            Reuses TeamUpdateStrip's `inline` variant, which was built for exactly
+            this slot — production NewsCard type, no band, hands off to the feed
+            like the badge it stands in for. Full width at every breakpoint,
+            because a headline needs the room the corner doesn't have. */}
+        {news.length > 0 && isHeadline && (
+          // The card already carries one rule under the logo band (production's
+          // .profileContainer border). With tags in between, the headline's own
+          // rule reads as a second section break; with no tags the two stack up
+          // as rule-text-rule, so the tagless card keeps only the first.
+          <div className={`${local.headlineRow} ${hasTags ? '' : local.headlineRowFlush}`}>
+            <TeamUpdateStrip teamName={team.name ?? 'team'} items={news} variant="inline" />
+          </div>
         )}
       </div>
     </div>

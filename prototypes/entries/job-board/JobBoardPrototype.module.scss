@@ -2,8 +2,39 @@
 // JobsContent.module.scss (imported in JobBoardPrototype.tsx). Only the mount gate
 // and the local empty state live here.
 
+@use 'styles/media';
+
 .mountGate {
   min-height: 60vh;
+}
+
+// Wrapper for the prototype-only version switches. The switch chrome itself is
+// newsfeed-v0's (.switchBar / .switch / .switchBtn / .switchNote); only the row
+// is local, because v0's own .versionRow reserves a 312px right rail this page
+// doesn't have. Spacing comes from the content column's 16px gap.
+.versionRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 8px;
+
+  @include media.breakpoint-1024 {
+    padding: 0;
+  }
+}
+
+// The locked "Best match for me" option. SortDropdown has no disabled state, so
+// the lock is the whole signal — it stays fully legible (a dimmed option would
+// read as broken rather than as something you can unlock).
+.lockedOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  img {
+    flex-shrink: 0;
+  }
 }
 
 .empty {

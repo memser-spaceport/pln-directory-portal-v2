@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import { SORT_OPTIONS, URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
@@ -17,8 +17,7 @@ import { MOCK_TEAMS } from './mocks';
 import { useMockTeamFilterStore } from './mockTeamFilterStore';
 import { TeamsFilterView } from './TeamsFilterView';
 import { TeamsToolbarView } from './TeamsToolbarView';
-import { TeamCardView } from './TeamCardView';
-import { FollowToast } from '../follow-shared/FollowToast';
+import { TeamCardView, type TeamUpdatesMode } from './TeamCardView';
 import s from './TeamsPrototype.module.scss';
 
 const COUNTED_PARAMS = [
@@ -47,29 +46,22 @@ export default function TeamsPrototype() {
 
   const { params, setParam } = useMockTeamFilterStore();
 
-  const [followed, setFollowed] = useState<Set<string>>(new Set());
-  const [toastName, setToastName] = useState<string | null>(null);
-  // Demo-only: how the Follow control is presented on each card.
-  const [cardVariant, setCardVariant] = useState<'cta' | 'top' | 'pill'>('pill');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-  }, []);
-
-  const toggleFollow = (id: string, name: string) => {
-    setFollowed((prev) => {
-      const next = new Set(prev);
-      const willFollow = !next.has(id);
-      next.has(id) ? next.delete(id) : next.add(id);
-      if (willFollow) {
-        setToastName(name);
-        if (toastTimer.current) clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToastName(null), 4000);
-      }
-      return next;
-    });
-  };
+  /**
+   * Read-only now: the card carries no Follow control (following happens on the
+   * team profile), so nothing on this page adds to the set. The Following tab
+   * still reads it, and shows its empty state until the profile does the
+   * following.
+   */
+  const [followed] = useState<Set<string>>(new Set());
+  /**
+   * What the card says about the team's news — two answers to compare by
+   * looking, which is the only way this call gets made honestly:
+   *  - `new`      — "3 new": how much, with the noun dropped. Down a grid the
+   *    noun is the same on every card, so it's the part carrying nothing.
+   *  - `headline` — the latest story itself. Says *why* you'd open the team
+   *    rather than how much is in there, and costs a row of card height to.
+   */
+  const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('new');
 
   const filterCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
 
@@ -134,12 +126,7 @@ export default function TeamsPrototype() {
             <div className={`${listCss.grid} ${s.gridFull}`}>
               {visibleTeams.map((team) => (
                 <Link key={team.id} href="/prototypes/team-profile" prefetch={false} className={s.cardLink}>
-                  <TeamCardView
-                    team={team}
-                    following={followed.has(team.id)}
-                    onToggleFollow={() => toggleFollow(team.id, team.name ?? 'team')}
-                    variant={cardVariant}
-                  />
+                  <TeamCardView team={team} updates={updatesLabel} />
                 </Link>
               ))}
             </div>
@@ -155,28 +142,21 @@ export default function TeamsPrototype() {
 
   return (
     <div className={s.page}>
-      {/* Demo-only switcher: compare the two Follow-control card designs. */}
+      {/* Demo-only switcher for how the updates badge labels itself. */}
       <div className={s.demoBar}>
-        <span className={s.demoLabel}>Follow control</span>
+        <span className={s.demoLabel}>Updates badge</span>
         <Tabs
           variant="pill"
-          value={cardVariant}
-          onValueChange={(v) => setCardVariant(v as 'cta' | 'top' | 'pill')}
+          value={updatesLabel}
+          onValueChange={(v) => setUpdatesLabel(v as TeamUpdatesMode)}
           tabs={[
-            { label: 'Follow pill', value: 'pill' },
-            { label: 'Secondary CTA', value: 'cta' },
-            { label: 'Tertiary link', value: 'top' },
+            { label: 'Count', value: 'new' },
+            { label: 'Headline', value: 'headline' },
           ]}
         />
       </div>
 
       <DashboardPagesLayout filters={<TeamsFilterView />} content={content} />
-
-      {toastName && (
-        <FollowToast>
-          You&apos;re following <strong>{toastName}</strong> — you&apos;ll get its updates in your feed.
-        </FollowToast>
-      )}
     </div>
   );
 }

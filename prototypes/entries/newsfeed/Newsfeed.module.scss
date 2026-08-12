@@ -29,6 +29,31 @@
   margin-bottom: 4px;
 }
 
+/* ---------- Feed ↔ rail gutter ---------- */
+
+/* `v0.feedLayout` gutters the two columns at 12px — the width of a card's own
+   padding, so the rail's left border sat almost on the feed card's shadow and the
+   two stacks read as one crowded field instead of a column plus its aside. 24px
+   is the same step the page already uses between stacked blocks.
+   Overridden here rather than in `NewsfeedV0.module.scss`, which the newsfeed-v0
+   entry also renders.
+
+   The two rules below move together: `v0.tabsConstrainBanner` and
+   `v0.showAllConstrain` reserve "300px rail + gutter" to line the focus-tab
+   underline and Show All up with the feed column's right edge, so widening the
+   gutter without them leaves both 12px short. */
+.feedGutter {
+  @include tablet-landscape {
+    column-gap: 24px;
+  }
+}
+
+.railGutterConstrain.railGutterConstrain {
+  @include tablet-landscape {
+    margin-right: 324px; /* 300px rail + 24px gutter */
+  }
+}
+
 /* ---------- Top stories block ---------- */
 
 /* ---------- Teams to follow: one instance at every width ---------- */
@@ -58,19 +83,28 @@
   display: flex;
   flex-direction: column;
   border-radius: 12px;
-  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  border: 1px solid var(--transparent-brand-24, rgba(27, 77, 255, 0.24));
   overflow: hidden;
 
-  /* Production `NewsCard.module.scss .card:hover`, verbatim — the block is a card
-     among cards. `overflow: hidden` clips descendants, not the element's own
-     shadow, so this renders fine. The lift belongs to the whole band: a per-item
-     hover inside it read as a grey wash, because an inset blur is a fill. */
+  /* Production `NewsCard.module.scss .card`, verbatim — the block is a card among
+     cards, so it carries the same resting lift they do. It used to have none,
+     which left the one object meant to sit *above* the column as the only flat
+     thing in it. The extra brand-tinted spread is what makes it read as raised
+     and as the blue object, without adding border weight.
+     `overflow: hidden` clips descendants, not the element's own shadow, so this
+     renders fine. The lift belongs to the whole band: a per-item hover inside it
+     read as a grey wash, because an inset blur is a fill. */
+  box-shadow:
+    0px 0px 1px 0px rgba(15, 23, 42, 0.12),
+    0px 4px 4px 0px rgba(15, 23, 42, 0.04),
+    0px 2px 18px 0px var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
   transition: box-shadow 0.12s ease;
 
   &:hover {
     box-shadow:
       0px 0px 1px 0px rgba(15, 23, 42, 0.16),
-      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06),
+      0px 4px 22px 0px var(--transparent-brand-12, rgba(27, 77, 255, 0.12));
   }
 }
 
@@ -139,11 +173,16 @@
   }
 }
 
+/* Production `NewsCard.module.scss .headline` verbatim (18/24/600/-0.4px), same
+   as `.topTitle` and every feed card. These were 15px — a size that said "runner
+   up" in type, back when the lead was 24px. With the band doing that work, the
+   three picks read as three stories of one kind, which is what they are; their
+   order and the lead's gradient are what rank them. */
 .alsoTitle {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 18px;
+  line-height: 24px;
   font-weight: 600;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.4px;
   color: var(--foreground-neutral-primary, #0a0c11);
   transition: color 0.12s ease;
 }
@@ -356,6 +395,26 @@
   }
 }
 
+/* Scope chip ("Updates from X ×"), wearing the saved-view chip's shell from
+   newsfeed-v0. Two deltas: its label is a statement, not an apply button, and it
+   carries a team name, which is longer than a filter summary. */
+.scopeChip.scopeChip {
+  max-width: 280px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+}
+
+.scopeChipLabel.scopeChipLabel {
+  cursor: default;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
 /* Production's job-board expander is centred because it closes a wide two-column
    card. Here it closes a feed card whose every other line — headline, role rows,
    footer — starts at the left margin, and on a 375px screen a centred link in a
@@ -415,10 +474,16 @@
   padding: 20px;
   cursor: default;
   border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  /* Still a fade to white — the gradient is what keeps the eyebrow and headline on
+     colour while the body and footer stay on plain white, so the pick reads as
+     lit from the top rather than as a tinted panel. Only the intensity changed:
+     it starts at brand-16 instead of brand-8 and takes 170px to reach white, so
+     the top of the card actually carries the brand rather than hinting at it. */
   background: linear-gradient(
     180deg,
-    var(--transparent-brand-8, rgba(27, 77, 255, 0.06)) 0%,
-    #ffffff 140px,
+    var(--transparent-brand-16, rgba(27, 77, 255, 0.16)) 0%,
+    var(--transparent-brand-4, rgba(27, 77, 255, 0.04)) 95px,
+    #ffffff 170px,
     #ffffff 100%
   );
 
@@ -474,20 +539,6 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Who picked it, stated up front — an unattributed pick reads as arbitrary. */
-.topAttribution {
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  margin-left: auto;
-
-  @include mobile-only {
-    margin-left: 0;
-    flex-basis: 100%;
-  }
-}
-
 .topBody {
   display: flex;
   flex-direction: column;
@@ -512,19 +563,18 @@
   margin-bottom: 8px;
 }
 
+/* Production `NewsCard.module.scss .headline` verbatim (18/24/600/-0.4px) — the
+   same size every feed card below uses, including on mobile, where production
+   doesn't step it down either. The lead is marked as the lead by the band around
+   it: the brand gradient, the border and the lift. Nothing is left for type size
+   to say, and at 24px it read as a magazine hero dropped into a feed column. */
 .topTitle {
   margin: 0;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 18px;
+  line-height: 24px;
   font-weight: 600;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.4px;
   color: var(--foreground-neutral-primary, #0a0c11);
-
-  @include mobile-only {
-    font-size: 20px;
-    line-height: 28px;
-    letter-spacing: -0.4px;
-  }
 }
 
 .topSummary {
@@ -535,13 +585,38 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* The reasoning block. Set apart from the story it justifies by a brand rule —
-   this is the part that makes the pick accountable rather than magic. */
+/* ---------- Single-story body ---------- */
+
+/* A section of the long body. Paragraphs sit closer to each other than sections
+   do to each other, so the grouping is legible before the headings are read. */
+.topSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  & + & {
+    margin-top: 10px;
+  }
+}
+
+/* Body size, not heading size — this sits under an 18px headline, and a subhead
+   that competes with it turns one story into four. Weight and colour carry it:
+   the body is secondary grey, so primary at 600 is enough of a step. */
+.topSubhead {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
 /* The `.whyBlock` / `.whyLabel` / `.whyText` / `.whyDisclosure` rules styled the
-   "Why this made the top" reasoning, and `.considered*` styled the "Also
-   considered" disclosure. Both are gone from the card: the runners-up are visible
-   rows in `.alsoList` now, and the attribution line in the eyebrow is what still
-   says who made the pick. (`EmailDigest` keeps its own `.emailWhy*` rules.) */
+   "Why this made the top" reasoning, `.considered*` styled the "Also considered"
+   disclosure, and `.topAttribution` styled the eyebrow's "Picked by …" line. All
+   are gone from the card: the runners-up are visible rows in `.alsoList` now, and
+   the pin + "Top stories" eyebrow carries the rest on its own.
+   (`EmailDigest` keeps its own `.emailWhy*` rules — the digest still explains.) */
 
 /* No rule above the footer. Every row below the lead now carries its own
    `border-top`, so a line here put two horizontal rules within ~20px of each

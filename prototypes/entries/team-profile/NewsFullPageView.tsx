@@ -18,10 +18,12 @@ interface Props {
   query: string;
   onQueryChange: (value: string) => void;
   onClose: () => void;
-  /** Upvote state lives in TeamProfilePrototype so rail + feed stay in sync. */
-  upvotesFor: (uid: string) => number;
-  votedNews: Set<string>;
-  onToggleUpvote: (uid: string) => void;
+  /** Like state lives in TeamProfilePrototype so rail + feed stay in sync. */
+  viewsFor: (uid: string) => number;
+  likesFor: (uid: string) => number;
+  commentsFor: (uid: string) => number;
+  likedNews: Set<string>;
+  onToggleLike: (uid: string) => void;
 }
 
 /**
@@ -38,9 +40,11 @@ export function NewsFullPageView({
   query,
   onQueryChange,
   onClose,
-  upvotesFor,
-  votedNews,
-  onToggleUpvote,
+  viewsFor,
+  likesFor,
+  commentsFor,
+  likedNews,
+  onToggleLike,
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -97,9 +101,11 @@ export function NewsFullPageView({
               item={item}
               hideTeam
               fullSummary
-              upvotes={upvotesFor(item.uid)}
-              voted={votedNews.has(item.uid)}
-              onToggleUpvote={() => onToggleUpvote(item.uid)}
+              views={viewsFor(item.uid)}
+              likes={likesFor(item.uid)}
+              liked={likedNews.has(item.uid)}
+              comments={commentsFor(item.uid)}
+              onToggleLike={() => onToggleLike(item.uid)}
             />
           ))}
         </div>

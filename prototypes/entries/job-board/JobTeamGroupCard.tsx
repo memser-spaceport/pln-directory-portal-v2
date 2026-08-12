@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
-import type { IJobTeamGroup } from '@/types/jobs.types';
+import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
 import { TagsList } from '@/components/common/profile/TagsList';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useGetFocusTags';
 
 // Reuse the production TeamGroupCard styling 1:1, with local mobile overrides.
@@ -14,12 +17,38 @@ import s from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import js from './JobTeamGroupCard.module.scss';
 
 import { JobReferRoleRow } from './JobReferRoleRow';
+import { TeamUpdateStrip, type TeamUpdateVariant } from '../news-shared/TeamUpdateStrip';
+import { TeamUpdatesLink } from '../news-shared/TeamUpdatesLink';
+import { getTeamNews, feedFocusHref } from '../news-shared/mockTeamNews';
+// The feed's own story modal and engagement seeds, so an update opened from the
+// job board is the same object as one opened from the feed — same body, sources,
+// share and metrics — rather than a job-board retelling of it.
+import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
+import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
+import { BASE_LIKES } from '../newsfeed-v0/mocks';
+import fa from '../newsfeed-v0/FeedActions.module.scss';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
 
+/** The strip's three versions, plus the count badge they were meant to replace. */
+export type JobCardNewsVariant = TeamUpdateVariant | 'count';
+
 interface JobTeamGroupCardProps {
   group: IJobTeamGroup;
+  /**
+   * Prototype-only: which version of the team's news the card shows. `count` is
+   * the "N new updates" badge this replaced, kept for comparison; `inline` puts
+   * the story on the name row where that badge stood; the other two put it below
+   * the roles.
+   */
+  newsVariant?: JobCardNewsVariant;
+  /** True while "Best match for me" is the active sort. */
+  matchMode?: boolean;
+  /** Which of this group's roles match the viewer's saved preferences. */
+  isMatch?: (role: IJobRole) => boolean;
+  canRefer?: boolean;
+  onReferBlocked?: () => void;
 }
 
 /**
@@ -27,14 +56,69 @@ interface JobTeamGroupCardProps {
  * useGetFocusTags / TagsList, but renders the prototype-local JobReferRoleRow (which
  * adds the per-job "Refer" button + referral modal) instead of the production RoleRow.
  */
-export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
+export function JobTeamGroupCard({
+  group,
+  newsVariant = 'full',
+  matchMode = false,
+  isMatch,
+  canRefer = true,
+  onReferBlocked,
+}: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
-  const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
+  /* Under the match sort, matching roles lead the group. The board is grouped by
+     team, so ranking has to happen at both levels — the caller reorders the cards,
+     this reorders inside one. Only the first three roles show before the expander,
+     so a match sitting fourth would be ranked and then hidden. */
+  const orderedRoles =
+    matchMode && isMatch ? [...roles].sort((a, b) => Number(isMatch(b)) - Number(isMatch(a))) : roles;
+
+  const visibleRoles = expanded ? orderedRoles : orderedRoles.slice(0, INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
+  const news = getTeamNews(team.uid, team.name);
+
+  /**
+   * A story the feed has already carried past opens here instead of sending
+   * someone to a feed that no longer shows it. `TeamUpdateStrip` decides which
+   * stories those are; this just holds the one it hands over.
+   */
+  const [detail, setDetail] = useState<FeedDetail | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [feedHref, setFeedHref] = useState('/prototypes/newsfeed');
+  const openStory = (item: ITeamNewsItem) => {
+    setLiked(false);
+    setFeedHref(feedFocusHref(item));
+    setDetail({
+      id: item.uid,
+      kind: 'news',
+      title: item.title,
+      name: item.teamName,
+      logoUrl: item.teamLogoUrl,
+      kicker: EVENT_TYPE_LABEL[item.eventType],
+      kickerColor: EVENT_TYPE_HEX[item.eventType],
+      summary: item.summary,
+      time: item.eventDate,
+      readUrl: item.sourceUrl ?? undefined,
+    });
+  };
+
+  /* The count badge takes the name row, same slot the inline story does — the two
+     are alternatives for the same place, which is what makes them comparable.
+     Its destination is the strip's, not the badge's own `?team=` scope, so the
+     board never hands anyone a filter to undo. */
+  const newsStrip =
+    newsVariant === 'count' ? (
+      news.length > 0 && (
+        <TeamUpdatesLink teamName={team.name} items={news} size="small" href={feedFocusHref(news[0])} />
+      )
+    ) : (
+      <TeamUpdateStrip teamName={team.name} items={news} variant={newsVariant} onOpenStory={openStory} />
+    );
+
+  const newsOnNameRow = newsVariant === 'inline' || newsVariant === 'count';
 
   return (
     <article className={`${s.card} ${js.card}`}>
@@ -48,7 +132,12 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
         </div>
 
         <div className={s.headerMain}>
-          <h3 className={s.teamName}>{team.name}</h3>
+          {/* The story belongs to the team, so it sits with the team's name; it
+              wraps under the name when there's no room for both. */}
+          <div className={js.nameRow}>
+            <h3 className={s.teamName}>{team.name}</h3>
+            {newsOnNameRow && newsStrip}
+          </div>
           {!isEmpty(focusTags) && (
             <TagsList tags={focusTags} tagsToShow={MAX_FOCUS_CHIPS} classes={{ root: s.focusRow, tag: s.focusTag }} />
           )}
@@ -64,7 +153,13 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
       <ul className={s.roleList}>
         {visibleRoles.map((role) => (
           <li key={role.uid}>
-            <JobReferRoleRow role={role} teamName={team.name} />
+            <JobReferRoleRow
+              role={role}
+              teamName={team.name}
+              showMatch={matchMode && !!isMatch?.(role)}
+              canRefer={canRefer}
+              onReferBlocked={onReferBlocked}
+            />
           </li>
         ))}
       </ul>
@@ -74,6 +169,31 @@ export function JobTeamGroupCard({ group }: JobTeamGroupCardProps) {
           {expanded ? 'Show less' : `View all ${roles.length} roles at ${team.name}`}
         </button>
       )}
+
+      {/* After the expander, not before it: the expander belongs to the role
+          list and has to stay attached to it. */}
+      {!newsOnNameRow && newsStrip}
+
+      <FeedDetailModal
+        detail={detail}
+        onClose={() => setDetail(null)}
+        likeCount={(BASE_LIKES[detail?.id ?? ''] ?? 0) + (liked ? 1 : 0)}
+        liked={liked}
+        onToggleLike={() => setLiked((v) => !v)}
+        citationStyle="off"
+        /* The way out, offered rather than imposed: the story opened here so the
+           board didn't move under someone reading one headline, and this is for
+           whoever does want the rest of the news. Lands on the team's card in the
+           feed, same as "+N more updates". */
+        footerAction={
+          /* The footer's Share trigger is `fa.subItem` + `fa.button`; this sits
+             beside it as a peer, so it wears the same. No new CSS. */
+          <a className={`${fa.subItem} ${fa.button} ${js.feedLink}`} href={feedHref}>
+            <ArrowUpRightIcon aria-hidden="true" />
+            Open in newsfeed
+          </a>
+        }
+      />
     </article>
   );
 }

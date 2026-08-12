@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import type { ITeam } from '@/types/teams.types';
+import type { ITeamNewsItem } from '@/types/team-news.types';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 
 import { BackButton } from '@/components/ui/BackButton';
 import {
@@ -39,6 +42,11 @@ import { EventsContributionsView } from '../demoday-tag-placements/EventsContrib
 import { MOCK_EVENT_GROUPS, MOCK_DEMO_DAY_CONTRIB } from '../demoday-tag-placements/mocks';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
+// The feed's story detail modal + its event palette, so a story reads the same
+// wherever it's opened from.
+import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
+import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
+import type { FeedComment } from '../newsfeed-v0/mocks';
 import local from './TeamProfile.module.scss';
 import {
   MOCK_TEAM,
@@ -48,7 +56,9 @@ import {
   MOCK_PROJECTS,
   MOCK_CONTRIBUTIONS,
   MOCK_NEWS,
-  NEWS_UPVOTES,
+  NEWS_LIKES,
+  NEWS_VIEWS,
+  NEWS_COMMENT_THREADS,
   MOCK_FOLLOWERS,
   TEAM_FOLLOWER_COUNT,
   MOCK_TEAM_DEMO_DAY,
@@ -93,16 +103,77 @@ export default function TeamProfilePrototype() {
     });
   };
 
-  // Upvotes: mock base count + your own toggled vote, shared by the rail, the
-  // modal, and the mobile full page so the same story stays in sync.
-  const [votedNews, setVotedNews] = useState<Set<string>>(new Set());
-  const toggleNewsVote = (uid: string) =>
-    setVotedNews((prev) => {
+  // Likes: mock base count + your own toggled like, shared by the rail, the
+  // modal, and the mobile full page so the same story stays in sync. Views and
+  // comments are read-only here — the thread is opened, not written, from a
+  // profile rail.
+  const [likedNews, setLikedNews] = useState<Set<string>>(new Set());
+  const toggleNewsLike = (uid: string) =>
+    setLikedNews((prev) => {
       const next = new Set(prev);
       next.has(uid) ? next.delete(uid) : next.add(uid);
       return next;
     });
-  const upvotesFor = (uid: string) => (NEWS_UPVOTES[uid] ?? 0) + (votedNews.has(uid) ? 1 : 0);
+  const likesFor = (uid: string) => (NEWS_LIKES[uid] ?? 0) + (likedNews.has(uid) ? 1 : 0);
+  const viewsFor = (uid: string) => NEWS_VIEWS[uid] ?? 0;
+
+  /**
+   * Comment threads live in state because the modal can add to them. Counts are
+   * read off the same threads, so a card can never advertise a number the modal
+   * doesn't have.
+   */
+  const [threadsByUid, setThreadsByUid] = useState<Record<string, FeedComment[]>>(() => ({
+    ...NEWS_COMMENT_THREADS,
+  }));
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const threadFor = (uid: string) => threadsByUid[uid] ?? [];
+  const commentsFor = (uid: string) => threadFor(uid).length;
+
+  const addComment = (uid: string, text: string, parentUid?: string) =>
+    setThreadsByUid((prev) => ({
+      ...prev,
+      [uid]: [
+        ...(prev[uid] ?? []),
+        {
+          uid: `c-${uid}-${(prev[uid]?.length ?? 0) + 1}-local`,
+          author: 'You',
+          role: 'Member',
+          text,
+          createdAt: new Date().toISOString(),
+          parentUid,
+          likes: 0,
+        },
+      ],
+    }));
+
+  const toggleCommentLike = (commentUid: string) =>
+    setLikedComments((prev) => {
+      const next = new Set(prev);
+      next.has(commentUid) ? next.delete(commentUid) : next.add(commentUid);
+      return next;
+    });
+
+  /**
+   * The story detail modal — the feed's own `FeedDetailModal`, so a story opened
+   * from a profile is the same object as one opened from the feed (same body,
+   * sources, AI disclosure, thread and footer metrics) rather than a
+   * profile-flavoured retelling of it.
+   */
+  const [detail, setDetail] = useState<FeedDetail | null>(null);
+  const openDetail = (item: ITeamNewsItem) =>
+    setDetail({
+      id: item.uid,
+      kind: 'news',
+      title: item.title,
+      name: item.teamName,
+      logoUrl: item.teamLogoUrl,
+      kicker: EVENT_TYPE_LABEL[item.eventType],
+      kickerColor: EVENT_TYPE_HEX[item.eventType],
+      summary: item.summary,
+      time: item.eventDate,
+      views: viewsFor(item.uid),
+      readUrl: item.sourceUrl ?? undefined,
+    });
 
   const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
@@ -312,18 +383,36 @@ export default function TeamProfilePrototype() {
                 item={item}
                 flat
                 hideTeam
-                upvotes={upvotesFor(item.uid)}
-                voted={votedNews.has(item.uid)}
-                onToggleUpvote={() => toggleNewsVote(item.uid)}
-                onShowMore={() => openNewsFeed(item.uid)}
+                views={viewsFor(item.uid)}
+                likes={likesFor(item.uid)}
+                liked={likedNews.has(item.uid)}
+                comments={commentsFor(item.uid)}
+                onToggleLike={() => toggleNewsLike(item.uid)}
+                // Tap, "Show more" and the comment count are three ways of
+                // asking for the same thing: this story, in full.
+                onOpenComments={() => openDetail(item)}
+                onShowMore={() => openDetail(item)}
               />
             ))}
           </div>
-          {hasMore && (
-            <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
-              View all news ({displayNews.length})
-            </button>
-          )}
+          {/* The rail's two exits, paired on one row. They're deliberately not
+              interchangeable: "View all news" stays inside this team (the modal
+              is its own archive), while "Network updates" leaves for the home feed
+              (named after that page's own H2, and it carries forum/events/Demo Day
+              too — not just team news)
+              — hence the ↗ and the quieter neutral text against the blue. When
+              there's no archive to open, the remaining button takes the row. */}
+          <div className={local.newsFooter}>
+            {hasMore && (
+              <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
+                View all news ({displayNews.length})
+              </button>
+            )}
+            <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
+              Network updates
+              <ArrowUpRightIcon aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </aside>
 
@@ -338,9 +427,11 @@ export default function TeamProfilePrototype() {
           query={newsQuery}
           onQueryChange={setNewsQuery}
           onClose={closeNewsModal}
-          upvotesFor={upvotesFor}
-          votedNews={votedNews}
-          onToggleUpvote={toggleNewsVote}
+          viewsFor={viewsFor}
+          likesFor={likesFor}
+          commentsFor={commentsFor}
+          likedNews={likedNews}
+          onToggleLike={toggleNewsLike}
         />
       ) : (
       <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
@@ -366,9 +457,11 @@ export default function TeamProfilePrototype() {
                   item={item}
                   hideTeam
                   fullSummary
-                  upvotes={upvotesFor(item.uid)}
-                  voted={votedNews.has(item.uid)}
-                  onToggleUpvote={() => toggleNewsVote(item.uid)}
+                  views={viewsFor(item.uid)}
+                  likes={likesFor(item.uid)}
+                  liked={likedNews.has(item.uid)}
+                  comments={commentsFor(item.uid)}
+                  onToggleLike={() => toggleNewsLike(item.uid)}
                 />
               ))}
             </div>
@@ -379,6 +472,22 @@ export default function TeamProfilePrototype() {
         </Modal>
       )}
       </div>
+
+      {/* One story, in full — the feed's own modal. Rendered outside the news
+          panel so it overlays the page, not the rail. */}
+      <FeedDetailModal
+        detail={detail}
+        onClose={() => setDetail(null)}
+        likeCount={detail ? likesFor(detail.id) : 0}
+        liked={detail ? likedNews.has(detail.id) : false}
+        onToggleLike={() => detail && toggleNewsLike(detail.id)}
+        citationStyle="off"
+        showComments
+        comments={detail ? threadFor(detail.id) : []}
+        onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
+        isCommentLiked={(commentUid) => likedComments.has(commentUid)}
+        onToggleCommentLike={toggleCommentLike}
+      />
 
       {followToast && (
         <FollowToast>

@@ -79,6 +79,13 @@ interface Props {
   /** Like state for comments and replies, keyed by comment uid. */
   isCommentLiked?: (commentUid: string) => boolean;
   onToggleCommentLike?: (commentUid: string) => void;
+  /**
+   * Extra action beside Share, for surfaces that opened this modal from somewhere
+   * else — the job board puts its "Open in newsfeed" link here. The footer's left
+   * side is where outbound actions live, so it joins them rather than inventing a
+   * slot.
+   */
+  footerAction?: ReactNode;
 }
 
 /**
@@ -99,6 +106,7 @@ export function FeedDetailModal({
   onAddComment,
   isCommentLiked,
   onToggleCommentLike,
+  footerAction,
 }: Props) {
   const commentsRef = useRef<HTMLDivElement>(null);
 
@@ -120,12 +128,7 @@ export function FeedDetailModal({
   const shareButton = <ShareMenu variant="modal" url={detail?.readUrl} align="left" />;
 
   return (
-    <Modal
-      isOpen={Boolean(detail)}
-      onClose={onClose}
-      overlayClassname={s.mobileOverlay}
-      className={s.container}
-    >
+    <Modal isOpen={Boolean(detail)} onClose={onClose} overlayClassname={s.mobileOverlay} className={s.container}>
       {detail && (
         <div className={clsx(s.card, detail.isProtocolLabs && s.plCard)}>
           {/* Sticky header: author/team identity on the left, standardized close
@@ -150,97 +153,89 @@ export function FeedDetailModal({
           </div>
 
           <div className={s.body}>
-          <div className={s.kickerRow}>
-            {detail.kicker && (
-              <>
-                <span className={s.kicker} style={detail.kickerColor ? { color: detail.kickerColor } : undefined}>
-                  {detail.kicker}
-                </span>
-                <span className={s.kickerSep} aria-hidden>
-                  ·
-                </span>
-              </>
-            )}
-            <span className={s.kickerTime}>{formatTimeAgo(detail.time)}</span>
-          </div>
+            <div className={s.kickerRow}>
+              {detail.kicker && (
+                <>
+                  <span className={s.kicker} style={detail.kickerColor ? { color: detail.kickerColor } : undefined}>
+                    {detail.kicker}
+                  </span>
+                  <span className={s.kickerSep} aria-hidden>
+                    ·
+                  </span>
+                </>
+              )}
+              <span className={s.kickerTime}>{formatTimeAgo(detail.time)}</span>
+            </div>
 
-          <h2 className={s.title}>{detail.title}</h2>
+            <h2 className={s.title}>{detail.title}</h2>
 
-          {/* Video sits under the headline and above the body — the poster only
+            {/* Video sits under the headline and above the body — the poster only
               becomes a player on click (or straight away when the card's poster
               opened this modal). Keyed so switching stories resets playback. */}
-          {detail.video && (
-            <VideoPlayer
-              key={detail.id}
-              video={detail.video}
-              title={detail.title}
-              autoplay={detail.autoplayVideo}
-            />
-          )}
+            {detail.video && (
+              <VideoPlayer key={detail.id} video={detail.video} title={detail.title} autoplay={detail.autoplayVideo} />
+            )}
 
-          {cited ? (
-            // Superscript style: `[n](url)` → a raised ¹ marker with a hover/tap
-            // source popover.
-            <div className={s.summaryBody}>
-              <MarkdownToJSX options={{ overrides: { a: { component: SupAnchor } } }}>{cited}</MarkdownToJSX>
-            </div>
-          ) : detail.summary ? (
-            <p className={s.summary}>{detail.summary}</p>
-          ) : (
-            <p className={s.summary}>No summary available for this update yet.</p>
-          )}
-
-          {/* Small disclosure — news summaries are machine-written from the sources
-              (forum posts are the author's own words, so it's news-only). */}
-          {detail.kind === 'news' && detail.summary && (
-            <p className={s.aiNote}>
-              <InfoIcon />
-              This summary was written by AI from the linked sources.
-            </p>
-          )}
-
-          {sources.length > 0 && (
-            <div className={s.sources}>
-              <span className={s.sourcesLabel}>{sources.length > 1 ? 'Sources' : 'Source'}</span>
-              <div className={s.badgeRow}>
-                {sources.map((src) => (
-                  <a
-                    key={src.domain}
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={s.badge}
-                  >
-                    <img
-                      className={s.favicon}
-                      src={`https://www.google.com/s2/favicons?domain=${src.domain}&sz=32`}
-                      alt=""
-                      aria-hidden
-                    />
-                    {src.domain}
-                  </a>
-                ))}
+            {cited ? (
+              // Superscript style: `[n](url)` → a raised ¹ marker with a hover/tap
+              // source popover.
+              <div className={s.summaryBody}>
+                <MarkdownToJSX options={{ overrides: { a: { component: SupAnchor } } }}>{cited}</MarkdownToJSX>
               </div>
-            </div>
-          )}
+            ) : detail.summary ? (
+              <p className={s.summary}>{detail.summary}</p>
+            ) : (
+              <p className={s.summary}>No summary available for this update yet.</p>
+            )}
 
-          {/* "With comments" version: see + leave comments right in the news modal. */}
-          {detail.kind === 'news' && showComments && (
-            <div ref={commentsRef}>
-              <CommentsThread
-                comments={comments}
-                onAddComment={onAddComment ?? (() => {})}
-                isCommentLiked={isCommentLiked ?? (() => false)}
-                onToggleCommentLike={onToggleCommentLike ?? (() => {})}
-              />
-            </div>
-          )}
+            {/* Small disclosure — news summaries are machine-written from the sources
+              (forum posts are the author's own words, so it's news-only). */}
+            {detail.kind === 'news' && detail.summary && (
+              <p className={s.aiNote}>
+                <InfoIcon />
+                This summary was written by AI from the linked sources.
+              </p>
+            )}
+
+            {sources.length > 0 && (
+              <div className={s.sources}>
+                <span className={s.sourcesLabel}>{sources.length > 1 ? 'Sources' : 'Source'}</span>
+                <div className={s.badgeRow}>
+                  {sources.map((src) => (
+                    <a key={src.domain} href={src.url} target="_blank" rel="noopener noreferrer" className={s.badge}>
+                      <img
+                        className={s.favicon}
+                        src={`https://www.google.com/s2/favicons?domain=${src.domain}&sz=32`}
+                        alt=""
+                        aria-hidden
+                      />
+                      {src.domain}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* "With comments" version: see + leave comments right in the news modal. */}
+            {detail.kind === 'news' && showComments && (
+              <div ref={commentsRef}>
+                <CommentsThread
+                  comments={comments}
+                  onAddComment={onAddComment ?? (() => {})}
+                  isCommentLiked={isCommentLiked ?? (() => false)}
+                  onToggleCommentLike={onToggleCommentLike ?? (() => {})}
+                />
+              </div>
+            )}
           </div>
 
           <div className={clsx(dealModal.footer, s.footer, s.footerSplit)}>
             {/* Same footer grammar as the forum post modal: the outbound action on
                 the left, the read/like/comment metrics on the right. */}
-            <span className={s.footerActions}>{shareButton}</span>
+            <span className={s.footerActions}>
+              {shareButton}
+              {footerAction}
+            </span>
             <span className={s.forumMeta}>
               {detail.views != null && <ViewCount count={detail.views} />}
               <LikeButton count={likeCount} liked={liked} onToggle={onToggleLike} />

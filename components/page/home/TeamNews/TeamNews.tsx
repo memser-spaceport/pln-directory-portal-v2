@@ -62,7 +62,7 @@ import { NewsGroupCard } from './components/NewsGroupCard';
 import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
 import { HiringCard } from './components/HiringCard/HiringCard';
 import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
-import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
+import { ForumPostCard } from './components/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
 import {
@@ -532,7 +532,10 @@ export const TeamNews = ({
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
   const handleForumPostOpen = (post: IFeedForumPost) => {
-    if (activeNewsUid) closeNews();
+    if (activeNewsUid) {
+      closeNews();
+    }
+
     openPost(post.uid);
   };
 
@@ -952,6 +955,7 @@ export const TeamNews = ({
                           position={index}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
+                          useLink={activeCategory === DISCUSSIONS_CAT}
                         />
                       );
                     case 'hiring':
@@ -1015,8 +1019,9 @@ export const TeamNews = ({
       )}
       {activeForumPost && (
         <ForumPostModal
-          post={activeForumPost}
           onClose={closePost}
+          post={activeForumPost}
+          useLink={activeCategory === DISCUSSIONS_CAT}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

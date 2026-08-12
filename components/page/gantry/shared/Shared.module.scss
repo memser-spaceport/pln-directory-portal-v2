@@ -223,10 +223,11 @@
   flex-shrink: 0;
 }
 
-/* The trigger anchors its popover, so it needs to be a positioned box in the
-   header action row rather than a bare button. */
+/* Wraps the trigger so it sits as one item in the header action row and so the
+   dismissal handler has an element to restore focus into. No `position` here on
+   purpose: the popover is `position: fixed` against viewport coordinates, so a
+   containing block would do nothing. */
 .buildAction {
-  position: relative;
   display: inline-flex;
 }
 

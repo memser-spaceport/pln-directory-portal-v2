@@ -49,14 +49,17 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
     () => null,
   );
 
-  /* The drawer keeps this component mounted while swapping items, so picker
-     state belongs to the uid that opened it. Adjusting during render (rather
-     than in an effect) drops the stale popover in the same commit. */
+  /* Picker state belongs to the uid that opened it. The drawer keys on itemId
+     so it remounts between items, but the page variant renders this same
+     component across /gantry/[uid] changes — so reset rather than depend on a
+     remount we don't own. Adjusting during render (rather than in an effect)
+     drops the stale popover in the same commit. */
   const [renderedUid, setRenderedUid] = useState(uid);
   if (renderedUid !== uid) {
     setRenderedUid(uid);
     setPickerPos(null);
     setError(null);
+    setIsCreating(false);
   }
 
   const closePicker = () => {
@@ -71,10 +74,13 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
     setError(null);
-    setPickerPos({
-      top: Math.min(rect.bottom + 8, window.innerHeight - 260),
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - 328)),
-    });
+    /* Cleared here rather than in the uid-change reset above, which runs during
+       render where refs are off limits. Opening the picker is the only route
+       back into a create, so this is the last moment it can matter. */
+    isSubmittingRef.current = false;
+    /* Just the anchor point — the picker measures itself and clamps into the
+       viewport, since its height depends on which notices it ends up showing. */
+    setPickerPos({ top: rect.bottom + 8, left: rect.left });
   };
 
   const handleCreate = async (repository: string) => {
@@ -142,7 +148,6 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
               ? `This item is longer than the ${AGENT_PROMPT_MAX_LENGTH.toLocaleString()} character limit and will be shortened.`
               : null
           }
-          canSubmit
           onCreate={handleCreate}
           onDismiss={closePicker}
         />

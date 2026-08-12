@@ -1,18 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAgentSessionRepositories } from '@/services/agent-sessions/hooks/useAgentSessionRepositories';
 import s from './BuildWithAgentsRepoPicker.module.scss';
 
 interface Props {
+  /** Anchor point under the trigger. The popover clamps itself into view from here. */
   readonly pos: { top: number; left: number };
   readonly isCreating: boolean;
   readonly error: string | null;
   readonly notice: string | null;
-  readonly canSubmit: boolean;
   readonly onCreate: (repository: string) => void;
   readonly onDismiss: () => void;
 }
+
+/** Breathing room kept between the popover and the viewport edges. */
+const VIEWPORT_MARGIN = 12;
 
 /* A Gantry item has no repository and none can be inferred from it, so this one
    field is the whole reason the flow isn't a bare button. Anchored popover
@@ -21,17 +24,10 @@ interface Props {
    Mounted only while open: `useAgentSessionRepositories` has no staleTime or
    `enabled`, so hoisting the hook into the button would fetch the repo list on
    every Gantry detail open, for every admin, whether or not they build. */
-export function BuildWithAgentsRepoPicker({
-  pos,
-  isCreating,
-  error,
-  notice,
-  canSubmit,
-  onCreate,
-  onDismiss,
-}: Props) {
+export function BuildWithAgentsRepoPicker({ pos, isCreating, error, notice, onCreate, onDismiss }: Props) {
   const { data: repositories, isLoading, isError } = useAgentSessionRepositories();
   const selectRef = useRef<HTMLSelectElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const [picked, setPicked] = useState<string | null>(null);
 
   const enabledRepos = useMemo(() => (repositories ?? []).filter((repo) => repo.enabled), [repositories]);
@@ -42,6 +38,24 @@ export function BuildWithAgentsRepoPicker({
   useEffect(() => {
     selectRef.current?.focus();
   }, [enabledRepos.length]);
+
+  /* Measure rather than guess, the way BoostImpactPopover does: this popover
+     grows after it opens — the loading line, a repo-load failure, the empty-repo
+     notice, the truncation notice and the inline create error each add a row —
+     and `.popover` is `overflow: hidden`, so anything spilling past the viewport
+     is clipped, not scrollable. A create failure growing the box must not push
+     the Create/Cancel footer off-screen. Runs before paint, so it never flickers. */
+  const [placement, setPlacement] = useState(pos);
+  useLayoutEffect(() => {
+    const el = popoverRef.current;
+    if (!el) return;
+    const maxTop = window.innerHeight - el.offsetHeight - VIEWPORT_MARGIN;
+    const maxLeft = window.innerWidth - el.offsetWidth - VIEWPORT_MARGIN;
+    setPlacement({
+      top: Math.max(VIEWPORT_MARGIN, Math.min(pos.top, maxTop)),
+      left: Math.max(VIEWPORT_MARGIN, Math.min(pos.left, maxLeft)),
+    });
+  }, [pos, isLoading, isError, enabledRepos.length, notice, error]);
 
   /* Single-flight, matching BoostImpactPopover: once the session request is out
      there is no way to recall it, so every dismissal path is a no-op until it
@@ -68,7 +82,7 @@ export function BuildWithAgentsRepoPicker({
   }, [dismiss]);
 
   const isRepoListEmpty = !isLoading && !isError && enabledRepos.length === 0;
-  const isBlocked = isLoading || isError || isRepoListEmpty || !repository || !canSubmit;
+  const isBlocked = isLoading || isError || isRepoListEmpty || !repository;
 
   return (
     <>
@@ -80,8 +94,9 @@ export function BuildWithAgentsRepoPicker({
         }}
       />
       <div
+        ref={popoverRef}
         className={s.popover}
-        style={{ top: pos.top, left: pos.left }}
+        style={{ top: placement.top, left: placement.left }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="build-with-ai-title"

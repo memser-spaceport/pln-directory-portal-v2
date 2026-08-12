@@ -236,6 +236,38 @@ describe('BuildWithAgentsButton', () => {
     });
   });
 
+  describe('positioning', () => {
+    it('clamps the popover into the viewport instead of letting it spill', async () => {
+      const user = userEvent.setup();
+      // Trigger sits near the bottom-right corner, so an unclamped popover would
+      // hang off both edges.
+      jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        bottom: 740,
+        left: 1330,
+        top: 700,
+        right: 1400,
+        width: 70,
+        height: 40,
+        x: 1330,
+        y: 700,
+        toJSON: () => ({}),
+      } as DOMRect);
+      jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+      jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(320);
+      window.innerHeight = 768;
+      window.innerWidth = 1440;
+
+      renderButton();
+      await user.click(screen.getByRole('button', { name: /build with ai/i }));
+
+      const dialog = screen.getByRole('dialog');
+      // 768 - 300 - 12 = 456, and 1440 - 320 - 12 = 1108.
+      expect(dialog).toHaveStyle({ top: '456px', left: '1108px' });
+
+      jest.restoreAllMocks();
+    });
+  });
+
   describe('accessibility', () => {
     it('exposes the picker as a labelled dialog', async () => {
       const user = userEvent.setup();

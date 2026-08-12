@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { MagicSparklesIcon } from '@/components/icons/MagicSparklesIcon';
 import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { usePermissions } from '@/services/rbac/hooks/usePermissions';
@@ -10,7 +10,11 @@ import { useCreateAgentSession } from '@/services/agent-sessions/hooks/useCreate
 import { trackBuildButtonClick } from '@/services/gantry/gantry.service';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { buildAgentPrompt, AGENT_PROMPT_MAX_LENGTH } from '@/utils/gantryAgentPrompt';
-import { getGantryAgentSessionId, rememberGantryAgentSession } from '@/utils/gantryAgentSessionStorage';
+import {
+  getGantryAgentSessionId,
+  rememberGantryAgentSession,
+  subscribeGantryAgentSessions,
+} from '@/utils/gantryAgentSessionStorage';
 import { BuildWithAgentsRepoPicker } from './BuildWithAgentsRepoPicker';
 import s from './Shared.module.scss';
 
@@ -32,15 +36,23 @@ export function BuildWithAgentsButton({ uid, title, description }: Props) {
   const isSubmittingRef = useRef(false);
   const [pickerPos, setPickerPos] = useState<{ top: number; left: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [existingSessionId, setExistingSessionId] = useState<string | null>(null);
 
   const canAdmin = canAdminAgentSessions(permsSet);
+  const existingSessionId = useSyncExternalStore(
+    subscribeGantryAgentSessions,
+    () => getGantryAgentSessionId(uid),
+    () => null,
+  );
 
-  useEffect(() => {
-    setExistingSessionId(getGantryAgentSessionId(uid));
+  /* The drawer keeps this component mounted while swapping items, so picker
+     state belongs to the uid that opened it. Adjusting during render (rather
+     than in an effect) drops the stale popover in the same commit. */
+  const [renderedUid, setRenderedUid] = useState(uid);
+  if (renderedUid !== uid) {
+    setRenderedUid(uid);
     setPickerPos(null);
     setError(null);
-  }, [uid]);
+  }
 
   const closePicker = () => {
     setPickerPos(null);

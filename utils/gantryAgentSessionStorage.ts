@@ -27,6 +27,17 @@ export function getGantryAgentSessionId(itemUid: string): string | null {
   return readMap()[itemUid] ?? null;
 }
 
+/* Read through useSyncExternalStore rather than an effect, so the value is
+   available without a second render and the server snapshot stays null —
+   localStorage doesn't exist during SSR, and claiming otherwise would
+   hydrate "View session" over a server-rendered "Build with AI". */
+const listeners = new Set<() => void>();
+
+export function subscribeGantryAgentSessions(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 export function rememberGantryAgentSession(itemUid: string, sessionId: string): void {
   if (typeof window === 'undefined') return;
   try {
@@ -34,4 +45,5 @@ export function rememberGantryAgentSession(itemUid: string, sessionId: string): 
   } catch {
     // Losing the guard only costs a duplicate session; never break the flow.
   }
+  listeners.forEach((listener) => listener());
 }

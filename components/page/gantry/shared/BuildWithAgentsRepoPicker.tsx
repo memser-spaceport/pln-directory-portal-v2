@@ -32,15 +32,12 @@ export function BuildWithAgentsRepoPicker({
 }: Props) {
   const { data: repositories, isLoading, isError } = useAgentSessionRepositories();
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [repository, setRepository] = useState('');
+  const [picked, setPicked] = useState<string | null>(null);
 
   const enabledRepos = useMemo(() => (repositories ?? []).filter((repo) => repo.enabled), [repositories]);
-
-  useEffect(() => {
-    if (!repository && enabledRepos.length > 0) {
-      setRepository(enabledRepos[0].key);
-    }
-  }, [enabledRepos, repository]);
+  /* Derived rather than synced into state: the default is simply "whatever the
+     list leads with" until the user chooses otherwise. */
+  const repository = picked ?? enabledRepos[0]?.key ?? '';
 
   useEffect(() => {
     selectRef.current?.focus();
@@ -103,7 +100,7 @@ export function BuildWithAgentsRepoPicker({
             className={s.select}
             value={repository}
             disabled={isLoading || isError || isRepoListEmpty || isCreating}
-            onChange={(event) => setRepository(event.target.value)}
+            onChange={(event) => setPicked(event.target.value)}
           >
             {enabledRepos.map((repo) => (
               <option key={repo.key} value={repo.key}>

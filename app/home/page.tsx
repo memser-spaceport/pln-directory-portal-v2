@@ -18,6 +18,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification } from '@/components/page/home/TeamNews';
+import { FloatingFeedbackButton } from '@/components/page/home/FloatingFeedbackButton';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
@@ -62,6 +63,7 @@ export default async function Home() {
           <ScrollToTop pageName="Home" userInfo={userInfo} />
         </div>
       </div>
+      <FloatingFeedbackButton />
       <HuskyDialog isLoggedIn={isLoggedIn} />
       <HuskyDiscover isLoggedIn={isLoggedIn} />
       <AutoMarkNewsNotification />

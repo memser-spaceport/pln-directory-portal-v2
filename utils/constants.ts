@@ -598,6 +598,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
+  FEEDBACK_BUTTON_CLICKED: 'home-feedback-button-clicked',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {

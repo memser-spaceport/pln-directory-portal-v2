@@ -41,7 +41,6 @@ export interface RoundBuybackStats {
 }
 
 export interface RoundStatsResponse {
-  roundId: string;
   roundNumber: number;
   period: string;
   month: string;
@@ -49,6 +48,7 @@ export interface RoundStatsResponse {
   isCurrentRound: boolean;
   lastUpdated: string;
   chart: RoundStatsChartEntry[];
+  tokenChart: RoundStatsChartEntry[];
   totalPointsCollected: number;
   onboardedParticipants: number;
   incentivizedActivities: string[];

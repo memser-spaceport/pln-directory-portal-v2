@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ReactNode, useRef, useEffect, useCallback } from 'react';
+import { useState, ReactNode, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ChevronDownIcon } from '@/components/icons';
@@ -9,6 +9,22 @@ import DisclaimerSection from '@/components/page/aligement-assets/rounds/section
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { DISCLOSURE_URL, SUPPORT_EMAIL } from '@/constants/plaa';
+import { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
+
+// Fallback only: used if the live fetch is unreachable or returns nothing,
+// same degraded-mode pattern as current-round.data.ts. Real values live in
+// Airtable's KPI Weights table now.
+const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
+  { category: 'Network Tooling', weight: 1.2, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
+  { category: 'Knowledge', weight: 1.4, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
+  { category: 'People/Talent', weight: 0.9, percentOfTotal: 14.52, emissionsPerSnapshot: 1452 },
+  { category: 'Programs', weight: 1.15, percentOfTotal: 18.55, emissionsPerSnapshot: 1855 },
+  { category: 'Brand', weight: 0.25, percentOfTotal: 4.03, emissionsPerSnapshot: 403 },
+  { category: 'Projects', weight: 1.3, percentOfTotal: 20.97, emissionsPerSnapshot: 2097 },
+];
+
+const sumOf = (rows: KpiWeightEntry[], key: keyof Omit<KpiWeightEntry, 'category'>) =>
+  rows.reduce((acc, r) => acc + (r[key] ?? 0), 0);
 
 export interface FAQItem {
   question: string;
@@ -22,7 +38,10 @@ export interface FAQCategoryData {
   items: FAQItem[];
 }
 
-const faqCategories: FAQCategoryData[] = [
+function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCategoryData[] {
+  const kpiRows = kpiWeights && kpiWeights.length > 0 ? kpiWeights : KPI_WEIGHTS_FALLBACK;
+
+  return [
   {
     id: 'contact-support',
     title: 'Contact & Support',
@@ -229,47 +248,19 @@ const faqCategories: FAQCategoryData[] = [
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Network Tooling</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.2000</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>19.35%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,935</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Knowledge</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.4000</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>22.58%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>2,258</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>People/Talent</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>0.9000</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>14.52%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,452</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Programs</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.1500</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>18.55%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>1,855</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Brand</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>0.2500</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>4.03%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>403</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                    <td style={{ fontWeight: 'bold', padding: '10px' }}>Projects</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>1.3000</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>20.97%</td>
-                    <td style={{ padding: '10px', textAlign: 'right' }}>2,097</td>
-                  </tr>
+                  {kpiRows.map((row, i) => (
+                    <tr key={row.category} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: i % 2 === 1 ? '#f8fafc' : undefined }}>
+                      <td style={{ fontWeight: 'bold', padding: '10px' }}>{row.category}</td>
+                      <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{row.weight != null ? row.weight.toFixed(4) : '—'}</td>
+                      <td style={{ padding: '10px', textAlign: 'right' }}>{row.percentOfTotal != null ? `${row.percentOfTotal.toFixed(2)}%` : '—'}</td>
+                      <td style={{ padding: '10px', textAlign: 'right' }}>{row.emissionsPerSnapshot != null ? row.emissionsPerSnapshot.toLocaleString('en-US') : '—'}</td>
+                    </tr>
+                  ))}
                   <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
                     <td style={{ fontWeight: 'bold', padding: '10px' }}>Sum</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>6.2000</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>100.00%</td>
-                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>10,000</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'weight').toFixed(4)}</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'percentOfTotal').toFixed(2)}%</td>
+                    <td style={{ fontWeight: 'bold', padding: '10px', textAlign: 'right' }}>{sumOf(kpiRows, 'emissionsPerSnapshot').toLocaleString('en-US')}</td>
                   </tr>
                 </tbody>
               </table>
@@ -647,9 +638,14 @@ const faqCategories: FAQCategoryData[] = [
       },
     ],
   },
-];
+  ];
+}
 
-export default function FAQsPage() {
+export interface FAQsPageProps {
+  kpiWeights?: KpiWeightEntry[];
+}
+
+export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
   const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
   const [expandAll, setExpandAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -659,6 +655,8 @@ export default function FAQsPage() {
   const copyTooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
   const { onFaqsSearchUsed, onFaqsExpandAllClicked, onFaqsQuestionToggled, onFaqsClearSearchClicked } = useAlignmentAssetsAnalytics();
+
+  const faqCategories = useMemo(() => buildFaqCategories(kpiWeights), [kpiWeights]);
 
   const handleHashNavigation = useCallback((hash: string) => {
     if (!hash) return;
@@ -676,7 +674,7 @@ export default function FAQsPage() {
     if (!element || !category) return;
 
     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+  }, [faqCategories]);
 
   useEffect(() => {
     const handleHash = () => {

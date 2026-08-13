@@ -9,7 +9,6 @@ import PastRoundDescription from "../past-rounds/past-round-description";
 import SupportSection from "./sections/support-section";
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
-import { currentRoundData } from './data';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { getPastRoundLeaderboardEntries } from '@/services/plaa/leaderboard.utils';
@@ -17,9 +16,11 @@ import { useLeaderboard } from '@/services/plaa/hooks/useLeaderboard';
 
 interface PastRoundComponentProps {
   pastRoundData: IPastRoundData;
+  /** The live current-round number, resolved server-side from the rounds API. */
+  currentRoundNumber: number;
 }
 
-export default function PastRoundComponent({ pastRoundData }: PastRoundComponentProps) {
+export default function PastRoundComponent({ pastRoundData, currentRoundNumber }: PastRoundComponentProps) {
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
 
@@ -42,7 +43,7 @@ export default function PastRoundComponent({ pastRoundData }: PastRoundComponent
         <HeroSection data={data.hero} />
         {isLoggedIn && <RightsTokensDashboard />}
         {isLoggedIn && <PointsDashboard
-          currentRound={currentRoundData.meta.roundNumber}
+          currentRound={currentRoundNumber}
           pageRound={data.meta.roundNumber}
         />}
         <PastRoundDescription 

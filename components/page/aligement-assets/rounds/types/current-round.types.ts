@@ -194,7 +194,6 @@ export interface LearnMoreSectionData {
 export interface CurrentRoundData {
   /** Metadata about the round */
   meta: {
-    roundId: string;
     roundNumber: number;
     isCurrentRound: boolean;
     lastUpdated: string; // ISO date string
@@ -229,7 +228,6 @@ export interface CurrentRoundData {
 
 export interface IPastRoundData {
   meta: {
-    roundId: string;
     roundNumber: number;
     isCurrentRound: boolean;
     month: string;

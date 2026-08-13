@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import CurrentRoundComponent from '@/components/page/aligement-assets/rounds/current-round-component';
 import styles from './plaa.module.css';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
@@ -9,14 +10,14 @@ import { CurrentRoundData } from '@/components/page/aligement-assets/rounds/type
  * Everything derivable comes from the API (round meta, month/period, KPI
  * chart, totals, participants, activity catalog, regions unlocked); the data
  * file keeps only editorial content that never varies by round (hero copy,
- * paragraph/tip text, section labels) and acts as the fallback when the API
- * is unreachable. Buyback figures stay on the data file — the section only
- * ever renders when `bids` is non-empty, which no data source populates, so
- * wiring live buyback data in here has no visible effect.
+ * paragraph/tip text, section labels) — it's a template base, not a
+ * fallback: PlaaPage 404s if the API has nothing, rather than silently
+ * rendering stale numbers dressed up as live. Buyback figures stay on the
+ * data file — the section only ever renders when `bids` is non-empty, which
+ * no data source populates, so wiring live buyback data in here has no
+ * visible effect.
  */
-function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
-  if (!stats) return currentRoundData;
-
+function mergeRoundStats(stats: RoundStatsResponse): CurrentRoundData {
   // stats.period is 'YYYY-MM-DD', the first of the round's calendar month.
   const [year, month] = stats.period.split('-').map(Number);
   const lastDayOfMonth = new Date(year, month, 0).getDate();
@@ -28,7 +29,6 @@ function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
     ...currentRoundData,
     meta: {
       ...currentRoundData.meta,
-      roundId: stats.roundId,
       roundNumber: stats.roundNumber,
       isCurrentRound: stats.isCurrentRound,
       lastUpdated: stats.lastUpdated,
@@ -68,6 +68,7 @@ function mergeRoundStats(stats?: RoundStatsResponse): CurrentRoundData {
 
 export default async function PlaaPage() {
   const { data: stats } = await getCurrentRoundStats();
+  if (!stats) notFound();
   const data = mergeRoundStats(stats);
   const { data: leaderboardResponse } = await getLeaderboard(data.meta.roundNumber);
 

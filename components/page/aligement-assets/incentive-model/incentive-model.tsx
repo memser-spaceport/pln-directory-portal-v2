@@ -7,203 +7,23 @@ import Link from 'next/link';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
-// Define all rounds (each round = one month)
-const allRounds = [
-  { id: 1, month: 'February 2025' },
-  { id: 2, month: 'March 2025' },
-  { id: 3, month: 'April 2025' },
-  { id: 4, month: 'May 2025' },
-  { id: 5, month: 'June 2025' },
-  { id: 6, month: 'July 2025' },
-  { id: 7, month: 'August 2025' },
-  { id: 8, month: 'September 2025' },
-  { id: 9, month: 'October 2025' },
-  { id: 10, month: 'November 2025' },
-  { id: 11, month: 'December 2025' },
-  { id: 12, month: 'January 2026' },
-  { id: 13, month: 'February 2026' },
-  { id: 14, month: 'March 2026' },
-  { id: 15, month: 'April 2026' },
-  { id: 16, month: 'May 2026' },
-  { id: 17, month: 'June 2026' },
-  { id: 18, month: 'July 2026' },
-  { id: 19, month: 'August 2026' },
-];
+// Round nav (labels, current round, total rounds) comes from the rounds API
+// now too — see page.tsx — rather than a hand-maintained list bumped every
+// round roll.
+export interface RoundOption {
+  id: number;
+  month: string;
+}
 
-// Current round (for "Go to current round" functionality)
-const CURRENT_ROUND = 19;
-const TOTAL_ROUNDS = 19;
-
-// Mock data for each round (month)
-const chartDataByRound: Record<number, Array<{ category: string; points: number; tokens: number }>> = {
-  1: [
-    { category: 'Projects', points: 2500, tokens: 1547 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 0, tokens: 0 },
-    { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 0, tokens: 0 },
-  ],
-  2: [
-    { category: 'Projects', points: 14000, tokens: 1540 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 300, tokens: 1702 },
-    { category: 'Network Tooling', points: 2600, tokens: 1716 },
-    { category: 'People/Talent', points: 2100, tokens: 1603 },
-    { category: 'Knowledge', points: 0, tokens: 0 },
-  ],
-  3: [
-    { category: 'Projects', points: 9750, tokens: 1538 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 1000, tokens: 1725 },
-    { category: 'People/Talent', points: 1500, tokens: 1604 },
-    { category: 'Knowledge', points: 3000, tokens: 1769 },
-  ],
-  4: [
-    { category: 'Projects', points: 4600, tokens: 1539 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 500, tokens: 1702 },
-    { category: 'Network Tooling', points: 600, tokens: 1725 },
-    { category: 'People/Talent', points: 475, tokens: 1603 },
-    { category: 'Knowledge', points: 4650, tokens: 1768 },
-  ],
-  5: [
-    { category: 'Projects', points: 6150, tokens: 1548 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 0, tokens: 0 },
-    { category: 'People/Talent', points: 900, tokens: 1605 },
-    { category: 'Knowledge', points: 2900, tokens: 1761 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  6: [
-    { category: 'Projects', points: 1850, tokens: 1312 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 600, tokens: 1442 },
-    { category: 'Network Tooling', points: 1600, tokens: 1456 },
-    { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 3950, tokens: 1501 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  7: [
-    { category: 'Projects', points: 1100, tokens: 1309 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 6100, tokens: 1434 },
-    { category: 'Network Tooling', points: 5200, tokens: 1456 },
-    { category: 'People/Talent', points: 50, tokens: 1360 },
-    { category: 'Knowledge', points: 1900, tokens: 1494 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  8: [
-    { category: 'Projects', points: 2300, tokens: 1309 },
-    { category: 'Brand', points: 1200, tokens: 1392 },
-    { category: 'Programs', points: 300, tokens: 1442 },
-    { category: 'Network Tooling', points: 4000, tokens: 1459 },
-    { category: 'People/Talent', points: 650, tokens: 1358 },
-    { category: 'Knowledge', points: 3000, tokens: 1500 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  9: [
-    { category: 'Projects', points: 2550, tokens: 1307 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 1700, tokens: 1440 },
-    { category: 'Network Tooling', points: 200, tokens: 1463 },
-    { category: 'People/Talent', points: 600, tokens: 1360 },
-    { category: 'Knowledge', points: 2350, tokens: 1490 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  10: [
-    { category: 'Projects', points: 2650, tokens: 1304 },
-    { category: 'Brand', points: 600, tokens: 1393 },
-    { category: 'Programs', points: 300, tokens: 1442 },
-    { category: 'Network Tooling', points: 7700, tokens: 1463 },
-    { category: 'People/Talent', points: 50, tokens: 1360 },
-    { category: 'Knowledge', points: 1600, tokens: 1496 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  11: [
-    { category: 'Projects', points: 3600, tokens: 1548 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 600, tokens: 1702 },
-    { category: 'Network Tooling', points: 900, tokens: 1724 },
-    { category: 'People/Talent', points: 550, tokens: 1602 },
-    { category: 'Knowledge', points: 450, tokens: 1770 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  12: [
-    { category: 'Projects', points: 3300, tokens: 1522 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 3700, tokens: 1702 },
-    { category: 'Network Tooling', points: 1400, tokens: 1724 },
-    { category: 'People/Talent', points: 300, tokens: 1603 },
-    { category: 'Knowledge', points: 2100, tokens: 1764 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  13: [
-    { category: 'Projects', points: 2050, tokens: 1539 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 0, tokens: 0 },
-    { category: 'Network Tooling', points: 4996, tokens: 1706 },
-    { category: 'People/Talent', points: 585, tokens: 1604 },
-    { category: 'Knowledge', points: 900, tokens: 1768 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  14: [
-    { category: 'Projects', points: 1900, tokens: 1540 },
-    { category: 'Brand', points: 200, tokens: 1644 },
-    { category: 'Programs', points: 5225, tokens: 1692 },
-    { category: 'Network Tooling', points: 700, tokens: 1725 },
-    { category: 'People/Talent', points: 1500, tokens: 1602 },
-    { category: 'Knowledge', points: 2850, tokens: 1767 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  15: [
-    { category: 'Projects', points: 625, tokens: 1538 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 1500, tokens: 1700 },
-    { category: 'Network Tooling', points: 150, tokens: 1726 },
-    { category: 'People/Talent', points: 0, tokens: 0 },
-    { category: 'Knowledge', points: 2100, tokens: 1764 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  16: [
-    { category: 'Projects', points: 2150, tokens: 1548 },
-    { category: 'Brand', points: 1325, tokens: 1643 },
-    { category: 'Programs', points: 900, tokens: 1701 },
-    { category: 'Network Tooling', points: 850, tokens: 1723 },
-    { category: 'People/Talent', points: 200, tokens: 1604 },
-    { category: 'Knowledge', points: 2550, tokens: 1768 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  17: [
-    { category: 'Projects', points: 450, tokens: 2088 },
-    { category: 'Brand', points: 725, tokens: 400 },
-    { category: 'Programs', points: 2650, tokens: 1838 },
-    { category: 'Network Tooling', points: 350, tokens: 1934 },
-    { category: 'People/Talent', points: 300, tokens: 1451 },
-    { category: 'Knowledge', points: 1500, tokens: 2250 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  18: [
-    { category: 'Projects', points: 1600, tokens: 0 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 3500, tokens: 0 },
-    { category: 'Network Tooling', points: 11750, tokens: 0 },
-    { category: 'People/Talent', points: 100, tokens: 0 },
-    { category: 'Knowledge', points: 1100, tokens: 0 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-  19: [
-    { category: 'Projects', points: 0, tokens: 0 },
-    { category: 'Brand', points: 0, tokens: 0 },
-    { category: 'Programs', points: 500, tokens: 0 },
-    { category: 'Network Tooling', points: 0, tokens: 0 },
-    { category: 'People/Talent', points: 290, tokens: 0 },
-    { category: 'Knowledge', points: 0, tokens: 0 },
-    { category: 'Capital', points: 0, tokens: 0 },
-  ],
-};
+// Points and tokens both come from the live rounds API now (see page.tsx) —
+// points from points_activity_master via the chart field, tokens from
+// round_category_tokens via tokenChart. There is no hand-typed fallback
+// left in this file.
+export interface RoundCategoryEntry {
+  category: string;
+  points: number;
+  tokens: number;
+}
 
 // Custom tooltip component with inline styles
 const CustomTooltip = ({
@@ -352,10 +172,21 @@ const createRenderRadiusAxisTick = (tickFontSize: number) => {
   return RenderRadiusAxisTick;
 };
 
-export default function IncentiveModel() {
-  const [selectedRound, setSelectedRound] = useState(CURRENT_ROUND);
+interface IncentiveModelProps {
+  /** Per-round, per-category points and tokens from the rounds API — see page.tsx. */
+  categoryDataByRound: Record<number, RoundCategoryEntry[]>;
+  /** Round nav labels, from the rounds API — see page.tsx. */
+  allRounds: RoundOption[];
+  /** The live current-round number (also used as "Go to current round"'s target). */
+  currentRound: number;
+  /** How many rounds exist — bounds the nav's next/prev and manual-entry input. */
+  totalRounds: number;
+}
+
+export default function IncentiveModel({ categoryDataByRound, allRounds, currentRound, totalRounds }: IncentiveModelProps) {
+  const [selectedRound, setSelectedRound] = useState(currentRound);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [roundInputValue, setRoundInputValue] = useState(String(CURRENT_ROUND));
+  const [roundInputValue, setRoundInputValue] = useState(String(currentRound));
   const [chartDimensions, setChartDimensions] = useState({ 
     outerRadius: '70%', 
     height: 600, 
@@ -376,7 +207,11 @@ export default function IncentiveModel() {
     onIncentiveModelLearnMoreClicked 
   } = useAlignmentAssetsAnalytics();
 
-  const currentData = chartDataByRound[selectedRound] || chartDataByRound[1];
+  // Both fields are live now, matched by category name against the API's
+  // arrays (a category absent from either response — e.g. Capital, never
+  // populated in points, and every category in tokens until the sync job
+  // runs — reads 0, same as categories genuinely at 0 this round).
+  const currentData = categoryDataByRound[selectedRound] ?? categoryDataByRound[1] ?? [];
   const currentRoundInfo = allRounds.find((r) => r.id === selectedRound);
 
   // Fixed domain based on analysis of all rounds' data
@@ -450,7 +285,7 @@ export default function IncentiveModel() {
   };
 
   const handleNextRound = () => {
-    if (selectedRound < TOTAL_ROUNDS) {
+    if (selectedRound < totalRounds) {
       const newRound = selectedRound + 1;
       onIncentiveModelNextRoundClicked(selectedRound, newRound);
       setSelectedRound(newRound);
@@ -458,9 +293,9 @@ export default function IncentiveModel() {
   };
 
   const handleGoToCurrentRound = () => {
-    onIncentiveModelGoToCurrentClicked(selectedRound, CURRENT_ROUND);
-    setSelectedRound(CURRENT_ROUND);
-    setRoundInputValue(String(CURRENT_ROUND));
+    onIncentiveModelGoToCurrentClicked(selectedRound, currentRound);
+    setSelectedRound(currentRound);
+    setRoundInputValue(String(currentRound));
     setIsDropdownOpen(false);
   };
 
@@ -473,7 +308,7 @@ export default function IncentiveModel() {
   const handleRoundInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const newRound = Number.parseInt(roundInputValue, 10);
-      if (!Number.isNaN(newRound) && newRound >= 1 && newRound <= TOTAL_ROUNDS) {
+      if (!Number.isNaN(newRound) && newRound >= 1 && newRound <= totalRounds) {
         onIncentiveModelRoundInputChanged(newRound);
         setSelectedRound(newRound);
         setIsDropdownOpen(false);
@@ -618,13 +453,13 @@ export default function IncentiveModel() {
                       <button
                         className="incentive-model__round-nav-arrow"
                         onClick={handleNextRound}
-                        disabled={selectedRound >= TOTAL_ROUNDS}
+                        disabled={selectedRound >= totalRounds}
                         aria-label="Next round"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                           <path
                             d="M6 4L10 8L6 12"
-                            stroke={selectedRound >= TOTAL_ROUNDS ? '#94A3B8' : '#64748B'}
+                            stroke={selectedRound >= totalRounds ? '#94A3B8' : '#64748B'}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -634,7 +469,7 @@ export default function IncentiveModel() {
                     </div>
                     <span className="incentive-model__round-of-text">
                       <span className="incentive-model__round-of-label">of</span>
-                      <span className="incentive-model__round-total">{TOTAL_ROUNDS}</span>
+                      <span className="incentive-model__round-total">{totalRounds}</span>
                     </span>
                   </div>
 

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import PastRoundComponent from '@/components/page/aligement-assets/rounds/past-round-component';
 import { currentRoundData } from '@/components/page/aligement-assets/rounds/data';
-import { getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
+import { getCurrentRoundStats, getRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
 import { IPastRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 import styles from './page.module.css';
 
@@ -28,7 +28,6 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
 
   return {
     meta: {
-      roundId: stats.roundId,
       roundNumber: stats.roundNumber,
       isCurrentRound: stats.isCurrentRound,
       month: stats.month,
@@ -64,15 +63,27 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
   // Guard: not a valid integer
   if (isNaN(roundNumber) || roundNumber < 1) notFound();
 
-  const { data: stats } = await getRoundStats(roundNumber);
+  // Fetched alongside the viewed round's own stats: the page needs to know
+  // the live current-round number too (for the points-dashboard round
+  // selector), not just whether roundNumber itself is current.
+  const [{ data: stats }, { data: current }] = await Promise.all([
+    getRoundStats(roundNumber),
+    getCurrentRoundStats(),
+  ]);
   if (!stats) notFound();
 
   // Pointing at the live current round → redirect to the canonical current-round URL
   if (stats.isCurrentRound) redirect('/alignment-asset');
 
+  // If the live current-round lookup fails, fall back to the round already
+  // being viewed (this stats fetch above already succeeded) rather than a
+  // hand-maintained number that can drift — this value is display-only
+  // (points-dashboard round selector bound), not load-bearing.
+  const currentRoundNumber = current?.roundNumber ?? stats.roundNumber;
+
   return (
     <div className={styles.pastRound}>
-      <PastRoundComponent pastRoundData={mapStatsToPastRoundData(stats)} />
+      <PastRoundComponent pastRoundData={mapStatsToPastRoundData(stats)} currentRoundNumber={currentRoundNumber} />
     </div>
   );
 }

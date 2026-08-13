@@ -17,7 +17,6 @@ export const currentRoundData: CurrentRoundData = {
   // Meta Information
   // ============================================================================
   meta: {
-    roundId: 'round-19-aug-2026',
     roundNumber: 19,
     isCurrentRound: true,
     lastUpdated: '2026-08-11T00:00:00'

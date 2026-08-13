@@ -13,7 +13,6 @@ import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
-import { currentRoundData } from './data';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -26,8 +25,7 @@ interface CurrentRoundComponentProps {
   currentRound?: number;
   totalRounds?: number;
   onRoundChange?: (round: number) => void;
-  /** Optional: Override the default data with custom data */
-  data?: CurrentRoundData;
+  data: CurrentRoundData;
   /** Raw leaderboard API response; entries are split by type in the component */
   leaderboardResponse?: LeaderboardApiResponse;
 }
@@ -37,7 +35,7 @@ interface CurrentRoundComponentProps {
  * Uses master JSON data from ./data/current-round.data.ts
  */
 export default function CurrentRoundComponent({
-  data = currentRoundData,
+  data,
   leaderboardResponse,
 }: CurrentRoundComponentProps) {
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);

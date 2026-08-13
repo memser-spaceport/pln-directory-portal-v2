@@ -371,7 +371,16 @@ function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string,
 function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const metricLabels = buybacks[0].section.summary.items.map((item) => item.label);
+  // Union of every row's own labels, in first-seen order — so a metric added
+  // to only some rounds still gets a column, and rows are matched by label
+  // rather than position (safe even if a future round's item set or order
+  // ever differs from the others).
+  const metricLabels: string[] = [];
+  buybacks.forEach((entry) => {
+    entry.section.summary.items.forEach((item) => {
+      if (!metricLabels.includes(item.label)) metricLabels.push(item.label);
+    });
+  });
 
   return (
     <div className={`th-accordion ${open ? 'th-accordion--open' : ''}`}>
@@ -419,8 +428,8 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
                   <td className="th-buyback-row__round">
                     Round {entry.roundNumber} · {entry.monthYear}
                   </td>
-                  {entry.section.summary.items.map((item) => (
-                    <td key={item.label}>{item.value}</td>
+                  {metricLabels.map((label) => (
+                    <td key={label}>{entry.section.summary.items.find((item) => item.label === label)?.value ?? '—'}</td>
                   ))}
                   <td>{entry.section.totalFilled ?? '—'}</td>
                 </tr>
@@ -517,12 +526,6 @@ function Donut({
   );
 }
 
-// The date of the next auction is a schedule decision, not a result, so no
-// completed buyback carries it and the trust dataset's own copy has gone
-// stale. Hardcoded here until plaa-service publishes the schedule — this
-// belongs in the data layer, not in a component.
-const NEXT_ANTICIPATED_BUYBACK = 'September 2026';
-
 /**
  * The three capstone tiles. Last Clearing Price and Date come from the newest
  * completed auction rather than data.buybackMetrics: both surfaces claim to
@@ -530,23 +533,25 @@ const NEXT_ANTICIPATED_BUYBACK = 'September 2026';
  * auction record and drift behind it, while the accordion below reads the
  * auction record directly. Only a page with no completed auction at all falls
  * back to the dataset's figures.
+ *
+ * "Next Anticipated" always comes from data.buybackMetrics regardless of
+ * branch — it's a schedule decision, not an auction result, so it's never
+ * part of the completed-auction record and has no other source. The backend
+ * derives it live from the Buyback table's anticipated=true row (see
+ * plaa-service's toBuybackMetrics/'NEXT ANTICIPATED BUYBACK').
  */
 function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): BuybackMetric[] {
   const latest = buybacks[0]; // completed buybacks arrive newest first
   const clearingPrice = latest?.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
+  const nextAnticipated = data.buybackMetrics.find((m) => m.label === 'NEXT ANTICIPATED BUYBACK')?.value ?? '—';
 
-  const metrics: BuybackMetric[] =
-    latest && clearingPrice
-      ? [
-          { label: 'Last Clearing Price', value: clearingPrice },
-          { label: 'Date', value: latest.monthYear },
-          { label: 'Next Anticipated', value: '' },
-        ]
-      : data.buybackMetrics;
-
-  return metrics.map((metric) =>
-    metric.label === 'Next Anticipated' ? { ...metric, value: NEXT_ANTICIPATED_BUYBACK } : metric,
-  );
+  return latest && clearingPrice
+    ? [
+        { label: 'Last Clearing Price', value: clearingPrice },
+        { label: 'Date', value: latest.monthYear },
+        { label: 'Next Anticipated', value: nextAnticipated },
+      ]
+    : data.buybackMetrics;
 }
 
 export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {

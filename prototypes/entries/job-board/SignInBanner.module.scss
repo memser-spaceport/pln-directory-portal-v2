@@ -1,0 +1,79 @@
+@use 'styles/media';
+
+/* The slot only — everything the banner looks like lives in production's own
+   `Welcome.module.scss`, imported verbatim by the component.
+
+   Lines the block up with the board's cards: `JobsContent.module.scss .list` is
+   inset 8px on mobile and flush from 1024 up. Vertical rhythm needs nothing —
+   `JobsContent .root` is a 16px-gap column and the banner is one of its children. */
+.slot {
+  padding: 0 8px;
+}
+
+@include media.breakpoint-1024 {
+  .slot {
+    padding: 0;
+  }
+}
+
+/* The criteria read-back. 600 rather than the browser's default 700, matching the
+   weight `MatchNudgeStrip` gives the same string — emphasis by weight alone, so
+   it doesn't start reading as a link. */
+.criteria {
+  font-weight: 600;
+}
+
+/* The pinned (rail-narrowed) state. Deliberate simplification of `Welcome`, not a
+   restyle of it: the card, type and CTA are still production's, and only the
+   height comes down — 20px of padding around a title that is no longer there
+   would leave the strip taller than the row it contains. */
+.condensed.condensed {
+  padding: 12px 20px;
+}
+
+/* One line, truncated rather than wrapped: a long selection ("Engineering ·
+   Senior · Lead · Remote · Berlin") must not grow the strip it's pinned inside.
+   Desktop only — below 1024 the banner isn't pinned and has the room to wrap. */
+@include media.breakpoint-1024 {
+  .oneLine {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Parks under the header, at the same offset as every other sticky rail in the
+     app (DashboardPagesLayout's filter column, the home page's NewsRail), so the
+     things that hold position all hold it at the same height.
+
+     The 16px of air above the strip is *padding on the slot*, not a larger
+     `top`. Offsetting with `top` leaves a 16px transparent gap between the
+     header and the sticky element, and scrolling cards show through it — a
+     sliver of a moving card above a pinned one reads as a rendering fault.
+     Carrying the gap as padding over the page's own background means the strip
+     sweeps everything between itself and the header.
+
+     z-index sits under PrototypeNav's `.headerShell` (5) so the header always
+     wins, and above the cards so the strip isn't scrolled through. The refer
+     popover (z-index 20) still clears it. */
+  .pinned {
+    position: sticky;
+    top: var(--app-header-height, 80px);
+    z-index: 4;
+    padding-top: 16px;
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  /* Pinned, the strip is a white card holding still over white cards moving
+     underneath, and `Welcome`'s 1px hairline isn't enough edge to tell them
+     apart — the top row of the card behind reads as the strip's own last line.
+     Same rgba family as `Welcome`'s shadow, just enough spread to separate the
+     layers. Only while pinned: unpinned it's in the flow and needs nothing. */
+  .pinned .condensed {
+    box-shadow: 0 2px 8px rgba(14, 15, 17, 0.08);
+  }
+}
+
+/* Below 1024 the banner stays in the flow. `MobileFilterWrapper` already sticks
+   at `top: var(--app-header-height)` with z-index 4, and two things competing for
+   the same shelf would simply cover each other — the filter pill is a control,
+   the banner is an offer, so the control keeps the shelf. */

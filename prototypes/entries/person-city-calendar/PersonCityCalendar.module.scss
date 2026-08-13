@@ -1,0 +1,82 @@
+@use 'styles/media';
+
+/* The grey the real member/team pages sit on. */
+.backdrop {
+  background-color: #f1f5f9;
+  min-height: 100vh;
+}
+
+.tabBar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--background-base-white, #fff);
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.tabBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1244px;
+  margin: 0 auto;
+  padding: 0 16px;
+
+  /* Five tabs no longer fit a phone, and the base-ui tablist doesn't scroll
+     itself — the last two were being clipped and were unreachable. Scroll the
+     strip rather than wrapping it: a two-row tab bar reads as two groups. */
+  /* Descendant, not child: Tabs wraps the tablist in its own `.root`. */
+  [role='tablist'] {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex-shrink: 0;
+    }
+  }
+}
+
+/* The route each tab stands for, so placement is never inferred from layout. */
+.routeStrip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 6px 0;
+  min-width: 0;
+
+  @include media.mobile-only {
+    align-items: flex-start;
+    padding-bottom: 10px;
+  }
+}
+
+.route {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.anchor {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 11px;
+  line-height: 15px;
+  text-align: right;
+  max-width: 460px;
+
+  @include media.mobile-only {
+    text-align: left;
+  }
+}

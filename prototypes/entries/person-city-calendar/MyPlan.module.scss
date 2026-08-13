@@ -1,0 +1,468 @@
+@use 'styles/media';
+
+.root {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0 0 4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.headVisibility {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headVisibilityLabel {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+.calendarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ editor */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.editorHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editorTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.fieldRow {
+  display: flex;
+  gap: 12px;
+}
+
+.label {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.optional {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-weight: 400;
+}
+
+/* The shared control style — Note, Arrive, Leave and the visibility select all
+   measure the same.
+   16px, not the DS 14px: app/globals.scss:563-567 sets `.root input { font-size:
+   16px !important }` app-wide (the iOS zoom-prevention trick), so every input in
+   this app renders at 16 whatever the component asks for. The rule targets
+   `input` only, which left the <select> as the one 14px control in the row. */
+.dateInput,
+.textInput,
+.select {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(203, 213, 225, 0.5));
+  background: var(--background-base-white, #fff);
+  font-size: 16px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  outline: none;
+  width: 100%;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-neutral-strong, #5e718d);
+    box-shadow: 0 0 0 4px var(--transparent-dark-12, rgba(27, 56, 96, 0.12));
+  }
+
+  &::placeholder {
+    color: var(--foreground-neutral-disabled, #afbaca);
+  }
+
+  &:disabled {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: not-allowed;
+  }
+}
+
+/* Select only: no platform arrow — `.selectCaret` draws the DS one instead, and
+   the extra right padding clears it. */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+}
+
+/* Holds the overlaid chevron; the select fills it. */
+.selectWrap {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.selectCaret {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rangeEcho {
+  margin: -6px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.visibilityRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Marks an affordance that exists to fix the model but does nothing yet. */
+.soonTag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.editorActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.primaryBtn {
+  height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--Neutral-White, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--foreground-brand-hover, #1a45e6);
+  }
+
+  &:disabled {
+    background: var(--transparent-dark-12, rgba(27, 56, 96, 0.12));
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    cursor: not-allowed;
+  }
+}
+
+.ghostBtn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-error-primary, #d63a3a);
+  }
+}
+
+/* -------------------------------------------------------------------- rail */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow: 0 1px 2px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.railTitle {
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.railCount {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.railHint {
+  margin: -8px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.railSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.railSectionTitle {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.railEmpty {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.tripList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Stacked rather than side-by-side: inside the profile section the rail is
+   ~300px, and a Confirm button on the same line squeezes the city + event badge
+   into two-line wraps. */
+.tripRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+.tripRowActive {
+  border-color: var(--foreground-brand-primary, #1b4dff);
+  box-shadow: 0 0 0 3px var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+}
+
+.tripRowPast {
+  opacity: 0.6;
+}
+
+.tripMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tripCityRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tripCity {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.tripCountry {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tripDates {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+.tripNote {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  font-style: italic;
+}
+
+.tripBadges {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.confirmBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  align-self: flex-start;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--Neutral-White, #fff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--foreground-brand-hover, #1a45e6);
+  }
+}

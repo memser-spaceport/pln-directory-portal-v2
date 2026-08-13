@@ -56,8 +56,6 @@ function PinFilledIcon(props: SVGProps<SVGSVGElement>) {
 interface TopStoryCardProps {
   story: ITeamNewsItem;
   top: TopStory;
-  /** "Picked by the network team" / "Selected by AI from 47 stories this week". */
-  attribution: string;
   following: boolean;
   onToggleFollow: () => void;
   likeCount: number;
@@ -65,6 +63,11 @@ interface TopStoryCardProps {
   onToggleLike: () => void;
   commentCount: number;
   onOpen: () => void;
+  /**
+   * Renders `top.longSummary` as paragraphs in place of the one-line teaser. Set
+   * by the single-story version of the block, which has the room for it.
+   */
+  expanded?: boolean;
   /** Hidden on the "today" spine, where this story never reaches the feed. */
   className?: string;
 }
@@ -81,7 +84,6 @@ interface TopStoryCardProps {
 export function TopStoryCard({
   story,
   top,
-  attribution,
   following,
   onToggleFollow,
   likeCount,
@@ -89,6 +91,7 @@ export function TopStoryCard({
   onToggleLike,
   commentCount,
   onOpen,
+  expanded = false,
   className,
 }: TopStoryCardProps) {
   const weekOf = new Date(top.weekOf).toLocaleDateString('en-US', WEEK_FORMAT);
@@ -104,10 +107,11 @@ export function TopStoryCard({
             and sparkles would claim it was AI. */}
         <span className={local.topBadge}>
           <PinFilledIcon className={local.topBadgeIcon} aria-hidden />
-          Top stories
+          {/* Singular in the one-story version — the plural exists because the
+              block normally carries three, and it stops being true here. */}
+          {expanded ? 'Top story' : 'Top stories'}
         </span>
         <span className={local.topWeek}>Week of {weekOf}</span>
-        <span className={local.topAttribution}>{attribution}</span>
       </div>
 
       <div
@@ -144,14 +148,29 @@ export function TopStoryCard({
         </div>
 
         <h2 className={local.topTitle}>{story.title}</h2>
-        {story.summary && <p className={local.topSummary}>{story.summary}</p>}
+        {/* One pick means the space two runner-up rows used to take goes back into
+            the pick — so the teaser becomes a written body rather than a longer
+            clamp of the same sentence. */}
+        {expanded
+          ? top.longSummary.map((section) => (
+              <div key={section.heading ?? 'lede'} className={local.topSection}>
+                {section.heading && <h3 className={local.topSubhead}>{section.heading}</h3>}
+                {section.paragraphs.map((para) => (
+                  <p key={para.slice(0, 40)} className={local.topSummary}>
+                    {para}
+                  </p>
+                ))}
+              </div>
+            ))
+          : story.summary && <p className={local.topSummary}>{story.summary}</p>}
 
         {/* The "Why this made the top" reasoning block and the "Also considered"
-            disclosure both used to sit here. The runners-up are visible rows under
-            this card in `TopStoriesBlock` now, and the reasoning was cut — the
-            eyebrow's attribution line ("Picked by the network team" / "Selected by
-            AI from 47 stories this week") is what still says who chose and on what
-            basis. `TopStory.why` stays in the mock because the email digest uses it. */}
+            disclosure both used to sit here; the runners-up are visible rows under
+            this card in `TopStoriesBlock` now. The eyebrow's attribution line
+            ("Picked by the network team") is gone too — the pin and "Top stories"
+            already say this is a pick, and a byline for it was more chrome than the
+            band could carry. `CURATION_ATTRIBUTION` and `TopStory.why` stay in the
+            mock because the email digest still states both. */}
 
         <div className={clsx(v0.footer, local.topFooter)}>
           <span className={v0.source}>

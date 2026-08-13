@@ -1,0 +1,87 @@
+@use 'styles/media';
+
+/* Sizes transcribed from the production member card so the at-home state is
+   pixel-identical: components/page/members/MemberCard/MemberCard.module.scss
+   .locationWrapper (flex, gap 4px) + .tertiaryText (12px / 16px, -0.2px). */
+
+.root {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Both states share one row: icon + text side by side, 4px gap, exactly like
+   production's `.locationWrapper`. The column on `.root` exists only so the
+   optional "Home: …" hint can sit underneath. */
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.row > svg {
+  flex-shrink: 0;
+}
+
+.text {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Away is the brand tint, matching the plane glyph, so the two read as one
+   token rather than a coloured icon beside grey text. */
+.awayText {
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+}
+
+.homeHint {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+}
+
+/* ---- variants ---- */
+
+/* The member card: constrained exactly like production's `.tertiaryText`,
+   including its 220px widening at breakpoint-1024 where the card is 289px. */
+.card {
+  .text {
+    max-width: 144px;
+
+    @include media.breakpoint-1024 {
+      max-width: 220px;
+    }
+  }
+}
+
+/* The profile header has room for both lines and left-aligns. */
+.header {
+  align-items: flex-start;
+
+  .text {
+    font-size: 14px;
+    line-height: 20px;
+    max-width: 320px;
+  }
+}
+
+/* Inside a list row — left aligned, no width clamp. */
+.inline {
+  align-items: flex-start;
+
+  .text {
+    max-width: none;
+  }
+}

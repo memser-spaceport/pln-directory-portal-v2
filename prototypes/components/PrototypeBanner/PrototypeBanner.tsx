@@ -2,6 +2,9 @@ import Link from 'next/link';
 import s from './PrototypeBanner.module.scss';
 import { CommentLayerMount } from '@/prototypes/comment-layer/CommentLayerMount';
 
+// Review-comment widget is hidden for now — flip to true to bring it back.
+const SHOW_COMMENT_LAYER = false;
+
 type Props = {
   title?: string;
 };
@@ -9,7 +12,7 @@ type Props = {
 export function PrototypeBanner({ title }: Props) {
   return (
     <>
-      <CommentLayerMount />
+      {SHOW_COMMENT_LAYER && <CommentLayerMount />}
       <div className={s.banner} role="status">
         <div className={s.content}>
           <span className={s.badge}>AI prototype</span>

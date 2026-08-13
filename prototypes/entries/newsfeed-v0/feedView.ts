@@ -27,9 +27,20 @@ export interface FeedView {
   category: TeamNewsCategoryId;
   sort: FeedSort;
   query: string;
+  /**
+   * Team uid, or '' for the whole network — the axis every "N new updates" badge
+   * elsewhere in the product lands on (`?team=<uid>`). Optional so the four-axis
+   * literals in newsfeed-v0 stay valid.
+   *
+   * It belongs here rather than beside the feed as its own state because a team
+   * scope is a filter like any other: it must narrow the view, key a
+   * subscription, and be summarizable — "email me when Protocol Labs posts" is
+   * the same object as "email me about Funding".
+   */
+  team?: string;
 }
 
-export const DEFAULT_VIEW: FeedView = { tab: ALL_TAB, category: ALL_CAT, sort: 'following', query: '' };
+export const DEFAULT_VIEW: FeedView = { tab: ALL_TAB, category: ALL_CAT, sort: 'following', query: '', team: '' };
 
 /**
  * A view is "narrowed" when it differs from the default on a *filter* axis.
@@ -37,7 +48,7 @@ export const DEFAULT_VIEW: FeedView = { tab: ALL_TAB, category: ALL_CAT, sort: '
  * production's `useFilterCount` makes with `excludeParams: ['sort']`.
  */
 export const isNarrowed = (v: FeedView): boolean =>
-  v.tab !== ALL_TAB || v.category !== ALL_CAT || v.query.trim() !== '';
+  v.tab !== ALL_TAB || v.category !== ALL_CAT || v.query.trim() !== '' || Boolean(v.team);
 
 const CATEGORY_LABEL: Record<string, string> = {
   ...Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label])),
@@ -49,8 +60,12 @@ const CATEGORY_LABEL: Record<string, string> = {
  * `summarizeFilterState` (utils/job-alerts.utils.ts) uses to title a job alert
  * from its criteria instead of asking the user to name it.
  */
-export function summarizeView(v: FeedView): string {
+export function summarizeView(v: FeedView, teamName?: string): string {
   const parts: string[] = [];
+  // Named first: a team scope is the strongest thing a view can say about
+  // itself. `teamName` is passed by the caller that holds the items — the view
+  // stores the uid, which is stable, not the label.
+  if (v.team) parts.push(teamName || 'This team');
   if (v.tab !== ALL_TAB) parts.push(v.tab);
   if (v.category !== ALL_CAT) parts.push(CATEGORY_LABEL[v.category] ?? v.category);
   if (v.query.trim()) parts.push(`“${v.query.trim()}”`);
@@ -62,11 +77,12 @@ export function summarizeView(v: FeedView): string {
  * Sort is left out for the same reason `isNarrowed` leaves it out — a weekly
  * digest has no sort order, so changing it must not read as a different scope.
  */
-export const viewHashKey = (v: FeedView): string => `tab=${v.tab}&cat=${v.category}&q=${v.query.trim().toLowerCase()}`;
+export const viewHashKey = (v: FeedView): string =>
+  `tab=${v.tab}&cat=${v.category}&q=${v.query.trim().toLowerCase()}&team=${v.team ?? ''}`;
 
 // ---------- URL round-trip ----------
 
-const PARAM = { tab: 'tab', category: 'cat', sort: 'sort', query: 'q' } as const;
+const PARAM = { tab: 'tab', category: 'cat', sort: 'sort', query: 'q', team: 'team' } as const;
 
 /** Writes only this view's keys into `params`, deleting the ones at default. */
 export function writeViewParams(params: URLSearchParams, v: FeedView): URLSearchParams {
@@ -77,6 +93,7 @@ export function writeViewParams(params: URLSearchParams, v: FeedView): URLSearch
   set(PARAM.category, v.category, v.category === DEFAULT_VIEW.category);
   set(PARAM.sort, v.sort, v.sort === DEFAULT_VIEW.sort);
   set(PARAM.query, v.query.trim(), v.query.trim() === '');
+  set(PARAM.team, v.team ?? '', !v.team);
   return params;
 }
 
@@ -91,6 +108,7 @@ export function readViewParams(params: URLSearchParams): FeedView | null {
     category: (params.get(PARAM.category) as TeamNewsCategoryId) || DEFAULT_VIEW.category,
     sort: sort === 'latest' || sort === 'popular' || sort === 'following' ? sort : DEFAULT_VIEW.sort,
     query: params.get(PARAM.query) || '',
+    team: params.get(PARAM.team) || '',
   };
 }
 

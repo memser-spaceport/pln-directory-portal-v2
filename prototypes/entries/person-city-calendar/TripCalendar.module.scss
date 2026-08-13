@@ -1,0 +1,157 @@
+@use 'styles/media';
+
+/* Deltas on top of production's `.calendarInline`, which supplies the border,
+   radius, navigation, weekday header and range-selection styling. */
+/* Compact: the grid shares a screen with the trip editor below it, so it is
+   tightened from production's dropdown proportions — smaller nav, tighter
+   tiles — to keep "Add a trip" above the fold. */
+.grid {
+  /* Long city labels are allowed to bleed across the tiles they cover — that is
+     what makes a multi-day trip read as one bar — but they must stop at the
+     calendar edge. */
+  overflow: hidden;
+  max-width: 380px;
+  padding: 12px;
+  border-radius: 12px;
+
+  /* Column, so the card can be stretched to match the editor beside it and the
+     legend still sits on its bottom edge rather than floating mid-card. */
+  display: flex;
+  flex-direction: column;
+
+  :global(.react-calendar__navigation) {
+    height: 36px;
+    padding-bottom: 4px;
+
+    :global(.react-calendar__navigation__label) {
+      font-size: 14px;
+    }
+  }
+
+  :global(.react-calendar__month-view__weekdays) {
+    font-size: 11px;
+    padding-bottom: 4px;
+  }
+
+  :global(.react-calendar__month-view__days__day) {
+    font-size: 12px;
+  }
+
+  /* Room under each day number for the trip bar. Production tiles are
+     `padding: 12px 4px` (DateRangePicker.module.scss:266); tightened here and
+     given bottom room for the band. */
+  :global(.react-calendar__tile) {
+    position: relative;
+    padding: 6px 2px 16px;
+    line-height: 18px;
+  }
+
+  /* The tile stays interactive for drag-select; the bar layer must not eat it. */
+  :global(.react-calendar__tile) > :global(.react-calendar__tile__content),
+  :global(.react-calendar__month-view__days__day) abbr {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+.bandLayer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  height: 12px;
+  pointer-events: none;
+}
+
+/* One segment of a trip. Adjacent tiles' segments butt together into a
+   continuous bar; only the true start and end get the pill caps — the same
+   9999px / 0 geometry production uses for `--rangeStart` / `--range` /
+   `--rangeEnd` (DateRangePicker.module.scss:312-334). */
+.bar {
+  position: absolute;
+  inset: 0;
+  background: var(--transparent-brand-12, rgba(27, 77, 255, 0.12));
+  border-radius: 0;
+}
+
+.barStart {
+  left: 2px;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+}
+
+.barEnd {
+  right: 2px;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+
+/* Not yet confirmed (came from an event RSVP): dashed outline instead of a
+   solid fill, so "we think you'll be here" is visibly weaker than "you said so". */
+.barUnconfirmed {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--transparent-brand-8, rgba(27, 77, 255, 0.08)),
+    var(--transparent-brand-8, rgba(27, 77, 255, 0.08)) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  box-shadow: inset 0 0 0 1px var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+}
+
+/* The city name, hanging from the first tile of the trip in each week row and
+   allowed to run across the bar it labels. */
+.bandLabel {
+  position: absolute;
+  left: 4px;
+  bottom: 0;
+  height: 12px;
+  line-height: 12px;
+  max-width: 220px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--Neutral-White, #fff);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.bandTile {
+  font-weight: 600;
+}
+
+.bandStart,
+.bandEnd {
+  /* hooks for future per-cap treatment; the bar element carries the visuals */
+}
+
+.todayTile {
+  abbr {
+    font-weight: 700;
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.legend {
+  margin: 12px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  margin-top: auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+
+  strong {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-weight: 600;
+  }
+}

@@ -3,6 +3,29 @@
 // so these win regardless of stylesheet order.
 @use 'styles/media';
 
+// Team name + its latest story on one line, the story wrapping under the name
+// when the header runs out of width (mobile, or a long team name). Baseline
+// alignment so the 14px headline sits on the 24px name's baseline rather than
+// floating at its optical centre.
+.nameRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+
+// "Open in newsfeed" in the story modal's footer. Everything but the underline
+// comes from the Share trigger's own classes (FeedActions .subItem/.button); an
+// anchor just needs telling not to underline.
+.feedLink {
+  text-decoration: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .card .avatar {
   @include media.mobile-only {
     width: 44px;

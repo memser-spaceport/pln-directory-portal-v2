@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 
-import type { ITeamNewsItem, TeamNewsEventType } from '@/types/team-news.types';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTeamLogoFallback';
 
@@ -10,47 +10,43 @@ import { getTeamLogoFallback } from '@/components/page/home/TeamNews/utils/getTe
 import n from '@/components/page/home/TeamNews/components/NewsCard/NewsCard.module.scss';
 import s from './TeamProfile.module.scss';
 
-import { UpvoteButton } from '../newsfeed-v0/V0NewsCard';
+import { LikeButton, CommentButton, CommentCount, ViewCount } from '../newsfeed-v0/FeedActions';
+import { ShareMenu } from '../newsfeed-v0/ShareMenu';
+// The feed's own event maps — one copy, so a story's type can't be labelled or
+// coloured differently on two surfaces.
+import { EVENT_TYPE_LABEL, EVENT_TYPE_DOT_CLASS } from '../newsfeed-v0/eventMeta';
 
 /**
- * Copy-simplified from the homepage NewsCard. The production card embeds
- * `StartConversationButton`, which is store/forum-access/analytics bound, so we
- * swap it for a plain "Discuss" link and keep everything else identical.
- * On top of production: a smaller rail headline, an Upvote button (newsfeed
- * prototype's) next to Discuss, and a summary that clamps to two lines in the
- * rail but renders in full in the "View all" feed (`fullSummary`).
+ * Copy-simplified from the homepage NewsCard, carrying the newsfeed's current
+ * action row rather than its own: Share · Views · Likes · Comments, the same
+ * `FeedActions` components the feed and its top-stories band use, in the same
+ * forum order (Views · Likes · Comments, per `page/forum/Posts`). A story's
+ * like count has to be the same number wherever the story appears, so the rail
+ * reads the feed's components rather than keeping a parallel set — this card
+ * previously showed an Upvote pill and a "Discuss" link that the feed had
+ * already dropped.
+ *
+ * Comments open the story in the full feed instead of expanding inline
+ * (`opensDetail`): the rail is a ~300px column, and a thread unfolding inside
+ * it would push the rest of the news off-screen. Same call the top-stories band
+ * makes for the same reason.
+ *
+ * On top of production: a smaller rail headline, and a summary that clamps to
+ * two lines in the rail but renders in full in the "View all" feed
+ * (`fullSummary`).
  */
-
-const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
-  FUNDING: 'Funding',
-  LAUNCH: 'Launch',
-  PARTNERSHIP: 'Partnership',
-  ANNOUNCEMENT: 'Announcement',
-  MILESTONE: 'Milestone',
-  OTHER: 'Other',
-  HIRING: 'Hiring',
-  DEALS: 'Deals',
-};
-
-const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
-  FUNDING: n.dotFunding,
-  LAUNCH: n.dotLaunch,
-  PARTNERSHIP: n.dotPartnership,
-  ANNOUNCEMENT: n.dotAnnouncement,
-  MILESTONE: n.dotMilestone,
-  OTHER: n.dotOther,
-  HIRING: n.dotOther,
-  DEALS: n.dotOther,
-};
 
 export function NewsCardView({
   item,
   flat,
   hideTeam,
   fullSummary,
-  upvotes = 0,
-  voted = false,
-  onToggleUpvote,
+  views = 0,
+  likes = 0,
+  liked = false,
+  comments = 0,
+  onToggleLike,
+  onOpenComments,
   onShowMore,
 }: {
   item: ITeamNewsItem;
@@ -58,13 +54,28 @@ export function NewsCardView({
   hideTeam?: boolean;
   /** Rail clamps the summary to 2 lines; the full feed renders it in full. */
   fullSummary?: boolean;
-  upvotes?: number;
-  voted?: boolean;
-  onToggleUpvote?: () => void;
+  views?: number;
+  likes?: number;
+  liked?: boolean;
+  comments?: number;
+  onToggleLike?: () => void;
+  /** Opens the story where its thread lives — the full feed, not this column. */
+  onOpenComments?: () => void;
   /** Rail only: "Show more" opens the full feed focused on this item. */
   onShowMore?: () => void;
 }) {
-  const open = () => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
+  /**
+   * Tapping a rail row opens the story in the modal rather than leaving for the
+   * source. A profile rail is somewhere you're mid-task — bouncing the whole
+   * page out to x.com on a stray tap costs the scroll position and everything
+   * you'd read so far, and the tap target here is a whole card. The modal keeps
+   * the trip reversible; the source is still one deliberate click away from
+   * inside it.
+   *
+   * Cards in the modal itself (no `onShowMore`) keep the source open — that's
+   * the end of the chain, and there's nothing further in-app to show.
+   */
+  const open = onShowMore ?? (() => window.open(item.sourceUrl, '_blank', 'noopener,noreferrer'));
 
   // Rail only: trim the teaser to two whole lines and append an inline
   // "… Show more". Measuring against an off-screen gauge lets us cut on a word
@@ -122,7 +133,12 @@ export function NewsCardView({
           hi = mid - 1;
         }
       }
-      setDisplay(words.slice(0, best).join(' ').replace(/[\s,;:]+$/, ''));
+      setDisplay(
+        words
+          .slice(0, best)
+          .join(' ')
+          .replace(/[\s,;:]+$/, ''),
+      );
       setTruncated(true);
     };
 
@@ -135,11 +151,21 @@ export function NewsCardView({
     // Flat rows reuse production's .cardFlat (transparent, hairline divider
     // between rows) — the rail is a list, not a stack of cards.
     <div
-      role="link"
+      // Opens a dialog in the rail, still leaves the page in the modal — the
+      // role has to say which, or the announcement promises the wrong thing.
+      role={onShowMore ? 'button' : 'link'}
       tabIndex={0}
       data-news-uid={item.uid}
       className={flat ? `${n.cardFlat} ${s.newsRowTight}` : `${n.card} ${n.cardOutline}`}
       onClick={open}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        // The card wraps real buttons (like, comments, share) — let them keep
+        // their own keys.
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        open();
+      }}
     >
       {/* On the team's own profile the news is all from this team, so the team
           row is redundant — hide it. The modal / full feed keeps it. */}
@@ -154,7 +180,11 @@ export function NewsCardView({
         </div>
       )}
 
-      <h3 className={`${n.headline} ${s.newsHeadline}`}>{item.title}</h3>
+      {/* `headlineCompact` is production's own 16px/22 rail treatment — the
+          local .newsHeadline carried the same values but lost to .headline
+          (equal specificity, NewsCard.module.scss loads later), so the rail was
+          rendering the homepage's 18px. */}
+      <h3 className={`${n.headline} ${n.headlineCompact} ${s.newsHeadline}`}>{item.title}</h3>
       {item.summary &&
         (fullSummary ? (
           <p className={n.summary}>{item.summary}</p>
@@ -198,22 +228,19 @@ export function NewsCardView({
           <span className={n.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
         <span className={s.newsActions} onClick={(e) => e.stopPropagation()}>
-          {onToggleUpvote && <UpvoteButton count={upvotes} voted={voted} onToggle={onToggleUpvote} />}
-          <button type="button" className={s.discuss}>
-            Discuss
-            <ArrowRight />
-          </button>
+          <ShareMenu variant="card" url={item.sourceUrl ?? undefined} />
+          <ViewCount count={views} compact />
+          {onToggleLike && <LikeButton count={likes} liked={liked} onToggle={onToggleLike} />}
+          {/* In the full feed there's nowhere further to open, so the count goes
+              static rather than missing — the same story shouldn't carry a
+              different set of numbers depending on where you're reading it. */}
+          {onOpenComments ? (
+            <CommentButton count={comments} open={false} onToggle={onOpenComments} opensDetail />
+          ) : (
+            <CommentCount count={comments} />
+          )}
         </span>
       </div>
     </div>
   );
 }
-
-const ArrowRight = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="10" viewBox="0 0 11 10" fill="none">
-    <path
-      d="M10.7455 5.06028L6.80805 8.99778C6.68476 9.12106 6.51755 9.19032 6.3432 9.19032C6.16885 9.19032 6.00164 9.12106 5.87836 8.99778C5.75508 8.8745 5.68582 8.70729 5.68582 8.53294C5.68582 8.35859 5.75508 8.19138 5.87836 8.06809L8.69531 5.25223H0.65625C0.482202 5.25223 0.315282 5.18309 0.192211 5.06002C0.0691404 4.93695 0 4.77003 0 4.59598C0 4.42193 0.0691404 4.25501 0.192211 4.13194C0.315282 4.00887 0.482202 3.93973 0.65625 3.93973H8.69531L5.87945 1.12223C5.75617 0.998948 5.68691 0.831738 5.68691 0.657388C5.68691 0.483038 5.75617 0.315829 5.87945 0.192544C6.00274 0.0692602 6.16995 1.83708e-09 6.3443 0C6.51865 0 6.68586 0.0692602 6.80914 0.192544L10.7466 4.13004C10.8078 4.19109 10.8564 4.26363 10.8894 4.34349C10.9225 4.42335 10.9395 4.50895 10.9394 4.59539C10.9393 4.68183 10.9221 4.76739 10.8888 4.84717C10.8556 4.92695 10.8069 4.99937 10.7455 5.06028Z"
-      fill="currentColor"
-    />
-  </svg>
-);

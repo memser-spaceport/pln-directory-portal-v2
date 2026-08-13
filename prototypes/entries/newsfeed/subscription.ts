@@ -20,9 +20,11 @@ export interface Subscription {
   label: string;
   source: 'feed' | 'monitor';
   /**
-   * Present when it came from a feed filter, so the chip beside Sort can put the
-   * reader back into that view in one click. A Monitor subscription has no feed
-   * view to restore.
+   * Present when it came from a feed filter — the view the subscription was made
+   * of. A Monitor subscription has no feed view. Nothing in the toolbar renders it
+   * any more (the saved-filter chip is gone: this object is an email
+   * subscription, not a saved view), it stays the record of which filter the
+   * emails describe.
    */
   view?: FeedView;
 }

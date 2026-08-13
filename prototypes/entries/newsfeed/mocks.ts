@@ -42,6 +42,9 @@ const OFF_FOCUS_LOGOS: Record<string, string> = {
   'exo-labs': '/icons/technology/sourcecred.svg',
   'proprio-labs': '/icons/technology/fvm.svg',
   'kinetic-foundry': '/icons/technology/filecoin.svg',
+  // No bacalhau.svg ships in public/icons/technology, so it's deliberately absent
+  // here — `teamLogoUrl` stays null and the feed card draws its monogram
+  // fallback, which is what the teams grid shows for it too.
 };
 
 function offFocus(
@@ -144,6 +147,48 @@ export const OFF_FOCUS_ITEMS: ITeamNewsItem[] = [
       'The dataset covers 400 household objects across twelve gripper types, with provenance for every episode. Released alongside a reproduction harness.',
     sourceDomain: 'proprio.dev',
     tags: ['robotics', 'datasets'],
+  }),
+
+  /**
+   * Bacalhau, ported from the badge fixtures (`news-shared/mockTeamNews.ts`
+   * NEWS_BY_TEAM.bacalhau) so the feed actually carries the team the teams grid
+   * and the job board both badge.
+   *
+   * Without a cluster here there is no `[data-feed-team="bacalhau"]` anchor, so
+   * `?focus=bacalhau` polls for ~2s and silently gives up — the reader lands on
+   * a feed holding none of the stories they clicked. Off-focus is the right home:
+   * bacalhau sits in no focus area, and these belong to this entry rather than
+   * the shared newsfeed-v0 corpus.
+   *
+   * BOTH stories have to be here, not just the latest. `getTeamNews` returns the
+   * curated match *instead of* the fixtures, so porting one would quietly drop
+   * the grid badge from "2" to "1".
+   */
+  offFocus({
+    uid: 'bac-news-1',
+    teamUid: 'bacalhau',
+    teamName: 'Bacalhau',
+    eventType: 'FUNDING',
+    eventDate: '2026-08-12T09:00:00.000Z',
+    title: 'Bacalhau raises a $9M seed to run compute where the data already lives',
+    summary:
+      'The round is led by an infrastructure fund, with participation from several storage-provider operators. The team says the money goes to a managed offering and roughly doubling headcount.',
+    sourceUrl: 'https://techcrunch.com/bacalhau-seed',
+    sourceDomain: 'techcrunch.com',
+    tags: ['compute', 'data'],
+  }),
+  offFocus({
+    uid: 'bac-news-2',
+    teamUid: 'bacalhau',
+    teamName: 'Bacalhau',
+    eventType: 'PARTNERSHIP',
+    eventDate: '2026-07-17T09:00:00.000Z',
+    title: 'Bacalhau joins a genomics consortium to process sequencing data in place',
+    summary:
+      'Pilot sites in Lisbon and Singapore will run jobs next to the sequencers instead of shipping data out. Keeping patient data in place is what let the consortium clear its own review board.',
+    sourceUrl: 'https://wired.com/bacalhau-genomics',
+    sourceDomain: 'wired.com',
+    tags: ['compute', 'genomics'],
   }),
 ];
 
@@ -403,6 +448,17 @@ export interface TopStory {
    * pick reads as arbitrary, and an arbitrary pick costs trust in the whole feed.
    */
   why: string;
+  /**
+   * The single-story version's body, as sections. Only that version reads it —
+   * with three stories in the block there is no room, and with one there is
+   * nothing else to spend the space on.
+   *
+   * Subheads exist because past three or four paragraphs an unbroken column stops
+   * being scannable, and the block's whole job is to be readable at a glance
+   * first and in depth second. The opening section carries no heading: a reader
+   * should get the story before they get its structure.
+   */
+  longSummary: Array<{ heading?: string; paragraphs: string[] }>;
   /** How many candidates the pick was made from — sizes the judgement. */
   consideredCount: number;
   /**
@@ -424,6 +480,37 @@ export const TOP_STORY: TopStory = {
   weekOf: '2026-07-27T00:00:00.000Z',
   subject: 'Prime Intellect raises $18M — plus 6 more from the network',
   why: 'Largest raise in the network this quarter, and the first time a decentralized-training team has shipped workloads onto two portfolio networks at once. Covered by four outlets in 48 hours.',
+  /**
+   * The single-story version's body. One pick means the space that carried two
+   * runner-up rows goes back into the pick itself — so this is what the editor
+   * writes instead of a headline and a clamped teaser: what happened, who it
+   * touches in the network, and what to watch next.
+   */
+  longSummary: [
+    {
+      paragraphs: [
+        'The largest raise in the network this quarter, led by existing backers. It funds a scheduler that splits training runs across volunteer and spot GPU capacity, with verifiable checkpoints between stages — so a job can resume on different hardware without trusting the machine that ran it.',
+      ],
+    },
+    {
+      heading: 'What is already running',
+      paragraphs: [
+        'Lattice Compute is contributing idle capacity between its own jobs; Ritual is routing through the shared inference marketplace it opened this week. That makes Prime Intellect the first decentralized-training team to ship onto two portfolio networks at once.',
+      ],
+    },
+    {
+      heading: 'Why it matters',
+      paragraphs: [
+        'Decentralized training has had a credibility problem — plenty of schedulers, little evidence anyone trains anything real on them. Two live integrations inside one network is the closest thing to that evidence so far.',
+      ],
+    },
+    {
+      heading: 'What to watch',
+      paragraphs: [
+        'Public sign-ups follow in the autumn. The team opened nine roles the week after the raise, weighted toward ML infrastructure — a pattern that reads as scaling the scheduler, not the research bet.',
+      ],
+    },
+  ],
   consideredCount: 47,
   // x2 = Ritual × Lattice inference marketplace, n1 = IPFS retrieval latency.
   // One untagged, one Infrastructure — so the block spans the focus taxonomy the
@@ -473,4 +560,3 @@ export const CURATED_SUGGESTED_TEAMS: CuratedSuggestedTeam[] = [
     reason: 'Same focus area as Lattice Compute',
   },
 ];
-

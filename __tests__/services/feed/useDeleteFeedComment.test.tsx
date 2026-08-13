@@ -5,6 +5,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 jest.unmock('@tanstack/react-query');
 
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
+import { readCountFloors, writeCountFloor } from '@/services/feed/feedCommentCountFloor';
 import { feedQueryKeys } from '@/services/feed/constants';
 import { deleteFeedComment, FeedWriteError } from '@/services/feed/feed.service';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
@@ -47,6 +48,7 @@ describe('useDeleteFeedComment', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    window.sessionStorage.clear();
     client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   });
 
@@ -102,7 +104,30 @@ describe('useDeleteFeedComment', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.forumTopic).toEqual(forumTopic);
+    // totalReplyCount drops with the removed subtree, for the same reason the
+    // add mutation raises it: useReconcileFeedCommentCount re-applies this
+    // field on every thread mount, so a stale value here would undo the delete.
+    expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.forumTopic).toEqual({
+      ...forumTopic,
+      totalReplyCount: 39,
+    });
+  });
+
+  it('LOWERS what it remembers, so the next seed cannot push the count back up', async () => {
+    const itemUid = 'fp_3';
+    writeCountFloor(itemUid, 3);
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+      items: [comment('c-1', itemUid), comment('c-2', itemUid), comment('c-3', itemUid)],
+    });
+    client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { [itemUid]: 3 });
+    deleteFeedCommentMock.mockResolvedValue({ uid: 'c-1', deleted: true });
+
+    const { result } = renderHook(() => useDeleteFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ commentUid: 'c-1' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(readCountFloors()).toEqual({ [itemUid]: 2 });
   });
 
   it('removes a nested reply without disturbing its siblings', async () => {
@@ -182,6 +207,7 @@ describe('useDeleteFeedComment — analytics', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    window.sessionStorage.clear();
     client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   });
 

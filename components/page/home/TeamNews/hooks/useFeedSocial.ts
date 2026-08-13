@@ -8,6 +8,7 @@ import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { useFeedForumPosts } from '@/services/feed/hooks/useFeedForumPosts';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { FEED_FORUM_POST_WINDOW_DAYS, feedQueryKeys } from '@/services/feed/constants';
+import { readCountFloors, writeCountFloor } from '@/services/feed/feedCommentCountFloor';
 import { feedWindowCutoffIso, withinFeedWindow } from '../utils/feedForumPostWindow';
 
 interface UseFeedSocialResult {
@@ -47,23 +48,50 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   const postsQuery = useFeedForumPosts({ enabled: !!currentUser });
 
   // Counts are public — signed-out visitors see them on news items too.
-  useFeedCommentCounts({ uids: newsUids, enabled: true });
+  const countsQuery = useFeedCommentCounts({ uids: newsUids, enabled: true });
 
   // Seed forum-post counts into the single counts entry (their commentCount is
   // embedded in the posts response; the batch endpoint only covers news uids).
   // Existing values win — a count the viewer already bumped by commenting must
   // not be reset by a later posts arrival.
+  //
+  // Watches the counts query too, not just the posts: that query fetches NEWS
+  // uids only and its response REPLACES this entry, so a response landing after
+  // the seed used to wipe every fp_ count for the rest of the session (the
+  // effect depended on `postsData` alone, which never changes again). Re-seeding
+  // on its data is what restores them.
   const postsData = postsQuery.data;
+  const countsData = countsQuery.data;
   useEffect(() => {
     // Optional-chained rather than trusting the type: jsdom tests stub
     // useQuery with a generic data shape.
-    if (!postsData?.items?.length) return;
-    const seed: IFeedCommentCountsResponse = Object.fromEntries(postsData.items.map((p) => [p.uid, p.commentCount]));
+    const posts = postsData?.items;
+    if (!posts?.length) return;
+
+    const cached = queryClient.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts());
+    // Every post already has a count: nothing to seed, nothing to restore.
+    // Checked BEFORE writing because this effect now watches the entry it
+    // writes to.
+    if (posts.every((post) => cached?.[post.uid] !== undefined)) return;
+
+    const floors = readCountFloors();
+    const seed: IFeedCommentCountsResponse = {};
+    for (const post of posts) {
+      const floor = floors[post.uid] ?? 0;
+      // NodeBB's /api/recent can still be reporting a topic as it was before a
+      // reply landed, which is what shows a commented post as "0 Comments".
+      // The remembered floor holds the number up until the listing catches up;
+      // the listing overtaking it is that staleness resolving, so remember the
+      // higher number and let it defend against the next stale response.
+      if (post.commentCount > floor) writeCountFloor(post.uid, post.commentCount);
+      seed[post.uid] = Math.max(post.commentCount, floor);
+    }
+
     queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) => ({
       ...seed,
       ...old,
     }));
-  }, [postsData, queryClient]);
+  }, [postsData, countsData, queryClient]);
 
   // Mid-session revocation: flipping `enabled` false does NOT clear cached data
   // (and a disabled query ignores invalidateQueries) — purge it so a revoked

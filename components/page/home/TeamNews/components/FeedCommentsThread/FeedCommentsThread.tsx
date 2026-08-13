@@ -13,6 +13,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
 import { forumErrorMessage } from '@/services/forum/forum.service';
 import { useFeedComments } from '@/services/feed/hooks/useFeedComments';
+import { useReconcileFeedCommentCount } from '@/services/feed/hooks/useReconcileFeedCommentCount';
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
 import { useDeleteFeedComment } from '@/services/feed/hooks/useDeleteFeedComment';
 import { FEED_COMMENT_MAX_LENGTH } from '@/services/feed/constants';
@@ -183,6 +184,12 @@ export function FeedCommentsThread({
   const isCard = onViewAll !== undefined;
 
   const { data, isPending, isError, errorUpdatedAt, refetch } = useFeedComments(itemUid, { enabled: true });
+  // The card's count badge is built from NodeBB's listing, which can lag a
+  // reply. The topic this thread just fetched is the same source the /forum
+  // page counts from, so opening a thread is what makes the two agree. One call
+  // site covers every surface: the card thread and both modals share this
+  // component.
+  useReconcileFeedCommentCount(itemUid);
   // The hooks report their own analytics, from their options callbacks — those
   // survive the remount a tab or category change causes, which a callback
   // passed to mutate() would not.

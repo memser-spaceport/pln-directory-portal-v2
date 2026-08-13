@@ -90,6 +90,20 @@ describe('feed.service', () => {
       );
     });
 
+    it('asks the browser not to answer from its own cache — the counts here go stale', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [] }) });
+
+      await getFeedForumPosts();
+
+      // Without this, a reload can be served the copy from before the member's
+      // own comment, and only the SECOND reload shows the real count.
+      expect(customFetchMock).toHaveBeenCalledWith(
+        'https://forum.example.com/api/recent',
+        expect.objectContaining({ cache: 'no-store' }),
+        false,
+      );
+    });
+
     it('maps a topic onto the feed shape, carrying tid/mainPid so votes and replies need no lookup', async () => {
       customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
 

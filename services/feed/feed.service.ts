@@ -137,7 +137,17 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
 }
 
 export async function getFeedForumPosts(): Promise<IFeedForumPostsResponse> {
-  const response = await forumFetch('/api/recent');
+  // `no-store`, because the counts on this response go stale in a way a member
+  // notices: comment, reload, and the badge is still showing the pre-comment
+  // number — then correct on the NEXT reload. That "second refresh fixes it"
+  // shape is an HTTP cache serving a copy from before the reply, and React
+  // Query can't help (a reload starts with an empty client cache and asks for
+  // this afresh every time — the browser is what answers from its own store).
+  //
+  // Scoped to this listing rather than all of forumFetch: the thread reads have
+  // their own 60s staleTime and are re-fetched on open, so they don't have the
+  // same problem and shouldn't pay for it.
+  const response = await forumFetch('/api/recent', { cache: 'no-store' });
   if (!response?.ok) throw new Error('Failed to fetch feed forum posts');
 
   const data = await response.json();

@@ -26,6 +26,12 @@ export const EVENT_TYPE_HEX: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: '#475467',
   MILESTONE: '#b54708',
   OTHER: '#475467',
+  // No palette entry of their own, so they take the neutral — the same call
+  // EVENT_TYPE_DOT_CLASS below makes by pointing both at `dotOther`. Consumers
+  // index this map directly by `item.eventType`, so omitting them yields an
+  // undefined kickerColor rather than a fallback.
+  HIRING: '#475467',
+  DEALS: '#475467',
 };
 
 export const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {

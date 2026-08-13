@@ -1,15 +1,10 @@
 @import 'styles/media.scss';
 
-/* The root layout renders the real `SiteHeader` and `MobileBottomNav` above and
-   below every prototype page. Any route using this nav replaces both (that IS
-   the proposal), so the inherited pair is hidden while this stylesheet is
-   loaded — production is untouched. */
-:global(.layout__header),
-:global(#mobile-bottom-nav) {
-  display: none;
-}
+/* The production header/bottom bar this nav replaces are hidden for the whole
+   /prototypes/* subtree — see
+   prototypes/components/PrototypeRouteChrome/PrototypeRouteChrome.module.scss. */
 
-/* Stands in for the production `.layout__header` hidden above: same sticky
+/* Stands in for the production `.layout__header` hidden there: same sticky
    behaviour, height and z-index, so pages that offset sticky rails by
    --app-header-height (DashboardPagesLayout's filter column) still line up. */
 .headerShell {

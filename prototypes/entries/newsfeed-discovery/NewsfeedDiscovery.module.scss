@@ -1,8 +1,9 @@
 @import 'styles/media.scss';
 
-/* The nav pair (and the rule hiding the inherited production header/bottom bar)
-   lives in prototypes/entries/nav-shared/PrototypeNav.module.scss — the job
-   board renders the same proposal, so it is shared rather than copied. */
+/* The nav pair lives in prototypes/entries/nav-shared/PrototypeNav.module.scss —
+   the job board renders the same proposal, so it is shared rather than copied.
+   The rule hiding the inherited production header/bottom bar moved to
+   prototypes/components/PrototypeRouteChrome/. */
 
 /* Page sizing/padding comes from the production home shell
    (app/home/page.module.css); this only supplies the backdrop. */

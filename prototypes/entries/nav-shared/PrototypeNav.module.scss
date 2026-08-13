@@ -1,20 +1,10 @@
 @import 'styles/media.scss';
 
-/* The root layout renders the real `SiteHeader` and `MobileBottomNav` above and
-   below every prototype page. Any route using this nav replaces both (that IS
-   the proposal), so the inherited pair is hidden — production is untouched.
+/* The production header/bottom bar this nav replaces are hidden for the whole
+   /prototypes/* subtree — see
+   prototypes/components/PrototypeRouteChrome/PrototypeRouteChrome.module.scss. */
 
-   Gated on `[data-prototype-chrome]`, which only the nav components below carry:
-   a stylesheet stays in the document after you navigate away from the route that
-   loaded it, so an unconditional rule would keep production's header hidden on
-   /home once you'd visited a prototype. Keying off an element that unmounts with
-   the route makes the rule stop matching the moment the prototype nav is gone. */
-:global(body:has([data-prototype-chrome]) .layout__header),
-:global(body:has([data-prototype-chrome]) #mobile-bottom-nav) {
-  display: none;
-}
-
-/* Stands in for the production `.layout__header` hidden above: same sticky
+/* Stands in for the production `.layout__header` hidden there: same sticky
    behaviour, height and z-index, so pages that offset sticky rails by
    --app-header-height (DashboardPagesLayout's filter column) still line up. */
 .headerShell {

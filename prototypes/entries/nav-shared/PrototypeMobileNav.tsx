@@ -94,7 +94,7 @@ export function PrototypeMobileNav({
   };
 
   return (
-    <div className={clsx(s.wrapper, local.mobileNav)} data-prototype-chrome>
+    <div className={clsx(s.wrapper, local.mobileNav)}>
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
           <NavigationMenu.Item>

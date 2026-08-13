@@ -147,6 +147,13 @@ export const useHomeAnalytics = () => {
     captureEvent(HOME_ANALYTICS_EVENTS.FEATURED_FILTER_CLICKED, params);
   }
 
+  function onFloatingFeedbackButtonClicked(user: IAnalyticsUserInfo | null) {
+    const params = {
+      user,
+    };
+    captureEvent(HOME_ANALYTICS_EVENTS.FLOATING_FEEDBACK_BUTTON_CLICKED, params);
+  }
+
   return {
     featuredSubmitRequestClicked,
     onMemberCardClicked,
@@ -163,5 +170,6 @@ export const useHomeAnalytics = () => {
     onFocusAreaProtocolLabsVisionUrlClicked,
     onIrlLocationClicked,
     onFeaturedFilterClicked,
+    onFloatingFeedbackButtonClicked,
   };
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
@@ -31,15 +31,45 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
   const handleTipLinkClick = (linkText: string, url: string) => {
     onSnapshotTipLinkClicked(linkText, url);
   };
+  // "now" must read the same on the server render and the client's first
+  // paint, or React flags a hydration mismatch on anything derived from it
+  // (this progress bar's width did, by design — SSR and hydration happen at
+  // different instants). Left null through both of those, then filled in by
+  // the effect right after mount; the memo below recomputes once real, with
+  // no visible flash since the placeholder branch matches what a
+  // just-started period would show anyway.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   const { progressPercentage, timeRemaining, dateRangeLabel } = useMemo(() => {
-    const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
+    // Format date range label
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    };
+    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
+    const startDay = start.getDate();
+    const endDay = end.getDate();
+    const year = end.getFullYear();
+
+    // Check if same month
+    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const dateRangeLabel = isSameMonth
+      ? `${startMonth} ${startDay}-${endDay}, ${year}`
+      : `${formatDate(start)} - ${formatDate(end)}`;
+
+    if (!now) {
+      return { progressPercentage: 0, timeRemaining: '', dateRangeLabel };
+    }
+
     // Calculate total duration and elapsed time
     const totalDuration = end.getTime() - start.getTime();
     const elapsedTime = now.getTime() - start.getTime();
-    
+
     // Calculate percentage (clamped between 0 and 100)
     let percentage = 0;
     if (now < start) {
@@ -49,12 +79,12 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     } else {
       percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
     }
-    
+
     // Calculate remaining calendar days (including today)
     const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
     const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-    
+
     let remaining = '';
     if (now > end) {
       remaining = 'Snapshot period has ended';
@@ -65,28 +95,13 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     } else {
       remaining = `${remainingDays} days remaining in current snapshot period`;
     }
-    
-    // Format date range label
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    };
-    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const year = end.getFullYear();
-    
-    // Check if same month
-    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-    const label = isSameMonth 
-      ? `${startMonth} ${startDay}-${endDay}, ${year}`
-      : `${formatDate(start)} - ${formatDate(end)}`;
-    
+
     return {
       progressPercentage: Math.round(percentage * 100) / 100,
       timeRemaining: remaining,
-      dateRangeLabel: label
+      dateRangeLabel
     };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, now]);
 
   return (
     <>

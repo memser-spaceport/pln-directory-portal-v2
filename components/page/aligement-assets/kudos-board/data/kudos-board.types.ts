@@ -27,6 +27,13 @@ export interface ICommunityPool {
   pointsRemaining: number;
   /** False for a viewer with no current roster link: no pool, can't give. */
   eligible: boolean;
+  // Gift-amount limits — same values GiveKudosBodySchema validates against
+  // server-side, the single source (see plaa-service's kudos.schema.ts).
+  pointsMin: number;
+  pointsMax: number;
+  pointsStep: number;
+  messageMin: number;
+  messageMax: number;
 }
 
 export interface ICommunityKudosInput {

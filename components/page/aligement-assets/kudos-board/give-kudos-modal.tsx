@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 
-import { communityKudosSchema, type CommunityKudosFormValues } from '@/schema/kudos-forms';
-import { COMMUNITY_TRACK, communityGiftOptions } from './data/kudos-board.data';
+import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
+import { communityGiftOptions } from './data/kudos-board.data';
 import { useGiveCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
 import type { IUserSummary } from './data/kudos-board.types';
@@ -16,6 +16,8 @@ interface IGiveKudosModalProps {
   onClose: () => void;
   recipients: IUserSummary[];
   poolRemaining: number;
+  /** Gift-amount limits, live from /kudos/community-pool — see ICommunityPool. */
+  limits: CommunityKudosLimits;
   /** The picker is resolved server-side and can take a moment on a cold cache. */
   recipientsLoading?: boolean;
 }
@@ -25,10 +27,12 @@ export function GiveCommunityKudosModal({
   onClose,
   recipients,
   poolRemaining,
+  limits,
   recipientsLoading = false,
 }: IGiveKudosModalProps) {
   const mutation = useGiveCommunityKudos();
   const analytics = useKudosAnalytics();
+  const schema = useMemo(() => buildCommunityKudosSchema(limits), [limits]);
 
   const {
     control,
@@ -38,7 +42,7 @@ export function GiveCommunityKudosModal({
     reset,
     formState: { errors, isSubmitting, isValid },
   } = useForm<CommunityKudosFormValues>({
-    resolver: zodResolver(communityKudosSchema),
+    resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: { recipientId: '', points: undefined as unknown as number, message: '' },
   });
@@ -65,7 +69,7 @@ export function GiveCommunityKudosModal({
 
   if (!open) return null;
 
-  const giftOpts = communityGiftOptions(poolRemaining);
+  const giftOpts = communityGiftOptions(poolRemaining, limits.pointsMin, limits.pointsMax, limits.pointsStep);
   const selectedRecipientId = watch('recipientId');
   const selectedPoints = Number(watch('points')) || 0;
   const selectedRecipient = recipients.find((r) => r.memberId === selectedRecipientId);
@@ -135,7 +139,7 @@ export function GiveCommunityKudosModal({
           <label className="form-label" htmlFor="points">
             Points to give *{' '}
             <span className="form-hint">
-              {COMMUNITY_TRACK.increment}-point increments, {COMMUNITY_TRACK.minGift}–{COMMUNITY_TRACK.maxGift}
+              {limits.pointsStep}-point increments, {limits.pointsMin}–{limits.pointsMax}
             </span>
           </label>
           <Controller
@@ -180,18 +184,18 @@ export function GiveCommunityKudosModal({
           <label className="form-label" htmlFor="message">
             Your message *{' '}
             <span className="form-hint">
-              {COMMUNITY_TRACK.messageMin}–{COMMUNITY_TRACK.messageMax} characters
+              {limits.messageMin}–{limits.messageMax} characters
             </span>
           </label>
           <textarea
             id="message"
             className="form-control form-textarea"
-            maxLength={COMMUNITY_TRACK.messageMax}
+            maxLength={limits.messageMax}
             placeholder="Recognize what they did and why it mattered. Be specific — great kudos are detailed!"
             {...register('message')}
           />
           <div className="char-count">
-            {message.trim().length} / {COMMUNITY_TRACK.messageMax}
+            {message.trim().length} / {limits.messageMax}
           </div>
           {errors.message && <p className="form-error-inline">{errors.message.message}</p>}
         </div>

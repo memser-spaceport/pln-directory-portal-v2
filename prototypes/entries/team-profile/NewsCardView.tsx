@@ -36,6 +36,28 @@ import { EVENT_TYPE_LABEL, EVENT_TYPE_DOT_CLASS } from '../newsfeed-v0/eventMeta
  * (`fullSummary`).
  */
 
+const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
+  FUNDING: 'Funding',
+  LAUNCH: 'Launch',
+  PARTNERSHIP: 'Partnership',
+  ANNOUNCEMENT: 'Announcement',
+  MILESTONE: 'Milestone',
+  OTHER: 'Other',
+  HIRING: 'Hiring',
+  DEALS: 'Deals',
+};
+
+const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
+  FUNDING: n.dotFunding,
+  LAUNCH: n.dotLaunch,
+  PARTNERSHIP: n.dotPartnership,
+  ANNOUNCEMENT: n.dotAnnouncement,
+  MILESTONE: n.dotMilestone,
+  OTHER: n.dotOther,
+  HIRING: n.dotOther,
+  DEALS: n.dotOther,
+};
+
 export function NewsCardView({
   item,
   flat,

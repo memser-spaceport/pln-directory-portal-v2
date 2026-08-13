@@ -73,16 +73,29 @@ export const investorsFilterParsers = {
   wi2_target_set: parseAsStringLiteral(['all', 'neuro-fund-i', 'gold-co-investors'] as const).withDefault('all'),
   /** Debounced name/email search → API `search`. */
   wi2_q: parseAsString.withDefault(''),
-  /** PL connector MasterProfile uid → API `connectorProfileUid`. */
-  wi2_connector: parseAsString.withDefault(''),
-  /** Single sector filter → API `sector`. */
-  wi2_sector: parseAsString.withDefault(''),
-  /** Path kind chip: founder_bridge | coinvestor_bridge. Empty = off. */
-  wi2_relation_kind: parseAsStringLiteral(['founder_bridge', 'coinvestor_bridge'] as const),
-  /** null = off, true = hopCount=1 (PL direct only). */
-  wi2_direct_only: parseAsBoolean,
+  /** Sector filter (multi-select) → API `sector` (one value per request; OR'd client-side). */
+  wi2_sector: parseAsArrayOf(parseAsString, ',').withDefault([]),
   /** null = off, true = investors with MasterProfile.plBacking. */
   wi2_pl_backer: parseAsBoolean,
+
+  /** "Path via" — path-shape group. Replaces the old quick-filter chips. */
+  wi2_path_kind: parseAsArrayOf(parseAsStringLiteral(['pl_direct', 'founder_bridge', 'coinvestor_bridge'] as const), ',').withDefault([]),
+  /** "Path via" — PL member group (connector MasterProfile uids). */
+  wi2_path_members: parseAsArrayOf(parseAsString, ',').withDefault([]),
+  /** "Path via" — founder/co-investor bridge-person group (MasterProfile uids). */
+  wi2_path_bridges: parseAsArrayOf(parseAsString, ',').withDefault([]),
+
+  /**
+   * Legacy path-shape params, superseded by wi2_path_kind/members/bridges above.
+   * Kept read-only for one-time compat: a link carrying only these self-heals into
+   * the new shape on load (see usePathViaFilter) and is never written to again.
+   */
+  /** @deprecated use wi2_path_members */
+  wi2_connector: parseAsString.withDefault(''),
+  /** @deprecated use wi2_path_kind */
+  wi2_relation_kind: parseAsStringLiteral(['founder_bridge', 'coinvestor_bridge'] as const),
+  /** @deprecated use wi2_path_kind (maps to 'pl_direct') */
+  wi2_direct_only: parseAsBoolean,
 };
 
 export const investorsFilterCache = createSearchParamsCache(investorsFilterParsers);

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { NewsRail } from '@/components/page/home/TeamNews/components/NewsRail/NewsRail';
 
@@ -144,49 +144,45 @@ describe('NewsRail', () => {
     expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 
-  it('keeps a followed suggestion visible with Following for 2s, then removes it', () => {
-    jest.useFakeTimers();
+  // The delayed-hide-after-follow behaviour moved into
+  // useDelayedHideFollowedSuggestions when the module gained a second surface;
+  // it has its own test file now. NewsRail just renders the list it is handed.
+  it('renders the suggestions it is given, and drops the modules when renderModules is false', async () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { uid: 'user-1' }, isHydrated: true });
-    const onFollowToggle = jest.fn();
-    const suggestions = [
+    const visibleSuggestions = [
       { uid: 't1', name: 'Banyan Storage', logo: null, reason: 'Storage · 1.2k followers' },
       { uid: 't2', name: 'Helia Labs', logo: null, reason: 'Infrastructure · 890 followers' },
     ];
 
     const { rerender } = render(
       <NewsRail
-        suggestedTeams={suggestions}
+        visibleSuggestions={visibleSuggestions}
         followedTeamUids={new Set()}
-        onFollowToggle={onFollowToggle}
+        onFollowToggle={jest.fn()}
         onPopularItemClick={mockOnPopularItemClick}
       />,
     );
 
     expect(screen.getByText('Banyan Storage')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /follow banyan storage/i }));
-    expect(onFollowToggle).toHaveBeenCalledWith('t1', 'Banyan Storage', false, 'news-rail', {
-      position: 0,
-      reason: 'Storage',
-    });
+    expect(screen.getByText('Helia Labs')).toBeInTheDocument();
 
+    // Below 1200px TeamNews renders these as scrollers instead — the rail must
+    // not also render them, or both would be on screen at once.
     rerender(
       <NewsRail
-        suggestedTeams={suggestions}
-        followedTeamUids={new Set(['t1'])}
-        onFollowToggle={onFollowToggle}
+        visibleSuggestions={visibleSuggestions}
+        followedTeamUids={new Set()}
+        onFollowToggle={jest.fn()}
         onPopularItemClick={mockOnPopularItemClick}
+        renderModules={false}
       />,
     );
 
-    expect(screen.getByRole('button', { name: /following banyan storage/i })).toBeInTheDocument();
-    expect(screen.getByText('Helia Labs')).toBeInTheDocument();
-
-    act(() => {
-      jest.advanceTimersByTime(2000);
-    });
-
-    expect(screen.queryByText('Banyan Storage')).not.toBeInTheDocument();
-    expect(screen.getByText('Helia Labs')).toBeInTheDocument();
-    jest.useRealTimers();
+    // waitFor, not a bare assertion: AnimatePresence plays the card's exit
+    // animation, so it stays mounted for the duration. That is also the one
+    // window in which both surfaces exist — a resize across 1200px, ~280ms.
+    await waitFor(() => expect(screen.queryByText('Banyan Storage')).not.toBeInTheDocument());
+    // The digest card has no scroller counterpart, so it stays at every width.
+    expect(screen.getByText(/Get network news Digest/i)).toBeInTheDocument();
   });
 });

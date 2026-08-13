@@ -14,7 +14,7 @@ async function fetcher(uid: string | undefined) {
     throw new Error('Cannot get auth token');
   }
 
-  const memberInfo = await getMemberInfo(uid);
+  const memberInfo = await getMemberInfo(uid, authToken);
   if (memberInfo.isError) {
     return {
       isError: true,

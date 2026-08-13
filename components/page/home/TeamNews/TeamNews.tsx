@@ -14,6 +14,7 @@ import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/foll
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
 import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -31,7 +32,10 @@ import {
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
+  SHOW_POPULAR_THIS_WEEK,
+  TOP_STORIES_WINDOW_LABEL,
   type TeamNewsCategoryId,
+  SHOW_HIRING_NEWS,
 } from './constants';
 
 import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
@@ -40,59 +44,44 @@ import { dedupeByUid } from './utils/dedupeByUid';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
 import { clusterByTeam } from './utils/clusterByTeam';
+import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
+import { injectFeedSignals } from './utils/injectFeedSignals';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
 import { useFeedSocial } from './hooks/useFeedSocial';
+import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFeedHiring } from './hooks/useFeedHiring';
+import { useFeedDeals } from './hooks/useFeedDeals';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
 
 import { NewsDetailModal } from './components/NewsDetailModal';
 import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
 
 import { NewsGroupCard } from './components/NewsGroupCard';
-import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
+import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
+import { HiringCard } from './components/HiringCard/HiringCard';
+import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
+import { ForumPostCard } from './components/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
+import {
+  useDelayedHideFollowedSuggestions,
+  useFeedModulesViewAnalytics,
+} from './components/NewsRail/useSuggestionsModule';
+import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
+import { PopularScroller } from './components/FeedScrollers/PopularScroller';
 import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 
-import s from './TeamNews.module.scss';
-
+import { getSearchInputEl } from './utils/getSearchInputEl';
+import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
+import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
 
-// DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
-// a forwarded ref, so this is the only way to read its live (undebounced)
-// value or focus it programmatically. Centralized so there's one place — not
-// two — that assumes it renders exactly one bare <input>.
-function getSearchInputEl(container: HTMLDivElement | null): HTMLInputElement | null {
-  return container?.querySelector('input') ?? null;
-}
-
-// Shared by searchedItems' useMemo and handleSearch's synchronous result-count
-// computation, so the two never drift into different definitions of "matches".
-function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): boolean {
-  if (!lowerCaseQuery) return true;
-  return (
-    item.teamName.toLowerCase().includes(lowerCaseQuery) ||
-    item.title.toLowerCase().includes(lowerCaseQuery) ||
-    (item.summary?.toLowerCase().includes(lowerCaseQuery) ?? false) ||
-    item.tags.some((t) => t.toLowerCase().includes(lowerCaseQuery))
-  );
-}
-
-// Shared by filteredItems' useMemo and handlePopularItemClick's synchronous
-// category-mismatch check, so the two never drift into different definitions
-// of "matches" — same rationale as matchesTeamNewsQuery above.
-function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
-  if (categoryId === ALL_CAT) return true;
-  // A news item counts as a discussion when it has a forum thread of its own.
-  // Forum posts also live under this pill, but they aren't news items — see
-  // filterFeedForumPosts for that half.
-  if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
-  return item.eventType === categoryId;
-}
+import s from './TeamNews.module.scss';
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
@@ -123,6 +112,10 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // One instance for the whole page: holds every rendered card's dedup/queue
+  // state, regardless of tab/category remounts below it (see the hook's own
+  // unmount-vs-page-load-scoped comments).
+  const { recordVisible } = useTeamNewsImpressions();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -194,6 +187,12 @@ export const TeamNews = ({
 
   const [sort, setSort] = useState<TeamNewsSort>('popular');
 
+  // Both are client-side and non-blocking: the feed renders without them and
+  // the cards pop in, the same arrival forum posts already have. `undefined`
+  // (not loaded / no deals access / request failed) leaves the feed untouched.
+  const { hiring: feedHiring } = useFeedHiring();
+  const { deals: feedDeals } = useFeedDeals();
+
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
@@ -240,6 +239,25 @@ export const TeamNews = ({
     return withDiscussions;
   }, [countForCategory]);
 
+  /**
+   * The same list the pills render, shaped for the mobile "Type:" dropdown.
+   *
+   * Counts fold into the label because `SortDropdown` options are plain text —
+   * there's no separate count slot the way the pill has its own `<span>`.
+   * Empty categories are DROPPED rather than shown disabled: `SortDropdown`
+   * has no disabled state today, and a menu listing choices you can't pick is
+   * worse than a pill row where they're visibly greyed. A category with
+   * nothing in the current window just doesn't appear, matching the pill
+   * row's `isDisabled` rule in spirit (nothing to filter to ⇒ not offered).
+   */
+  const categoryOptions = useMemo(
+    () =>
+      categoriesWithCounts
+        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
+    [categoriesWithCounts],
+  );
+
   const filteredItems = useMemo(() => {
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
     return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
@@ -253,7 +271,32 @@ export const TeamNews = ({
     return filteredItems.filter((i) => matchesTeamNewsQuery(i, q));
   }, [filteredItems, query]);
 
-  const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
+  // The band is network-wide, so it only exists on the unfiltered view: ranking
+  // it inside a focus area or a category pill would make "Top stories" mean
+  // something different on every filter. This one flag drives the band's
+  // visibility, the stream exclusion below, and the rail's Popular dedup — three
+  // separate conditions would drift.
+  const isNarrowedView = activeTab !== ALL_TAB || activeCategory !== ALL_CAT || Boolean(query.trim());
+
+  // Ranked from editorialRank (LLM Top Stories picks), rendered from the live
+  // overlay. Independent of upvote counts so the band stays distinct from
+  // Popular this week. The band exists to sit above a feed, so it only appears
+  // once the window can supply both it and a full first page (TOP_STORIES_MIN_CORPUS).
+  const topStories = useMemo(
+    () => (isNarrowedView ? null : selectTopStories(allItems, TOP_STORIES_MIN_CORPUS)),
+    [isNarrowedView, allItems],
+  );
+  const hasTopStories = Boolean(topStories?.lead);
+
+  // Excluded BEFORE clusterByTeam: pulling items out of already-built clusters
+  // would leave one with a hole, or leave an empty card behind. A team whose
+  // only story is in the band simply produces no cluster.
+  const streamItems = useMemo(
+    () => (topStories && hasTopStories ? searchedItems.filter((i) => !topStories.uids.has(i.uid)) : searchedItems),
+    [searchedItems, topStories, hasTopStories],
+  );
+
+  const clusters = useMemo(() => clusterByTeam(streamItems), [streamItems]);
 
   const sortedClusters = useMemo(
     () => sortTeamNewsClusters(clusters, sort, initialFollowedTeamUids, initialUpvoteCounts),
@@ -271,7 +314,7 @@ export const TeamNews = ({
   // byte-identical to the pre-feature feed) and ranks posts by their frozen
   // query-data likeCount — the live postLikeOverlay is applied at render only,
   // so likes never reorder anything.
-  const entries = useMemo(
+  const rankedEntries = useMemo(
     () =>
       mergeFeedEntries({
         sortedClusters,
@@ -283,8 +326,33 @@ export const TeamNews = ({
     [sortedClusters, visibleForumPosts, sort, initialFollowedTeamUids, initialUpvoteCounts],
   );
 
+  // Hiring roll-ups and deals are slotted in AFTER the ranked merge, never
+  // through it: they carry no popularity signal, so ranking them would mean
+  // inventing one — and under 'popular' (the default) an honest zero would sink
+  // them past pageSize forever. See injectFeedSignals for the full rationale.
+  //
+  // Both are unfiltered by tab/category/search on purpose: neither carries a
+  // focus area or an event type, so every narrowed view drops them. That falls
+  // out of `isNarrowedView` below rather than being re-derived per stream.
+  const entries = useMemo(
+    () =>
+      isNarrowedView
+        ? rankedEntries
+        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+    [rankedEntries, isNarrowedView, feedHiring, feedDeals],
+  );
+
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
+
+  console.log('>>>', visibleEntries);
+
+  // Band is editorialRank; rail is upvotes — they should already diverge, but
+  // still drop any accidental overlap so the same story isn't shown twice.
+  const railPopularItems = useMemo(
+    () => (topStories && hasTopStories ? popularItems.filter((p) => !topStories.uids.has(p.uid)) : popularItems),
+    [popularItems, topStories, hasTopStories],
+  );
 
   // ?news=<uid> ↔ detail-modal sync (declared after the allItems memo — the
   // validator closes over it). All URL writes are history.replaceState; see
@@ -362,6 +430,29 @@ export const TeamNews = ({
     currentUserUid: currentUser?.uid ?? null,
   });
 
+  // Below 1200px the grid drops the rail's column and the sidebar stacks under
+  // the whole feed, which buries Teams-to-follow and Popular about three screens
+  // down. They lift into horizontal rows just under the top-stories band
+  // instead. A JS switch rather than CSS show/hide: NewsRail animates its cards
+  // through AnimatePresence, so a hidden second copy would still mount a motion
+  // tree — and would double-count the view events below.
+  const isBelowDesktop = useIsBelowDesktop();
+
+  // Owned here, not in NewsRail, because both surfaces need the same list AND
+  // the same delayed-hide-after-follow confirm — computing it twice would let
+  // the two drift.
+  const visibleSuggestions = useDelayedHideFollowedSuggestions(suggestedTeams, followedTeamUids);
+
+  const showSuggestionsModule = isLoadingSuggestedTeams || visibleSuggestions.length > 0;
+
+  // Fired from the parent, which mounts exactly one surface, so the count is one
+  // per session at either width.
+  useFeedModulesViewAnalytics({
+    suggestionsShown: showSuggestionsModule && !isLoadingSuggestedTeams ? visibleSuggestions.length : 0,
+    isLoadingSuggestedTeams,
+    popularCount: SHOW_POPULAR_THIS_WEEK ? railPopularItems.length : 0,
+  });
+
   const handleTab = (id: string) => {
     const nextItems = id === ALL_TAB ? allItems : (groups.find((g) => g.focusArea.title === id)?.items ?? []);
     analytics.onTeamNewsTabClicked(id, nextItems.length);
@@ -402,10 +493,23 @@ export const TeamNews = ({
     openNews(item.uid);
   };
 
+  // Top-stories counterpart of handleStoryOpen. Its own event, not
+  // onTeamNewsCardClicked: band items aren't in `visibleEntries`, so that
+  // handler's position lookup would report -1 for every one of them, and the
+  // lead's pull can't be told from a runner-up's without `slot`.
+  const handleTopStoryOpen = (item: ITeamNewsItem, slot: TopStorySlot, position: number) => {
+    analytics.onTopStoryClicked(item, slot, position);
+    if (activePostUid) closePost();
+    openNews(item.uid);
+  };
+
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
   const handleForumPostOpen = (post: IFeedForumPost) => {
-    if (activeNewsUid) closeNews();
+    if (activeNewsUid) {
+      closeNews();
+    }
+
     openPost(post.uid);
   };
 
@@ -718,6 +822,18 @@ export const TeamNews = ({
           })}
         </div>
         <div className={s.filterActions}>
+          {/* Mobile only — `.catRow`'s pill row holds the category filter at
+              every wider breakpoint (see TeamNews.module.scss `.catRow` /
+              `.typeMobile`). Same SortDropdown "Sort by:" already uses, so the
+              two read as one control family on a narrow screen. */}
+          <span className={s.typeMobile}>
+            <SortDropdown
+              sortByLabel="Type:"
+              options={categoryOptions}
+              currentSort={activeCategory}
+              onSortChange={(value) => handleCategory(value as TeamNewsCategoryId)}
+            />
+          </span>
           <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
         </div>
       </div>
@@ -727,13 +843,56 @@ export const TeamNews = ({
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
-          {entries.length === 0 ? (
-            <div className={s.empty}>
-              {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+          {topStories?.lead && (
+            <div className={s.topStories}>
+              <TopStoriesBlock
+                lead={topStories.lead}
+                also={topStories.also}
+                windowLabel={TOP_STORIES_WINDOW_LABEL}
+                followedTeamUids={followedTeamUids}
+                onFollowToggle={handleFollowToggle}
+                onUpvoteToggle={handleUpvoteToggle}
+                onStoryOpen={handleTopStoryOpen}
+                onStoryVisible={recordVisible}
+              />
             </div>
+          )}
+
+          {/* The rail's two modules, lifted to just under the band at widths
+              where the rail itself stacks below the whole feed. Rendered only
+              here — NewsRail drops them at the same breakpoint, so exactly one
+              instance of each is ever on screen. Kept in the rail's own order
+              so the modules don't swap places between widths. */}
+          {isBelowDesktop && (
+            <div className={s.feedScrollers}>
+              {showSuggestionsModule && (
+                <FollowTeamsScroller
+                  suggestions={visibleSuggestions}
+                  followedTeamUids={followedTeamUids}
+                  onFollowToggle={handleFollowToggle}
+                />
+              )}
+              {SHOW_POPULAR_THIS_WEEK && (
+                <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
+              )}
+            </div>
+          )}
+
+          {/* Suppressed when the band is showing: a window whose every story is
+              in the band leaves the stream empty, and "No network news in this
+              filter" directly under three stories reads as a bug. */}
+          {entries.length === 0 ? (
+            !topStories?.lead && (
+              <div className={s.empty}>
+                {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+              </div>
+            )
           ) : (
             <>
-              <div className={s.feed}>
+              {/* The stream, marked so it can be addressed apart from the
+                  top-stories band above it — which renders its own copies of
+                  the same stories. */}
+              <div className={s.feed} data-news-feed-list>
                 {visibleEntries.map((entry, index) => {
                   // Composite key intentionally forces a remount on every tab/category
                   // change so each card's local state (expanded stories, open comment
@@ -756,6 +915,7 @@ export const TeamNews = ({
                           autoExpandStoryUid={
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
+                          onStoryVisible={recordVisible}
                         />
                       );
                     case 'forum':
@@ -769,6 +929,28 @@ export const TeamNews = ({
                           position={index}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
+                          useLink={activeCategory === DISCUSSIONS_CAT}
+                        />
+                      );
+                    case 'hiring':
+                      return SHOW_HIRING_NEWS ? (
+                        <HiringCard
+                          key={key}
+                          group={entry.group}
+                          isFollowing={followedTeamUids.has(entry.group.team.uid)}
+                          onFollowToggle={handleFollowToggle}
+                          onRoleClick={(group, role, rolePosition) =>
+                            analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)
+                          }
+                          onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
+                        />
+                      ) : null;
+                    case 'deal':
+                      return (
+                        <DealCardCompact
+                          key={key}
+                          deal={entry.deal}
+                          onClick={(deal) => analytics.onFeedDealClicked(deal, index)}
                         />
                       );
                     default:
@@ -788,9 +970,10 @@ export const TeamNews = ({
         </div>
         <NewsRail
           initialDigestSettings={initialDigestSettings}
-          popularItems={popularItems}
-          suggestedTeams={suggestedTeams}
+          popularItems={railPopularItems}
           isLoadingSuggestedTeams={isLoadingSuggestedTeams}
+          visibleSuggestions={visibleSuggestions}
+          renderModules={!isBelowDesktop}
           followedTeamUids={followedTeamUids}
           onFollowToggle={handleFollowToggle}
           onPopularItemClick={handlePopularItemClick}
@@ -810,8 +993,9 @@ export const TeamNews = ({
       )}
       {activeForumPost && (
         <ForumPostModal
-          post={activeForumPost}
           onClose={closePost}
+          post={activeForumPost}
+          useLink={activeCategory === DISCUSSIONS_CAT}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

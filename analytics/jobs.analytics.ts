@@ -4,6 +4,17 @@ import { usePostHog } from 'posthog-js/react';
 
 type FilterStateParam = Record<string, unknown>;
 
+export type JobReferShareNetwork = 'linkedin' | 'x' | 'copy_link';
+
+export type JobReferBaseParams = {
+  job_id: string;
+  team_id: string;
+  team_name: string;
+  role_title: string;
+  role_category: string | null;
+  seniority: string | null;
+};
+
 export const useJobsAnalytics = () => {
   const postHog = usePostHog();
 
@@ -23,7 +34,6 @@ export const useJobsAnalytics = () => {
         loggedInUserName,
       });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error(err);
     }
   };
@@ -79,11 +89,7 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_CTA_CLICKED, { ...args });
   };
 
-  const onJobAlertSet = (args: {
-    alert_id: string;
-    filter_state: FilterStateParam;
-    auth_required: boolean;
-  }) => {
+  const onJobAlertSet = (args: { alert_id: string; filter_state: FilterStateParam; auth_required: boolean }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_SET, { ...args });
   };
 
@@ -114,6 +120,85 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_ALERT_EMAIL_LINK_CLICKED, { ...args });
   };
 
+  const onJobReferClicked = (args: JobReferBaseParams & { auth_required: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_CLICKED, { ...args });
+  };
+
+  const onJobReferModalOpened = (args: JobReferBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_MODAL_OPENED, { ...args });
+  };
+
+  const onJobReferModalCancelled = (
+    args: JobReferBaseParams & {
+      had_referee: boolean;
+      recipient_count: number;
+      note_was_edited: boolean;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_MODAL_CANCELLED, { ...args });
+  };
+
+  const onJobReferRefereeSelected = (args: JobReferBaseParams & { referred_member_uid: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_REFEREE_SELECTED, { ...args });
+  };
+
+  const onJobReferRecipientsChanged = (
+    args: JobReferBaseParams & { recipient_count: number; has_external_email: boolean },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_RECIPIENTS_CHANGED, { ...args });
+  };
+
+  const onJobReferNoteEdited = (args: JobReferBaseParams & { referred_member_uid: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_NOTE_EDITED, { ...args });
+  };
+
+  const onJobReferNoteReset = (args: JobReferBaseParams & { referred_member_uid: string }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_NOTE_RESET, { ...args });
+  };
+
+  const onJobReferSubmitted = (
+    args: JobReferBaseParams & {
+      referred_member_uid: string;
+      recipient_count: number;
+      has_external_email: boolean;
+      note_was_edited: boolean;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SUBMITTED, { ...args });
+  };
+
+  const onJobReferSucceeded = (
+    args: JobReferBaseParams & {
+      referred_member_uid: string;
+      recipient_count: number;
+      has_external_email: boolean;
+      note_was_edited: boolean;
+      referral_uid?: string;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SUCCEEDED, { ...args });
+  };
+
+  const onJobReferFailed = (
+    args: JobReferBaseParams & {
+      referred_member_uid: string;
+      recipient_count: number;
+      has_external_email: boolean;
+      note_was_edited: boolean;
+      error_type?: string;
+    },
+  ) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_FAILED, { ...args });
+  };
+
+  const onJobReferShareMenuOpened = (args: JobReferBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARE_MENU_OPENED, { ...args });
+  };
+
+  const onJobReferShared = (args: JobReferBaseParams & { network: JobReferShareNetwork }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -129,5 +214,17 @@ export const useJobsAnalytics = () => {
     onJobAlertRenamed,
     onJobAlertDeleted,
     onJobAlertEmailLinkClicked,
+    onJobReferClicked,
+    onJobReferModalOpened,
+    onJobReferModalCancelled,
+    onJobReferRefereeSelected,
+    onJobReferRecipientsChanged,
+    onJobReferNoteEdited,
+    onJobReferNoteReset,
+    onJobReferSubmitted,
+    onJobReferSucceeded,
+    onJobReferFailed,
+    onJobReferShareMenuOpened,
+    onJobReferShared,
   };
 };

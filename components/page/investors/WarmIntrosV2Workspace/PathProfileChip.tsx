@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { resolveHopLabOs } from './parseWarmPathHopChain';
 import s from './PathProfileChip.module.scss';
 
 interface Props {
@@ -10,8 +11,10 @@ interface Props {
   onOpen: (profileUid: string) => void;
   /** When true, render a static chip (e.g. Protocol Labs org hop) . */
   nonInteractive?: boolean;
-  /** When set, show a Directory-member indicator dot. */
+  /** When set, show a LabOS indicator dot (Directory member). */
   memberUid?: string | null;
+  /** When set (and memberUid isn't), show the same dot for a LabOS team/fund profile. */
+  teamUid?: string | null;
 }
 
 function initialsFromName(name: string): string {
@@ -34,11 +37,12 @@ export function PathProfileChip({
   onOpen,
   nonInteractive = false,
   memberUid = null,
+  teamUid = null,
 }: Props) {
   const label = name.trim() || profileUid || 'Unknown';
   const initials = initialsFromName(label);
   const src = imageUrl?.trim() || null;
-  const inDirectory = Boolean(memberUid?.trim());
+  const labOs = resolveHopLabOs({ memberUid, teamUid, name: label });
 
   const inner = (
     <>
@@ -50,9 +54,7 @@ export function PathProfileChip({
             {initials || '?'}
           </span>
         )}
-        {inDirectory ? (
-          <span className={s.directoryDot} title="Directory member" aria-label="Directory member" />
-        ) : null}
+        {labOs ? <span className={s.directoryDot} title="In LabOS" aria-label="In LabOS" /> : null}
       </span>
       <span className={s.label}>{label}</span>
     </>

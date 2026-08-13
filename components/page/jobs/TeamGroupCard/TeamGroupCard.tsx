@@ -13,6 +13,7 @@ import { useGetFocusTags } from './hooks/useGetFocusTags';
 import { ReferRoleRow } from './component/ReferRoleRow';
 
 import s from './TeamGroupCard.module.scss';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
@@ -30,6 +31,7 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
+  const currentUser = useCurrentUserStore((state) => state.currentUser);
 
   return (
     <article className={s.card}>
@@ -59,6 +61,8 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
       <ul className={s.roleList}>
         {visibleRoles.map((role, idx) => (
           <ReferRoleRow
+            currentUser={currentUser}
+            teamId={team.uid}
             teamName={team.name}
             key={role.uid}
             role={role}

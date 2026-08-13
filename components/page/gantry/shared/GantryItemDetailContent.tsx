@@ -28,6 +28,7 @@ import { GantryItemAuthor } from './GantryItemAuthor';
 import { PinNotePopover } from './PinNotePopover';
 import { BoostImpactPopover } from './BoostImpactPopover';
 import { PinSwapPicker } from './PinSwapPicker';
+import { BuildWithAgentsButton } from './BuildWithAgentsButton';
 import { ImpactDetailSection } from './ImpactDetailSection';
 import { hasImpactData } from '@/services/gantry/impact';
 import { StageSelector } from './StageSelector';
@@ -181,19 +182,27 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
         <div className={s.header}>
           <div className={s.headerTop}>
             <h1 className={clsx(s.title, variant === 'drawer' && s.drawerTitle)}>{item.title}</h1>
-            {canEdit && !isEditMode && (
+            {!isEditMode && (
               <div className={s.itemActions}>
-                <EditButton onClick={() => setIsEditMode(true)} />
-                {access.canCurate && (
-                  <HeaderActionBtn
-                    onClick={() => setIsArchiveModalOpen(true)}
-                    disabled={archiveMutation.isPending}
-                    className={s.archiveAction}
-                  >
-                    <ArchiveIcon />
-                    Archive
-                  </HeaderActionBtn>
+                {canEdit && (
+                  <>
+                    <EditButton onClick={() => setIsEditMode(true)} />
+                    {access.canCurate && (
+                      <HeaderActionBtn
+                        onClick={() => setIsArchiveModalOpen(true)}
+                        disabled={archiveMutation.isPending}
+                        className={s.archiveAction}
+                      >
+                        <ArchiveIcon />
+                        Archive
+                      </HeaderActionBtn>
+                    )}
+                  </>
                 )}
+                {/* Gates itself on agent-sessions admin — deliberately not on
+                    `canEdit`, which is stage-limited to IDEA/BACKLOG and would
+                    hide the button on exactly the items worth building. */}
+                <BuildWithAgentsButton uid={item.uid} title={item.title} description={item.description} />
               </div>
             )}
           </div>

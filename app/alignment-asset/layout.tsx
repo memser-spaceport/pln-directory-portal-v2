@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import PlaaLayoutWrapper from '@/components/page/aligement-assets/plaa-layout-wrapper';
 import { BotpressWebchat } from '@/app/ClientDynamics';
+import { getCookiesFromHeaders } from '@/utils/next-helpers';
 
 export const metadata: Metadata = {
   title: 'PL Alignment Asset | Protocol Labs Directory',
@@ -26,9 +27,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PlaaLayout({ children }: { readonly children: React.ReactNode }) {
+export default async function PlaaLayout({ children }: { readonly children: React.ReactNode }) {
+  const { isLoggedIn } = await getCookiesFromHeaders();
+
   return (
-    <PlaaLayoutWrapper>
+    <PlaaLayoutWrapper isLoggedIn={isLoggedIn}>
       {children}
       <BotpressWebchat />
     </PlaaLayoutWrapper>

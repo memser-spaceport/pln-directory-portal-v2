@@ -2,13 +2,14 @@
 
 import { useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import clsx from 'clsx';
 import { Modal } from '@/components/common/Modal';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
 import { useMasterProfile } from '@/services/investors/hooks/useMasterProfile';
 import { affinityPersonUrl } from './parseWarmPathHopChain';
+import { InLabOsBadge } from './InLabOsBadge';
+import { PlBackingMark, plBackingLabel } from '@/components/page/investors/PlBackingMark/PlBackingMark';
 import {
   eventsFromProfile,
   parseCoInvestments,
@@ -155,16 +156,7 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                 ) : null}
 
                 <div className={s.extLinks}>
-                  {memberUid ? (
-                    <Link
-                      href={`/members/${encodeURIComponent(memberUid)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={s.extLink}
-                    >
-                      Directory member ↗
-                    </Link>
-                  ) : null}
+                  {memberUid ? <InLabOsBadge memberUid={memberUid} /> : null}
                   {affinityId ? (
                     <a
                       href={affinityPersonUrl(affinityId)}
@@ -199,10 +191,12 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                 </section>
               ) : null}
 
-              {coInvestments.length > 0 ? (
+              {coInvestments.length > 0 || plBackingLabel(data?.plBacking) ? (
                 <section className={s.section}>
                   <h4 className={s.sectionTitle}>
-                    Co-investments with PL <span className={s.count}>{coInvestments.length}</span>
+                    {coInvestments.length > 0 ? 'Co-investments with PL' : 'Relationship with PL'}
+                    {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
+                    <PlBackingMark backing={data?.plBacking} />
                   </h4>
                   <ul className={s.itemList}>
                     {coInvestments.map((item) => {

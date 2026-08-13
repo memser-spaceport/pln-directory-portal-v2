@@ -1,3 +1,5 @@
+@use 'styles/media';
+
 .tableWrap {
   overflow: auto;
   max-height: min(70vh, 720px);
@@ -42,15 +44,13 @@
 }
 
 .colInvestor {
-  width: 34%;
+  width: 32%;
 }
 
+// The joined proximity+score badge now leads the path cell instead of owning its
+// own column, so Path absorbs what used to be Proximity's 18%.
 .colPath {
-  width: 48%;
-}
-
-.colProximity {
-  width: 18%;
+  width: 68%;
 }
 
 .investorText {
@@ -99,20 +99,6 @@
   }
 }
 
-.directoryBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 14px;
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
-  white-space: nowrap;
-}
-
 .subtle {
   font-size: 12px;
   color: #64748b;
@@ -131,6 +117,7 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 64px;
 }
 
 .pathCell {
@@ -170,11 +157,141 @@
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 500;
-  color: #1b4dff;
+  color: var(--foreground-neutral-secondary, #455468);
   text-decoration: underline;
   text-underline-offset: 2px;
 
   &:hover {
     color: #1a3fd9;
+  }
+}
+
+.plLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+// The proximity+score badge leads the path cell rather than owning a column: the
+// code is a description of the chain (family = bridge, +N = hops, A/B = caliber),
+// so it belongs with the chain it describes. Its left edge lands at the same x on
+// every row, keeping the top-to-bottom scan a dedicated column used to buy.
+.proximityLead {
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+// Proximity code + score % joined into one object instead of two floating chips.
+// They stay two elements on purpose — the code is colored by caliber, the score
+// by band (green >60 / yellow 25-60 / red <25); folding the % inside the badge
+// would make it inherit the caliber color and collapse yellow/red together.
+.joinGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.joinLeft {
+  border-radius: 6px 0 0 6px;
+}
+
+.joinRight {
+  border-radius: 0 6px 6px 0;
+  // Matches the badge's 22px box: 18px line + 2px padding top and bottom.
+  padding: 2px 6px;
+  line-height: 18px;
+}
+
+// Role captions now hang below the chips, which turns the cell's old 6px gap
+// into ~19px of apparent distance between the chain and "View all" below it.
+.pathCellTight {
+  gap: 0;
+}
+
+// Pulls "View all" up onto the role caption's own line rather than clearing a
+// 13px band it doesn't need to clear. Only applied when a caption actually
+// renders — the two-hop fallback has no band to move into.
+.viewAllInCaptionBand {
+  margin-left: 8px;
+}
+
+// Below 640px the same DOM lays out as a list of cards — same markup, no second
+// render tree, no useMediaQuery. display: table roles are restated explicitly in
+// the JSX (role="table" etc.) since display: block drops the implicit ones.
+@include media.mobile-only {
+  .mobileCards {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .table {
+    min-width: 0;
+    display: block;
+  }
+
+  // Present for screen readers, gone visually — display: none would take the
+  // column names out of the a11y tree along with the header row.
+  .mobileCards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .mobileCards tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  // The frame and fill drawn once around the whole table, drawn around each
+  // record instead.
+  .mobileCard {
+    display: block;
+    border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .cardIdentity,
+  .cardRoute {
+    display: block;
+    border-bottom: 0;
+    padding: 12px 14px;
+  }
+
+  // Keeps the split the (now visually hidden) column header used to carry:
+  // identity above the line, route below it.
+  .cardRoute {
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  // Proximity breaks to its own line and the chain starts under it — the
+  // constant-x scanning argument for leading position doesn't exist once each
+  // row is its own card.
+  .proximityLead {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+
+  // The chain wraps at this width, so the caption is no longer the last thing
+  // in the cell — pulling the link up would land it on a row of chips. And with
+  // the pull gone, the cell goes back to the standard 6px gap.
+  .viewAllInCaptionBand {
+    margin-top: 0;
+  }
+
+  .pathCellTight {
+    gap: 6px;
   }
 }

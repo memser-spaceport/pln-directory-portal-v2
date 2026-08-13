@@ -159,6 +159,7 @@ export function JobTeamGroupCard({
               showMatch={matchMode && !!isMatch?.(role)}
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}
+              teamId={team.uid}
             />
           </li>
         ))}

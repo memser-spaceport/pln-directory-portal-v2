@@ -8,21 +8,25 @@ import PlaaBackButton from './plaa-back-btn';
 import { PlaaBanner } from '@/components/core/navbar/components/PlaaBanner';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import styles from '@/app/alignment-asset/plaa.module.css';
+import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 
 const GuestAccessModalController = dynamic(
   () => import('./guest-access-modal/GuestAccessModalController').then((m) => m.GuestAccessModalController),
-  { ssr: false }
+  { ssr: false },
 );
 
 interface PlaaLayoutWrapperProps {
   readonly children: React.ReactNode;
+  readonly isLoggedIn?: boolean;
 }
 
 // Map pathname to menu active item, page title, and optional viewing round
-const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined; title: string; viewingRound?: number } => {
+const getPageInfo = (
+  pathname: string,
+): { activeItem: PlaaActiveItem | undefined; title: string; viewingRound?: number } => {
   const segments = pathname.split('/').filter(Boolean);
   const pathSegment = segments[segments.length - 1] || 'overview';
-  
+
   // Check if viewing a specific round (e.g., /alignment-asset/rounds/2)
   if (segments.includes('rounds') && segments.length > 2) {
     const roundNumber = parseInt(pathSegment, 10);
@@ -30,30 +34,32 @@ const getPageInfo = (pathname: string): { activeItem: PlaaActiveItem | undefined
       return { activeItem: undefined, title: `Round ${roundNumber}`, viewingRound: roundNumber };
     }
   }
-  
+
   // Check if on main alignment-asset page (current round) or /alignment-asset/rounds (legacy)
   if (pathSegment === 'alignment-asset' || pathSegment === 'rounds') {
     return { activeItem: undefined, title: 'Rounds', viewingRound: undefined };
   }
-  
+
   const pageMap: Record<string, { activeItem: PlaaActiveItem; title: string }> = {
-    'overview': { activeItem: 'overview', title: 'Overview' },
-    'activities': { activeItem: 'activities', title: 'Activities' },
+    overview: { activeItem: 'overview', title: 'Overview' },
+    activities: { activeItem: 'activities', title: 'Activities' },
+    kudos: { activeItem: 'kudos', title: 'Kudos' },
     'incentive-model': { activeItem: 'incentive-model', title: 'Incentive Model' },
     'terms-of-use': { activeItem: 'terms-of-use', title: 'Terms of Use' },
     'privacy-policy': { activeItem: 'privacy-policy', title: 'Privacy Policy' },
     'product-versions': { activeItem: 'product-versions', title: 'Product Versions' },
     'trust-holdings': { activeItem: 'trust-holdings', title: 'Trust & Holdings' },
-    'faqs': { activeItem: 'faqs', title: 'FAQ' },
-    'disclosure': { activeItem: 'disclosure', title: 'Disclosure' },
+    faqs: { activeItem: 'faqs', title: 'FAQ' },
+    disclosure: { activeItem: 'disclosure', title: 'Disclosure' },
   };
 
   return pageMap[pathSegment] || pageMap['overview'];
 };
 
-export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) {
+export default function PlaaLayoutWrapper({ children, isLoggedIn }: PlaaLayoutWrapperProps) {
   const pathname = usePathname();
   const { activeItem, title, viewingRound } = getPageInfo(pathname ?? '');
+  const currentRoundNumber = getCurrentRoundNumber();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { onMobileNavMenuClicked, onMobileNavMenuClosed } = useAlignmentAssetsAnalytics();
@@ -100,48 +106,46 @@ export default function PlaaLayoutWrapper({ children }: PlaaLayoutWrapperProps) 
         <div className={styles.plaa__main}>
           {/* Fixed Sidebar */}
           <aside className={styles.plaa__sidebar}>
-            <PlaaMenu activeItem={activeItem} totalRounds={18} currentRound={18} viewingRound={viewingRound} />
+            <PlaaMenu
+              activeItem={activeItem}
+              totalRounds={currentRoundNumber}
+              currentRound={currentRoundNumber}
+              viewingRound={viewingRound}
+              isLoggedIn={isLoggedIn}
+            />
           </aside>
 
           {/* Scrollable Content */}
           <div className={styles.plaa__content}>
-            <div className={styles['plaa__content-inner']}>
-              {children}
-            </div>
+            <div className={styles['plaa__content-inner']}>{children}</div>
           </div>
         </div>
 
         {isMobileMenuOpen && (
-          <div 
-            className={styles.plaa__menuBackdrop}
-            onClick={handleCloseMenu}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div 
-              className={styles.plaa__menuOverlay}
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Navigation menu"
-            >
+          <div className={styles.plaa__menuBackdrop} onClick={handleCloseMenu} role="dialog" aria-modal="true">
+            <div className={styles.plaa__menuOverlay} onClick={(e) => e.stopPropagation()} aria-label="Navigation menu">
               <div className={styles.plaa__menuHeader}>
                 <h2 className={styles.plaa__menuTitle}>Menu</h2>
-                <button 
-                  className={styles.plaa__menuClose}
-                  onClick={handleCloseMenu}
-                  aria-label="Close menu"
-                >
+                <button className={styles.plaa__menuClose} onClick={handleCloseMenu} aria-label="Close menu">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </button>
               </div>
 
-              <PlaaMenu 
-                activeItem={activeItem} 
+              <PlaaMenu
+                activeItem={activeItem}
                 totalRounds={18}
                 currentRound={18}
                 viewingRound={viewingRound}
                 onMenuItemClick={handleCloseMenu}
+                isLoggedIn={isLoggedIn}
               />
             </div>
           </div>

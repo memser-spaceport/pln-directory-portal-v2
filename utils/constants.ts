@@ -74,6 +74,18 @@ export const JOBS_ANALYTICS = {
   ON_JOB_ALERT_RENAMED: 'job-alert-renamed',
   ON_JOB_ALERT_DELETED: 'job-alert-deleted',
   ON_JOB_ALERT_EMAIL_LINK_CLICKED: 'job-alert-email-link-clicked',
+  ON_JOB_REFER_CLICKED: 'job-refer-clicked',
+  ON_JOB_REFER_MODAL_OPENED: 'job-refer-modal-opened',
+  ON_JOB_REFER_MODAL_CANCELLED: 'job-refer-modal-cancelled',
+  ON_JOB_REFER_REFEREE_SELECTED: 'job-refer-referee-selected',
+  ON_JOB_REFER_RECIPIENTS_CHANGED: 'job-refer-recipients-changed',
+  ON_JOB_REFER_NOTE_EDITED: 'job-refer-note-edited',
+  ON_JOB_REFER_NOTE_RESET: 'job-refer-note-reset',
+  ON_JOB_REFER_SUBMITTED: 'job-refer-submitted',
+  ON_JOB_REFER_SUCCEEDED: 'job-refer-succeeded',
+  ON_JOB_REFER_FAILED: 'job-refer-failed',
+  ON_JOB_REFER_SHARE_MENU_OPENED: 'job-refer-share-menu-opened',
+  ON_JOB_REFER_SHARED: 'job-refer-shared',
 };
 
 export const EVENTS = {
@@ -183,6 +195,10 @@ export const NOTIFICATION_ANALYTICS_EVENTS = {
   VIEW_ALL_UPDATES_CLICKED: 'view-all-updates-clicked',
   UPDATES_PANEL_NOTIFICATION_CLICKED: 'updates-panel-notification-clicked',
   RECENT_UPDATES_NOTIFICATION_CLICKED: 'recent-updates-notification-clicked',
+  MARK_ALL_UPDATES_READ_CLICKED: 'mark-all-updates-read-clicked',
+  MARK_ALL_UPDATES_READ_FAILED: 'mark-all-updates-read-failed',
+  UPDATES_SEARCH_OPENED: 'updates-search-opened',
+  UPDATES_SEARCH_QUERIED: 'updates-search-queried',
 };
 
 export const SETTINGS_ANALYTICS_EVENTS = {
@@ -605,6 +621,15 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_POPULAR_STORY_CLICKED: 'team-news-popular-story-clicked',
   TEAM_NEWS_POPULAR_STORY_SCROLL_SUCCEEDED: 'team-news-popular-story-scroll-succeeded',
   TEAM_NEWS_POPULAR_STORY_FALLBACK_OPENED: 'team-news-popular-story-fallback-opened',
+  // Top-stories band above the feed. VIEWED is the denominator CLICKED needs —
+  // without it a low click count can't be told apart from a block nobody saw.
+  TEAM_NEWS_TOP_STORIES_BLOCK_VIEWED: 'team-news-top-stories-block-viewed',
+  TEAM_NEWS_TOP_STORY_CLICKED: 'team-news-top-story-clicked',
+  // Supporting kinds in the feed. Both carry `position` so a card that only
+  // ever converts from the first slot can be told from one that converts anywhere.
+  TEAM_NEWS_FEED_HIRING_ROLE_CLICKED: 'team-news-feed-hiring-role-clicked',
+  TEAM_NEWS_FEED_HIRING_VIEW_ALL_CLICKED: 'team-news-feed-hiring-view-all-clicked',
+  TEAM_NEWS_FEED_DEAL_CLICKED: 'team-news-feed-deal-clicked',
   // Feed social layer (forum posts in the feed + feed-only comments).
   TEAM_NEWS_FEED_FORUM_POST_CARD_CLICKED: 'team-news-feed-forum-post-card-clicked',
   TEAM_NEWS_FEED_FORUM_POST_MODAL_OPENED: 'team-news-feed-forum-post-modal-opened',
@@ -812,6 +837,26 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.24 - Top Stories, Job Referrals & Warm Intros',
+    tag: 'New Feature',
+    date: '7, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Top stories</span> - The week's standout news now sits at the top of the feed, with a lead story and a couple of runners-up.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Refer a member</span> - Recommend someone from the directory for an open role and send an intro email to the hiring team.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Notifications</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Mark all as read</span> - Clear your unread updates in one click from the bell panel or the Updates page.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.23 - Feed Discussions & AI Apps',
     tag: 'New Feature',

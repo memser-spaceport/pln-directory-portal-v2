@@ -28,6 +28,8 @@ const KICKER_COLOR_CLASS: Record<ITeamNewsItem['eventType'], string> = {
   ANNOUNCEMENT: 'kAnnouncement',
   MILESTONE: 'kMilestone',
   OTHER: 'kAnnouncement',
+  HIRING: 'kAnnouncement',
+  DEALS: 'kAnnouncement',
 };
 
 const WEEK_FORMAT: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };

@@ -57,6 +57,20 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.8',
+    items: [
+      'Already have your own database? Your agent can now migrate it to a PLN-managed one for you, carrying over your existing data structure',
+      'Your agent tells you plainly if anything about your current database setup (like its own login system) can’t come along automatically',
+    ],
+  },
+  {
+    version: '1.7',
+    items: [
+      'Your agent now knows the CPU/memory budget for building and running your app, and designs within it',
+      'If a deploy or build ever hits that limit, your agent recognizes it and fixes the app instead of just retrying',
+    ],
+  },
+  {
     version: '1.6',
     items: [
       'Ask PLN to provision a database for your app automatically — no accounts or setup needed',

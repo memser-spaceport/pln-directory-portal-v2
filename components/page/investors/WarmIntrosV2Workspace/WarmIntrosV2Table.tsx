@@ -1,11 +1,12 @@
 'use client';
 
 import type { ReactNode, Ref } from 'react';
-import { ProximityCodeBadge } from '@/components/page/investors/ProximityCodeBadge/ProximityCodeBadge';
+import clsx from 'clsx';
+import { CoInvestmentCountBadge, PlBackingMark } from '@/components/page/investors/PlBackingMark/PlBackingMark';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
-import { HopRoleBadge } from './HopRoleBadge';
 import { ListMembershipTags } from './ListMembershipTags';
+import { hasRoleCaption, PathHop } from './PathHop';
 import { PathProfileChip } from './PathProfileChip';
 import { parseWarmPathHopChain } from './parseWarmPathHopChain';
 import { ScorePercentPill } from './ScorePercentPill';
@@ -38,6 +39,7 @@ function memberAvatarSrc(investor: WarmIntrosV2InvestorSummary | undefined): str
 /**
  * Warm Intros v2 results table.
  * Path column uses clickable PL connector / investor chips (same language as the drawer).
+ * Below 640px the same DOM lays out as cards (WarmIntrosV2Table.module.scss `mobile-only`).
  */
 export function WarmIntrosV2Table({
   rows,
@@ -51,22 +53,19 @@ export function WarmIntrosV2Table({
   footer,
 }: Props) {
   return (
-    <div className={s.tableWrap} ref={scrollRootRef}>
-      <table className={s.table}>
-        <thead>
-          <tr>
-            <th className={`${s.th} ${s.colInvestor}`} scope="col">
+    <div className={clsx(s.tableWrap, s.mobileCards)} ref={scrollRootRef}>
+      <table className={s.table} role="table">
+        <thead role="rowgroup">
+          <tr role="row">
+            <th className={`${s.th} ${s.colInvestor}`} scope="col" role="columnheader">
               Investor
             </th>
-            <th className={`${s.th} ${s.colPath}`} scope="col">
+            <th className={`${s.th} ${s.colPath}`} scope="col" role="columnheader">
               Path
-            </th>
-            <th className={`${s.th} ${s.colProximity}`} scope="col">
-              Proximity
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {rows.map((row) => {
             const investor = row.investor;
             const name = investor?.name?.trim() || row.targetProfileUid;
@@ -76,11 +75,21 @@ export function WarmIntrosV2Table({
             const count = pathCount(row);
             const avatarSrc = memberAvatarSrc(investor);
             const connector = row.bestConnector;
+            const chain = parseWarmPathHopChain(row.hopChain);
+            const hops = chain?.hops?.length ? chain.hops : null;
+            const captionBand = hasRoleCaption(hops);
+
+            const leadBadge = (
+              <span className={clsx(s.proximityCell, s.joinGroup, s.proximityLead)}>
+                <ScorePercentPill scorePercent={row.scorePercent} scoreBand={row.scoreBand} />
+              </span>
+            );
 
             return (
               <tr
                 key={row.uid}
-                className={s.row}
+                role="row"
+                className={clsx(s.row, s.mobileCard)}
                 onClick={() => onRowClick?.(row)}
                 tabIndex={onRowClick ? 0 : undefined}
                 onKeyDown={
@@ -94,7 +103,7 @@ export function WarmIntrosV2Table({
                     : undefined
                 }
               >
-                <td className={s.td}>
+                <td className={`${s.td} ${s.cardIdentity}`} role="cell">
                   <div className={s.investorText}>
                     <div className={s.nameLine}>
                       <button
@@ -108,55 +117,58 @@ export function WarmIntrosV2Table({
                       >
                         {name}
                       </button>
-                      {investor?.memberUid ? (
-                        <span className={s.directoryBadge} title="Directory member">
-                          PL Network
-                        </span>
-                      ) : null}
                       {showListName ? (
                         <ListMembershipTags listSlugs={investor?.listSlugs} fallbackTargetSet={row.targetSet} inline />
                       ) : null}
                     </div>
                     {orgLine ? <div className={s.subtle}>{orgLine}</div> : null}
                     {investor?.email ? <div className={s.subtle}>{investor.email}</div> : null}
+                    {investor?.plBacking ? (
+                      <div className={s.plLine}>
+                        <PlBackingMark backing={investor.plBacking} />
+                        <CoInvestmentCountBadge count={investor.coInvestmentsCount ?? 0} />
+                      </div>
+                    ) : null}
                   </div>
                 </td>
 
-                <td className={s.td}>
-                  <div className={s.pathCell}>
+                <td className={`${s.td} ${s.cardRoute}`} role="cell">
+                  <div className={clsx(s.pathCell, s.pathCellTight)}>
                     <div className={s.pathChain}>
-                      {(() => {
-                        const chain = parseWarmPathHopChain(row.hopChain);
-                        const hops = chain?.hops?.length ? chain.hops : null;
-                        if (hops) {
-                          return hops.map((hop, i) => {
-                            const isOrg = hop.role === 'pl_org' || !hop.profileUid;
-                            const hopName =
-                              hop.name && hop.name !== hop.profileUid
-                                ? hop.name
-                                : hop.profileUid === connector?.profileUid
-                                  ? connector.name
-                                  : hop.profileUid === investor?.profileUid
-                                    ? name
-                                    : hop.name;
-                            const hopImage = isOrg
-                              ? null
-                              : hop.role === 'investor'
-                                ? avatarSrc
-                                : hop.memberUid
-                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
-                                  : (hop.imageUrl ??
-                                    (connector?.profileUid === hop.profileUid
-                                      ? connector.memberUid
-                                        ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                                        : connector.imageUrl
-                                      : null));
-                            return (
-                              <span
-                                key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`}
-                                className={s.pathHop}
+                      {leadBadge}
+                      {hops ? (
+                        hops.map((hop, i) => {
+                          const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+                          const hopName =
+                            hop.name && hop.name !== hop.profileUid
+                              ? hop.name
+                              : hop.profileUid === connector?.profileUid
+                                ? connector.name
+                                : hop.profileUid === investor?.profileUid
+                                  ? name
+                                  : hop.name;
+                          const hopImage = isOrg
+                            ? null
+                            : hop.role === 'investor'
+                              ? avatarSrc
+                              : hop.memberUid
+                                ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
+                                : (hop.imageUrl ??
+                                  (connector?.profileUid === hop.profileUid
+                                    ? connector.memberUid
+                                      ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                      : connector.imageUrl
+                                    : null));
+                          return (
+                            <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.pathHop}>
+                              {i > 0 ? <span className={s.pathArrow}>→</span> : null}
+                              <PathHop
+                                role={hop.role}
+                                memberUid={isOrg ? null : hop.memberUid}
+                                teamUid={isOrg ? null : hop.teamUid}
+                                name={hopName}
+                                isLast={i === hops.length - 1}
                               >
-                                {i > 0 ? <span className={s.pathArrow}>→</span> : null}
                                 <PathProfileChip
                                   name={hopName}
                                   profileUid={hop.profileUid}
@@ -164,16 +176,17 @@ export function WarmIntrosV2Table({
                                   onOpen={onOpenProfileUid}
                                   nonInteractive={isOrg}
                                   memberUid={isOrg ? null : hop.memberUid}
+                                  teamUid={isOrg ? null : hop.teamUid}
                                 />
-                                <HopRoleBadge role={hop.role} />
-                              </span>
-                            );
-                          });
-                        }
-                        return (
-                          <>
-                            {connector ? (
-                              <span className={s.pathHop}>
+                              </PathHop>
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <>
+                          {connector ? (
+                            <span className={s.pathHop}>
+                              <PathHop role="pl_connector" memberUid={connector.memberUid} name={connector.name}>
                                 <PathProfileChip
                                   name={connector.name}
                                   profileUid={connector.profileUid}
@@ -185,14 +198,15 @@ export function WarmIntrosV2Table({
                                   onOpen={onOpenProfileUid}
                                   memberUid={connector.memberUid}
                                 />
-                                <HopRoleBadge role="pl_connector" />
-                              </span>
-                            ) : (
-                              <span className={s.muted}>—</span>
-                            )}
-                            {connector && investor ? <span className={s.pathArrow}>→</span> : null}
-                            {investor ? (
-                              <span className={s.pathHop}>
+                              </PathHop>
+                            </span>
+                          ) : (
+                            <span className={s.muted}>—</span>
+                          )}
+                          {connector && investor ? <span className={s.pathArrow}>→</span> : null}
+                          {investor ? (
+                            <span className={s.pathHop}>
+                              <PathHop role="investor" memberUid={investor.memberUid} name={investor.name} isLast>
                                 <PathProfileChip
                                   name={investor.name}
                                   profileUid={investor.profileUid}
@@ -200,35 +214,23 @@ export function WarmIntrosV2Table({
                                   onOpen={onOpenProfileUid}
                                   memberUid={investor.memberUid}
                                 />
-                                <HopRoleBadge role="investor" />
-                              </span>
-                            ) : null}
-                          </>
-                        );
-                      })()}
+                              </PathHop>
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        className={clsx(s.viewAllLink, captionBand && s.viewAllInCaptionBand)}
+                        aria-label={`View all ${count} paths for ${name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewAllPaths(row);
+                        }}
+                      >
+                        View all ({count})
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className={s.viewAllLink}
-                      aria-label={`View all ${count} paths for ${name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewAllPaths(row);
-                      }}
-                    >
-                      View all ({count})
-                    </button>
-                  </div>
-                </td>
-
-                <td className={s.td}>
-                  <div className={s.proximityCell}>
-                    {row.proximityCode ? (
-                      <ProximityCodeBadge code={row.proximityCode} />
-                    ) : (
-                      <span className={s.muted}>—</span>
-                    )}
-                    <ScorePercentPill scorePercent={row.scorePercent} scoreBand={row.scoreBand} />
                   </div>
                 </td>
               </tr>

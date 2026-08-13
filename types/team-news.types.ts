@@ -1,4 +1,12 @@
-export type TeamNewsEventType = 'FUNDING' | 'LAUNCH' | 'PARTNERSHIP' | 'ANNOUNCEMENT' | 'MILESTONE' | 'OTHER';
+export type TeamNewsEventType =
+  | 'FUNDING'
+  | 'LAUNCH'
+  | 'PARTNERSHIP'
+  | 'ANNOUNCEMENT'
+  | 'MILESTONE'
+  | 'OTHER'
+  | 'DEALS'
+  | 'HIRING';
 
 export interface ITeamNewsDiscussion {
   count: number;
@@ -36,6 +44,11 @@ export interface ITeamNewsItem {
   isFollowed?: boolean;
   viewerHasUpvoted?: boolean;
   upvoteCount?: number;
+  /** 1 = Top Stories lead, 2–3 = runners-up; null/absent when not featured. */
+  editorialRank?: number | null;
+  /** Raw feed-card impression count, not deduplicated by user/session/repeat
+   *  viewing. Incremented via POST /v1/team-news/impressions. */
+  viewCount?: number;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */
@@ -53,8 +66,10 @@ export interface ISuggestedTeam {
   name: string;
   logo: string | null;
   reason: string;
-  /** One-line team blurb (same field the teams grid shows). Optional until the
-      follow-suggestions endpoint ships it; the UI falls back to `reason`. */
+  /** One-line team blurb (same field the teams grid shows). `reason` takes
+      precedence in the UI — it says why this team is suggested to *you*,
+      which a tagline can't — so this is only the fallback when `reason` is
+      missing or blank. */
   shortDescription?: string | null;
 }
 

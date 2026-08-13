@@ -6,6 +6,7 @@ export type WarmPathV2HopNode = {
   role?: string;
   score?: number;
   memberUid?: string | null;
+  teamUid?: string | null;
   imageUrl?: string | null;
 };
 
@@ -15,6 +16,7 @@ export type WarmPathV2Alternate = {
   score?: number;
   reasons?: unknown[];
   memberUid?: string | null;
+  teamUid?: string | null;
   imageUrl?: string | null;
   proximityCode?: string | null;
   caliber?: 'A' | 'B' | null;
@@ -29,6 +31,28 @@ export type WarmPathV2HopChain = {
   alternates: WarmPathV2Alternate[];
   relationKind?: string;
 };
+
+/** Enough to build a LabOS profile link + tooltip — not a full `LabOsProfileRef` (no `slug`). */
+export type HopLabOsProfile = {
+  type: 'member' | 'team';
+  uid: string;
+  name: string;
+};
+
+/**
+ * A hop is "in LabOS" when it resolves to a Directory member or team profile.
+ * `memberUid` wins when both are present — a hop with both refers to a person,
+ * and the team ref is the secondary, firm-level fact.
+ */
+export function resolveHopLabOs(hop: {
+  memberUid?: string | null;
+  teamUid?: string | null;
+  name: string;
+}): HopLabOsProfile | null {
+  if (hop.memberUid) return { type: 'member', uid: hop.memberUid, name: hop.name };
+  if (hop.teamUid) return { type: 'team', uid: hop.teamUid, name: hop.name };
+  return null;
+}
 
 function asRecord(v: unknown): Record<string, unknown> | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
@@ -96,6 +120,7 @@ function parseHop(raw: unknown): WarmPathV2HopNode | null {
     role,
     score: typeof rec.score === 'number' ? rec.score : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
+    teamUid: typeof rec.teamUid === 'string' ? rec.teamUid : rec.teamUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,
   };
 }
@@ -117,6 +142,7 @@ function parseAlternate(raw: unknown): WarmPathV2Alternate | null {
     score: typeof rec.score === 'number' ? rec.score : undefined,
     reasons: Array.isArray(rec.reasons) ? rec.reasons : undefined,
     memberUid: typeof rec.memberUid === 'string' ? rec.memberUid : rec.memberUid === null ? null : undefined,
+    teamUid: typeof rec.teamUid === 'string' ? rec.teamUid : rec.teamUid === null ? null : undefined,
     imageUrl: typeof rec.imageUrl === 'string' ? rec.imageUrl : rec.imageUrl === null ? null : undefined,
     proximityCode:
       typeof rec.proximityCode === 'string' ? rec.proximityCode : rec.proximityCode === null ? null : undefined,

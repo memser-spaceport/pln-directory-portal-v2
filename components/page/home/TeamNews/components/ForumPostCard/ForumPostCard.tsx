@@ -17,6 +17,8 @@ import { CommentButton } from '../NewsCard/components/CommentButton/CommentButto
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 
+import { ForumPostTitle } from '../ForumPostTitle';
+
 import s from './ForumPostCard.module.scss';
 
 interface ForumPostCardProps {
@@ -24,6 +26,7 @@ interface ForumPostCardProps {
    *  same as news items' upvote fields. */
   post: IFeedForumPost;
   position: number;
+  useLink?: boolean;
   onOpenDetail: (post: IFeedForumPost) => void;
   onLikeToggle: (post: IFeedForumPost) => void;
 }
@@ -35,7 +38,9 @@ interface ForumPostCardProps {
  * there is no signed-out #login branch here. Title/body/author render via JSX
  * text interpolation only (plain text per the feed contract).
  */
-export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: ForumPostCardProps) {
+export function ForumPostCard(props: ForumPostCardProps) {
+  const { post, useLink, position, onOpenDetail, onLikeToggle } = props;
+
   const analytics = useTeamNewsAnalytics();
   const [threadOpen, setThreadOpen] = useState(false);
   // See NewsGroupCard: an unsettled comment blocks collapse, because the
@@ -98,7 +103,7 @@ export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: Fo
           }
         }}
       >
-        <h3 className={clsx(newsCardStyles.headline, s.title)}>{post.title}</h3>
+        <ForumPostTitle post={post} useLink={useLink} />
         <p className={s.summary}>{post.body}</p>
         <div className={s.footer}>
           <span className={s.source}>

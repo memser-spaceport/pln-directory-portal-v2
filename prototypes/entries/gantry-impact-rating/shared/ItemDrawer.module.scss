@@ -182,3 +182,41 @@
   font-weight: 500;
   color: var(--foreground-neutral-tertiary, #8897ae);
 }
+
+// Frozen copy of production's old "Build this with agents / Coming soon" chrome.
+// Production replaced that disabled control with a live "Build with AI" button and
+// dropped these rules, so they no longer exist in Shared.module.scss to borrow —
+// this prototype keeps the pre-change look on its own. Sizes are production's
+// verbatim; only the color layer is translated to token pairs. The production
+// `:disabled` branch is omitted: this copy is inert (`aria-disabled`), never disabled.
+.buildButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--background-neutral-subtle, #f9fafb);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: not-allowed;
+  margin-top: 8px;
+}
+
+.comingSoon {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--transparent-dark-12, rgba(14, 15, 17, 0.12));
+  background: var(--background-neutral-primary, #fff);
+  padding: 2px 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

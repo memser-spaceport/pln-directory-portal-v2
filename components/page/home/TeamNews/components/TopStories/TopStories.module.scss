@@ -1,0 +1,210 @@
+@import '../../../../../../styles/media';
+
+/* Shared by .leadTitle and .alsoTitle so both stay in sync — the lead used to
+   render larger, but multi-story cards read as inconsistent with two title
+   sizes in one card. Distinguishing the top story without font size is a
+   separate, upcoming design pass. */
+%storyTitle {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* One band holding a lead plus two rows. Without the shared border the rows read
+   as feed items that happen to sit high, rather than as part of the pick.
+
+   No `overflow: hidden` — the prototype clips here to round the lead's gradient,
+   but SourceList renders a popover that must escape the card bounds (the same
+   reason production's `.card` refuses `overflow: hidden`). The lead rounds its
+   own top corners instead, and the last row rounds the bottom ones. */
+.block {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid var(--transparent-brand-16, rgba(27, 77, 255, 0.16));
+  background: #ffffff;
+
+  /* Production `NewsCard.module.scss .card:hover`, verbatim — the block is a card
+     among cards, and the lift belongs to the whole band. A per-item hover inside
+     it reads as a grey wash, because an inset blur is a fill. */
+  transition: box-shadow 0.12s ease;
+
+  &:hover {
+    box-shadow:
+      0px 0px 1px 0px rgba(15, 23, 42, 0.16),
+      0px 6px 8px 0px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* ---------- The lead ---------- */
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  /* 20px matches production `.card` padding, so the lead sits on the same rhythm
+     as every other card in the column. */
+  gap: 12px;
+  padding: 20px;
+  border-radius: 11px 11px 0 0; /* 11 = .block's 12 minus its own 1px border */
+  background: linear-gradient(
+    180deg,
+    var(--transparent-brand-8, rgba(27, 77, 255, 0.06)) 0%,
+    #ffffff 140px,
+    #ffffff 100%
+  );
+}
+
+/* Lead with no runners-up — round the bottom too, or the band shows square
+   corners under a rounded border. */
+.leadOnly {
+  border-radius: 11px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* An editorial kicker, not a chip. A filled pill is what this app uses for an
+   *active filter*, and this label sits directly under a row of them — so a fill
+   would read as "selected tab". Uppercase + letterspaced + no fill is a shape
+   nothing interactive in the app has. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* 12px = the filled pin's native size in production's asset, and the same size
+   as the uppercase eyebrow beside it — so it renders unscaled and reads as a
+   mark next to the caps rather than an icon leading them. */
+.badgeIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.window {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* Headline + summary only. The team row and the meta line sit outside it, so
+   this holds no nested interactive elements and can stay a single click target
+   (production `NewsGroupCard .storyRow` splits the same way). */
+.leadBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+
+  &:hover .leadTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.leadTitle {
+  @extend %storyTitle;
+  margin: 0;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.12s ease;
+}
+
+.leadSummary {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---------- The runners-up ---------- */
+
+.alsoList {
+  margin: 0;
+  padding: 0 20px 6px;
+  list-style: none;
+}
+
+/* Same anatomy as a feed card — head row, headline, summary, meta — just without
+   the card's own border and shadow, because the band supplies those. */
+.alsoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 8px;
+  margin: 0 -8px;
+
+  /* One rule above every row — including the first, so the line separating the
+     lead from story two is the same line that separates two from three. */
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.1));
+
+  &:last-child {
+    border-radius: 0 0 11px 11px;
+  }
+
+  &:hover .alsoTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* The headline is the click target: the row holds a Follow button and a team
+   link, and a button can't nest inside a button. Production hit exactly this in
+   `ReferRoleRow`. */
+.alsoTitleBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+.alsoTitle {
+  @extend %storyTitle;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.12s ease;
+}
+
+/* These are top stories too, so they get a summary — a bare headline reads as an
+   afterthought. Two lines each, or three summaries push the stream off screen. */
+.alsoSummary {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,0 +1,57 @@
+/* Adapted from prototypes/entries/newsfeed-v0/NewsfeedV0.module.scss's
+   .headerSearchBtn / .headerSearchField — no mobile-only hiding here, since
+   the panel is already a full-screen sheet below 480px with room to expand
+   the field in place, unlike the newsfeed page these were built for. */
+
+/* 40px to match SearchInput/DebouncedInput's own rendered height
+   (DebouncedInput.module.scss's .root sets height: 40px) — the prototype's
+   30px button was sized for a different search field and caused a visible
+   height jump in .titleRow when toggling open. */
+.searchToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    border-color: #5e718d;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+.searchToggleHidden {
+  display: none;
+}
+
+.searchField {
+  flex: 1 1 auto;
+  min-width: 0;
+  animation: searchFieldIn 0.16s ease;
+}
+
+@keyframes searchFieldIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -3,7 +3,7 @@ import s from './HopRoleBadge.module.scss';
 
 export type HopRole = 'pl_connector' | 'founder' | 'co_investor' | 'investor' | 'pl_org' | string;
 
-const ROLE_LABEL: Record<string, string> = {
+export const ROLE_LABEL: Record<string, string> = {
   pl_connector: 'PL Member',
   founder: 'Founder',
   co_investor: 'Co-investor',

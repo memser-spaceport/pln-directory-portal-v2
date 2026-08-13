@@ -1,0 +1,135 @@
+/* Mirrors PinSwapPicker.module.scss — same anchored-popover shape and z-index
+   band, so the two gantry pickers stack and read identically. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 299;
+}
+
+.popover {
+  position: fixed;
+  z-index: 300;
+  width: 320px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 0;
+}
+
+.headerTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 0;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.sub {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 4px 14px 10px;
+  line-height: 1.4;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.muted {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.secondaryBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #f3f4f6;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.primaryBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #1b4dff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #1740d6;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

@@ -39,6 +39,13 @@ export function getRoundDateInfo(roundNumber: number): RoundDateInfo {
   return { monthName, monthNumber, year, snapshotPeriod, label: `${monthName} ${year}` };
 }
 
+export function getCurrentRoundNumber(): number {
+  const now = new Date();
+  const absoluteMonth = now.getFullYear() * 12 + now.getMonth();
+  const epochMonth = ROUND_START_YEAR * 12 + (ROUND_START_MONTH - 1);
+  return absoluteMonth - epochMonth + 1;
+}
+
 /**
  * Returns the last day of the month for a given snapshot period string ("YYYY-MM").
  */

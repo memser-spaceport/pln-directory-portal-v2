@@ -23,6 +23,24 @@ export async function getAllDeals(): Promise<IDeal[]> {
   return response.json();
 }
 
+/**
+ * Deals added or changed in the last `windowDays` — the home feed's slice.
+ *
+ * The param is safe to send whether or not the backend implements it: the
+ * Directory API ignores query params it doesn't know (verified against dev),
+ * and `useFeedDeals` re-filters on `createdAt` client-side regardless. So this
+ * is correct while the backend catches up and a no-op afterwards.
+ */
+export async function getRecentDeals(windowDays: number): Promise<IDeal[]> {
+  const response = await customFetch(`${DEALS_API_URL}?windowDays=${windowDays}`, { method: 'GET' }, true);
+
+  if (!response || !response.ok) {
+    throw new Error('Failed to fetch recent deals');
+  }
+
+  return response.json();
+}
+
 export async function getDealById(uid: string): Promise<IDeal | null> {
   const response = await customFetch(`${DEALS_API_URL}/${uid}`, { method: 'GET' }, true);
 

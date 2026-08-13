@@ -4,8 +4,11 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
+import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { IFeedForumPost } from '@/types/feed.types';
+import type { IDeal } from '@/types/deals.types';
+import type { IJobTeamGroup } from '@/types/jobs.types';
 import type {
   ITeamNewsDiscussion,
   ITeamNewsGroup,
@@ -20,6 +23,16 @@ import type {
 function renderTeamNews(ui: ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
+// The mobile "Type:" dropdown's trigger shows the active category's label,
+// which for the default (All categories) is byte-identical to the desktop
+// pill's own text — jsdom doesn't evaluate the media query that hides one of
+// them, so both are in the DOM at once and a bare name-based query is
+// ambiguous. Scope to the pill row (`.catRow`) for anything that queries by
+// category label; the dropdown has its own dedicated tests.
+function catRow(): HTMLElement {
+  return document.querySelector('.catRow') as HTMLElement;
 }
 
 /** Default sort is Most popular — switch to Following when a test needs followed-first order. */
@@ -46,6 +59,11 @@ const mockOnPopularStoryClicked = jest.fn();
 const mockOnDetailModalOpened = jest.fn();
 const mockOnShared = jest.fn();
 const mockOnForumPostModalOpened = jest.fn();
+const mockOnTopStoriesBlockViewed = jest.fn();
+const mockOnTopStoryClicked = jest.fn();
+const mockOnFeedHiringRoleClicked = jest.fn();
+const mockOnFeedHiringViewAllClicked = jest.fn();
+const mockOnFeedDealClicked = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
@@ -68,6 +86,11 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onPopularStoryFallbackOpened: (...a: unknown[]) => mockOnFallbackOpened(...a),
     onTeamsToFollowViewed: (...a: unknown[]) => mockOnTeamsToFollowViewed(...a),
     onTeamsToFollowHidden: (...a: unknown[]) => mockOnTeamsToFollowHidden(...a),
+    onTopStoriesBlockViewed: (...a: unknown[]) => mockOnTopStoriesBlockViewed(...a),
+    onTopStoryClicked: (...a: unknown[]) => mockOnTopStoryClicked(...a),
+    onFeedHiringRoleClicked: (...a: unknown[]) => mockOnFeedHiringRoleClicked(...a),
+    onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
+    onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
   }),
 }));
 
@@ -88,6 +111,22 @@ function feedSocial(posts: IFeedForumPost[] | undefined, hasAccess: boolean): Fe
 const mockUseFeedSocial = jest.fn((): FeedSocialResult => feedSocial(undefined, false));
 jest.mock('@/components/page/home/TeamNews/hooks/useFeedSocial', () => ({
   useFeedSocial: (...a: unknown[]) => mockUseFeedSocial(...(a as [])),
+}));
+
+// Hiring roll-ups and deals reach the feed through these two. Default: neither
+// loaded, which is what the globally-mocked useQuery already produced — so every
+// other test in this file behaves exactly as before.
+const mockUseFeedHiring = jest.fn((): { hiring: IJobTeamGroup[] | undefined } => ({ hiring: undefined }));
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedHiring', () => ({
+  useFeedHiring: () => mockUseFeedHiring(),
+}));
+const mockUseIsBelowDesktop = jest.fn(() => false);
+jest.mock('@/hooks/useIsBelowDesktop', () => ({
+  useIsBelowDesktop: () => mockUseIsBelowDesktop(),
+}));
+const mockUseFeedDeals = jest.fn((): { deals: IDeal[] | undefined } => ({ deals: undefined }));
+jest.mock('@/components/page/home/TeamNews/hooks/useFeedDeals', () => ({
+  useFeedDeals: () => mockUseFeedDeals(),
 }));
 
 // The global jest.setup.js mock returns a NEW object with fresh jest.fn()s on
@@ -174,12 +213,26 @@ const groups: ITeamNewsGroup[] = [
 ];
 
 describe('TeamNews', () => {
+  beforeAll(() => {
+    // No global mock exists in jest.setup.js — feed/band rows now call
+    // useCardVisibilityTracking (view-impression recording).
+    class IO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
     // clearAllMocks clears calls, NOT return values — without this, a describe
     // that supplies forum posts leaks them into every later test's feed.
     mockUseFeedSocial.mockReturnValue(feedSocial(undefined, false));
+    mockUseFeedHiring.mockReturnValue({ hiring: undefined });
+    mockUseFeedDeals.mockReturnValue({ deals: undefined });
+    mockUseIsBelowDesktop.mockReturnValue(false);
     // useNewsDeepLink reads the real jsdom URL on mount — reset it so a
     // ?news= param written by one test can't open the modal in the next.
     window.history.replaceState(null, '', '/home');
@@ -199,7 +252,7 @@ describe('TeamNews', () => {
     expect(screen.getByRole('tab', { name: /All/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: /AI & Robotics/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Digital Human Rights/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+    expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
   });
 
   it('switches to a focus-area tab and reports analytics', () => {
@@ -226,7 +279,7 @@ describe('TeamNews', () => {
     expect(screen.getByRole('button', { name: /^Funding$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /^Launch$/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Milestone/ })).not.toBeDisabled();
-    expect(screen.getByRole('button', { name: /All categories/ })).not.toBeDisabled();
+    expect(within(catRow()).getByRole('button', { name: /All categories/ })).not.toBeDisabled();
   });
 
   it('renders an Other category chip, disabled when no OTHER items exist', () => {
@@ -247,6 +300,53 @@ describe('TeamNews', () => {
     expect(mockOnCategoryClicked).toHaveBeenCalledWith('OTHER', 1, 'All');
     expect(screen.getByText(/Headline ai-other/)).toBeInTheDocument();
     expect(screen.queryByText(/Headline ai-1/)).not.toBeInTheDocument();
+  });
+
+  describe('mobile "Type:" category dropdown', () => {
+    // jsdom doesn't evaluate the media query that hides this dropdown at
+    // desktop widths and the pill row below mobile, so both are always in the
+    // DOM in tests — scope to `.typeMobile` the same way category-pill tests
+    // scope to `.catRow`.
+    const typeDropdown = (): HTMLElement => document.querySelector('.typeMobile') as HTMLElement;
+
+    it('defaults to the plain "All categories" label, with no count', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      expect(within(typeDropdown()).getByRole('button', { name: 'All categories' })).toBeInTheDocument();
+    });
+
+    it('omits zero-count categories and folds counts into the label for the rest', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(within(typeDropdown()).getByRole('button', { name: 'All categories' }));
+
+      // aiItems: FUNDING, LAUNCH, PARTNERSHIP (1 each); dhrItems: MILESTONE, ANNOUNCEMENT (1 each).
+      expect(screen.getByRole('menuitem', { name: 'Funding (1)' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Milestone (1)' })).toBeInTheDocument();
+      // OTHER has zero items in this fixture — dropped, not shown disabled
+      // (SortDropdown has no disabled state; see the memo's own comment).
+      expect(screen.queryByRole('menuitem', { name: /Other/ })).not.toBeInTheDocument();
+    });
+
+    it('filters the feed and reports the same analytics event a pill click would', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      fireEvent.click(within(typeDropdown()).getByRole('button', { name: 'All categories' }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Funding (1)' }));
+
+      expect(mockOnCategoryClicked).toHaveBeenCalledWith('FUNDING', 1, 'All');
+      expect(screen.getByText(/Headline ai-1/)).toBeInTheDocument();
+      expect(screen.queryByText(/Headline ai-2/)).not.toBeInTheDocument();
+      // The trigger now reflects the selection, count folded in — same label
+      // format the menu offered it under.
+      expect(within(typeDropdown()).getByRole('button', { name: 'Funding (1)' })).toBeInTheDocument();
+    });
+
+    it('stays in sync with the desktop pill row — selecting a pill updates the dropdown label too', () => {
+      renderTeamNews(<TeamNews groups={groups} />);
+      // The pill's accessible name is "Launch" + its count span concatenated
+      // with no separator (e.g. "Launch1") — matching other tests in this file.
+      fireEvent.click(within(catRow()).getByRole('button', { name: /^Launch/ }));
+
+      expect(within(typeDropdown()).getByRole('button', { name: 'Launch (1)' })).toBeInTheDocument();
+    });
   });
 
   it('shows all items on Show All click and collapses back on Show Less, reports analytics', () => {
@@ -342,9 +442,9 @@ describe('TeamNews', () => {
 
     it('shows Discussions after All categories when at least one item has a thread', () => {
       renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
-      const chips = screen.getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
-      const allCat = screen.getByRole('button', { name: /All categories/ });
-      const discussions = screen.getByRole('button', { name: /Discussions/ });
+      const chips = within(catRow()).getAllByRole('button', { name: /categories|Discussions|Funding|Launch/i });
+      const allCat = within(catRow()).getByRole('button', { name: /All categories/ });
+      const discussions = within(catRow()).getByRole('button', { name: /Discussions/ });
       expect(chips.indexOf(discussions)).toBeGreaterThan(chips.indexOf(allCat));
       expect(within(discussions).getByText('1')).toBeInTheDocument();
     });
@@ -1220,7 +1320,7 @@ describe('TeamNews', () => {
     });
   });
 
-  describe('popular this week — scroll to story', () => {
+  (SHOW_POPULAR_THIS_WEEK ? describe : describe.skip)('popular this week — scroll to story', () => {
     const popularItem = (
       partial: Partial<ITeamNewsPopularItem> & Pick<ITeamNewsPopularItem, 'uid'>,
     ): ITeamNewsPopularItem => ({
@@ -1411,6 +1511,406 @@ describe('TeamNews', () => {
 
       expect(firstRow).not.toHaveClass('storyHighlighted');
       expect(secondRow).toHaveClass('storyHighlighted');
+    });
+  });
+
+  describe('hiring and deals in the feed', () => {
+    const jobRole = (uid: string, overrides: Partial<IJobTeamGroup['roles'][number]> = {}) => ({
+      uid,
+      roleTitle: `Role ${uid}`,
+      roleCategory: null,
+      seniority: null,
+      location: ['Remote'],
+      workMode: null,
+      applyUrl: `https://jobs.example.com/${uid}`,
+      lastUpdated: '2026-08-01T00:00:00.000Z',
+      postedDate: null,
+      detectionDate: null,
+      ...overrides,
+    });
+
+    const hiringGroup = (uid: string, overrides: Partial<IJobTeamGroup> = {}): IJobTeamGroup =>
+      ({
+        team: { uid, name: `Hiring ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [] },
+        totalRoles: 5,
+        roles: [jobRole(`${uid}-r1`), jobRole(`${uid}-r2`)],
+        ...overrides,
+      }) as IJobTeamGroup;
+
+    const feedDeal = (uid: string, overrides: Partial<IDeal> = {}): IDeal =>
+      ({
+        uid,
+        vendorName: `Vendor ${uid}`,
+        vendorTeamUid: null,
+        logoUid: null,
+        category: 'Infrastructure',
+        audience: 'ALL_FOUNDERS',
+        shortDescription: `Perk ${uid}`,
+        status: 'ACTIVE',
+        createdAt: '2026-08-01T00:00:00.000Z',
+        updatedAt: '2026-08-01T00:00:00.000Z',
+        isRedeemed: false,
+        isUsing: false,
+        teamsRedemptionCount: 0,
+        teamsUsingCount: 0,
+        logoUrl: null,
+      }) as IDeal;
+
+    // Nine items clears TOP_STORIES_MIN_CORPUS, so the band takes three and six
+    // ranked entries remain — enough for the cadence to place both signals.
+    const wideItems = Array.from({ length: 9 }, (_, i) => makeItem(`w-${i}`, 'FUNDING', ['AI & Robotics']));
+    const wideGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: wideItems.length, items: wideItems }];
+
+    it('renders a hiring roll-up and a deal card in the stream', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+      expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Vendor d1' })).toBeInTheDocument();
+      expect(screen.getByText('Perk d1')).toBeInTheDocument();
+    });
+
+    it('never lets a signal lead the feed', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
+      expect(first.textContent).not.toContain('is hiring');
+      expect(first.textContent).not.toContain('Vendor d1');
+    });
+
+    it('carries the job board attribution params on role links', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      expect(screen.getByRole('link', { name: 'Role acme-r1' })).toHaveAttribute(
+        'href',
+        'https://jobs.example.com/acme-r1?utm_source=os.pl.xyz&utm_medium=job_board',
+      );
+    });
+
+    it('renders a role without an apply link as plain text, not a dead anchor', () => {
+      mockUseFeedHiring.mockReturnValue({
+        hiring: [hiringGroup('acme', { roles: [jobRole('no-url', { applyUrl: null })] })],
+      });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      expect(screen.getByText('Role no-url')).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Role no-url' })).not.toBeInTheDocument();
+    });
+
+    it('renders no location rather than an empty one', () => {
+      mockUseFeedHiring.mockReturnValue({
+        hiring: [hiringGroup('acme', { roles: [jobRole('bare', { location: [] })] })],
+      });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      const row = screen.getByRole('link', { name: 'Role bare' }).closest('li')!;
+      expect(row.textContent).toBe('Role bare');
+    });
+
+    // Neither kind carries a focus area or an event type, so every narrowed
+    // view drops them — the same flag that hides the band.
+    it('drops both kinds on a category pill', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+      expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+
+      expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Vendor d1' })).not.toBeInTheDocument();
+    });
+
+    it('leaves the feed intact when neither stream loads', () => {
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      expect(screen.queryByText(/is hiring/)).not.toBeInTheDocument();
+      expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
+    });
+
+    it('reports role, view-all and deal clicks with their feed position', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
+      fireEvent.click(screen.getByRole('link', { name: 'Role acme-r1' }));
+      expect(mockOnFeedHiringRoleClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ team: expect.objectContaining({ uid: 'acme' }) }),
+        expect.objectContaining({ uid: 'acme-r1' }),
+        0,
+        expect.any(Number),
+      );
+
+      fireEvent.click(screen.getByText('View all 5 open roles at Hiring acme'));
+      expect(mockOnFeedHiringViewAllClicked).toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('heading', { name: 'Vendor d1' }));
+      expect(mockOnFeedDealClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'd1' }), expect.any(Number));
+    });
+  });
+
+  describe('sub-desktop rails', () => {
+    const suggestions = [
+      { uid: 's1', name: 'Banyan Storage', logo: null, reason: 'Storage · 1.2k followers' },
+      { uid: 's2', name: 'Helia Labs', logo: null, reason: 'Infrastructure · 890 followers' },
+    ];
+    const popular = [
+      {
+        uid: 'ai-1',
+        teamUid: 'team-ai-1',
+        teamName: 'Team ai-1',
+        title: 'Headline ai-1',
+        sourceUrl: 'https://example.com/ai-1',
+        upvoteCount: 5,
+      },
+    ];
+
+    const railAside = () => screen.queryByRole('complementary', { name: /sidebar/i });
+    // The rail's own cards are labelled sections too, so a bare role query would
+    // match either surface — scope to the feed column, which is where the
+    // scrollers live.
+    const scroller = (name: string) =>
+      within(document.querySelector('[data-news-feed-root]') as HTMLElement).queryByRole('region', { name });
+
+    beforeEach(() => {
+      mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
+    });
+
+    it('keeps Teams to follow in the rail at desktop width, with no scrollers', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(within(railAside()!).getByText('Banyan Storage')).toBeInTheDocument();
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(within(railAside()!).getByText('Popular this week')).toBeInTheDocument();
+      } else {
+        expect(within(railAside()!).queryByText('Popular this week')).not.toBeInTheDocument();
+      }
+      expect(scroller('Teams to follow')).not.toBeInTheDocument();
+      expect(scroller('Popular this week')).not.toBeInTheDocument();
+    });
+
+    it('lifts Teams to follow into a horizontal row below desktop', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(scroller('Teams to follow')).toBeInTheDocument();
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(scroller('Popular this week')).toBeInTheDocument();
+      } else {
+        expect(scroller('Popular this week')).not.toBeInTheDocument();
+      }
+      // The rail is still in the tree for the digest card — it just no longer
+      // carries these two.
+      expect(within(railAside()!).queryByText('Banyan Storage')).not.toBeInTheDocument();
+    });
+
+    it('keeps the digest card in the rail at both widths', () => {
+      const { unmount } = renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(within(railAside()!).getByText(/Get network news Digest/i)).toBeInTheDocument();
+      unmount();
+
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(within(railAside()!).getByText(/Get network news Digest/i)).toBeInTheDocument();
+    });
+
+    it('mounts exactly one instance of each module at either width', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(screen.getAllByText('Banyan Storage')).toHaveLength(1);
+      if (SHOW_POPULAR_THIS_WEEK) {
+        expect(screen.getAllByText('Popular this week')).toHaveLength(1);
+      } else {
+        expect(screen.queryByText('Popular this week')).not.toBeInTheDocument();
+      }
+    });
+
+    // The events live in TeamNews now precisely so the count doesn't depend on
+    // which surface rendered.
+    it('fires each view event exactly once, on either surface', () => {
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+      expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(SHOW_POPULAR_THIS_WEEK ? 1 : 0);
+
+      jest.clearAllMocks();
+      mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions, isLoading: false });
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      expect(mockOnTeamsToFollowViewed).toHaveBeenCalledTimes(1);
+      expect(mockOnPopularCardViewed).toHaveBeenCalledTimes(SHOW_POPULAR_THIS_WEEK ? 1 : 0);
+    });
+
+    it('follows a team from the scroller with the same payload as the rail row', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+      try {
+        renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+        const row = scroller('Teams to follow')!;
+        fireEvent.click(within(row).getByRole('button', { name: /follow banyan storage/i }));
+
+        expect(mockFollowMutate).toHaveBeenCalled();
+      } finally {
+        useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+      }
+    });
+
+    (SHOW_POPULAR_THIS_WEEK ? it : it.skip)('reveals the story in the feed when a scroller card is tapped', () => {
+      mockUseIsBelowDesktop.mockReturnValue(true);
+      renderTeamNews(<TeamNews groups={groups} popularItems={popular} />);
+
+      const row = scroller('Popular this week')!;
+      fireEvent.click(within(row).getByRole('button', { name: /Headline ai-1/ }));
+
+      expect(mockOnPopularStoryClicked).toHaveBeenCalled();
+    });
+  });
+
+  describe('top stories band', () => {
+    // TOP_STORIES_MIN_CORPUS is 9: the band's three plus a full default page.
+    // Editorial ranks 1–3 on b-4 / b-7 / b-1 match the previous upvote-based
+    // fixture so assertions on those headlines stay stable.
+    const bandItems = (count: number, editorialByIndex: Record<number, number> = {}): ITeamNewsItem[] =>
+      Array.from({ length: count }, (_, i) => ({
+        ...makeItem(`b-${i}`, 'FUNDING', ['AI & Robotics']),
+        editorialRank: editorialByIndex[i] ?? null,
+        eventDate: `2026-05-${String(count - i).padStart(2, '0')}T12:00:00.000Z`,
+      }));
+
+    const defaultEditorial = { 4: 1, 7: 2, 1: 3 };
+
+    const bandGroups = (items: ITeamNewsItem[]): ITeamNewsGroup[] => [{ focusArea: FA_AI, total: items.length, items }];
+
+    /** The stream under the band — the band renders its own copies of the same
+     *  stories, so feed assertions must not query globally. */
+    const feed = () => within(document.querySelector('[data-news-feed-list]') as HTMLElement);
+    const band = () => screen.queryByRole('region', { name: 'Top stories' });
+
+    it('renders nothing below the minimum corpus', () => {
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(8, defaultEditorial))} />);
+
+      expect(band()).not.toBeInTheDocument();
+      expect(feed().getByText('Headline b-0')).toBeInTheDocument();
+    });
+
+    it('renders the lead plus two rows once the corpus is met', () => {
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
+
+      const region = band()!;
+      expect(region).toBeInTheDocument();
+      expect(within(region).getByRole('heading', { level: 2 })).toHaveTextContent('Headline b-4');
+      expect(within(region).getByText('Headline b-7')).toBeInTheDocument();
+      expect(within(region).getByText('Headline b-1')).toBeInTheDocument();
+      expect(within(region).getByText('Last 14 days')).toBeInTheDocument();
+    });
+
+    it('removes the band stories from the stream below it', () => {
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} pageSize={20} />);
+
+      for (const uid of ['b-4', 'b-7', 'b-1']) {
+        expect(feed().queryByText(`Headline ${uid}`)).not.toBeInTheDocument();
+      }
+      expect(feed().getByText('Headline b-0')).toBeInTheDocument();
+      expect(feed().getByText('Headline b-8')).toBeInTheDocument();
+    });
+
+    it('hides the band on a focus-area tab, a category pill, and a search query', () => {
+      const items = bandItems(9, defaultEditorial);
+      renderTeamNews(
+        <TeamNews
+          groups={[
+            { focusArea: FA_AI, total: items.length, items },
+            { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
+          ]}
+        />,
+      );
+      expect(band()).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+      expect(band()).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('tab', { name: /^All/ }));
+      expect(band()).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+      expect(band()).not.toBeInTheDocument();
+    });
+
+    // Safety net: even though signals differ, still drop accidental overlap.
+    (SHOW_POPULAR_THIS_WEEK ? it : it.skip)('keeps band stories out of the rail’s Popular this week', () => {
+      const items = bandItems(9, defaultEditorial);
+      renderTeamNews(
+        <TeamNews
+          groups={bandGroups(items)}
+          popularItems={[
+            {
+              uid: 'b-4',
+              teamUid: 'team-b-4',
+              teamName: 'Team b-4',
+              title: 'Headline b-4',
+              sourceUrl: 'x',
+              upvoteCount: 50,
+            },
+            {
+              uid: 'b-0',
+              teamUid: 'team-b-0',
+              teamName: 'Team b-0',
+              title: 'Headline b-0',
+              sourceUrl: 'y',
+              upvoteCount: 2,
+            },
+          ]}
+        />,
+      );
+
+      const rail = screen.getByRole('complementary', { name: /sidebar/i });
+      expect(within(rail).queryByText('Headline b-4')).not.toBeInTheDocument();
+      expect(within(rail).getByText('Headline b-0')).toBeInTheDocument();
+    });
+
+    it('reports its own view and click analytics with slot and position', () => {
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
+
+      expect(mockOnTopStoriesBlockViewed).toHaveBeenCalledWith('b-4', 2);
+
+      fireEvent.click(within(band()!).getByRole('button', { name: 'Headline b-7' }));
+      expect(mockOnTopStoryClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'b-7' }), 'row', 1);
+      // The band never routes through the feed's card-clicked event: its items
+      // aren't in visibleEntries, so that handler's position lookup is -1.
+      expect(mockOnCardClicked).not.toHaveBeenCalled();
+    });
+
+    it('opens the detail modal and writes ?news= when a band story is clicked', () => {
+      renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
+
+      fireEvent.click(within(band()!).getByRole('button', { name: 'Headline b-4' }));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(new URLSearchParams(window.location.search).get('news')).toBe('b-4');
+    });
+
+    // Editorial ranks are fixed at ingest — liking must not re-order the band.
+    it('does not re-rank when the lead is liked', () => {
+      // Same reason the upvotes block above signs in: UpvoteButton has no
+      // isHydrated gate, so an anonymous click just redirects to login.
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+      try {
+        renderTeamNews(<TeamNews groups={bandGroups(bandItems(9, defaultEditorial))} />);
+
+        const leadBefore = within(band()!).getByRole('heading', { level: 2 }).textContent;
+        fireEvent.click(within(band()!).getAllByRole('button', { name: /^Like/ })[0]);
+
+        expect(within(band()!).getByRole('heading', { level: 2 })).toHaveTextContent(leadBefore!);
+      } finally {
+        useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+      }
     });
   });
 });

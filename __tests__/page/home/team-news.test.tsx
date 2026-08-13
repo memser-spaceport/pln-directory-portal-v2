@@ -4,7 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
-import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
+import { SHOW_HIRING_NEWS, SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IDeal } from '@/types/deals.types';
@@ -1561,13 +1561,28 @@ describe('TeamNews', () => {
     const wideItems = Array.from({ length: 9 }, (_, i) => makeItem(`w-${i}`, 'FUNDING', ['AI & Robotics']));
     const wideGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: wideItems.length, items: wideItems }];
 
-    it('renders a hiring roll-up and a deal card in the stream', () => {
+    /**
+     * Hiring roll-ups sit behind `SHOW_HIRING_NEWS`, switched off in #2775 when
+     * Hiring was dropped from the feed. Deals are NOT gated — TeamNews renders
+     * `DealCardCompact` unconditionally — so only the hiring assertions are gated
+     * here. Skipping the whole describe would have retired live deal coverage
+     * along with the dead hiring coverage, which is why the mixed tests below are
+     * split by kind rather than gated wholesale.
+     */
+    const itHiring = SHOW_HIRING_NEWS ? it : it.skip;
+
+    itHiring('renders a hiring roll-up in the stream', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
       expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
+    });
+
+    it('renders a deal card in the stream', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
       expect(screen.getByRole('heading', { name: 'Vendor d1' })).toBeInTheDocument();
       expect(screen.getByText('Perk d1')).toBeInTheDocument();
     });
@@ -1582,7 +1597,7 @@ describe('TeamNews', () => {
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
-    it('carries the job board attribution params on role links', () => {
+    itHiring('carries the job board attribution params on role links', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
@@ -1592,7 +1607,7 @@ describe('TeamNews', () => {
       );
     });
 
-    it('renders a role without an apply link as plain text, not a dead anchor', () => {
+    itHiring('renders a role without an apply link as plain text, not a dead anchor', () => {
       mockUseFeedHiring.mockReturnValue({
         hiring: [hiringGroup('acme', { roles: [jobRole('no-url', { applyUrl: null })] })],
       });
@@ -1602,7 +1617,7 @@ describe('TeamNews', () => {
       expect(screen.queryByRole('link', { name: 'Role no-url' })).not.toBeInTheDocument();
     });
 
-    it('renders no location rather than an empty one', () => {
+    itHiring('renders no location rather than an empty one', () => {
       mockUseFeedHiring.mockReturnValue({
         hiring: [hiringGroup('acme', { roles: [jobRole('bare', { location: [] })] })],
       });
@@ -1614,15 +1629,23 @@ describe('TeamNews', () => {
 
     // Neither kind carries a focus area or an event type, so every narrowed
     // view drops them — the same flag that hides the band.
-    it('drops both kinds on a category pill', () => {
+    itHiring('drops the hiring roll-up on a category pill', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
       expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
 
       expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+    });
+
+    it('drops the deal on a category pill', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+      expect(screen.getByRole('heading', { name: 'Vendor d1' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+
       expect(screen.queryByRole('heading', { name: 'Vendor d1' })).not.toBeInTheDocument();
     });
 
@@ -1633,9 +1656,8 @@ describe('TeamNews', () => {
       expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
     });
 
-    it('reports role, view-all and deal clicks with their feed position', () => {
+    itHiring('reports role and view-all clicks with their feed position', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       fireEvent.click(screen.getByRole('link', { name: 'Role acme-r1' }));
@@ -1648,6 +1670,11 @@ describe('TeamNews', () => {
 
       fireEvent.click(screen.getByText('View all 5 open roles at Hiring acme'));
       expect(mockOnFeedHiringViewAllClicked).toHaveBeenCalled();
+    });
+
+    it('reports deal clicks with their feed position', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       fireEvent.click(screen.getByRole('heading', { name: 'Vendor d1' }));
       expect(mockOnFeedDealClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'd1' }), expect.any(Number));

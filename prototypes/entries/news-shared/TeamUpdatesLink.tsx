@@ -47,6 +47,14 @@ interface TeamUpdatesLinkProps {
    * rule its update strip follows, so both versions of that surface agree.
    */
   href?: string;
+  /**
+   * Take over the click entirely. The teams grid uses it to route by the age of
+   * the news — fresh stories go to the feed, stale ones open a list in place,
+   * because sending someone to a feed for a story it buried six weeks down is a
+   * wasted trip. Requires `nested`: an anchor that runs a handler instead of
+   * navigating is a link that lies.
+   */
+  onActivate?: () => void;
 }
 
 /** Whole days since an ISO date, floored — "2d ago", "3w ago". */
@@ -85,6 +93,7 @@ export function TeamUpdatesLink({
   nested = false,
   arrow = true,
   href: hrefOverride,
+  onActivate,
 }: TeamUpdatesLinkProps) {
   const router = useRouter();
 
@@ -105,7 +114,15 @@ export function TeamUpdatesLink({
   const className = `${s.badge} ${size === 'small' ? s.small : ''}`;
   // The badge sits beside the team's name, so the label alone reads right on
   // screen; the accessible name still has to stand on its own out of context.
-  const ariaLabel = `${countLabel} about ${teamName} — read on the newsfeed`;
+  //
+  // It must also *start with the visible text*, or voice control can't act on
+  // what the user can read (WCAG 2.5.3, Label in Name). `new` mode is the case
+  // that catches: it shows "5 new" unconditionally — reading "new" as unread by
+  // you, not as recent — while `countLabel` still applies the freshness gate, so
+  // borrowing countLabel there would announce "5 updates" over a badge saying
+  // "5 new". Spell the noun out instead and the visible text is a prefix again.
+  const spokenCount = label === 'new' ? `${items.length} new ${noun}` : countLabel;
+  const ariaLabel = `${spokenCount} about ${teamName} — read on the newsfeed`;
   const body = (
     <>
       <span className={s.icon}>
@@ -127,7 +144,8 @@ export function TeamUpdatesLink({
           // Beat the enclosing card link to the click.
           e.preventDefault();
           e.stopPropagation();
-          router.push(href);
+          if (onActivate) onActivate();
+          else router.push(href);
         }}
       >
         {body}

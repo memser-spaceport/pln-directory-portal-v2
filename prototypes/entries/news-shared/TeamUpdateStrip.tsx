@@ -3,6 +3,7 @@
 import type { ITeamNewsItem } from '@/types/team-news.types';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
+import { Badge } from '@/components/common/Badge';
 
 // Reuse the production news-card type layer 1:1 — headline, summary clamp and the
 // whole meta line (event dot + label, separator, source, time) are its classes.
@@ -26,6 +27,31 @@ interface TeamUpdateStripProps {
   variant?: TeamUpdateVariant;
   /** Opens the story in place. Without it the story falls back to a feed link. */
   onOpenStory?: (item: ITeamNewsItem) => void;
+  /**
+   * Take over the strip's targets, rendering buttons instead of anchors — for
+   * surfaces that are themselves one big link and have to win the click.
+   *
+   * Covers "+N more updates", and the headline too unless `onActivateStory`
+   * overrides it.
+   */
+  onActivate?: () => void;
+  /**
+   * Take over the headline alone, leaving "+N more" to `onActivate`.
+   *
+   * The two targets say different things and so can't lead to the same place:
+   * the headline names *one story* — clicking it should open that story — while
+   * "+N more" asks for the rest of the team's news. The teams grid splits them
+   * this way; the markup has always kept them as separate controls.
+   */
+  onActivateStory?: () => void;
+  /**
+   * Lead the row with the story's source instead of the generic news glyph —
+   * the pattern Going's news cards use, where the publisher chip sits above the
+   * headline. The glyph says "this is news", which the row already looks like;
+   * "protocol.ai" vs a wire service is most of whether the headline is worth a
+   * click. Falls back to the glyph when a story carries no source.
+   */
+  showSource?: boolean;
 }
 
 /**
@@ -64,7 +90,15 @@ interface TeamUpdateStripProps {
  * name row, where a filled stripe would cut the header in half. It carries no
  * description for the same reason: a paragraph doesn't belong on a name row.
  */
-export function TeamUpdateStrip({ teamName, items, variant = 'full', onOpenStory }: TeamUpdateStripProps) {
+export function TeamUpdateStrip({
+  teamName,
+  items,
+  variant = 'full',
+  onOpenStory,
+  onActivate,
+  onActivateStory,
+  showSource,
+}: TeamUpdateStripProps) {
   if (items.length === 0) return null;
 
   const [latest] = items;
@@ -74,7 +108,20 @@ export function TeamUpdateStrip({ teamName, items, variant = 'full', onOpenStory
   // the banded versions open the story where you already are.
   const opensInPlace = !!onOpenStory && variant !== 'inline';
   // Stretched over the band, so a click anywhere on it hits the story.
-  const storyTarget = opensInPlace ? (
+  const takeOverStory = onActivateStory ?? onActivate;
+  const storyTarget = takeOverStory ? (
+    <button
+      type="button"
+      className={s.storyTarget}
+      aria-label={`${latest.title} — read this update`}
+      onClick={(e) => {
+        // The teams card is itself a link; this has to win the click.
+        e.preventDefault();
+        e.stopPropagation();
+        takeOverStory();
+      }}
+    />
+  ) : opensInPlace ? (
     <button
       type="button"
       className={s.storyTarget}
@@ -85,24 +132,49 @@ export function TeamUpdateStrip({ teamName, items, variant = 'full', onOpenStory
     <a className={s.storyTarget} href={feedFocusHref(latest)} aria-label={`${latest.title} — see it on the newsfeed`} />
   );
 
-  const more = moreCount > 0 && (
-    <a
-      className={s.more}
-      href={feedFocusHref(latest)}
-      aria-label={`${moreCount} more ${moreCount === 1 ? 'update' : 'updates'} about ${teamName} — see them on the newsfeed`}
-    >
+  const moreLabel = `${moreCount} more ${moreCount === 1 ? 'update' : 'updates'} about ${teamName}`;
+  const moreBody = (
+    <>
       +{moreCount} more {moreCount === 1 ? 'update' : 'updates'}
       <ArrowUpRightIcon className={s.moreArrow} aria-hidden="true" />
-    </a>
+    </>
   );
+  const more =
+    moreCount > 0 &&
+    (onActivate ? (
+      <button
+        type="button"
+        className={s.more}
+        aria-label={`${moreLabel} — see this team's news on the newsfeed`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onActivate();
+        }}
+      >
+        {moreBody}
+      </button>
+    ) : (
+      <a className={s.more} href={feedFocusHref(latest)} aria-label={`${moreLabel} — see them on the newsfeed`}>
+        {moreBody}
+      </a>
+    ));
 
   if (variant === 'line' || variant === 'inline') {
     return (
       <div className={`${s.strip} ${s.line} ${variant === 'inline' ? s.inline : ''}`}>
         {storyTarget}
-        <span className={s.icon}>
-          <NewsIcon />
-        </span>
+        {showSource && latest.sourceDomain ? (
+          // Production Badge, sized down to the 12px meta line this row runs on
+          // — the same move DiscoveryNewsCard makes for its marker.
+          <Badge variant="default" className={s.sourceChip}>
+            {latest.sourceDomain}
+          </Badge>
+        ) : (
+          <span className={s.icon}>
+            <NewsIcon />
+          </span>
+        )}
         <span className={s.lineTitle}>{latest.title}</span>
         <span className={`${n.meta} ${s.lineMeta}`}>
           {/* Production's own meta separator, doing here what it does between

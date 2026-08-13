@@ -383,7 +383,18 @@ export default function NewsfeedPrototype() {
 
     const newsUid = params.get('news');
     const story = newsUid ? ALL_CURATED_ITEMS.find((i) => i.uid === newsUid) : undefined;
-    if (story) openStoryDetail(story);
+    if (story) {
+      openStoryDetail(story);
+      // Consume the param. The modal is a one-shot arrival, so leaving `news` in
+      // the URL means a reload re-opens a story the reader already closed — and
+      // the read-once effect above can't undo it. `replaceState` for the same
+      // reason `clearTeamFilter` gives: this isn't a navigation, and Back should
+      // leave the page rather than reopen a modal.
+      const next = new URLSearchParams(window.location.search);
+      next.delete('news');
+      const nextSearch = next.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`);
+    }
 
     /**
      * `?focus=<teamUid>` scrolls that team's card into view and leaves it there —
@@ -406,7 +417,20 @@ export default function NewsfeedPrototype() {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
-        if (tries++ < 120) requestAnimationFrame(find);
+        if (tries++ < 120) {
+          requestAnimationFrame(find);
+          return;
+        }
+        // Out of tries: this team has no cluster in the feed at all. Landing on
+        // an unfiltered feed carrying none of its stories is a silent dead end —
+        // the reader asked for a team and got no sign of it. Scope to the team
+        // instead, which always renders (it falls back to `getTeamNews`) and
+        // shows a chip to widen back out.
+        //
+        // A fallback, not the behaviour: every team the grid and job board link
+        // to has a cluster, so this should never fire. It's here so a future
+        // fixture-only team degrades to something legible.
+        setTeamFilter(focusTeam);
       };
       requestAnimationFrame(find);
     }

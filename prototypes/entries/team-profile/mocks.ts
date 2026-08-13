@@ -11,6 +11,9 @@ import type { FeedComment } from '../newsfeed-v0/mocks';
 // One full mock team. The detail-page sections only read the fields populated
 // here. `logo` is left undefined so TeamDetails falls back to its dicebear
 // default avatar (no remote-image domain config in this app).
+//
+// Tried the real PL mark and reverted: the only Protocol Labs asset in public/
+// is the Demo Day wordmark at 142×24, which a square logo slot crops to "toc".
 export const MOCK_TEAM = {
   id: 'protocol-labs',
   name: 'Protocol Labs',

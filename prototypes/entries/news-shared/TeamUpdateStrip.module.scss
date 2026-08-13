@@ -59,7 +59,12 @@
 .icon {
   display: flex;
   flex-shrink: 0;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  // No colour of its own: inherits `.line`'s meta secondary, the same tier as
+  // the separator and time it shares the row with.
+  // It was tertiary, which put the mark identifying the row *below* the
+  // incidental timestamp beside it — backwards. Not primary either: the
+  // headline is the content and this is a category marker, so matching it would
+  // set the label competing with the thing it labels.
 
   svg {
     width: 14px;
@@ -100,6 +105,14 @@
   align-items: center;
   gap: 2px;
 
+  // Renders as a <button> when the strip's click is taken over (`onActivate`),
+  // as an <a> otherwise. Same pixels either way.
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+
   font-size: 12px;
   font-weight: 500;
   line-height: 16px;
@@ -114,6 +127,26 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+}
+
+/* Source chip leading the row (Going's publisher-above-headline pattern).
+   Production Badge at 14px is taller than the 12px meta line it sits on, so it
+   comes down to match — the only override; colour and border stay the Badge's
+   own `default` variant. */
+.sourceChip {
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  /* Fits the longest real source in the corpus ("techcrunch.com") without
+     ellipsis — a truncated domain is worse than no domain, since half a source
+     name is exactly the part that can't be recognised. */
+  max-width: 128px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .moreArrow {

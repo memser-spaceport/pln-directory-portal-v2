@@ -44,7 +44,10 @@ import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 // The feed's story detail modal + its event palette, so a story reads the same
 // wherever it's opened from.
-import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
+import { FeedDetailModal, FeedDetailBody, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
+// The story body's own stylesheet, for the `embedded` modifier that drops its
+// card chrome when it renders inside the archive's box.
+import detailCss from '../newsfeed-v0/FeedDetailModal.module.scss';
 import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
 import type { FeedComment } from '../newsfeed-v0/mocks';
 import local from './TeamProfile.module.scss';
@@ -160,20 +163,32 @@ export default function TeamProfilePrototype() {
    * profile-flavoured retelling of it.
    */
   const [detail, setDetail] = useState<FeedDetail | null>(null);
-  const openDetail = (item: ITeamNewsItem) =>
-    setDetail({
-      id: item.uid,
-      kind: 'news',
-      title: item.title,
-      name: item.teamName,
-      logoUrl: item.teamLogoUrl,
-      kicker: EVENT_TYPE_LABEL[item.eventType],
-      kickerColor: EVENT_TYPE_HEX[item.eventType],
-      summary: item.summary,
-      time: item.eventDate,
-      views: viewsFor(item.uid),
-      readUrl: item.sourceUrl ?? undefined,
-    });
+  /** One payload shape, so a story reads the same from the rail and the archive. */
+  const toDetail = (item: ITeamNewsItem): FeedDetail => ({
+    id: item.uid,
+    kind: 'news',
+    title: item.title,
+    name: item.teamName,
+    logoUrl: item.teamLogoUrl,
+    kicker: EVENT_TYPE_LABEL[item.eventType],
+    kickerColor: EVENT_TYPE_HEX[item.eventType],
+    summary: item.summary,
+    time: item.eventDate,
+    views: viewsFor(item.uid),
+    readUrl: item.sourceUrl ?? undefined,
+  });
+  const openDetail = (item: ITeamNewsItem) => setDetail(toDetail(item));
+
+  /**
+   * The story the archive has drilled into, kept apart from `detail` above.
+   *
+   * The rail opens a story as an overlay over the profile; the archive is
+   * *already* an overlay, so it swaps its own body instead — a modal over a
+   * modal would give the reader two close buttons and an Escape key that means
+   * two different things. Two states because the two surfaces answer a click
+   * differently, not because the story differs.
+   */
+  const [archiveStory, setArchiveStory] = useState<FeedDetail | null>(null);
 
   const displayNews = [...MOCK_NEWS].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
@@ -205,13 +220,29 @@ export default function TeamProfilePrototype() {
     setNewsModalOpen(false);
     setNewsQuery('');
     setNewsFocusUid(null);
+    // Reopening lands on the list, not on whatever story was last read.
+    setArchiveStory(null);
   };
 
-  // Desktop: when the feed opens focused on an item, scroll it into view and
-  // flash it so the "Show more" click feels tied to that card. (Mobile handles
-  // its own focus inside NewsFullPageView.)
+  /** Drill into a story without leaving the archive. */
+  const openArchiveStory = (item: ITeamNewsItem) => setArchiveStory(toDetail(item));
+
+  /**
+   * Back to the list, focused on the story just left — the same scroll-and-flash
+   * the rail's "Show more" uses, so the reader lands where they were rather than
+   * at the top of a list they'd scrolled halfway down.
+   */
+  const backToArchiveList = () => {
+    setNewsFocusUid(archiveStory?.id ?? null);
+    setArchiveStory(null);
+  };
+
+  // Desktop: when the archive opens (or returns) focused on an item, scroll it
+  // into view and flash it. Mobile handles its own focus inside
+  // NewsFullPageView. Keyed on `archiveStory` too, so Back re-runs it once the
+  // list is back in the DOM.
   useEffect(() => {
-    if (!newsModalOpen || isMobile || !newsFocusUid) return;
+    if (!newsModalOpen || isMobile || archiveStory || !newsFocusUid) return;
     const el = modalListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${newsFocusUid}"]`);
     if (!el) return;
     const raf = requestAnimationFrame(() => {
@@ -223,7 +254,7 @@ export default function TeamProfilePrototype() {
       cancelAnimationFrame(raf);
       clearTimeout(timer);
     };
-  }, [newsModalOpen, isMobile, newsFocusUid]);
+  }, [newsModalOpen, isMobile, newsFocusUid, archiveStory]);
 
   const focusAreas = useGetFocusAreasToDisplay(MOCK_FOCUS_AREAS, MOCK_TEAM_FOCUS_AREAS);
 
@@ -397,7 +428,7 @@ export default function TeamProfilePrototype() {
           </div>
           {/* The rail's two exits, paired on one row. They're deliberately not
               interchangeable: "View all news" stays inside this team (the modal
-              is its own archive), while "Network updates" leaves for the home feed
+              is its own archive), while "All network updates" leaves for the home feed
               (named after that page's own H2, and it carries forum/events/Demo Day
               too — not just team news)
               — hence the ↗ and the quieter neutral text against the blue. When
@@ -409,15 +440,20 @@ export default function TeamProfilePrototype() {
               </button>
             )}
             <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
-              Network updates
+              All network updates
               <ArrowUpRightIcon aria-hidden="true" />
             </Link>
           </div>
         </div>
       </aside>
 
-      {/* Full feed. On mobile it opens as a full-screen page (Notifications-style);
-          on desktop it stays a modal with its own scroll. */}
+      {/* The team's full archive. Mobile gets a full-screen page
+          (Notifications-style), desktop a modal with its own scroll.
+          Either way it DRILLS rather than stacks: click a story and the same box
+          swaps to it with Back on the left, Close still on the right. A second
+          overlay on top would mean two close buttons and an ambiguous Escape —
+          the pattern Mixpanel's Event History and Threads' post activity both
+          avoid the same way. */}
       {newsModalOpen && isMobile ? (
         <NewsFullPageView
           title={`${team.name} News`}
@@ -432,43 +468,76 @@ export default function TeamProfilePrototype() {
           commentsFor={commentsFor}
           likedNews={likedNews}
           onToggleLike={toggleNewsLike}
+          onOpenStory={openArchiveStory}
+          story={archiveStory}
+          onBack={backToArchiveList}
+          storyComments={archiveStory ? threadFor(archiveStory.id) : []}
+          onAddStoryComment={(text, parentUid) => archiveStory && addComment(archiveStory.id, text, parentUid)}
+          isCommentLiked={(uid) => likedComments.has(uid)}
+          onToggleCommentLike={toggleCommentLike}
         />
       ) : (
-      <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
-        <div className={local.modalHeader}>
-          <span className={local.modalTitle}>{team.name} News ({displayNews.length})</span>
-          <button type="button" className={local.modalClose} onClick={closeNewsModal} aria-label="Close">
-            <CloseIcon />
-          </button>
-        </div>
-        <div className={local.modalSearchWrap}>
-          <SearchInput
-            value={newsQuery}
-            onChange={setNewsQuery}
-            placeholder="Search news by keyword or type"
-          />
-        </div>
-        <div className={local.modalBody}>
-          {filteredNews.length > 0 ? (
-            <div className={local.modalGrid} ref={modalListRef}>
-              {filteredNews.map((item) => (
-                <NewsCardView
-                  key={item.uid}
-                  item={item}
-                  hideTeam
-                  fullSummary
-                  views={viewsFor(item.uid)}
-                  likes={likesFor(item.uid)}
-                  liked={likedNews.has(item.uid)}
-                  comments={commentsFor(item.uid)}
-                  onToggleLike={() => toggleNewsLike(item.uid)}
-                />
-              ))}
-            </div>
+        <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
+          {archiveStory ? (
+            // Drilled view: the story fills the box it was listed in. The body
+            // renders its own Back-led header, so the list's header steps aside
+            // rather than stacking a second one.
+            <FeedDetailBody
+              detail={archiveStory}
+              onClose={closeNewsModal}
+              onBack={backToArchiveList}
+              className={detailCss.embedded}
+              citationStyle="off"
+              showComments
+              likeCount={likesFor(archiveStory.id)}
+              liked={likedNews.has(archiveStory.id)}
+              onToggleLike={() => toggleNewsLike(archiveStory.id)}
+              comments={threadFor(archiveStory.id)}
+              onAddComment={(text, parentUid) => addComment(archiveStory.id, text, parentUid)}
+              isCommentLiked={(uid) => likedComments.has(uid)}
+              onToggleCommentLike={toggleCommentLike}
+            />
           ) : (
-            <div className={local.modalEmpty}>No news matches “{newsQuery}”.</div>
+            <>
+              <div className={local.modalHeader}>
+                <span className={local.modalTitle}>
+                  {team.name} News ({displayNews.length})
+                </span>
+                <button type="button" className={local.modalClose} onClick={closeNewsModal} aria-label="Close">
+                  <CloseIcon />
+                </button>
+              </div>
+              <div className={local.modalSearchWrap}>
+                <SearchInput value={newsQuery} onChange={setNewsQuery} placeholder="Search news by keyword or type" />
+              </div>
+              <div className={local.modalBody}>
+                {filteredNews.length > 0 ? (
+                  <div className={local.modalGrid} ref={modalListRef}>
+                    {filteredNews.map((item) => (
+                      <NewsCardView
+                        key={item.uid}
+                        item={item}
+                        hideTeam
+                        fullSummary
+                        views={viewsFor(item.uid)}
+                        likes={likesFor(item.uid)}
+                        liked={likedNews.has(item.uid)}
+                        comments={commentsFor(item.uid)}
+                        onToggleLike={() => toggleNewsLike(item.uid)}
+                        // Without these, NewsCardView falls back to opening the
+                        // source in a new tab — the archive would eject you from
+                        // the very surface built for reading.
+                        onShowMore={() => openArchiveStory(item)}
+                        onOpenComments={() => openArchiveStory(item)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={local.modalEmpty}>No news matches “{newsQuery}”.</div>
+                )}
+              </div>
+            </>
           )}
-        </div>
         </Modal>
       )}
       </div>

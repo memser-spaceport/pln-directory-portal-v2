@@ -95,7 +95,7 @@ export function MemberTeamUpdates({ teams }: Props) {
       </ul>
 
       <Link href="/prototypes/newsfeed" className={book.button}>
-        Network updates
+        All network updates
       </Link>
     </div>
   );

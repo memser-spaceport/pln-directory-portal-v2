@@ -17,7 +17,10 @@ import { MOCK_TEAMS } from './mocks';
 import { useMockTeamFilterStore } from './mockTeamFilterStore';
 import { TeamsFilterView } from './TeamsFilterView';
 import { TeamsToolbarView } from './TeamsToolbarView';
+import type { ITeamNewsItem } from '@/types/team-news.types';
+
 import { TeamCardView, type TeamUpdatesMode } from './TeamCardView';
+import { TeamNewsModal } from './TeamNewsModal';
 import s from './TeamsPrototype.module.scss';
 
 const COUNTED_PARAMS = [
@@ -47,21 +50,42 @@ export default function TeamsPrototype() {
   const { params, setParam } = useMockTeamFilterStore();
 
   /**
-   * Read-only now: the card carries no Follow control (following happens on the
-   * team profile), so nothing on this page adds to the set. The Following tab
-   * still reads it, and shows its empty state until the profile does the
-   * following.
+   * Writable again for the `follow` tab, which is the only mode that puts a
+   * Follow control on the card. The Following tab above the grid reads the same
+   * set, so following from a card immediately populates it — which is the point
+   * of trying the control here rather than only on the team profile.
    */
-  const [followed] = useState<Set<string>>(new Set());
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const toggleFollow = (id: string) =>
+    setFollowed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   /**
-   * What the card says about the team's news — two answers to compare by
-   * looking, which is the only way this call gets made honestly:
-   *  - `new`      — "3 new": how much, with the noun dropped. Down a grid the
-   *    noun is the same on every card, so it's the part carrying nothing.
+   * What the card says about the team's news — four answers to compare by
+   * looking, which is the only way this call gets made honestly. Listed in tab
+   * order, which is also the order they open on:
+   *  - `count`    — "3 updates" in the neutral chip. States a fact and lets the
+   *    team's own name stay the loudest thing on the card. The default, so the
+   *    quietest treatment is the one you judge the others against.
+   *  - `follow`   — that same chip paired with the feed's Follow control across
+   *    the top band. Tests whether a card should let you act on a team as well
+   *    as read about it.
+   *  - `new`      — "3 new" in brand blue: the same count, pitched as an offer
+   *    rather than a fact. Twelve blue marks down a grid is twelve things
+   *    competing for one click, which is what this tab is for seeing.
    *  - `headline` — the latest story itself. Says *why* you'd open the team
    *    rather than how much is in there, and costs a row of card height to.
    */
-  const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('new');
+  const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('count');
+  /** The `count` chip lists a team's news here instead of leaving for the feed. */
+  const [newsModal, setNewsModal] = useState<{
+    teamName: string;
+    items: ITeamNewsItem[];
+    teamLogo: string;
+  } | null>(null);
 
   const filterCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
 
@@ -104,7 +128,9 @@ export default function TeamsPrototype() {
         <span className={listCss.title}>Teams</span>
         <span className={listCss.count}>({visibleTeams.length})</span>
       </div>
-      <TeamsMobileFiltersView filterCount={filterCount} />
+      <div className={s.mobileFiltersGutter}>
+        <TeamsMobileFiltersView filterCount={filterCount} />
+      </div>
 
       {/* All / Following tabs (shared Tabs component), left-aligned under the header. */}
       <div className={s.tabsRow}>
@@ -126,7 +152,13 @@ export default function TeamsPrototype() {
             <div className={`${listCss.grid} ${s.gridFull}`}>
               {visibleTeams.map((team) => (
                 <Link key={team.id} href="/prototypes/team-profile" prefetch={false} className={s.cardLink}>
-                  <TeamCardView team={team} updates={updatesLabel} />
+                  <TeamCardView
+                    team={team}
+                    updates={updatesLabel}
+                    onOpenNews={(teamName, items, teamLogo) => setNewsModal({ teamName, items, teamLogo })}
+                    following={followed.has(team.id)}
+                    onToggleFollow={() => toggleFollow(team.id)}
+                  />
                 </Link>
               ))}
             </div>
@@ -150,13 +182,24 @@ export default function TeamsPrototype() {
           value={updatesLabel}
           onValueChange={(v) => setUpdatesLabel(v as TeamUpdatesMode)}
           tabs={[
-            { label: 'Count', value: 'new' },
+            { label: 'Updates', value: 'count' },
+            { label: 'Follow', value: 'follow' },
+            { label: 'New', value: 'new' },
             { label: 'Headline', value: 'headline' },
           ]}
         />
       </div>
 
       <DashboardPagesLayout filters={<TeamsFilterView />} content={content} />
+
+      {newsModal && (
+        <TeamNewsModal
+          teamName={newsModal.teamName}
+          teamLogo={newsModal.teamLogo}
+          items={newsModal.items}
+          onClose={() => setNewsModal(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,15 @@
 import type { ITeam } from '@/types/teams.types';
 
 // Minimal shape the TeamGridView card actually reads: name, shortDescription,
-// logo (left undefined — the card generates a monogram tile from the name, see
-// placeholderLogo.ts), and industryTags. Cast to ITeam at the call site.
+// logo, and industryTags. Cast to ITeam at the call site.
+//
+// LOGOS: real assets from `public/`, but only where one genuinely belongs to
+// that team — the PL mark from the Demo Day logo set, and the ecosystem marks
+// under icons/technology. The rest are left undefined on purpose and fall back
+// to a monogram tile (see placeholderLogo.ts): no logo ships for Bacalhau,
+// Saturn, Spacescope and the others, and borrowing the Filecoin mark for every
+// Filecoin-adjacent team would make four cards look like the same team. A real
+// directory is a mix of both, so the grid shows a mix.
 export type MockTeamCard = Pick<ITeam, 'id' | 'name' | 'shortDescription' | 'industryTags'> & {
   logo?: string;
 };
@@ -11,6 +18,10 @@ export const MOCK_TEAMS: MockTeamCard[] = [
   {
     id: 'protocol-labs',
     name: 'Protocol Labs',
+    // No logo on purpose. The only PL asset in public/ is the Demo Day
+    // wordmark, 142×24 — cropped into this card's 72px square slot it renders
+    // as "toc", and contained it would be a 12px-tall sliver. A monogram beats
+    // a mangled logo.
     shortDescription:
       'Building protocols, tools, and services to radically improve the internet — IPFS, Filecoin, libp2p and more.',
     industryTags: [
@@ -22,12 +33,14 @@ export const MOCK_TEAMS: MockTeamCard[] = [
   {
     id: 'filecoin-foundation',
     name: 'Filecoin Foundation',
+    logo: '/icons/technology/filecoin.svg',
     shortDescription: 'Facilitating governance of the Filecoin network and funding research into decentralized storage.',
     industryTags: [],
   },
   {
     id: 'libp2p',
     name: 'libp2p',
+    logo: '/icons/technology/libp2p.svg',
     shortDescription: 'A modular network stack that lets you build peer-to-peer applications across any transport.',
     industryTags: [
       { uid: 't1', title: 'Infrastructure' },
@@ -37,6 +50,7 @@ export const MOCK_TEAMS: MockTeamCard[] = [
   {
     id: 'ipfs-collective',
     name: 'IPFS Collective',
+    logo: '/icons/technology/ipfs.svg',
     shortDescription: 'A content-addressed, peer-to-peer hypermedia protocol making the web faster, safer and more open.',
     industryTags: [
       { uid: 't3', title: 'Storage' },
@@ -46,6 +60,7 @@ export const MOCK_TEAMS: MockTeamCard[] = [
   {
     id: 'drand',
     name: 'drand',
+    logo: '/icons/technology/drand.svg',
     shortDescription: 'A distributed randomness beacon daemon producing publicly verifiable, unbiased random values.',
     industryTags: [
       { uid: 't6', title: 'Cryptography' },

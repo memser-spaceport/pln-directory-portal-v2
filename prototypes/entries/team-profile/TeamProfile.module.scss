@@ -905,14 +905,18 @@
   }
 }
 
-/* Full-feed modal — bounded height, header pinned, body scrolls. Cards keep the
-   exact same NewsCard styling as the rail. */
+/* Full-feed modal — fixed height, header pinned, body scrolls. Cards keep the
+   exact same NewsCard styling as the rail.
+   Fixed rather than max-height because this modal drills: the list and the story
+   it opens have to be the same size, or the box jumps between the two views and
+   stops reading as one surface. 680px is FeedDetailModal's own height, so a
+   story here matches a story opened from the rail or the feed. */
 .newsModal {
   display: flex;
   flex-direction: column;
   width: 920px;
   max-width: calc(100vw - 32px);
-  max-height: 80vh;
+  height: min(680px, 80vh);
   background: var(--Neutral-White, #fff);
   border-radius: 12px;
   overflow: hidden;
@@ -937,6 +941,9 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
+  /* Rows keep their own height — the modal is a fixed box now, so a search that
+     narrows to one result must not stretch that one card to fill it. */
+  align-content: start;
 
   /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
   h3 {
@@ -1134,6 +1141,7 @@
   padding: 16px;
   flex-shrink: 0;
 }
+
 
 /* Stacked outlined (stroked) news cards, matching the homepage mobile news
    grid (single column, 12px gap). */

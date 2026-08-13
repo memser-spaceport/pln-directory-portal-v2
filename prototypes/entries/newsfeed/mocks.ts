@@ -42,6 +42,9 @@ const OFF_FOCUS_LOGOS: Record<string, string> = {
   'exo-labs': '/icons/technology/sourcecred.svg',
   'proprio-labs': '/icons/technology/fvm.svg',
   'kinetic-foundry': '/icons/technology/filecoin.svg',
+  // No bacalhau.svg ships in public/icons/technology, so it's deliberately absent
+  // here — `teamLogoUrl` stays null and the feed card draws its monogram
+  // fallback, which is what the teams grid shows for it too.
 };
 
 function offFocus(
@@ -144,6 +147,48 @@ export const OFF_FOCUS_ITEMS: ITeamNewsItem[] = [
       'The dataset covers 400 household objects across twelve gripper types, with provenance for every episode. Released alongside a reproduction harness.',
     sourceDomain: 'proprio.dev',
     tags: ['robotics', 'datasets'],
+  }),
+
+  /**
+   * Bacalhau, ported from the badge fixtures (`news-shared/mockTeamNews.ts`
+   * NEWS_BY_TEAM.bacalhau) so the feed actually carries the team the teams grid
+   * and the job board both badge.
+   *
+   * Without a cluster here there is no `[data-feed-team="bacalhau"]` anchor, so
+   * `?focus=bacalhau` polls for ~2s and silently gives up — the reader lands on
+   * a feed holding none of the stories they clicked. Off-focus is the right home:
+   * bacalhau sits in no focus area, and these belong to this entry rather than
+   * the shared newsfeed-v0 corpus.
+   *
+   * BOTH stories have to be here, not just the latest. `getTeamNews` returns the
+   * curated match *instead of* the fixtures, so porting one would quietly drop
+   * the grid badge from "2" to "1".
+   */
+  offFocus({
+    uid: 'bac-news-1',
+    teamUid: 'bacalhau',
+    teamName: 'Bacalhau',
+    eventType: 'FUNDING',
+    eventDate: '2026-08-12T09:00:00.000Z',
+    title: 'Bacalhau raises a $9M seed to run compute where the data already lives',
+    summary:
+      'The round is led by an infrastructure fund, with participation from several storage-provider operators. The team says the money goes to a managed offering and roughly doubling headcount.',
+    sourceUrl: 'https://techcrunch.com/bacalhau-seed',
+    sourceDomain: 'techcrunch.com',
+    tags: ['compute', 'data'],
+  }),
+  offFocus({
+    uid: 'bac-news-2',
+    teamUid: 'bacalhau',
+    teamName: 'Bacalhau',
+    eventType: 'PARTNERSHIP',
+    eventDate: '2026-07-17T09:00:00.000Z',
+    title: 'Bacalhau joins a genomics consortium to process sequencing data in place',
+    summary:
+      'Pilot sites in Lisbon and Singapore will run jobs next to the sequencers instead of shipping data out. Keeping patient data in place is what let the consortium clear its own review board.',
+    sourceUrl: 'https://wired.com/bacalhau-genomics',
+    sourceDomain: 'wired.com',
+    tags: ['compute', 'genomics'],
   }),
 ];
 

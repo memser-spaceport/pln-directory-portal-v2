@@ -36,6 +36,7 @@ import {
   type TeamNewsCategoryId,
   SHOW_HIRING_NEWS,
 } from './constants';
+import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
 import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
 
@@ -218,11 +219,24 @@ export const TeamNews = ({
   );
 
   const categoriesWithCounts = useMemo(() => {
-    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const base = CATEGORIES.reduce<Array<{ id: TeamNewsCategoryId; label: string; count: number }>>((acc, c) => {
+      if (c.label === EVENT_TYPE_LABEL.HIRING) {
+        if (SHOW_HIRING_NEWS) {
+          acc.push({ ...c, count: countForCategory(c.id) });
+        }
+      } else {
+        acc.push({ ...c, count: countForCategory(c.id) });
+      }
+
+      return acc;
+    }, []);
+
     const discussionsCount = countForCategory(DISCUSSIONS_CAT);
 
     // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
-    if (discussionsCount === 0) return base;
+    if (discussionsCount === 0) {
+      return base;
+    }
 
     const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
     for (const c of base) {
@@ -339,8 +353,6 @@ export const TeamNews = ({
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
-
-  console.log('>>>', visibleEntries);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
   // still drop any accidental overlap so the same story isn't shown twice.

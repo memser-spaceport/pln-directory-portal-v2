@@ -1,0 +1,98 @@
+.notOnboarded {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.notOnboardedCard {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.notOnboardedIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #e5edff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notOnboardedTitle {
+  margin-top: 18px;
+  font-weight: 600;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.notOnboardedDesc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #475569;
+  max-width: 360px;
+}
+
+.notOnboardedBtn {
+  margin-top: 22px;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px;
+  background: #156ff7;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.notOnboardedBtn:hover {
+  background: #1259c7;
+}
+
+.notOnboardedNote {
+  margin-top: 14px;
+  font-size: 12px;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  border-radius: 12px;
+  width: max-content;
+  margin-bottom: 20px;
+}
+
+.tab {
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+}
+
+.tabActive {
+  background: rgba(21, 111, 247, 0.1);
+  color: #156ff7;
+  font-weight: 600;
+}

@@ -17,6 +17,7 @@ export type PlaaActiveItem =
   | 'overview'
   | 'activities'
   | 'incentive-model'
+  | 'profile'
   | 'kudos'
   | 'terms-of-use'
   | 'privacy-policy'
@@ -40,6 +41,7 @@ const menuItems: Array<{ name: PlaaActiveItem; label: string; url: string; isExt
   { name: 'overview', label: 'Overview', url: '/alignment-asset/overview' },
   { name: 'incentive-model', label: 'Incentive Model', url: '/alignment-asset/incentive-model' },
   { name: 'activities', label: 'Activities', url: '/alignment-asset/activities' },
+  { name: 'profile', label: 'Profile', url: '/alignment-asset/profile' },
   { name: 'kudos', label: 'Kudos', url: '/alignment-asset/kudos', badge: 'new' },
   { name: 'trust-holdings', label: 'Trust & Holdings', url: '/alignment-asset/trust-holdings' },
   { name: 'product-versions', label: 'Product Versions', url: '/alignment-asset/product-versions' },

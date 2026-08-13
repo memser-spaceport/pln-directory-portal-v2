@@ -1,0 +1,215 @@
+.topAlignedOverlay {
+  align-items: flex-start !important;
+  padding-top: 48px !important;
+}
+
+.modalContainer {
+  max-width: 760px;
+}
+
+.card {
+  width: 720px;
+  max-width: 100%;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.header {
+  background: #156ff7;
+  color: #ffffff;
+  padding: 26px 28px;
+  position: relative;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.body {
+  padding: 28px;
+}
+
+.summary {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0f172a;
+  margin: 0 0 22px;
+}
+
+.summary b {
+  font-weight: 700;
+}
+
+/* Points are light blue throughout — same convention as PlaaSnapshotBar and the
+   points-dashboard chart fill. There's no PLAA figure on an open snapshot, so
+   there's no separate "brand blue" accent needed here. */
+.points {
+  color: #4f9eff;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.stat {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.activities {
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  overflow: hidden;
+}
+
+.activitiesHeader {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activityCategory {
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 2px 8px;
+  background: #f8fafc;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  flex: none;
+}
+
+.activityTitle {
+  flex: 1;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.activityPoints {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4f9eff;
+  white-space: nowrap;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  background: #f8fafc;
+  border-top: 3px solid #e2e8f0;
+}
+
+.totalLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4f9eff;
+}
+
+.callout {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 8px;
+}
+
+.calloutIcon {
+  color: #f59e0b;
+  flex: none;
+  margin-top: 1px;
+}
+
+.calloutText {
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+}
+
+.ctaBtn {
+  margin-top: 22px;
+  width: 100%;
+  height: 46px;
+  border: none;
+  background: #156ff7;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ctaBtn:hover {
+  background: #1259c7;
+}

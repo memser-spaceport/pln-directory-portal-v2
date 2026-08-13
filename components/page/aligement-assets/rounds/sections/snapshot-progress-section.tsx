@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
+import { getSnapshotProgress } from '@/utils/plaa-round.utils';
 
 interface SnapshotProgressSectionProps {
   startDate: Date;
@@ -32,60 +33,11 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     onSnapshotTipLinkClicked(linkText, url);
   };
   const { progressPercentage, timeRemaining, dateRangeLabel } = useMemo(() => {
-    const now = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Calculate total duration and elapsed time
-    const totalDuration = end.getTime() - start.getTime();
-    const elapsedTime = now.getTime() - start.getTime();
-    
-    // Calculate percentage (clamped between 0 and 100)
-    let percentage = 0;
-    if (now < start) {
-      percentage = 0;
-    } else if (now > end) {
-      percentage = 100;
-    } else {
-      percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
-    }
-    
-    // Calculate remaining calendar days (including today)
-    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-    const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-    
-    let remaining = '';
-    if (now > end) {
-      remaining = 'Snapshot period has ended';
-    } else if (now < start) {
-      remaining = 'Snapshot period has not started yet';
-    } else if (remainingDays === 1) {
-      remaining = '1 day remaining in current snapshot period';
-    } else {
-      remaining = `${remainingDays} days remaining in current snapshot period`;
-    }
-    
-    // Format date range label
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    };
-    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const year = end.getFullYear();
-    
-    // Check if same month
-    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-    const label = isSameMonth 
-      ? `${startMonth} ${startDay}-${endDay}, ${year}`
-      : `${formatDate(start)} - ${formatDate(end)}`;
-    
-    return {
-      progressPercentage: Math.round(percentage * 100) / 100,
-      timeRemaining: remaining,
-      dateRangeLabel: label
-    };
+    const { progressPercentage, timeRemainingLabel, dateRangeLabel } = getSnapshotProgress(
+      new Date(startDate),
+      new Date(endDate),
+    );
+    return { progressPercentage, timeRemaining: timeRemainingLabel, dateRangeLabel };
   }, [startDate, endDate]);
 
   return (

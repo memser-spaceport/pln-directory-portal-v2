@@ -1,0 +1,221 @@
+.hero {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  padding: 24px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7fb3ff, #156ff7);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 600;
+  flex: none;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.verifiedIcon {
+  color: #156ff7;
+  flex: none;
+}
+
+.memberSince {
+  font-size: 14px;
+  color: #475569;
+  margin-top: 2px;
+}
+
+.pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.onboardedPill,
+.infraPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.onboardedPill {
+  color: #0a9952;
+  background: rgba(10, 153, 82, 0.1);
+}
+
+.infraPill {
+  color: #156ff7;
+  background: rgba(21, 111, 247, 0.1);
+}
+
+.balanceSection {
+  display: flex;
+  flex: none;
+  padding-left: 22px;
+  margin-left: 4px;
+  border-left: 1px solid #e2e8f0;
+  gap: 22px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.statBlock {
+  text-align: right;
+}
+
+.statValue {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #156ff7;
+}
+
+.statValue.points {
+  color: #4f9eff;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 7px;
+}
+
+.confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #0a9952;
+  margin-top: 6px;
+}
+
+.balanceToggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+
+.caret {
+  color: #94a3b8;
+  display: inline-flex;
+  margin-top: 8px;
+  position: relative;
+}
+
+/* Anchored to .caret (fixed 11px width) rather than the whole button, so the
+   arrow's offset from the bubble's right edge (5.5px = half the caret's width)
+   lines up with the caret's center exactly, by construction. */
+.tipBubble {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+  width: max-content;
+  max-width: 240px;
+  white-space: nowrap;
+  background: #156ff7;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+  z-index: 10;
+  pointer-events: none;
+  text-align: center;
+}
+
+.tipBubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 6px;
+  border: 5px solid transparent;
+  border-top-color: #156ff7;
+}
+
+.breakdown {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 16px;
+  row-gap: 6px;
+  align-items: baseline;
+  padding-left: 16px;
+  border-left: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.breakdownLabel {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.breakdownValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: #156ff7;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .balanceSection {
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

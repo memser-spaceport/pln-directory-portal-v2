@@ -1,0 +1,219 @@
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  padding: 24px;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chartTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chartSubtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.legendSwatchBar {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(21, 111, 247, 0.22);
+}
+
+.legendSwatchLine {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #156ff7;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  margin-top: 18px;
+  overflow: visible;
+}
+
+.axisLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.axisLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.axisLabel.brand {
+  color: #156ff7;
+}
+
+.divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 20px 0 18px;
+}
+
+.historyTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.historySubtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.tableWrap {
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px #e2e8f0;
+  overflow: hidden;
+}
+
+.bracketRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 9px 16px 0;
+  background: #f8fafc;
+}
+
+.bracketLabel {
+  grid-column: 3 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #156ff7;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bracketLine {
+  width: 100%;
+  height: 5px;
+  border-top: 1px solid rgba(21, 111, 247, 0.32);
+  border-left: 1px solid rgba(21, 111, 247, 0.32);
+  border-right: 1px solid rgba(21, 111, 247, 0.32);
+  border-radius: 3px 3px 0 0;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 6px 16px 10px;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.headerRow span:not(:first-child) {
+  text-align: right;
+}
+
+.headerRow span.brand {
+  color: #156ff7;
+}
+
+.dataRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #f1f5f9;
+  align-items: center;
+}
+
+.period {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.right {
+  text-align: right;
+  font-size: 14px;
+}
+
+.points {
+  color: #4f9eff;
+}
+
+.secondary {
+  color: #475569;
+}
+
+.tertiary {
+  color: #94a3b8;
+}
+
+.balanceChip {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  color: #156ff7;
+  background: rgba(21, 111, 247, 0.1);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.footerRow {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
+  gap: 10px;
+  padding: 13px 16px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  align-items: center;
+}
+
+.footerLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.footerValue {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+}

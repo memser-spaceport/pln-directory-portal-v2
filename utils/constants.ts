@@ -649,6 +649,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_FEED_COMMENT_LINK_CLICKED: 'team-news-feed-comment-link-clicked',
   TEAM_NEWS_FEED_COMMENT_MENTION_CLICKED: 'team-news-feed-comment-mention-clicked',
   TEAM_NEWS_FEED_FORUM_POST_LIKE_FAILED: 'team-news-feed-forum-post-like-failed',
+  TEAM_NEWS_FEEDBACK_BUTTON_CLICKED: 'team-news-feedback-button-clicked',
 };
 
 export const FOLLOW_ANALYTICS_EVENTS = {

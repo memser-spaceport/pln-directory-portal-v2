@@ -73,6 +73,7 @@ import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScrol
 import { PopularScroller } from './components/FeedScrollers/PopularScroller';
 import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
+import { NewsFeedbackButton } from './components/NewsFeedbackButton';
 
 import { getSearchInputEl } from './utils/getSearchInputEl';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
@@ -764,229 +765,235 @@ export const TeamNews = ({
   // (they render alone once the posts query lands — accepted pop-in).
   if (isEmpty(allItems) && (forumPosts?.length ?? 0) === 0) {
     return (
-      <NewsBase>
-        <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
-      </NewsBase>
+      <>
+        <NewsBase>
+          <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
+        </NewsBase>
+        <NewsFeedbackButton />
+      </>
     );
   }
 
   return (
-    <NewsBase
-      headerDetails={
-        <div className={s.headerActions}>
-          {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
-          <NewsSearch
-            open={searchOpen}
-            value={query}
-            onOpen={() => setSearchOpen(true)}
-            onChange={handleSearch}
-            onBlur={handleFieldBlur}
-            fieldRef={desktopFieldRef}
-          />
-        </div>
-      }
-    >
-      {/* Mobile only: header has no room to expand inline, so the field lives
-          here as a permanent full-width row. Hidden on desktop via CSS. */}
-      <div className={s.mobileSearchRow}>
-        <SearchInput value={query} onChange={handleSearch} placeholder="Search by news, teams…" />
-      </div>
-
-      <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
-
-      <div className={s.filterBar}>
-        <div className={s.catRow}>
-          {categoriesWithCounts.map((c) => {
-            const isActive = activeCategory === c.id;
-            const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                className={clsx(s.cat, { [s.catActive]: isActive })}
-                onClick={() => handleCategory(c.id)}
-                disabled={isDisabled}
-              >
-                {c.label}
-                {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-              </button>
-            );
-          })}
-        </div>
-        <div className={s.filterActions}>
-          {/* Mobile only — `.catRow`'s pill row holds the category filter at
-              every wider breakpoint (see TeamNews.module.scss `.catRow` /
-              `.typeMobile`). Same SortDropdown "Sort by:" already uses, so the
-              two read as one control family on a narrow screen. */}
-          <span className={s.typeMobile}>
-            <SortDropdown
-              sortByLabel="Type:"
-              options={categoryOptions}
-              currentSort={activeCategory}
-              onSortChange={(value) => handleCategory(value as TeamNewsCategoryId)}
+    <>
+      <NewsBase
+        headerDetails={
+          <div className={s.headerActions}>
+            {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+            <NewsSearch
+              open={searchOpen}
+              value={query}
+              onOpen={() => setSearchOpen(true)}
+              onChange={handleSearch}
+              onBlur={handleFieldBlur}
+              fieldRef={desktopFieldRef}
             />
-          </span>
-          <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+          </div>
+        }
+      >
+        {/* Mobile only: header has no room to expand inline, so the field lives
+            here as a permanent full-width row. Hidden on desktop via CSS. */}
+        <div className={s.mobileSearchRow}>
+          <SearchInput value={query} onChange={handleSearch} placeholder="Search by news, teams…" />
         </div>
-      </div>
 
-      <div className={s.layout}>
-        {/* tabIndex={-1}: focus-restore fallback target when the modal closes and
-            the originating row is gone (deep link to a folded story) — focus must
-            land somewhere in the feed, never on <body>. */}
-        <div className={s.main} data-news-feed-root tabIndex={-1}>
-          {topStories?.lead && (
-            <div className={s.topStories}>
-              <TopStoriesBlock
-                lead={topStories.lead}
-                also={topStories.also}
-                windowLabel={TOP_STORIES_WINDOW_LABEL}
-                followedTeamUids={followedTeamUids}
-                onFollowToggle={handleFollowToggle}
-                onUpvoteToggle={handleUpvoteToggle}
-                onStoryOpen={handleTopStoryOpen}
+        <TeamNewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
+
+        <div className={s.filterBar}>
+          <div className={s.catRow}>
+            {categoriesWithCounts.map((c) => {
+              const isActive = activeCategory === c.id;
+              const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={clsx(s.cat, { [s.catActive]: isActive })}
+                  onClick={() => handleCategory(c.id)}
+                  disabled={isDisabled}
+                >
+                  {c.label}
+                  {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <div className={s.filterActions}>
+            {/* Mobile only — `.catRow`'s pill row holds the category filter at
+                every wider breakpoint (see TeamNews.module.scss `.catRow` /
+                `.typeMobile`). Same SortDropdown "Sort by:" already uses, so the
+                two read as one control family on a narrow screen. */}
+            <span className={s.typeMobile}>
+              <SortDropdown
+                sortByLabel="Type:"
+                options={categoryOptions}
+                currentSort={activeCategory}
+                onSortChange={(value) => handleCategory(value as TeamNewsCategoryId)}
               />
-            </div>
-          )}
+            </span>
+            <SortDropdown sortByLabel="Sort by:" options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+          </div>
+        </div>
 
-          {/* The rail's two modules, lifted to just under the band at widths
-              where the rail itself stacks below the whole feed. Rendered only
-              here — NewsRail drops them at the same breakpoint, so exactly one
-              instance of each is ever on screen. Kept in the rail's own order
-              so the modules don't swap places between widths. */}
-          {isBelowDesktop && (
-            <div className={s.feedScrollers}>
-              {showSuggestionsModule && (
-                <FollowTeamsScroller
-                  suggestions={visibleSuggestions}
+        <div className={s.layout}>
+          {/* tabIndex={-1}: focus-restore fallback target when the modal closes and
+              the originating row is gone (deep link to a folded story) — focus must
+              land somewhere in the feed, never on <body>. */}
+          <div className={s.main} data-news-feed-root tabIndex={-1}>
+            {topStories?.lead && (
+              <div className={s.topStories}>
+                <TopStoriesBlock
+                  lead={topStories.lead}
+                  also={topStories.also}
+                  windowLabel={TOP_STORIES_WINDOW_LABEL}
                   followedTeamUids={followedTeamUids}
                   onFollowToggle={handleFollowToggle}
+                  onUpvoteToggle={handleUpvoteToggle}
+                  onStoryOpen={handleTopStoryOpen}
                 />
-              )}
-              {SHOW_POPULAR_THIS_WEEK && (
-                <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Suppressed when the band is showing: a window whose every story is
-              in the band leaves the stream empty, and "No network news in this
-              filter" directly under three stories reads as a bug. */}
-          {entries.length === 0 ? (
-            !topStories?.lead && (
-              <div className={s.empty}>
-                {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
+            {/* The rail's two modules, lifted to just under the band at widths
+                where the rail itself stacks below the whole feed. Rendered only
+                here — NewsRail drops them at the same breakpoint, so exactly one
+                instance of each is ever on screen. Kept in the rail's own order
+                so the modules don't swap places between widths. */}
+            {isBelowDesktop && (
+              <div className={s.feedScrollers}>
+                {showSuggestionsModule && (
+                  <FollowTeamsScroller
+                    suggestions={visibleSuggestions}
+                    followedTeamUids={followedTeamUids}
+                    onFollowToggle={handleFollowToggle}
+                  />
+                )}
+                {SHOW_POPULAR_THIS_WEEK && (
+                  <PopularScroller items={railPopularItems} onPopularItemClick={handlePopularItemClick} />
+                )}
               </div>
-            )
-          ) : (
-            <>
-              {/* The stream, marked so it can be addressed apart from the
-                  top-stories band above it — which renders its own copies of
-                  the same stories. */}
-              <div className={s.feed} data-news-feed-list>
-                {visibleEntries.map((entry, index) => {
-                  // Composite key intentionally forces a remount on every tab/category
-                  // change so each card's local state (expanded stories, open comment
-                  // threads) resets — see rationale in
-                  // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
-                  // NOTE: any future CSS transition on .storyRow/.expander will not
-                  // animate across a filter change, since this replaces the DOM node
-                  // rather than updating it in place.
-                  const key = `${activeTab}::${String(activeCategory)}::${feedEntryKey(entry)}`;
-                  switch (entry.kind) {
-                    case 'news':
-                      return (
-                        <NewsGroupCard
-                          key={key}
-                          cluster={entry.cluster}
-                          onStoryOpen={handleStoryOpen}
-                          isFollowing={followedTeamUids.has(entry.cluster.teamUid)}
-                          onFollowToggle={handleFollowToggle}
-                          onUpvoteToggle={handleUpvoteToggle}
-                          autoExpandStoryUid={
-                            scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
-                          }
-                        />
-                      );
-                    case 'forum':
-                      return (
-                        <ForumPostCard
-                          key={key}
-                          // Live like state resolved at render only — the merge
-                          // above ranked by frozen counts, so likes never reorder
-                          // the feed.
-                          post={resolvePostLike(entry.post)}
-                          position={index}
-                          onOpenDetail={handleForumPostOpen}
-                          onLikeToggle={handleForumPostLikeToggle}
-                        />
-                      );
-                    case 'hiring':
-                      return SHOW_HIRING_NEWS ? (
-                        <HiringCard
-                          key={key}
-                          group={entry.group}
-                          isFollowing={followedTeamUids.has(entry.group.team.uid)}
-                          onFollowToggle={handleFollowToggle}
-                          onRoleClick={(group, role, rolePosition) =>
-                            analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)
-                          }
-                          onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
-                        />
-                      ) : null;
-                    case 'deal':
-                      return (
-                        <DealCardCompact
-                          key={key}
-                          deal={entry.deal}
-                          onClick={(deal) => analytics.onFeedDealClicked(deal, index)}
-                        />
-                      );
-                    default:
-                      return assertNever(entry);
-                  }
-                })}
-              </div>
-              {entries.length > pageSize && (
-                <div className={s.showAll}>
-                  <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
-                    {expanded ? 'Show Less' : 'Show All'}
-                  </Button>
+            )}
+
+            {/* Suppressed when the band is showing: a window whose every story is
+                in the band leaves the stream empty, and "No network news in this
+                filter" directly under three stories reads as a bug. */}
+            {entries.length === 0 ? (
+              !topStories?.lead && (
+                <div className={s.empty}>
+                  {query.trim() ? `No network news matches "${query.trim()}".` : 'No network news in this filter.'}
                 </div>
-              )}
-            </>
-          )}
+              )
+            ) : (
+              <>
+                {/* The stream, marked so it can be addressed apart from the
+                    top-stories band above it — which renders its own copies of
+                    the same stories. */}
+                <div className={s.feed} data-news-feed-list>
+                  {visibleEntries.map((entry, index) => {
+                    // Composite key intentionally forces a remount on every tab/category
+                    // change so each card's local state (expanded stories, open comment
+                    // threads) resets — see rationale in
+                    // docs/plans/2026-07-06-feat-team-news-grouped-by-team-plan.md.
+                    // NOTE: any future CSS transition on .storyRow/.expander will not
+                    // animate across a filter change, since this replaces the DOM node
+                    // rather than updating it in place.
+                    const key = `${activeTab}::${String(activeCategory)}::${feedEntryKey(entry)}`;
+                    switch (entry.kind) {
+                      case 'news':
+                        return (
+                          <NewsGroupCard
+                            key={key}
+                            cluster={entry.cluster}
+                            onStoryOpen={handleStoryOpen}
+                            isFollowing={followedTeamUids.has(entry.cluster.teamUid)}
+                            onFollowToggle={handleFollowToggle}
+                            onUpvoteToggle={handleUpvoteToggle}
+                            autoExpandStoryUid={
+                              scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
+                            }
+                          />
+                        );
+                      case 'forum':
+                        return (
+                          <ForumPostCard
+                            key={key}
+                            // Live like state resolved at render only — the merge
+                            // above ranked by frozen counts, so likes never reorder
+                            // the feed.
+                            post={resolvePostLike(entry.post)}
+                            position={index}
+                            onOpenDetail={handleForumPostOpen}
+                            onLikeToggle={handleForumPostLikeToggle}
+                          />
+                        );
+                      case 'hiring':
+                        return SHOW_HIRING_NEWS ? (
+                          <HiringCard
+                            key={key}
+                            group={entry.group}
+                            isFollowing={followedTeamUids.has(entry.group.team.uid)}
+                            onFollowToggle={handleFollowToggle}
+                            onRoleClick={(group, role, rolePosition) =>
+                              analytics.onFeedHiringRoleClicked(group, role, rolePosition, index)
+                            }
+                            onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
+                          />
+                        ) : null;
+                      case 'deal':
+                        return (
+                          <DealCardCompact
+                            key={key}
+                            deal={entry.deal}
+                            onClick={(deal) => analytics.onFeedDealClicked(deal, index)}
+                          />
+                        );
+                      default:
+                        return assertNever(entry);
+                    }
+                  })}
+                </div>
+                {entries.length > pageSize && (
+                  <div className={s.showAll}>
+                    <Button style="border" variant="secondary" type="button" onClick={handleToggleAll}>
+                      {expanded ? 'Show Less' : 'Show All'}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <NewsRail
+            initialDigestSettings={initialDigestSettings}
+            popularItems={railPopularItems}
+            isLoadingSuggestedTeams={isLoadingSuggestedTeams}
+            visibleSuggestions={visibleSuggestions}
+            renderModules={!isBelowDesktop}
+            followedTeamUids={followedTeamUids}
+            onFollowToggle={handleFollowToggle}
+            onPopularItemClick={handlePopularItemClick}
+          />
         </div>
-        <NewsRail
-          initialDigestSettings={initialDigestSettings}
-          popularItems={railPopularItems}
-          isLoadingSuggestedTeams={isLoadingSuggestedTeams}
-          visibleSuggestions={visibleSuggestions}
-          renderModules={!isBelowDesktop}
-          followedTeamUids={followedTeamUids}
-          onFollowToggle={handleFollowToggle}
-          onPopularItemClick={handlePopularItemClick}
-        />
-      </div>
 
-      {/* Conditional mount, no isOpen half-state: the item prop is always the
-          live overlay-merged object. Trades away the exit animation (accepted). */}
-      {activeNewsItem && (
-        <NewsDetailModal
-          item={activeNewsItem}
-          onClose={closeNews}
-          onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
-          isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
-          onFollowToggle={handleFollowToggle}
-        />
-      )}
-      {activeForumPost && (
-        <ForumPostModal
-          post={activeForumPost}
-          onClose={closePost}
-          onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
-        />
-      )}
-    </NewsBase>
+        {/* Conditional mount, no isOpen half-state: the item prop is always the
+            live overlay-merged object. Trades away the exit animation (accepted). */}
+        {activeNewsItem && (
+          <NewsDetailModal
+            item={activeNewsItem}
+            onClose={closeNews}
+            onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
+            isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
+            onFollowToggle={handleFollowToggle}
+          />
+        )}
+        {activeForumPost && (
+          <ForumPostModal
+            post={activeForumPost}
+            onClose={closePost}
+            onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
+          />
+        )}
+      </NewsBase>
+      <NewsFeedbackButton />
+    </>
   );
 };

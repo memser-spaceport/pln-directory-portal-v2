@@ -598,6 +598,15 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  // Fired from the floating "Give feedback" button that sits over the news
+  // feed — a lightweight entry point into the shared ContactSupport dialog,
+  // distinct from every other feed interaction above.
+  const onFeedbackButtonClicked = (source: TeamNewsAnalyticsSource = 'home') => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FEEDBACK_BUTTON_CLICKED, {
+      source,
+    });
+  };
+
   return {
     onTeamNewsTabClicked,
     onTeamNewsCategoryClicked,
@@ -640,5 +649,6 @@ export const useTeamNewsAnalytics = () => {
     onFeedCommentRetryClicked,
     onFeedCommentLinkClicked,
     onFeedCommentMentionClicked,
+    onFeedbackButtonClicked,
   };
 };

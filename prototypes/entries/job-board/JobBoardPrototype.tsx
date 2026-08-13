@@ -36,21 +36,38 @@
  *                                            so signing in looks the same here as at /home. Its
  *                                            second line reads the narrowed rail back, and once the
  *                                            rail IS narrowed the banner condenses to one line and
- *                                            pins under the header (desktop) — the answer to "open a
- *                                            modal after a few seconds". A timer fires when the
- *                                            person has been given nothing and asked for nothing;
- *                                            filtering is the intent, and it's already the whole
- *                                            question the modal would ask. So the ask escalates when
- *                                            earned, and by staying in view rather than blocking.
+ *                                            pins under the header (desktop): the standing offer,
+ *                                            escalating when intent is expressed.
+ *  - SignInPromptModal    (new)             the requested timed prompt — "sign in and update your
+ *                                            profile to increase your chances to match", opening
+ *                                            itself after 20s of *visible* time on the board. It
+ *                                            sits on top of the banner rather than replacing it,
+ *                                            and everything that keeps a timed interstitial honest
+ *                                            is in the timer, not the copy: logged-out only, once
+ *                                            per session including dismissals, never over another
+ *                                            dialog, paused in a background tab, and nothing on the
+ *                                            board withheld to make it matter. Where the rail is
+ *                                            already narrowed it reads that selection back instead
+ *                                            of asking a question the person has answered.
  *  - MatchNudgeStrip      (new)             signed in, one self-extinguishing strip on production
  *                                            `DataIncomplete`. Names the criteria back when the
  *                                            rail is already narrowed — the intent is already
  *                                            expressed, so the strip offers to keep it rather than
  *                                            opening an empty form (the same intent-preserving
  *                                            move as JobAlertBanner).
- *  - JobPreferencesModal  (new)             fills in place, pre-filled from the rail. Four
- *                                            FormMultiSelects on the facet vocabulary + the
- *                                            profile's own "open to collaborate" row.
+ *  - JobPreferencesModal  (new)             fills in place, pre-filled from the rail, in two steps.
+ *                                            Step 1 "what you want": four FormMultiSelects on the
+ *                                            facet vocabulary + the profile's own "open to
+ *                                            collaborate" row. Step 2 "what you do": Role, Team or
+ *                                            organization and Skills — production's Experience
+ *                                            entry and `member.skills`, which is what lets the
+ *                                            modal say the answers go to Settings → Profile rather
+ *                                            than into a job-board-only record. Step 2 is optional
+ *                                            and never feeds the match; ranking stays on stated
+ *                                            intent, so no seniority is inferred from a job title.
+ *                                            The fields it doesn't ask for (description, dates,
+ *                                            location) are editable in the profile-settings entry,
+ *                                            which carries the full production field set.
  *  - "Best match for me"                    a third option on the existing SortDropdown, not a
  *                                            "For you" band: one sorted spine, and the control
  *                                            that already owns list order keeps owning it.
@@ -111,15 +128,19 @@ import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { MatchNudgeStrip } from './MatchNudgeStrip';
 import { SignInBanner } from './SignInBanner';
+import { SignInPromptModal } from './SignInPromptModal';
 import { JobPreferencesModal } from './JobPreferencesModal';
 import {
+  EMPTY_EXPERIENCE,
   EMPTY_PREFERENCES,
+  SAVED_EXPERIENCE,
   SAVED_PREFERENCES,
   countMatches,
   hasCriteria,
   matchesPreferences,
   roleMatches,
   type JobPreferences,
+  type MemberExperience,
   type RoleCriteria,
   type ViewerId,
 } from './viewerState';
@@ -181,6 +202,13 @@ const VIEWER_NOTE: Record<ViewerId, string> = {
 
 const MATCH_SORT = 'best_match';
 
+/** How long a logged-out visitor browses before the sign-in prompt opens itself.
+ *  Visible time only — a tab left open in the background hasn't been read. */
+const SIGN_IN_PROMPT_DWELL_MS = 20_000;
+
+/** Once per session, dismissal included. A prompt that comes back is a toll gate. */
+const PROMPT_SETTLED_KEY = 'pln-proto-jobs-signin-prompt-settled';
+
 /** A lock rides in the label — `SortOption.label` is a ReactNode, and SortDropdown
  *  has no disabled state, so the gate is swallowed in the change handler instead.
  *  Same lock asset family the production login strip uses, so "you need an account"
@@ -209,6 +237,15 @@ export default function JobBoardPrototype() {
   useEffect(() => {
     setMounted(true);
     try {
+      /* Starts settled so the timer can't arm before this runs — a prompt that
+         appeared and then discovered it had already been dismissed would be the
+         second interruption the key exists to prevent. */
+      setPromptSettled(window.sessionStorage.getItem(PROMPT_SETTLED_KEY) === '1');
+    } catch {
+      /* storage unavailable: leave it settled. Erring toward not interrupting. */
+    }
+
+    try {
       const raw = window.sessionStorage.getItem(PENDING_SAVE_STORAGE_KEY);
       if (!raw) return;
       window.sessionStorage.removeItem(PENDING_SAVE_STORAGE_KEY);
@@ -235,8 +272,16 @@ export default function JobBoardPrototype() {
   // in for the cookie read; everything downstream is the real decision.
   const [viewer, setViewer] = useState<ViewerId>('logged-out');
   const [preferences, setPreferences] = useState<JobPreferences>(EMPTY_PREFERENCES);
+  const [experience, setExperience] = useState<MemberExperience>(EMPTY_EXPERIENCE);
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+
+  /* The dwell prompt. `settled` covers both outcomes — shown or dismissed — and
+     survives a reload, so the interruption is a once-per-session event rather
+     than something that meets the person again every time they come back to the
+     tab. */
+  const [promptOpen, setPromptOpen] = useState(false);
+  const [promptSettled, setPromptSettled] = useState(true);
 
   const isLoggedIn = viewer !== 'logged-out';
 
@@ -313,17 +358,66 @@ export default function JobBoardPrototype() {
      the moment the design is about: you land signed in with the form already
      holding what you asked for. The mount effect above reads the stash back, so a
      real reload mid-flow lands in the same place. */
-  const onSignIn = () => {
+  const signIn = (openPreferences: boolean) => {
     try {
       window.sessionStorage.setItem(PENDING_SAVE_STORAGE_KEY, JSON.stringify(criteria));
     } catch {
       /* sessionStorage unavailable — the replay is a nicety, not a requirement */
     }
     setViewer('no-preferences');
-    if (hasCriteria(criteria)) setPrefsOpen(true);
+    if (openPreferences || hasCriteria(criteria)) setPrefsOpen(true);
   };
 
-  const onSavePreferences = (next: JobPreferences) => {
+  /* Passed to onClick handlers, so it takes no arguments — a bare `signIn` would
+     be handed a MouseEvent as its flag. */
+  const onSignIn = () => signIn(false);
+
+  /** Marks the dwell prompt done for the session, whichever way it ended. */
+  const settlePrompt = () => {
+    setPromptOpen(false);
+    setPromptSettled(true);
+    try {
+      window.sessionStorage.setItem(PROMPT_SETTLED_KEY, '1');
+    } catch {
+      /* storage unavailable — the in-memory flag still holds for this page life */
+    }
+  };
+
+  /* The dwell timer. Counts only while the tab is visible, never runs for a
+     signed-in viewer, never opens over the preferences modal, and arms once —
+     `promptSettled` is set the moment it fires, so a dismissal and a sign-in end
+     it the same way. Ticking a counter rather than one long `setTimeout` is what
+     lets a backgrounded tab pause instead of accruing time nobody spent reading. */
+  useEffect(() => {
+    if (!mounted || isLoggedIn || promptSettled || promptOpen || prefsOpen) return;
+
+    let spent = 0;
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      spent += 1000;
+      if (spent < SIGN_IN_PROMPT_DWELL_MS) return;
+      window.clearInterval(id);
+      setPromptOpen(true);
+      setPromptSettled(true);
+      try {
+        window.sessionStorage.setItem(PROMPT_SETTLED_KEY, '1');
+      } catch {
+        /* see above */
+      }
+    }, 1000);
+
+    return () => window.clearInterval(id);
+  }, [mounted, isLoggedIn, promptSettled, promptOpen, prefsOpen]);
+
+  /* Signing in from the prompt always opens the form, filters or no filters: the
+     prompt asked for a profile update, so it has to land on the thing that
+     collects one. */
+  const onPromptSignIn = () => {
+    settlePrompt();
+    signIn(true);
+  };
+
+  const onSavePreferences = (next: JobPreferences, nextExperience: MemberExperience) => {
     /* The stash has done its job. Left behind it would replay on the next load
        and re-narrow the rail for someone whose preferences are already saved —
        a filter they didn't set, from a session they'd finished. */
@@ -333,6 +427,7 @@ export default function JobBoardPrototype() {
       /* nothing to clean up if storage is unavailable */
     }
     setPreferences(next);
+    setExperience(nextExperience);
     setViewer('preferences-set');
     setPrefsOpen(false);
     setJustSaved(true);
@@ -349,9 +444,28 @@ export default function JobBoardPrototype() {
     return () => clearTimeout(t);
   }, [justSaved]);
 
+  /* Prototype scaffolding: replay the prompt on demand. Puts the viewer back to
+     logged-out first, because a sign-in prompt shown to someone already signed in
+     would be reviewing a state that can't happen. */
+  const showPromptNow = () => {
+    setViewer('logged-out');
+    setPreferences(EMPTY_PREFERENCES);
+    setExperience(EMPTY_EXPERIENCE);
+    setJustSaved(false);
+    setPrefsOpen(false);
+    try {
+      window.sessionStorage.removeItem(PROMPT_SETTLED_KEY);
+    } catch {
+      /* nothing to clear if storage is unavailable */
+    }
+    setPromptSettled(false);
+    setPromptOpen(true);
+  };
+
   const onSelectViewer = (next: ViewerId) => {
     setViewer(next);
     setPreferences(next === 'preferences-set' ? SAVED_PREFERENCES : EMPTY_PREFERENCES);
+    setExperience(next === 'preferences-set' ? SAVED_EXPERIENCE : EMPTY_EXPERIENCE);
     setJustSaved(false);
     setPrefsOpen(false);
     setParam('sort', next === 'preferences-set' ? MATCH_SORT : undefined);
@@ -447,6 +561,7 @@ export default function JobBoardPrototype() {
         <MatchNudgeStrip
           criteria={criteria}
           preferences={preferences}
+          experience={experience}
           matchCount={matchCount}
           totalRoles={totalRoles}
           justSaved={justSaved}
@@ -477,6 +592,22 @@ export default function JobBoardPrototype() {
           </div>
           <span className={v0.switchNote}>{NEWS_NOTE[newsVariant]}</span>
         </div>
+
+        {/* Prototype-only, and the only way to review a 20-second timer without
+            waiting 20 seconds for it. Re-arms the session key too, so it can be
+            replayed. */}
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Sign-in prompt</span>
+          <div className={v0.switch}>
+            <button type="button" className={`${v0.switchBtn} ${v0.switchBtnActive}`} onClick={showPromptNow}>
+              Show it now
+            </button>
+          </div>
+          <span className={v0.switchNote}>
+            Logged out, it opens by itself after 20s of visible time on the page — once per session, never over another
+            dialog, and dismissing it settles it for good.
+          </span>
+        </div>
       </div>
 
       {visibleGroups.length === 0 ? (
@@ -503,11 +634,16 @@ export default function JobBoardPrototype() {
     <>
       {nav}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+      {/* The dwell prompt. Never rendered alongside the preferences modal — the
+          timer won't fire while that's open, and signing in from here closes this
+          one before opening that one. */}
+      <SignInPromptModal open={promptOpen} criteria={criteria} onClose={settlePrompt} onSignIn={onPromptSignIn} />
       <JobPreferencesModal
         open={prefsOpen}
         onClose={() => setPrefsOpen(false)}
         preferences={preferences}
         criteria={criteria}
+        experience={experience}
         onSave={onSavePreferences}
       />
     </>

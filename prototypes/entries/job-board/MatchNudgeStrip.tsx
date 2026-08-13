@@ -5,7 +5,14 @@ import clsx from 'clsx';
 import { Button } from '@/components/common/Button';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
-import { hasCriteria, summariseCriteria, type JobPreferences, type RoleCriteria } from './viewerState';
+import {
+  hasCriteria,
+  summariseCriteria,
+  summariseExperience,
+  type JobPreferences,
+  type MemberExperience,
+  type RoleCriteria,
+} from './viewerState';
 import s from './MatchNudgeStrip.module.scss';
 
 interface MatchNudgeStripProps {
@@ -13,6 +20,8 @@ interface MatchNudgeStripProps {
   criteria: RoleCriteria;
   /** What's been saved, if anything. */
   preferences: JobPreferences;
+  /** What went to the profile, if the second step was answered. */
+  experience: MemberExperience;
   matchCount: number;
   totalRoles: number;
   /** Set for the one render after saving; the strip reports, then clears itself. */
@@ -40,10 +49,11 @@ interface MatchNudgeStripProps {
  * invented.
  */
 export function MatchNudgeStrip(props: MatchNudgeStripProps) {
-  const { criteria, preferences, matchCount, totalRoles, justSaved, onSetPreferences } = props;
+  const { criteria, preferences, experience, matchCount, totalRoles, justSaved, onSetPreferences } = props;
 
   const preferencesSet = hasCriteria(preferences);
   const filtersApplied = hasCriteria(criteria);
+  const profileLine = summariseExperience(experience);
 
   // Saved and nothing outstanding — say what it bought, once.
   if (justSaved) {
@@ -55,6 +65,11 @@ export function MatchNudgeStrip(props: MatchNudgeStripProps) {
         <span className={s.text}>
           Saved. <strong>{matchCount}</strong>
           {` of ${totalRoles} roles match what you're looking for — sorted to the top, and teams hiring for them can find you.`}
+          {/* Names the change to the public profile rather than leaving it to be
+              discovered. Only when there's a line to name — skills alone are a
+              real answer but not a sentence, and "your profile now reads ." is
+              worse than saying nothing. */}
+          {profileLine && ` Your profile now reads ${profileLine}.`}
         </span>
       </DataIncomplete>
     );

@@ -31,6 +31,27 @@
   color: var(--foreground-brand-primary, #1b4dff);
 }
 
+// Step counter + title as one block. The card is a 24px-gap column; at that
+// distance the counter would read as its own announcement rather than as a label
+// on the heading below it.
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Deliberately quiet: it orients, it isn't the message. Same 12px tertiary type
+// as `.note` at the other end of the card, so the two framing lines match.
+.stepLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  text-align: center;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 // Takes the card's leftover height so `.fields` has something to scroll within.
 .form {
   flex: 1;

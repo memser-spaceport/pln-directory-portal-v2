@@ -1,0 +1,80 @@
+// Prototype-only chrome. Nothing here has a counterpart on the real
+// /pl-infra/agent-sessions/<id> page — it exists so a reviewer can reach every
+// session state without an orchestrator behind the page.
+//
+// Deliberately quiet: this sits above the thing being reviewed, so it must read as
+// scaffolding rather than compete with the page.
+
+@use 'styles/media';
+
+.switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  border-radius: 12px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.switcherRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+.switcherLabel {
+  flex-shrink: 0;
+  min-width: 84px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  button {
+    height: 28px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--foreground-neutral-secondary, #455468);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground-neutral-primary, #0a0c11);
+    }
+
+    &[data-active='true'] {
+      background: var(--foreground-brand-primary, #1b4dff);
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+}
+
+.switcherNote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

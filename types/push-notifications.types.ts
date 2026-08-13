@@ -107,7 +107,8 @@ export type PushNotificationCategory =
   | 'GUIDE_REPLY'
   | 'NEW_FEATURE'
   | 'GANTRY'
-  | 'TEAM_NEWS';
+  | 'TEAM_NEWS'
+  | 'AI_APP';
 
 export interface NotificationUpdatePayload {
   id: string;
@@ -150,4 +151,5 @@ export const CATEGORY_CONFIG: Record<PushNotificationCategory, { label: string; 
   NEW_FEATURE: { label: 'New Feature', icon: 'system', color: '#6B7280' },
   GANTRY: { label: 'Gantry', icon: 'system', color: '#6B7280' },
   TEAM_NEWS: { label: 'Network News', icon: 'system', color: '#156FF7' },
+  AI_APP: { label: 'AI App', icon: 'system', color: '#6B7280' },
 };

@@ -1,7 +1,12 @@
 .link {
   width: fit-content;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
 
 .title {
+  color: inherit !important;
   transition: color 0.12s ease;
 }

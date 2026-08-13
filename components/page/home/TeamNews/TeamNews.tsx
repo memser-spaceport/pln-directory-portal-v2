@@ -2,89 +2,88 @@
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
+
+import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import {
   useTeamNewsAnalytics,
-  type TeamNewsAnalyticsSource,
   type TeamNewsCardClickVia,
+  type TeamNewsAnalyticsSource,
 } from '@/analytics/team-news.analytics';
-import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
-import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
-import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
-import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
-import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
-import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
-import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
-import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
+import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
+import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
-  DISCUSSIONS_CAT,
-  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
-  SHOW_POPULAR_THIS_WEEK,
-  TOP_STORIES_WINDOW_LABEL,
-  type TeamNewsCategoryId,
+  DISCUSSIONS_CAT,
   SHOW_HIRING_NEWS,
+  DISCUSSIONS_CATEGORY,
+  SHOW_POPULAR_THIS_WEEK,
+  type TeamNewsCategoryId,
+  TOP_STORIES_WINDOW_LABEL,
 } from './constants';
+import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
-import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
-
+import {
+  SORT_OPTIONS,
+  type TeamNewsSort,
+  sortTeamNewsClusters,
+  DEFAULT_TEAM_NEWS_SORT,
+} from './utils/sortTeamNewsClusters';
 import { dedupeByUid } from './utils/dedupeByUid';
+import { clusterByTeam } from './utils/clusterByTeam';
+import { getSearchInputEl } from './utils/getSearchInputEl';
+import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
-import { clusterByTeam } from './utils/clusterByTeam';
-import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
-import { injectFeedSignals } from './utils/injectFeedSignals';
-import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
-import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
-import { useStoryReveal } from './hooks/useStoryReveal';
-import { useNewsDeepLink } from './hooks/useNewsDeepLink';
-import { useFeedSocial } from './hooks/useFeedSocial';
-import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
-import { useFeedHiring } from './hooks/useFeedHiring';
-import { useFeedDeals } from './hooks/useFeedDeals';
-import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
-
-import { NewsDetailModal } from './components/NewsDetailModal';
-import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
-
-import { NewsGroupCard } from './components/NewsGroupCard';
-import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
-import { HiringCard } from './components/HiringCard/HiringCard';
-import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
-import { ForumPostCard } from './components/ForumPostCard';
-import { NewsBase } from './components/NewsBase';
-import { NewsRail } from './components/NewsRail';
-import {
-  useDelayedHideFollowedSuggestions,
-  useFeedModulesViewAnalytics,
-} from './components/NewsRail/useSuggestionsModule';
-import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
-import { PopularScroller } from './components/FeedScrollers/PopularScroller';
-import { NewsSearch } from './components/NewsSearch';
-import { TeamNewsTabs } from './components/TeamNewsTabs';
-
-import { getSearchInputEl } from './utils/getSearchInputEl';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
+import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
+import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
+import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
+
 import {
-  DEFAULT_TEAM_NEWS_SORT,
-  SORT_OPTIONS,
-  sortTeamNewsClusters,
-  type TeamNewsSort,
-} from './utils/sortTeamNewsClusters';
+  useFeedModulesViewAnalytics,
+  useDelayedHideFollowedSuggestions,
+} from './components/NewsRail/useSuggestionsModule';
+import { useFeedDeals } from './hooks/useFeedDeals';
+import { useFeedSocial } from './hooks/useFeedSocial';
+import { useFeedHiring } from './hooks/useFeedHiring';
+import { useStoryReveal } from './hooks/useStoryReveal';
+import { useNewsDeepLink } from './hooks/useNewsDeepLink';
+import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
+
+import { NewsBase } from './components/NewsBase';
+import { NewsRail } from './components/NewsRail';
+import { NewsSearch } from './components/NewsSearch';
+import { TeamNewsTabs } from './components/TeamNewsTabs';
+import { NewsGroupCard } from './components/NewsGroupCard';
+import { ForumPostCard } from './components/ForumPostCard';
+import { NewsDetailModal } from './components/NewsDetailModal';
+import { HiringCard } from './components/HiringCard/HiringCard';
+import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
+import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
+import { PopularScroller } from './components/FeedScrollers/PopularScroller';
+import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
+import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
 
 import s from './TeamNews.module.scss';
 
@@ -228,11 +227,24 @@ export const TeamNews = ({
   );
 
   const categoriesWithCounts = useMemo(() => {
-    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const base = CATEGORIES.reduce<Array<{ id: TeamNewsCategoryId; label: string; count: number }>>((acc, c) => {
+      if (c.label === EVENT_TYPE_LABEL.HIRING) {
+        if (SHOW_HIRING_NEWS) {
+          acc.push({ ...c, count: countForCategory(c.id) });
+        }
+      } else {
+        acc.push({ ...c, count: countForCategory(c.id) });
+      }
+
+      return acc;
+    }, []);
+
     const discussionsCount = countForCategory(DISCUSSIONS_CAT);
 
     // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
-    if (discussionsCount === 0) return base;
+    if (discussionsCount === 0) {
+      return base;
+    }
 
     const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
     for (const c of base) {
@@ -349,8 +361,6 @@ export const TeamNews = ({
 
   const visibleEntries = expanded ? entries : entries.slice(0, pageSize);
   const newCount = allItems.length + (forumPosts?.length ?? 0);
-
-  console.log('>>>', visibleEntries);
 
   // Band is editorialRank; rail is upvotes — they should already diverge, but
   // still drop any accidental overlap so the same story isn't shown twice.

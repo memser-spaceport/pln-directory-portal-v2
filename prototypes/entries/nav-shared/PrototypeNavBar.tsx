@@ -114,8 +114,11 @@ export function PrototypeNavBar({
     onHomeReselect?.();
   };
 
+  /* `data-prototype-chrome` is the marker the stylesheet keys the
+     production-chrome hide off — see PrototypeNav.module.scss. It has to sit on
+     an element that unmounts with the route, not on <body>. */
   return (
-    <header className={local.headerShell}>
+    <header className={local.headerShell} data-prototype-chrome>
       <NavigationMenu.Root className={s.Root}>
         <NavigationMenu.List className={s.List}>
           {/* Same destination as Home, one of them labelled. `newsHref` absent

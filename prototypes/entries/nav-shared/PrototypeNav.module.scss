@@ -2,10 +2,15 @@
 
 /* The root layout renders the real `SiteHeader` and `MobileBottomNav` above and
    below every prototype page. Any route using this nav replaces both (that IS
-   the proposal), so the inherited pair is hidden while this stylesheet is
-   loaded — production is untouched. */
-:global(.layout__header),
-:global(#mobile-bottom-nav) {
+   the proposal), so the inherited pair is hidden — production is untouched.
+
+   Gated on `[data-prototype-chrome]`, which only the nav components below carry:
+   a stylesheet stays in the document after you navigate away from the route that
+   loaded it, so an unconditional rule would keep production's header hidden on
+   /home once you'd visited a prototype. Keying off an element that unmounts with
+   the route makes the rule stop matching the moment the prototype nav is gone. */
+:global(body:has([data-prototype-chrome]) .layout__header),
+:global(body:has([data-prototype-chrome]) #mobile-bottom-nav) {
   display: none;
 }
 

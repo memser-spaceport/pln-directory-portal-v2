@@ -79,7 +79,12 @@ import { getSearchInputEl } from './utils/getSearchInputEl';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
-import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
+import {
+  DEFAULT_TEAM_NEWS_SORT,
+  SORT_OPTIONS,
+  sortTeamNewsClusters,
+  type TeamNewsSort,
+} from './utils/sortTeamNewsClusters';
 
 import s from './TeamNews.module.scss';
 
@@ -185,7 +190,7 @@ export const TeamNews = ({
     () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
   );
 
-  const [sort, setSort] = useState<TeamNewsSort>('popular');
+  const [sort, setSort] = useState<TeamNewsSort>(DEFAULT_TEAM_NEWS_SORT);
 
   // Both are client-side and non-blocking: the feed renders without them and
   // the cards pop in, the same arrival forum posts already have. `undefined`

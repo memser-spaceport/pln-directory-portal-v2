@@ -9,7 +9,7 @@
   padding: 12px 20px;
   border: none;
   border-radius: 9999px;
-  background: var(--foreground-brand-primary, #1b4dff);
+  background: var(--Neutral-Slate-900, #0f172a);
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -20,6 +20,6 @@
     0px 20px 65px -5px rgba(14, 15, 17, 0.12);
 
   &:hover {
-    background: var(--foreground-brand-primary-hover, #1640d6);
+    background: var(--Neutral-Slate-600, #475569);
   }
 }

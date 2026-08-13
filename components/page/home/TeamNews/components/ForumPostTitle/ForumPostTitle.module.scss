@@ -7,6 +7,7 @@
 }
 
 .title {
+  flex-shrink: 0;
   color: inherit !important;
   transition: color 0.12s ease;
 }

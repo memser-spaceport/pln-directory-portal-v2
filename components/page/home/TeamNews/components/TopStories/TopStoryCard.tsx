@@ -168,8 +168,8 @@ export function TopStoryCard({
           <span className={newsCardStyles.time}>{formatTimeAgo(story.eventDate)}</span>
         </div>
         <div className={newsCardStyles.actions}>
-          <ViewCount count={story.viewCount} />
           <NewsShareMenu item={story} source={analyticsSource} />
+          <ViewCount count={story.viewCount} />
           <UpvoteButton
             count={story.upvoteCount ?? 0}
             voted={Boolean(story.viewerHasUpvoted)}

@@ -208,8 +208,8 @@ function AlsoRow({
           <span className={newsCardStyles.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
         <div className={newsCardStyles.actions}>
-          <ViewCount count={item.viewCount} />
           <NewsShareMenu item={item} source={analyticsSource} />
+          <ViewCount count={item.viewCount} />
           <UpvoteButton count={item.upvoteCount ?? 0} voted={Boolean(item.viewerHasUpvoted)} onToggle={onUpvoteClick} />
           <CommentButton itemUid={item.uid} open={false} onToggle={onOpen} opensDetail />
         </div>

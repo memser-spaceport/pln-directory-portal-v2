@@ -1,23 +1,8 @@
-/**
- * Type definitions for CurrentRound component master data structure
- * Each section's data is organized for easy API integration and maintainability
- */
-
-// ============================================================================
-// Common Types
-// ============================================================================
-
-/**
- * Represents a link with display text and URL
- */
 export interface LinkItem {
   text: string;
   url: string;
 }
 
-/**
- * Represents an action button with styling options
- */
 export interface ActionButton {
   label: string;
   url: string;
@@ -26,19 +11,11 @@ export interface ActionButton {
   openInNewTab?: boolean;
 }
 
-// ============================================================================
-// Hero Section Types
-// ============================================================================
-
 export interface HeroSectionData {
   title: string;
   subtitle: string;
   actions: ActionButton[];
 }
-
-// ============================================================================
-// Round Description Section Types
-// ============================================================================
 
 export interface RoundDescriptionParagraph {
   text: string;
@@ -55,10 +32,6 @@ export interface RoundDescriptionSectionData {
   badgeText: string;
   paragraphs: RoundDescriptionParagraph[];
 }
-
-// ============================================================================
-// Snapshot Progress Section Types
-// ============================================================================
 
 export interface TipLink {
   prefix: string;
@@ -80,10 +53,6 @@ export interface SnapshotProgressSectionData {
   tipContent: TipContent;
 }
 
-// ============================================================================
-// Chart Section Types
-// ============================================================================
-
 export interface ChartEntry {
   name: string;
   value: number;
@@ -96,10 +65,6 @@ export interface ChartSectionData {
   maxValue: number;
 }
 
-// ============================================================================
-// Stats Section Types
-// ============================================================================
-
 export interface StatsSectionData {
   onboardedParticipants: number;
   regionsUnlocked: string[];
@@ -110,10 +75,6 @@ export interface StatsSectionData {
   numberOfBuybacks?: number;
   labweek25IncentivizedActivities?: string[];
 }
-
-// ============================================================================
-// Leaderboard Section Types
-// ============================================================================
 
 export interface LeaderboardEntry {
   rank: number;
@@ -127,10 +88,6 @@ export interface LeaderboardSectionData {
   currentSnapshotData: LeaderboardEntry[];
   cumulativeData: LeaderboardEntry[];
 }
-
-// ============================================================================
-// Buyback Auction Section Types
-// ============================================================================
 
 export interface BuybackHeaderStats {
   totalFilled: string;
@@ -174,57 +131,25 @@ export interface BuybackSimulationSectionData {
   bids: BuybackBidEntry[];
 }
 
-// ============================================================================
-// Learn More Section Types
-// ============================================================================
-
 export interface LearnMoreSectionData {
   faqUrl: string;
 }
 
-
-// ============================================================================
-// Master Current Round Data Type
-// ============================================================================
-
-/**
- * Master data structure containing all section data for the CurrentRound component
- * This structure can be populated from an API response
- */
 export interface CurrentRoundData {
-  /** Metadata about the round */
   meta: {
     roundNumber: number;
     isCurrentRound: boolean;
     lastUpdated: string; // ISO date string
   };
-  
-  /** Hero section with title, subtitle, and action buttons */
   hero: HeroSectionData;
-  
-  /** Round description with badge and paragraphs */
   roundDescription: RoundDescriptionSectionData;
-  
-  /** Snapshot progress with dates and tip content */
   snapshotProgress: SnapshotProgressSectionData;
-  
-  /** Chart section with KPI pillar data */
   chart: ChartSectionData;
-  
-  /** Statistics section with participant and activity data */
   stats: StatsSectionData;
-  
-  /** Leaderboard section with current and all-time rankings */
   leaderboard: LeaderboardSectionData;
-  
-  /** Buyback auction section with results and bid data */
   buybackAuction: BuybackAuctionSectionData;
-  
-  /** Learn more section with FAQ link */
   learnMore: LearnMoreSectionData;
-  
 }
-
 
 export interface IPastRoundData {
   meta: {
@@ -234,11 +159,7 @@ export interface IPastRoundData {
     year: number;
     lastUpdated: string; // ISO date string
   };
-  
-  /** Hero section with title, subtitle, and action buttons */
   hero: HeroSectionData;
-
-  /** Leaderboard section with current and all-time rankings */
   leaderboard: LeaderboardEntry[];
   stats: StatsSectionData;
 }

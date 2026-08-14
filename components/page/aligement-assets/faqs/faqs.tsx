@@ -771,8 +771,7 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
-    // Debounce analytics
+
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
     }
@@ -800,7 +799,6 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
     });
   }, [pathname]);
 
-  // Filter logic
   const query = searchQuery.toLowerCase().trim();
   
   const filteredCategories = faqCategories.map(category => {

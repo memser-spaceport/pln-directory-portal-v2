@@ -81,10 +81,6 @@ export const getCurrentRoundStats = async (): Promise<{
   }
 };
 
-/**
- * Stats for an arbitrary round by number. Used by the past-round archive
- * page for rounds that don't have a hand-authored data file (round 18+).
- */
 /** A round that ran a real (non-simulated) buyback which has since settled. */
 export interface CompletedBuyback {
   roundNumber: number;
@@ -129,6 +125,10 @@ export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
     .sort((a, b) => b.roundNumber - a.roundNumber);
 };
 
+/**
+ * Stats for an arbitrary round by number. Used by the past-round archive
+ * page for rounds that don't have a hand-authored data file (round 18+).
+ */
 export const getRoundStats = async (
   roundNumber: number,
 ): Promise<{

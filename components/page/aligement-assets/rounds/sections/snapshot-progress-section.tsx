@@ -12,19 +12,10 @@ interface SnapshotProgressSectionProps {
   tipContent: TipContent;
 }
 
-/**
- * Check if a URL is internal (starts with /)
- */
 function isInternalUrl(url: string): boolean {
   return url.startsWith('/');
 }
 
-/**
- * SnapshotProgressSection - Displays snapshot period progress and tip content
- * @param startDate - Snapshot period start date
- * @param endDate - Snapshot period end date
- * @param tipContent - Tip section content from master JSON
- */
 export default function SnapshotProgressSection({ startDate, endDate, tipContent }: SnapshotProgressSectionProps) {
   const { onSnapshotTipLinkClicked } = useAlignmentAssetsAnalytics();
 
@@ -47,7 +38,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Format date range label
     const formatDate = (date: Date) => {
       return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     };
@@ -56,7 +46,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     const endDay = end.getDate();
     const year = end.getFullYear();
 
-    // Check if same month
     const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
     const dateRangeLabel = isSameMonth
       ? `${startMonth} ${startDay}-${endDay}, ${year}`
@@ -66,11 +55,9 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
       return { progressPercentage: 0, timeRemaining: '', dateRangeLabel };
     }
 
-    // Calculate total duration and elapsed time
     const totalDuration = end.getTime() - start.getTime();
     const elapsedTime = now.getTime() - start.getTime();
 
-    // Calculate percentage (clamped between 0 and 100)
     let percentage = 0;
     if (now < start) {
       percentage = 0;

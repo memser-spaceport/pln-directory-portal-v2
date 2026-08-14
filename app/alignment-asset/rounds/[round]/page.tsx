@@ -60,7 +60,6 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
   const { round: roundParam } = await params;
   const roundNumber = parseInt(roundParam, 10);
 
-  // Guard: not a valid integer
   if (isNaN(roundNumber) || roundNumber < 1) notFound();
 
   // Fetched alongside the viewed round's own stats: the page needs to know
@@ -72,7 +71,6 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
   ]);
   if (!stats) notFound();
 
-  // Pointing at the live current round → redirect to the canonical current-round URL
   if (stats.isCurrentRound) redirect('/alignment-asset');
 
   // If the live current-round lookup fails, fall back to the round already

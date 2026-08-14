@@ -41,8 +41,6 @@ const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
   { id: 'table', label: 'Table View' },
 ];
 
-// Presentation theme — the chart series palette (the dataset itself comes from
-// the API; these are view concerns kept alongside the component).
 const SERIES_COLORS = {
   plvh: '#30c593',
   digital: '#0090ff',
@@ -55,7 +53,6 @@ const SERIES_COLORS = {
 // against the green total, which would otherwise be the nearest neighbour.
 const BUYBACK_COLOR = '#800000';
 
-/** Combined digital-asset value (BTC + ETH + FIL) for the stacked bar. */
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
 const KEY_ITEMS = [
@@ -63,12 +60,9 @@ const KEY_ITEMS = [
   { label: 'Digital assets', color: SERIES_COLORS.digital, line: false, dashed: false },
   { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
   { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false },
-  // Both are per-PLAA prices on one scale, so this reads as the line series
-  // it is, dashed the way the track is drawn.
   { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true },
 ];
 
-// A dashed swatch for the dashed series, a solid fill for every other key.
 const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
   item.dashed
     ? { backgroundImage: `repeating-linear-gradient(to right, ${item.color} 0 4px, transparent 4px 8px)` }
@@ -79,10 +73,7 @@ const formatCurrency = (value: number) => {
   const fractionDigits = Number.isInteger(value) ? 0 : 2;
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: fractionDigits, maximumFractionDigits: 2 })}`;
 };
-// Rounded to whole dollars — used for the BTC / ETH / FIL / PLVH asset columns
 const formatAsset = (value: number) => (value ? `$${Math.round(value).toLocaleString('en-US')}` : '—');
-// NAV per PLAA is stored with 2 decimals but displayed as whole dollars,
-// rounded to the nearest dollar, in the chart pills and table.
 const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
@@ -105,8 +96,7 @@ const renderNavLabel = (props: any) => {
   );
 };
 
-// Total trust value drawn above each stacked bar. The final (PLVH-bearing) bar
-// is highlighted in green to match the design.
+// The final (PLVH-bearing) bar's total is highlighted in green.
 const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
@@ -223,10 +213,7 @@ function periodKey(label: string): string | null {
 
 /**
  * The keys an auction can be matched under: its own month, for the monthly
- * graph, and the calendar quarter containing it, for the quarterly one. Note
- * that quarter is the calendar one — the NAV series currently reports July
- * holdings inside Q2 '26, so a July auction has no quarterly bar to sit above
- * until plaa-service buckets July into Q3.
+ * graph, and the calendar quarter containing it, for the quarterly one.
  */
 function auctionPeriodKeys(monthYear: string): string[] {
   const key = periodKey(monthYear);
@@ -458,7 +445,6 @@ function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
   );
 }
 
-// Asset columns show a muted dash when the holding is not yet held.
 const assetCell = (value: number) =>
   value ? formatAsset(value) : <span className="th-table__dash">—</span>;
 
@@ -552,9 +538,7 @@ function Donut({
  *
  * "Next Anticipated" always comes from data.buybackMetrics regardless of
  * branch — it's a schedule decision, not an auction result, so it's never
- * part of the completed-auction record and has no other source. The backend
- * derives it live from the Buyback table's anticipated=true row (see
- * plaa-service's toBuybackMetrics/'NEXT ANTICIPATED BUYBACK').
+ * part of the completed-auction record and has no other source.
  */
 function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): BuybackMetric[] {
   const latest = buybacks[0]; // completed buybacks arrive newest first

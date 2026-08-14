@@ -6,14 +6,12 @@ import SupportSection from "../rounds/sections/support-section";
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 
-// Description items data
 const descriptionItems = [
   'A shared rewards system that ties network-wide contributions to shared progress.',
   'An ongoing, iterative experiment to align value, collaboration, and recognition across the entire Protocol Labs ecosystem.',
   'Evolves with every version, adding new activities, mechanics, and ways to measure impact that move us closer to true collective success.',
 ];
 
-// Why section data
 const whyItems = [
   {
     title: "Get recognized for the work you're already doing.",
@@ -33,7 +31,6 @@ const whyItems = [
   },
 ];
 
-// Who section roles data
 const whoRoles = [
   { role: 'Founders', description: 'driving new ventures' },
   { role: 'Researchers', description: 'advancing core protocols' },
@@ -41,14 +38,12 @@ const whoRoles = [
   { role: 'Operators', description: 'coordinating teams and projects' },
 ];
 
-// Important details data
 const importantDetails = [
   'PLAA are distributed based on verified contributions across the network.',
   'Each category has a fixed PLAA allocation.',
   'All PLAA is issued and managed by the trust.',
 ];
 
-// How section data
 const howItems = [
   {
     number: 1,
@@ -118,12 +113,10 @@ const Overview = () => {
     let updateTimeout: NodeJS.Timeout | null = null;
 
     const updateButtonState = () => {
-      // Clear any pending updates to prevent rapid state changes
       if (updateTimeout) {
         clearTimeout(updateTimeout);
       }
 
-      // Add a small delay to debounce rapid scroll events
       updateTimeout = setTimeout(() => {
         if (!isTriggerOutOfView) {
           setButtonState('start');
@@ -137,7 +130,6 @@ const Overview = () => {
 
     const triggerObserver = new IntersectionObserver(
       ([entry]) => {
-        // When the trigger element is NOT visible, mark as out of view
         isTriggerOutOfView = !entry.isIntersecting;
         updateButtonState();
       },
@@ -149,7 +141,6 @@ const Overview = () => {
 
     const secondButtonObserver = new IntersectionObserver(
       ([entry]) => {
-        // When second button is visible, change state to end
         isSecondButtonVisible = entry.isIntersecting;
         updateButtonState();
       },
@@ -983,11 +974,6 @@ const Overview = () => {
             }
           }
 
-          @media (max-width: 1023px) {
-            .overview__content__who, {
-              // flex-wrap: wrap;
-            }
-          }
         `}
       </style>
     </LayoutGroup>

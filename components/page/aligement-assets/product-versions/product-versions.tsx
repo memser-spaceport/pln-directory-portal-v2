@@ -196,7 +196,6 @@ export default function ProductVersionsPage() {
           {productVersions.map((version) => {
             const isExpanded = expandedVersions[version.version];
             
-            // Determine available tabs
             const availableTabs = [
               { key: 'added', label: 'Added', icon: '/icons/added-icon.png', data: version.added },
               { key: 'changed', label: 'Changed', icon: '/icons/changed-icon.png', data: version.changed },
@@ -204,7 +203,6 @@ export default function ProductVersionsPage() {
               { key: 'launched', label: 'Launched', icon: '/icons/launched-icon.png', data: version.launched },
             ].filter(tab => tab.data && tab.data.length > 0);
 
-            // Determine active tab (default to first available)
             const activeTabKey = activeTabs[version.version] || (availableTabs.length > 0 ? availableTabs[0].key : '');
 
             return (

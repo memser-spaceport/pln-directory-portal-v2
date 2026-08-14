@@ -10,10 +10,6 @@ interface BuybackAuctionSectionProps {
   data: BuybackAuctionSectionData;
 }
 
-/**
- * BuybackAuctionSection - Displays buyback auction results and bid table
- * @param data - Buyback auction data from master JSON
- */
 export default function BuybackAuctionSection({ data }: BuybackAuctionSectionProps) {
   const [visibleBids, setVisibleBids] = useState(10);
   const { onBuybackShowMoreClicked } = useAlignmentAssetsAnalytics();

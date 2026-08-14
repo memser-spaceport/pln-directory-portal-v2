@@ -30,10 +30,6 @@ interface CurrentRoundComponentProps {
   leaderboardResponse?: LeaderboardApiResponse;
 }
 
-/**
- * CurrentRoundComponent - Main component for displaying current round information
- * Uses master JSON data from ./data/current-round.data.ts
- */
 export default function CurrentRoundComponent({
   data,
   leaderboardResponse,
@@ -51,7 +47,6 @@ export default function CurrentRoundComponent({
   const hasLeaderboardData =
     leaderboardData.currentSnapshotData.length > 0 || leaderboardData.cumulativeData.length > 0;
 
-  // Parse dates from the master data
   const { startDate, endDate } = useMemo(() => {
     return {
       startDate: new Date(data.snapshotProgress.startDate),

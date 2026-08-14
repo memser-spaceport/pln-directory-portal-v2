@@ -13,18 +13,12 @@ import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 export const currentRoundData: CurrentRoundData = {
-  // ============================================================================
-  // Meta Information
-  // ============================================================================
   meta: {
     roundNumber: 19,
     isCurrentRound: true,
     lastUpdated: '2026-08-11T00:00:00'
   },
 
-  // ============================================================================
-  // Hero Section Data
-  // ============================================================================
   hero: {
     title: 'PL Alignment Asset',
     subtitle: 'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
@@ -45,9 +39,6 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Round Description Section Data
-  // ============================================================================
   roundDescription: {
     roundNumber: 19,
     monthYear: 'August 2026',
@@ -82,9 +73,6 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Snapshot Progress Section Data
-  // ============================================================================
   snapshotProgress: {
     startDate: '2026-08-01T00:00:00',
     endDate: '2026-08-31T23:59:59',
@@ -117,9 +105,6 @@ export const currentRoundData: CurrentRoundData = {
     }
   },
 
-  // ============================================================================
-  // Chart Section Data
-  // ============================================================================
   chart: {
     title: 'Total Points Collected Per KPI category In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
@@ -134,9 +119,6 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Stats Section Data
-  // ============================================================================
   stats: {
     onboardedParticipants: 63,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
@@ -172,17 +154,11 @@ export const currentRoundData: CurrentRoundData = {
     numberOfBuybacks: 0
   },
 
-  // ============================================================================
-  // Leaderboard Section Data
-  // ============================================================================
   leaderboard: {
     currentSnapshotData: [],
     cumulativeData: []
   },
 
-  // ============================================================================
-  // Buyback Auction Section Data (Round 18 - July 2026)
-  // ============================================================================
   buybackAuction: {
     headerStats: {
       totalFilled: '$0.00',
@@ -226,16 +202,10 @@ export const currentRoundData: CurrentRoundData = {
     bids: []
   },
 
-  // ============================================================================
-  // Learn More Section Data
-  // ============================================================================
   learnMore: {
     faqUrl: '/alignment-asset/faqs'
   },
 
 };
 
-/**
- * Export as default for easy importing
- */
 export default currentRoundData;

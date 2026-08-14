@@ -25,7 +25,6 @@ export interface RoundCategoryEntry {
   tokens: number;
 }
 
-// Custom tooltip component with inline styles
 const CustomTooltip = ({
   active,
   payload,
@@ -67,7 +66,6 @@ const CustomTooltip = ({
   return null;
 };
 
-// Custom tick for category labels - factory function for responsive values
 const createRenderPolarAngleAxisTick = (labelFontSize: number, labelOffset: number) => {
   const RenderPolarAngleAxisTick = ({
     payload,
@@ -84,25 +82,21 @@ const createRenderPolarAngleAxisTick = (labelFontSize: number, labelOffset: numb
   }) => {
     const category = payload.value;
 
-    // Calculate the angle for positioning
     const angle = Math.atan2(y - cy, x - cx);
-    
-    // Increase offset for longer labels and labels on the left side
     const isLeftSide = x < cx;
-    const isLongLabel = category.length > 10; // Labels like "People/Talent", "Network Tooling"
+    const isLongLabel = category.length > 10;
     const adjustedOffset = isLeftSide || isLongLabel ? labelOffset + 8 : labelOffset;
-    
+
     const newX = x + Math.cos(angle) * adjustedOffset;
     const newY = y + Math.sin(angle) * adjustedOffset;
 
-    // Determine text anchor based on position - improved logic
     let textAnchor: 'start' | 'middle' | 'end' = 'middle';
     if (x > cx + 10) {
-      textAnchor = 'start'; // Right side - align to start
+      textAnchor = 'start';
     } else if (x < cx - 10) {
-      textAnchor = 'end'; // Left side - align to end (so text doesn't go off screen)
+      textAnchor = 'end';
     } else {
-      textAnchor = 'middle'; // Top/bottom - center align
+      textAnchor = 'middle';
     }
 
     return (
@@ -122,20 +116,17 @@ const createRenderPolarAngleAxisTick = (labelFontSize: number, labelOffset: numb
   return RenderPolarAngleAxisTick;
 };
 
-// Helper function to get the top category (lowest points = highest token potential)
-const getTopCategory = (data: Array<{ category: string; points: number; tokens: number }>) => {
+const getMostActiveCategory = (data: Array<{ category: string; points: number; tokens: number }>) => {
   if (!data || data.length === 0) return 'N/A';
-  const topCategory = data.reduce((max, item) => (item.points > max.points ? item : max), data[0]);
-  return topCategory.category;
+  const mostActive = data.reduce((max, item) => (item.points > max.points ? item : max), data[0]);
+  return mostActive.category;
 };
 
-// Custom tick for radius axis with pill/badge background and shadow - factory function for responsive values
 const createRenderRadiusAxisTick = (tickFontSize: number) => {
   const RenderRadiusAxisTick = ({ payload, x, y }: { payload: { value: number }; x: number; y: number }) => {
     const value = payload.value;
     const formattedValue = value === 0 ? '0' : value.toLocaleString();
 
-    // Estimate text width for background based on font size
     const charWidth = tickFontSize * 0.6;
     const textWidth = formattedValue.length * charWidth + 12;
     const textHeight = tickFontSize + 8;
@@ -220,7 +211,6 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
   // Set to 2,000 to better visualize token values (points will be clipped but tokens are the focus)
   const CHART_DOMAIN_MAX = 2000;
 
-  // Read CSS custom properties set via media queries
   useEffect(() => {
     const updateDimensions = () => {
       if (chartWrapperRef.current) {
@@ -241,10 +231,8 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
       }
     };
 
-    // Initial read
     updateDimensions();
 
-    // Use ResizeObserver to detect when container size changes (triggers on media query changes)
     if (chartWrapperRef.current && typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(() => {
         // Small delay to ensure CSS has updated
@@ -258,7 +246,6 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
     }
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -300,7 +287,6 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
   };
 
   const handleRoundInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numeric characters
     const value = e.target.value.replace(/[^0-9]/g, '');
     setRoundInputValue(value);
   };
@@ -313,14 +299,12 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
         setSelectedRound(newRound);
         setIsDropdownOpen(false);
       } else {
-        // Reset to current selected round if invalid
         setRoundInputValue(String(selectedRound));
       }
     }
   };
 
   const handleRoundInputBlur = () => {
-    // Reset to current selected round if user clicks away without pressing Enter
     setRoundInputValue(String(selectedRound));
   };
 
@@ -336,7 +320,6 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
     onIncentiveModelLearnMoreClicked('/alignment-asset/faqs#point-to-token-conversion');
   };
 
-  // Update input value when selectedRound changes externally (via arrows)
   useEffect(() => {
     setRoundInputValue(String(selectedRound));
   }, [selectedRound]);
@@ -570,7 +553,7 @@ export default function IncentiveModel({ categoryDataByRound, allRounds, current
             <div className="incentive-model__tip-card">
               <p className="incentive-model__tip-title">
                 Top category this snapshot:{' '}
-                <span className="incentive-model__tip-category">{getTopCategory(currentData)}</span>.
+                <span className="incentive-model__tip-category">{getMostActiveCategory(currentData)}</span>.
               </p>
               <p className="incentive-model__tip-text">
                 👉{' '}

@@ -261,7 +261,9 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
 }
 
 // X-axis tick: the final category (current quarter) is highlighted in blue.
-const renderAxisTick = (lastLabel: string) => (props: any) => {
+// showAsterisk marks that same final tick as preliminary — quarterly view
+// only, since a quarter can still be open while its latest month is closed.
+const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: any) => {
   const { x, y, payload } = props;
   const isLast = payload.value === lastLabel;
   return (
@@ -274,12 +276,20 @@ const renderAxisTick = (lastLabel: string) => (props: any) => {
       fontSize={12}
       fontWeight={isLast ? 600 : 500}
     >
-      {payload.value}
+      {payload.value}{isLast && showAsterisk ? '*' : ''}
     </text>
   );
 };
 
-function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string, BuybackMarker> }) {
+function NavChart({
+  data,
+  markers,
+  showPreliminaryNote,
+}: {
+  data: NavPoint[];
+  markers: Record<string, BuybackMarker>;
+  showPreliminaryNote?: boolean;
+}) {
   // Stacked bars use the combined digital-asset value (BTC + ETH + FIL); a
   // period with no auction plots no point, which is what breaks the buyback
   // track into the dotted spans between auctions.
@@ -312,7 +322,7 @@ function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string,
             dataKey="label"
             axisLine={{ stroke: '#cbd5e1' }}
             tickLine={false}
-            tick={renderAxisTick(chartData[chartData.length - 1]?.label)}
+            tick={renderAxisTick(chartData[chartData.length - 1]?.label, showPreliminaryNote)}
             interval={0}
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
@@ -353,6 +363,12 @@ function NavChart({ data, markers }: { data: NavPoint[]; markers: Record<string,
         </ComposedChart>
       </ResponsiveContainer>
       </div>
+      {showPreliminaryNote && (
+        <p className="th-chart__note">
+          *{chartData[chartData.length - 1]?.label} figures are preliminary and reflect data available prior to the
+          close of the quarter. Final results may change as additional data is recorded.
+        </p>
+      )}
     </div>
   );
 }
@@ -622,7 +638,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           </ul>
         </div>
 
-        {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} />}
+        {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
         {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
         {view === 'table' && <NavTable data={data.monthly} />}
       </section>
@@ -967,6 +983,15 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
           color: #64748b;
           font-size: 14px;
           text-align: center;
+        }
+
+        .th-chart__note {
+          margin: 0;
+          padding: 0 16px 16px;
+          background-color: #f8fafc;
+          font-size: 13px;
+          line-height: 18px;
+          color: #64748b;
         }
 
         /* Table */

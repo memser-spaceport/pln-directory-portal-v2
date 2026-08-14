@@ -53,6 +53,7 @@ import { getSearchInputEl } from './utils/getSearchInputEl';
 import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
+import { isOwnForumPost } from './utils/isOwnForumPost';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
@@ -696,6 +697,13 @@ export const TeamNews = ({
   // caller passes the overlay-merged post, so `viewerHasLiked` is current.
   // No signed-out branch: only access-holding (signed-in) viewers see posts.
   const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
+    // The button is already disabled for your own post, but the identity it's
+    // derived from hydrates client-side: for the first paint after a reload
+    // there is no currentUser yet and the control is briefly live. Bail rather
+    // than send a vote NodeBB will refuse ([[error:self-vote]]) and book a
+    // like-FAILED event for something that was never going to work.
+    if (isOwnForumPost(post, currentUser?.uid)) return;
+
     const wasLiked = post.viewerHasLiked;
     const nextLiked = !wasLiked;
     const prevCount = post.likeCount;
@@ -942,6 +950,7 @@ export const TeamNews = ({
                           // the feed.
                           post={resolvePostLike(entry.post)}
                           position={index}
+                          isOwnPost={isOwnForumPost(entry.post, currentUser?.uid)}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
                           useLink={activeCategory === DISCUSSIONS_CAT}
@@ -1010,6 +1019,7 @@ export const TeamNews = ({
         <ForumPostModal
           onClose={closePost}
           post={activeForumPost}
+          isOwnPost={isOwnForumPost(activeForumPost, currentUser?.uid)}
           useLink={activeCategory === DISCUSSIONS_CAT}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />

@@ -18,6 +18,7 @@ import { FeedForumPostShareMenu } from '../NewsShareMenu';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 
 import { ForumPostTitle } from '../ForumPostTitle';
+import { OWN_FORUM_POST_LIKE_REASON } from '../../utils/isOwnForumPost';
 
 import s from './ForumPostCard.module.scss';
 
@@ -27,6 +28,9 @@ interface ForumPostCardProps {
   post: IFeedForumPost;
   position: number;
   useLink?: boolean;
+  /** Resolved by TeamNews against the signed-in member, like the like state
+   *  itself, so the card and the modal can never disagree about it. */
+  isOwnPost?: boolean;
   onOpenDetail: (post: IFeedForumPost) => void;
   onLikeToggle: (post: IFeedForumPost) => void;
 }
@@ -39,7 +43,7 @@ interface ForumPostCardProps {
  * text interpolation only (plain text per the feed contract).
  */
 export function ForumPostCard(props: ForumPostCardProps) {
-  const { post, useLink, position, onOpenDetail, onLikeToggle } = props;
+  const { post, useLink, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
 
   const analytics = useTeamNewsAnalytics();
   const [threadOpen, setThreadOpen] = useState(false);
@@ -113,7 +117,12 @@ export function ForumPostCard(props: ForumPostCardProps) {
           </span>
           <span className={s.footerActions} onClick={(e) => e.stopPropagation()}>
             <FeedForumPostShareMenu post={post} source="home" />
-            <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
+            <UpvoteButton
+              count={post.likeCount}
+              voted={post.viewerHasLiked}
+              onToggle={() => onLikeToggle(post)}
+              disabledReason={isOwnPost ? OWN_FORUM_POST_LIKE_REASON : undefined}
+            />
             <CommentButton
               itemUid={post.uid}
               open={threadOpen}

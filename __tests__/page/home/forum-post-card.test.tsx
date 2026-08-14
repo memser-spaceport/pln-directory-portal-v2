@@ -118,4 +118,23 @@ describe('ForumPostCard', () => {
     expect(onLikeToggle).toHaveBeenCalledWith(post);
     expect(onOpenDetail).not.toHaveBeenCalled();
   });
+
+  it('refuses a like on the viewer’s own post — NodeBB rejects a self-vote', () => {
+    const { onLikeToggle } = renderCard({ isOwnPost: true });
+
+    const like = screen.getByRole('button', { name: /Like \(5\)/ });
+    expect(like).toBeDisabled();
+    // The count still reads; only the affordance goes.
+    expect(like).toHaveTextContent('5');
+    expect(like).toHaveAccessibleName(/You can’t like your own post/);
+
+    fireEvent.click(like);
+    expect(onLikeToggle).not.toHaveBeenCalled();
+  });
+
+  it('leaves Like alone on everyone else’s posts', () => {
+    renderCard({ isOwnPost: false });
+
+    expect(screen.getByRole('button', { name: 'Like (5)' })).toBeEnabled();
+  });
 });

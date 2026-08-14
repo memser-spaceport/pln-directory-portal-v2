@@ -15,6 +15,7 @@ import type { IFeedForumPost } from '@/types/feed.types';
 import { ForumPostTitle } from '@/components/page/home/TeamNews/components/ForumPostTitle';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { OWN_FORUM_POST_LIKE_REASON } from '../../utils/isOwnForumPost';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
@@ -41,6 +42,9 @@ interface ForumPostModalProps {
    *  Only viewers with forum access ever get here (TeamNews gates on live
    *  hasAccess and closes this modal on mid-session revocation). */
   post: IFeedForumPost;
+  /** Resolved by TeamNews against the signed-in member, for the same reason the
+   *  like state is: the modal must not disagree with the row behind it. */
+  isOwnPost?: boolean;
   onClose: () => void;
   onLikeToggle: (post: IFeedForumPost) => void;
   useLink?: boolean;
@@ -60,7 +64,7 @@ interface ForumPostModalProps {
  * (`post.body`) stands in via JSX interpolation.
  */
 export function ForumPostModal(props: ForumPostModalProps) {
-  const { post, useLink, onClose, onLikeToggle } = props;
+  const { post, useLink, isOwnPost = false, onClose, onLikeToggle } = props;
 
   // Same share-popover layering rule as the news modal: while the popover is
   // open, the modal's Escape/backdrop closers stand down so one gesture never
@@ -162,7 +166,12 @@ export function ForumPostModal(props: ForumPostModalProps) {
             side="top"
             onOpenChange={setShareOpen}
           />
-          <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
+          <UpvoteButton
+            count={post.likeCount}
+            voted={post.viewerHasLiked}
+            onToggle={() => onLikeToggle(post)}
+            disabledReason={isOwnPost ? OWN_FORUM_POST_LIKE_REASON : undefined}
+          />
         </span>
       </div>
     </Modal>

@@ -25,12 +25,27 @@ interface UpvoteButtonProps {
   count: number;
   voted: boolean;
   onToggle: () => void;
+  /**
+   * Why this viewer can't like this item — e.g. it's their own forum post, and
+   * NodeBB refuses a self-vote. Presence is what disables the button, so there
+   * is no way to express "disabled but unexplained": the reason becomes the
+   * tooltip and rides along in the accessible name.
+   *
+   * The count still renders. It's information, not just the state of an action
+   * anyone can take, and hiding it would leave a gap where every other card has
+   * a number.
+   */
+  disabledReason?: string;
 }
 
 // Count always renders (0 included) with tabular digits, so toggling a like
 // never changes the button's width and the actions row doesn't shift.
-export function UpvoteButton({ count, voted, onToggle }: UpvoteButtonProps) {
-  const label = voted ? `Remove like (${count})` : `Like (${count})`;
+export function UpvoteButton({ count, voted, onToggle, disabledReason }: UpvoteButtonProps) {
+  const label = disabledReason
+    ? `Like (${count}) — ${disabledReason}`
+    : voted
+      ? `Remove like (${count})`
+      : `Like (${count})`;
   return (
     <button
       type="button"
@@ -38,6 +53,7 @@ export function UpvoteButton({ count, voted, onToggle }: UpvoteButtonProps) {
       aria-pressed={voted}
       aria-label={label}
       title={label}
+      disabled={Boolean(disabledReason)}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();

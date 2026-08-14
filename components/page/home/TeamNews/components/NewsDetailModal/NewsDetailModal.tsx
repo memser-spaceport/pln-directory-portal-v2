@@ -212,8 +212,8 @@ export function NewsDetailModal({
 
       <div className={s.footer}>
         <span className={s.footerActions}>
-          <ViewCount count={item.viewCount} exact />
           <NewsShareMenu item={item} source="news-modal" variant="button" side="top" onOpenChange={setShareOpen} />
+          <ViewCount count={item.viewCount} exact />
           {/* Gated on hydration (like the feed rows) so a pre-hydration click on a
               deep-linked modal can't misread a signed-in viewer as a guest. */}
           {isHydrated && (

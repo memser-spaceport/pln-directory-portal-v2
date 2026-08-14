@@ -357,20 +357,18 @@
   // nudges the neighboring actions.
   font-variant-numeric: tabular-nums;
 
-  &:hover {
+  &:hover:not(:disabled) {
     filter: brightness(0.8);
   }
 
   // A Like the viewer can never use — their own forum post, which NodeBB
-  // refuses to self-vote. Deliberately NOT greyed out: the count beside the
-  // icon is information every other card shows, and dimming it would read as
-  // "this post has no likes worth reading". Only the affordance goes.
+  // refuses to self-vote. Same treatment every other disabled control in the
+  // feed uses (the thread's Delete/Cancel, the category chips): dimmed and
+  // not-allowed, so it reads as unavailable at a glance rather than looking
+  // live until you click it. The count stays legible through the opacity.
   &:disabled {
-    cursor: default;
-
-    &:hover {
-      filter: none;
-    }
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

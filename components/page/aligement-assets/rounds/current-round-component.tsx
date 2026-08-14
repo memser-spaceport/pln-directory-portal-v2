@@ -59,35 +59,28 @@ export default function CurrentRoundComponent({
   return (
     <>
       <div className="current-round">
-        {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
 
-        {/* Rights & Tokens Dashboard */}
         {isLoggedIn && <RightsTokensDashboard />}
 
-        {/* Points & Activities Dashboard */}
         {isLoggedIn && <PointsDashboard currentRound={data.meta.roundNumber} />}
 
-        {/* Round Description Section */}
-        <RoundDescriptionSection 
-          data={data.roundDescription} 
+        <RoundDescriptionSection
+          data={data.roundDescription}
           tokensAllocated={data.stats.totalTokensAvailable}
         />
 
-        {/* Total Alignment Asset Points & Tokens Collected by Category */}
-        <SnapshotProgressSection 
+        <SnapshotProgressSection
           startDate={startDate}
           endDate={endDate}
           tipContent={data.snapshotProgress.tipContent}
         />
 
-        {/* Chart Section - Total Points Per KPI Pillar */}
         <ChartSection data={data.chart} />
 
-        {/* Statistics Section */}
         <StatsSection data={data.stats} />
 
-        {/* Points Leaderboard: CURRENT_SNAPSHOT = current round, CUMULATIVE = all-time */}
+        {/* CURRENT_SNAPSHOT = current round, CUMULATIVE = all-time */}
         {isLoggedIn && hasLeaderboardData && (
           <LeaderboardSection
             view={leaderboardView}
@@ -98,18 +91,14 @@ export default function CurrentRoundComponent({
           />
         )}
 
-        {/* Buyback Auction Results Section - Only show when there's auction data */}
         {data.buybackAuction.bids.length > 0 && (
           <BuybackAuctionSection data={data.buybackAuction} />
         )}
 
-        {/* Learn More Section */}
         <LearnMoreSection data={data.learnMore} />
 
-        {/* Disclaimer Section */}
         <DisclaimerSection />
 
-        {/* Support Section */}
         <SupportSection />
       </div>
 

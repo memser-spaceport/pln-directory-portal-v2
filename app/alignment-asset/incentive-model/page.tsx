@@ -13,25 +13,18 @@ function toCategoryEntries(data: RoundStatsResponse | undefined, categories: str
 }
 
 export default async function IncentiveModelPage() {
-  // No fallback: the whole page depends on knowing the current round number,
-  // so if the live fetch fails there's nothing meaningful to render.
   const { data: current } = await getCurrentRoundStats();
   if (!current) notFound();
   const totalRounds = current.roundNumber;
 
-  // One request per round, no cache — same tradeoff rounds.service.ts's
-  // getCompletedBuybacks documents: self-maintaining (a new round appears
-  // with no code change) at the cost of a request per round. Fine at
-  // current round counts; the fix if it ever matters is a batch endpoint,
-  // not a client-side workaround.
+  // One request per round, no cache: self-maintaining as new rounds appear,
+  // at the cost of a request per round.
   const results = await Promise.all(
     Array.from({ length: totalRounds }, (_, i) => getRoundStats(i + 1)),
   );
 
-  // Category axis is whatever the live data actually contains, unioned
-  // across every round fetched — not a hand-typed guess. A category shows
-  // up here as soon as it's ever appeared in chart or tokenChart; nothing
-  // is assumed to exist that the API hasn't actually returned.
+  // Category axis is the union of whatever the fetched rounds actually
+  // contain, not a hand-typed list.
   const categories = new Set<string>();
   results.forEach(({ data }) => {
     data?.chart.forEach((entry) => categories.add(entry.name));
@@ -44,8 +37,7 @@ export default async function IncentiveModelPage() {
   results.forEach(({ data }, i) => {
     const roundNumber = i + 1;
     categoryDataByRound[roundNumber] = toCategoryEntries(data, CATEGORIES);
-    // A round that failed to fetch still gets a nav entry (round number
-    // stands in for the month) rather than leaving a gap in the dropdown.
+    // A failed fetch still gets a nav entry, round number standing in for month.
     allRounds.push({ id: roundNumber, month: data ? `${data.month} ${data.year}` : `Round ${roundNumber}` });
   });
 

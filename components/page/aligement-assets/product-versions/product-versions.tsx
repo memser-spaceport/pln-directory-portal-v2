@@ -225,10 +225,8 @@ export default function ProductVersionsPage() {
                   />
                 </button>
 
-                {/* Mobile Tabs View */}
                 {isExpanded && availableTabs.length > 0 && (
                   <div className="product-versions__mobile-view">
-                    {/* Tabs */}
                     <div className="product-versions__tabs">
                       {availableTabs.map((tab) => (
                         <button
@@ -248,7 +246,6 @@ export default function ProductVersionsPage() {
                       ))}
                     </div>
 
-                    {/* Content */}
                     <div className="product-versions__tab-content">
                        {availableTabs.map((tab) => {
                          if (tab.key !== activeTabKey) return null;
@@ -262,7 +259,6 @@ export default function ProductVersionsPage() {
                   </div>
                 )}
 
-                {/* Desktop Grid View */}
                 {isExpanded && (
                   <div className="product-versions__desktop-view">
                      <div className="product-versions__version-card__content">
@@ -313,7 +309,6 @@ export default function ProductVersionsPage() {
           })}
         </div>
 
-        {/* Footer/Contact Information */}
         <div className="product-versions__footer">
           <SupportSection />
         </div>
@@ -450,7 +445,6 @@ export default function ProductVersionsPage() {
           animation: fadeIn 0.3s ease;
         }
 
-        /* Tabs Styling */
         .product-versions__tabs {
           display: flex;
           align-items: center;
@@ -572,7 +566,6 @@ export default function ProductVersionsPage() {
           margin-bottom: 0;
         }
 
-        /* View Switching Logic */
         .product-versions__desktop-view {
           display: none;
         }

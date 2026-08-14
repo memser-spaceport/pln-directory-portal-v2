@@ -11,9 +11,7 @@ import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { DISCLOSURE_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 import { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 
-// Fallback only: used if the live fetch is unreachable or returns nothing,
-// same degraded-mode pattern as current-round.data.ts. Real values are
-// synced externally now.
+// Used only if the live fetch is unreachable or returns nothing.
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
   { category: 'Network Tooling', weight: 1.2, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
   { category: 'Knowledge', weight: 1.4, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },
@@ -235,7 +233,6 @@ function buildFaqCategories(kpiWeights: KpiWeightEntry[] | undefined): FAQCatego
 
             <p style={{ marginBottom: '16px' }}>You can collect PLAA from multiple categories in the same period. Such PLAA may ultimately be settled through tokens and redeemed for cash or other consideration in accordance with the applicable settlement process.</p>
 
-            {/* KPI categories Table */}
             <div style={{ overflowX: 'auto' }}>
             <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>KPI Emissions Schedule</p>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em', border: '1px solid #e2e8f0' }}>
@@ -709,7 +706,6 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
     };
   }, [pathname, handleHashNavigation]);
 
-  // Update URL hash when user scrolls to a category
   useEffect(() => {
     const refs = categoryRefs.current;
     const ids = Object.keys(refs).filter((id) => refs[id] != null);
@@ -983,12 +979,10 @@ export default function FAQsPage({ kpiWeights }: FAQsPageProps) {
           )}
         </div>
 
-        {/* Disclaimer Box */}
         <div className="faqs__disclaimer">
           <DisclaimerSection />
         </div>
 
-        {/* Footer/Contact Information */}
         <div className="faqs__footer">
           <SupportSection />
         </div>

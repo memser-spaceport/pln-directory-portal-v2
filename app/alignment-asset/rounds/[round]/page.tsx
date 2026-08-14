@@ -9,20 +9,12 @@ interface PastRoundPageProps {
   params: Promise<{ round: string }>;
 }
 
-/**
- * Every past round is rendered entirely from the rounds API — no more
- * round-N.data.ts file per round. Hero copy never varies by round (verified
- * against all 18 archived rounds), so it's read from the current-round data
- * file, which is the one piece of editorial content that's genuinely
- * round-independent.
- */
+// Every past round renders from the rounds API; hero copy is read from the
+// current-round data file since it never varies by round.
 function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
-  // Simulation rows (rounds 7 and 9) carry a complete buyback record at the
-  // source but were test runs, not real auctions — they stay out of the
-  // user-facing buyback experience entirely. Only rounds 11 and 18 are live.
-  // Note this deliberately does not gate stats.totalTokensDistributed below:
-  // that figure is a per-round emission every round has, and simply happens
-  // to be stored alongside it.
+  // Simulation buybacks were test runs, not real auctions, and stay out of
+  // the user-facing buyback experience. This doesn't gate totalTokensDistributed,
+  // which is a per-round emission every round has regardless of buyback status.
   const hasSettledBuyback =
     stats.buyback !== null && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation;
 
@@ -44,9 +36,6 @@ function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
         stats.buyback?.totalTokensDistributed != null
           ? stats.buyback.totalTokensDistributed.toLocaleString('en-US')
           : 'TBD',
-      // Counts live auctions only. The original data counted any buyback
-      // event as 1, so rounds 7 and 9 used to show 1 here off the back of
-      // their simulations; with simulations removed they now show 0.
       numberOfBuybacks: hasSettledBuyback ? 1 : 0,
       ...(stats.labweek25IncentivizedActivities.length > 0
         ? { labweek25IncentivizedActivities: stats.labweek25IncentivizedActivities }
@@ -62,9 +51,6 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
 
   if (isNaN(roundNumber) || roundNumber < 1) notFound();
 
-  // Fetched alongside the viewed round's own stats: the page needs to know
-  // the live current-round number too (for the points-dashboard round
-  // selector), not just whether roundNumber itself is current.
   const [{ data: stats }, { data: current }] = await Promise.all([
     getRoundStats(roundNumber),
     getCurrentRoundStats(),
@@ -73,10 +59,7 @@ export default async function PastRoundPage({ params }: PastRoundPageProps) {
 
   if (stats.isCurrentRound) redirect('/alignment-asset');
 
-  // If the live current-round lookup fails, fall back to the round already
-  // being viewed (this stats fetch above already succeeded) rather than a
-  // hand-maintained number that can drift — this value is display-only
-  // (points-dashboard round selector bound), not load-bearing.
+  // Falls back to the round already being viewed if the live lookup fails.
   const currentRoundNumber = current?.roundNumber ?? stats.roundNumber;
 
   return (

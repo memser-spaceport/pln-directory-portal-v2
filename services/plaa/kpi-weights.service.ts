@@ -1,9 +1,3 @@
-/**
- * KPI category weights from plaa-service (public endpoint, no auth) — how the
- * monthly PLAA emission budget splits across categories. Replaces the
- * hardcoded "KPI Emissions Schedule" table on the FAQ page.
- */
-
 export interface KpiWeightEntry {
   category: string;
   weight: number | null;

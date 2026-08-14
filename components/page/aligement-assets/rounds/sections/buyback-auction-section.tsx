@@ -27,7 +27,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
     <>
       <section className="buyback-section">
         <div className="buyback-section__container">
-          {/* Header */}
           <div className="buyback-section__header">
             <div className="buyback-section__header-left">
               <h2 className="buyback-section__title">Buyback Auction Results</h2>
@@ -43,7 +42,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          {/* Auction Summary Box */}
           <div className="buyback-section__summary">
             <h3 className="buyback-section__summary-title">{data.summary.title}</h3>
             <div className="buyback-section__summary-grid">
@@ -59,7 +57,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          {/* Auction Table */}
           <div className={`buyback-section__table-container ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}>
             <table className="buyback-section__table">
               <thead>
@@ -133,7 +130,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
               </tbody>
             </table>
 
-            {/* Show More Button */}
             {hasMore && (
               <div className="buyback-section__show-more">
                 <button className="buyback-section__show-more-btn" onClick={handleShowMore}>

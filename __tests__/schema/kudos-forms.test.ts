@@ -1,7 +1,6 @@
 import { buildCommunityKudosSchema, CommunityKudosLimits } from '@/schema/kudos-forms';
 
-// Mirrors the backend's actual constants — in real usage these come live
-// from /kudos/community-pool, not a hardcode.
+// Mirrors the backend's actual constants; production values come from the live pool, not a hardcode.
 const LIMITS: CommunityKudosLimits = { pointsMin: 10, pointsMax: 100, pointsStep: 10, messageMin: 25, messageMax: 500 };
 
 const schema = buildCommunityKudosSchema(LIMITS);

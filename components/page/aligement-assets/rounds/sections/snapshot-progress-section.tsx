@@ -22,13 +22,8 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
   const handleTipLinkClick = (linkText: string, url: string) => {
     onSnapshotTipLinkClicked(linkText, url);
   };
-  // "now" must read the same on the server render and the client's first
-  // paint, or React flags a hydration mismatch on anything derived from it
-  // (this progress bar's width did, by design — SSR and hydration happen at
-  // different instants). Left null through both of those, then filled in by
-  // the effect right after mount; the memo below recomputes once real, with
-  // no visible flash since the placeholder branch matches what a
-  // just-started period would show anyway.
+  // Left null through SSR and first paint to avoid a hydration mismatch,
+  // then filled in after mount.
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     setNow(new Date());
@@ -67,7 +62,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
       percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
     }
 
-    // Calculate remaining calendar days (including today)
     const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
     const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
@@ -94,13 +88,11 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     <>
       <section className="snapshot-section">
         <div className="snapshot-section__container">
-          {/* Header */}
           <div className="snapshot-section__header">
             <h2 className="snapshot-section__title">Total Alignment Asset Points &amp; Tokens Collected by Category</h2>
             <p className="snapshot-section__subtitle">Current Snapshot Period - {dateRangeLabel}</p>
           </div>
 
-          {/* Progress Bar Container */}
           <div className="snapshot-section__progress-container">
             <h3 className="snapshot-section__progress-title">Current Snapshot Period - {dateRangeLabel}</h3>
             
@@ -114,7 +106,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
             <p className="snapshot-section__progress-text">{timeRemaining}</p>
           </div>
 
-          {/* Tip Info Section */}
           <div className="snapshot-section__tip">
             <div className="snapshot-section__tip-icon">
               <Image src="/icons/rounds/idea.svg" alt="" width={18} height={18} />

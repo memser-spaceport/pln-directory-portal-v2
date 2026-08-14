@@ -16,7 +16,7 @@ interface IGiveKudosModalProps {
   onClose: () => void;
   recipients: IUserSummary[];
   poolRemaining: number;
-  /** Gift-amount limits, live from /kudos/community-pool — see ICommunityPool. */
+  /** Gift-amount limits, live from the community pool. */
   limits: CommunityKudosLimits;
   /** The picker is resolved server-side and can take a moment on a cold cache. */
   recipientsLoading?: boolean;
@@ -210,9 +210,8 @@ export function GiveCommunityKudosModal({
         </div>
       </form>
 
-      {/* Keep this block a direct child of .overlay: styled-jsx only scopes the
-          subtree that contains the <style jsx> tag, so nesting it inside the
-          form leaves .overlay unscoped and the modal renders inline. */}
+      {/* Must stay a direct child of .overlay — styled-jsx only scopes the
+          subtree containing this tag; nested inside the form, .overlay goes unscoped. */}
       <style jsx>{`
         .overlay {
           position: fixed;

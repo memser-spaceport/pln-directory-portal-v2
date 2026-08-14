@@ -1,9 +1,4 @@
-/**
- * Maps a round's raw buyback record from the rounds API into the shape the
- * buyback UI renders. Shared so that every surface showing a buyback — the
- * round pages and the Trust & Holdings accordions — derives its figures from
- * one place and cannot drift apart.
- */
+// Shared by every surface that shows a buyback, so figures can't drift apart.
 import { RoundBuybackBid, RoundBuybackStats } from '@/services/plaa/rounds.service';
 import { BuybackBidEntry, BuybackSimulationSectionData } from './types/current-round.types';
 
@@ -22,14 +17,7 @@ function formatCount(value: number | null): string {
   return value.toLocaleString('en-US');
 }
 
-// Bid-ledger cells use '' for "not applicable" (unfilled bids), matching the
-// original hand-typed table, rather than the summary card's 'TBD'.
-//
-// tokenPrice/clearingPrice/bidValue forced 2 decimals in a 2-of-3 majority of
-// the original rounds (7 and 11; only round 9 didn't). amtFilled/aggFill go
-// the other way — natural in a 2-of-3 majority (9 and 11; only round 7
-// forced them). Neither is exact for every round (nothing can be, the
-// original wasn't systematic), but each follows the majority convention.
+// Bid-ledger cells use '' for "not applicable", not the summary card's 'TBD'.
 function formatBidPrice(value: number | null): string {
   if (value === null) return '';
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -37,10 +25,7 @@ function formatBidPrice(value: number | null): string {
 
 function formatBidAmount(value: number | null): string {
   if (value === null) return '';
-  // Whole dollars show no decimals; anything with real cents shows exactly
-  // 2, never 1 (a bare float can't distinguish "35312.4" from "35312.40",
-  // so pad explicitly rather than leaving it to whatever precision the
-  // number happens to carry).
+  // Whole dollars show no decimals; anything with cents shows exactly 2.
   const decimals = Number.isInteger(value) ? 0 : 2;
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
@@ -61,7 +46,6 @@ function mapBid(bid: RoundBuybackBid): BuybackBidEntry {
     tokensBid: formatBidCount(bid.tokensBid),
     tokenPrice: formatBidPrice(bid.tokenPrice),
     bidValue: formatBidPrice(bid.bidValue),
-    // Constrained at the source to the five values this type expects.
     status: bid.status as BuybackBidEntry['status'],
     amtFilled: formatBidAmount(bid.amtFilled),
     accepted: formatBidCount(bid.accepted),
@@ -70,11 +54,8 @@ function mapBid(bid: RoundBuybackBid): BuybackBidEntry {
   };
 }
 
-// A buyback_results row can be just an "anticipated" placeholder (round hasn't
-// settled yet) with every field null — only build the section once there's an
-// actual result to show. totalBuybackPool/cappedAllocation/totalFilled come
-// back pre-formatted (raw display strings, entered exactly as shown — e.g.
-// "n/a" or "$23,811.55 (50% cap)"), not numbers to reformat.
+// totalBuybackPool/cappedAllocation/totalFilled arrive pre-formatted as
+// display strings (e.g. "n/a" or "$23,811.55 (50% cap)"), not numbers to reformat.
 export function buildBuybackSimulation(buyback: RoundBuybackStats): BuybackSimulationSectionData {
   const label = buyback.simulation ? 'Buyback Simulation' : 'Buyback Auction';
   const numbered = buyback.auctionNumber != null ? `${label} #${buyback.auctionNumber}` : label;

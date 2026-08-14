@@ -21,11 +21,8 @@ import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/servic
 import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
 import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
 
-/**
- * One completed auction, already mapped through the round pages' own buyback
- * mapper — this component renders whatever it is handed and knows nothing
- * about which rounds ran an auction.
- */
+// This component renders whatever it's handed — it doesn't know which
+// rounds ran an auction.
 export interface TrustBuyback {
   roundNumber: number;
   monthYear: string;
@@ -48,9 +45,7 @@ const SERIES_COLORS = {
   nav: '#1e3a8a',
 };
 
-// A buyback is not part of the NAV dataset, so its track deliberately sits
-// outside the series palette — maroon reads against every bar segment and
-// against the green total, which would otherwise be the nearest neighbour.
+// Maroon, outside the series palette — reads against every bar and the green total.
 const BUYBACK_COLOR = '#800000';
 
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
@@ -78,8 +73,7 @@ const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
 
-// Pill label centered on each point of the NAV / PLAA line (the line passes
-// through the pill centers, matching the Figma design).
+// Pill centers sit on the line's points (Figma design).
 const PILL_HEIGHT = 26;
 const renderNavLabel = (props: any) => {
   const { x, y, value } = props;
@@ -115,9 +109,7 @@ const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any)
   );
 };
 
-// The clearing price of the auction that settled in this period, centered on
-// its point so the dotted track runs through the chip centers exactly as the
-// NAV line runs through its pills.
+// Chip centers sit on the dotted track's points, same as the NAV pills.
 const BUYBACK_CHIP_HEIGHT = 22;
 const renderBuybackChip = (props: any) => {
   const { cx, cy, index, payload } = props;
@@ -141,24 +133,17 @@ const renderBuybackChip = (props: any) => {
   );
 };
 
-// The NAV/PLAA line and the buyback track share one scale, so how far apart
-// their two markers land is decided by the prices themselves: the plot area
-// (the 420 chart less its 48/8 margins) spans the per-PLAA domain.
+// Shared scale with the buyback track — plot area (420 chart, less 48/8
+// margins) spans the per-PLAA domain.
 const PER_PLAA_PLOT_HEIGHT = 364;
 const PER_PLAA_DOMAIN_MAX = 30;
 const perPlaaPixels = (units: number) => (units / PER_PLAA_DOMAIN_MAX) * PER_PLAA_PLOT_HEIGHT;
 const perPlaaUnits = (pixels: number) => (pixels / PER_PLAA_PLOT_HEIGHT) * PER_PLAA_DOMAIN_MAX;
 const MARKER_CLEARANCE = (PILL_HEIGHT + BUYBACK_CHIP_HEIGHT) / 2 + 3;
 
-/**
- * Where to plot a clearing price. An auction tends to clear within cents of
- * NAV per PLAA, which on a shared scale prints the chip straight through the
- * navy pill; a price that close is lifted (or dropped) by exactly the overlap
- * so the higher of the two sits cleanly above the lower. The track is drawn
- * through these points, so the dotted line always meets the chip rather than
- * pointing at a spot beside it — and the chip itself still reads the price
- * exactly as it was reported.
- */
+// A price within MARKER_CLEARANCE of NAV/PLAA gets lifted or dropped by the
+// overlap so the chip and pill don't collide; the track still meets the
+// chip, and the chip still reads the true reported price.
 function plottedClearingPrice(price: number, navPerPlaa: number): number {
   const overlap = Math.max(0, MARKER_CLEARANCE - perPlaaPixels(Math.abs(price - navPerPlaa)));
   if (!overlap) return price;
@@ -180,19 +165,12 @@ const MONTH_NAMES = [
   'December',
 ];
 
-/**
- * The period a label refers to, as a key that survives however the two ends
- * spell it. A bar's label is formatted by plaa-service and an auction's by the
- * rounds API, and matching them on the exact string means a marker silently
- * disappears the day either side writes "Q3 2026" where it used to write
- * "Q3 '26". Matching on the period itself does not care:
- *
- *   Q3 '26 · Q3 2026 · Q3-26   → Q3-2026
- *   Jul 26 · Jul '26 · July 2026 → M7-2026
- *
- * Anything that parses as neither a quarter nor a month simply has no key,
- * and no marker is drawn against it.
- */
+// Normalizes a label to a key that survives formatting drift between the
+// two APIs feeding it — exact-string matching would silently drop a marker
+// the day either side reformats "Q3 '26" as "Q3 2026".
+//
+//   Q3 '26 · Q3 2026 · Q3-26     → Q3-2026
+//   Jul 26 · Jul '26 · July 2026 → M7-2026
 function periodKey(label: string): string | null {
   const text = label.trim();
   // A 4-digit year, or a 2-digit one that isn't part of a longer number.
@@ -222,18 +200,14 @@ function auctionPeriodKeys(monthYear: string): string[] {
   return [key, `Q${Math.floor((Number(month) - 1) / 3) + 1}-${year}`];
 }
 
-/** A clearing price to plot: the number positions the chip, the text fills it. */
+// value positions the chip; text fills it.
 interface BuybackMarker {
   value: number;
   text: string;
 }
 
-/**
- * Clearing prices keyed by every period they could appear under, so either
- * graph view can look up its own bars. Buybacks arrive newest first, so when
- * two auctions share a quarter the newer one keeps the marker. A price that
- * never settled reads 'TBD' and has nothing to plot.
- */
+// Newest auction wins when two share a quarter. A price that never settled
+// reads 'TBD' and plots nothing.
 function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
   const markers: Record<string, BuybackMarker> = {};
   buybacks.forEach((entry) => {
@@ -247,9 +221,9 @@ function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, Buybac
   return markers;
 }
 
-// X-axis tick: the final category (current quarter) is highlighted in blue.
-// showAsterisk marks that same final tick as preliminary — quarterly view
-// only, since a quarter can still be open while its latest month is closed.
+// Final category (current quarter) highlighted in blue. showAsterisk marks
+// it preliminary — quarterly view only, a quarter can be open while its
+// latest month is closed.
 const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: any) => {
   const { x, y, payload } = props;
   const isLast = payload.value === lastLabel;
@@ -277,9 +251,8 @@ function NavChart({
   markers: Record<string, BuybackMarker>;
   showPreliminaryNote?: boolean;
 }) {
-  // Stacked bars use the combined digital-asset value (BTC + ETH + FIL); a
-  // period with no auction plots no point, which is what breaks the buyback
-  // track into the dotted spans between auctions.
+  // A period with no auction plots no point — breaks the buyback track into
+  // dotted spans between auctions.
   const chartData = data.map((d) => {
     const marker = markers[periodKey(d.label) ?? ''];
     return {
@@ -289,10 +262,8 @@ function NavChart({
       buybackLabel: marker?.text ?? '',
     };
   });
-  // A quarterly series is at most a handful of bars, so it keeps the wide bars
-  // from the design. A 12-month series would overflow its category width at
-  // that size, so denser series get proportionally narrower bars — the only
-  // thing that varies between the two graph views.
+  // Quarterly is at most a handful of bars (wide, per design); denser
+  // series get proportionally narrower bars.
   const dense = chartData.length > 8;
   const barSize = dense ? 40 : 92;
   const hasBuybacks = chartData.some((d) => d.buyback != null);
@@ -360,24 +331,14 @@ function NavChart({
   );
 }
 
-/**
- * Every completed auction in one collapsible table, one row each. Column
- * headers come from the first entry's own summary items rather than a literal
- * list, so they stay in step with whatever the round pages render — including
- * the labels, which is how "PLAA Redeemed" and "Accepted Bidders" reach this
- * table without being named here.
- *
- * The round is its own column because "Buyback #2" and "Round 18" are separate
- * numbering schemes and nothing else connects them; it doubles as the link to
- * the round page.
- */
+// Column headers come from the first entry's own summary items, not a
+// literal list, so they stay in step without being named here. Round is its
+// own column — "Buyback #2" and "Round 18" are separate numbering schemes.
 function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  // Union of every row's own labels, in first-seen order — so a metric added
-  // to only some rounds still gets a column, and rows are matched by label
-  // rather than position (safe even if a future round's item set or order
-  // ever differs from the others).
+  // Union of every row's own labels, first-seen order — a metric on only
+  // some rounds still gets a column, matched by label not position.
   const metricLabels: string[] = [];
   buybacks.forEach((entry) => {
     entry.section.summary.items.forEach((item) => {
@@ -528,18 +489,11 @@ function Donut({
   );
 }
 
-/**
- * The three capstone tiles. Last Clearing Price and Date come from the newest
- * completed auction rather than data.buybackMetrics: both surfaces claim to
- * describe the same auction, but the metrics are entered separately from the
- * auction record and drift behind it, while the accordion below reads the
- * auction record directly. Only a page with no completed auction at all falls
- * back to the dataset's figures.
- *
- * "Next Anticipated" always comes from data.buybackMetrics regardless of
- * branch — it's a schedule decision, not an auction result, so it's never
- * part of the completed-auction record and has no other source.
- */
+// Last Clearing Price/Date come from the newest completed auction, not
+// data.buybackMetrics — that field is entered separately and drifts behind
+// the auction record. Falls back to it only when there's no completed
+// auction. Next Anticipated always comes from buybackMetrics — a schedule
+// decision, not an auction result.
 function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): BuybackMetric[] {
   const latest = buybacks[0]; // completed buybacks arrive newest first
   const clearingPrice = latest?.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
@@ -559,8 +513,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
 
-  // Table View keeps the full monthly series it has always shown; the Monthly
-  // Graph is limited to the most recent MONTHLY_WINDOW months.
+  // Table keeps the full series; Monthly Graph is limited to MONTHLY_WINDOW months.
   const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
   const buybackMarkers = buybackMarkersByPeriod(buybacks);
   const metrics = capstoneMetrics(data, buybacks);

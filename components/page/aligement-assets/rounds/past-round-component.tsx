@@ -24,8 +24,8 @@ export default function PastRoundComponent({ pastRoundData, currentRoundNumber }
   const data = pastRoundData;
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
 
-  // Leaderboard API is auth-gated, so fetch it client-side with the user's token
-  // (these pages are statically generated and have no request cookie at build time).
+  // Auth-gated, so fetched client-side: these pages are static and have no
+  // request cookie at build time.
   const { data: leaderboardResponse } = useLeaderboard(data.meta.roundNumber);
 
   const resolvedLeaderboard: LeaderboardEntry[] = useMemo(() => {

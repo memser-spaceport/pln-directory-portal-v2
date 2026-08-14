@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Gift-amount limits, fetched live from /kudos/community-pool — see kudos-board.types.ts's ICommunityPool. */
+/** Gift-amount limits, fetched live from the community pool. */
 export interface CommunityKudosLimits {
   pointsMin: number;
   pointsMax: number;

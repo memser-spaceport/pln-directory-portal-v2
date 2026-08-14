@@ -41,8 +41,7 @@ export default function KudosBoardComponent({
     analytics.onGiveKudosOpened();
   }
 
-  // Undefined while the pool is still loading; treat that the same as
-  // ineligible so the module never flashes in before we know either way.
+  // Treat undefined (still loading) as ineligible to avoid a flash before we know either way.
   const eligible = pool.data?.eligible ?? false;
   const poolRemaining = pool.data?.pointsRemaining ?? 0;
   const poolTotal = pool.data?.totalBudget ?? 0;

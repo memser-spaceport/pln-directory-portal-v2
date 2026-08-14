@@ -3,12 +3,8 @@ import { getTrustHoldings } from '@/services/plaa/trust-holdings.service';
 import { getCompletedBuybacks } from '@/services/plaa/rounds.service';
 import { buildBuybackSimulation } from '@/components/page/aligement-assets/rounds/buyback.mapper';
 
-/**
- * The buyback accordions read the same rounds API the round pages do, mapped
- * through the same buildBuybackSimulation, so the figures on this page cannot
- * drift from /alignment-asset/rounds/[round]. Nothing about a buyback is
- * entered here.
- */
+// Same source and mapper as the round pages — figures here cannot drift
+// from /alignment-asset/rounds/[round].
 async function getBuybackPanels(): Promise<TrustBuyback[]> {
   const completed = await getCompletedBuybacks();
   return completed.map((entry) => ({

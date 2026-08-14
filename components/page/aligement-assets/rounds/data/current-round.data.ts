@@ -1,13 +1,6 @@
-/**
- * Template + fallback data for the CurrentRoundComponent. Round-specific
- * facts (meta, round description number/month, snapshot dates, chart,
- * points/participants/activities/regions) are overridden at request time
- * from GET /rounds/current/stats in app/alignment-asset/page.tsx and are
- * NOT meant to be hand-updated here each round — this file only needs
- * editing when the round-independent copy itself changes (hero, paragraph
- * text, tip content, section labels), or as a degraded-mode fallback if the
- * API is unreachable, in which case some numbers here will read stale.
- */
+// Round-specific fields here are overridden at request time by live stats;
+// only edit this file for the round-independent copy (hero, paragraphs, tip
+// content, labels) or as a fallback if the live fetch fails.
 
 import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';

@@ -6,17 +6,9 @@ import { getLeaderboard } from '@/services/plaa/leaderboard.service';
 import { getCurrentRoundStats, RoundStatsResponse } from '@/services/plaa/rounds.service';
 import { CurrentRoundData } from '@/components/page/aligement-assets/rounds/types/current-round.types';
 
-/**
- * Everything derivable comes from the API (round meta, month/period, KPI
- * chart, totals, participants, activity catalog, regions unlocked); the data
- * file keeps only editorial content that never varies by round (hero copy,
- * paragraph/tip text, section labels) — it's a template base, not a
- * fallback: PlaaPage 404s if the API has nothing, rather than silently
- * rendering stale numbers dressed up as live. Buyback figures stay on the
- * data file — the section only ever renders when `bids` is non-empty, which
- * no data source populates, so wiring live buyback data in here has no
- * visible effect.
- */
+// The data file keeps only editorial content that never varies by round —
+// it's a template, not a fallback: this page 404s if the API has nothing,
+// rather than rendering stale numbers as if live.
 function mergeRoundStats(stats: RoundStatsResponse): CurrentRoundData {
   // stats.period is 'YYYY-MM-DD', the first of the round's calendar month.
   const [year, month] = stats.period.split('-').map(Number);

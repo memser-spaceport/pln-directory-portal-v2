@@ -225,7 +225,6 @@ const Overview = () => {
             </motion.button>
           )}
           
-          {/* Trigger element - placeholder for potential future use */}
           <div ref={triggerRef} className="overview__floating-trigger" />
         </div>
 
@@ -413,7 +412,6 @@ const Overview = () => {
         <SupportSection />
       </div>
 
-      {/* Floating Action Button */}
       <AnimatePresence mode="wait">
         {buttonState === 'floating' && (
           <motion.button

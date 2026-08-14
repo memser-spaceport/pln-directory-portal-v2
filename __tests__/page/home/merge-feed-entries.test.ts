@@ -47,6 +47,7 @@ function post(uid: string, likeCount: number, createdAt: string, focusAreas: str
     forumTopicUrl: null,
     commentCount: 0,
     likeCount,
+    viewCount: 0,
     viewerHasLiked: false,
   };
 }

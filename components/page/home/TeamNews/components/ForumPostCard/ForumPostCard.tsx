@@ -15,6 +15,7 @@ import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
+import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
 
 import { ForumPostTitle } from '../ForumPostTitle';
@@ -117,6 +118,7 @@ export function ForumPostCard(props: ForumPostCardProps) {
           </span>
           <span className={s.footerActions} onClick={(e) => e.stopPropagation()}>
             <FeedForumPostShareMenu post={post} source="home" />
+            <ViewCount count={post.viewCount} />
             <UpvoteButton
               count={post.likeCount}
               voted={post.viewerHasLiked}

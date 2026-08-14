@@ -260,16 +260,18 @@ export function StarFourIcon() {
   );
 }
 
+// Phosphor "House" (regular), filled — the same family and weight as every
+// other icon in this bar. An outlined/stroked house reads noticeably lighter
+// next to them, which is what made Home look like it belonged to a different
+// set. currentColor, like ForumIcon, so it tracks .Trigger's text colour
+// through hover instead of being a near-miss hardcode.
 export function HomeIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M3.5 8.25 10 3l6.5 5.25V16a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V8.25Z"
-        stroke="#455468"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
+        d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-16,16v48H48V115.55l.11-.1L128,40l79.9,75.43.11.1Z"
+        fill="currentColor"
       />
-      <path d="M8 17v-5h4v5" stroke="#455468" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -352,11 +352,20 @@ export const TeamNews = ({
   // Both are unfiltered by tab/category/search on purpose: neither carries a
   // focus area or an event type, so every narrowed view drops them. That falls
   // out of `isNarrowedView` below rather than being re-derived per stream.
+  // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
+  // (as #2775 did) still let the entry into `entries`, where it silently ate a
+  // `pageSize` slot — a first page of six showed five — and shifted the
+  // analytics `position` of every card after it. `undefined` is the same "leave
+  // the feed alone" signal a failed request already sends.
   const entries = useMemo(
     () =>
       isNarrowedView
         ? rankedEntries
-        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+        : injectFeedSignals({
+            entries: rankedEntries,
+            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+            deals: feedDeals,
+          }),
     [rankedEntries, isNarrowedView, feedHiring, feedDeals],
   );
 
@@ -957,7 +966,11 @@ export const TeamNews = ({
                         />
                       );
                     case 'hiring':
-                      return SHOW_HIRING_NEWS ? (
+                      // No flag check here: with the injection gated above, a
+                      // hiring entry only exists when it is meant to be seen.
+                      // Re-checking would reintroduce the invisible-entry bug
+                      // the moment the two guards disagreed.
+                      return (
                         <HiringCard
                           key={key}
                           group={entry.group}
@@ -968,7 +981,7 @@ export const TeamNews = ({
                           }
                           onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
                         />
-                      ) : null;
+                      );
                     case 'deal':
                       return (
                         <DealCardCompact

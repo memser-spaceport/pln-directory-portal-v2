@@ -170,10 +170,15 @@ describe('mergeFeedEntries', () => {
     expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'news:t2', 'forum:fp_stale', 'news:t1']);
   });
 
-  // The mode boundary itself: the same stale post the case above pins in place
-  // under 'latest' must still be promoted under the other two sorts. Asserting
-  // only 'latest' would let a later edit quietly drop the rule everywhere.
-  it.each<TeamNewsSort>(['popular', 'following'])('slot-2 survives under %s while latest opts out', (sort) => {
+  // The mode boundary itself: 'popular' is the only sort left that promotes.
+  // Asserting the opt-outs alone would let a later edit drop the rule
+  // everywhere; asserting 'popular' alone would let one creep back into a
+  // date-ranked mode. Both directions, one fixture.
+  it.each<[TeamNewsSort, boolean]>([
+    ['popular', true],
+    ['latest', false],
+    ['following', false],
+  ])('slot-2 promotion under %s: %s', (sort, promotes) => {
     const sorted = sortTeamNewsClusters(CLUSTERS, sort, NO_FOLLOWS, UPVOTES);
     const entries = mergeFeedEntries({
       sortedClusters: sorted,
@@ -183,7 +188,28 @@ describe('mergeFeedEntries', () => {
       upvoteCounts: UPVOTES,
     });
     expect(entries[0].kind).toBe('news');
-    expect(feedEntryKey(entries[1])).toBe('forum:fp_stale');
+    expect(feedEntryKey(entries[1]) === 'forum:fp_stale').toBe(promotes);
+  });
+
+  // The invariant the merge loop states outright ("posts never precede a
+  // followed cluster") was only true until the slot-2 rule ran. With ONE
+  // followed cluster the promotion lands inside the unfollowed tail and looks
+  // harmless — which is why the single-follow case below never caught it. With
+  // TWO, index 1 is still followed territory, and the post jumps a team the
+  // reader explicitly follows.
+  it('following: a promoted post never jumps a followed cluster (needs 2+ follows to show)', () => {
+    const followed: ReadonlySet<string> = new Set(['t2', 't3']);
+    // followed first by date — t3(24th) t2(22nd) — then the unfollowed t1(20th).
+    const sorted = sortTeamNewsClusters(CLUSTERS, 'following', followed, UPVOTES);
+    const entries = mergeFeedEntries({
+      sortedClusters: sorted,
+      forumPosts: [post('fp_new', 999, '2026-07-25')],
+      sort: 'following',
+      followedTeamUids: followed,
+      upvoteCounts: UPVOTES,
+    });
+    // Both followed teams keep their lead; the post joins the unfollowed tail.
+    expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'news:t2', 'forum:fp_new', 'news:t1']);
   });
 
   it('following: posts never precede a followed cluster', () => {

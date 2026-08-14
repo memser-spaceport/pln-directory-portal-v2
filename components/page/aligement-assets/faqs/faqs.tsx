@@ -12,8 +12,8 @@ import { DISCLOSURE_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 import { KpiWeightEntry } from '@/services/plaa/kpi-weights.service';
 
 // Fallback only: used if the live fetch is unreachable or returns nothing,
-// same degraded-mode pattern as current-round.data.ts. Real values live in
-// Airtable's KPI Weights table now.
+// same degraded-mode pattern as current-round.data.ts. Real values are
+// synced externally now.
 const KPI_WEIGHTS_FALLBACK: KpiWeightEntry[] = [
   { category: 'Network Tooling', weight: 1.2, percentOfTotal: 19.35, emissionsPerSnapshot: 1935 },
   { category: 'Knowledge', weight: 1.4, percentOfTotal: 22.58, emissionsPerSnapshot: 2258 },

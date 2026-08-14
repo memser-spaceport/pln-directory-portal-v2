@@ -61,7 +61,7 @@ function mapBid(bid: RoundBuybackBid): BuybackBidEntry {
     tokensBid: formatBidCount(bid.tokensBid),
     tokenPrice: formatBidPrice(bid.tokenPrice),
     bidValue: formatBidPrice(bid.bidValue),
-    // Constrained at the Airtable source to the five values this type expects.
+    // Constrained at the source to the five values this type expects.
     status: bid.status as BuybackBidEntry['status'],
     amtFilled: formatBidAmount(bid.amtFilled),
     accepted: formatBidCount(bid.accepted),

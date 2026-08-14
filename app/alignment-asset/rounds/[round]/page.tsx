@@ -17,12 +17,12 @@ interface PastRoundPageProps {
  * round-independent.
  */
 function mapStatsToPastRoundData(stats: RoundStatsResponse): IPastRoundData {
-  // Simulation rows (rounds 7 and 9) carry a complete buyback record in
-  // Airtable but were test runs, not real auctions — they stay out of the
+  // Simulation rows (rounds 7 and 9) carry a complete buyback record at the
+  // source but were test runs, not real auctions — they stay out of the
   // user-facing buyback experience entirely. Only rounds 11 and 18 are live.
   // Note this deliberately does not gate stats.totalTokensDistributed below:
   // that figure is a per-round emission every round has, and simply happens
-  // to be stored on the same Airtable table.
+  // to be stored alongside it.
   const hasSettledBuyback =
     stats.buyback !== null && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation;
 

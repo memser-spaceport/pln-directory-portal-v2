@@ -582,10 +582,10 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
         <div className="th-nav-summary">
           <span className="th-nav-summary__label">NAV / PLAA</span>
           <span className="th-nav-summary__value">{data.navPerPlaaHeadline}</span>
-          <span className="th-nav-summary__caption">Est. Net Asset Value per PLAA as of July 1st, 2026</span>
+          <span className="th-nav-summary__caption">Est. Net Asset Value per PLAA as of {data.asOfDate}</span>
         </div>
 
-        <p className="th-card__eyebrow">Est. AS OF JULY 1ST, 2026</p>
+        <p className="th-card__eyebrow">Est. AS OF {data.asOfDate.toUpperCase()}</p>
         <p className="th-card__lead">
           Trust Total Net Asset Value
           <span className="th-card__note">
@@ -684,7 +684,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
 
           <div className="th-legend">
             <p className="th-section-eyebrow">FOCUS AREA BREAKDOWN</p>
-            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of Jun 30, 2026</p>
+            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of {data.asOfDate}</p>
             <ul className="th-legend__list">
               {data.focusAreas.map((slice) => (
                 <li key={slice.name} className="th-legend__row">
@@ -702,7 +702,7 @@ export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHold
       <section className="th-card th-card--padded">
         <h2 className="th-heading">Current Trust Composition</h2>
         <p className="th-heading__sub">
-          Composition of all trust assets as a share of net asset value · as of June 30th, 2026.
+          Composition of all trust assets as a share of net asset value · as of {data.asOfDate}.
         </p>
 
         <div className="th-split">

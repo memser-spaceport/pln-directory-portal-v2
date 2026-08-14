@@ -34,6 +34,7 @@ export interface DonutSlice {
 
 export interface TrustHoldingsData {
   navPerPlaaHeadline: string;
+  asOfDate: string;
   trustTotalValue: string;
   portfolioCompanies: number;
   quarterly: NavPoint[];

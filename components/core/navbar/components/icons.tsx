@@ -260,3 +260,16 @@ export function StarFourIcon() {
   );
 }
 
+export function HomeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M3.5 8.25 10 3l6.5 5.25V16a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V8.25Z"
+        stroke="#455468"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M8 17v-5h4v5" stroke="#455468" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}

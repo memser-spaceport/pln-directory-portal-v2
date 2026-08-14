@@ -100,6 +100,26 @@ export async function getTeamNewsPopular(
   }
 }
 
+/**
+ * Ingestion time of the newest news item the feed would show, or null when
+ * there is none. Drives the Home button's new-news dot.
+ *
+ * Returns null rather than throwing on failure: a dot is ambient, and a header
+ * that surfaces a network error to get one would be worse than a header with
+ * no dot. `null` collapses "no news", "not loaded" and "request failed" into
+ * the same harmless answer.
+ */
+export async function getTeamNewsLatestAt(): Promise<string | null> {
+  try {
+    const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/team-news/latest`, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const { latestAt } = (await response.json()) as { latestAt: string | null };
+    return latestAt ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Called from a client-side mutation (useTeamNewsUpvoteToggle). POST to upvote,
 // DELETE to remove; both return the authoritative { upvoteCount, viewerHasUpvoted }.
 // Throws on failure so React Query's onError fires and the optimistic overlay rolls back.

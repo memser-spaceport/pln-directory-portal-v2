@@ -130,6 +130,7 @@ function toFeedForumPost(topic: Topic): IFeedForumPost {
     // rather than a comment on it.
     commentCount: Math.max(0, (Number(topic.postcount) || 0) - 1),
     likeCount: Number(topic.upvotes) || 0,
+    viewCount: Number(topic.viewcount) || 0,
     // /api/recent is a listing with no per-viewer vote state. The modal corrects
     // this from the topic's own post once a thread is opened.
     viewerHasLiked: false,

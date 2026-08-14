@@ -25,6 +25,7 @@ function post(uid: string): IFeedForumPost {
     forumTopicUrl: null,
     commentCount: 0,
     likeCount: 0,
+    viewCount: 0,
     viewerHasLiked: false,
   };
 }

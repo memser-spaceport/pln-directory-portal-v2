@@ -512,6 +512,7 @@ describe('TeamNews', () => {
         forumTopicUrl: '/forum/topics/5/96',
         commentCount: 2,
         likeCount: 5,
+        viewCount: 0,
         viewerHasLiked: false,
       };
 

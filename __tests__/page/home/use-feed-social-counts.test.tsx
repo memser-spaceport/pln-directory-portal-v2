@@ -42,6 +42,7 @@ function post(uid: string, commentCount: number): IFeedForumPost {
     forumTopicUrl: '/forum/topics/5/1',
     commentCount,
     likeCount: 0,
+    viewCount: 0,
     viewerHasLiked: false,
   };
 }

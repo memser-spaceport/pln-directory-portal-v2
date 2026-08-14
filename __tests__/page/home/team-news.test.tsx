@@ -1683,6 +1683,20 @@ describe('TeamNews', () => {
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
+    // #2775 hid HiringCard at the render layer while injectFeedSignals kept
+    // injecting the entry, so an invisible card silently spent one of the six
+    // first-page slots (and shifted the analytics `position` of everything after
+    // it). Deliberately NOT gated on SHOW_HIRING_NEWS: a full first page is the
+    // contract under BOTH flag states — off, the entry never enters the feed;
+    // on, it enters and renders. Gating this would retire the coverage exactly
+    // when the flag makes it load-bearing.
+    it('never spends a first-page slot on a hiring roll-up it cannot show', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      renderTeamNews(<TeamNews groups={wideGroups} />); // default pageSize of 6
+
+      expect(document.querySelector('[data-news-feed-list]')!.children).toHaveLength(6);
+    });
+
     itHiring('carries the job board attribution params on role links', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);

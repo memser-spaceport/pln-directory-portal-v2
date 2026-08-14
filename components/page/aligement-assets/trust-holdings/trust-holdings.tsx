@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import Image from 'next/image';
 import {
   Bar,
   CartesianGrid,
@@ -16,12 +17,27 @@ import {
 } from 'recharts';
 import { useAlignmentAssetsAnalytics } from '@/analytics/alignment-assets.analytics';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
-import { DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import { BuybackMetric, DonutSlice, NavPoint, TrustHoldingsData } from '@/services/plaa/trust-holdings.service';
+import { BuybackSimulationSectionData } from '../rounds/types/current-round.types';
+import { MONTHLY_WINDOW, takeRecentMonths } from './nav-window';
 
-type ViewMode = 'quarterly' | 'monthly';
+// This component renders whatever it's handed — it doesn't know which
+// rounds ran an auction.
+export interface TrustBuyback {
+  roundNumber: number;
+  monthYear: string;
+  auctionNumber: number | null;
+  section: BuybackSimulationSectionData;
+}
 
-// Presentation theme — the chart series palette (the dataset itself comes from
-// the API; these are view concerns kept alongside the component).
+type ViewMode = 'quarterly-graph' | 'monthly-graph' | 'table';
+
+const VIEW_OPTIONS: { id: ViewMode; label: string }[] = [
+  { id: 'quarterly-graph', label: 'Quarterly Graph' },
+  { id: 'monthly-graph', label: 'Monthly Graph' },
+  { id: 'table', label: 'Table View' },
+];
+
 const SERIES_COLORS = {
   plvh: '#30c593',
   digital: '#0090ff',
@@ -29,31 +45,35 @@ const SERIES_COLORS = {
   nav: '#1e3a8a',
 };
 
-/** Combined digital-asset value (BTC + ETH + FIL) for the stacked bar. */
+// Maroon, outside the series palette — reads against every bar and the green total.
+const BUYBACK_COLOR = '#800000';
+
 const digitalTotal = (p: { btc: number; eth: number; fil: number }) => p.btc + p.eth + p.fil;
 
 const KEY_ITEMS = [
-  { label: 'PLVH', color: SERIES_COLORS.plvh, line: false },
-  { label: 'Digital assets', color: SERIES_COLORS.digital, line: false },
-  { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false },
-  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true },
+  { label: 'PLVH', color: SERIES_COLORS.plvh, line: false, dashed: false },
+  { label: 'Digital assets', color: SERIES_COLORS.digital, line: false, dashed: false },
+  { label: 'US Treasuries', color: SERIES_COLORS.treasuries, line: false, dashed: false },
+  { label: 'NAV / PLAA', color: SERIES_COLORS.nav, line: true, dashed: false },
+  { label: 'Buyback clearing price', color: BUYBACK_COLOR, line: true, dashed: true },
 ];
+
+const keyMarkerStyle = (item: { color: string; dashed: boolean }) =>
+  item.dashed
+    ? { backgroundImage: `repeating-linear-gradient(to right, ${item.color} 0 4px, transparent 4px 8px)` }
+    : { backgroundColor: item.color };
 
 const formatCurrency = (value: number) => {
   if (!value) return '—';
   const fractionDigits = Number.isInteger(value) ? 0 : 2;
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: fractionDigits, maximumFractionDigits: 2 })}`;
 };
-// Rounded to whole dollars — used for the BTC / ETH / FIL / PLVH asset columns
 const formatAsset = (value: number) => (value ? `$${Math.round(value).toLocaleString('en-US')}` : '—');
-// NAV per PLAA is stored with 2 decimals but displayed as whole dollars,
-// rounded to the nearest dollar, in the chart pills and table.
 const formatPerPlaa = (value: number) => `$${value.toFixed(2)}`;
 const formatMillions = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 const formatCount = (value: number) => value.toLocaleString('en-US');
 
-// Pill label centered on each point of the NAV / PLAA line (the line passes
-// through the pill centers, matching the Figma design).
+// Pill centers sit on the line's points (Figma design).
 const PILL_HEIGHT = 26;
 const renderNavLabel = (props: any) => {
   const { x, y, value } = props;
@@ -70,16 +90,15 @@ const renderNavLabel = (props: any) => {
   );
 };
 
-// Total trust value drawn above each stacked bar. The final (PLVH-bearing) bar
-// is highlighted in green to match the design.
-const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
+// The final (PLVH-bearing) bar's total is highlighted in green.
+const renderTotalLabel = (rows: NavPoint[], offset: number = 10) => (props: any) => {
   const { x, y, width, value, index } = props;
   if (!value) return null;
   const highlight = rows[index] && rows[index].plvh > 0;
   return (
     <text
       x={x + width / 2}
-      y={y - 10}
+      y={y - offset}
       textAnchor="middle"
       fill={highlight ? SERIES_COLORS.plvh : '#475569'}
       fontSize={13}
@@ -90,8 +109,122 @@ const renderTotalLabel = (rows: NavPoint[]) => (props: any) => {
   );
 };
 
-// X-axis tick: the final category (current quarter) is highlighted in blue.
-const renderAxisTick = (lastLabel: string) => (props: any) => {
+// Chip centers sit on the dotted track's points, same as the NAV pills.
+const BUYBACK_CHIP_HEIGHT = 22;
+const renderBuybackChip = (props: any) => {
+  const { cx, cy, index, payload } = props;
+  const text = payload?.buybackLabel;
+  if (!text || cx == null || cy == null) return <g key={`buyback-${index}`} />;
+  const width = 20 + text.length * 7;
+  return (
+    <g key={`buyback-${index}`} transform={`translate(${cx - width / 2}, ${cy - BUYBACK_CHIP_HEIGHT / 2})`}>
+      <rect width={width} height={BUYBACK_CHIP_HEIGHT} rx={6} fill={BUYBACK_COLOR} />
+      <text
+        x={width / 2}
+        y={BUYBACK_CHIP_HEIGHT / 2 + 4}
+        textAnchor="middle"
+        fill="#ffffff"
+        fontSize={11.5}
+        fontWeight={700}
+      >
+        {text}
+      </text>
+    </g>
+  );
+};
+
+// Shared scale with the buyback track — plot area (420 chart, less 48/8
+// margins) spans the per-PLAA domain.
+const PER_PLAA_PLOT_HEIGHT = 364;
+const PER_PLAA_DOMAIN_MAX = 30;
+const perPlaaPixels = (units: number) => (units / PER_PLAA_DOMAIN_MAX) * PER_PLAA_PLOT_HEIGHT;
+const perPlaaUnits = (pixels: number) => (pixels / PER_PLAA_PLOT_HEIGHT) * PER_PLAA_DOMAIN_MAX;
+const MARKER_CLEARANCE = (PILL_HEIGHT + BUYBACK_CHIP_HEIGHT) / 2 + 3;
+
+// A price within MARKER_CLEARANCE of NAV/PLAA gets lifted or dropped by the
+// overlap so the chip and pill don't collide; the track still meets the
+// chip, and the chip still reads the true reported price.
+function plottedClearingPrice(price: number, navPerPlaa: number): number {
+  const overlap = Math.max(0, MARKER_CLEARANCE - perPlaaPixels(Math.abs(price - navPerPlaa)));
+  if (!overlap) return price;
+  return price >= navPerPlaa ? price + perPlaaUnits(overlap) : price - perPlaaUnits(overlap);
+}
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+// Normalizes a label to a key that survives formatting drift between the
+// two APIs feeding it — exact-string matching would silently drop a marker
+// the day either side reformats "Q3 '26" as "Q3 2026".
+//
+//   Q3 '26 · Q3 2026 · Q3-26     → Q3-2026
+//   Jul 26 · Jul '26 · July 2026 → M7-2026
+function periodKey(label: string): string | null {
+  const text = label.trim();
+  // A 4-digit year, or a 2-digit one that isn't part of a longer number.
+  const year = text.match(/(\d{4})(?!\d)|(?:^|\D)(\d{2})(?!\d)/);
+  if (!year) return null;
+  const digits = year[1] ?? year[2];
+  const fullYear = digits.length === 4 ? Number(digits) : 2000 + Number(digits);
+
+  const quarter = text.match(/\bQ\s*([1-4])\b/i);
+  if (quarter) return `Q${quarter[1]}-${fullYear}`;
+
+  const name = text.match(/^([A-Za-z]{3,})/);
+  if (!name) return null;
+  const stem = name[1].slice(0, 3).toLowerCase();
+  const monthIndex = MONTH_NAMES.findIndex((month) => month.slice(0, 3).toLowerCase() === stem);
+  return monthIndex < 0 ? null : `M${monthIndex + 1}-${fullYear}`;
+}
+
+/**
+ * The keys an auction can be matched under: its own month, for the monthly
+ * graph, and the calendar quarter containing it, for the quarterly one.
+ */
+function auctionPeriodKeys(monthYear: string): string[] {
+  const key = periodKey(monthYear);
+  if (!key?.startsWith('M')) return key ? [key] : [];
+  const [month, year] = key.slice(1).split('-');
+  return [key, `Q${Math.floor((Number(month) - 1) / 3) + 1}-${year}`];
+}
+
+// value positions the chip; text fills it.
+interface BuybackMarker {
+  value: number;
+  text: string;
+}
+
+// Newest auction wins when two share a quarter. A price that never settled
+// reads 'TBD' and plots nothing.
+function buybackMarkersByPeriod(buybacks: TrustBuyback[]): Record<string, BuybackMarker> {
+  const markers: Record<string, BuybackMarker> = {};
+  buybacks.forEach((entry) => {
+    const text = entry.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
+    const value = text ? Number(text.replace(/[^0-9.]/g, '')) : NaN;
+    if (!text || !Number.isFinite(value)) return;
+    auctionPeriodKeys(entry.monthYear).forEach((key) => {
+      if (!(key in markers)) markers[key] = { value, text };
+    });
+  });
+  return markers;
+}
+
+// Final category (current quarter) highlighted in blue. showAsterisk marks
+// it preliminary — quarterly view only, a quarter can be open while its
+// latest month is closed.
+const renderAxisTick = (lastLabel: string, showAsterisk?: boolean) => (props: any) => {
   const { x, y, payload } = props;
   const isLast = payload.value === lastLabel;
   return (
@@ -104,16 +237,42 @@ const renderAxisTick = (lastLabel: string) => (props: any) => {
       fontSize={12}
       fontWeight={isLast ? 600 : 500}
     >
-      {payload.value}
+      {payload.value}{isLast && showAsterisk ? '*' : ''}
     </text>
   );
 };
 
-function NavChart({ data }: { data: NavPoint[] }) {
-  // Stacked bars use the combined digital-asset value (BTC + ETH + FIL)
-  const chartData = data.map((d) => ({ ...d, digital: digitalTotal(d) }));
+function NavChart({
+  data,
+  markers,
+  showPreliminaryNote,
+}: {
+  data: NavPoint[];
+  markers: Record<string, BuybackMarker>;
+  showPreliminaryNote?: boolean;
+}) {
+  // A period with no auction plots no point — breaks the buyback track into
+  // dotted spans between auctions.
+  const chartData = data.map((d) => {
+    const marker = markers[periodKey(d.label) ?? ''];
+    return {
+      ...d,
+      digital: digitalTotal(d),
+      buyback: marker ? plottedClearingPrice(marker.value, d.navPerPlaa) : null,
+      buybackLabel: marker?.text ?? '',
+    };
+  });
+  // Quarterly is at most a handful of bars (wide, per design); denser
+  // series get proportionally narrower bars.
+  const dense = chartData.length > 8;
+  const barSize = dense ? 40 : 92;
+  const hasBuybacks = chartData.some((d) => d.buyback != null);
+  if (!chartData.length) {
+    return <p className="th-chart__empty">No data available for this view yet.</p>;
+  }
   return (
-    <div className="th-chart">
+    <div className={`th-chart ${dense ? 'th-chart--dense' : ''}`}>
+      <div className="th-chart__inner">
       <ResponsiveContainer width="100%" height={420}>
         <ComposedChart data={chartData} margin={{ top: 48, right: 16, left: 16, bottom: 8 }} barCategoryGap="42%">
           <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
@@ -121,15 +280,17 @@ function NavChart({ data }: { data: NavPoint[] }) {
             dataKey="label"
             axisLine={{ stroke: '#cbd5e1' }}
             tickLine={false}
-            tick={renderAxisTick(chartData[chartData.length - 1]?.label)}
+            tick={renderAxisTick(chartData[chartData.length - 1]?.label, showPreliminaryNote)}
             interval={0}
           />
           <YAxis yAxisId="nav" hide domain={[0, (max: number) => max * 1.15]} />
           <YAxis yAxisId="perPlaa" hide domain={[0, 30]} />
-          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={92} />
-          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={92} />
-          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={92} radius={[4, 4, 0, 0]}>
-            <LabelList dataKey="nav" content={renderTotalLabel(chartData)} />
+          <Bar yAxisId="nav" dataKey="treasuries" stackId="nav" fill={SERIES_COLORS.treasuries} barSize={barSize} />
+          <Bar yAxisId="nav" dataKey="digital" stackId="nav" fill={SERIES_COLORS.digital} barSize={barSize} />
+          <Bar yAxisId="nav" dataKey="plvh" stackId="nav" fill={SERIES_COLORS.plvh} barSize={barSize} radius={[4, 4, 0, 0]}>
+            {/* A dense series packs the NAV/PLAA pills close to the bar tops,
+                so the total sits clear of a pill's height instead of 10px up. */}
+            <LabelList dataKey="nav" content={renderTotalLabel(chartData, dense ? PILL_HEIGHT + 10 : 10)} />
           </Bar>
           <Line
             yAxisId="perPlaa"
@@ -141,13 +302,110 @@ function NavChart({ data }: { data: NavPoint[] }) {
             label={renderNavLabel}
             isAnimationActive={false}
           />
+          {/* Auctions are months apart, so the track is dotted through the
+              periods that had none rather than implying a price in between. */}
+          {hasBuybacks && (
+            <Line
+              yAxisId="perPlaa"
+              type="linear"
+              dataKey="buyback"
+              stroke={BUYBACK_COLOR}
+              strokeWidth={1.5}
+              strokeDasharray="4 5"
+              connectNulls
+              dot={renderBuybackChip}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
+      {showPreliminaryNote && (
+        <p className="th-chart__note">
+          *{chartData[chartData.length - 1]?.label} figures are preliminary and reflect data available prior to the
+          close of the quarter. Final results may change as additional data is recorded.
+        </p>
+      )}
     </div>
   );
 }
 
-// Asset columns show a muted dash when the holding is not yet held.
+// Column headers come from the first entry's own summary items, not a
+// literal list, so they stay in step without being named here. Round is its
+// own column — "Buyback #2" and "Round 18" are separate numbering schemes.
+function BuybackResultsAccordion({ buybacks }: { buybacks: TrustBuyback[] }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  // Union of every row's own labels, first-seen order — a metric on only
+  // some rounds still gets a column, matched by label not position.
+  const metricLabels: string[] = [];
+  buybacks.forEach((entry) => {
+    entry.section.summary.items.forEach((item) => {
+      if (!metricLabels.includes(item.label)) metricLabels.push(item.label);
+    });
+  });
+
+  return (
+    <div className={`th-accordion ${open ? 'th-accordion--open' : ''}`}>
+      <button
+        type="button"
+        className="th-accordion__trigger"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span className="th-accordion__heading">
+          <span className="th-accordion__title">Past Buyback Key Results</span>
+          <span className="th-accordion__meta">
+            {buybacks.length} completed {buybacks.length === 1 ? 'auction' : 'auctions'}
+          </span>
+        </span>
+        <Image
+          src={open ? '/icons/arrow-up.svg' : '/icons/arrow-down-light.svg'}
+          alt=""
+          width={14}
+          height={14}
+          aria-hidden="true"
+        />
+      </button>
+
+      <div id={panelId} className="th-accordion__panel" hidden={!open}>
+        <div className="th-table-wrapper">
+          <table className="th-table th-table--buyback">
+            <thead>
+              <tr>
+                <th>AUCTION</th>
+                <th>ROUND</th>
+                {metricLabels.map((label) => (
+                  <th key={label}>{label.toUpperCase()}</th>
+                ))}
+                <th>TOTAL FILLED</th>
+              </tr>
+            </thead>
+            <tbody>
+              {buybacks.map((entry) => (
+                <tr key={entry.roundNumber}>
+                  <td className="th-table__date th-buyback-row__auction">
+                    {entry.section.summary.title.replace(/ - Key Results$/, '')}
+                  </td>
+                  <td className="th-buyback-row__round">
+                    Round {entry.roundNumber} · {entry.monthYear}
+                  </td>
+                  {metricLabels.map((label) => (
+                    <td key={label}>{entry.section.summary.items.find((item) => item.label === label)?.value ?? '—'}</td>
+                  ))}
+                  <td>{entry.section.totalFilled ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const assetCell = (value: number) =>
   value ? formatAsset(value) : <span className="th-table__dash">—</span>;
 
@@ -231,12 +489,34 @@ function Donut({
   );
 }
 
-export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
-  const [view, setView] = useState<ViewMode>('quarterly');
+// Last Clearing Price/Date come from the newest completed auction, not
+// data.buybackMetrics — that field is entered separately and drifts behind
+// the auction record. Falls back to it only when there's no completed
+// auction. Next Anticipated always comes from buybackMetrics — a schedule
+// decision, not an auction result.
+function capstoneMetrics(data: TrustHoldingsData, buybacks: TrustBuyback[]): BuybackMetric[] {
+  const latest = buybacks[0]; // completed buybacks arrive newest first
+  const clearingPrice = latest?.section.summary.items.find((item) => item.label === 'Clearing Price')?.value;
+  const nextAnticipated = data.buybackMetrics.find((m) => m.label === 'NEXT ANTICIPATED BUYBACK')?.value ?? '—';
+
+  return latest && clearingPrice
+    ? [
+        { label: 'Last Clearing Price', value: clearingPrice },
+        { label: 'Date', value: latest.monthYear },
+        { label: 'Next Anticipated', value: nextAnticipated },
+      ]
+    : data.buybackMetrics;
+}
+
+export default function TrustHoldings({ data, buybacks = [] }: { data: TrustHoldingsData; buybacks?: TrustBuyback[] }) {
+  const [view, setView] = useState<ViewMode>('quarterly-graph');
   const { onNavMenuClicked } = useAlignmentAssetsAnalytics();
   useScrollDepthTracking('trust-holdings');
 
-  const navData = view === 'quarterly' ? data.quarterly : data.monthly;
+  // Table keeps the full series; Monthly Graph is limited to MONTHLY_WINDOW months.
+  const monthlyWindow = takeRecentMonths(data.monthly, MONTHLY_WINDOW);
+  const buybackMarkers = buybackMarkersByPeriod(buybacks);
+  const metrics = capstoneMetrics(data, buybacks);
 
   return (
     <div className="th">
@@ -255,10 +535,10 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
         <div className="th-nav-summary">
           <span className="th-nav-summary__label">NAV / PLAA</span>
           <span className="th-nav-summary__value">{data.navPerPlaaHeadline}</span>
-          <span className="th-nav-summary__caption">Est. Net Asset Value per PLAA as of July 1st, 2026</span>
+          <span className="th-nav-summary__caption">Est. Net Asset Value per PLAA as of {data.asOfDate}</span>
         </div>
 
-        <p className="th-card__eyebrow">Est. AS OF JULY 1ST, 2026</p>
+        <p className="th-card__eyebrow">Est. AS OF {data.asOfDate.toUpperCase()}</p>
         <p className="th-card__lead">
           Trust Total Net Asset Value
           <span className="th-card__note">
@@ -268,23 +548,18 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         {/* Controls */}
         <div className="th-controls">
-          <div className="th-toggle" role="tablist" aria-label="NAV view">
-            <button
-              role="tab"
-              aria-selected={view === 'quarterly'}
-              className={`th-toggle__btn ${view === 'quarterly' ? 'th-toggle__btn--active' : ''}`}
-              onClick={() => setView('quarterly')}
-            >
-              Quarterly
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === 'monthly'}
-              className={`th-toggle__btn ${view === 'monthly' ? 'th-toggle__btn--active' : ''}`}
-              onClick={() => setView('monthly')}
-            >
-              Monthly
-            </button>
+          <div className="th-toggle" role="group" aria-label="NAV view">
+            {VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={view === option.id}
+                className={`th-toggle__btn ${view === option.id ? 'th-toggle__btn--active' : ''}`}
+                onClick={() => setView(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
 
           <ul className="th-key">
@@ -292,7 +567,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
               <li key={item.label} className="th-key__item">
                 <span
                   className={`th-key__marker ${item.line ? 'th-key__marker--line' : ''}`}
-                  style={{ backgroundColor: item.color }}
+                  style={keyMarkerStyle(item)}
                 />
                 {item.label}
               </li>
@@ -300,13 +575,9 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           </ul>
         </div>
 
-        {view === 'quarterly' ? <NavChart data={navData} /> : <NavTable data={navData} />}
-
-        <p className="th-card__footnote">
-          * Q2 &apos;26 figures include holdings data as of July 1, 2026. Although July 1 technically falls in Q3, it is
-          reflected here as part of the most recent Q2 snapshot.
-        </p>
-
+        {view === 'quarterly-graph' && <NavChart data={data.quarterly} markers={buybackMarkers} showPreliminaryNote />}
+        {view === 'monthly-graph' && <NavChart data={monthlyWindow} markers={buybackMarkers} />}
+        {view === 'table' && <NavTable data={data.monthly} />}
       </section>
 
       {/* Buybacks & Past Results */}
@@ -316,7 +587,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
         <div className="th-buyback-panel">
           <div className="th-metrics">
-            {data.buybackMetrics.map((metric) => (
+            {metrics.map((metric) => (
               <div key={metric.label} className="th-metric">
                 <span className="th-metric__label">{metric.label}</span>
                 <span className="th-metric__value">{metric.value}</span>
@@ -329,21 +600,13 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
             value of any right.
           </p>
 
-          <a
-            className="th-link"
-            href="https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() =>
-              onNavMenuClicked(
-                'View full buyback results',
-                'https://broken-teal-e30.notion.site/Buyback-Auction-Results-372bae1511cc80d5ad6ad4c2758bb4a5'
-              )
-            }
-          >
-            View full buyback results →
-          </a>
         </div>
+
+        {buybacks.length > 0 && (
+          <div className="th-accordions">
+            <BuybackResultsAccordion buybacks={buybacks} />
+          </div>
+        )}
       </section>
 
       {/* CTA */}
@@ -374,7 +637,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
 
           <div className="th-legend">
             <p className="th-section-eyebrow">FOCUS AREA BREAKDOWN</p>
-            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of Jun 30, 2026</p>
+            <p className="th-legend__sub">Share of PLVH exposure by category · 6 categories · as of {data.asOfDate}</p>
             <ul className="th-legend__list">
               {data.focusAreas.map((slice) => (
                 <li key={slice.name} className="th-legend__row">
@@ -392,7 +655,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
       <section className="th-card th-card--padded">
         <h2 className="th-heading">Current Trust Composition</h2>
         <p className="th-heading__sub">
-          Composition of all trust assets as a share of net asset value · as of June 30th, 2026.
+          Composition of all trust assets as a share of net asset value · as of {data.asOfDate}.
         </p>
 
         <div className="th-split">
@@ -556,13 +819,6 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           color: #94a3b8;
         }
 
-        .th-card__footnote {
-          margin: 16px 0 0;
-          font-size: 12.5px;
-          line-height: 18px;
-          color: #94a3b8;
-        }
-
         /* Controls */
         .th-controls {
           display: flex;
@@ -636,6 +892,43 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           margin-top: 8px;
           padding-top: 16px;
           background-color: #f8fafc;
+        }
+
+        .th-chart__inner {
+          width: 100%;
+        }
+
+        /* Twelve months of bars stop being legible below roughly 900px — the
+           NAV/PLAA pills start overlapping each other. Rather than thin the
+           labels or shrink the type, the dense view scrolls sideways below a
+           readable minimum, matching how wide tables behave elsewhere. The
+           quarterly view never takes this branch. */
+        @media (max-width: 900px) {
+          .th-chart--dense {
+            overflow-x: auto;
+          }
+
+          .th-chart--dense .th-chart__inner {
+            min-width: 760px;
+          }
+        }
+
+        .th-chart__empty {
+          margin: 8px 0 0;
+          padding: 48px 16px;
+          background-color: #f8fafc;
+          color: #64748b;
+          font-size: 14px;
+          text-align: center;
+        }
+
+        .th-chart__note {
+          margin: 0;
+          padding: 0 16px 16px;
+          background-color: #f8fafc;
+          font-size: 13px;
+          line-height: 18px;
+          color: #64748b;
         }
 
         /* Table */
@@ -728,11 +1021,100 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           color: #64748b;
         }
 
+        .th-accordions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .th-accordion {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          background-color: #ffffff;
+          overflow: hidden;
+        }
+
+        .th-accordion--open {
+          border-color: #cbd5e1;
+        }
+
+        .th-accordion__trigger {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 16px 20px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .th-accordion__trigger:hover {
+          background-color: #f8fafc;
+        }
+
+        .th-accordion__heading {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .th-accordion__title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #16161f;
+        }
+
+        .th-accordion__meta {
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .th-accordion__panel {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          padding: 0 20px 20px;
+        }
+
+        .th-accordion__panel[hidden] {
+          display: none;
+        }
+
+        /* Nine columns, two of which carry unbreakable labels — the NAV
+           table's 24px gutters would push Total Filled off the card and force
+           a scroll on desktop, so this table runs tighter. */
+        .th-table--buyback {
+          min-width: 860px;
+        }
+
+        .th-table--buyback th,
+        .th-table--buyback td {
+          padding: 14px 12px;
+        }
+
+        /* Every column reads left-aligned here, headers and values together —
+           a header sitting at the opposite edge from its own figures is worse
+           than losing the numeric right-alignment. */
+        .th-table--buyback th,
+        .th-table--buyback td {
+          text-align: left;
+        }
+
+        .th-buyback-row__auction,
+        .th-buyback-row__round {
+          white-space: nowrap;
+        }
+
         .th-metrics {
           display: flex;
           flex-wrap: wrap;
           gap: 16px;
         }
+
 
         .th-metric {
           flex: 1 1 200px;
@@ -753,7 +1135,7 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           color: #0f172a;
         }
 
-        /* Per-card label accents (backend returns a fixed order: price, date, next). */
+        /* Per-card label accents (the tiles render in a fixed order: price, date, next). */
         .th-metric:nth-child(1) .th-metric__label {
           color: #16a34a;
         }
@@ -766,18 +1148,6 @@ export default function TrustHoldings({ data }: { data: TrustHoldingsData }) {
           font-size: 24px;
           font-weight: 700;
           color: #0f172a;
-        }
-
-        .th-link {
-          display: inline-block;
-          font-size: 14px;
-          font-weight: 600;
-          color: #156ff7;
-          text-decoration: none;
-        }
-
-        .th-link:hover {
-          text-decoration: underline;
         }
 
         /* CTA */

@@ -13,7 +13,6 @@ import DisclaimerSection from './sections/disclaimer-section';
 import SupportSection from './sections/support-section';
 import PointsDashboard from '@/components/page/aligement-assets/points-dashboard/points-dashboard';
 import RightsTokensDashboard from '@/components/page/aligement-assets/rights-tokens-dashboard/rights-tokens-dashboard';
-import { currentRoundData } from './data';
 import { CurrentRoundData, LeaderboardSectionData } from './types';
 import { useScrollDepthTracking } from '@/hooks/useScrollDepthTracking';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
@@ -26,18 +25,13 @@ interface CurrentRoundComponentProps {
   currentRound?: number;
   totalRounds?: number;
   onRoundChange?: (round: number) => void;
-  /** Optional: Override the default data with custom data */
-  data?: CurrentRoundData;
+  data: CurrentRoundData;
   /** Raw leaderboard API response; entries are split by type in the component */
   leaderboardResponse?: LeaderboardApiResponse;
 }
 
-/**
- * CurrentRoundComponent - Main component for displaying current round information
- * Uses master JSON data from ./data/current-round.data.ts
- */
 export default function CurrentRoundComponent({
-  data = currentRoundData,
+  data,
   leaderboardResponse,
 }: CurrentRoundComponentProps) {
   const [isLoggedIn] = useState(() => typeof window !== 'undefined' && !!getCookiesFromClient().authToken);
@@ -53,7 +47,6 @@ export default function CurrentRoundComponent({
   const hasLeaderboardData =
     leaderboardData.currentSnapshotData.length > 0 || leaderboardData.cumulativeData.length > 0;
 
-  // Parse dates from the master data
   const { startDate, endDate } = useMemo(() => {
     return {
       startDate: new Date(data.snapshotProgress.startDate),
@@ -66,35 +59,28 @@ export default function CurrentRoundComponent({
   return (
     <>
       <div className="current-round">
-        {/* Hero Section with Title and Action Buttons */}
         <HeroSection data={data.hero} />
 
-        {/* Rights & Tokens Dashboard */}
         {isLoggedIn && <RightsTokensDashboard />}
 
-        {/* Points & Activities Dashboard */}
         {isLoggedIn && <PointsDashboard currentRound={data.meta.roundNumber} />}
 
-        {/* Round Description Section */}
-        <RoundDescriptionSection 
-          data={data.roundDescription} 
+        <RoundDescriptionSection
+          data={data.roundDescription}
           tokensAllocated={data.stats.totalTokensAvailable}
         />
 
-        {/* Total Alignment Asset Points & Tokens Collected by Category */}
-        <SnapshotProgressSection 
+        <SnapshotProgressSection
           startDate={startDate}
           endDate={endDate}
           tipContent={data.snapshotProgress.tipContent}
         />
 
-        {/* Chart Section - Total Points Per KPI Pillar */}
         <ChartSection data={data.chart} />
 
-        {/* Statistics Section */}
         <StatsSection data={data.stats} />
 
-        {/* Points Leaderboard: CURRENT_SNAPSHOT = current round, CUMULATIVE = all-time */}
+        {/* CURRENT_SNAPSHOT = current round, CUMULATIVE = all-time */}
         {isLoggedIn && hasLeaderboardData && (
           <LeaderboardSection
             view={leaderboardView}
@@ -105,18 +91,14 @@ export default function CurrentRoundComponent({
           />
         )}
 
-        {/* Buyback Auction Results Section - Only show when there's auction data */}
         {data.buybackAuction.bids.length > 0 && (
           <BuybackAuctionSection data={data.buybackAuction} />
         )}
 
-        {/* Learn More Section */}
         <LearnMoreSection data={data.learnMore} />
 
-        {/* Disclaimer Section */}
         <DisclaimerSection />
 
-        {/* Support Section */}
         <SupportSection />
       </div>
 

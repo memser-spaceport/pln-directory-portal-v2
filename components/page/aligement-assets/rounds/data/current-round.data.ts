@@ -1,31 +1,17 @@
-/**
- * Template + fallback data for the CurrentRoundComponent. Round-specific
- * facts (meta, round description number/month, snapshot dates, chart,
- * points/participants/activities/regions) are overridden at request time
- * from GET /rounds/current/stats in app/alignment-asset/page.tsx and are
- * NOT meant to be hand-updated here each round — this file only needs
- * editing when the round-independent copy itself changes (hero, paragraph
- * text, tip content, section labels), or as a degraded-mode fallback if the
- * API is unreachable, in which case some numbers here will read stale.
- */
+// Round-specific fields here are overridden at request time by live stats;
+// only edit this file for the round-independent copy (hero, paragraphs, tip
+// content, labels) or as a fallback if the live fetch fails.
 
 import { CurrentRoundData } from '../types/current-round.types';
 import { DISCLOSURE_URL, SUPPORT_URL, SUPPORT_EMAIL } from '@/constants/plaa';
 
 export const currentRoundData: CurrentRoundData = {
-  // ============================================================================
-  // Meta Information
-  // ============================================================================
   meta: {
-    roundId: 'round-18-jul-2026',
-    roundNumber: 18,
+    roundNumber: 19,
     isCurrentRound: true,
-    lastUpdated: '2026-07-02T00:00:00'
+    lastUpdated: '2026-08-11T00:00:00'
   },
 
-  // ============================================================================
-  // Hero Section Data
-  // ============================================================================
   hero: {
     title: 'PL Alignment Asset',
     subtitle: 'The PL Alignment Asset connects contributions across the Protocol Labs network — turning collaboration into shared success.',
@@ -46,12 +32,9 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Round Description Section Data
-  // ============================================================================
   roundDescription: {
-    roundNumber: 18,
-    monthYear: 'July 2026',
+    roundNumber: 19,
+    monthYear: 'August 2026',
     badgeText: 'Current Round',
     paragraphs: [
       {
@@ -83,12 +66,9 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Snapshot Progress Section Data
-  // ============================================================================
   snapshotProgress: {
-    startDate: '2026-07-01T00:00:00',
-    endDate: '2026-07-31T23:59:59',
+    startDate: '2026-08-01T00:00:00',
+    endDate: '2026-08-31T23:59:59',
     tipContent: {
       tipText: 'Lower activity in a category generally means more PLAA is available to collect per contributor, while higher activity means PLAA is distributed more widely.',
       exploreTitle: 'Explore where you can make the biggest impact this month:',
@@ -112,15 +92,12 @@ export const currentRoundData: CurrentRoundData = {
         }
       ],
       bottomLink: {
-        text: 'See what happened in the last round (Round 17)',
-        url: '/alignment-asset/rounds/17'
+        text: 'See what happened in the last round (Round 18)',
+        url: '/alignment-asset/rounds/18'
       }
     }
   },
 
-  // ============================================================================
-  // Chart Section Data
-  // ============================================================================
   chart: {
     title: 'Total Points Collected Per KPI category In Current Snapshot Period (updated weekly)',
     subtitle: 'Please note: totals may not include the most recent submissions, as some activities rely on participant reporting.',
@@ -135,9 +112,6 @@ export const currentRoundData: CurrentRoundData = {
     ]
   },
 
-  // ============================================================================
-  // Stats Section Data
-  // ============================================================================
   stats: {
     onboardedParticipants: 63,
     regionsUnlocked: ['USA', 'Germany', 'Switzerland', 'Portugal'],
@@ -173,17 +147,11 @@ export const currentRoundData: CurrentRoundData = {
     numberOfBuybacks: 0
   },
 
-  // ============================================================================
-  // Leaderboard Section Data
-  // ============================================================================
   leaderboard: {
     currentSnapshotData: [],
     cumulativeData: []
   },
 
-  // ============================================================================
-  // Buyback Auction Section Data (Round 18 - July 2026)
-  // ============================================================================
   buybackAuction: {
     headerStats: {
       totalFilled: '$0.00',
@@ -214,12 +182,12 @@ export const currentRoundData: CurrentRoundData = {
         },
         {
           icon: '/icons/rounds/buy_action_results/dollar-02.svg',
-          label: 'Tokens Purchased',
+          label: 'PLAA Redeemed',
           value: 'TBD'
         },
         {
           icon: '/icons/rounds/buy_action_results/user-multiple.svg',
-          label: 'Winning Bidders',
+          label: 'Accepted Bidders',
           value: 'TBD'
         }
       ]
@@ -227,16 +195,10 @@ export const currentRoundData: CurrentRoundData = {
     bids: []
   },
 
-  // ============================================================================
-  // Learn More Section Data
-  // ============================================================================
   learnMore: {
     faqUrl: '/alignment-asset/faqs'
   },
 
 };
 
-/**
- * Export as default for easy importing
- */
 export default currentRoundData;

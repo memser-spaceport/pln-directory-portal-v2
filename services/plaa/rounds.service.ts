@@ -1,9 +1,3 @@
-/**
- * Current-round aggregate stats from plaa-service (public endpoint, no auth).
- * Replaces the weekly hand-edited numbers in current-round.data.ts: chart
- * per-KPI sums, total points, participants, activity catalog, round meta.
- */
-
 export interface RoundStatsChartEntry {
   name: string;
   value: number;
@@ -28,9 +22,8 @@ export interface RoundBuybackStats {
   headerDescription: string | null;
   clearingPrice: number | null;
   totalTokensDistributed: number | null;
-  // Raw display strings, stored/formatted exactly as entered — irregular by
-  // nature (some rounds show cents, some don't; cappedAllocation can read
-  // "n/a" or carry a "(50% cap)" note).
+  // Raw display strings, not numbers (e.g. cappedAllocation can read "n/a"
+  // or carry a "(50% cap)" note).
   totalBuybackPool: string | null;
   poolUsed: number | null;
   cappedAllocation: string | null;
@@ -41,7 +34,6 @@ export interface RoundBuybackStats {
 }
 
 export interface RoundStatsResponse {
-  roundId: string;
   roundNumber: number;
   period: string;
   month: string;
@@ -49,6 +41,7 @@ export interface RoundStatsResponse {
   isCurrentRound: boolean;
   lastUpdated: string;
   chart: RoundStatsChartEntry[];
+  tokenChart: RoundStatsChartEntry[];
   totalPointsCollected: number;
   onboardedParticipants: number;
   incentivizedActivities: string[];
@@ -65,7 +58,6 @@ export const getCurrentRoundStats = async (): Promise<{
     const response = await fetch(`${process.env.PLAA_API_URL}/api/v1/rounds/current/stats`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
-      // Fresh on every render, matching the leaderboard fetch policy.
       cache: 'no-store',
     });
 
@@ -81,10 +73,38 @@ export const getCurrentRoundStats = async (): Promise<{
   }
 };
 
-/**
- * Stats for an arbitrary round by number. Used by the past-round archive
- * page for rounds that don't have a hand-authored data file (round 18+).
- */
+export interface CompletedBuyback {
+  roundNumber: number;
+  month: string;
+  year: number;
+  buyback: RoundBuybackStats;
+}
+
+// Sorted by round number, not auctionNumber: auctionNumber is nullable, so
+// sorting by it can leave a stale auction at the head. No index endpoint
+// exists, so this walks every round and keeps the ones with a real result.
+export const getCompletedBuybacks = async (): Promise<CompletedBuyback[]> => {
+  const { data: current } = await getCurrentRoundStats();
+  if (!current) return [];
+
+  const results = await Promise.all(
+    Array.from({ length: current.roundNumber }, (_, i) => getRoundStats(i + 1)),
+  );
+
+  return results
+    .map((result) => result.data)
+    .filter((stats): stats is RoundStatsResponse => Boolean(stats))
+    .filter((stats) => stats.buyback && stats.buyback.totalBuybackPool !== null && !stats.buyback.simulation)
+    .map((stats) => ({
+      roundNumber: stats.roundNumber,
+      month: stats.month,
+      year: stats.year,
+      buyback: stats.buyback as RoundBuybackStats,
+    }))
+    .sort((a, b) => b.roundNumber - a.roundNumber);
+};
+
+// Used by the past-round archive page for rounds without a hand-authored data file.
 export const getRoundStats = async (
   roundNumber: number,
 ): Promise<{

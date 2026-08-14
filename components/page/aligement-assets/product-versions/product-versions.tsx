@@ -67,31 +67,23 @@ const productVersions: VersionData[] = [
     ],
     learned: [
       {
-        text: 'Live buyback auction results validated improvements made post-simulations:',
+        text: 'Live buyback auction results validated improvements:',
         subItems: [
-          'Buyback increased the understanding of the token value',
-          'Price discovery evolved: Clearing price adjusted from $20 -> $14.00 between the second simulation and live auction',
+          'Buyback increased the understanding of the PLAA value',
+          'Price discovery evolved: The auction cleared at $14.00',
         ],
       },
-      
     ],
   },
   {
     version: 'v0.2',
     dateRange: 'June 2025 - November 2025',
     added: [
-      'First token issuance (49,219 PLAA1 tokens)',
-      'Two buyback simulations',
+      'First PLAA issuance (49,219 PLAA1 tokens)',
       'Two new activities: Custom Incentive Experiment, Referral Program',
       'Trust NAV tracking',
       'Two new regions unlocked: Germany, Switzerland',
       'Launched Alignment Asset webpage',
-      {
-        text: 'New buyback auction mechanism: Per-bidder cap (50% of pool max) prevents any single participant from dominating allocation',
-      },
-      {
-        text: 'New buyback auction mechanism: Each bid can only be filled up to the total value of that bid (Tokens Bid x Bid Price) ensures bidders cannot "game the system" by bidding unrealistically low prices to maximize tokens at higher payouts',
-      },
     ],
     changed: [
       'Expanded cohort from 38 to 46 participants',
@@ -100,16 +92,8 @@ const productVersions: VersionData[] = [
       'Pay-as-bid to batch auction model',
     ],
     learned: [
-      'Token issuance created tangible ownership sense',
-      {
-        text: 'Buyback simulation results validated improvements:',
-        subItems: [
-          'Simulated buyback increased the understanding of the token value',
-          'More equitable distribution: increased winner count, no whale dominance',
-          'Price discovery evolved: Clearing price adjusted from $20.40 -> $20.00 between rounds',
-          'Fairness mechanisms worked without breaking auction dynamics',
-        ],
-      },
+      'PLAA issuance created tangible ownership sense',
+      'Conducted buyback user research',
     ],
   },
   {
@@ -128,8 +112,8 @@ const productVersions: VersionData[] = [
       'Recognitions nominations surfaced hidden contributions',
       'Onboarding friction too high (26.95% conversion rate)',
       'Lack of clarity in onboarding materials and process',
-      'Confusion about points-to-tokens conversion',
-      'Confusion about token value',
+      'Confusion about points-to-PLAA conversion',
+      'Confusion about PLAA value',
     ],
   },
 ];
@@ -212,7 +196,6 @@ export default function ProductVersionsPage() {
           {productVersions.map((version) => {
             const isExpanded = expandedVersions[version.version];
             
-            // Determine available tabs
             const availableTabs = [
               { key: 'added', label: 'Added', icon: '/icons/added-icon.png', data: version.added },
               { key: 'changed', label: 'Changed', icon: '/icons/changed-icon.png', data: version.changed },
@@ -220,7 +203,6 @@ export default function ProductVersionsPage() {
               { key: 'launched', label: 'Launched', icon: '/icons/launched-icon.png', data: version.launched },
             ].filter(tab => tab.data && tab.data.length > 0);
 
-            // Determine active tab (default to first available)
             const activeTabKey = activeTabs[version.version] || (availableTabs.length > 0 ? availableTabs[0].key : '');
 
             return (
@@ -243,10 +225,8 @@ export default function ProductVersionsPage() {
                   />
                 </button>
 
-                {/* Mobile Tabs View */}
                 {isExpanded && availableTabs.length > 0 && (
                   <div className="product-versions__mobile-view">
-                    {/* Tabs */}
                     <div className="product-versions__tabs">
                       {availableTabs.map((tab) => (
                         <button
@@ -266,7 +246,6 @@ export default function ProductVersionsPage() {
                       ))}
                     </div>
 
-                    {/* Content */}
                     <div className="product-versions__tab-content">
                        {availableTabs.map((tab) => {
                          if (tab.key !== activeTabKey) return null;
@@ -280,7 +259,6 @@ export default function ProductVersionsPage() {
                   </div>
                 )}
 
-                {/* Desktop Grid View */}
                 {isExpanded && (
                   <div className="product-versions__desktop-view">
                      <div className="product-versions__version-card__content">
@@ -331,7 +309,6 @@ export default function ProductVersionsPage() {
           })}
         </div>
 
-        {/* Footer/Contact Information */}
         <div className="product-versions__footer">
           <SupportSection />
         </div>
@@ -468,7 +445,6 @@ export default function ProductVersionsPage() {
           animation: fadeIn 0.3s ease;
         }
 
-        /* Tabs Styling */
         .product-versions__tabs {
           display: flex;
           align-items: center;
@@ -590,7 +566,6 @@ export default function ProductVersionsPage() {
           margin-bottom: 0;
         }
 
-        /* View Switching Logic */
         .product-versions__desktop-view {
           display: none;
         }

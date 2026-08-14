@@ -73,9 +73,10 @@ const clusterLatestEventDate = (c: TeamCluster): string =>
  * session-frozen and like optimism never touches it, so this merge is
  * deterministic after the single arrival — the feed never re-sorts mid-session.
  *
- * Slot-2 rule (prototype parity): the first news entry stays first and the
- * best-ranked forum post is pulled to position 2, so the news + discussion mix
- * reads immediately.
+ * Slot-2 rule (prototype parity), under 'popular' and 'following' ONLY: the
+ * first news entry stays first and the best-ranked forum post is pulled to
+ * position 2, so the news + discussion mix reads immediately. It is skipped
+ * under 'latest' — see the guard below for why.
  */
 export function mergeFeedEntries({
   sortedClusters,
@@ -122,7 +123,15 @@ export function mergeFeedEntries({
     merged.push({ kind: 'forum', post: rankedPosts[postIndex++] });
   }
 
-  // Slot-2 rule.
+  // Slot-2 rule — never under 'latest'. Position 2 promises relevance under
+  // 'popular' and 'following', so a promotion there costs nothing the mode
+  // claimed. Under 'latest' the promise IS recency: pulling a post over fresher
+  // clusters puts an 11-day-old discussion between a 3-day and a 4-day story,
+  // which reads as a broken sort no matter why it was placed there. Guard sits
+  // AFTER the merge loop on purpose — the loop's date ranking is correct; only
+  // this post-hoc promotion was wrong.
+  if (sort === 'latest') return merged;
+
   const firstNewsIdx = merged.findIndex((e) => e.kind === 'news');
   const firstForumIdx = merged.findIndex((e) => e.kind === 'forum');
   if (firstNewsIdx === -1 || firstForumIdx === -1) return merged;

@@ -98,7 +98,7 @@ describe('mergeFeedEntries', () => {
     },
   );
 
-  it('slot-2 rule: first news stays first, best forum post lands second', () => {
+  it('slot-2 rule (popular/following only): first news stays first, best forum post lands second', () => {
     const sorted = sortTeamNewsClusters(CLUSTERS, 'popular', NO_FOLLOWS, UPVOTES);
     const entries = mergeFeedEntries({
       sortedClusters: sorted,
@@ -147,9 +147,43 @@ describe('mergeFeedEntries', () => {
       followedTeamUids: NO_FOLLOWS,
       upvoteCounts: UPVOTES,
     });
-    // fp_new (25th) naturally leads, and as best-ranked post it also satisfies
-    // slot 2 after t3; fp_old (21st) sits between t2 (22nd) and t1 (20th).
-    expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'forum:fp_new', 'news:t2', 'forum:fp_old', 'news:t1']);
+    // Purely by date: fp_new (25th) leads outright — no slot-2 rule holds a news
+    // card at the top under 'latest' — and fp_old (21st) sits between t2 (22nd)
+    // and t1 (20th).
+    expect(entries.map(feedEntryKey)).toEqual(['forum:fp_new', 'news:t3', 'news:t2', 'forum:fp_old', 'news:t1']);
+  });
+
+  // The reported bug, in miniature: an 11-day-old discussion rendered between a
+  // 3-day-old and a 4-day-old story while the control read "Latest". The post is
+  // the best-ranked one by likes (99) — exactly what the slot-2 rule promoted on
+  // — so this fails on the pre-fix code and passes only once the rule is skipped.
+  it('latest: a stale post is NOT promoted to slot 2, however well-liked', () => {
+    const sorted = sortTeamNewsClusters(CLUSTERS, 'latest', NO_FOLLOWS, UPVOTES); // t3(24th) t2(22nd) t1(20th)
+    const entries = mergeFeedEntries({
+      sortedClusters: sorted,
+      forumPosts: [post('fp_stale', 99, '2026-07-21')],
+      sort: 'latest',
+      followedTeamUids: NO_FOLLOWS,
+      upvoteCounts: UPVOTES,
+    });
+    // Jul 21 belongs between t2 (Jul 22) and t1 (Jul 20), and stays there.
+    expect(entries.map(feedEntryKey)).toEqual(['news:t3', 'news:t2', 'forum:fp_stale', 'news:t1']);
+  });
+
+  // The mode boundary itself: the same stale post the case above pins in place
+  // under 'latest' must still be promoted under the other two sorts. Asserting
+  // only 'latest' would let a later edit quietly drop the rule everywhere.
+  it.each<TeamNewsSort>(['popular', 'following'])('slot-2 survives under %s while latest opts out', (sort) => {
+    const sorted = sortTeamNewsClusters(CLUSTERS, sort, NO_FOLLOWS, UPVOTES);
+    const entries = mergeFeedEntries({
+      sortedClusters: sorted,
+      forumPosts: [post('fp_stale', 99, '2026-07-21')],
+      sort,
+      followedTeamUids: NO_FOLLOWS,
+      upvoteCounts: UPVOTES,
+    });
+    expect(entries[0].kind).toBe('news');
+    expect(feedEntryKey(entries[1])).toBe('forum:fp_stale');
   });
 
   it('following: posts never precede a followed cluster', () => {

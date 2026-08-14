@@ -1,0 +1,269 @@
+// Only what the production NewsCard classes don't already give. Headline,
+// summary teaser and meta line come from NewsCard.module.scss verbatim — this
+// file is the band, the one-row arrangement and the "more" link.
+@use 'styles/media';
+
+// The band holds two targets: a stretched hit area for the story, and the "+N more"
+// link riding on top of it. `position: relative` is what the stretch is measured
+// against, and `isolation` keeps the z-index local to the band.
+.strip {
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+
+  padding: 12px;
+  border-radius: 8px;
+  // The news badge's own surface (TeamUpdatesLink / TeamNewsRail newsPageBadge),
+  // so a story stays the same coloured object everywhere it appears. A neutral
+  // band would land on the role rows' #f9fafb and read as one more role — and
+  // being a different kind of thing from a role is the whole point of the band,
+  // which is also why the placement needs no divider.
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  transition: background 0.12s ease;
+
+  // Keyed to the story target, not to the band, so hovering "+N more" doesn't
+  // light the band up as though the story were what you were about to hit. The
+  // two targets overlap in space; only one of them can be armed at a time.
+  &:has(.storyTarget:hover) {
+    background: #e8edff;
+  }
+}
+
+// The story's hit area: an empty control stretched over the whole band, so the
+// band reacts as one click target without wrapping the "+N more" link inside it.
+.storyTarget {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+// Marks the band as news at a glance. Sized to the 12px meta line it leads
+// rather than the 16px box the badge uses it in.
+.icon {
+  display: flex;
+  flex-shrink: 0;
+  // No colour of its own: inherits `.line`'s meta secondary, the same tier as
+  // the separator and time it shares the row with.
+  // It was tertiary, which put the mark identifying the row *below* the
+  // incidental timestamp beside it — backwards. Not primary either: the
+  // headline is the content and this is a category marker, so matching it would
+  // set the label competing with the thing it labels.
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.metaRow {
+  // The production .meta wraps its own children; the icon just joins them.
+  align-items: center;
+}
+
+// The headline carries the hover for the whole story target — the stretched
+// control is its earlier sibling, so `~` reaches the headline from it. Hovering
+// "+N more" leaves the headline alone: that link goes somewhere else.
+.headline {
+  text-decoration: none;
+
+  .storyTarget:hover ~ & {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.moreRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+// The second target: the rest of the team's news, on the feed. Rides above the
+// stretched story hit area so it takes its own clicks.
+.more {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  // Renders as a <button> when the strip's click is taken over (`onActivate`),
+  // as an <a> otherwise. Same pixels either way.
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  // Primary brand rather than the badge's secondary #4174ff: 12px type on the
+  // tinted band needs the darker of the two to clear contrast.
+  color: var(--foreground-brand-primary, #1b4dff);
+  white-space: nowrap;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Source chip leading the row (Going's publisher-above-headline pattern).
+   Production Badge at 14px is taller than the 12px meta line it sits on, so it
+   comes down to match — the only override; colour and border stay the Badge's
+   own `default` variant. */
+.sourceChip {
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  /* Fits the longest real source in the corpus ("techcrunch.com") without
+     ellipsis — a truncated domain is worse than no domain, since half a source
+     name is exactly the part that can't be recognised. */
+  max-width: 128px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.moreArrow {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ---------- `line` detail: the same band, one row ---------- */
+
+.line {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 8px 12px;
+  // Gives .sep and .time (which carry no colour of their own) the meta grey.
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// 14px/20/500 transcribed from NewsCard.module.scss .teamName: a headline on one
+// row sits under the card's 24px team name rather than competing with it.
+.lineTitle {
+  flex: 1 1 200px;
+  min-width: 0;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  .storyTarget:hover ~ & {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.lineMeta {
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+// The separator between headline and date, off by default and switched on only
+// by `inline` below. In the banded rows the headline is `flex: 1 1 200px` and
+// grows, so the meta is pinned to the far right — a dot there sits a hand's width
+// from the thing it's meant to be separating, which reads as a stray bullet in
+// front of the date. Only `inline` puts the two side by side.
+.lineSep {
+  display: none;
+}
+
+/* ---------- `inline`: the same row, on the team's name row ---------- */
+
+// No band and no padding — it stands where the "N new updates" badge stood, and
+// a filled stripe there would cut the card header in half.
+//
+// Text flow, not a flex row: in a wrapping flex container an item wider than the
+// space left jumps to the next line rather than shrinking, which stranded the
+// icon alone on the first line every time the header got narrow. As inline
+// content the icon, headline and date wrap together like the sentence they are.
+.inline {
+  display: block;
+  width: auto;
+  padding: 0;
+  background: none;
+
+  // No band to tint, so the hover lands on the headline instead — and only when
+  // the story target is the thing under the cursor.
+  &:has(.storyTarget:hover) {
+    background: none;
+  }
+
+  .storyTarget:hover ~ .lineTitle {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .icon {
+    display: inline-flex;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+
+  .lineTitle {
+    display: inline;
+  }
+
+  .lineMeta {
+    display: inline-flex;
+    margin-left: 8px;
+  }
+
+  // Here the date really does follow the headline — inline content, wrapping with
+  // it — so the separator has two things to sit between. 8px either side (the
+  // meta's own margin, then its gap), matching the row's rhythm.
+  .lineSep {
+    display: block;
+  }
+}
+
+@include media.mobile-only {
+  // The meta takes a row of its own rather than fighting the headline over
+  // ~300px. Pushing the *headline* down instead would strand the icon alone on
+  // the first line, which is what it looked like before this rule.
+  .lineMeta {
+    flex-basis: 100%;
+  }
+
+  // Same story for `inline`: on a card this narrow the headline takes both lines
+  // and the date wraps below it, so the separator would open a line instead of
+  // sitting between two things. It only survives where the two share a line.
+  .inline .lineSep {
+    display: none;
+  }
+}

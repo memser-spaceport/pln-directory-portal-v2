@@ -7,6 +7,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 jest.unmock('@tanstack/react-query');
 
 import { useAddFeedComment } from '@/services/feed/hooks/useAddFeedComment';
+import { readCountFloors } from '@/services/feed/feedCommentCountFloor';
 import { feedQueryKeys } from '@/services/feed/constants';
 import { createFeedComment, FeedWriteError } from '@/services/feed/feed.service';
 import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
@@ -51,6 +52,7 @@ describe('useAddFeedComment', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    window.sessionStorage.clear();
     client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   });
 
@@ -146,7 +148,42 @@ describe('useAddFeedComment', () => {
     // Dropping forumTopic silently kills the "N more comments on the forum"
     // link, the escalation label's honesty about unloaded replies, and
     // useFeedForumTopicLike's view of the vote state.
-    expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.forumTopic).toEqual(forumTopic);
+    //
+    // totalReplyCount moves WITH the write: the topic really did gain a reply,
+    // and useReconcileFeedCommentCount copies this field over the count badge
+    // on every thread mount — leaving it behind would let a tab switch write
+    // the pre-comment count back over the one just posted.
+    expect(client.getQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid))?.forumTopic).toEqual({
+      ...forumTopic,
+      totalReplyCount: 41,
+    });
+  });
+
+  it('remembers the new count so a reload cannot drop it back to a stale postcount', async () => {
+    const itemUid = 'fp_7';
+    client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { [itemUid]: 3 });
+    createFeedCommentMock.mockResolvedValue(comment('c-1', itemUid, 'Hi', '2026-01-01T00:00:00.000Z'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Hi' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // The reported flow: comment, refresh, and NodeBB's listing is still
+    // serving the pre-comment count. This is what survives the reload.
+    expect(readCountFloors()).toEqual({ [itemUid]: 4 });
+  });
+
+  it('remembers nothing for a news item, whose count is already authoritative', async () => {
+    const itemUid = 'n-1';
+    createFeedCommentMock.mockResolvedValue(comment('c-1', itemUid, 'Hi', '2026-01-01T00:00:00.000Z'));
+
+    const { result } = renderHook(() => useAddFeedComment(itemUid), { wrapper });
+    act(() => result.current.mutate({ text: 'Hi' }));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(readCountFloors()).toEqual({});
   });
 
   it('nests a reply-to-a-reply under the right comment, several levels down', async () => {

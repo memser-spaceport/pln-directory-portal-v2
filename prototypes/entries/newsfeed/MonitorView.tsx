@@ -137,12 +137,10 @@ export function MonitorView({ items, subscription, onSubscribe }: MonitorViewPro
         <JobAlertShell>
           <div className={banner.body}>
             <div className={banner.copy}>
-              {/* In-app notifications, matching `SubscribeBanner` — the two doors
-                  create one Subscription, so they must promise the same thing. */}
-              <p className={banner.title}>Get notified when new items match this query.</p>
-              <p className={banner.subtitle}>
-                We&apos;ll send it to your notifications, only when there are new matches.
-              </p>
+              {/* Email, matching `SubscribeBanner` — the two doors create one
+                  Subscription, so they must promise the same thing. */}
+              <p className={banner.title}>Get an email when new items match this query.</p>
+              <p className={banner.subtitle}>We&apos;ll email you only when there are new matches.</p>
             </div>
           </div>
           <div className={banner.actions}>

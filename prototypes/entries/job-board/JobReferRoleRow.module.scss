@@ -7,3 +7,10 @@
   padding-left: 12px;
   padding-right: 12px;
 }
+
+// Sits after the role title. Never shrinks, and never pushes the title's own
+// truncation around — the title is the thing you read first.
+.matchBadge {
+  flex-shrink: 0;
+  align-self: center;
+}

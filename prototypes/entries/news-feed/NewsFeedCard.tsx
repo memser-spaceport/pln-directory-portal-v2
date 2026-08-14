@@ -25,6 +25,8 @@ const EVENT_TYPE_LABEL: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: 'Announcement',
   MILESTONE: 'Milestone',
   OTHER: 'Other',
+  HIRING: 'Hiring',
+  DEALS: 'Deals',
 };
 
 const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
@@ -34,6 +36,8 @@ const EVENT_TYPE_DOT_CLASS: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: s.dotAnnouncement,
   MILESTONE: s.dotMilestone,
   OTHER: s.dotOther,
+  HIRING: s.dotOther,
+  DEALS: s.dotOther,
 };
 
 interface Props {

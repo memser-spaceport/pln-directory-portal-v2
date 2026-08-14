@@ -2,9 +2,16 @@ import type { TeamCluster } from '@/types/team-news.types';
 
 export type TeamNewsSort = 'following' | 'latest' | 'popular';
 
+// The sort the feed opens on. Named rather than a literal in TeamNews so the default
+// sits beside the options it selects from, and so tests can assert against it instead
+// of the dropdown's label text (the trigger renders the CURRENT sort, so a hardcoded
+// label silently couples every menu-opening helper to whatever the default happens to be).
+export const DEFAULT_TEAM_NEWS_SORT: TeamNewsSort = 'latest';
+
+// Ordered default-first: the menu should read the way the control opens.
 export const SORT_OPTIONS = [
-  { value: 'following', label: 'Following' },
   { value: 'latest', label: 'Latest' },
+  { value: 'following', label: 'Following' },
   { value: 'popular', label: 'Most popular' },
 ] as const satisfies ReadonlyArray<{ value: TeamNewsSort; label: string }>;
 

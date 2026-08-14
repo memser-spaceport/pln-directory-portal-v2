@@ -2,113 +2,91 @@
 
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { flushSync } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
+
+import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 
 import {
   useTeamNewsAnalytics,
-  type TeamNewsAnalyticsSource,
   type TeamNewsCardClickVia,
+  type TeamNewsAnalyticsSource,
 } from '@/analytics/team-news.analytics';
-import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
-import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
-import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
-import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
-import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
-import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useCurrentUserStore } from '@/services/auth/store';
-import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
-import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
-import type { IFeedForumPost, IFeedForumPostLikeStatus } from '@/types/feed.types';
+import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
+import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
+import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
+import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
+import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
+import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
+import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { SortDropdown } from '@/components/common/filters/SortDropdown';
 
 import {
-  DISCUSSIONS_CAT,
-  DISCUSSIONS_CATEGORY,
   ALL_TAB,
   ALL_CAT,
   CATEGORIES,
+  DISCUSSIONS_CAT,
+  SHOW_HIRING_NEWS,
+  DISCUSSIONS_CATEGORY,
   SHOW_POPULAR_THIS_WEEK,
-  TOP_STORIES_WINDOW_LABEL,
   type TeamNewsCategoryId,
+  TOP_STORIES_WINDOW_LABEL,
 } from './constants';
+import { EVENT_TYPE_LABEL } from './utils/getEventTypeConfig';
 
-import { hasExistingDiscussion } from './utils/hasExistingDiscussion';
-
+import {
+  SORT_OPTIONS,
+  type TeamNewsSort,
+  sortTeamNewsClusters,
+  DEFAULT_TEAM_NEWS_SORT,
+} from './utils/sortTeamNewsClusters';
 import { dedupeByUid } from './utils/dedupeByUid';
+import { clusterByTeam } from './utils/clusterByTeam';
+import { getSearchInputEl } from './utils/getSearchInputEl';
+import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
-import { clusterByTeam } from './utils/clusterByTeam';
+import { isOwnForumPost } from './utils/isOwnForumPost';
+import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
+import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
+import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
-import { injectFeedSignals } from './utils/injectFeedSignals';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
+
+import {
+  useFeedModulesViewAnalytics,
+  useDelayedHideFollowedSuggestions,
+} from './components/NewsRail/useSuggestionsModule';
+import { useFeedDeals } from './hooks/useFeedDeals';
+import { useFeedSocial } from './hooks/useFeedSocial';
+import { useFeedHiring } from './hooks/useFeedHiring';
 import { useStoryReveal } from './hooks/useStoryReveal';
 import { useNewsDeepLink } from './hooks/useNewsDeepLink';
-import { useFeedSocial } from './hooks/useFeedSocial';
-import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
-import { useFeedHiring } from './hooks/useFeedHiring';
-import { useFeedDeals } from './hooks/useFeedDeals';
 import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
 
-import { NewsDetailModal } from './components/NewsDetailModal';
-import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
-
-import { NewsGroupCard } from './components/NewsGroupCard';
-import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
-import { HiringCard } from './components/HiringCard/HiringCard';
-import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
-import { ForumPostCard } from './components/ForumPostCard/ForumPostCard';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
-import {
-  useDelayedHideFollowedSuggestions,
-  useFeedModulesViewAnalytics,
-} from './components/NewsRail/useSuggestionsModule';
-import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
-import { PopularScroller } from './components/FeedScrollers/PopularScroller';
 import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
+import { NewsGroupCard } from './components/NewsGroupCard';
+import { ForumPostCard } from './components/ForumPostCard';
+import { NewsDetailModal } from './components/NewsDetailModal';
+import { HiringCard } from './components/HiringCard/HiringCard';
+import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
+import { TopStoriesBlock, type TopStorySlot } from './components/TopStories';
+import { PopularScroller } from './components/FeedScrollers/PopularScroller';
+import { DealCardCompact } from './components/DealCardCompact/DealCardCompact';
+import { FollowTeamsScroller } from './components/FeedScrollers/FollowTeamsScroller';
 
 import s from './TeamNews.module.scss';
-
-import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
-import { SORT_OPTIONS, sortTeamNewsClusters, type TeamNewsSort } from './utils/sortTeamNewsClusters';
-
-// DebouncedInput (inside SearchInput) doesn't expose its <input> via props or
-// a forwarded ref, so this is the only way to read its live (undebounced)
-// value or focus it programmatically. Centralized so there's one place — not
-// two — that assumes it renders exactly one bare <input>.
-function getSearchInputEl(container: HTMLDivElement | null): HTMLInputElement | null {
-  return container?.querySelector('input') ?? null;
-}
-
-// Shared by searchedItems' useMemo and handleSearch's synchronous result-count
-// computation, so the two never drift into different definitions of "matches".
-function matchesTeamNewsQuery(item: ITeamNewsItem, lowerCaseQuery: string): boolean {
-  if (!lowerCaseQuery) return true;
-  return (
-    item.teamName.toLowerCase().includes(lowerCaseQuery) ||
-    item.title.toLowerCase().includes(lowerCaseQuery) ||
-    (item.summary?.toLowerCase().includes(lowerCaseQuery) ?? false) ||
-    item.tags.some((t) => t.toLowerCase().includes(lowerCaseQuery))
-  );
-}
-
-// Shared by filteredItems' useMemo and handlePopularItemClick's synchronous
-// category-mismatch check, so the two never drift into different definitions
-// of "matches" — same rationale as matchesTeamNewsQuery above.
-function matchesTeamNewsCategory(item: ITeamNewsItem, categoryId: TeamNewsCategoryId): boolean {
-  if (categoryId === ALL_CAT) return true;
-  // A news item counts as a discussion when it has a forum thread of its own.
-  // Forum posts also live under this pill, but they aren't news items — see
-  // filterFeedForumPosts for that half.
-  if (categoryId === DISCUSSIONS_CAT) return hasExistingDiscussion(item.discussion);
-  return item.eventType === categoryId;
-}
 
 interface TeamNewsProps {
   groups: ITeamNewsGroup[];
@@ -139,6 +117,10 @@ export const TeamNews = ({
   const { mutate: followMutate } = useFollowTeam();
   const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
   const { mutate: postLikeMutate } = useFeedForumPostLikeToggle();
+  // One instance for the whole page: holds every rendered card's dedup/queue
+  // state, regardless of tab/category remounts below it (see the hook's own
+  // unmount-vs-page-load-scoped comments).
+  const { recordVisible } = useTeamNewsImpressions();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -208,7 +190,7 @@ export const TeamNews = ({
     () => new Map(allItems.map((i) => [i.uid, i.upvoteCount ?? 0])),
   );
 
-  const [sort, setSort] = useState<TeamNewsSort>('popular');
+  const [sort, setSort] = useState<TeamNewsSort>(DEFAULT_TEAM_NEWS_SORT);
 
   // Both are client-side and non-blocking: the feed renders without them and
   // the cards pop in, the same arrival forum posts already have. `undefined`
@@ -246,11 +228,24 @@ export const TeamNews = ({
   );
 
   const categoriesWithCounts = useMemo(() => {
-    const base = CATEGORIES.map((c) => ({ ...c, count: countForCategory(c.id) }));
+    const base = CATEGORIES.reduce<Array<{ id: TeamNewsCategoryId; label: string; count: number }>>((acc, c) => {
+      if (c.label === EVENT_TYPE_LABEL.HIRING) {
+        if (SHOW_HIRING_NEWS) {
+          acc.push({ ...c, count: countForCategory(c.id) });
+        }
+      } else {
+        acc.push({ ...c, count: countForCategory(c.id) });
+      }
+
+      return acc;
+    }, []);
+
     const discussionsCount = countForCategory(DISCUSSIONS_CAT);
 
     // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
-    if (discussionsCount === 0) return base;
+    if (discussionsCount === 0) {
+      return base;
+    }
 
     const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
     for (const c of base) {
@@ -357,11 +352,20 @@ export const TeamNews = ({
   // Both are unfiltered by tab/category/search on purpose: neither carries a
   // focus area or an event type, so every narrowed view drops them. That falls
   // out of `isNarrowedView` below rather than being re-derived per stream.
+  // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
+  // (as #2775 did) still let the entry into `entries`, where it silently ate a
+  // `pageSize` slot — a first page of six showed five — and shifted the
+  // analytics `position` of every card after it. `undefined` is the same "leave
+  // the feed alone" signal a failed request already sends.
   const entries = useMemo(
     () =>
       isNarrowedView
         ? rankedEntries
-        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+        : injectFeedSignals({
+            entries: rankedEntries,
+            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+            deals: feedDeals,
+          }),
     [rankedEntries, isNarrowedView, feedHiring, feedDeals],
   );
 
@@ -527,7 +531,10 @@ export const TeamNews = ({
   // Forum-post counterpart of handleStoryOpen (card-clicked analytics fire in
   // ForumPostCard, which knows its own position).
   const handleForumPostOpen = (post: IFeedForumPost) => {
-    if (activeNewsUid) closeNews();
+    if (activeNewsUid) {
+      closeNews();
+    }
+
     openPost(post.uid);
   };
 
@@ -699,6 +706,13 @@ export const TeamNews = ({
   // caller passes the overlay-merged post, so `viewerHasLiked` is current.
   // No signed-out branch: only access-holding (signed-in) viewers see posts.
   const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
+    // The button is already disabled for your own post, but the identity it's
+    // derived from hydrates client-side: for the first paint after a reload
+    // there is no currentUser yet and the control is briefly live. Bail rather
+    // than send a vote NodeBB will refuse ([[error:self-vote]]) and book a
+    // like-FAILED event for something that was never going to work.
+    if (isOwnForumPost(post, currentUser?.uid)) return;
+
     const wasLiked = post.viewerHasLiked;
     const nextLiked = !wasLiked;
     const prevCount = post.likeCount;
@@ -871,6 +885,7 @@ export const TeamNews = ({
                 onFollowToggle={handleFollowToggle}
                 onUpvoteToggle={handleUpvoteToggle}
                 onStoryOpen={handleTopStoryOpen}
+                onStoryVisible={recordVisible}
               />
             </div>
           )}
@@ -932,6 +947,7 @@ export const TeamNews = ({
                           autoExpandStoryUid={
                             scrollTarget?.teamUid === entry.cluster.teamUid ? scrollTarget.storyUid : undefined
                           }
+                          onStoryVisible={recordVisible}
                         />
                       );
                     case 'forum':
@@ -943,11 +959,17 @@ export const TeamNews = ({
                           // the feed.
                           post={resolvePostLike(entry.post)}
                           position={index}
+                          isOwnPost={isOwnForumPost(entry.post, currentUser?.uid)}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
+                          useLink={activeCategory === DISCUSSIONS_CAT}
                         />
                       );
                     case 'hiring':
+                      // No flag check here: with the injection gated above, a
+                      // hiring entry only exists when it is meant to be seen.
+                      // Re-checking would reintroduce the invisible-entry bug
+                      // the moment the two guards disagreed.
                       return (
                         <HiringCard
                           key={key}
@@ -1008,8 +1030,10 @@ export const TeamNews = ({
       )}
       {activeForumPost && (
         <ForumPostModal
-          post={activeForumPost}
           onClose={closePost}
+          post={activeForumPost}
+          isOwnPost={isOwnForumPost(activeForumPost, currentUser?.uid)}
+          useLink={activeCategory === DISCUSSIONS_CAT}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

@@ -41,6 +41,7 @@ const post: IFeedForumPost = {
   forumTopicUrl: '/forum/topics/5/96',
   commentCount: 2,
   likeCount: 5,
+  viewCount: 87,
   viewerHasLiked: false,
 };
 
@@ -65,6 +66,18 @@ describe('ForumPostCard', () => {
     expect(screen.getByText('Willow Is Live!')).toBeInTheDocument();
     expect(screen.getByText('Hi Protocol Labs')).toBeInTheDocument();
     expect(screen.getByText('Matt Curran')).toBeInTheDocument();
+  });
+
+  it('shows the topic’s view count, the same number the forum listing shows', () => {
+    renderCard();
+
+    expect(screen.getByText('87 Views')).toBeInTheDocument();
+  });
+
+  it('shows "0 Views" on an unread topic rather than dropping the control', () => {
+    renderCard({ post: { ...post, viewCount: 0 } });
+
+    expect(screen.getByText('0 Views')).toBeInTheDocument();
   });
 
   it('opens the detail modal on a row click, reported as a row open', () => {
@@ -117,5 +130,24 @@ describe('ForumPostCard', () => {
 
     expect(onLikeToggle).toHaveBeenCalledWith(post);
     expect(onOpenDetail).not.toHaveBeenCalled();
+  });
+
+  it('refuses a like on the viewer’s own post — NodeBB rejects a self-vote', () => {
+    const { onLikeToggle } = renderCard({ isOwnPost: true });
+
+    const like = screen.getByRole('button', { name: /Like \(5\)/ });
+    expect(like).toBeDisabled();
+    // The count still reads; only the affordance goes.
+    expect(like).toHaveTextContent('5');
+    expect(like).toHaveAccessibleName(/You can’t like your own post/);
+
+    fireEvent.click(like);
+    expect(onLikeToggle).not.toHaveBeenCalled();
+  });
+
+  it('leaves Like alone on everyone else’s posts', () => {
+    renderCard({ isOwnPost: false });
+
+    expect(screen.getByRole('button', { name: 'Like (5)' })).toBeEnabled();
   });
 });

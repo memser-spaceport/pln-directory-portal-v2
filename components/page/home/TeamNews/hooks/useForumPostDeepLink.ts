@@ -5,8 +5,9 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 import type { IFeedForumPost } from '@/types/feed.types';
 import { isForumPostUid } from '@/types/feed.types';
+import { useWriteUrl } from '@/components/page/home/TeamNews/hooks/useWriteUrl';
 
-const POST_PARAM = 'post';
+export const POST_PARAM = 'post';
 const NEWS_PARAM = 'news';
 
 /** Owns the ?post=<uid> ↔ forum-post-modal sync for the /home feed.
@@ -46,6 +47,7 @@ export function useForumPostDeepLink({
   /** Deep-link opens have no click to ride on — reported here, once. */
   onDeepLinkOpen?: (post: IFeedForumPost) => void;
 }) {
+  const writeUrlUtil = useWriteUrl();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -70,13 +72,7 @@ export function useForumPostDeepLink({
 
   const writeUrl = useCallback(
     (uid: string | null) => {
-      // Copy the LIVE params and touch only `post` — shared links carry utm_*
-      // etc. that must survive open/close.
-      const params = new URLSearchParams(window.location.search);
-      if (uid === null) params.delete(POST_PARAM);
-      else params.set(POST_PARAM, uid);
-      const qs = params.toString();
-      window.history.replaceState(null, '', `${pathname || '/home'}${qs ? `?${qs}` : ''}`);
+      writeUrlUtil(POST_PARAM, uid);
     },
     [pathname],
   );

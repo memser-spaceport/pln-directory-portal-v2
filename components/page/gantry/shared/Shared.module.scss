@@ -223,43 +223,14 @@
   flex-shrink: 0;
 }
 
-.buildButton {
+/* Wraps the trigger so it sits as one item in the header action row and so the
+   dismissal handler has an element to restore focus into. No `position` here on
+   purpose: the popover is `position: fixed` against viewport coordinates, so a
+   containing block would do nothing. */
+.buildAction {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 9px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(14, 15, 17, 0.12);
-  background: #f9fafb;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: #8897ae;
-  cursor: not-allowed;
-  margin-top: 8px;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: wait;
-  }
 }
 
 .buildButtonIcon {
   flex-shrink: 0;
-}
-
-.comingSoon {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(14, 15, 17, 0.12);
-  background: #fff;
-  padding: 2px 8px;
-  color: #8897ae;
 }

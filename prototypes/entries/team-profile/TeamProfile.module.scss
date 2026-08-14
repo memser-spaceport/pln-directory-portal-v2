@@ -739,18 +739,35 @@
 
 /* Transparent panel: just the "News" header + the homepage news cards, with no
    filled card wrapping them. */
+/* Brand-tinted panel — the same soft surface + hairline the "N new updates"
+   badge wears everywhere else in these prototypes
+   (news-shared/TeamUpdatesLink.module.scss), so news reads as one coloured
+   thread across the directory rather than a differently-styled block per page.
+   The neutral card shadow goes: a tinted surface with a coloured hairline is
+   already lifted off the grey page, and keeping both reads as two competing
+   elevation systems. */
 .newsPanel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 
-  /* Filled card, matching the team section cards. */
-  background: var(--Neutral-White, #fff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
   border-radius: 8px;
   padding: 16px;
-  box-shadow:
-    0 0 1px 0 rgba(15, 23, 42, 0.12),
-    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  /* The header sits in brand blue rather than production's #64748b grey — it
+     labels the tint. Reached by element because the title is a production
+     module class the prototype can't name. */
+  h2 {
+    color: var(--foreground-brand-secondary, #4174ff);
+  }
+
+  /* Row dividers follow the tint: production's neutral rgba(27, 56, 96, 0.12)
+     reads as a grey seam once the surface behind it turns blue. */
+  [class*='cardFlat']:not(:last-child) {
+    border-bottom-color: var(--border-brand-subtle, #aebfff);
+  }
 }
 
 /* One step down from the production 18px headline — the 340px rail reads
@@ -759,6 +776,8 @@
   font-size: 16px;
   line-height: 22px;
   letter-spacing: -0.3px;
+  /* Same easing as the member profile's update titles. */
+  transition: color 0.12s ease;
 }
 
 /* Rail teaser: JS trims it to two whole lines and appends an inline
@@ -849,6 +868,16 @@
 .newsRowTight.newsRowTight {
   gap: 8px;
   padding-bottom: 12px;
+
+  /* Every row here is a link, and production's `.cardFlat:hover` deliberately
+     resets to `color: inherit` — so the rail gave no sign the rows were
+     clickable. Same highlight the member profile's update rows use
+     (MemberProfile.module.scss .updateRow:hover .updateTitle): the headline
+     goes brand blue, nothing else moves. Doubled class + the hover chain beat
+     production's single-class .headline colour. */
+  &:hover .newsHeadline {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
 
 /* Space above the wrapped Upvote/Discuss row. `.metaLine { gap: 6px }` is a
@@ -876,14 +905,18 @@
   }
 }
 
-/* Full-feed modal — bounded height, header pinned, body scrolls. Cards keep the
-   exact same NewsCard styling as the rail. */
+/* Full-feed modal — fixed height, header pinned, body scrolls. Cards keep the
+   exact same NewsCard styling as the rail.
+   Fixed rather than max-height because this modal drills: the list and the story
+   it opens have to be the same size, or the box jumps between the two views and
+   stops reading as one surface. 680px is FeedDetailModal's own height, so a
+   story here matches a story opened from the rail or the feed. */
 .newsModal {
   display: flex;
   flex-direction: column;
   width: 920px;
   max-width: calc(100vw - 32px);
-  max-height: 80vh;
+  height: min(680px, 80vh);
   background: var(--Neutral-White, #fff);
   border-radius: 12px;
   overflow: hidden;
@@ -908,6 +941,9 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
+  /* Rows keep their own height — the modal is a fixed box now, so a search that
+     narrows to one result must not stretch that one card to fill it. */
+  align-content: start;
 
   /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
   h3 {
@@ -956,24 +992,62 @@
   background: var(--background-neutral-subtle, #f1f5f9);
 }
 
-.viewAll {
+/* The rail's two exits, side by side. Equal columns rather than content-width:
+   a 300px rail can't take two labels of different lengths without one looking
+   like an afterthought, and `minmax(0, 1fr)` lets the longer label ellipsize
+   instead of forcing the row wider than the panel. */
+.newsFooter {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+/* Shared box for both — same height, border and radius, so they read as a pair.
+   Only the label colour separates them (see .viewFeed). */
+.viewAll,
+.viewFeed {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  gap: 4px;
+  min-width: 0;
   padding: 10px 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   background: var(--Neutral-White, #fff);
-  color: var(--foreground-brand-primary, #1b4dff);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
 
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    text-decoration: none;
+  }
+}
+
+.viewAll {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The leaving half of the pair: neutral text against its blue neighbour, since
+   going to the whole feed is the rarer intent. The ↗ is the real tell — it's
+   the glyph the rest of the prototype uses for "this leaves the page". */
+.viewFeed {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
   }
 }
 
@@ -1067,6 +1141,7 @@
   padding: 16px;
   flex-shrink: 0;
 }
+
 
 /* Stacked outlined (stroked) news cards, matching the homepage mobile news
    grid (single column, 12px gap). */

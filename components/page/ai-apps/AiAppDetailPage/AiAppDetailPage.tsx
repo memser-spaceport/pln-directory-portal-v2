@@ -192,7 +192,7 @@ export function AiAppDetailPage(props: Props) {
     return <div className={s.state}>Unable to load this app. Please try again later.</div>;
   }
 
-  if (!app) {
+  if ((!isLoading && !appUrl) || !app) {
     return <div className={s.state}>App not found.</div>;
   }
 

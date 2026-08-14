@@ -1,0 +1,79 @@
+// Transcribed from the news page's own count badge (TeamNewsRail.module.scss —
+// .newsPageBadge / .newsPageBadgeText): 2px 8px, pill radius, brand hairline,
+// 14px/20 brand text. Additions here are only what a link needs that a badge
+// doesn't — an icon pair and a hover state.
+@use 'styles/media';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  // Reset for the `nested` <button> rendering; harmless on the <a>.
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+
+  padding: 2px 8px;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  border-radius: 9999px;
+
+  color: var(--foreground-brand-secondary, #4174ff);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: #e8edff;
+    color: var(--foreground-brand-primary, #1b4dff);
+    text-decoration: none;
+  }
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.text {
+  padding: 0 2px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.arrow {
+  flex-shrink: 0;
+}
+
+// Dense rows — the teams grid tags row, profile team lists — where the badge
+// sits beside 12px chips rather than a 24px team name.
+.small {
+  gap: 2px;
+  padding: 1px 6px;
+
+  .text {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .icon svg,
+  .arrow {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@include media.mobile-only {
+  // The name row wraps the badge under a two-line team name here, so it holds
+  // its own; only the type shrinks to keep it off a line of its own.
+  .text {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}

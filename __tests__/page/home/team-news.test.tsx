@@ -4,7 +4,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { TeamNews } from '@/components/page/home/TeamNews/TeamNews';
-import { SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
+import { SHOW_HIRING_NEWS, SHOW_POPULAR_THIS_WEEK } from '@/components/page/home/TeamNews/constants';
+import { DEFAULT_TEAM_NEWS_SORT, SORT_OPTIONS } from '@/components/page/home/TeamNews/utils/sortTeamNewsClusters';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { IFeedForumPost } from '@/types/feed.types';
 import type { IDeal } from '@/types/deals.types';
@@ -35,10 +36,32 @@ function catRow(): HTMLElement {
   return document.querySelector('.catRow') as HTMLElement;
 }
 
-/** Default sort is Most popular — switch to Following when a test needs followed-first order. */
+/**
+ * The sort dropdown's trigger renders the CURRENT sort, so opening the menu means
+ * clicking the default's label — `DEFAULT_TEAM_NEWS_SORT`, not a fixed string.
+ * Reading it from the constant keeps these helpers working the next time the
+ * default moves, instead of failing on a stale label.
+ */
+function openSortMenu() {
+  const currentLabel = SORT_OPTIONS.find((o) => o.value === DEFAULT_TEAM_NEWS_SORT)!.label;
+  fireEvent.click(screen.getByRole('button', { name: currentLabel }));
+}
+
+/** Default sort is Latest — switch to Following when a test needs followed-first order. */
 function selectFollowingSort() {
-  fireEvent.click(screen.getByRole('button', { name: 'Most popular' }));
+  openSortMenu();
   fireEvent.click(screen.getByRole('menuitem', { name: 'Following' }));
+}
+
+/**
+ * Switch to Most popular — required by any test asserting upvote-based ordering.
+ * Under the Latest default those assertions would still pass, but only because
+ * every `makeItem` shares one eventDate and Array.sort is stable: the order would
+ * be insertion order, proving nothing about upvote ranking.
+ */
+function selectPopularSort() {
+  openSortMenu();
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Most popular' }));
 }
 
 const mockOnTabClicked = jest.fn();
@@ -213,6 +236,17 @@ const groups: ITeamNewsGroup[] = [
 ];
 
 describe('TeamNews', () => {
+  beforeAll(() => {
+    // No global mock exists in jest.setup.js — feed/band rows now call
+    // useCardVisibilityTracking (view-impression recording).
+    class IO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
@@ -478,6 +512,7 @@ describe('TeamNews', () => {
         forumTopicUrl: '/forum/topics/5/96',
         commentCount: 2,
         likeCount: 5,
+        viewCount: 0,
         viewerHasLiked: false,
       };
 
@@ -636,6 +671,57 @@ describe('TeamNews', () => {
       const teamLinks = screen.getAllByRole('link', { name: /^(Zeta|Team )/ });
       // Zeta is followed and should render first despite being last in insertion order.
       expect(teamLinks[0]).toHaveTextContent('Zeta');
+    });
+  });
+
+  describe('default sort', () => {
+    // Distinct event dates are load-bearing here. The shared `makeItem` date makes
+    // every comparison return 0, so a stable sort reproduces insertion order and an
+    // ordering assertion would pass under EVERY sort mode — proving nothing.
+    const dated = (name: string, day: string, upvoteCount: number): ITeamNewsItem => ({
+      ...makeItem(`d-${name}`, 'FUNDING', ['AI & Robotics']),
+      teamUid: `team-${name}`,
+      teamName: name,
+      eventDate: `2026-05-${day}T12:00:00.000Z`,
+      createdAt: `2026-05-${day}T12:00:00.000Z`,
+      upvoteCount,
+    });
+
+    // Insertion order is deliberately neither date order nor upvote order, so
+    // neither assertion below can pass by accident.
+    const datedGroups: ITeamNewsGroup[] = [
+      {
+        focusArea: FA_AI,
+        total: 3,
+        items: [dated('Middle', '02', 1), dated('Oldest', '01', 9), dated('Newest', '03', 5)],
+      },
+    ];
+
+    const order = () => screen.getAllByRole('link', { name: /^(Oldest|Middle|Newest)$/ }).map((l) => l.textContent);
+
+    it('opens on Latest', () => {
+      renderTeamNews(<TeamNews groups={datedGroups} />);
+
+      expect(DEFAULT_TEAM_NEWS_SORT).toBe('latest');
+      expect(screen.getByRole('button', { name: 'Latest' })).toBeInTheDocument();
+    });
+
+    it('orders newest → oldest without the user choosing a sort', () => {
+      renderTeamNews(<TeamNews groups={datedGroups} />);
+
+      expect(order()).toEqual(['Newest', 'Middle', 'Oldest']);
+    });
+
+    it('lists Latest first in the menu, so the options read default-first', () => {
+      expect(SORT_OPTIONS.map((o) => o.value)).toEqual(['latest', 'following', 'popular']);
+    });
+
+    it('still reorders when the user switches to Most popular', () => {
+      renderTeamNews(<TeamNews groups={datedGroups} />);
+      selectPopularSort();
+
+      // Ranked 9 → 5 → 1, which is neither the date order nor the insertion order.
+      expect(order()).toEqual(['Oldest', 'Newest', 'Middle']);
     });
   });
 
@@ -1069,9 +1155,15 @@ describe('TeamNews', () => {
   });
 
   describe('upvote — session-stable ordering (frozen until reload)', () => {
-    // Default sort is 'popular', which ranks clusters by upvote count. Equal
-    // counts keep insertion order (stable sort), so upvoting Yankee (1 → 2)
-    // would rank it above Xray without the mount-time count snapshot.
+    // Every test here MUST select Most popular first — that's the only sort that
+    // ranks by upvote count, and it is no longer the default. Equal counts keep
+    // insertion order (stable sort), so upvoting Yankee (1 → 2) would rank it above
+    // Xray without the mount-time count snapshot.
+    //
+    // Skipping the switch does not turn these tests red: under the Latest default
+    // every `makeItem` shares one eventDate, so the comparator returns 0 and stable
+    // sort reproduces the same [Xray, Yankee] order for an unrelated reason. The
+    // suite would pass while asserting nothing about upvote ranking.
     const xray = {
       ...makeItem('ux-1', 'FUNDING', ['AI & Robotics']),
       teamUid: 'team-xray',
@@ -1102,6 +1194,7 @@ describe('TeamNews', () => {
 
     it('upvoting flips the button and count immediately but does not move the cluster', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectPopularSort();
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
 
       fireEvent.click(getYankeeUpvoteButton());
@@ -1117,6 +1210,7 @@ describe('TeamNews', () => {
 
     it('reverts the button (but not the order) when the mutation fails', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectPopularSort();
       fireEvent.click(getYankeeUpvoteButton());
       expect(screen.getByRole('button', { name: 'Remove like (2)' })).toBeInTheDocument();
 
@@ -1129,6 +1223,7 @@ describe('TeamNews', () => {
 
     it('reconciling with a different server count updates the button only, never the order', () => {
       renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectPopularSort();
       fireEvent.click(getYankeeUpvoteButton());
 
       // Concurrent voters: server's authoritative count differs from the optimistic +1.
@@ -1141,6 +1236,7 @@ describe('TeamNews', () => {
 
     it('a fresh mount applies the new count order (simulates page reload)', () => {
       const { unmount } = renderTeamNews(<TeamNews groups={frozenGroups} />);
+      selectPopularSort();
       fireEvent.click(getYankeeUpvoteButton());
       expect(getTeamOrder()).toEqual(['Xray', 'Yankee']);
       // rerender() would NOT reset the snapshot (state persists) — a reload is a fresh
@@ -1151,6 +1247,8 @@ describe('TeamNews', () => {
         { focusArea: FA_AI, total: 2, items: [xray, { ...yankee, upvoteCount: 2, viewerHasUpvoted: true }] },
       ];
       renderTeamNews(<TeamNews groups={reloadedGroups} />);
+      // Sort is component state, so the fresh mount is back on the default — re-select.
+      selectPopularSort();
       expect(getTeamOrder()).toEqual(['Yankee', 'Xray']);
     });
   });
@@ -1550,13 +1648,28 @@ describe('TeamNews', () => {
     const wideItems = Array.from({ length: 9 }, (_, i) => makeItem(`w-${i}`, 'FUNDING', ['AI & Robotics']));
     const wideGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: wideItems.length, items: wideItems }];
 
-    it('renders a hiring roll-up and a deal card in the stream', () => {
+    /**
+     * Hiring roll-ups sit behind `SHOW_HIRING_NEWS`, switched off in #2775 when
+     * Hiring was dropped from the feed. Deals are NOT gated — TeamNews renders
+     * `DealCardCompact` unconditionally — so only the hiring assertions are gated
+     * here. Skipping the whole describe would have retired live deal coverage
+     * along with the dead hiring coverage, which is why the mixed tests below are
+     * split by kind rather than gated wholesale.
+     */
+    const itHiring = SHOW_HIRING_NEWS ? it : it.skip;
+
+    itHiring('renders a hiring roll-up in the stream', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
       expect(screen.getByText('View all 5 open roles at Hiring acme')).toBeInTheDocument();
+    });
+
+    it('renders a deal card in the stream', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+
       expect(screen.getByRole('heading', { name: 'Vendor d1' })).toBeInTheDocument();
       expect(screen.getByText('Perk d1')).toBeInTheDocument();
     });
@@ -1571,7 +1684,21 @@ describe('TeamNews', () => {
       expect(first.textContent).not.toContain('Vendor d1');
     });
 
-    it('carries the job board attribution params on role links', () => {
+    // #2775 hid HiringCard at the render layer while injectFeedSignals kept
+    // injecting the entry, so an invisible card silently spent one of the six
+    // first-page slots (and shifted the analytics `position` of everything after
+    // it). Deliberately NOT gated on SHOW_HIRING_NEWS: a full first page is the
+    // contract under BOTH flag states — off, the entry never enters the feed;
+    // on, it enters and renders. Gating this would retire the coverage exactly
+    // when the flag makes it load-bearing.
+    it('never spends a first-page slot on a hiring roll-up it cannot show', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      renderTeamNews(<TeamNews groups={wideGroups} />); // default pageSize of 6
+
+      expect(document.querySelector('[data-news-feed-list]')!.children).toHaveLength(6);
+    });
+
+    itHiring('carries the job board attribution params on role links', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
@@ -1581,7 +1708,7 @@ describe('TeamNews', () => {
       );
     });
 
-    it('renders a role without an apply link as plain text, not a dead anchor', () => {
+    itHiring('renders a role without an apply link as plain text, not a dead anchor', () => {
       mockUseFeedHiring.mockReturnValue({
         hiring: [hiringGroup('acme', { roles: [jobRole('no-url', { applyUrl: null })] })],
       });
@@ -1591,7 +1718,7 @@ describe('TeamNews', () => {
       expect(screen.queryByRole('link', { name: 'Role no-url' })).not.toBeInTheDocument();
     });
 
-    it('renders no location rather than an empty one', () => {
+    itHiring('renders no location rather than an empty one', () => {
       mockUseFeedHiring.mockReturnValue({
         hiring: [hiringGroup('acme', { roles: [jobRole('bare', { location: [] })] })],
       });
@@ -1603,15 +1730,23 @@ describe('TeamNews', () => {
 
     // Neither kind carries a focus area or an event type, so every narrowed
     // view drops them — the same flag that hides the band.
-    it('drops both kinds on a category pill', () => {
+    itHiring('drops the hiring roll-up on a category pill', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
       expect(screen.getByText('Hiring acme is hiring')).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
 
       expect(screen.queryByText('Hiring acme is hiring')).not.toBeInTheDocument();
+    });
+
+    it('drops the deal on a category pill', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
+      expect(screen.getByRole('heading', { name: 'Vendor d1' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /^Funding\b/ }));
+
       expect(screen.queryByRole('heading', { name: 'Vendor d1' })).not.toBeInTheDocument();
     });
 
@@ -1622,9 +1757,8 @@ describe('TeamNews', () => {
       expect(document.querySelector('[data-news-feed-list]')!.children.length).toBeGreaterThan(0);
     });
 
-    it('reports role, view-all and deal clicks with their feed position', () => {
+    itHiring('reports role and view-all clicks with their feed position', () => {
       mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
-      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
       renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       fireEvent.click(screen.getByRole('link', { name: 'Role acme-r1' }));
@@ -1637,6 +1771,11 @@ describe('TeamNews', () => {
 
       fireEvent.click(screen.getByText('View all 5 open roles at Hiring acme'));
       expect(mockOnFeedHiringViewAllClicked).toHaveBeenCalled();
+    });
+
+    it('reports deal clicks with their feed position', () => {
+      mockUseFeedDeals.mockReturnValue({ deals: [feedDeal('d1')] });
+      renderTeamNews(<TeamNews groups={wideGroups} pageSize={20} />);
 
       fireEvent.click(screen.getByRole('heading', { name: 'Vendor d1' }));
       expect(mockOnFeedDealClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'd1' }), expect.any(Number));

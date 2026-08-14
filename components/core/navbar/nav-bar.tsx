@@ -23,7 +23,17 @@ import { NavLink } from './components/NavLink';
 import { NavItemWithMenu } from './components/NavItemWithMenu';
 import { MoreNavItems } from './components/navItems/MoreNavItems';
 import { PLInfraNavItems } from './components/navItems/PLInfraNavItems';
-import { AppLogo, HelpIcon, ForumIcon, EventsIcon, DemoDayIcon, DirectoryIcon, MoreIcon } from './components/icons';
+import {
+  AppLogo,
+  HelpIcon,
+  ForumIcon,
+  EventsIcon,
+  DemoDayIcon,
+  DirectoryIcon,
+  MoreIcon,
+  HomeIcon,
+} from './components/icons';
+import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
 
 import s from './NavBar.module.scss';
 
@@ -41,6 +51,7 @@ function Navbar(props: Readonly<INavbar>) {
   const authToken = props?.authToken;
   const [showNotifications, setShowNotifications] = useState(false);
   const { openModal } = useContactSupportStore((s) => s.actions);
+  const hasNewNews = useHasNewNews();
 
   const closeNavigationMenu = () => {
     setTimeout(() => {
@@ -94,6 +105,23 @@ function Navbar(props: Readonly<INavbar>) {
         <NavLink href="/home" onClick={onNavbarApplogoClicked} className={s.logoWrapper}>
           <AppLogo />
         </NavLink>
+
+        {/* The logo already links to /home, but a logo is not a nav item: it
+            carries no label, and a dot on it reads as decoration. */}
+        <NavigationMenu.Item className={s.menuItem}>
+          <NavLink className={s.Trigger} href="/home" onClick={() => onNavItemClickHandler('/home', 'Home')}>
+            <HomeIcon /> Home
+            {hasNewNews && (
+              <>
+                <span className={s.newsDot} aria-hidden />
+                {/* The dot is the whole message, so it needs to survive not
+                    being seen. Not a live region: this renders on every page,
+                    and announcing it on each navigation would be noise. */}
+                <span className={s.srOnly}>New news</span>
+              </>
+            )}
+          </NavLink>
+        </NavigationMenu.Item>
 
         <NavItemWithMenu
           icon={<DirectoryIcon />}

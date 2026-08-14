@@ -18,6 +18,7 @@ import { getNewsSourcesWithPrimaryFallback } from '../../utils/getNewsSources';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
 import { NewsShareMenu } from '../NewsShareMenu';
+import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
@@ -212,6 +213,7 @@ export function NewsDetailModal({
       <div className={s.footer}>
         <span className={s.footerActions}>
           <NewsShareMenu item={item} source="news-modal" variant="button" side="top" onOpenChange={setShareOpen} />
+          <ViewCount count={item.viewCount} exact />
           {/* Gated on hydration (like the feed rows) so a pre-hydration click on a
               deep-linked modal can't misread a signed-in viewer as a guest. */}
           {isHydrated && (

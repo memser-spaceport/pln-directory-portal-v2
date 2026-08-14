@@ -5,6 +5,8 @@ import { JobsQueryKey } from '@/services/jobs/constants';
 import { TEAM_NEWS_DEFAULT_WINDOW_DAYS } from '@/services/team-news/constants';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 
+import { SHOW_HIRING_NEWS } from '../constants';
+
 /** Groups requested. injectFeedSignals shows at most MAX_HIRING_ENTRIES of
  *  them; the surplus is headroom for the recency sort to choose from. */
 const FEED_HIRING_LIMIT = 10;
@@ -21,6 +23,11 @@ const FEED_HIRING_LIMIT = 10;
  * Client-side and non-blocking: the feed renders without it and the cards pop
  * in, the same accepted arrival forum posts already have. A failure resolves to
  * `undefined`, which injectFeedSignals reads as "leave the feed alone".
+ *
+ * Disabled while `SHOW_HIRING_NEWS` is off: with the roll-ups out of the feed
+ * there is nothing to render, so every home view was paying for a request whose
+ * response was discarded. `enabled: false` yields `undefined` data — the same
+ * shape the callers already handle.
  */
 export function useFeedHiring(): { hiring: IJobTeamGroup[] | undefined } {
   const { data } = useQuery({
@@ -32,6 +39,7 @@ export function useFeedHiring(): { hiring: IJobTeamGroup[] | undefined } {
           limit: String(FEED_HIRING_LIMIT),
         }),
       ),
+    enabled: SHOW_HIRING_NEWS,
     staleTime: 5 * 60 * 1000,
     select: (response) => response.groups,
   });

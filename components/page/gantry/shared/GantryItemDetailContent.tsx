@@ -28,6 +28,7 @@ import { GantryItemAuthor } from './GantryItemAuthor';
 import { PinNotePopover } from './PinNotePopover';
 import { BoostImpactPopover } from './BoostImpactPopover';
 import { PinSwapPicker } from './PinSwapPicker';
+import { BuildWithAgentsButton } from './BuildWithAgentsButton';
 import { ImpactDetailSection } from './ImpactDetailSection';
 import { hasImpactData } from '@/services/gantry/impact';
 import { StageSelector } from './StageSelector';
@@ -35,6 +36,20 @@ import { DeclineIdeaModal } from './DeclineIdeaModal';
 import s from '../GantryDetailPage.module.scss';
 
 const editableStages: GantryStage[] = ['IDEA', 'BACKLOG'];
+
+/**
+ * Temporarily hides the "Build with AI" action — not shipping yet.
+ *
+ * Set back to `true` to re-enable; nothing else needs changing. Gated here, at
+ * the single call site, rather than inside BuildWithAgentsButton, so the
+ * feature itself stays intact and fully covered by
+ * __tests__/page/gantry/build-with-agents-button.test.tsx while it's dark.
+ *
+ * This covers BOTH surfaces the action appears on: this component renders in
+ * the drawer AND on the /gantry/[uid] page, and "not released yet" has to mean
+ * both.
+ */
+const SHOW_BUILD_WITH_AGENTS = false;
 
 export type GantryItemDetailVariant = 'page' | 'drawer';
 
@@ -181,18 +196,28 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
         <div className={s.header}>
           <div className={s.headerTop}>
             <h1 className={clsx(s.title, variant === 'drawer' && s.drawerTitle)}>{item.title}</h1>
-            {canEdit && !isEditMode && (
+            {!isEditMode && (
               <div className={s.itemActions}>
-                <EditButton onClick={() => setIsEditMode(true)} />
-                {access.canCurate && (
-                  <HeaderActionBtn
-                    onClick={() => setIsArchiveModalOpen(true)}
-                    disabled={archiveMutation.isPending}
-                    className={s.archiveAction}
-                  >
-                    <ArchiveIcon />
-                    Archive
-                  </HeaderActionBtn>
+                {canEdit && (
+                  <>
+                    <EditButton onClick={() => setIsEditMode(true)} />
+                    {access.canCurate && (
+                      <HeaderActionBtn
+                        onClick={() => setIsArchiveModalOpen(true)}
+                        disabled={archiveMutation.isPending}
+                        className={s.archiveAction}
+                      >
+                        <ArchiveIcon />
+                        Archive
+                      </HeaderActionBtn>
+                    )}
+                  </>
+                )}
+                {/* Gates itself on agent-sessions admin — deliberately not on
+                    `canEdit`, which is stage-limited to IDEA/BACKLOG and would
+                    hide the button on exactly the items worth building. */}
+                {SHOW_BUILD_WITH_AGENTS && (
+                  <BuildWithAgentsButton uid={item.uid} title={item.title} description={item.description} />
                 )}
               </div>
             )}

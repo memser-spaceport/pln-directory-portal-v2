@@ -12,8 +12,10 @@ import { linkifyHtml, sanitizeForumPostHtml } from '@/utils/html';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useFeedForumTopicBodyHtml } from '@/services/feed/hooks/useFeedComments';
 import type { IFeedForumPost } from '@/types/feed.types';
+import { ForumPostTitle } from '@/components/page/home/TeamNews/components/ForumPostTitle';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { OWN_FORUM_POST_LIKE_REASON } from '../../utils/isOwnForumPost';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
@@ -40,8 +42,12 @@ interface ForumPostModalProps {
    *  Only viewers with forum access ever get here (TeamNews gates on live
    *  hasAccess and closes this modal on mid-session revocation). */
   post: IFeedForumPost;
+  /** Resolved by TeamNews against the signed-in member, for the same reason the
+   *  like state is: the modal must not disagree with the row behind it. */
+  isOwnPost?: boolean;
   onClose: () => void;
   onLikeToggle: (post: IFeedForumPost) => void;
+  useLink?: boolean;
 }
 
 /**
@@ -57,7 +63,9 @@ interface ForumPostModalProps {
  * whole topic anyway); until that lands, the card's plain-text teaser
  * (`post.body`) stands in via JSX interpolation.
  */
-export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalProps) {
+export function ForumPostModal(props: ForumPostModalProps) {
+  const { post, useLink, isOwnPost = false, onClose, onLikeToggle } = props;
+
   // Same share-popover layering rule as the news modal: while the popover is
   // open, the modal's Escape/backdrop closers stand down so one gesture never
   // dismisses both layers.
@@ -135,9 +143,7 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
           {formatTimeAgo(post.createdAt)}
         </div>
 
-        <h3 id={TITLE_ID} className={modalStyles.title}>
-          {post.title}
-        </h3>
+        <ForumPostTitle id={TITLE_ID} post={post} useLink={useLink} className={modalStyles.title} />
 
         {richBody ? (
           <div className={clsx(modalStyles.content, s.postBody)}>{richBody}</div>
@@ -160,7 +166,12 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
             side="top"
             onOpenChange={setShareOpen}
           />
-          <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
+          <UpvoteButton
+            count={post.likeCount}
+            voted={post.viewerHasLiked}
+            onToggle={() => onLikeToggle(post)}
+            disabledReason={isOwnPost ? OWN_FORUM_POST_LIKE_REASON : undefined}
+          />
         </span>
       </div>
     </Modal>

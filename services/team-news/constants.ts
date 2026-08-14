@@ -3,6 +3,7 @@ export enum TeamNewsQueryKeys {
   LIST = 'team-news-list',
   FILTERS = 'team-news-filters',
   BY_TEAM = 'team-news-by-team',
+  LATEST_AT = 'team-news-latest-at',
 }
 
 export const TEAM_NEWS_DEFAULT_WINDOW_DAYS = 14;

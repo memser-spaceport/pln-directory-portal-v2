@@ -21,6 +21,7 @@ import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
 
 // Import-safe production list components (they render from props — no fetching).
 import { TeamsList } from '@/components/page/member-details/TeamsDetails/components/TeamsList';
+import { MemberTeamUpdates } from './MemberTeamUpdates';
 import { ContributionsList } from '@/components/page/member-details/ContributionsDetails/components/ContributionsList';
 import { ExperiencesList } from '@/components/page/member-details/ExperienceDetails/components/ExperienceDetailsView/components/ExperiencesList';
 import { ProfileSocialLink } from '@/components/page/member-details/profile-social-link';
@@ -126,6 +127,11 @@ export default function MemberProfilePrototype() {
               <OfficeHoursCard />
               <ContactCard />
               <TeamsCard />
+              {/* Below tablet-landscape the rail is hidden, so the updates card
+                  falls in here — directly under the teams it describes. */}
+              <div className={s.updatesMobile}>
+                <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
+              </div>
               <ExperienceCard />
               <ContributionsCard />
               <RepositoriesCard />
@@ -139,6 +145,7 @@ export default function MemberProfilePrototype() {
             </div>
             <div className={s.rail}>
               <AffinityCard relationship={scenario.relationship} empty={scenario.empty} accent={cardAccent} />
+              <MemberTeamUpdates teams={MOCK_MEMBER.teams} />
               <BookWithOtherCard />
             </div>
           </div>
@@ -293,6 +300,9 @@ function TeamsCard() {
   return (
     <DetailsSection>
       <DetailsSectionHeader title={`Teams (${MOCK_MEMBER.teams.length})`} />
+      {/* Production's list, unmodified: the per-row "N updates" badge came out
+          when the rail card arrived — one page saying the same thing twice, and
+          the card says it better (headlines, not a counter). */}
       <TeamsList member={member} userInfo={userInfo} isEditable={false} onEdit={() => {}} />
     </DetailsSection>
   );

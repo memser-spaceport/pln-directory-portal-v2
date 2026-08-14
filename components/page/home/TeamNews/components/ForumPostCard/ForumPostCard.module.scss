@@ -66,10 +66,6 @@
   }
 }
 
-.title {
-  transition: color 0.12s ease;
-}
-
 .summary {
   margin: 0;
   font-size: 14px;
@@ -115,8 +111,15 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Wraps because this row carries four controls (share, views, like, comments)
+   and the widest of them — "12 Comments", "1.2k Views" — are text, not icons.
+   On a narrow phone the row is close enough to the card's inner width that a
+   long comment count would push past it; without wrap an inline-flex row
+   overflows rather than reflowing. The news card's .actions doesn't need this:
+   it sits in a row that can shrink around it. */
 .footerActions {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
 }

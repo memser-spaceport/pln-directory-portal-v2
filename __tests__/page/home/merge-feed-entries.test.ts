@@ -98,7 +98,7 @@ describe('mergeFeedEntries', () => {
     },
   );
 
-  it('slot-2 rule (popular/following only): first news stays first, best forum post lands second', () => {
+  it('slot-2 rule (popular only): first news stays first, best forum post lands second', () => {
     const sorted = sortTeamNewsClusters(CLUSTERS, 'popular', NO_FOLLOWS, UPVOTES);
     const entries = mergeFeedEntries({
       sortedClusters: sorted,

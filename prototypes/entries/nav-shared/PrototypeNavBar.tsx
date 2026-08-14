@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import { NavigationMenu } from '@base-ui-components/react';
 
@@ -30,6 +30,7 @@ import local from './PrototypeNav.module.scss';
 
 import { HomeIcon, BellIcon, SearchGlyph } from './icons';
 import { LOGO_LABEL, scrollToTop } from './home';
+import { PrototypeSearchModal } from './PrototypeSearchModal';
 
 /**
  * Copy of the production `Navbar` (components/core/navbar/nav-bar.tsx) with the
@@ -54,8 +55,10 @@ import { LOGO_LABEL, scrollToTop } from './home';
  * Deliberately simplified — the real navbar reads the auth store, RBAC access
  * hooks and the notifications query to decide what to render; none of that
  * changes what this prototype is asking about, so the right-hand cluster
- * (search, bell, account) is static and the Demo Day / More items render their
- * un-gated variants. Everything on the left is the real component (
+ * (bell, account) is static and the Demo Day / More items render their
+ * un-gated variants. Search is the exception, and only where an entry asks for
+ * it: `searchable` makes the glyph open `PrototypeSearchModal`, which runs the
+ * real global search. Everything on the left is the real component (
  * `NavItemWithMenu`) with the real link constants, so the new item is judged
  * next to its actual neighbours rather than approximations.
  */
@@ -79,6 +82,12 @@ interface PrototypeNavBarProps {
   isLoggedIn?: boolean;
   /** What Sign up / Sign in do while `isLoggedIn` is false. */
   onSignIn?: () => void;
+  /**
+   * Turns the header search glyph into a real trigger for `PrototypeSearchModal`.
+   * Off by default — every other entry sharing this header keeps the inert
+   * stand-in it has today, so opting in is the new behaviour, not the norm.
+   */
+  searchable?: boolean;
 }
 
 export function PrototypeNavBar({
@@ -89,7 +98,9 @@ export function PrototypeNavBar({
   onHomeReselect,
   isLoggedIn = true,
   onSignIn,
+  searchable = false,
 }: PrototypeNavBarProps) {
+  const [searchOpen, setSearchOpen] = useState(false);
   const label = hasUnreadNews ? 'Home, new items since your last visit' : 'Home';
   const inner = (
     <>
@@ -193,9 +204,24 @@ export function PrototypeNavBar({
           />
 
           <div className={s.right}>
-            <span className={local.navIconButton} aria-hidden="true">
-              <SearchGlyph />
-            </span>
+            {/* The one item in this cluster that does something. Production wires
+                it to `ApplicationSearch` — an inline field in this row that grows
+                a dropdown, then promotes itself to an overlay on Enter. Here the
+                icon opens that overlay directly; see PrototypeSearchModal. */}
+            {searchable ? (
+              <button
+                type="button"
+                className={local.navIconTrigger}
+                onClick={() => setSearchOpen(true)}
+                aria-label="Search"
+              >
+                <SearchGlyph />
+              </button>
+            ) : (
+              <span className={local.navIconButton} aria-hidden="true">
+                <SearchGlyph />
+              </span>
+            )}
             <div className={s.supportButton}>
               <HelpIcon />
             </div>
@@ -227,6 +253,8 @@ export function PrototypeNavBar({
           </div>
         </NavigationMenu.List>
       </NavigationMenu.Root>
+
+      {searchable && <PrototypeSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />}
     </header>
   );
 }

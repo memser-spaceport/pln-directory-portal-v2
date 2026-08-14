@@ -75,12 +75,20 @@
  *  to get something from them, and the link leaves for an external ATS anyway.
  * SHARED (prototypes/entries/nav-shared/, no registry entry — like follow-shared/):
  *  - PrototypeNavBar + PrototypeMobileNav   copies of the production navbar / bottom bar carrying the
- *                                            proposed **News** item (first in the list) with an unread
- *                                            dot. Hides the inherited real header while loaded.
- *                                            Shared with the newsfeed-discovery entry, where the item
- *                                            is argued in full.
+ *                                            proposed **Home** item with an unread dot — first in the
+ *                                            desktop row, centre slot of the five-item mobile bar
+ *                                            (Directory · Events · Home · Demo Day · More, with PL
+ *                                            Infra displacing Events for viewers who have it). Hides
+ *                                            the inherited real header while loaded. Shared with the
+ *                                            newsfeed-discovery entry, where the item is argued in full.
  * SHARED (prototypes/entries/news-shared/, no registry entry — like follow-shared/):
- *  - TeamUpdateStrip + mockTeamNews         the team's latest story told rather than counted —
+ *  - TeamUpdatesLink      (default)         the card's news signal: "N new posts" on the name row,
+ *                                            linking to the team's stories in the feed. Same badge
+ *                                            the teams grid and member profile wear, in the feed's
+ *                                            own noun — a door has to name what's behind it, and
+ *                                            what's behind it is posts, not the board's job posts.
+ *  - TeamUpdateStrip + mockTeamNews         the alternative kept on the version switch: the team's
+ *                                            latest story told rather than counted —
  *                                            headline, two-line summary and the production NewsCard
  *                                            meta line, with "+N more updates" carrying the count
  *                                            the old badge showed. The story's age picks the
@@ -88,8 +96,7 @@
  *                                            opens the feed's own FeedDetailModal in place. Never
  *                                            `?team=` — scoping the feed answers a question nobody
  *                                            clicking one headline asked, and leaves a filter to
- *                                            undo. (TeamUpdatesLink, the "N new updates" badge, is
- *                                            still what the teams grid and member-profile wear.)
+ *                                            undo.
  *  - RecipientPicker      (new)             one "type a name or email" field: hiring team grouped
  *                                            first with role lines, external addresses added from
  *                                            the same menu. react-select Creatable wearing
@@ -153,18 +160,29 @@ import s from './JobBoardPrototype.module.scss';
  * don't exist.
  */
 const NEWS_OPTIONS: Array<{ value: JobCardNewsVariant; label: string }> = [
+  { value: 'count', label: 'N new posts' },
   { value: 'inline', label: 'Next to the name' },
   { value: 'line', label: 'Below the roles' },
   { value: 'full', label: 'Below, with description' },
-  { value: 'count', label: 'N updates' },
 ];
 
 const NEWS_NOTE: Record<JobCardNewsVariant, string> = {
-  inline: 'The headline stands where the "N new updates" badge did — no description on a name row.',
+  count:
+    'The default: the teams grid’s own chip on the name row — unread dot, neutral grey, the feed’s noun — linking to the team’s stories there. Says how much is waiting, not what it is.',
+  inline: 'The headline stands where the badge does — no description on a name row.',
   line: 'A band after the roles: the latest headline and when it landed.',
   full: 'The same band, plus event type · source · date and the summary clamped to two lines.',
-  count: 'The badge the others replaced, for comparison: a count, on the name row, saying nothing about what happened.',
 };
+
+/**
+ * Which viewer the mobile bottom bar is drawn for. Named after what the person
+ * has, not after the slot that moves — "PL Infra viewer" is a fact about the
+ * account; which of Events or PL Infra ends up in slot two is the consequence.
+ */
+const PL_INFRA_OPTIONS: Array<{ value: boolean; label: string }> = [
+  { value: false, label: 'Standard viewer' },
+  { value: true, label: 'PL Infra viewer' },
+];
 
 function decodeMulti(raw: string | null): string[] {
   if (!raw) return [];
@@ -178,9 +196,9 @@ function decodeMulti(raw: string | null): string[] {
  *  `filterStateToURLSearchParams` writes, so the replayed rail is byte-identical
  *  to one the person had narrowed by hand. */
 function encodeMulti(values: string[]): string {
-  return values.map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED)).join(
-    URL_QUERY_VALUE_SEPARATOR,
-  );
+  return values
+    .map((v) => v.replaceAll(FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED))
+    .join(URL_QUERY_VALUE_SEPARATOR);
 }
 
 const CRITERIA_KEYS = ['roleCategory', 'seniority', 'workplaceType', 'location'] as const;
@@ -266,7 +284,12 @@ export default function JobBoardPrototype() {
 
   // Prototype chrome, ephemeral like every other version switch here — not in the
   // URL, which belongs to the filters.
-  const [newsVariant, setNewsVariant] = useState<JobCardNewsVariant>('inline');
+  const [newsVariant, setNewsVariant] = useState<JobCardNewsVariant>('count');
+
+  /* Whether the viewer is one production would resolve PL Infra links for. Only
+     the mobile bar changes shape on it — that's the bar with a fixed number of
+     slots, so it's the only place the extra item has to displace something. */
+  const [plInfra, setPlInfra] = useState(false);
 
   // Who's looking, and what they've told the board. Prototype scaffolding stands
   // in for the cookie read; everything downstream is the real decision.
@@ -302,7 +325,9 @@ export default function JobBoardPrototype() {
     [params],
   );
 
-  const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
+  /** The rail + search result set: everything the filters and the search box
+   *  leave standing, before the sort orders it. */
+  const railGroups = useMemo<IJobTeamGroup[]>(() => {
     const q = (params.get('q') || '').trim().toLowerCase();
 
     const groups: IJobTeamGroup[] = [];
@@ -317,6 +342,12 @@ export default function JobBoardPrototype() {
       });
       if (roles.length) groups.push({ team: group.team, roles, totalRoles: roles.length });
     }
+    return groups;
+  }, [params, criteria]);
+
+  const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
+    // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
+    const groups: IJobTeamGroup[] = [...railGroups];
 
     if (matchMode) {
       /* Groups lead with their best match. The board is grouped by team, so
@@ -336,8 +367,7 @@ export default function JobBoardPrototype() {
       groups.sort((a, b) => newest(b) - newest(a));
     }
     return groups;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, criteria, sort, matchMode, preferences]);
+  }, [railGroups, sort, matchMode, preferences]);
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
@@ -462,6 +492,15 @@ export default function JobBoardPrototype() {
     setPromptOpen(true);
   };
 
+  /* PL Infra is a signed-in-only slot, so choosing that viewer has to sign the
+     page in — otherwise the switch looks broken from the default logged-out
+     state, which is the state a reviewer opens the board in. Turning it back off
+     leaves the session alone: signing out isn't what "standard viewer" means. */
+  const onSelectMobileBar = (next: boolean) => {
+    setPlInfra(next);
+    if (next && !isLoggedIn) setViewer('no-preferences');
+  };
+
   const onSelectViewer = (next: ViewerId) => {
     setViewer(next);
     setPreferences(next === 'preferences-set' ? SAVED_PREFERENCES : EMPTY_PREFERENCES);
@@ -491,10 +530,17 @@ export default function JobBoardPrototype() {
         newsHref="/prototypes/newsfeed"
         isLoggedIn={isLoggedIn}
         onSignIn={onSignIn}
+        searchable
       />
       {/* No auth prop: the mobile bottom bar carries no account cluster in
-          production either, so there is nothing for it to switch. */}
-      <PrototypeMobileNav hasUnreadNews={hasNewsUpdates} newsHref="/prototypes/newsfeed" active={false} />
+          production either, so there is nothing for it to switch. PL Infra is
+          the exception — it's signed-in-only, so the slot follows the viewer. */}
+      <PrototypeMobileNav
+        hasUnreadNews={hasNewsUpdates}
+        newsHref="/prototypes/newsfeed"
+        active={false}
+        plInfra={isLoggedIn && plInfra}
+      />
     </>
   );
 
@@ -591,6 +637,32 @@ export default function JobBoardPrototype() {
             ))}
           </div>
           <span className={v0.switchNote}>{NEWS_NOTE[newsVariant]}</span>
+        </div>
+
+        {/* Prototype-only: the mobile bar's fifth slot. Nothing above 1024px
+            shows it, so it's worth saying what it does rather than leaving the
+            switch looking broken on a desktop review. */}
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Mobile bar</span>
+          <div className={v0.switch} role="tablist" aria-label="Mobile bottom bar variant">
+            {PL_INFRA_OPTIONS.map((opt) => (
+              <button
+                key={String(opt.value)}
+                type="button"
+                role="tab"
+                aria-selected={plInfra === opt.value}
+                className={`${v0.switchBtn} ${plInfra === opt.value ? v0.switchBtnActive : ''}`}
+                onClick={() => onSelectMobileBar(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <span className={v0.switchNote}>
+            Visible under 1024px. Home holds the centre slot in both orders — Directory · Events · Home · Demo Day ·
+            More, or Directory · PL Infra · Home · Demo Day · More, with Events demoted into More. Picking the PL Infra
+            viewer signs the page in, because nobody resolves PL Infra logged out.
+          </span>
         </div>
 
         {/* Prototype-only, and the only way to review a 20-second timer without

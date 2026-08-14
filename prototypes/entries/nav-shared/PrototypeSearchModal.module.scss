@@ -1,0 +1,124 @@
+// Chrome for the header search dialog. Doubled-class selectors on .overlay /
+// .container because `Modal` merges its own classes first (clsx(s.overlay, ...)),
+// so a single class loses the specificity tie.
+
+@use 'styles/media';
+
+.overlay.overlay {
+  /* Starts below the header, like production's own search overlay
+     (`AppSearchDesktop.module.scss` .modal). The icon you just pressed stays lit
+     and unshaded — shading the control that opened the dialog makes the dialog
+     look like it came from nowhere. */
+  top: var(--app-header-height);
+  align-items: flex-start;
+  padding: 24px 12px;
+
+  /* The grey shading. `--transparent-dark-50` is the design system's own modal
+     scrim (tokens/colors.scss: #0e0f1180). Modal's default is a 6% tint carried
+     by a 15px blur — dropped here, because a blur behind a results list makes
+     the page underneath look broken rather than backgrounded. */
+  background: var(--transparent-dark-50, rgba(14, 15, 17, 0.5));
+  backdrop-filter: none;
+}
+
+.container.container {
+  max-width: 720px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* Height follows the content — a fixed-height sheet opens onto 600px of empty
+     white before you've typed anything, which reads as a page that failed to
+     load rather than as a field waiting for you. It grows with results and stops
+     short of the viewport, and the body scrolls from there. */
+  max-height: min(640px, calc(100dvh - var(--app-header-height) - 48px));
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.16),
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+}
+
+/* Input and close side by side rather than production's absolutely-positioned
+   close button: one column is narrow enough that an overlaid × sits on top of
+   the field's own clear ×. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.idle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Says what the field reaches. The modal opens empty, and an empty dialog that
+   names its scope reads as ready rather than as not-loaded-yet. */
+.hint {
+  margin: 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Full-bleed on phones: the header cluster is visible at every width (only the
+   nav items hide below tablet-landscape), so the icon is reachable here too, and
+   a 640px-tall card floating in a 12px gutter is a worse phone dialog than a
+   takeover. Same move as newsfeed-v0's FeedDetailModal. */
+@include media.mobile-only {
+  .overlay.overlay {
+    top: 0;
+    padding: 0;
+  }
+
+  .container.container {
+    max-width: none;
+    height: 100%;
+  }
+
+  /* The one place the sheet is fixed-height: a takeover that shrink-wraps its
+     content is a card floating on a white screen. */
+  .card {
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+}

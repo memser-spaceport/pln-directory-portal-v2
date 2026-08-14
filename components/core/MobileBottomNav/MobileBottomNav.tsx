@@ -12,7 +12,8 @@ import {
   DEMO_DAY_ANALYTICS_LINK,
   FORUM_LINK,
 } from '@/components/core/navbar/constants/navLinks';
-import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
+import { HomeIcon, MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
+import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
@@ -34,8 +35,17 @@ export function MobileBottomNav() {
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const baseMoreItems = useMoreNavItems();
-  const moreItems = useMemo(() => [FORUM_LINK, ...baseMoreItems], [baseMoreItems]);
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
+  const hasNewNews = useHasNewNews();
+
+  // Five slots, and PL Infra members need one of them for PL Infra — so Events
+  // gives up the bar for them and moves into More. Everyone else keeps Events
+  // where it is. EVENT_LINKS spreads flat because More is a flat list.
+  const hasPlInfra = plInfraItems.length > 0;
+  const moreItems = useMemo(
+    () => (hasPlInfra ? [FORUM_LINK, ...EVENT_LINKS, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems]),
+    [hasPlInfra, baseMoreItems],
+  );
 
   if (isBareRoute(pathname)) return null;
 
@@ -49,7 +59,32 @@ export function MobileBottomNav() {
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
           <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
-          <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+
+          {/* Slot 2 belongs to PL Infra for the members who have it, Events for
+              everyone else. `plInfraItems` comes from async permissions, so this
+              renders Events first and swaps once they resolve — a swap, not a
+              gap, which is why the slot is never left empty. */}
+          {hasPlInfra ? (
+            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
+          ) : (
+            <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+          )}
+
+          <NavigationMenu.Item>
+            <Link
+              href="/home"
+              className={clsx(s.item, {
+                [s.itemActive]: pathname.startsWith('/home'),
+              })}
+            >
+              <span className={s.iconWithDot}>
+                <HomeIcon />
+                {hasNewNews && <span className={s.newsDot} aria-hidden />}
+              </span>
+              <span>Home</span>
+              {hasNewNews && <span className={s.srOnly}>New news</span>}
+            </Link>
+          </NavigationMenu.Item>
 
           {hasDemoDayAnalyticsAccess ? (
             <MobileNavItemWithMenu
@@ -72,9 +107,6 @@ export function MobileBottomNav() {
           )}
 
           {moreItems.length > 0 && <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />}
-          {plInfraItems.length > 0 && (
-            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
-          )}
         </NavigationMenu.List>
       </NavigationMenu.Root>
     </div>

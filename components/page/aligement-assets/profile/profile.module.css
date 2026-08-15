@@ -8,8 +8,10 @@
   width: 100%;
   max-width: 480px;
   background: #ffffff;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  border-radius: 20px;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
   padding: 40px 32px;
   text-align: center;
   display: flex;
@@ -21,7 +23,7 @@
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: #e5edff;
+  background: #e8edff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -31,14 +33,14 @@
   margin-top: 18px;
   font-weight: 600;
   font-size: 18px;
-  color: #0f172a;
+  color: #0a0c11;
 }
 
 .notOnboardedDesc {
   margin-top: 8px;
   font-size: 14px;
   line-height: 20px;
-  color: #475569;
+  color: #455468;
   max-width: 360px;
 }
 
@@ -47,8 +49,8 @@
   height: 40px;
   padding: 0 20px;
   border: none;
-  border-radius: 8px;
-  background: #156ff7;
+  border-radius: 10px;
+  background: #1b4dff;
   color: #ffffff;
   font-weight: 500;
   font-size: 14px;
@@ -56,13 +58,13 @@
 }
 
 .notOnboardedBtn:hover {
-  background: #1259c7;
+  background: #0f3cd9;
 }
 
 .notOnboardedNote {
   margin-top: 14px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #8897ae;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -73,8 +75,8 @@
   gap: 4px;
   padding: 4px;
   background: #ffffff;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
+  border-radius: 10px;
   width: max-content;
   margin-bottom: 20px;
 }
@@ -87,12 +89,12 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #475569;
+  color: #455468;
   cursor: pointer;
 }
 
 .tabActive {
-  background: rgba(21, 111, 247, 0.1);
-  color: #156ff7;
+  background: rgba(27, 77, 255, 0.1);
+  color: #1b4dff;
   font-weight: 600;
 }

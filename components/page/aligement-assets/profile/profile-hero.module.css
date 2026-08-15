@@ -1,7 +1,9 @@
 .hero {
   background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
   padding: 24px;
   display: flex;
   gap: 20px;
@@ -13,7 +15,7 @@
   width: 72px;
   height: 72px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #7fb3ff, #156ff7);
+  background: linear-gradient(135deg, #4a72ff, #0f3cd9);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -22,7 +24,7 @@
   font-weight: 600;
   flex: none;
   overflow: hidden;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
 }
 
 .avatarImg {
@@ -44,20 +46,21 @@
 }
 
 .name {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #0f172a;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.012em;
+  color: #0a0c11;
 }
 
 .verifiedIcon {
-  color: #156ff7;
+  color: #1b4dff;
   flex: none;
 }
 
 .memberSince {
   font-size: 14px;
-  color: #475569;
+  color: #455468;
   margin-top: 2px;
 }
 
@@ -80,13 +83,13 @@
 }
 
 .onboardedPill {
-  color: #0a9952;
+  color: #048746;
   background: rgba(10, 153, 82, 0.1);
 }
 
 .infraPill {
-  color: #156ff7;
-  background: rgba(21, 111, 247, 0.1);
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.1);
 }
 
 .balanceSection {
@@ -94,7 +97,7 @@
   flex: none;
   padding-left: 22px;
   margin-left: 4px;
-  border-left: 1px solid #e2e8f0;
+  border-left: 1px solid rgba(27, 56, 96, 0.12);
   gap: 22px;
   align-items: flex-start;
   position: relative;
@@ -108,16 +111,16 @@
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #156ff7;
+  color: #1b4dff;
 }
 
 .statValue.points {
-  color: #4f9eff;
+  color: #4a72ff;
 }
 
 .statLabel {
   font-size: 12px;
-  color: #94a3b8;
+  color: #8897ae;
   margin-top: 7px;
 }
 
@@ -126,7 +129,7 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #0a9952;
+  color: #048746;
   margin-top: 6px;
 }
 
@@ -142,42 +145,74 @@
 }
 
 .caret {
-  color: #94a3b8;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 7px;
   display: inline-flex;
-  margin-top: 8px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
   position: relative;
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
+  transition:
+    background 120ms cubic-bezier(0.2, 0, 0.13, 1),
+    color 120ms cubic-bezier(0.2, 0, 0.13, 1);
 }
 
-/* Anchored to .caret (fixed 11px width) rather than the whole button, so the
-   arrow's offset from the bubble's right edge (5.5px = half the caret's width)
-   lines up with the caret's center exactly, by construction. */
+.caretExpanded {
+  color: #ffffff;
+  background: #1b4dff;
+}
+
+/* Right edge pinned to .caret's right edge so the bubble grows leftward —
+   .caret sits near the hero card's right edge, so centering the bubble would
+   push half of it past the clipped edge. The triangle (::after) is offset by
+   half of .caret's width (10px) from that same right edge, so it still
+   points at the caret's center regardless of how wide the bubble grows. */
 .tipBubble {
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 8px);
   right: 0;
-  margin-bottom: 10px;
   width: max-content;
   max-width: 240px;
   white-space: nowrap;
-  background: #156ff7;
+  background: #1b4dff;
   color: #ffffff;
   font-size: 12px;
-  line-height: 1.4;
-  padding: 8px 10px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+  padding: 6px 10px;
   border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+  box-shadow:
+    0 4px 6px -2px rgba(15, 23, 42, 0.04),
+    0 12px 16px -4px rgba(15, 23, 42, 0.1);
   z-index: 10;
   pointer-events: none;
   text-align: center;
+  animation: profileHeroTipIn 120ms cubic-bezier(0.2, 0, 0.13, 1) both;
 }
 
 .tipBubble::after {
   content: '';
   position: absolute;
   top: 100%;
-  right: 6px;
+  right: 10px;
   border: 5px solid transparent;
-  border-top-color: #156ff7;
+  border-top-color: #1b4dff;
+}
+
+@keyframes profileHeroTipIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .breakdown {
@@ -187,19 +222,19 @@
   row-gap: 6px;
   align-items: baseline;
   padding-left: 16px;
-  border-left: 1px solid #f1f5f9;
+  border-left: 1px solid rgba(27, 56, 96, 0.06);
   white-space: nowrap;
 }
 
 .breakdownLabel {
   font-size: 12px;
-  color: #94a3b8;
+  color: #8897ae;
 }
 
 .breakdownValue {
   font-size: 12px;
   font-weight: 600;
-  color: #156ff7;
+  color: #1b4dff;
   text-align: right;
 }
 
@@ -214,7 +249,7 @@
     padding-left: 0;
     margin-left: 0;
     padding-top: 16px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid rgba(27, 56, 96, 0.12);
     width: 100%;
     justify-content: space-between;
   }

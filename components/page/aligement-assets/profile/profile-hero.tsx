@@ -45,9 +45,7 @@ export default function ProfileHero({ identity, balance, pointsThisSnapshot }: P
             />
           </svg>
         </div>
-        <div className={styles.memberSince}>
-          Member since {identity.memberSince}, {identity.country}
-        </div>
+        <div className={styles.memberSince}>Member since {identity.memberSince}</div>
         <div className={styles.pills}>
           {identity.isOnboarded && (
             <span className={styles.onboardedPill}>
@@ -108,7 +106,7 @@ export default function ProfileHero({ identity, balance, pointsThisSnapshot }: P
               Confirmed by Surus
             </div>
           </div>
-          <span className={styles.caret}>
+          <span className={`${styles.caret} ${expanded ? styles.caretExpanded : ''}`}>
             {hovering && <span className={styles.tipBubble}>{balanceSourcesLabel(expanded)}</span>}
             <ChevronIcon expanded={expanded} direction="horizontal" />
           </span>

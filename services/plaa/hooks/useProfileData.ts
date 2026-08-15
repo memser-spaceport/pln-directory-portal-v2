@@ -38,7 +38,6 @@ export interface ProfileIdentity {
   initials: string;
   avatarUrl?: string;
   memberSince: string;
-  country: string;
   isOnboarded: boolean;
   isInfraMember: boolean;
 }
@@ -80,9 +79,16 @@ function initialsFrom(name: string): string {
  *     override never applies in a production build.
  *   - pointsThisSnapshot: already real via useCurrentSnapshotStatus(), which itself has
  *     its own TODO for connecting to useSnapshotPoints().
- * Everything else (member-since date, country, infra-member flag, PLAA balance
- * breakdown, snapshotHistory, contributionHistory) needs new backend endpoints —
- * there's no existing per-user PLAA ledger to derive them from.
+ *   - identity.isInfraMember: reuse `currentUser.rbac.policies` checked for
+ *     `code === 'pl_infra_team_pl_internal'` — the same PL Infra team check
+ *     `detectUserGroup()` already does in
+ *     `components/page/home/QuickActions/utils/detectUserGroup.ts`. That's team
+ *     membership, not a PLAA-specific "infra rewards eligible" flag, so confirm
+ *     with backend/design that the two are meant to be the same thing before
+ *     wiring it — there's no dedicated field for the latter today.
+ * Everything else (member-since date, PLAA balance breakdown, snapshotHistory,
+ * contributionHistory) needs new backend endpoints — there's no existing
+ * per-user PLAA ledger to derive them from.
  */
 const MOCK_SNAPSHOT_HISTORY: SnapshotHistoryEntry[] = [
   {
@@ -171,10 +177,12 @@ export function useProfileData(): ProfileData {
       initials: initialsFrom(name),
       avatarUrl: currentUser?.profileImageUrl,
       memberSince: 'January 2025',
-      country: 'USA',
       // DEMO: shows the full onboarded profile locally without requiring login.
       // IS_DEV is always false in a production build, so this never applies there.
       isOnboarded: Boolean(currentUser) || IS_DEV,
+      // TODO(backend): reuse currentUser.rbac.policies (code === 'pl_infra_team_pl_internal'),
+      // the same PL Infra team check detectUserGroup() does — see module doc comment above —
+      // instead of this hardcoded mock. Do not introduce a separate PLAA-specific infra flag.
       isInfraMember: true,
     },
     balance: {

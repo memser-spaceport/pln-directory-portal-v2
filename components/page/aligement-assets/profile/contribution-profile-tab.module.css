@@ -1,7 +1,9 @@
 .card {
   background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 56, 96, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.06);
   padding: 24px;
 }
 
@@ -14,14 +16,16 @@
 }
 
 .chartTitle {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  color: #0f172a;
+  line-height: 26px;
+  color: #0a0c11;
 }
 
 .chartSubtitle {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 14px;
+  line-height: 20px;
+  color: #8897ae;
   margin-top: 4px;
 }
 
@@ -36,21 +40,21 @@
   align-items: center;
   gap: 7px;
   font-size: 12px;
-  color: #475569;
+  color: #455468;
 }
 
 .legendSwatchBar {
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: rgba(21, 111, 247, 0.22);
+  background: rgba(27, 77, 255, 0.22);
 }
 
 .legendSwatchLine {
   width: 16px;
   height: 3px;
   border-radius: 2px;
-  background: #156ff7;
+  background: #1b4dff;
 }
 
 .chart {
@@ -72,35 +76,37 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
+  color: #8897ae;
 }
 
 .axisLabel.brand {
-  color: #156ff7;
+  color: #1b4dff;
 }
 
 .divider {
   height: 1px;
-  background: #f1f5f9;
+  background: rgba(27, 56, 96, 0.06);
   margin: 20px 0 18px;
 }
 
 .historyTitle {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #0f172a;
+  line-height: 24px;
+  color: #0a0c11;
   margin-bottom: 4px;
 }
 
 .historySubtitle {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 14px;
+  line-height: 20px;
+  color: #8897ae;
   margin-bottom: 12px;
 }
 
 .tableWrap {
-  border-radius: 14px;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(27, 56, 96, 0.12);
   overflow: hidden;
 }
 
@@ -109,7 +115,7 @@
   grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
   gap: 10px;
   padding: 9px 16px 0;
-  background: #f8fafc;
+  background: #f9fafb;
 }
 
 .bracketLabel {
@@ -118,7 +124,7 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  color: #156ff7;
+  color: #1b4dff;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -127,9 +133,9 @@
 .bracketLine {
   width: 100%;
   height: 5px;
-  border-top: 1px solid rgba(21, 111, 247, 0.32);
-  border-left: 1px solid rgba(21, 111, 247, 0.32);
-  border-right: 1px solid rgba(21, 111, 247, 0.32);
+  border-top: 1px solid rgba(27, 77, 255, 0.32);
+  border-left: 1px solid rgba(27, 77, 255, 0.32);
+  border-right: 1px solid rgba(27, 77, 255, 0.32);
   border-radius: 3px 3px 0 0;
 }
 
@@ -138,10 +144,10 @@
   grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
   gap: 10px;
   padding: 6px 16px 10px;
-  background: #f8fafc;
+  background: #f9fafb;
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #8897ae;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -151,7 +157,7 @@
 }
 
 .headerRow span.brand {
-  color: #156ff7;
+  color: #1b4dff;
 }
 
 .dataRow {
@@ -159,14 +165,14 @@
   grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
   gap: 10px;
   padding: 12px 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(27, 56, 96, 0.06);
   align-items: center;
 }
 
 .period {
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: #0a0c11;
 }
 
 .right {
@@ -175,23 +181,23 @@
 }
 
 .points {
-  color: #4f9eff;
+  color: #4a72ff;
 }
 
 .secondary {
-  color: #475569;
+  color: #455468;
 }
 
 .tertiary {
-  color: #94a3b8;
+  color: #8897ae;
 }
 
 .balanceChip {
   text-align: right;
   font-size: 14px;
   font-weight: 600;
-  color: #156ff7;
-  background: rgba(21, 111, 247, 0.1);
+  color: #1b4dff;
+  background: rgba(27, 77, 255, 0.1);
   border-radius: 6px;
   padding: 3px 8px;
 }
@@ -201,15 +207,15 @@
   grid-template-columns: 1.1fr 0.8fr 0.9fr 1fr 0.9fr 1.05fr;
   gap: 10px;
   padding: 13px 16px;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-top: 1px solid rgba(27, 56, 96, 0.12);
+  background: #f9fafb;
   align-items: center;
 }
 
 .footerLabel {
   font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: #0a0c11;
 }
 
 .footerValue {

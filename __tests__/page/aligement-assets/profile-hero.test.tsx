@@ -8,7 +8,6 @@ const identity: ProfileIdentity = {
   name: 'Alex Rivera',
   initials: 'AR',
   memberSince: 'January 2025',
-  country: 'USA',
   isOnboarded: true,
   isInfraMember: true,
 };
@@ -25,7 +24,7 @@ describe('ProfileHero', () => {
     render(<ProfileHero identity={identity} balance={balance} pointsThisSnapshot={420} />);
 
     expect(screen.getByText('Alex Rivera')).toBeInTheDocument();
-    expect(screen.getByText('Member since January 2025, USA')).toBeInTheDocument();
+    expect(screen.getByText('Member since January 2025')).toBeInTheDocument();
     expect(screen.getByText('Onboarded')).toBeInTheDocument();
     expect(screen.getByText('Infra Member')).toBeInTheDocument();
     expect(screen.getByText('420')).toBeInTheDocument();

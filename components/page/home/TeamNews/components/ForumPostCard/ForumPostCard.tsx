@@ -28,7 +28,6 @@ interface ForumPostCardProps {
    *  same as news items' upvote fields. */
   post: IFeedForumPost;
   position: number;
-  useLink?: boolean;
   /** Resolved by TeamNews against the signed-in member, like the like state
    *  itself, so the card and the modal can never disagree about it. */
   isOwnPost?: boolean;
@@ -40,11 +39,12 @@ interface ForumPostCardProps {
  * A member-authored forum post in the feed (ported from the newsfeed-v0
  * prototype). Only viewers with forum access ever see this card — TeamNews
  * gates rendering on live useForumAccess().hasAccess — so unlike NewsCard
- * there is no signed-out #login branch here. Title/body/author render via JSX
- * text interpolation only (plain text per the feed contract).
+ * there is no signed-out #login branch here. Title is a real link to the
+ * forum topic (new tab); body/author render via JSX text interpolation
+ * (plain text per the feed contract).
  */
 export function ForumPostCard(props: ForumPostCardProps) {
-  const { post, useLink, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
+  const { post, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
 
   const analytics = useTeamNewsAnalytics();
   const [threadOpen, setThreadOpen] = useState(false);
@@ -108,7 +108,7 @@ export function ForumPostCard(props: ForumPostCardProps) {
           }
         }}
       >
-        <ForumPostTitle post={post} useLink={useLink} />
+        <ForumPostTitle post={post} />
         <p className={s.summary}>{post.body}</p>
         <div className={s.footer}>
           <span className={s.source}>

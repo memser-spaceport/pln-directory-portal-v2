@@ -52,6 +52,18 @@ export function CommentLayerMount() {
 
     (async () => {
       try {
+        // Load the CDN dependency FIRST, in isolation. The vendored bundles
+        // below attach their own global listeners (click/mousemove, for pin
+        // placement) as a side effect of merely being imported — before
+        // `.init()` ever runs. If they're imported in parallel with a CDN
+        // script that then fails (e.g. no network egress to jsdelivr.net in
+        // this environment), those listeners are already live and firing on
+        // every click, throwing on DOM elements `.init()` never got to
+        // create. That reads as "the whole page is unstable" even though it
+        // has nothing to do with whatever's actually being reviewed.
+        await ensureScript(SUPABASE_JS_CDN, () => !!(window as any).supabase);
+        if (disposed) return;
+
         await Promise.all([
           // Vendored browser IIFEs, no exports — imported for their
           // `window.CommentLayer` / `window.CommentLayerSupabase` side effects.
@@ -59,9 +71,6 @@ export function CommentLayerMount() {
           import('./comment-layer.min.js'),
           // @ts-expect-error vendored side-effect-only bundle
           import('./supabase-adapter.min.js'),
-          // Adapter dependency — must exist as window.supabase before the store
-          // factory runs.
-          ensureScript(SUPABASE_JS_CDN, () => !!(window as any).supabase),
         ]);
         if (disposed) return;
 

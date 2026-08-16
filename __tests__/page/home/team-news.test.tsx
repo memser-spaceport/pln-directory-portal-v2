@@ -546,6 +546,14 @@ describe('TeamNews', () => {
         expect(screen.queryByText(/Headline ai-plain/)).not.toBeInTheDocument();
       });
 
+      it('links the forum post title to the topic in a new tab on every feed view, not only Discussions', () => {
+        renderTeamNews(<TeamNews groups={groups} />);
+
+        const title = screen.getByRole('link', { name: 'Willow Is Live!' });
+        expect(title).toHaveAttribute('href', '/forum/topics/5/96');
+        expect(title).toHaveAttribute('target', '_blank');
+      });
+
       it('still hides forum posts under an event-type pill (a post has no event type)', () => {
         renderTeamNews(<TeamNews groups={groupsWithDiscussion} />);
 

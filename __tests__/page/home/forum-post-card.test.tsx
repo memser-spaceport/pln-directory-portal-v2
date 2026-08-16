@@ -83,10 +83,22 @@ describe('ForumPostCard', () => {
   it('opens the detail modal on a row click, reported as a row open', () => {
     const { onOpenDetail } = renderCard();
 
-    fireEvent.click(screen.getByText('Willow Is Live!'));
+    fireEvent.click(screen.getByText('Hi Protocol Labs'));
 
     expect(onOpenDetail).toHaveBeenCalledWith(post);
     expect(onFeedForumPostCardClicked).toHaveBeenCalledWith(post, 0, 'home', 'row');
+  });
+
+  it('opens the forum topic in a new tab from the title, without opening the modal', () => {
+    const { onOpenDetail } = renderCard();
+
+    const title = screen.getByRole('link', { name: 'Willow Is Live!' });
+    expect(title).toHaveAttribute('href', '/forum/topics/5/96');
+    expect(title).toHaveAttribute('target', '_blank');
+
+    fireEvent.click(title);
+
+    expect(onOpenDetail).not.toHaveBeenCalled();
   });
 
   it('discloses the real NodeBB thread in place rather than opening the modal', () => {

@@ -22,5 +22,8 @@ export function useKudosAnalytics() {
     onGiveKudosOpened: () => track('plaa.kudos.give_modal_opened'),
     onCommunityKudosSubmitted: (payload: { points: number; recipientId: string }) =>
       track('plaa.kudos.community.submitted', payload),
+    onEditKudosOpened: (payload: { kudosId: string }) => track('plaa.kudos.edit_opened', payload),
+    onCommunityKudosUpdated: (payload: { kudosId: string; points: number; recipientId: string }) =>
+      track('plaa.kudos.community.updated', payload),
   };
 }

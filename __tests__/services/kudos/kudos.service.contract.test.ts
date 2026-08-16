@@ -3,6 +3,7 @@ import {
   getCommunityPool,
   getRecipients,
   submitCommunityKudos,
+  updateCommunityKudos,
   KudosApiError,
 } from '@/services/kudos.service';
 import type {
@@ -126,6 +127,18 @@ describe('kudos service — request contract', () => {
     expect(Object.keys(body).sort()).toEqual(['message', 'points', 'recipientId']);
   });
 
+  it('update: PATCH /api/plaa/kudos/community/:id with exactly {recipientId, points, message}', async () => {
+    mockFetchOnce(kudosFixture);
+    await updateCommunityKudos('kudos-1', submitInput);
+
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe('/api/plaa/kudos/community/kudos-1');
+    expect(init.method).toBe('PATCH');
+
+    const body = JSON.parse(init.body);
+    expect(Object.keys(body).sort()).toEqual(['message', 'points', 'recipientId']);
+  });
+
   it('attaches the Privy token from the authToken cookie as a Bearer header', async () => {
     mockFetchOnce(recipientsFixture);
     await getRecipients();
@@ -177,6 +190,21 @@ describe('kudos service — response contract', () => {
       expect(keys).toEqual(expect.arrayContaining(['memberId', 'name']));
       expect(keys.filter((k) => !['memberId', 'name', 'avatarUrl'].includes(k))).toEqual([]);
     }
+  });
+
+  it('update: round-trips the updated ICommunityKudos', async () => {
+    const updated = { ...kudosFixture, points: 20, message: submitInput.message };
+    mockFetchOnce(updated);
+    const result = await updateCommunityKudos('kudos-1', submitInput);
+    expect(result).toEqual(updated);
+  });
+
+  it('update: a 403 from another member editing surfaces as KudosApiError(403)', async () => {
+    mockFetchOnce({ message: 'Only the original giver can edit this kudos' }, { ok: false, status: 403 });
+    await expect(updateCommunityKudos('kudos-1', submitInput)).rejects.toMatchObject({
+      name: 'KudosApiError',
+      status: 403,
+    });
   });
 
   it('non-OK responses throw KudosApiError carrying status and body', async () => {

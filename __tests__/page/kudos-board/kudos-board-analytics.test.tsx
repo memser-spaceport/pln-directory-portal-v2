@@ -21,7 +21,6 @@ jest.mock('@/analytics/kudos.analytics', () => ({
   }),
 }));
 jest.mock('@/utils/plaa-round.utils', () => ({ getCurrentRoundNumber: () => 5 }));
-jest.mock('react-toastify', () => ({ ToastContainer: () => null }));
 
 describe('KudosBoardComponent — page-view analytics', () => {
   beforeEach(() => jest.clearAllMocks());

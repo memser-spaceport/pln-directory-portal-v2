@@ -20,7 +20,6 @@ jest.mock('@/analytics/kudos.analytics', () => ({
   }),
 }));
 jest.mock('@/utils/plaa-round.utils', () => ({ getCurrentRoundNumber: () => 5 }));
-jest.mock('react-toastify', () => ({ ToastContainer: () => null }));
 
 const giveButtons = () => screen.getAllByRole('button', { name: /give community kudos/i });
 

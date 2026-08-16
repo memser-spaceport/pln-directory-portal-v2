@@ -1,9 +1,56 @@
 'use client';
 
-import type { ICommunityKudos } from './data/kudos-board.types';
+import { useMemo, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from '@/components/core/ToastContainer';
+
+import { useCurrentUserStore } from '@/services/auth/store';
+import { useUpdateCommunityKudos } from '@/hooks/use-kudos';
+import { useKudosAnalytics } from '@/analytics/kudos.analytics';
+import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
+import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
+import { communityGiftOptions } from './data/kudos-board.data';
+import type { ICommunityKudos, ICommunityKudosInput, IUserSummary } from './data/kudos-board.types';
+
+// Only used when `limits` hasn't loaded yet — `canEdit` requires `limits` to
+// be defined, so the edit form (and therefore this schema) is unreachable
+// while this placeholder would otherwise apply. useForm still needs *some*
+// resolver on every render, hence the placeholder rather than a conditional
+// hook call.
+const PLACEHOLDER_LIMITS: CommunityKudosLimits = {
+  pointsMin: 0,
+  pointsMax: 0,
+  pointsStep: 1,
+  messageMin: 0,
+  messageMax: 0,
+};
 
 interface IKudosCardProps {
   kudos: ICommunityKudos;
+  /** Needed for the edit form's Recipient field — same list the give-kudos modal uses. */
+  recipients: IUserSummary[];
+  recipientsLoading?: boolean;
+  /** Remaining pool *before* this kudos' own points are added back for editing. */
+  poolRemaining: number;
+  /** Gift-amount limits, live from the community pool. Editing is disabled until these are loaded. */
+  limits?: CommunityKudosLimits;
+  /**
+   * Overrides the signed-in user used for the "is this my kudos" check.
+   * Production call sites never pass this — they get the real session from
+   * `useCurrentUserStore`. It exists only for prototypes/tests: seeding that
+   * store directly with a fake user conflicts with the several other
+   * always-mounted app components that watch it for real session state and
+   * will force a genuine logout when they see a user with no backing cookies.
+   */
+  currentUserForPreview?: { uid?: string } | null;
+  /**
+   * Overrides the save behavior for the edit form. Production call sites
+   * never pass this — real saves go through `useUpdateCommunityKudos()`,
+   * which needs a reachable PLAA backend. It exists only for prototypes/tests
+   * that want to demo a full successful save without one.
+   */
+  onSaveForPreview?: (args: { id: string; input: ICommunityKudosInput }) => Promise<ICommunityKudos>;
 }
 
 const AVATAR_COLORS = [
@@ -46,7 +93,112 @@ function formatRelativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
-export function KudosCard({ kudos }: IKudosCardProps) {
+function PencilIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function KudosCard({
+  kudos,
+  recipients,
+  recipientsLoading = false,
+  poolRemaining,
+  limits,
+  currentUserForPreview,
+  onSaveForPreview,
+}: IKudosCardProps) {
+  const sessionCurrentUser = useCurrentUserStore((s) => s.currentUser);
+  const currentUser = currentUserForPreview !== undefined ? currentUserForPreview : sessionCurrentUser;
+  const mutation = useUpdateCommunityKudos();
+  const analytics = useKudosAnalytics();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
+
+  const isOwn = Boolean(currentUser?.uid) && currentUser?.uid === kudos.giver.memberId;
+  const isCurrentRound = kudos.roundId === String(getCurrentRoundNumber());
+  const canEdit = isOwn && isCurrentRound && Boolean(limits);
+  const isLocked = isOwn && !isCurrentRound;
+
+  const schema = useMemo(() => buildCommunityKudosSchema(limits ?? PLACEHOLDER_LIMITS), [limits]);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<CommunityKudosFormValues>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: { recipientId: kudos.recipient.memberId, points: kudos.points, message: kudos.message },
+  });
+
+  function startEdit() {
+    reset({ recipientId: kudos.recipient.memberId, points: kudos.points, message: kudos.message });
+    setIsEditing(true);
+    analytics.onEditKudosOpened({ kudosId: kudos.id });
+  }
+
+  function cancelEdit() {
+    reset({ recipientId: kudos.recipient.memberId, points: kudos.points, message: kudos.message });
+    setIsEditing(false);
+  }
+
+  async function onSubmit(values: CommunityKudosFormValues) {
+    try {
+      if (onSaveForPreview) {
+        setIsSavingPreview(true);
+        try {
+          await onSaveForPreview({ id: kudos.id, input: values });
+        } finally {
+          setIsSavingPreview(false);
+        }
+      } else {
+        await mutation.mutateAsync({ id: kudos.id, input: values });
+      }
+      analytics.onCommunityKudosUpdated({ kudosId: kudos.id, points: values.points, recipientId: values.recipientId });
+      toast.success('Kudos updated.');
+      setIsEditing(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong.');
+    }
+  }
+
+  const isSaving = mutation.isPending || isSavingPreview;
+
+  // The current recipient might no longer be in the active-recipients list
+  // (e.g. they've left the roster) — keep them selectable so the form doesn't
+  // silently fall back to a blank picker on open.
+  const recipientOptions = recipients.some((r) => r.memberId === kudos.recipient.memberId)
+    ? recipients
+    : [kudos.recipient, ...recipients];
+
+  // This kudos' own points are already "spent" against the pool, so editing
+  // (even to the same amount) shouldn't be blocked by them counting twice.
+  const pointOpts = limits
+    ? communityGiftOptions(poolRemaining + kudos.points, limits.pointsMin, limits.pointsMax, limits.pointsStep)
+    : [];
+  const message = watch('message') ?? '';
+
   return (
     <article className="card">
       <div className="card__top">
@@ -66,14 +218,105 @@ export function KudosCard({ kudos }: IKudosCardProps) {
         </div>
       </div>
 
-      <p className="card__message">&ldquo;{kudos.message}&rdquo;</p>
+      {isEditing ? (
+        <form className="edit-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="form-group">
+            <label className="form-label" htmlFor={`recipient-${kudos.id}`}>
+              Recipient
+            </label>
+            <select
+              id={`recipient-${kudos.id}`}
+              className="form-control"
+              disabled={recipientsLoading}
+              {...register('recipientId')}
+            >
+              {recipientOptions.map((r) => (
+                <option key={r.memberId} value={r.memberId}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+            {errors.recipientId && <p className="form-error-inline">{errors.recipientId.message}</p>}
+          </div>
 
-      <div className="card__meta">
-        <span className="card__awarded">
-          <span className="card__awarded-dot" />
-          Awarded
-        </span>
-      </div>
+          <div className="form-group">
+            <label className="form-label" htmlFor={`message-${kudos.id}`}>
+              Message
+            </label>
+            <textarea
+              id={`message-${kudos.id}`}
+              className="form-control form-textarea"
+              maxLength={limits?.messageMax}
+              {...register('message')}
+            />
+            <div className="form-row-between">
+              <span className="form-hint">
+                {limits?.messageMin ?? 0}–{limits?.messageMax ?? 0} characters
+              </span>
+              <span className="char-count">
+                {message.trim().length}/{limits?.messageMax ?? 0}
+              </span>
+            </div>
+            {errors.message && <p className="form-error-inline">{errors.message.message}</p>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor={`points-${kudos.id}`}>
+              Points awarded
+            </label>
+            <Controller
+              control={control}
+              name="points"
+              render={({ field }) => (
+                <select
+                  id={`points-${kudos.id}`}
+                  className="form-control"
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                >
+                  {pointOpts.map((v) => (
+                    <option key={v} value={v}>
+                      {v} pts
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            {errors.points && <p className="form-error-inline">{errors.points.message}</p>}
+          </div>
+
+          <div className="edit-form__footer">
+            <button type="button" className="btn-ghost" onClick={cancelEdit}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSaving || !isValid}>
+              {isSaving ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <p className="card__message">&ldquo;{kudos.message}&rdquo;</p>
+
+          <div className="card__meta">
+            <span className="card__awarded">
+              <span className="card__awarded-dot" />
+              Awarded
+            </span>
+            {canEdit && (
+              <button type="button" className="card__edit-btn" onClick={startEdit}>
+                <PencilIcon />
+                Edit
+              </button>
+            )}
+            {isLocked && (
+              <span className="card__lock" title="Finalized — no longer editable" aria-label="Finalized — no longer editable">
+                <LockIcon />
+              </span>
+            )}
+          </div>
+        </>
+      )}
 
       <style jsx>{`
         .card {
@@ -162,6 +405,7 @@ export function KudosCard({ kudos }: IKudosCardProps) {
         .card__meta {
           display: flex;
           align-items: center;
+          justify-content: space-between;
           gap: 8px;
         }
         .card__awarded {
@@ -181,6 +425,114 @@ export function KudosCard({ kudos }: IKudosCardProps) {
           height: 6px;
           border-radius: 50%;
           background: currentColor;
+        }
+        .card__edit-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: none;
+          border: none;
+          color: #64748b;
+          font-size: 12.5px;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          padding: 2px 4px;
+        }
+        .card__edit-btn:hover {
+          color: #1b54ff;
+        }
+        .card__lock {
+          display: inline-flex;
+          align-items: center;
+          color: #94a3b8;
+        }
+
+        .edit-form {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .form-group {
+          display: flex;
+          flex-direction: column;
+        }
+        .form-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+          margin-bottom: 6px;
+        }
+        .form-control {
+          width: 100%;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 6px;
+          padding: 8px 10px;
+          font-size: 13.5px;
+          font-family: inherit;
+          color: #0f172a;
+          outline: none;
+          background: white;
+          transition:
+            border-color 0.15s,
+            box-shadow 0.15s;
+        }
+        .form-control:focus {
+          border-color: #1b54ff;
+          box-shadow: 0 0 0 3px rgba(27, 84, 255, 0.12);
+        }
+        .form-textarea {
+          resize: vertical;
+          min-height: 72px;
+          line-height: 1.6;
+        }
+        .form-row-between {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+          color: #94a3b8;
+          margin-top: 4px;
+        }
+        .form-error-inline {
+          margin-top: 6px;
+          font-size: 12px;
+          color: #dc2626;
+        }
+        .edit-form__footer {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+        .btn-primary {
+          background: #1b54ff;
+          color: white;
+          border: none;
+          padding: 8px 18px;
+          border-radius: 6px;
+          font-family: inherit;
+          font-size: 13.5px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .btn-primary:hover {
+          background: #1645d3;
+        }
+        .btn-primary:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .btn-ghost {
+          background: none;
+          border: none;
+          color: #64748b;
+          padding: 8px 10px;
+          font-size: 13.5px;
+          font-weight: 500;
+          cursor: pointer;
+          font-family: inherit;
+        }
+        .btn-ghost:hover {
+          color: #334155;
         }
       `}</style>
     </article>

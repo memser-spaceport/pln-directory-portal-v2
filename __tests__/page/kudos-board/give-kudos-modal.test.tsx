@@ -11,7 +11,7 @@ jest.mock('@/hooks/use-kudos', () => ({
 jest.mock('@/analytics/kudos.analytics', () => ({
   useKudosAnalytics: () => ({ onCommunityKudosSubmitted: jest.fn() }),
 }));
-jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+jest.mock('@/components/core/ToastContainer', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
 
 const recipients = [
   { memberId: 'uid-a', name: 'Alice' },

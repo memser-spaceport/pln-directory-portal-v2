@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
-import { clampDepth } from '@/utils/comments';
+import { clampDepth, countComments } from '@/utils/comments';
 import { countMentions, isBlankHtml } from '@/utils/html';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useForumAccess } from '@/services/access-control/hooks/useForumAccess';
@@ -48,12 +48,6 @@ const POST_FAILED = 'Couldn’t post your comment — try again.';
 // A mention costs ~150 characters of markup behind a short name, so this can
 // fire on a comment that looks well within the limit. Name the likely cause.
 const TOO_LONG = 'That’s too long to post — try shortening it, or removing a mention.';
-
-/** Total comments in the thread, replies included — matches what the count
- *  badge shows (the backend counts every row under an item, at any depth). */
-function countComments(comments: readonly IFeedComment[]): number {
-  return comments.reduce((total, comment) => total + 1 + countComments(comment.replies), 0);
-}
 
 /** Is `uid` this comment or anywhere in its subtree? */
 function containsUid(comment: IFeedComment, uid: string): boolean {

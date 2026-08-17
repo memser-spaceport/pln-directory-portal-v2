@@ -53,6 +53,7 @@ import { getSearchInputEl } from './utils/getSearchInputEl';
 import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
+import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
 import { isOwnForumPost } from './utils/isOwnForumPost';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
@@ -427,6 +428,15 @@ export const TeamNews = ({
   // handleForumPostLikeToggle, the correction lands in the overlay on first use
   // and outlives the modal.
   const activePostTopicLike = useFeedForumTopicLike(activePostUid);
+
+  // Persists the topic's correction to the local like cache the moment it's
+  // learned, so it also benefits this card on a future reload/session — not
+  // just the modal's own render (which resolvePostLike already covers).
+  useEffect(() => {
+    if (!activePostUid || !activePostTopicLike) return;
+    setStoredForumPostLike(activePostUid, activePostTopicLike.viewerHasLiked);
+  }, [activePostUid, activePostTopicLike]);
+
   const resolvePostLike = useCallback(
     (post: IFeedForumPost) =>
       resolveForumPostLike(
@@ -719,6 +729,7 @@ export const TeamNews = ({
     const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
 
     setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }));
+    setStoredForumPostLike(post.uid, nextLiked);
 
     const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
 
@@ -727,11 +738,13 @@ export const TeamNews = ({
       {
         onError: () => {
           setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));
+          setStoredForumPostLike(post.uid, wasLiked);
           analytics.onFeedForumPostLikeFailed(post, position, nextLiked, source);
         },
         onSuccess: (status) => {
           if (status) {
             setPostLikeOverlay((prev) => new Map(prev).set(post.uid, status));
+            setStoredForumPostLike(post.uid, status.viewerHasLiked);
           }
           analytics.onFeedForumPostLikeToggled(post, position, nextLiked, source);
         },

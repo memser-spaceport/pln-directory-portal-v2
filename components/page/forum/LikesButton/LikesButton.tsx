@@ -21,10 +21,10 @@ export const LikesButton = ({ tid, pid, likes, isLiked, timestamp }: Props) => {
       className={clsx(s.subItem, s.button, {
         [s.liked]: isLiked,
       })}
-      disabled={isPending || isLiked}
+      disabled={isPending}
       onClick={() => {
         analytics.onLikePostClicked({ tid, pid, timeSincePostCreation: Date.now() - timestamp });
-        mutate({ tid, pid });
+        mutate({ tid, pid, isLiked: Boolean(isLiked) });
       }}
     >
       <LikeIcon /> {likes} Likes

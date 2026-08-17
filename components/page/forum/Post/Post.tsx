@@ -33,6 +33,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import forumStyles from '@/app/forum/page.module.scss';
 import { OhBadge } from '@/components/core/OhBadge/OhBadge';
 import { isAdminUser } from '@/utils/user/isAdminUser';
+import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
 
 // Function to process markdown images and prepare content for Linkify
 export const processPostContent = (content: string) => {
@@ -110,6 +111,15 @@ export const Post = () => {
           data.posts[0]?.user?.ohStatus === null),
     };
   }, [data, userInfo]);
+
+  // The topic fetch is the true source of the viewer's own vote state — record
+  // it locally so the Team News forum card (whose /api/recent listing carries
+  // no per-viewer vote state) can show the correct like state without the
+  // viewer having to open the thread there too.
+  useEffect(() => {
+    if (!data?.tid || !data.posts?.[0]) return;
+    setStoredForumPostLike(`fp_${data.tid}`, Boolean(data.posts[0].upvoted));
+  }, [data]);
 
   useEffect(() => {
     if (!post) {

@@ -1,18 +1,9 @@
 'use client';
 
-import clsx from 'clsx';
-
 import { Button } from '@/components/common/Button';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete';
 
-import {
-  hasCriteria,
-  summariseCriteria,
-  summariseExperience,
-  type JobPreferences,
-  type MemberExperience,
-  type RoleCriteria,
-} from './viewerState';
+import { hasCriteria, summariseCriteria, type JobPreferences, type RoleCriteria } from './viewerState';
 import s from './MatchNudgeStrip.module.scss';
 
 interface MatchNudgeStripProps {
@@ -20,20 +11,20 @@ interface MatchNudgeStripProps {
   criteria: RoleCriteria;
   /** What's been saved, if anything. */
   preferences: JobPreferences;
-  /** What went to the profile, if the second step was answered. */
-  experience: MemberExperience;
-  matchCount: number;
-  totalRoles: number;
-  /** Set for the one render after saving; the strip reports, then clears itself. */
-  justSaved: boolean;
   onSetPreferences: () => void;
 }
 
 /**
- * The nudge. One strip, four states, and it **self-extinguishes** — once
+ * The nudge. One strip, three states, and it **self-extinguishes** — once
  * preferences exist there is nothing left to ask for, so nothing is shown. A
  * banner that never goes away is decoration, and it teaches people to stop
  * reading the slot.
+ *
+ * The post-save confirmation used to be a fourth state here. It's a toast now
+ * (see `onSavePreferences`): it reports on something that just happened and then
+ * has nothing further to say, and as a strip it appeared in the slot directly
+ * above the list, pushing the freshly re-sorted board down at the exact moment
+ * the person was meant to look at it. This component is only ever the *ask*.
  *
  * Built on production's `DataIncomplete` (the codebase's one strip primitive that
  * takes arbitrary children — no hooks, no context, tokenised surface). Not
@@ -49,31 +40,10 @@ interface MatchNudgeStripProps {
  * invented.
  */
 export function MatchNudgeStrip(props: MatchNudgeStripProps) {
-  const { criteria, preferences, experience, matchCount, totalRoles, justSaved, onSetPreferences } = props;
+  const { criteria, preferences, onSetPreferences } = props;
 
   const preferencesSet = hasCriteria(preferences);
   const filtersApplied = hasCriteria(criteria);
-  const profileLine = summariseExperience(experience);
-
-  // Saved and nothing outstanding — say what it bought, once.
-  if (justSaved) {
-    return (
-      <DataIncomplete className={clsx(s.root, s.confirmation)}>
-        {/* The tail is one template string, not interleaved JSX: two expressions
-            with text between them lose the space at the wrap and it renders
-            "13roles". */}
-        <span className={s.text}>
-          Saved. <strong>{matchCount}</strong>
-          {` of ${totalRoles} roles match what you're looking for — sorted to the top, and teams hiring for them can find you.`}
-          {/* Names the change to the public profile rather than leaving it to be
-              discovered. Only when there's a line to name — skills alone are a
-              real answer but not a sentence, and "your profile now reads ." is
-              worse than saying nothing. */}
-          {profileLine && ` Your profile now reads ${profileLine}.`}
-        </span>
-      </DataIncomplete>
-    );
-  }
 
   if (preferencesSet) return null;
 

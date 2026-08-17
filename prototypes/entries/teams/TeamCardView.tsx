@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Image from 'next/image';
+import type { ITeamNewsItem } from '@/types/team-news.types';
 import { useRouter } from 'next/navigation';
 import { ITag } from '@/types/teams.types';
-import type { ITeamNewsItem } from '@/types/team-news.types';
 import TeamsTagsList from '@/components/page/teams/teams-tags-list';
 import { Badge } from '@/components/common/Badge';
 
@@ -46,6 +46,10 @@ import local from './TeamsPrototype.module.scss';
  *  - `new`   — "3 new" in the brand-blue badge. The same count pitched as an
  *    offer: grey states, blue asks. Worth seeing side by side, because twelve
  *    blue marks down a grid is twelve things competing for the same click.
+ *
+ * The chip modes open the team's news in place; the blue badge leaves for the
+ * feed. Same split on the job board, which wears the same chip — so the mark a
+ * reader learns on one surface behaves the way they learned it on the other.
  *  - `headline` — the latest story itself. Why you'd open the team, not how
  *    much is behind it; the only one that costs a row of card height.
  *  - `follow`   — the count paired with a Follow control on one footer row.
@@ -58,9 +62,10 @@ interface Props {
   team: MockTeamCard;
   updates?: TeamUpdatesMode;
   /**
-   * `count` mode only: list this team's news in place instead of leaving for the
-   * feed. The two count variants deliberately answer a click differently so the
-   * pair can be compared — `new` goes to the feed, `count` stays put.
+   * List this team's news in place instead of leaving for the feed — what every
+   * chip mode does. The blue `new` badge is the one that leaves; the difference
+   * between them is colour and destination both, and the job board's copy of
+   * this chip opens the same modal.
    */
   onOpenNews?: (teamName: string, items: ITeamNewsItem[], teamLogo: string) => void;
   /** `follow` mode only. */
@@ -127,12 +132,13 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
   };
 
   /**
-   * The `count` chip's own answer: list the team's news right here.
+   * The chip's answer: list the team's news right here.
    *
-   * Where the blue `new` badge leaves for the feed, this one stays on the grid —
-   * the pair exists to be compared, and the difference is the experiment. The
-   * list drills to a story in place rather than stacking a second overlay, the
-   * same way the team profile's archive does.
+   * Where the blue `new` badge leaves for the feed, the chip stays on the page —
+   * a count is an amount, and the reader asking how much is waiting hasn't asked
+   * to be moved. The list drills to a story in place rather than stacking a
+   * second overlay, the same way the team profile's archive does. The job board
+   * wears this same chip and opens this same modal.
    */
   const openNewsList = () => {
     if (!news.length) return;
@@ -208,6 +214,10 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
    * `dotIndicator` independently agrees on at its `md` size. It's the one mark
    * in the product that already means "unread", which is exactly what the word
    * beside it claims.
+   *
+   * It opens the team's news in place — see `openNewsList`. The job board's copy
+   * of this chip does the same, so the grey chip means one thing wherever it
+   * appears and the blue badge keeps the exit to itself.
    */
   const chipMark =
     updates === 'dot' ? (
@@ -223,7 +233,9 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
       type="button"
       className={local.pillButton}
       onClick={activate}
-      aria-label={`${news.length} ${noun} about ${team.name ?? 'this team'} — read on the newsfeed`}
+      // Says what the click does, which is open them here — not "read on the
+      // newsfeed", which is where the blue badge goes.
+      aria-label={`${news.length} ${noun} about ${team.name ?? 'this team'} — read them`}
     >
       <Badge variant="default" className={`${strip.sourceChip} ${local.countChip}`}>
         {chipMark}

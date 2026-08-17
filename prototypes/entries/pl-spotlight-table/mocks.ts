@@ -47,6 +47,107 @@ export const PARTICIPANT_TYPE_LABELS: Record<ParticipantType, string> = {
   SUPPORT: 'Support',
 };
 
+/**
+ * The spotlight the whole table belongs to.
+ *
+ * The Figma frame never names it — the back-office screenshot shows the seed
+ * values ("Test title", "My Test Team 1", pitch-support@mailinator.com). Those
+ * are test fixtures, not copy, so a plausible spotlight stands in here. Nothing
+ * in the table varies by it: every row's invite is for the same event, which is
+ * why it is one constant rather than a per-row field.
+ *
+ * Note the two different "teams" in play: this is the team *presenting*, while
+ * `SpotlightParticipant.team` is the investor's own fund.
+ */
+export const SPOTLIGHT_CONTEXT = {
+  companyName: 'Devonian Systems',
+  /**
+   * The verb phrase that completes "<Company> …". Held as a fragment rather than
+   * a whole sentence so `companyName` stays the single source of the name —
+   * rename the company and the sentence follows.
+   */
+  companyBlurb:
+    'builds mobile, AI-controlled reactors that convert biomass into electricity and registry-grade biochar',
+  supportEmail: 'spotlight-support@protocol.ai',
+};
+
+/**
+ * What the invite template can interpolate from the record.
+ *
+ * Rebuilt against the email PL actually sends. Two of these are editable in the
+ * Overview card (`closeDate`, `senderName`), so the draft reads live state
+ * rather than a module constant; the other two are properties of the company the
+ * spotlight is for.
+ *
+ * `senderName` is nullable because the Overview's Sender Name is — and the real
+ * email signs off with a person, so an unset one is visible in the preview
+ * rather than silently papered over.
+ */
+export type InviteContext = {
+  companyName: string;
+  companyBlurb: string;
+  closeDate: string;
+  senderName: string | null;
+};
+
+// ── Overview ──────────────────────────────────────────────────────────────────
+// The record the table belongs to, as the back-office app already renders it:
+// Title / URL Slug / Status / Support Email / Sender Email / Sender Name /
+// Reply-To Email / Analytics Report URL / Spotlight Statement, in that order,
+// behind one "Edit" button. Transcribed from the app screenshot, not invented.
+//
+// `null` is the empty state and is displayed, not hidden — the screenshot shows
+// five em dashes, so an admin reads this card to find out what is *not* set.
+// Sender Email is the one field whose empty state has a name of its own
+// ("System default"), because leaving it blank is a real configuration.
+
+export const SPOTLIGHT_STATUSES = ['DRAFT', 'OPEN', 'CLOSED'] as const;
+export type SpotlightStatus = (typeof SPOTLIGHT_STATUSES)[number];
+
+export type SpotlightOverview = {
+  title: string;
+  slug: string;
+  status: SpotlightStatus;
+  /**
+   * NOT in the back-office screenshot — added because the real invite names a
+   * deadline ("the Spotlight page closes this coming Monday, July 27th"), so
+   * the record has to hold one. A display string, not a Date: a prototype has
+   * no formatter and the email prints it verbatim.
+   */
+  closesOn: string;
+  supportEmail: string;
+  /** null → "System default": the platform's own address sends the mail. */
+  senderEmail: string | null;
+  senderName: string | null;
+  replyToEmail: string | null;
+  analyticsReportUrl: string | null;
+  statement: string | null;
+};
+
+/**
+ * Seeded from the same fictional spotlight the table's invites are for, rather
+ * than from the screenshot's test fixtures ("Test title", "my-test-team-1").
+ * Two fields are deliberately left empty so the card's em-dash state is on
+ * screen without having to clear anything.
+ */
+export const mockSpotlightOverview: SpotlightOverview = {
+  title: `${SPOTLIGHT_CONTEXT.companyName} Spotlight`,
+  slug: 'devonian-systems',
+  status: 'OPEN',
+  // Two weeks out from SPOTLIGHT_TODAY, and a Monday — the real email's deadline
+  // is a Monday too, which is presumably not an accident.
+  closesOn: 'Monday, August 24th',
+  supportEmail: SPOTLIGHT_CONTEXT.supportEmail,
+  senderEmail: null,
+  // A person, not a brand: the real email signs off "Remi Antczak / Protocol
+  // Labs", so Sender Name is what `{{sender_name}}` resolves to and "Protocol
+  // Labs" is the fixed line under it.
+  senderName: 'Remi Antczak',
+  replyToEmail: 'remi@protocol.ai',
+  analyticsReportUrl: null,
+  statement: null,
+};
+
 export type SpotlightParticipant = {
   id: string;
   name: string;

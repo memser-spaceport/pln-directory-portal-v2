@@ -1,0 +1,277 @@
+// Chrome — card, close button, centred envelope / title / desc, scrolling field
+// stack, twin full-width footer — is transcribed 1:1 from the job-board entry's
+// ReferModal.module.scss, which is itself Demo Day's "Make an intro" modal
+// (components/page/demo-day/.../ReferCompanyModal). Every size, space, radius and
+// shadow is copied; nothing was re-proportioned. A prototype may not import
+// another prototype's stylesheet, hence a copy rather than a `@use`.
+//
+// New below that line, because the reference has no equivalent: the recipient
+// identity card, the template-vars note, the "Added automatically" list, and the
+// amber already-invited warning. Their color pairs are taken from production
+// (`--foreground-warning-*` / `--border-warning-subtle` are verified pairs; the
+// neutral surface is portal-v2's own `#f9fafb`).
+//
+// Unlike the table itself — a Tailwind-gray back-office transcription — this
+// modal is asked to look like the portal, so it paints in the PL palette.
+@use 'styles/media';
+
+// ── Modal chrome ──────────────────────────────────────────────────────────────
+
+.modal {
+  background: white;
+  border-radius: 24px;
+  padding: 20px;
+  width: 100%;
+  position: relative;
+  box-shadow:
+    0px 10px 20px -5px rgba(14, 15, 17, 0.06),
+    0px 20px 65px -5px rgba(14, 15, 17, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: auto;
+
+  // 520px, where the referral modal takes 480: this one holds a nine-row email
+  // body, and a drafted paragraph wrapping every ~45 characters reads like a
+  // column of fragments. Every other value is the reference's.
+  max-width: 520px;
+
+  // `max-height`, not the reference's fixed `height`. There, the card holds a
+  // recipient list that grows as you add people, so a fixed height is what stops
+  // the footer walking down the screen mid-task. Nothing here changes size after
+  // it opens — so the card takes the email's own height and only starts scrolling
+  // `.fields` when the viewport runs out. That means a template with a dropped
+  // paragraph doesn't leave a hole, and a full draft doesn't get clipped
+  // mid-sentence on a screen that had room for it.
+  //
+  // dvh so collapsing mobile browser chrome can't clip the actions.
+  max-height: min(860px, calc(100dvh - 48px));
+  overflow: hidden;
+
+  @include media.mobile-only {
+    max-width: 100%;
+    max-height: min(860px, calc(100dvh - 32px));
+  }
+}
+
+// Doubled selector for the same reason as the reference: what it overrides
+// (`.root`, `.link`) is single-class too, so at equal specificity the winner
+// would come down to CSS bundle order.
+.closeButton.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--foreground-neutral-secondary, #455468);
+  box-shadow: 0px -2px 4px 0px inset rgba(14, 15, 17, 0.02);
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.08);
+  }
+}
+
+.iconWrapper {
+  background: #f2f5ff;
+  border-radius: 9999px;
+  padding: 10px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.title {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-align: center;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 27px; /* 135% */
+  letter-spacing: -0.4px;
+}
+
+.desc {
+  color: var(--foreground-neutral-secondary, #455468);
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+
+  // Takes the card's leftover height so `.fields` has something to scroll within.
+  flex: 1;
+  min-height: 0;
+}
+
+// Only the fields scroll — envelope, title, description, warning and actions
+// stay put, so "this person is about to be emailed twice" can't scroll away.
+.fields {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  // Room for focus rings against the scroll edge.
+  padding: 2px;
+  margin: -2px;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.actionButton {
+  flex: 1;
+}
+
+// ── Recipient card ────────────────────────────────────────────────────────────
+// The screenshot's grey Name / Email panel. Label above value there; label and
+// value on one line here, because at 520px two rows of two lines each is a lot
+// of card for four short strings.
+
+.recipient {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.recipientRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.recipientLabel {
+  flex: 0 0 44px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.recipientValue {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+}
+
+// ── Email body ────────────────────────────────────────────────────────────────
+// FormTextArea's own label is dropped so the label line can carry "Reset to
+// template" on its right — same arrangement as the referral modal's note field.
+
+.bodyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.bodyLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bodyLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.resetLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Send footnotes ────────────────────────────────────────────────────────────
+// Template vars, dropped lines, and what the send adds by itself. All three sit
+// directly under the body they annotate, at caption weight: they report what the
+// draft already did, so they must not compete with the field above them.
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: -8px; // pulls the notes under the textarea's char-count row
+}
+
+.noteLine {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.varToken {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ── Already-invited warning ───────────────────────────────────────────────────
+// Outside `.fields`, so it stays pinned above the actions: it is the one thing
+// on screen that should be impossible to send past without reading.
+
+.warning {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--background-warning-soft-surface, rgba(245, 158, 11, 0.1));
+  border: 1px solid var(--border-warning-subtle, #fde68a);
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-warning-primary, #b45309);
+}

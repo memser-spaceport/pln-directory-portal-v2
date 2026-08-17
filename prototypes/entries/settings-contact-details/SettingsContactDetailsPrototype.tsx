@@ -12,7 +12,7 @@ import { SettingsBackButtonMock } from './SettingsBackButtonMock';
 import { SettingsMenuMock } from './SettingsMenuMock';
 import { EmailAndAccountsTab } from './tabs/EmailAndAccountsTab';
 import { NotificationPreferencesTab } from './tabs/NotificationPreferencesTab';
-import { JobAlertTab } from './tabs/JobAlertTab';
+import { JobPreferencesTab } from './tabs/JobPreferencesTab';
 import { MOCK_MEMBER } from './mocks';
 
 /**
@@ -22,7 +22,7 @@ import { MOCK_MEMBER } from './mocks';
 const TAB_TITLES: Record<string, string> = {
   'email & accounts': 'Email & Accounts',
   'notification preferences': 'Notification Preferences',
-  'job alert': 'Job Alert',
+  'job preferences': 'Job Preferences',
 };
 
 /** The 1024px line where production's rail appears and the back bar disappears. */
@@ -95,8 +95,8 @@ export default function SettingsContactDetailsPrototype() {
     switch (currentTab) {
       case 'notification preferences':
         return <NotificationPreferencesTab />;
-      case 'job alert':
-        return <JobAlertTab />;
+      case 'job preferences':
+        return <JobPreferencesTab />;
       default:
         return <EmailAndAccountsTab email={email} onEmailChanged={setEmail} />;
     }

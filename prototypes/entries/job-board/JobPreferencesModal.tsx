@@ -7,8 +7,7 @@ import { Modal } from '@/components/common/Modal';
 import { Checkbox } from '@/components/common/Checkbox';
 import { CloseIcon, NotePencilIcon, SearchIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
-import { FormTagsInput } from '@/components/form/FormTagsInput';
-import { FormMultiSelect, type MultiSelectOption } from '@/components/form/FormMultiSelect';
+import { type MultiSelectOption } from '@/components/form/FormMultiSelect';
 import {
   buildWorkplaceTypeFacetItems,
   seniorityDisplayLabel,
@@ -24,6 +23,8 @@ import intro from '@/components/page/demo-day/ActiveView/components/TeamsList/co
 import collab from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput/ProfileCollaborateInput.module.scss';
 
 import { MOCK_LOCATION_FACETS, MOCK_ROLE_CATEGORY_FACETS, MOCK_SENIORITY_FACETS, MOCK_WORKMODE_FACETS } from './mocks';
+import { PreferenceMultiSelect } from './PreferenceMultiSelect';
+import { SkillsTagsInput } from './SkillsTagsInput';
 import { hasCriteria, hasExperience, type JobPreferences, type MemberExperience, type RoleCriteria } from './viewerState';
 import s from './JobPreferencesModal.module.scss';
 
@@ -218,12 +219,23 @@ export function JobPreferencesModal(props: JobPreferencesModalProps) {
           <h2 className={intro.title}>{onExperienceStep ? 'What do you do?' : 'What are you looking for?'}</h2>
         </div>
 
+        {/* Both steps say the answers can be changed later, not just what they
+            buy — step 1 used to describe only the effect, leaving no sign the
+            answers persist anywhere you could go back to.
+
+            "in Settings", not "Settings → Job preferences". The arrow is
+            breadcrumb notation: it belongs in documentation, where the reader is
+            following a path, and reads as machinery in a sentence someone is
+            skimming mid-task. Plain "in Settings" is what products say, and it's
+            enough — the person needs to know the answers are revisitable and
+            roughly where, not to be navigated there by a modal they haven't
+            finished. */}
         <p className={intro.desc}>
           {onExperienceStep
-            ? 'We’ll add this to your profile — you can update it any time in Settings → Profile.'
+            ? 'We’ll add this to your profile — you can update it any time in Settings.'
             : prefilled
-              ? 'Filled in from the filters you just set — adjust anything that isn’t right.'
-              : 'We’ll sort the board around this, and teams hiring for it can find you.'}
+              ? 'Filled in from the filters you just set — adjust anything that isn’t right. You can change this later in Settings.'
+              : 'We’ll sort the board around this, and teams hiring for it can find you. You can change this later in Settings.'}
         </p>
 
         <FormProvider {...methods}>
@@ -246,45 +258,53 @@ export function JobPreferencesModal(props: JobPreferencesModalProps) {
                 <FormField name="experienceCompany" label="Team or organization" placeholder="Where you work now" />
                 {/* Freeform tags, the same control the settings form uses for this
                     exact field — so the words typed here are the words that show
-                    up there, not a parallel list that has to be reconciled.
+                    up there, not a parallel list that has to be reconciled. It's
+                    `FormTagsInput` transcribed rather than imported, for one
+                    reason: its chip ✕ is react-select's filled cross in near-black,
+                    and every other ✕ in this flow is the DS `CloseIcon` in grey.
+                    See SkillsTagsInput.
 
                     Enter is how you commit a tag, and in a form it is also how you
-                    submit. `FormTagsInput` adds the tag but doesn't cancel the
-                    default, so unguarded, typing a second skill saved and closed
-                    the modal mid-sentence. Cancelling on the way up leaves the
-                    tag added and the form still open. */}
+                    submit. The input adds the tag but doesn't cancel the default,
+                    so unguarded, typing a second skill saved and closed the modal
+                    mid-sentence. Cancelling on the way up leaves the tag added and
+                    the form still open. */}
                 <div
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') e.preventDefault();
                   }}
                 >
-                  <FormTagsInput name="skills" selectLabel="Skills" placeholder="Add a skill" />
+                  <SkillsTagsInput name="skills" selectLabel="Skills" placeholder="Add a skill" />
                 </div>
               </div>
             ) : (
               <div className={s.fields}>
-                <FormMultiSelect
+                {/* `FormMultiSelect` transcribed, for the same reason the skills
+                    field is — production's chip ✕ is react-select's own filled
+                    cross in near-black, and the component exposes no `components`
+                    prop to swap it. See PreferenceMultiSelect. */}
+                <PreferenceMultiSelect
                   name="roleCategory"
                   label="Role category"
                   placeholder="Engineering, Product…"
                   options={roleCategoryOptions}
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
-                <FormMultiSelect
+                <PreferenceMultiSelect
                   name="seniority"
                   label="Seniority"
                   placeholder="Senior, Lead…"
                   options={seniorityOptions}
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
-                <FormMultiSelect
+                <PreferenceMultiSelect
                   name="workplaceType"
                   label="Workplace type"
                   placeholder="Remote, Hybrid…"
                   options={workplaceOptions}
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
-                <FormMultiSelect
+                <PreferenceMultiSelect
                   name="location"
                   label="Location"
                   placeholder="Anywhere"
@@ -313,7 +333,7 @@ export function JobPreferencesModal(props: JobPreferencesModalProps) {
 
             <p className={s.note}>
               {onExperienceStep
-                ? 'Optional — everything here can wait until Settings → Profile.'
+                ? 'Optional — everything here can wait until later.'
                 : canSave
                   ? 'Next: what you do, so hiring teams can find you.'
                   : 'Pick at least one thing you’re looking for.'}

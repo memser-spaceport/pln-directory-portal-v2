@@ -4,8 +4,16 @@
 // + `TeamUpdateStrip.sourceChip` in the markup, so only the flex row, the dot
 // and the hover live here.
 
+/* A bare <button> wrapper so the Badge (a <span>) can take the click — the same
+   shape the teams grid's `.pillButton` uses for the same chip. */
 .link {
   display: inline-flex;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
   text-decoration: none;
 
   &:hover {

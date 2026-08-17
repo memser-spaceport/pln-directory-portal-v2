@@ -8,20 +8,88 @@
   min-height: 60vh;
 }
 
-// Wrapper for the prototype-only version switches. The switch chrome itself is
-// newsfeed-v0's (.switchBar / .switch / .switchBtn / .switchNote); only the row
-// is local, because v0's own .versionRow reserves a 312px right rail this page
-// doesn't have. Spacing comes from the content column's 16px gap.
+// The review band: prototype-only switches, worn twice — once above the navbar
+// (the two variant switches) and once below it (the sign-in prompt trigger).
+//
+// They sat between the toolbar and the job list, where they read as part of the
+// product and pushed the thing under review below the fold. Outside the header
+// they are plainly scaffolding — and because the navbar is sticky and these
+// aren't, they scroll away and leave the board to be judged on its own.
+//
+// Tinted, not bordered. The navbar is white and carries its own
+// `0 1px 4px #e2e8f0` shadow, so a border on the upper band would draw a second
+// line 12px above that one; a tint separates band from header without adding
+// anything, and works either side of it. Horizontal padding matches NavBar's
+// `.Root` (16px, 24px from tablet-landscape) so the switches start on the logo's
+// left edge.
+.reviewBand {
+  padding: 12px 16px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+
+  @include media.tablet-landscape {
+    padding: 12px 24px;
+  }
+}
+
+// The sign-in prompt trigger, sitting inside the content column under the Welcome
+// banner rather than in a full-bleed band. So it takes the column's own edges —
+// no header-matching padding — and a radius, which turns it from a page-width
+// stripe into a block that clearly belongs to the column it's in. Same tint as
+// `.reviewBand`, so both read as one kind of thing: scaffolding, not product.
+.promptBand {
+  padding: 10px 12px;
+  border-radius: var(--corner-radius-sm, 6px);
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+// The match line under the page title, and its Edit. Only ever rendered while the
+// board is sorted by match, so it explains the order on screen and offers the one
+// thing you'd want next.
+//
+// 14px/20px against the 24px/700 title above it: this is a caption on the heading,
+// not a second heading. `titleGroup` is already a 2px-gap column, so no margin
+// here — spacing is the parent's.
+.matchLine {
+  margin: 0;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// A link, not a button: it reopens a form rather than committing anything, and a
+// filled control here would outweigh the sort dropdown across the toolbar from it.
+.matchEdit {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// `mobileHeader` is a no-wrap baseline row; the match line needs its own line
+// under the title rather than being pushed off the edge beside it.
+.mobileHeaderWrap {
+  flex-wrap: wrap;
+}
+
+// The switch chrome itself is newsfeed-v0's (.switchBar / .switch / .switchBtn /
+// .switchNote); only the row is local, because v0's own .versionRow reserves a
+// 312px right rail this page doesn't have.
 .versionRow {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 0 8px;
-
-  @include media.breakpoint-1024 {
-    padding: 0;
-  }
 }
 
 // The locked "Best match for me" option. SortDropdown has no disabled state, so

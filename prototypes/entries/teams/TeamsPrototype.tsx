@@ -20,7 +20,8 @@ import { TeamsToolbarView } from './TeamsToolbarView';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamCardView, type TeamUpdatesMode } from './TeamCardView';
-import { TeamNewsModal } from './TeamNewsModal';
+// Shared with the job board, which opens the same modal from the same chip.
+import { TeamNewsModal } from '../news-shared/TeamNewsModal';
 import s from './TeamsPrototype.module.scss';
 
 const COUNTED_PARAMS = [
@@ -76,13 +77,17 @@ export default function TeamsPrototype() {
    *    next to the tab before it, colour is the only variable left: grey states,
    *    blue asks, and this is where you decide which the grid wants.
    *
+   * The two grey chips open the team's news in place; the blue badge leaves for
+   * the feed. The job board wears the same grey chip and opens the same modal,
+   * so the mark behaves the same wherever it's met.
+   *
    * Dropped from the switch: `count` (the same sentence behind the news glyph
    * instead of the dot), `follow` (count + a Follow control on the top band) and
    * `headline` (the latest story itself, a row of card height). `TeamCardView`
    * still implements all three — nothing selects them.
    */
   const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('dot');
-  /** The `count` chip lists a team's news here instead of leaving for the feed. */
+  /** The chip lists a team's news here instead of leaving for the feed. */
   const [newsModal, setNewsModal] = useState<{
     teamName: string;
     items: ITeamNewsItem[];

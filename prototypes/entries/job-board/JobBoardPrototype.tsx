@@ -109,6 +109,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import DashboardPagesLayout from '@/components/core/dashboard-pages-layout/DashboardPagesLayout';
+// Production's toast — `ToastContainer` is mounted in the root layout, which wraps
+// prototype routes too, so this renders through the real react-toastify instance
+// and the real `Toast` shell. Same call this prototype's ReferModal already makes.
+import { toast } from '@/components/core/ToastContainer';
 import { SortDropdown, type SortOption } from '@/components/common/filters/SortDropdown';
 import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
 import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
@@ -146,6 +150,7 @@ import {
   hasCriteria,
   matchesPreferences,
   roleMatches,
+  summariseExperience,
   type JobPreferences,
   type MemberExperience,
   type RoleCriteria,
@@ -154,25 +159,19 @@ import {
 import s from './JobBoardPrototype.module.scss';
 
 /**
- * The three versions of the team-update strip, demoed rather than decided. One
- * switch rather than a detail × placement pair: next to the name only ever means
- * without a description, so a two-axis control would offer combinations that
- * don't exist.
+ * How the cards carry a team's news: the teams grid's own chip on the name row —
+ * unread dot, neutral grey, the feed's noun — linking to the team's stories
+ * there. Says how much is waiting, not what it is.
+ *
+ * This was a four-way switch while the placement was open (`inline`, `line` and
+ * `full` put the latest headline next to the name, after the roles, or with a
+ * description). It's settled, so the alternatives are gone rather than parked
+ * behind a control — a review switch left up after the decision invites the
+ * decision to be re-litigated every time someone opens the page.
+ * `JobCardNewsVariant` still types the other three; only this page's choice is
+ * fixed.
  */
-const NEWS_OPTIONS: Array<{ value: JobCardNewsVariant; label: string }> = [
-  { value: 'count', label: 'N new posts' },
-  { value: 'inline', label: 'Next to the name' },
-  { value: 'line', label: 'Below the roles' },
-  { value: 'full', label: 'Below, with description' },
-];
-
-const NEWS_NOTE: Record<JobCardNewsVariant, string> = {
-  count:
-    'The default: the teams grid’s own chip on the name row — unread dot, neutral grey, the feed’s noun — linking to the team’s stories there. Says how much is waiting, not what it is.',
-  inline: 'The headline stands where the badge does — no description on a name row.',
-  line: 'A band after the roles: the latest headline and when it landed.',
-  full: 'The same band, plus event type · source · date and the summary clamped to two lines.',
-};
+const NEWS_VARIANT: JobCardNewsVariant = 'count';
 
 /**
  * Which viewer the mobile bottom bar is drawn for. Named after what the person
@@ -282,10 +281,6 @@ export default function JobBoardPrototype() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Prototype chrome, ephemeral like every other version switch here — not in the
-  // URL, which belongs to the filters.
-  const [newsVariant, setNewsVariant] = useState<JobCardNewsVariant>('count');
-
   /* Whether the viewer is one production would resolve PL Infra links for. Only
      the mobile bar changes shape on it — that's the bar with a fixed number of
      slots, so it's the only place the extra item has to displace something. */
@@ -297,7 +292,6 @@ export default function JobBoardPrototype() {
   const [preferences, setPreferences] = useState<JobPreferences>(EMPTY_PREFERENCES);
   const [experience, setExperience] = useState<MemberExperience>(EMPTY_EXPERIENCE);
   const [prefsOpen, setPrefsOpen] = useState(false);
-  const [justSaved, setJustSaved] = useState(false);
 
   /* The dwell prompt. `settled` covers both outcomes — shown or dismissed — and
      survives a reload, so the interruption is a once-per-session event rather
@@ -371,7 +365,6 @@ export default function JobBoardPrototype() {
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
-  const matchCount = countMatches(visibleGroups, preferences);
 
   const sortOptions = useMemo<SortOption[]>(
     () => [
@@ -401,6 +394,13 @@ export default function JobBoardPrototype() {
   /* Passed to onClick handlers, so it takes no arguments — a bare `signIn` would
      be handed a MouseEvent as its flag. */
   const onSignIn = () => signIn(false);
+
+  /* The Welcome banner always opens the form, filters or no filters — its own
+     copy is "Sign in to tell us what you're looking for", so landing someone on
+     a signed-in board and stopping there breaks the sentence they just pressed.
+     Same contract as the dwell prompt, which makes the same promise in the same
+     words and answers it the same way. */
+  const onBannerSignIn = () => signIn(true);
 
   /** Marks the dwell prompt done for the session, whichever way it ended. */
   const settlePrompt = () => {
@@ -460,28 +460,58 @@ export default function JobBoardPrototype() {
     setExperience(nextExperience);
     setViewer('preferences-set');
     setPrefsOpen(false);
-    setJustSaved(true);
     // The list re-sorts behind the modal — the reward has to be visible from where
     // they were standing, not somewhere they'd have to go looking for it.
     setParam('sort', MATCH_SORT);
+
+    /* The confirmation is a toast, not a strip in the page.
+
+       It reports on something that just happened and then has nothing left to
+       say, which is what a toast is for — and it dismisses itself, so the
+       "report and leave" behaviour comes from the component instead of an 8s
+       timer clearing a flag. Production's `toast`, mounted app-wide in
+       app/layout.tsx: same shell, position and status icon as every other
+       confirmation in the product, including this prototype's own referral
+       error.
+
+       It also unblocks the page. As a strip it took the slot directly above the
+       list, so the moment it appeared it pushed the newly re-sorted board down —
+       the confirmation covered the thing it was confirming.
+
+       Counts come off `next`, not the `preferences` state set two lines up: that
+       setter hasn't applied yet on this tick. `visibleGroups` is the rail's
+       current set, which saving doesn't change — only the sort does, and sorting
+       doesn't change how many roles match. */
+    const savedMatches = countMatches(visibleGroups, next);
+    const profileLine = summariseExperience(nextExperience);
+
+    toast.success(
+      <>
+        {/* One template string for the tail, not interleaved JSX: two expressions
+            with text between them lose the space at the wrap and it renders
+            "13roles". */}
+        Saved. <strong>{savedMatches}</strong>
+        {` of ${totalRoles} roles match what you're looking for — sorted to the top, and teams hiring for them can find you.`}
+        {/* Only when there's a line to name — skills alone are a real answer but
+            not a sentence, and "your profile now reads ." is worse than saying
+            nothing. */}
+        {profileLine && ` Your profile now reads ${profileLine}.`}
+      </>,
+    );
   };
 
-  /* The confirmation reports and leaves. Left up it would become the permanent
-     banner this whole design is trying not to be. */
-  useEffect(() => {
-    if (!justSaved) return;
-    const t = setTimeout(() => setJustSaved(false), 8000);
-    return () => clearTimeout(t);
-  }, [justSaved]);
-
-  /* Prototype scaffolding: replay the prompt on demand. Puts the viewer back to
-     logged-out first, because a sign-in prompt shown to someone already signed in
-     would be reviewing a state that can't happen. */
+  /* Prototype scaffolding: replay the dwell prompt on demand.
+   *
+   * It can't be reviewed any other way. The prompt fires once per session after
+   * 20 seconds of *visible* time, and firing settles it permanently — so without
+   * this, seeing it a second time means a new session and another 20-second wait.
+   *
+   * Puts the viewer back to logged-out first, because a sign-in prompt shown to
+   * someone already signed in would be reviewing a state that can't happen. */
   const showPromptNow = () => {
     setViewer('logged-out');
     setPreferences(EMPTY_PREFERENCES);
     setExperience(EMPTY_EXPERIENCE);
-    setJustSaved(false);
     setPrefsOpen(false);
     try {
       window.sessionStorage.removeItem(PROMPT_SETTLED_KEY);
@@ -505,7 +535,6 @@ export default function JobBoardPrototype() {
     setViewer(next);
     setPreferences(next === 'preferences-set' ? SAVED_PREFERENCES : EMPTY_PREFERENCES);
     setExperience(next === 'preferences-set' ? SAVED_EXPERIENCE : EMPTY_EXPERIENCE);
-    setJustSaved(false);
     setPrefsOpen(false);
     setParam('sort', next === 'preferences-set' ? MATCH_SORT : undefined);
   };
@@ -553,13 +582,43 @@ export default function JobBoardPrototype() {
     );
   }
 
+  /* The way back into the preferences form.
+
+     Without it step 1 was write-once: the nudge strip removes itself the moment
+     preferences exist, and the sort gate stops firing for the same reason, so
+     between them there was no route back to the modal. Step 2's answers were
+     always editable — they land on real profile fields and the modal says so —
+     but the four things that actually sort the board were not.
+
+     Only while `matchMode` is on, which already implies saved preferences (see
+     its definition). That's the one moment the person is looking at a board
+     arranged by an answer they gave, so it's the one moment "change that answer"
+     is worth screen space. Under any other sort it would be a control for
+     something not currently happening.
+
+     Reopens the modal rather than linking to /settings/job-alerts, where this
+     state really lives: sending someone to settings to widen a search they are
+     standing in front of is the trip the modal exists to avoid. `prefsOpen` is
+     the existing state and the modal already seeds from saved preferences, so
+     this is a setter call and nothing else. */
   const titleBlock = (
-    <h1 className={contentCss.title}>
-      Job Board{' '}
-      <span className={contentCss.titleCount}>
-        ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
-      </span>
-    </h1>
+    <>
+      <h1 className={contentCss.title}>
+        Job Board{' '}
+        <span className={contentCss.titleCount}>
+          ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'}
+          )
+        </span>
+      </h1>
+      {matchMode && (
+        <p className={s.matchLine}>
+          Sorted around what you&apos;re looking for.{' '}
+          <button type="button" className={s.matchEdit} onClick={() => setPrefsOpen(true)}>
+            Edit
+          </button>
+        </p>
+      )}
+    </>
   );
 
   const content = (
@@ -568,10 +627,42 @@ export default function JobBoardPrototype() {
           visitor (`components/page/home/Welcome`), in the same slot it holds
           there — first block in the column, above the page's own content. One
           sign-in ask per page, and it's this one. */}
-      {!isLoggedIn && <SignInBanner criteria={criteria} onSignIn={onSignIn} />}
+      {!isLoggedIn && <SignInBanner criteria={criteria} onSignIn={onBannerSignIn} />}
+
+      {/* Prototype-only: replay the dwell prompt without waiting out its timer.
+          Directly under the Welcome banner, because that's the state it belongs
+          to — the prompt is the logged-out ask, and pressing this puts the page
+          back to logged out, so the control and the thing it produces sit
+          together.
+
+          Note what it is *not*: the banner's own Sign in opens the preferences
+          modal, which is where the prompt leads, but the prompt itself is a
+          different dialog with its own copy. Reaching the destination is not the
+          same as reviewing the thing that sends you there.
+
+          Unconditional, unlike the banner above it — signed in, this is the way
+          back to the logged-out state, so gating it on `!isLoggedIn` would make
+          it unreachable exactly when it's needed. */}
+      <div className={s.promptBand}>
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Sign-in prompt</span>
+          <div className={v0.switch}>
+            <button type="button" className={`${v0.switchBtn} ${v0.switchBtnActive}`} onClick={showPromptNow}>
+              Show it now
+            </button>
+          </div>
+          <span className={v0.switchNote}>
+            Logged out, it opens by itself after 20s of visible time on the page — once per session, never over another
+            dialog, and dismissing it settles it for good.
+          </span>
+        </div>
+      </div>
 
       {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
-      <div className={contentCss.mobileHeader}>{titleBlock}</div>
+      {/* `mobileHeader` is a baseline row with no wrap, so the match line would
+          sit alongside the title and overflow on a narrow screen. The local class
+          only adds wrapping. */}
+      <div className={`${contentCss.mobileHeader} ${s.mobileHeaderWrap}`}>{titleBlock}</div>
       <div className={contentCss.mobileFilters}>
         <JobBoardMobileFilters />
       </div>
@@ -604,44 +695,47 @@ export default function JobBoardPrototype() {
           only: logged out, the ask is the banner at the top of the column, and
           the preference question comes after the account exists. */}
       {isLoggedIn && (
-        <MatchNudgeStrip
-          criteria={criteria}
-          preferences={preferences}
-          experience={experience}
-          matchCount={matchCount}
-          totalRoles={totalRoles}
-          justSaved={justSaved}
-          onSetPreferences={() => setPrefsOpen(true)}
-        />
+        <MatchNudgeStrip criteria={criteria} preferences={preferences} onSetPreferences={() => setPrefsOpen(true)} />
       )}
 
-      {/* Prototype-only: which version of the team-update strip the cards wear.
-          The "Preview as" viewer switch is parked for now — the viewer state and
-          `onSelectViewer` below still drive the page from their defaults, so the
-          control can come back by re-rendering a switchBar over VIEWER_OPTIONS. */}
-      <div className={s.versionRow}>
-        <div className={v0.switchBar}>
-          <span className={v0.switchLabel}>Update</span>
-          <div className={v0.switch} role="tablist" aria-label="Team update version">
-            {NEWS_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                role="tab"
-                aria-selected={newsVariant === opt.value}
-                className={`${v0.switchBtn} ${newsVariant === opt.value ? v0.switchBtnActive : ''}`}
-                onClick={() => setNewsVariant(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <span className={v0.switchNote}>{NEWS_NOTE[newsVariant]}</span>
+      {visibleGroups.length === 0 ? (
+        <div className={s.empty}>No roles match your filters. Try clearing some.</div>
+      ) : (
+        <div className={contentCss.list}>
+          {visibleGroups.map((group) => (
+            <JobTeamGroupCard
+              key={group.team.uid}
+              group={group}
+              newsVariant={NEWS_VARIANT}
+              matchMode={matchMode}
+              isMatch={(role) => matchesPreferences(preferences, role)}
+              canRefer={isLoggedIn}
+              onReferBlocked={onSignIn}
+            />
+          ))}
         </div>
+      )}
+    </div>
+  );
 
-        {/* Prototype-only: the mobile bar's fifth slot. Nothing above 1024px
-            shows it, so it's worth saying what it does rather than leaving the
-            switch looking broken on a desktop review. */}
+  /* Review chrome, above the navbar rather than inside the content column.
+     These switches are scaffolding for whoever is reviewing the prototype, not
+     part of the page — sitting between the toolbar and the list they read as a
+     product control, and they pushed the thing under review below the fold.
+     Above the header they're plainly outside the page, and they scroll away
+     while the (sticky) navbar stays, so the board is reviewed on its own. */
+  const reviewControls = (
+    <div className={s.reviewBand}>
+      <div className={s.versionRow}>
+        {/* The team-update switch used to lead here; the placement is settled, so
+            the cards just wear it (see NEWS_VARIANT). The "Preview as" viewer
+            switch is parked — the viewer state and `onSelectViewer` below still
+            drive the page from their defaults, so it can come back by rendering a
+            switchBar over VIEWER_OPTIONS. */}
+
+        {/* The mobile bar's fifth slot. Nothing above 1024px shows it, so it's
+            worth saying what it does rather than leaving the switch looking
+            broken on a desktop review. */}
         <div className={v0.switchBar}>
           <span className={v0.switchLabel}>Mobile bar</span>
           <div className={v0.switch} role="tablist" aria-label="Mobile bottom bar variant">
@@ -664,46 +758,13 @@ export default function JobBoardPrototype() {
             viewer signs the page in, because nobody resolves PL Infra logged out.
           </span>
         </div>
-
-        {/* Prototype-only, and the only way to review a 20-second timer without
-            waiting 20 seconds for it. Re-arms the session key too, so it can be
-            replayed. */}
-        <div className={v0.switchBar}>
-          <span className={v0.switchLabel}>Sign-in prompt</span>
-          <div className={v0.switch}>
-            <button type="button" className={`${v0.switchBtn} ${v0.switchBtnActive}`} onClick={showPromptNow}>
-              Show it now
-            </button>
-          </div>
-          <span className={v0.switchNote}>
-            Logged out, it opens by itself after 20s of visible time on the page — once per session, never over another
-            dialog, and dismissing it settles it for good.
-          </span>
-        </div>
       </div>
-
-      {visibleGroups.length === 0 ? (
-        <div className={s.empty}>No roles match your filters. Try clearing some.</div>
-      ) : (
-        <div className={contentCss.list}>
-          {visibleGroups.map((group) => (
-            <JobTeamGroupCard
-              key={group.team.uid}
-              group={group}
-              newsVariant={newsVariant}
-              matchMode={matchMode}
-              isMatch={(role) => matchesPreferences(preferences, role)}
-              canRefer={isLoggedIn}
-              onReferBlocked={onSignIn}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 
   return (
     <>
+      {reviewControls}
       {nav}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
       {/* The dwell prompt. Never rendered alongside the preferences modal — the

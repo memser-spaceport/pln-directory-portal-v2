@@ -428,9 +428,9 @@ export default function TeamProfilePrototype() {
           </div>
           {/* The rail's two exits, paired on one row. They're deliberately not
               interchangeable: "View all news" stays inside this team (the modal
-              is its own archive), while "All network updates" leaves for the home feed
-              (named after that page's own H2, and it carries forum/events/Demo Day
-              too — not just team news)
+              is its own archive), while "All updates" leaves for the home feed
+              (which carries forum/events/Demo Day too — not just team news; "all"
+              is the word marking that widening, and the ↗ carries "elsewhere")
               — hence the ↗ and the quieter neutral text against the blue. When
               there's no archive to open, the remaining button takes the row. */}
           <div className={local.newsFooter}>
@@ -440,7 +440,7 @@ export default function TeamProfilePrototype() {
               </button>
             )}
             <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
-              All network updates
+              All updates
               <ArrowUpRightIcon aria-hidden="true" />
             </Link>
           </div>

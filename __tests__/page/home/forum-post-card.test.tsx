@@ -89,6 +89,12 @@ describe('ForumPostCard', () => {
     expect(onFeedForumPostCardClicked).toHaveBeenCalledWith(post, 0, 'home', 'row');
   });
 
+  it('does not make the title a forum link — the row opens the modal instead', () => {
+    renderCard();
+
+    expect(screen.queryByRole('link', { name: 'Willow Is Live!' })).not.toBeInTheDocument();
+  });
+
   it('discloses the real NodeBB thread in place rather than opening the modal', () => {
     const { onOpenDetail } = renderCard();
 

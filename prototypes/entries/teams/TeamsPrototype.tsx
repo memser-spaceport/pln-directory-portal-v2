@@ -64,22 +64,24 @@ export default function TeamsPrototype() {
       return next;
     });
   /**
-   * What the card says about the team's news — four answers to compare by
-   * looking, which is the only way this call gets made honestly. Listed in tab
-   * order, which is also the order they open on:
-   *  - `count`    — "3 updates" in the neutral chip. States a fact and lets the
-   *    team's own name stay the loudest thing on the card. The default, so the
-   *    quietest treatment is the one you judge the others against.
-   *  - `follow`   — that same chip paired with the feed's Follow control across
-   *    the top band. Tests whether a card should let you act on a team as well
-   *    as read about it.
-   *  - `new`      — "3 new" in brand blue: the same count, pitched as an offer
-   *    rather than a fact. Twelve blue marks down a grid is twelve things
-   *    competing for one click, which is what this tab is for seeing.
-   *  - `headline` — the latest story itself. Says *why* you'd open the team
-   *    rather than how much is in there, and costs a row of card height to.
+   * What the card says about the team's news. Three answers now, down from six —
+   * the question narrowed to how one count should be marked, so the tabs that
+   * answered a different question came off. Listed in tab order:
+   *  - `dot`      — "3 new posts" led by production's unread dot, and the
+   *    default. The dot carries "you haven't seen it", which frees the words to
+   *    name what kind of thing is waiting rather than repeating that it's new.
+   *  - `new`      — "3 new" in brand blue. Twelve blue marks down a grid is
+   *    twelve things competing for one click.
+   *  - `short`    — the same words at the same size in the neutral chip. Sat
+   *    next to the tab before it, colour is the only variable left: grey states,
+   *    blue asks, and this is where you decide which the grid wants.
+   *
+   * Dropped from the switch: `count` (the same sentence behind the news glyph
+   * instead of the dot), `follow` (count + a Follow control on the top band) and
+   * `headline` (the latest story itself, a row of card height). `TeamCardView`
+   * still implements all three — nothing selects them.
    */
-  const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('count');
+  const [updatesLabel, setUpdatesLabel] = useState<TeamUpdatesMode>('dot');
   /** The `count` chip lists a team's news here instead of leaving for the feed. */
   const [newsModal, setNewsModal] = useState<{
     teamName: string;
@@ -182,10 +184,13 @@ export default function TeamsPrototype() {
           value={updatesLabel}
           onValueChange={(v) => setUpdatesLabel(v as TeamUpdatesMode)}
           tabs={[
-            { label: 'Updates', value: 'count' },
-            { label: 'Follow', value: 'follow' },
-            { label: 'New', value: 'new' },
-            { label: 'Headline', value: 'headline' },
+            { label: 'New posts + dot', value: 'dot' },
+            // These two say "3 new" at the same 11px in the same 18px pill; the
+            // only thing that differs is the colour, which is the question.
+            // Named for that difference, since "New" alone no longer tells the
+            // two apart.
+            { label: 'New (blue)', value: 'new' },
+            { label: 'New (grey)', value: 'short' },
           ]}
         />
       </div>

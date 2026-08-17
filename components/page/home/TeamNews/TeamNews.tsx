@@ -962,7 +962,6 @@ export const TeamNews = ({
                           isOwnPost={isOwnForumPost(entry.post, currentUser?.uid)}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
-                          useLink={activeCategory === DISCUSSIONS_CAT}
                         />
                       );
                     case 'hiring':
@@ -1033,7 +1032,6 @@ export const TeamNews = ({
           onClose={closePost}
           post={activeForumPost}
           isOwnPost={isOwnForumPost(activeForumPost, currentUser?.uid)}
-          useLink={activeCategory === DISCUSSIONS_CAT}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

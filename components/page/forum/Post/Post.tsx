@@ -340,6 +340,9 @@ export const Post = () => {
       <div className={s.root}>
         <PostComments
           comments={data?.posts?.slice(1)}
+          // The same number the stats row above renders, so the two "Comments"
+          // counts on this screen can't disagree.
+          total={post.meta.comments}
           tid={post.tid}
           mainPid={post.pid}
           onReply={(pid) => setReplyToPid(pid)}

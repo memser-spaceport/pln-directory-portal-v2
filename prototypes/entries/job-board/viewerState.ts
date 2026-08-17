@@ -35,6 +35,56 @@ export interface JobPreferences extends RoleCriteria {
   openToNewRoles: boolean;
 }
 
+/**
+ * The other half of the match, and the other direction of it.
+ *
+ * Preferences point the board at the person; **this points the person at the
+ * teams**. It is deliberately not a new object either: `title` / `company` are
+ * production's `TEditExperienceForm` (the profile's own Experience entry) and
+ * `skills` is `member.skills`, the field the settings form already owns. So the
+ * three fields the modal collects have a home before it asks for them — which is
+ * what lets it say "we'll put this on your profile" instead of parking the
+ * answers somewhere only the job board can see.
+ *
+ * Trimmed against the production form on purpose: description, start/end dates
+ * and location stay in Settings → Profile. A person mid-browse will answer "what
+ * do you do and where" and abandon a date picker, and none of the omitted fields
+ * change who finds you.
+ *
+ * Note what this is *not*: an input to the match. Matching runs on stated
+ * intent (`roleMatches`) and nothing here feeds it — no inferred seniority, no
+ * years-of-experience score. Experience makes the person legible to a team
+ * reading them; it never quietly re-ranks the board.
+ */
+export interface MemberExperience {
+  /** Production `TEditExperienceForm.title` — labelled "Role" on the profile. */
+  title: string;
+  /** Production `TEditExperienceForm.company` — "Team or Organization". */
+  company: string;
+  /** Production `member.skills`, same field the settings form edits. */
+  skills: string[];
+}
+
+export const EMPTY_EXPERIENCE: MemberExperience = { title: '', company: '', skills: [] };
+
+/** Seeds the "preferences already set" preview state alongside `SAVED_PREFERENCES`. */
+export const SAVED_EXPERIENCE: MemberExperience = {
+  title: 'Senior Protocol Engineer',
+  company: 'Lattice Compute',
+  skills: ['Distributed Systems', 'Rust'],
+};
+
+export const hasExperience = (experience: MemberExperience): boolean =>
+  experience.title.trim().length > 0 || experience.company.trim().length > 0 || experience.skills.length > 0;
+
+/** "Senior Protocol Engineer at Lattice Compute" — the line the profile will show. */
+export function summariseExperience(experience: MemberExperience): string {
+  const title = experience.title.trim();
+  const company = experience.company.trim();
+  if (title && company) return `${title} at ${company}`;
+  return title || company;
+}
+
 export const EMPTY_CRITERIA: RoleCriteria = {
   roleCategory: [],
   seniority: [],

@@ -24,6 +24,21 @@
   gap: 16px;
 }
 
+/* "Comments (N)" over the modal thread. The forum's equivalent is 20px/600
+   (PostComments.module.scss `.title`), but both modals already title their
+   article at 20px/700 — matching it would tie the two, so it steps down a size
+   and keeps the weight and token. */
+.heading {
+  /* .thread's flex gap is 22px; the forum sits its composer 16px under the
+     title, so pull the difference back rather than restructure the column. */
+  margin: 0 0 -6px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
 .composer {
   display: flex;
   flex-direction: column;

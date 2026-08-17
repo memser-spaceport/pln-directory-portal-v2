@@ -127,6 +127,14 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+
+  // The band's other target has one and this didn't, so tabbing through the strip
+  // showed a ring, then nothing, then a ring. Same outline as `.storyTarget`.
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 /* Source chip leading the row (Going's publisher-above-headline pattern).

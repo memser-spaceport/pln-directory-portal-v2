@@ -90,6 +90,26 @@
   border-radius: 8px;
 }
 
+/* The one that isn't a stand-in. Same box as .navIconButton plus the button
+   reset .logoButton and .newsTrigger already carry, so nothing moves when the
+   glyph becomes clickable — only the cursor and the hover say so. */
+.navIconTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
 .navAvatar {
   display: inline-flex;
   align-items: center;

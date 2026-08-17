@@ -56,6 +56,11 @@ const poolFixture = {
   pointsUsed: 40,
   pointsRemaining: 60,
   eligible: true,
+  pointsMin: 10,
+  pointsMax: 100,
+  pointsStep: 10,
+  messageMin: 25,
+  messageMax: 500,
 } satisfies ICommunityPool;
 
 const recipientsFixture = {

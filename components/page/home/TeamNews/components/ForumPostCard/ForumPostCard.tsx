@@ -28,7 +28,6 @@ interface ForumPostCardProps {
    *  same as news items' upvote fields. */
   post: IFeedForumPost;
   position: number;
-  useLink?: boolean;
   /** Resolved by TeamNews against the signed-in member, like the like state
    *  itself, so the card and the modal can never disagree about it. */
   isOwnPost?: boolean;
@@ -44,7 +43,7 @@ interface ForumPostCardProps {
  * text interpolation only (plain text per the feed contract).
  */
 export function ForumPostCard(props: ForumPostCardProps) {
-  const { post, useLink, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
+  const { post, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
 
   const analytics = useTeamNewsAnalytics();
   const [threadOpen, setThreadOpen] = useState(false);
@@ -108,7 +107,7 @@ export function ForumPostCard(props: ForumPostCardProps) {
           }
         }}
       >
-        <ForumPostTitle post={post} useLink={useLink} />
+        <ForumPostTitle post={post} />
         <p className={s.summary}>{post.body}</p>
         <div className={s.footer}>
           <span className={s.source}>

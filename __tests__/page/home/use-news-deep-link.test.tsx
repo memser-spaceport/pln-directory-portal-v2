@@ -60,3 +60,31 @@ describe('useNewsDeepLink — comment URL hygiene', () => {
     expect(new URLSearchParams(window.location.search).get('comment')).toBe('c1');
   });
 });
+
+describe('useNewsDeepLink — soft-nav while already on /home (LAB-2281)', () => {
+  it('adopts a mid-session ?news= without remounting and keeps ?comment=', () => {
+    setUrl('');
+    const isValidUid = (uid: string) => uid === 'n1';
+    const { result, rerender } = renderHook(() => useNewsDeepLink({ isValidUid }));
+
+    expect(result.current.activeNewsUid).toBeNull();
+    expect(result.current.openedViaDeepLink).toBe(false);
+
+    setUrl('?news=n1&comment=c1');
+    rerender();
+
+    expect(result.current.activeNewsUid).toBe('n1');
+    expect(result.current.openedViaDeepLink).toBe(true);
+    expect(new URLSearchParams(window.location.search).get('comment')).toBe('c1');
+  });
+
+  it('does not mark a card openNews as a deep-link open', () => {
+    setUrl('');
+    const { result } = renderHook(() => useNewsDeepLink({ isValidUid: () => true }));
+
+    act(() => result.current.openNews('n2'));
+
+    expect(result.current.activeNewsUid).toBe('n2');
+    expect(result.current.openedViaDeepLink).toBe(false);
+  });
+});

@@ -1,0 +1,227 @@
+// PL Spotlight — Overview card.
+//
+// COLOR POLICY: the same one the table's stylesheet sets out at length. This is
+// the back-office app, which paints in Tailwind grays rather than the PL
+// palette, so every color is `var(--pl-role, #exact-back-office-hex)` — the
+// fallback is what renders, the token name says which PL role it would snap to
+// (prototypes/CLAUDE.md #3 + #6). Pairs are taken from the sibling table
+// stylesheet wherever the role already exists there, so the two stacked cards
+// cannot drift: #eee borders, #f9fafb surfaces, #111827 values, #455468 labels,
+// #9ca3af em dashes, #156ff7 links.
+//
+// The one hex not already in that file is #d1d5db, on input borders: #eee is
+// invisible as a field edge, and an input the eye cannot find is worse than an
+// off-family gray.
+
+@use 'styles/media';
+
+.card {
+  padding: 24px;
+  border: 0.8px solid var(--border-neutral-subtle, #eee);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+
+  @include media.mobile-only {
+    padding: 16px;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// The screenshot's Edit control: a white bordered pill, no icon. "Edit template"
+// in the row below is the same control at the same size on purpose — they are
+// the same kind of promise (this opens somewhere you can change it), just at
+// different scopes.
+.ghostButton {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.04);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+.primaryButton {
+  @extend .ghostButton;
+
+  border-color: var(--icon-link, #156ff7);
+  background: var(--icon-link, #156ff7);
+  color: var(--background-base-white, #ffffff);
+
+  &:hover {
+    background: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// ── Field grid ────────────────────────────────────────────────────────────────
+// Two columns, as the screenshot lays them out, with the last rows spanning
+// both. 48px between columns so a long email address in the left column cannot
+// be read as continuing into the right one.
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 48px;
+  row-gap: 24px;
+
+  @include media.mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 20px;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.span {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.value {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+  overflow-wrap: anywhere;
+}
+
+.valueLink {
+  @extend .value;
+
+  color: var(--icon-link, #156ff7);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// The em dash for an unset field. Same lighter gray the table gives its "-" and
+// "no data" cells, at the value's own size so the column still scans as a column.
+.empty {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--foreground-neutral-tertiary, #9ca3af);
+}
+
+.caption {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+// ── Edit mode ─────────────────────────────────────────────────────────────────
+// Native inputs, for the reason the table's checkbox and selects are native:
+// this is a back-office screen, and its controls are the browser's.
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-muted, #d1d5db);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #111827);
+
+  &::placeholder {
+    font-weight: 400;
+    color: var(--foreground-neutral-tertiary, #9ca3af);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: -1px;
+  }
+}
+
+.select {
+  cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+// ── Email Template row ────────────────────────────────────────────────────────
+// The one row whose value is a door rather than a string. It keeps the same
+// label-over-value shape as every field around it, with the button standing
+// where the value would be — so it reads as one more configuration row, which is
+// what it is, and not as a section that happens to sit inside the card.
+//
+// The rule above it separates the four email-configuration rows (Support /
+// Sender / Sender Name / Reply-To, which this belongs with) from the analytics
+// rows below.
+
+.templateField {
+  padding-top: 20px;
+  border-top: 1px solid var(--border-neutral-subtle, #eee);
+}
+
+// The button is left-aligned in the value slot, NOT pushed to the card's right
+// edge like the section-level Edit above it. The card is ~1500px wide; right
+// alignment would put 1400px between the control and the label naming it, and
+// at that distance it reads as belonging to the card rather than to the row.
+.templateRow {
+  display: flex;
+  align-items: center;
+}

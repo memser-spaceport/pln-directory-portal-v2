@@ -229,6 +229,35 @@ type FeedEntry =
 /** News and discussion are the feed's reason to exist; everything else is supporting. */
 const isStory = (e: FeedEntry) => e.kind === 'news' || e.kind === 'forum';
 
+/**
+ * Land `el` at the top of the reading area — the arrival for `?focus=<teamUid>`.
+ *
+ * `scrollIntoView` alone can't do it for a team near the end of the feed: the
+ * page runs out of scroll before the card reaches the top, so it stops wherever
+ * the floor is and the reader arrives on a card sitting a third of the way down
+ * with a stranger's card above it. Measured: Protocol Labs' cluster settled at
+ * 279px against Filecoin Foundation's 96px, purely because the feed bottoms out
+ * — the scroll was already at its maximum, not drifting.
+ *
+ * So lay down exactly as much runway as the shortfall needs (usually none — any
+ * cluster with a viewport of feed under it already reaches the top) and then
+ * scroll. Precise rather than a blanket `padding-bottom: 100vh`: dead space at
+ * the end of a feed is a lie about how much there is to read, and this adds the
+ * minimum that makes the card reachable — often zero.
+ *
+ * The scroller is `document.body`, not the document element: portal-v2's layout
+ * scrolls the body, which is why `window.scrollY` reads 0 here at every scroll
+ * position.
+ */
+function landAtTop(el: Element) {
+  const scroller = document.body;
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const elTop = el.getBoundingClientRect().top + scroller.scrollTop;
+  const shortfall = elTop - margin - (scroller.scrollHeight - scroller.clientHeight);
+  if (shortfall > 0) scroller.style.paddingBottom = `${Math.ceil(shortfall)}px`;
+  el.scrollIntoView({ block: 'start' });
+}
+
 /** Local copy of production `NewsBase` with our own heading. */
 function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
   return (
@@ -406,6 +435,15 @@ export default function NewsfeedPrototype() {
      * the team being asked for is usually past it — scrolling to a card that
      * hasn't rendered silently does nothing. Then polls for the anchor, since it
      * lands a frame or two after the state change.
+     *
+     * Top-aligned, not centred. Centring dropped the reader into the middle of a
+     * feed with half a stranger's card above the one they asked for, which reads
+     * as an arbitrary scroll position rather than an arrival — you can't tell
+     * what you're looking at without scrolling up. Landed at the top, the card
+     * they clicked is the first thing under the header and the rest of the feed
+     * runs below it. `.focusAnchor` carries the offset that keeps it clear of the
+     * sticky header; `landAtTop()` makes the top reachable for the last clusters
+     * in the feed, which the page would otherwise run out of scroll before.
      */
     const focusTeam = params.get('focus');
     if (focusTeam) {
@@ -414,7 +452,7 @@ export default function NewsfeedPrototype() {
       const find = () => {
         const el = document.querySelector(`[data-feed-team="${focusTeam}"]`);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          landAtTop(el);
           return;
         }
         if (tries++ < 120) {
@@ -790,7 +828,7 @@ export default function NewsfeedPrototype() {
       return (
         // Anchor for `?focus=<teamUid>` — the job board's "+N more updates" lands
         // on this card rather than scoping the whole feed to the team.
-        <div key={`news-${entry.cluster.teamUid}`} data-feed-team={entry.cluster.teamUid}>
+        <div key={`news-${entry.cluster.teamUid}`} data-feed-team={entry.cluster.teamUid} className={local.focusAnchor}>
           <V0FeedCard
             cluster={entry.cluster}
             following={followedTeams.has(entry.cluster.teamUid)}

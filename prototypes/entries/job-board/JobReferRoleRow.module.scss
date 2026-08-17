@@ -10,7 +10,20 @@
 
 // Sits after the role title. Never shrinks, and never pushes the title's own
 // truncation around — the title is the thing you read first.
+//
+// 12px rather than Badge's default 14px: at 14px it sat level with the 14px role
+// title beside it and competed for the first read. It qualifies the title, so it
+// reads second. 16px line-height is the scale's own pairing for 12px (Button,
+// Tabs, JobsFilterBody all use it). Badge.root already supplies the 2px gap and
+// centre alignment the icon needs.
 .matchBadge {
   flex-shrink: 0;
   align-self: center;
+
+  font-size: 12px;
+  line-height: 16px;
+
+  svg {
+    flex-shrink: 0;
+  }
 }

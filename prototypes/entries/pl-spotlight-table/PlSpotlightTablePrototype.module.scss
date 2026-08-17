@@ -30,6 +30,13 @@
   }
 }
 
+// The Overview card above the table. 16px, not the 24px gutter: they are two
+// views of one record, so they sit closer to each other than either does to the
+// edge of the page.
+.overview {
+  margin-bottom: 16px;
+}
+
 // ── The table card ────────────────────────────────────────────────────────────
 // Frame 750:691 measures 1488px around rows of 1486.4px, i.e. a 0.8px border on
 // every side. Radius is the one value the metadata does not carry; 8px matches

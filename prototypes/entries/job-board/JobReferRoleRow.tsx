@@ -16,6 +16,7 @@ import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
+import { BoltIcon } from './icons';
 import { ReferModal } from './components/ReferModal';
 
 interface JobReferRoleRowProps {
@@ -74,9 +75,21 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               {roleTitle}
             </a>
             {/* Beside the title rather than out with the actions: it qualifies the
-                role, it isn't something you can do to it. */}
+                role, it isn't something you can do to it.
+
+                "Matches you", not a bare "Match", because this page holds two
+                things a role could be matching: the filters applied in the rail
+                right now, and the preferences saved in the modal. That difference
+                — transient narrowing versus stated intent — is the whole feature,
+                and "Match" sits ambiguously between them. "you" names which one.
+
+                Not "Top match". `matchesPreferences` is a boolean — a role either
+                satisfies the stated criteria or it doesn't, and there's no score
+                behind it. "Top" would promise a ranking the data can't back, on
+                every matching role at once. */}
             {showMatch && (
               <Badge variant="brand" className={js.matchBadge}>
+                <BoltIcon />
                 Matches you
               </Badge>
             )}

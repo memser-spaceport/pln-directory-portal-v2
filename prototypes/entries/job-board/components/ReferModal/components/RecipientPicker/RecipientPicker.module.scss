@@ -165,11 +165,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--foreground-neutral-tertiary, #8897ae);
   transition: color 0.2s ease;
 
   &:hover {
-    color: #455468;
+    color: var(--foreground-neutral-secondary, #455468);
   }
 }
 

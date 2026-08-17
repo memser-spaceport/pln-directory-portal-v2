@@ -36,12 +36,6 @@
   }
 }
 
-/* Saved state. Same surface, no action — it reports and then it's gone. */
-.confirmation.confirmation {
-  justify-content: flex-start;
-  gap: 8px;
-}
-
 // Takes the row's slack so the sentence stays beside its info glyph and the
 // action stays pinned right. Without it, `space-between` spreads glyph, sentence
 // and button evenly and the sentence floats untethered in the middle.

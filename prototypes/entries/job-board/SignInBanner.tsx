@@ -30,13 +30,17 @@ interface SignInBannerProps {
  * rather than opening with a generic pitch on a page where the person is clearly
  * already looking for something specific.
  *
- * **Narrowing the rail also pins it.** This is the answer to "pop a modal after a
- * few seconds": a timer fires at the moment of least intent — nothing asked,
- * nothing offered yet — whereas filtering *is* the statement of intent, and the
- * four axes the rail collects are exactly the four the preferences modal wants.
- * So the ask escalates when it's earned, and it escalates by staying in view
- * rather than by blocking: the person keeps browsing, and the offer is still
- * there when they decide. Nothing is taken hostage to get a login.
+ * **Narrowing the rail also pins it.** Filtering *is* the statement of intent,
+ * and the four axes the rail collects are exactly the four the preferences modal
+ * wants — so the ask escalates when it's earned, and it escalates by staying in
+ * view rather than by blocking: the person keeps browsing, and the offer is
+ * still there when they decide. Nothing is taken hostage to get a login.
+ *
+ * `SignInPromptModal` now sits on top of this as the timed ask, and the two split
+ * the work rather than competing: this one is the standing offer that is always
+ * there and costs nothing to ignore, the modal is the single moment it steps
+ * forward. That's also why the modal is once per session — every other second on
+ * the page, the banner is the ask.
  *
  * The pinned state drops the "Welcome to LabOS" title and runs as one line. An
  * introduction is for someone who just arrived; someone filtering has arrived.

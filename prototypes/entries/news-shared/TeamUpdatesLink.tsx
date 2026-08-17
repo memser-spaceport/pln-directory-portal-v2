@@ -12,8 +12,14 @@ import s from './TeamUpdatesLink.module.scss';
 interface TeamUpdatesLinkProps {
   teamName: string;
   items: ITeamNewsItem[];
-  /** `small` (12px) for dense rows — teams grid tags row, profile team lists. */
-  size?: 'default' | 'small';
+  /**
+   * `small` (12px) for dense rows — teams grid tags row, profile team lists.
+   * `chip` (11px) matches the neutral count chip on the teams grid exactly, so
+   * the two can be compared with colour as the only variable. Size was doing
+   * some of the arguing otherwise: the blue badge stood 2px taller and a point
+   * larger, which reads as emphasis whatever colour it's wearing.
+   */
+  size?: 'default' | 'small' | 'chip';
   /**
    * Render as a button instead of an anchor, for cards that are themselves one
    * big link (the teams grid). An `<a>` inside an `<a>` is invalid HTML — the
@@ -31,8 +37,18 @@ interface TeamUpdatesLinkProps {
    *    information. Note this reads "new" the way the rest of the prototypes do
    *    — unread by *you*, not recent in itself — so it doesn't take the
    *    freshness gate `count` needs.
+   *  - `new-count` — "3 new posts": `new`'s reading of new, with the noun spelled
+   *    out. For surfaces carrying a single badge per card, where the noun is what
+   *    says which stream is being counted. Ungated for the same reason `new` is.
    */
-  label?: 'count' | 'recency' | 'new';
+  label?: 'count' | 'recency' | 'new' | 'new-count';
+  /**
+   * What the badge counts, in words. `update` reads a team's news as the stream
+   * of things that happened to it — right beside a team, everywhere a team
+   * appears. `post` names the unit the destination actually holds, which is what
+   * the job board wants: the feed's posts about this team, not its job posts.
+   */
+  noun?: 'update' | 'post';
   /**
    * The trailing ↗. On by default: it marks the badge as an exit, which matters
    * where it stands alone. The teams grid turns it off — twelve cards means
@@ -68,7 +84,9 @@ function timeAgo(iso: string): string {
 
 /**
  * "N new updates" badge next to a team, anywhere a team appears: says the team is
- * doing things, and hands the reader off to the newsfeed to read them.
+ * doing things, and hands the reader off to the newsfeed to read them. (The job
+ * board asks for the same badge in the feed's own noun — "N new posts"; see
+ * `label` and `noun`.)
  *
  * It never opens the stories in place. The surfaces that carry this badge (job
  * board, teams grid, profile rows) are scanning surfaces — the feed is the place
@@ -90,6 +108,7 @@ export function TeamUpdatesLink({
   items,
   size = 'default',
   label = 'count',
+  noun = 'update',
   nested = false,
   arrow = true,
   href: hrefOverride,
@@ -105,13 +124,20 @@ export function TeamUpdatesLink({
   // list dated 6 weeks ago, which is the kind of small lie that costs a feed its
   // credibility.
   const isRecent = Date.now() - new Date(latest.eventDate).getTime() <= NEWS_WINDOW_DAYS * 86_400_000;
-  const noun = items.length === 1 ? 'update' : 'updates';
-  const countLabel = isRecent ? `${items.length} new ${noun}` : `${items.length} ${noun}`;
+  const nounForm = items.length === 1 ? noun : `${noun}s`;
+  const countLabel = isRecent ? `${items.length} new ${nounForm}` : `${items.length} ${nounForm}`;
+  const newCountLabel = `${items.length} new ${nounForm}`;
   const text =
-    label === 'recency' ? `Updated ${timeAgo(latest.eventDate)}` : label === 'new' ? `${items.length} new` : countLabel;
+    label === 'recency'
+      ? `Updated ${timeAgo(latest.eventDate)}`
+      : label === 'new'
+        ? `${items.length} new`
+        : label === 'new-count'
+          ? newCountLabel
+          : countLabel;
   const href = hrefOverride ?? `/prototypes/newsfeed?team=${latest.teamUid}`;
 
-  const className = `${s.badge} ${size === 'small' ? s.small : ''}`;
+  const className = `${s.badge} ${size === 'small' ? s.small : ''} ${size === 'chip' ? s.chip : ''}`;
   // The badge sits beside the team's name, so the label alone reads right on
   // screen; the accessible name still has to stand on its own out of context.
   //
@@ -121,7 +147,7 @@ export function TeamUpdatesLink({
   // you, not as recent — while `countLabel` still applies the freshness gate, so
   // borrowing countLabel there would announce "5 updates" over a badge saying
   // "5 new". Spell the noun out instead and the visible text is a prefix again.
-  const spokenCount = label === 'new' ? `${items.length} new ${noun}` : countLabel;
+  const spokenCount = label === 'new' || label === 'new-count' ? newCountLabel : countLabel;
   const ariaLabel = `${spokenCount} about ${teamName} — read on the newsfeed`;
   const body = (
     <>

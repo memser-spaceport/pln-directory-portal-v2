@@ -18,7 +18,7 @@ import js from './JobTeamGroupCard.module.scss';
 
 import { JobReferRoleRow } from './JobReferRoleRow';
 import { TeamUpdateStrip, type TeamUpdateVariant } from '../news-shared/TeamUpdateStrip';
-import { TeamUpdatesLink } from '../news-shared/TeamUpdatesLink';
+import { TeamNewsCountChip } from '../news-shared/TeamNewsCountChip';
 import { getTeamNews, feedFocusHref } from '../news-shared/mockTeamNews';
 // The feed's own story modal and engagement seeds, so an update opened from the
 // job board is the same object as one opened from the feed — same body, sources,
@@ -31,16 +31,15 @@ import fa from '../newsfeed-v0/FeedActions.module.scss';
 const INITIAL_ROLES_SHOWN = 3;
 const MAX_FOCUS_CHIPS = 100;
 
-/** The strip's three versions, plus the count badge they were meant to replace. */
+/** The default count badge, plus the three strip versions offered against it. */
 export type JobCardNewsVariant = TeamUpdateVariant | 'count';
 
 interface JobTeamGroupCardProps {
   group: IJobTeamGroup;
   /**
    * Prototype-only: which version of the team's news the card shows. `count` is
-   * the "N new updates" badge this replaced, kept for comparison; `inline` puts
-   * the story on the name row where that badge stood; the other two put it below
-   * the roles.
+   * the default — the "N new posts" badge on the name row; `inline` puts a
+   * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
   /** True while "Best match for me" is the active sort. */
@@ -108,11 +107,24 @@ export function JobTeamGroupCard({
   /* The count badge takes the name row, same slot the inline story does — the two
      are alternatives for the same place, which is what makes them comparable.
      Its destination is the strip's, not the badge's own `?team=` scope, so the
-     board never hands anyone a filter to undo. */
+     board never hands anyone a filter to undo.
+
+     "N new posts", not "N new updates": the badge is a door to the feed, so it
+     counts in the feed's own unit — and on a board of job posts, "updates"
+     beside a team could be read as its openings. Always "new", never a bare
+     count, because on this board the badge is the team's only news signal:
+     "2 posts" beside a team name reads as an archive size, and the thing being
+     offered is that there is something here you haven't read.
+
+     The teams grid's chip verbatim — `TeamNewsCountChip`, grey Badge shell and
+     production's unread dot — rather than the brand-blue badge it used to wear.
+     One mark for one claim wherever a team appears; and on a board where every
+     card already carries blue Refer/Apply controls, a blue news badge was a
+     second thing per card asking for the click. */
   const newsStrip =
     newsVariant === 'count' ? (
       news.length > 0 && (
-        <TeamUpdatesLink teamName={team.name} items={news} size="small" href={feedFocusHref(news[0])} />
+        <TeamNewsCountChip teamName={team.name} items={news} noun="post" href={feedFocusHref(news[0])} />
       )
     ) : (
       <TeamUpdateStrip teamName={team.name} items={news} variant={newsVariant} onOpenStory={openStory} />
@@ -134,7 +146,7 @@ export function JobTeamGroupCard({
         <div className={s.headerMain}>
           {/* The story belongs to the team, so it sits with the team's name; it
               wraps under the name when there's no room for both. */}
-          <div className={js.nameRow}>
+          <div className={`${js.nameRow} ${newsVariant === 'count' ? js.nameRowChip : ''}`}>
             <h3 className={s.teamName}>{team.name}</h3>
             {newsOnNameRow && newsStrip}
           </div>

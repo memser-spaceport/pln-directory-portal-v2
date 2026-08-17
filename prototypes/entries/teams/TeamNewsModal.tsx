@@ -111,13 +111,14 @@ export function TeamNewsModal({
               behind a close-and-start-again.
               "All" is doing work here rather than padding: the reader is inside
               one team's list, so the word is what marks the widening to
-              everything. Same string on the team profile and member profile,
+              everything. "Network" isn't — the ↗ already says "elsewhere", so
+              the label stays "All updates". Same string on team and member profile,
               which sit beside team-scoped lists for the same reason — a
               cross-surface exit that reads differently per page is how
               vocabulary drifts. */}
           <div className={local.newsModalFooter}>
             <Link href="/prototypes/newsfeed" prefetch={false} className={local.newsModalFeedLink}>
-              All network updates
+              All updates
               <ArrowUpRightIcon aria-hidden="true" />
             </Link>
           </div>

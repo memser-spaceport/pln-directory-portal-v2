@@ -255,6 +255,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/ai-apps/AiAppsPrototype'),
   },
   {
+    key: 'agent-session-chat',
+    title: 'Agent session — chat & detail',
+    description:
+      'Mocked recreation of /pl-infra/agent-sessions/<id>: the sticky identity header with its status badge, the Overview / Chat tabs, the message thread (agent markdown vs. plain admin bubbles, the amber question treatment, the outcome badge that closes a run ending without a final message) and the docked composer that says sending starts a new agent run. Overview carries the meta grid, the prompt, the feature-env deploy / delete controls and the derived progress steps. A state switcher moves the session between running, waiting for input, PR created with a live feature env, and failed; View as flips between the admin (tabs + chat) and the VIEW-only member, who gets no tab bar at all. Answering the agent while it waits resumes the run, and Deploy / Delete walk the feature environment through its states.',
+    category: 'PL Infra',
+    load: () => import('./entries/agent-session-chat/AgentSessionChatPrototype'),
+  },
+  {
     key: 'ai-apps-feedback',
     title: 'AI Apps — feedback',
     description:

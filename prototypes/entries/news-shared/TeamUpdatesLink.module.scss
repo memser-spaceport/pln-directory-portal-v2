@@ -31,6 +31,17 @@
     color: var(--foreground-brand-primary, #1b4dff);
     text-decoration: none;
   }
+
+  // The badge had no focus style in either form, so on the teams grid — where it
+  // renders as a bare <button> inside a card link — a keyboard user had nothing
+  // to follow. The outline the prototypes already use everywhere else
+  // (TeamUpdateStrip's story target, the teams grid's own pill button): 2px
+  // brand, offset 2, radius matching the pill.
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 9999px;
+  }
 }
 
 .icon {
@@ -59,6 +70,30 @@
 
   .text {
     font-size: 12px;
+    line-height: 16px;
+  }
+
+  .icon svg,
+  .arrow {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// Sized to sit exactly where the teams grid's neutral count chip sits: Badge's
+// `.root` + TeamUpdateStrip's `.sourceChip` come to 11px/16 text in `0 6px` of
+// padding over a 1px border — 18px tall. Transcribed rather than approximated,
+// because the whole point of the pairing is that colour is the only difference
+// left between the two; a 2px height gap would quietly argue for one of them.
+.chip {
+  gap: 4px;
+  padding: 0 6px;
+
+  .text {
+    // The base `.text` carries `padding: 0 2px`; the neutral chip has no such
+    // inner inset, so the two would sit at different widths for the same string.
+    padding: 0;
+    font-size: 11px;
     line-height: 16px;
   }
 

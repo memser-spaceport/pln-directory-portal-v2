@@ -12,8 +12,12 @@ import {
   JOBS_LINK,
   DEALS_LINK,
   FOUNDER_GUIDES_LINK,
+  GANTRY_LINK,
+  INVESTOR_DB_LINK,
+  AI_APPS_LINK,
+  AGENT_SESSIONS_LINK,
 } from '@/components/core/navbar/constants/navLinks';
-import { MoreIcon } from '@/components/core/navbar/components/icons';
+import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
 import { MobileNavItemWithMenu } from '@/components/core/MobileBottomNav/components/MobileMenuItem';
 import { DemoDayIcon, DirectoryIcon, EventsIcon } from '@/components/core/MobileBottomNav/components/icons';
 
@@ -43,17 +47,32 @@ import { scrollToTop } from './home';
  * routes at opposite ends of the screen are fine as long as only one is
  * load-bearing.
  *
+ * **Home takes the centre slot**, third of five:
+ *
+ *   Directory · Events · Home · Demo Day · More
+ *   Directory · PL Infra · Home · Demo Day · More   (PL Infra viewers)
+ *
+ * The middle of a five-slot bar is the shortest thumb travel on a phone and the
+ * one position that doesn't move when the slots either side change — which is
+ * exactly what the two orders above do. Putting the most-visited destination
+ * where it can't shift means muscle memory survives the RBAC split; leaving
+ * Home first would have it sitting in the corner that's hardest to reach and
+ * furthest from the thumb's rest position.
+ *
  * Six items would break this bar, and viewers who also see PL Infra would hit
- * six. Fold PL Infra into More for them rather than dropping Home — Home is for
- * everyone, PL Infra is for a subset, so the universal item takes the slot.
- * Not modelled here: this copy already drops the PL Infra slot (see below).
+ * six. PL Infra takes the second slot for them and **Events** drops into More
+ * rather than Home dropping out — Home is for everyone, and a PL Infra viewer
+ * is by definition an internal user who reaches events through the feed and the
+ * directory anyway. Forum is already in More on mobile (production seeds it
+ * there); it stays reachable in the feed for anyone with access, which is why
+ * demoting a category here costs less than it looks like it should.
  *
  * Unlike the desktop navbar, this one *does* have an active state
  * (`.itemActive`), so the News item uses it rather than inventing one — on a
  * page that isn't the feed (`active={false}`) it renders like its neighbours.
  * Simplified the same way as the desktop copy: the RBAC-gated Demo Day
- * analytics variant and the PL Infra slot are dropped, and More carries a
- * static list.
+ * analytics variant is dropped, and both the PL Infra list and More carry
+ * static links instead of the permission-resolved ones.
  */
 interface PrototypeMobileNavProps {
   hasUnreadNews: boolean;
@@ -65,7 +84,18 @@ interface PrototypeMobileNavProps {
   active?: boolean;
   /** Re-selecting Home while on Home: refresh in place instead of navigating. */
   onHomeReselect?: () => void;
+  /**
+   * A viewer production would resolve PL Infra links for (`useGetPlInfraNavItems`).
+   * Swaps Events out of slot 2 for PL Infra and moves the event links into More,
+   * so the bar stays at five items. Signed-in only in production — nobody sees
+   * PL Infra logged out — so pages pass their own auth state in.
+   */
+  plInfra?: boolean;
 }
+
+/* Static stand-in for `useGetPlInfraNavItems()`, which resolves this same list
+   one permission at a time. A prototype viewer either has the slot or doesn't. */
+const PL_INFRA_LINKS = [GANTRY_LINK, INVESTOR_DB_LINK, AI_APPS_LINK, AGENT_SESSIONS_LINK];
 
 export function PrototypeMobileNav({
   hasUnreadNews,
@@ -73,6 +103,7 @@ export function PrototypeMobileNav({
   onNewsClick,
   active = false,
   onHomeReselect,
+  plInfra = false,
 }: PrototypeMobileNavProps) {
   const className = clsx(s.item, { [s.itemActive]: active }, local.mobileNewsItem);
   const label = hasUnreadNews ? 'Home, new items since your last visit' : 'Home';
@@ -97,6 +128,17 @@ export function PrototypeMobileNav({
     <div className={clsx(s.wrapper, local.mobileNav)}>
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
+          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
+
+          {/* The slot that switches. One item either way, so Home never moves. */}
+          {plInfra ? (
+            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={PL_INFRA_LINKS} />
+          ) : (
+            <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+          )}
+
+          {/* Centre slot: shortest thumb travel, and the one position that holds
+              still across both orders above. */}
           <NavigationMenu.Item>
             {newsHref ? (
               <a
@@ -121,15 +163,15 @@ export function PrototypeMobileNav({
             )}
           </NavigationMenu.Item>
 
-          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
-          <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
           <MobileNavItemWithMenu icon={<DemoDayIcon />} label="Demo Day" items={[DEMO_DAY_LINK]} />
+
           {/* Production seeds More with FORUM_LINK ahead of the RBAC-resolved
-              list; the rest is static here. */}
+              list; the rest is static here. Events joins it when PL Infra has
+              taken its slot — demoted, never dropped. */}
           <MobileNavItemWithMenu
             icon={<MoreIcon />}
             label="More"
-            items={[FORUM_LINK, JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
+            items={[FORUM_LINK, ...(plInfra ? EVENT_LINKS : []), JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
           />
         </NavigationMenu.List>
       </NavigationMenu.Root>

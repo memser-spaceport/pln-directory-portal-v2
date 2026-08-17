@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
+import { FEED_COMMENT_PARAM } from '../utils/feedCommentAnchor';
+
 const NEWS_PARAM = 'news';
 
 /** Owns the ?news=<uid> ↔ modal-state sync for the /home Team News feed.
@@ -19,6 +21,10 @@ const NEWS_PARAM = 'news';
  *  History model: replace-only on open and close — Back never toggles the
  *  modal, it leaves the page. Deliberate (a URL-derived open would silently
  *  reopen on Back after a deep-linked visit).
+ *
+ *  Notification deep links may also carry ?comment=<uid>; closing the modal
+ *  or opening a story from a card clears that param so a prior anchor does
+ *  not re-scroll.
  */
 export function useNewsDeepLink({ isValidUid }: { isValidUid: (uid: string) => boolean }) {
   const pathname = usePathname();
@@ -36,10 +42,18 @@ export function useNewsDeepLink({ isValidUid }: { isValidUid: (uid: string) => b
   const writeUrl = useCallback(
     (uid: string | null) => {
       // Copy the LIVE params (not the mount-time snapshot) and touch only
-      // `news` — shared links carry utm_* etc. that must survive open/close.
+      // `news` / `comment` — shared links carry utm_* etc. that must survive
+      // open/close.
       const params = new URLSearchParams(window.location.search);
-      if (uid === null) params.delete(NEWS_PARAM);
-      else params.set(NEWS_PARAM, uid);
+      if (uid === null) {
+        params.delete(NEWS_PARAM);
+        params.delete(FEED_COMMENT_PARAM);
+      } else {
+        params.set(NEWS_PARAM, uid);
+        // Card / in-feed opens are not notification anchors — drop a leftover
+        // ?comment= so the modal does not scroll to a stale row.
+        params.delete(FEED_COMMENT_PARAM);
+      }
       const qs = params.toString();
       window.history.replaceState(null, '', `${pathname || '/home'}${qs ? `?${qs}` : ''}`);
     },

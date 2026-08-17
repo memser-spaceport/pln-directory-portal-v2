@@ -13,6 +13,24 @@
   flex-direction: column;
   gap: 22px; /* a bit more air between the comment field and the comments below */
   margin-top: 16px; /* + the body's 16px gap = 32px above the comment field */
+
+  :global(.feed-comment-highlighted) {
+    background: linear-gradient(90deg, rgba(27, 77, 255, 0.1) 0%, rgba(27, 77, 255, 0.05) 100%);
+    border-radius: 8px;
+    animation: feedCommentHighlightPulse 3s ease-in-out;
+  }
+}
+
+@keyframes feedCommentHighlightPulse {
+  0% {
+    background: rgba(27, 77, 255, 0.2);
+  }
+  50% {
+    background: rgba(27, 77, 255, 0.1);
+  }
+  100% {
+    background: rgba(27, 77, 255, 0.05);
+  }
 }
 
 /* On a card there is no modal-body gap to add to, and the thread butts straight

@@ -97,6 +97,14 @@ interface PrototypeMobileNavProps {
    one permission at a time. A prototype viewer either has the slot or doesn't. */
 const PL_INFRA_LINKS = [GANTRY_LINK, INVESTOR_DB_LINK, AI_APPS_LINK, AGENT_SESSIONS_LINK];
 
+/* Production's MobileNavItemWithMenu reports every sub-item navigation to PostHog
+   and requires the handler. A prototype is a design preview behind /prototypes —
+   firing real nav events from it would file prototype traffic alongside the
+   product's own numbers, so this is the deliberate analytics drop the folder's
+   rules allow. Module scope, not inline: a fresh closure per render would defeat
+   the memoized menu items for nothing. */
+const noopNavClick = () => {};
+
 export function PrototypeMobileNav({
   hasUnreadNews,
   newsHref,
@@ -128,13 +136,28 @@ export function PrototypeMobileNav({
     <div className={clsx(s.wrapper, local.mobileNav)}>
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
-          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
+          <MobileNavItemWithMenu
+            icon={<DirectoryIcon />}
+            label="Directory"
+            items={DIRECTORY_LINKS}
+            onNavItemClickHandler={noopNavClick}
+          />
 
           {/* The slot that switches. One item either way, so Home never moves. */}
           {plInfra ? (
-            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={PL_INFRA_LINKS} />
+            <MobileNavItemWithMenu
+              icon={<StarFourIcon />}
+              label="PL Infra"
+              items={PL_INFRA_LINKS}
+              onNavItemClickHandler={noopNavClick}
+            />
           ) : (
-            <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+            <MobileNavItemWithMenu
+              icon={<EventsIcon />}
+              label="Events"
+              items={EVENT_LINKS}
+              onNavItemClickHandler={noopNavClick}
+            />
           )}
 
           {/* Centre slot: shortest thumb travel, and the one position that holds
@@ -163,7 +186,12 @@ export function PrototypeMobileNav({
             )}
           </NavigationMenu.Item>
 
-          <MobileNavItemWithMenu icon={<DemoDayIcon />} label="Demo Day" items={[DEMO_DAY_LINK]} />
+          <MobileNavItemWithMenu
+            icon={<DemoDayIcon />}
+            label="Demo Day"
+            items={[DEMO_DAY_LINK]}
+            onNavItemClickHandler={noopNavClick}
+          />
 
           {/* Production seeds More with FORUM_LINK ahead of the RBAC-resolved
               list; the rest is static here. Events joins it when PL Infra has
@@ -172,6 +200,7 @@ export function PrototypeMobileNav({
             icon={<MoreIcon />}
             label="More"
             items={[FORUM_LINK, ...(plInfra ? EVENT_LINKS : []), JOBS_LINK, DEALS_LINK, FOUNDER_GUIDES_LINK]}
+            onNavItemClickHandler={noopNavClick}
           />
         </NavigationMenu.List>
       </NavigationMenu.Root>

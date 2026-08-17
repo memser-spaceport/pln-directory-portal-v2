@@ -182,6 +182,8 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
   NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
+  NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
+  NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {

@@ -39,7 +39,7 @@ export const STEPS: { title: string; description: ReactNode }[] = [
           </li>
           <li>Open the LabOS link your agent gives you, sign in, and click Approve.</li>
           <li>
-            <em>Optional</em> — if the backend needs a database, your agent will ask whether to let PLN provision one
+            <em>Optional</em> — if the backend needs a database, your agent will ask whether to let PL provision one
             automatically or connect one you already have. If it needs access to other data or external services, your
             agent will send a second LabOS link. Enter your{' '}
             <strong>secrets (API keys / passwords / your own database)</strong> there and click Deploy. Never paste keys
@@ -59,7 +59,7 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
   {
     version: '1.8',
     items: [
-      'Already have your own database? Your agent can now migrate it to a PLN-managed one for you, carrying over your existing data structure',
+      'Already have your own database? Your agent can now migrate it to a PL-managed one for you, carrying over your existing data structure',
       'Your agent tells you plainly if anything about your current database setup (like its own login system) can’t come along automatically',
     ],
   },
@@ -73,7 +73,7 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
   {
     version: '1.6',
     items: [
-      'Ask PLN to provision a database for your app automatically — no accounts or setup needed',
+      'Ask PL to provision a database for your app automatically — no accounts or setup needed',
       'Bringing your own database instead? Connect it the same way as any other secret',
       'UI kit update: higher fidelity to the product, every state inspectable in Storybook, more control over individual components, and a broader component set',
     ],

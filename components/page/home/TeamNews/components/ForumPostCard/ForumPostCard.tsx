@@ -39,9 +39,8 @@ interface ForumPostCardProps {
  * A member-authored forum post in the feed (ported from the newsfeed-v0
  * prototype). Only viewers with forum access ever see this card — TeamNews
  * gates rendering on live useForumAccess().hasAccess — so unlike NewsCard
- * there is no signed-out #login branch here. Title is a real link to the
- * forum topic (new tab); body/author render via JSX text interpolation
- * (plain text per the feed contract).
+ * there is no signed-out #login branch here. Title/body/author render via JSX
+ * text interpolation only (plain text per the feed contract).
  */
 export function ForumPostCard(props: ForumPostCardProps) {
   const { post, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;

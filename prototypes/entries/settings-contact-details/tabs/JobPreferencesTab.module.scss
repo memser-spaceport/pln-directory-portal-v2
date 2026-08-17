@@ -1,0 +1,38 @@
+// Local layout only. The card, its padding and the tab title come from
+// production's JobAlertsManager.module.scss; the fields bring their own styling
+// from FormMultiSelect and ProfileCollaborateInput.
+
+// The line under the tab title that says what these fields are for. Secondary,
+// because it explains the form rather than being part of it.
+.intro {
+  margin: 0;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 16px;
+}
+
+// 16px between fields, matching the job-board modal's own step 1 so the two
+// renderings of these same four questions read as one form in two places.
+.fields {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 16px;
+}
+
+// Save sits right, the way production's settings forms end their cards.
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-self: stretch;
+}

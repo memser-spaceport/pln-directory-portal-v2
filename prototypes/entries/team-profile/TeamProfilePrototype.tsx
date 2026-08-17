@@ -15,9 +15,8 @@ import {
   NoDataBlock,
 } from '@/components/common/profile/DetailsSection';
 import { TagsList } from '@/components/common/profile/TagsList';
-import { Modal } from '@/components/common/Modal';
-import { SearchInput } from '@/components/common/filters/SearchInput';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 // Import-safe production view + hook (no store / service / analytics).
 import { TeamFocusAreasView } from '@/components/page/team-details/TeamFocusAreas/components/TeamFocusAreasView';
@@ -42,12 +41,12 @@ import { EventsContributionsView } from '../demoday-tag-placements/EventsContrib
 import { MOCK_EVENT_GROUPS, MOCK_DEMO_DAY_CONTRIB } from '../demoday-tag-placements/mocks';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
+// The archive itself — the same component the teams grid's news chip opens, so
+// one team's news is one box wherever you reach it from.
+import { TeamNewsModal } from '../news-shared/TeamNewsModal';
 // The feed's story detail modal + its event palette, so a story reads the same
 // wherever it's opened from.
-import { FeedDetailModal, FeedDetailBody, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
-// The story body's own stylesheet, for the `embedded` modifier that drops its
-// card chrome when it renders inside the archive's box.
-import detailCss from '../newsfeed-v0/FeedDetailModal.module.scss';
+import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal';
 import { EVENT_TYPE_LABEL, EVENT_TYPE_HEX } from '../newsfeed-v0/eventMeta';
 import type { FeedComment } from '../newsfeed-v0/mocks';
 import local from './TeamProfile.module.scss';
@@ -76,10 +75,19 @@ export default function TeamProfilePrototype() {
   // popovers). Gate render on mount so SSR === first client render.
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+  /**
+   * The team's mark, resolved exactly as the page header resolves it (see
+   * TeamDetailsView). Every surface that names the team wears it — the archive's
+   * header, and the story headers reached from the rail, the archive and the
+   * mobile page — because a news item's own `teamLogoUrl` is only set when the
+   * feed happened to resolve one, and a header that falls back to a letter tile
+   * reads as a different team's page than the one behind it.
+   */
+  const defaultAvatar = useDefaultAvatar(team?.name ?? '');
+  const teamLogo = team?.logo ?? defaultAvatar ?? '/icons/team-default-profile.svg';
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [newsFocusUid, setNewsFocusUid] = useState<string | null>(null);
   const [newsQuery, setNewsQuery] = useState('');
-  const modalListRef = useRef<HTMLDivElement>(null);
   const [following, setFollowing] = useState(false);
   const [followToast, setFollowToast] = useState(false);
   const followToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,7 +177,7 @@ export default function TeamProfilePrototype() {
     kind: 'news',
     title: item.title,
     name: item.teamName,
-    logoUrl: item.teamLogoUrl,
+    logoUrl: item.teamLogoUrl ?? teamLogo,
     kicker: EVENT_TYPE_LABEL[item.eventType],
     kickerColor: EVENT_TYPE_HEX[item.eventType],
     summary: item.summary,
@@ -180,13 +188,17 @@ export default function TeamProfilePrototype() {
   const openDetail = (item: ITeamNewsItem) => setDetail(toDetail(item));
 
   /**
-   * The story the archive has drilled into, kept apart from `detail` above.
+   * The story the MOBILE archive has drilled into, kept apart from `detail`
+   * above.
    *
    * The rail opens a story as an overlay over the profile; the archive is
-   * *already* an overlay, so it swaps its own body instead — a modal over a
-   * modal would give the reader two close buttons and an Escape key that means
-   * two different things. Two states because the two surfaces answer a click
-   * differently, not because the story differs.
+   * *already* covering the screen, so it swaps its own body instead — a modal
+   * over a modal would give the reader two close buttons and an Escape key that
+   * means two different things. Two states because the two surfaces answer a
+   * click differently, not because the story differs.
+   *
+   * Desktop no longer needs this: `TeamNewsModal` owns its own drill state (and
+   * its own scroll-back), the same way it does on the teams grid.
    */
   const [archiveStory, setArchiveStory] = useState<FeedDetail | null>(null);
 
@@ -236,25 +248,6 @@ export default function TeamProfilePrototype() {
     setNewsFocusUid(archiveStory?.id ?? null);
     setArchiveStory(null);
   };
-
-  // Desktop: when the archive opens (or returns) focused on an item, scroll it
-  // into view and flash it. Mobile handles its own focus inside
-  // NewsFullPageView. Keyed on `archiveStory` too, so Back re-runs it once the
-  // list is back in the DOM.
-  useEffect(() => {
-    if (!newsModalOpen || isMobile || archiveStory || !newsFocusUid) return;
-    const el = modalListRef.current?.querySelector<HTMLElement>(`[data-news-uid="${newsFocusUid}"]`);
-    if (!el) return;
-    const raf = requestAnimationFrame(() => {
-      el.scrollIntoView({ block: 'center' });
-      el.classList.add(local.newsHighlight);
-    });
-    const timer = setTimeout(() => el.classList.remove(local.newsHighlight), 1500);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(timer);
-    };
-  }, [newsModalOpen, isMobile, newsFocusUid, archiveStory]);
 
   const focusAreas = useGetFocusAreasToDisplay(MOCK_FOCUS_AREAS, MOCK_TEAM_FOCUS_AREAS);
 
@@ -428,7 +421,7 @@ export default function TeamProfilePrototype() {
           </div>
           {/* The rail's two exits, paired on one row. They're deliberately not
               interchangeable: "View all news" stays inside this team (the modal
-              is its own archive), while "All updates" leaves for the home feed
+              is its own archive), while "All network updates" leaves for the home feed
               (which carries forum/events/Demo Day too — not just team news; "all"
               is the word marking that widening, and the ↗ carries "elsewhere")
               — hence the ↗ and the quieter neutral text against the blue. When
@@ -440,7 +433,7 @@ export default function TeamProfilePrototype() {
               </button>
             )}
             <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
-              All updates
+              All network updates
               <ArrowUpRightIcon aria-hidden="true" />
             </Link>
           </div>
@@ -477,68 +470,32 @@ export default function TeamProfilePrototype() {
           onToggleCommentLike={toggleCommentLike}
         />
       ) : (
-        <Modal isOpen={newsModalOpen && !isMobile} onClose={closeNewsModal} className={local.newsModal}>
-          {archiveStory ? (
-            // Drilled view: the story fills the box it was listed in. The body
-            // renders its own Back-led header, so the list's header steps aside
-            // rather than stacking a second one.
-            <FeedDetailBody
-              detail={archiveStory}
-              onClose={closeNewsModal}
-              onBack={backToArchiveList}
-              className={detailCss.embedded}
-              citationStyle="off"
-              showComments
-              likeCount={likesFor(archiveStory.id)}
-              liked={likedNews.has(archiveStory.id)}
-              onToggleLike={() => toggleNewsLike(archiveStory.id)}
-              comments={threadFor(archiveStory.id)}
-              onAddComment={(text, parentUid) => addComment(archiveStory.id, text, parentUid)}
-              isCommentLiked={(uid) => likedComments.has(uid)}
-              onToggleCommentLike={toggleCommentLike}
-            />
-          ) : (
-            <>
-              <div className={local.modalHeader}>
-                <span className={local.modalTitle}>
-                  {team.name} News ({displayNews.length})
-                </span>
-                <button type="button" className={local.modalClose} onClick={closeNewsModal} aria-label="Close">
-                  <CloseIcon />
-                </button>
-              </div>
-              <div className={local.modalSearchWrap}>
-                <SearchInput value={newsQuery} onChange={setNewsQuery} placeholder="Search news by keyword or type" />
-              </div>
-              <div className={local.modalBody}>
-                {filteredNews.length > 0 ? (
-                  <div className={local.modalGrid} ref={modalListRef}>
-                    {filteredNews.map((item) => (
-                      <NewsCardView
-                        key={item.uid}
-                        item={item}
-                        hideTeam
-                        fullSummary
-                        views={viewsFor(item.uid)}
-                        likes={likesFor(item.uid)}
-                        liked={likedNews.has(item.uid)}
-                        comments={commentsFor(item.uid)}
-                        onToggleLike={() => toggleNewsLike(item.uid)}
-                        // Without these, NewsCardView falls back to opening the
-                        // source in a new tab — the archive would eject you from
-                        // the very surface built for reading.
-                        onShowMore={() => openArchiveStory(item)}
-                        onOpenComments={() => openArchiveStory(item)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className={local.modalEmpty}>No news matches “{newsQuery}”.</div>
-                )}
-              </div>
-            </>
-          )}
-        </Modal>
+        newsModalOpen && (
+          // The same box the teams grid's "N new posts" chip opens, and the job
+          // board's. This used to be its own modal written out here, which put
+          // two different-looking answers behind two doors onto one thing: the
+          // team's news. The extras the archive needs — a search field over a
+          // whole history, the like/comment state it shares with the rail —
+          // ride in as props rather than as a second component.
+          <TeamNewsModal
+            teamName={team.name ?? 'This team'}
+            teamLogo={teamLogo}
+            items={filteredNews}
+            count={displayNews.length}
+            onClose={closeNewsModal}
+            query={newsQuery}
+            onQueryChange={setNewsQuery}
+            viewsFor={viewsFor}
+            likesFor={likesFor}
+            commentsFor={commentsFor}
+            isLiked={(uid) => likedNews.has(uid)}
+            onToggleLike={toggleNewsLike}
+            threadFor={threadFor}
+            onAddComment={addComment}
+            isCommentLiked={(uid) => likedComments.has(uid)}
+            onToggleCommentLike={toggleCommentLike}
+          />
+        )
       )}
       </div>
 
@@ -566,10 +523,4 @@ export default function TeamProfilePrototype() {
     </div>
   );
 }
-
-const CloseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 

@@ -1,0 +1,272 @@
+// Only what InviteEmailModal.module.scss has no equivalent of. The card, close
+// button, envelope, title, description, field stack and footer all come from
+// that file — this modal imports its classes directly rather than restating them
+// (see the header note in EmailTemplateModal.tsx).
+//
+// Same palette rule as that file: this is a portal-looking modal, not a
+// back-office table, so it paints in the PL design system with verified
+// name+fallback pairs (prototypes/CLAUDE.md #3, #4).
+
+@use 'styles/media';
+
+// The invite modal's 520px holds one email. This one holds an email being
+// written and the same email rendered, side by side, so it takes the width two
+// columns need: 880 − 40 of padding − 24 of gap = 408 a column, which is a
+// sane measure both for composing a paragraph and for reading one back.
+//
+// It takes TWO overrides, because production's Modal caps its own container at
+// 600px (components/common/Modal/Modal.module.scss) — a card widened on its own
+// just stops at the container. `.wideContainer` goes on the Modal's className,
+// `.wide` on the card inside it. Both selectors are doubled: what they override
+// is single-class too, so at equal specificity the winner would come down to
+// CSS bundle order.
+.wideContainer.wideContainer {
+  max-width: 880px;
+}
+
+.wide.wide {
+  max-width: 880px;
+
+  @include media.mobile-only {
+    max-width: 100%;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+// Title and description ranged left over a rule, in place of the invite modal's
+// centred envelope / title / description column. The right padding keeps the
+// title clear of the close button, which sits 12px from the corner.
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+// Doubled, like every other override of a class from the borrowed stylesheet:
+// `.title` and `.desc` centre their text at single-class specificity, so at
+// equal weight the winner would be CSS bundle order.
+.headerText.headerText {
+  text-align: left;
+}
+
+// ── Edit / preview split ──────────────────────────────────────────────────────
+// `align-items: start` so the preview pane takes its content's height instead of
+// stretching to match a tall editor — an email four paragraphs long should not
+// be drawn inside a box sized for the textarea next to it.
+
+// One column by default and two from tablet-landscape (960px) up: the card is
+// `width: 100%` under its 880px cap, so below that the two columns would be
+// narrower than the measure they were sized for and both halves would suffer.
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+// ── Section blocks (Variables, Preview) ───────────────────────────────────────
+// Same 6px label→content rhythm as the body block they sit under, so the three
+// read as one column rather than as three separately-designed panels.
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.blockLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ── Variable chips ────────────────────────────────────────────────────────────
+// A control chip, not a label chip — it does something on click, so it hovers
+// brand (see the two chip lineages in the design system). The chip is the token
+// and nothing else: it is a thing you insert, and every character beyond the
+// literal text it inserts makes it a worse label for itself.
+
+.varList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.varChip {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 5px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 9999px;
+  background: var(--background-base-white, #ffffff);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    border-color: var(--foreground-brand-primary, #1b4dff);
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+.varChipToken {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  white-space: nowrap;
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+
+// Wraps, because the tabs are labelled by cohort now and those labels are far
+// longer than the two names they replaced. On a narrow column the toggle drops
+// to its own line rather than squeezing "With template vars" to three per line.
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+// A two-state segmented control: the template resolves exactly two ways — for
+// rows that carry template vars and for rows that don't — so it is a toggle over
+// two cohorts, not a dropdown over eighteen names.
+.sampleToggle {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 9999px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.sampleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: none;
+  border-radius: 9999px;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+// The cohort size, riding the label it qualifies. Tabular figures so the two
+// counts sit at the same width and switching tabs doesn't nudge the control.
+.sampleCount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.sampleButtonActive .sampleCount {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.sampleButtonActive,
+.sampleButtonActive:hover {
+  background: var(--background-base-white, #ffffff);
+  color: var(--foreground-neutral-primary, #0a0c11);
+  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+}
+
+// The rendered email. Reading text, so it drops the -0.2px tracking the UI
+// labels carry and takes a 22px line height — the same pair the description at
+// the top of the card uses.
+//
+// NO inner scroll, and this pane used to have one. It was capped at 340px so
+// that an eleven-paragraph email couldn't push the editor column off the top of
+// the card — sound on its own terms, and wrong in the card. The chrome this
+// modal borrows has exactly one scroll region by design ("only the fields
+// scroll", InviteEmailModal.module.scss), and a capped pane made a second one
+// that covered half the card. The wheel goes to whatever is under the pointer,
+// so on any window short enough to clip the field stack — which is most of them,
+// the card wants ~790px — pointing at the preview or the body textarea scrolled
+// those instead, and the Variables below simply could not be reached. Measured:
+// the stack had 115px of scroll and responded only over a thin strip of the left
+// column. One scroller is worth more than a preview that never moves: scrolling
+// to read the end of a long email is what documents do, and it is now the same
+// gesture, in the same box, wherever the pointer happens to be.
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background-color: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.previewSubject {
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+}
+
+.previewBody {
+  margin: 0;
+  // The template's paragraph breaks ARE its structure — the drop rule works on
+  // them — so they are preserved rather than collapsed.
+  white-space: pre-wrap;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  color: var(--foreground-neutral-secondary, #455468);
+  overflow-wrap: anywhere;
+}
+
+// ── Save note ─────────────────────────────────────────────────────────────────
+
+.saveNote {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

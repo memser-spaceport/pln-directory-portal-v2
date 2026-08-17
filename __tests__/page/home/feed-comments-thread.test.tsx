@@ -25,6 +25,7 @@ const useFeedCommentCountMock = useFeedCommentCount as jest.Mock;
 const routerPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPush }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
 // Quill needs a real DOM and is lazy-loaded, so it is useless in jsdom and
@@ -233,6 +234,15 @@ describe('FeedCommentsThread — list', () => {
     expect(container.querySelector('script')).toBeNull();
     expect(container.textContent).not.toContain('alert(1)');
     expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  it('gives each comment row a stable DOM id for notification deep links', () => {
+    mockThread([comment('c1', 'Hello'), comment('c2', 'World')]);
+    mockMutation(useAddFeedCommentMock);
+    const { container } = render(<FeedCommentsThread itemUid="n-1" kind="news" source="news-modal" />);
+
+    expect(container.querySelector('#feed-comment-c1')).toBeInTheDocument();
+    expect(container.querySelector('#feed-comment-c2')).toBeInTheDocument();
   });
 
   it('falls back to a readable byline when the author has no name (the wire allows null)', () => {

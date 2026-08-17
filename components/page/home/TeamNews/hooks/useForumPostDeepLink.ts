@@ -24,16 +24,21 @@ const NEWS_PARAM = 'news';
  *  Shape: the deep-link open is DERIVED during render (a valid uid + loaded
  *  posts ⇒ open) and any user action latches a manual override that wins from
  *  then on — effects below only talk to external systems (URL, analytics),
- *  never setState. The manual latch is also what defuses the async-strip race:
- *  a slow "invalid" verdict can never strip the param of a post the user
- *  opened themselves in the meantime.
+ *  never setState for the derived open. The manual latch is also what defuses
+ *  the async-strip race: a slow "invalid" verdict can never strip the param of
+ *  a post the user opened themselves in the meantime.
+ *
+ *  `?post=` is read live from searchParams (not mount-only) so a notification
+ *  or share Link soft-nav while already on /home opens the modal without a
+ *  reload (LAB-2281). After closePost(), clearing the close latch when the URL
+ *  gains a post again lets deep-link resolution resume.
  *
  *  URL writes are history.replaceState only — same rationale and replace-only
  *  history model as useNewsDeepLink (router.replace would refetch the whole
  *  /home RSC payload). Each hook owns exactly its own param; mutual exclusion
  *  with ?news= is coordinated by TeamNews (openPost closes news and vice
- *  versa), except the mount-time both-params case which is resolved here:
- *  news wins, post strips.
+ *  versa), except the both-params case which is resolved here: news wins, post
+ *  strips.
  */
 export function useForumPostDeepLink({
   posts,
@@ -51,18 +56,14 @@ export function useForumPostDeepLink({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Mount-time capture (setter-less, the file's established idiom). If the URL
-  // carries both ?news= and ?post= (mangled share), news wins — the news modal
-  // opens synchronously from SSR data, so this resolver stands down and strips
-  // its param below.
-  const [requestedUid] = useState<string | null>(() => searchParams.get(POST_PARAM));
-  const [newsWinsAtMount] = useState<boolean>(() => Boolean(searchParams.get(NEWS_PARAM)));
+  const requestedUid = searchParams.get(POST_PARAM);
+  const newsWins = Boolean(searchParams.get(NEWS_PARAM));
 
   // The user's explicit open/close — once set, it overrides the deep-link
-  // resolution for the rest of the session (the one-shot latch).
+  // resolution until cleared (close latch, or a new external ?post=).
   const [manualUid, setManualUid] = useState<{ uid: string | null } | null>(null);
 
-  const deepLinkEligible = Boolean(requestedUid) && !newsWinsAtMount && isForumPostUid(requestedUid ?? '');
+  const deepLinkEligible = Boolean(requestedUid) && !newsWins && isForumPostUid(requestedUid ?? '');
   const deepLinkPost = useMemo(
     () => (deepLinkEligible ? (posts?.find((p) => p.uid === requestedUid) ?? null) : null),
     [deepLinkEligible, posts, requestedUid],
@@ -90,29 +91,50 @@ export function useForumPostDeepLink({
     writeUrl(null);
   }, [writeUrl]);
 
-  // Report the deep-link open once, when it actually happens (may be seconds
-  // after mount — never the mount-time ref-guard idiom the news modal uses).
+  // Soft-nav after close: URL gains/changes ?post= while the close latch is
+  // held — drop the latch so deep-link resolution can open again. Own openPost
+  // writes the same uid we already latched; leave that alone.
+  const trackedUidRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!requestedUid) return;
+    setManualUid((m) => {
+      if (m === null) return null;
+      if (m.uid === requestedUid) return m;
+      return null;
+    });
+    if (trackedUidRef.current !== requestedUid) {
+      trackedUidRef.current = null;
+    }
+  }, [requestedUid]);
+
+  // Report the deep-link open once per adopted uid (may be seconds after the
+  // URL appears — never the mount-time ref-guard idiom the news modal uses).
   const trackedRef = useRef(false);
   useEffect(() => {
-    if (trackedRef.current || manualUid || !deepLinkPost) return;
+    if (!deepLinkPost || manualUid) return;
+    if (trackedRef.current && trackedUidRef.current === deepLinkPost.uid) return;
     trackedRef.current = true;
+    trackedUidRef.current = deepLinkPost.uid;
     onDeepLinkOpen?.(deepLinkPost);
   }, [deepLinkPost, manualUid, onDeepLinkOpen]);
 
-  // One-shot strip of an unresolvable param: malformed uid or news-wins strip
-  // immediately; an unknown/hidden uid only once every async gate has settled
-  // (stripping earlier would eat valid links mid-load). Fire-time
-  // re-validation: only strip if the param still holds the mount-time uid and
-  // the user hasn't taken over — their writes own the URL from then on.
-  const strippedRef = useRef(false);
+  // Strip an unresolvable param: malformed uid or news-wins strip immediately;
+  // an unknown/hidden uid only once every async gate has settled (stripping
+  // earlier would eat valid links mid-load). Fire-time re-validation: only
+  // strip if the param still holds the requested uid and the user hasn't taken
+  // over — their writes own the URL from then on.
+  // Reset the one-shot strip guard when the requested uid changes so a later
+  // soft-nav to another invalid id can still clean up.
+  const strippedForRef = useRef<string | null>(null);
   useEffect(() => {
-    if (strippedRef.current || !requestedUid || manualUid || deepLinkPost) return;
-    const conclusivelyInvalid = newsWinsAtMount || !isForumPostUid(requestedUid) || isSettled;
+    if (!requestedUid || manualUid || deepLinkPost) return;
+    if (strippedForRef.current === requestedUid) return;
+    const conclusivelyInvalid = newsWins || !isForumPostUid(requestedUid) || isSettled;
     if (!conclusivelyInvalid) return;
-    strippedRef.current = true;
+    strippedForRef.current = requestedUid;
     const current = new URLSearchParams(window.location.search).get(POST_PARAM);
     if (current === requestedUid) writeUrl(null);
-  }, [requestedUid, newsWinsAtMount, manualUid, deepLinkPost, isSettled, writeUrl]);
+  }, [requestedUid, newsWins, manualUid, deepLinkPost, isSettled, writeUrl]);
 
   return { activePostUid, openPost, closePost };
 }

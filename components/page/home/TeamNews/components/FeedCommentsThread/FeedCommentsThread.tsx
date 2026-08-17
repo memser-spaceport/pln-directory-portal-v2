@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
@@ -22,6 +22,8 @@ import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource }
 import { isForumPostUid, type IFeedComment } from '@/types/feed.types';
 import type { AnchorTarget } from '@/utils/html';
 
+import { useAnchorFeedComment } from '../../hooks/useAnchorFeedComment';
+import { FEED_COMMENT_PARAM, feedCommentDomId } from '../../utils/feedCommentAnchor';
 import { FeedCommentContent, hasRenderableContent } from './FeedCommentContent';
 
 import s from './FeedCommentsThread.module.scss';
@@ -162,6 +164,7 @@ export function FeedCommentsThread({
   onBusyChange,
 }: FeedCommentsThreadProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const analytics = useTeamNewsAnalytics();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canWrite: canWriteForum } = useForumAccess();
@@ -205,6 +208,15 @@ export function FeedCommentsThread({
   // re-checking depth.
   const comments = useMemo(() => clampDepth<IFeedComment>(items ?? [], MAX_DEPTH), [items]);
   const totalCount = useMemo(() => countComments(comments), [comments]);
+
+  // Notification deep links open the modal with ?comment=<uid>. Card previews
+  // stay capped and do not scroll.
+  const anchorCommentUid = !isCard ? searchParams.get(FEED_COMMENT_PARAM) : null;
+  useAnchorFeedComment({
+    enabled: !isCard,
+    commentUid: anchorCommentUid,
+    ready: !isPending && !isError && Boolean(items),
+  });
 
   // NodeBB serves one page of posts per request, so a busy topic's thread is
   // only partly here. Saying "View all N" over a subset would be a lie; the
@@ -717,7 +729,7 @@ function CommentRow(props: CommentRowProps) {
   };
 
   return (
-    <div className={s.item}>
+    <div className={s.item} id={feedCommentDomId(comment.uid)}>
       <img className={s.avatar} src={comment.author.avatarUrl || getDefaultAvatar(displayName)} alt="" loading="lazy" />
       <div className={s.body}>
         <div className={s.head}>

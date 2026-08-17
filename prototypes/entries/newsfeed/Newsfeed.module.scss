@@ -9,6 +9,19 @@
    prototype's Path / Mix / Curated-by switch row. The switches are gone — the
    feed renders one settled configuration — so their styles went with them. */
 
+/* The `?focus=<teamUid>` landing target — one team's cluster in the feed, arrived
+   at from a "N new posts" chip on the teams grid or the job board.
+
+   `scroll-margin-top` is what makes `block: 'start'` usable: without it the card
+   lands flush against the viewport top and the sticky header covers its first
+   rows, so the reader arrives on a card whose team name is hidden. The offset is
+   the header's own variable plus the feed's 16px rhythm — the same expression
+   `v0.followScrollSlot` uses to clear the header when it sticks. It also survives
+   the header changing height at breakpoints, which a hard-coded number wouldn't. */
+.focusAnchor {
+  scroll-margin-top: calc(var(--app-header-height, 80px) + 16px);
+}
+
 /* ---------- Event-type filter ---------- */
 
 /* Pills on desktop, a "Type:" dropdown below 640px — the same split

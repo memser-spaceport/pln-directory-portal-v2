@@ -306,13 +306,15 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                     {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
                     <PlBackingMark backing={masterProfile?.plBacking} />
                   </div>
-                  <div className={s.coInvestNames}>
-                    {coInvestments
-                      .slice(0, 5)
-                      .map((c) => c.name)
-                      .join(', ')}
-                    {coInvestments.length > 5 ? ` +${coInvestments.length - 5} more` : ''}
-                  </div>
+                  {coInvestments.length > 0 ? (
+                    <div className={s.coInvestNames}>
+                      {coInvestments
+                        .slice(0, 5)
+                        .map((c) => c.name)
+                        .join(', ')}
+                      {coInvestments.length > 5 ? ` +${coInvestments.length - 5} more` : ''}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               <button type="button" className={s.linkBtn} onClick={() => onOpenMasterProfile(investor.profileUid)}>

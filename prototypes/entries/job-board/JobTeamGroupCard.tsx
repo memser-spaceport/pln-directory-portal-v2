@@ -19,6 +19,8 @@ import js from './JobTeamGroupCard.module.scss';
 import { JobReferRoleRow } from './JobReferRoleRow';
 import { TeamUpdateStrip, type TeamUpdateVariant } from '../news-shared/TeamUpdateStrip';
 import { TeamNewsCountChip } from '../news-shared/TeamNewsCountChip';
+// The list the chip opens — the teams grid's modal, not a job-board retelling.
+import { TeamNewsModal } from '../news-shared/TeamNewsModal';
 import { getTeamNews, feedFocusHref } from '../news-shared/mockTeamNews';
 // The feed's own story modal and engagement seeds, so an update opened from the
 // job board is the same object as one opened from the feed — same body, sources,
@@ -85,6 +87,8 @@ export function JobTeamGroupCard({
    * stories those are; this just holds the one it hands over.
    */
   const [detail, setDetail] = useState<FeedDetail | null>(null);
+  /** The chip's list of this team's news, opened over the board. */
+  const [newsOpen, setNewsOpen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [feedHref, setFeedHref] = useState('/prototypes/newsfeed');
   const openStory = (item: ITeamNewsItem) => {
@@ -95,7 +99,10 @@ export function JobTeamGroupCard({
       kind: 'news',
       title: item.title,
       name: item.teamName,
-      logoUrl: item.teamLogoUrl,
+      // Fall back to the card's own mark: a news item only carries a logo when
+      // the feed resolved one, and the story shouldn't drop to a letter tile
+      // under the card that just showed the team's face.
+      logoUrl: item.teamLogoUrl ?? team.logoUrl,
       kicker: EVENT_TYPE_LABEL[item.eventType],
       kickerColor: EVENT_TYPE_HEX[item.eventType],
       summary: item.summary,
@@ -106,25 +113,23 @@ export function JobTeamGroupCard({
 
   /* The count badge takes the name row, same slot the inline story does — the two
      are alternatives for the same place, which is what makes them comparable.
-     Its destination is the strip's, not the badge's own `?team=` scope, so the
-     board never hands anyone a filter to undo.
 
-     "N new posts", not "N new updates": the badge is a door to the feed, so it
-     counts in the feed's own unit — and on a board of job posts, "updates"
-     beside a team could be read as its openings. Always "new", never a bare
-     count, because on this board the badge is the team's only news signal:
-     "2 posts" beside a team name reads as an archive size, and the thing being
-     offered is that there is something here you haven't read.
+     "N new posts", not "N new updates": it counts the feed's own unit — and on a
+     board of job posts, "updates" beside a team could be read as its openings.
+     Always "new", never a bare count, because on this board the badge is the
+     team's only news signal: "2 posts" beside a team name reads as an archive
+     size, and the thing being offered is that there is something here you
+     haven't read.
 
      The teams grid's chip verbatim — `TeamNewsCountChip`, grey Badge shell and
-     production's unread dot — rather than the brand-blue badge it used to wear.
-     One mark for one claim wherever a team appears; and on a board where every
-     card already carries blue Refer/Apply controls, a blue news badge was a
-     second thing per card asking for the click. */
+     production's unread dot — and its behaviour too: it opens the team's news
+     over the board rather than sending anyone to the feed. Someone weighing a
+     role hasn't asked to leave the board to find out what a team has been up to,
+     and the modal's footer holds the way on for whoever has. */
   const newsStrip =
     newsVariant === 'count' ? (
       news.length > 0 && (
-        <TeamNewsCountChip teamName={team.name} items={news} noun="post" href={feedFocusHref(news[0])} />
+        <TeamNewsCountChip teamName={team.name} items={news} noun="post" onOpen={() => setNewsOpen(true)} />
       )
     ) : (
       <TeamUpdateStrip teamName={team.name} items={news} variant={newsVariant} onOpenStory={openStory} />
@@ -186,6 +191,18 @@ export function JobTeamGroupCard({
       {/* After the expander, not before it: the expander belongs to the role
           list and has to stay attached to it. */}
       {!newsOnNameRow && newsStrip}
+
+      {/* The chip's list. Its own footer links on to the feed, and it drills into
+          a story in place rather than stacking a second overlay — so this and the
+          story modal below are never open at once. */}
+      {newsOpen && (
+        <TeamNewsModal
+          teamName={team.name}
+          teamLogo={team.logoUrl ?? undefined}
+          items={news}
+          onClose={() => setNewsOpen(false)}
+        />
+      )}
 
       <FeedDetailModal
         detail={detail}

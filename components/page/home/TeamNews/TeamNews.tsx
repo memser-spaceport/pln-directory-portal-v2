@@ -78,6 +78,7 @@ import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { ForumPostCard } from './components/ForumPostCard';
+import { AutoMarkNewsCommentNotification } from './AutoMarkNewsCommentNotification';
 import { NewsDetailModal } from './components/NewsDetailModal';
 import { HiringCard } from './components/HiringCard/HiringCard';
 import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
@@ -1018,6 +1019,7 @@ export const TeamNews = ({
 
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
+      <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
       {activeNewsItem && (
         <NewsDetailModal
           item={activeNewsItem}

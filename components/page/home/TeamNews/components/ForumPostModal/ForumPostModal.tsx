@@ -142,7 +142,7 @@ export function ForumPostModal(props: ForumPostModalProps) {
           {formatTimeAgo(post.createdAt)}
         </div>
 
-        <ForumPostTitle id={TITLE_ID} post={post} className={modalStyles.title} />
+        <ForumPostTitle id={TITLE_ID} post={post} asLink className={modalStyles.title} />
 
         {richBody ? (
           <div className={clsx(modalStyles.content, s.postBody)}>{richBody}</div>

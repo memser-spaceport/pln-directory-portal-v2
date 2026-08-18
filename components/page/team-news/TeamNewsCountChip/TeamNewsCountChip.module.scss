@@ -16,6 +16,8 @@
   font: inherit;
   cursor: pointer;
   text-decoration: none;
+  /* Containing block for the hit-area pseudo-element below. */
+  position: relative;
 
   &:hover {
     text-decoration: none;
@@ -25,6 +27,25 @@
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
     border-radius: 26px;
+  }
+
+  /* The chip DRAWS at 18px and is TARGETED at 24px (WCAG 2.5.8, Target Size
+     Minimum). The two are allowed to differ — the success criterion sizes the
+     target, not the ink — and they have to here: 24px of visible chip in a card
+     corner starts competing with the team name, which is the one thing the grid
+     exists to let you scan.
+     Height only. The chip runs ~77px wide at its shortest ("1 new post"), so
+     the horizontal axis already clears the minimum on its own.
+     Centred on the chip so the 3px it gains above and below stay inside the
+     card's 8px inset and never reach a neighbouring target. */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
   }
 }
 

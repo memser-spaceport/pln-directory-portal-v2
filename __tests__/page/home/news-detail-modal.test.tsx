@@ -167,12 +167,32 @@ describe('NewsDetailModal', () => {
   it('routes anonymous Likes to #login with the news deep link, without toggling', () => {
     useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
     const onUpvoteToggle = jest.fn();
-    render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={onUpvoteToggle} />);
+    render(
+      <NewsDetailModal
+        item={makeItem()}
+        onClose={jest.fn()}
+        onUpvoteToggle={onUpvoteToggle}
+        // What /home passes: the ?news= param is written with raw replaceState,
+        // so the sign-in round-trip has to name the story explicitly.
+        loginHref="/home?news=story-1#login"
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Like (4)' }));
 
     expect(mockRouterPush).toHaveBeenCalledWith('/home?news=story-1#login', { scroll: false });
     expect(onUpvoteToggle).not.toHaveBeenCalled();
+  });
+
+  it('gates guests on the current URL when no loginHref is given (team profile)', () => {
+    useCurrentUserStore.setState({ currentUser: null, isHydrated: true });
+    render(<NewsDetailModal item={makeItem()} onClose={jest.fn()} onUpvoteToggle={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Like (4)' }));
+
+    // jsdom's location is "/" — the point is that it stays on the page the
+    // reader was on rather than teleporting them to the feed.
+    expect(mockRouterPush).toHaveBeenCalledWith('/#login', { scroll: false });
   });
 
   it('forwards signed-in Likes to onUpvoteToggle with the item', () => {

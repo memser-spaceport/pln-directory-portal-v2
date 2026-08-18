@@ -1,6 +1,7 @@
 'use client';
 
 import { HTMLProps, useState } from 'react';
+import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
 import type { IJobRole } from '@/types/jobs.types';
@@ -14,6 +15,9 @@ import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component
 
 // Reuse the production ReferRoleRow styling 1:1, with local extras for the button.
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
+// Button's own stylesheet, so the Apply anchor is the real DS button and not a
+// hand-rolled lookalike.
+import btn from '@/components/common/Button/Button.module.scss';
 import js from './JobReferRoleRow.module.scss';
 
 import { BoltIcon } from './icons';
@@ -29,6 +33,17 @@ interface JobReferRoleRowProps {
   /** Referring needs a signed-in referrer; logged out, the button nudges instead. */
   canRefer?: boolean;
   onReferBlocked?: () => void;
+  /**
+   * Rank the row's actions instead of leaving them level: Apply becomes a
+   * labelled primary button and Refer drops to a tertiary text button.
+   *
+   * Off by default so the board is untouched. On the board you are scanning
+   * dozens of roles across teams and the arrow is a repeated affordance, not a
+   * call to action. On a single team's profile you have already chosen the
+   * team, so applying is the point of the row and should look like it — and
+   * referring someone else is the sideline, not the peer.
+   */
+  primaryApply?: boolean;
 }
 
 /**
@@ -48,7 +63,16 @@ interface JobReferRoleRowProps {
  *    taking something from the person to get something from them.
  */
 export function JobReferRoleRow(props: JobReferRoleRowProps) {
-  const { role, teamId, teamName, onClick, showMatch = false, canRefer = true, onReferBlocked } = props;
+  const {
+    role,
+    teamId,
+    teamName,
+    onClick,
+    showMatch = false,
+    canRefer = true,
+    onReferBlocked,
+    primaryApply = false,
+  } = props;
   const [referOpen, setReferOpen] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
@@ -109,11 +133,15 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
           )}
 
           <div className={s.actionButtons}>
+            {/* Tertiary under `primaryApply`: `.link` carries no `neutral`, so
+                `secondary` is the design system's quiet text button. It also
+                zeroes padding and min-width, which is why `.referButton` — pure
+                horizontal padding for the bordered shape — is dropped with it. */}
             <Button
               size="s"
-              style="border"
-              variant="neutral"
-              className={js.referButton}
+              style={primaryApply ? 'link' : 'border'}
+              variant={primaryApply ? 'secondary' : 'neutral'}
+              className={primaryApply ? undefined : js.referButton}
               onClick={() => (canRefer ? setReferOpen(true) : onReferBlocked?.())}
             >
               Refer
@@ -121,9 +149,23 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} />
 
-            <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
-              <ArrowIcon />
-            </a>
+            {/* An anchor wearing Button's classes rather than a <Button>: this
+                opens an external posting, so it has to stay a real link (new
+                tab, middle-click, copy address). `Button` renders a <button>
+                and nesting one inside an <a> is invalid. */}
+            {primaryApply ? (
+              <a
+                className={clsx(btn.root, btn.small, btn.fill, btn.primary, js.applyButton)}
+                aria-label={`Apply to ${roleTitle}`}
+                {...linkProps}
+              >
+                Apply
+              </a>
+            ) : (
+              <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
+                <ArrowIcon />
+              </a>
+            )}
           </div>
         </div>
       </div>

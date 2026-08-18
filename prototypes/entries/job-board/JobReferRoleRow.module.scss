@@ -16,6 +16,28 @@
 // reads second. 16px line-height is the scale's own pairing for 12px (Button,
 // Tabs, JobsFilterBody all use it). Badge.root already supplies the 2px gap and
 // centre alignment the icon needs.
+// The `primaryApply` Apply control. It carries Button's own classes, so every
+// visual property — fill, border, radius, type scale, min-width — comes from the
+// design system. This adds ONLY what an <a> lacks that a <button> has: box
+// layout, centring, and no inherited underline.
+//
+// Deliberately no padding here. An earlier version set 12px to match
+// `.referButton`, which was wrong: that padding exists for Refer's bordered
+// shape, and overriding `.small`'s own 8px/10px would have made this 4px wider
+// than a real DS button as soon as the label grew past the 72px min-width.
+.applyButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
 .matchBadge {
   flex-shrink: 0;
   align-self: center;

@@ -78,6 +78,7 @@ export function ForumPostModal({
             <h2 className={s.title}>{post.title}</h2>
             <p className={s.summary}>{post.body}</p>
             <CommentsThread
+              heading
               comments={comments}
               onAddComment={onAddComment}
               isCommentLiked={isCommentLiked}

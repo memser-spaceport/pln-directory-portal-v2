@@ -8,7 +8,6 @@ import { toast } from '@/components/core/ToastContainer';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useUpdateCommunityKudos } from '@/hooks/use-kudos';
 import { useKudosAnalytics } from '@/analytics/kudos.analytics';
-import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 import { buildCommunityKudosSchema, type CommunityKudosFormValues, type CommunityKudosLimits } from '@/schema/kudos-forms';
 import { communityGiftOptions } from './data/kudos-board.data';
 import type { ICommunityKudos, ICommunityKudosInput, IUserSummary } from './data/kudos-board.types';
@@ -30,6 +29,8 @@ interface IKudosCardProps {
   /** Remaining pool *before* this kudos' own points are added back for editing. */
   poolRemaining: number;
   limits?: CommunityKudosLimits;
+  /** The current round's id (a Round cuid, not a round number) — from ICommunityPool.roundId. */
+  currentRoundId?: string;
   /** Prototypes/tests only: seeding the real `useCurrentUserStore` with a fake user forces a genuine logout. */
   currentUserForPreview?: { uid?: string } | null;
   /** Prototypes/tests only: stands in for `useUpdateCommunityKudos()`, which needs a reachable PLAA backend. */
@@ -105,6 +106,7 @@ export function KudosCard({
   recipientsLoading = false,
   poolRemaining,
   limits,
+  currentRoundId,
   currentUserForPreview,
   onSaveForPreview,
 }: IKudosCardProps) {
@@ -116,7 +118,7 @@ export function KudosCard({
   const [isSavingPreview, setIsSavingPreview] = useState(false);
 
   const isOwn = Boolean(currentUser?.uid) && currentUser?.uid === kudos.giver.memberId;
-  const isCurrentRound = kudos.roundId === String(getCurrentRoundNumber());
+  const isCurrentRound = Boolean(currentRoundId) && kudos.roundId === currentRoundId;
   const canEdit = isOwn && isCurrentRound && Boolean(limits);
   const isLocked = isOwn && !isCurrentRound;
 

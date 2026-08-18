@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { ICommunityKudosInput } from '@/components/page/aligement-assets/kudos-board/data/kudos-board.types';
 
 import { KudosCard } from '@/components/page/aligement-assets/kudos-board/kudos-card';
-import { mockCurrentUser, mockRecipients, mockLimits, mockKudos, mockPoolRemaining } from './mocks';
+import { mockCurrentUser, mockRecipients, mockLimits, mockKudos, mockPoolRemaining, mockCurrentRoundId } from './mocks';
 
 /**
  * PLAA-50 click-through, no login or PLAA backend needed. Renders the real
@@ -62,6 +62,7 @@ export default function KudosEditPrototype() {
             recipients={mockRecipients}
             poolRemaining={mockPoolRemaining}
             limits={mockLimits}
+            currentRoundId={mockCurrentRoundId}
             currentUserForPreview={mockCurrentUser}
             onSaveForPreview={handleSaveForPreview}
           />

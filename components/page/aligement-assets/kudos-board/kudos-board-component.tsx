@@ -119,6 +119,7 @@ export default function KudosBoardComponent({
                 recipientsLoading={recipients.isLoading}
                 poolRemaining={poolRemaining}
                 limits={pool.data}
+                currentRoundId={pool.data?.roundId}
               />
             ))}
           </div>

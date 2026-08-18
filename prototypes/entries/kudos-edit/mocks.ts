@@ -1,4 +1,3 @@
-import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 import type { CommunityKudosLimits } from '@/schema/kudos-forms';
 import type { ICommunityKudos, IUserSummary } from '@/components/page/aligement-assets/kudos-board/data/kudos-board.types';
 
@@ -20,8 +19,9 @@ export const mockLimits: CommunityKudosLimits = {
   messageMax: 500,
 };
 
-const currentRoundId = String(getCurrentRoundNumber());
-const pastRoundId = String(getCurrentRoundNumber() - 1);
+// Round ids are Round cuids (e.g. "clx7f8g3k0000abc123"), not round numbers.
+export const mockCurrentRoundId = 'round-cuid-current';
+const pastRoundId = 'round-cuid-past';
 
 // Literal timestamps, not `Date.now() - N`: this module runs once at server
 // render and again at hydration, and a module-scope `Date.now()` would
@@ -31,7 +31,7 @@ export const mockKudos: ICommunityKudos[] = [
     id: 'kudos-editable',
     giver: mockCurrentUser,
     recipient: mockRecipients[0],
-    roundId: currentRoundId,
+    roundId: mockCurrentRoundId,
     points: 60,
     message: 'Ran the retro that finally got the two teams talking about the shared schema.',
     createdAt: '2026-08-15T09:00:00.000Z',
@@ -49,7 +49,7 @@ export const mockKudos: ICommunityKudos[] = [
     id: 'kudos-not-mine',
     giver: { memberId: 'uid-someone-else', name: 'Priya Shah' },
     recipient: mockRecipients[2],
-    roundId: currentRoundId,
+    roundId: mockCurrentRoundId,
     points: 20,
     message: 'Paired with me for two hours to untangle the flaky CI job — much appreciated.',
     createdAt: '2026-08-16T05:00:00.000Z',

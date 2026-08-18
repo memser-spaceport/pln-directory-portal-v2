@@ -58,8 +58,8 @@ interface V0FeedCardProps {
  * equal weight — same headline size, summary, meta line, and its own quiet
  * Like + inline-comments controls. Clicking a story opens its detail modal.
  */
-// Show at most this many stories per card; the rest collapse under "+N more".
-const VISIBLE_STORIES = 3;
+// Show at most this many stories per card; the rest collapse under "View all".
+const VISIBLE_STORIES = 1;
 
 export function V0FeedCard({
   cluster,
@@ -167,11 +167,7 @@ export function V0FeedCard({
                   onToggle={() => onToggleLike(story.uid)}
                 />
                 {showComments && (
-                  <CommentButton
-                    count={comments.length}
-                    open={threadOpen}
-                    onToggle={() => toggleThread(story.uid)}
-                  />
+                  <CommentButton count={comments.length} open={threadOpen} onToggle={() => toggleThread(story.uid)} />
                 )}
               </span>
             </div>
@@ -191,7 +187,7 @@ export function V0FeedCard({
         );
       })}
 
-      {/* More than 3 stories: collapse the rest behind the production Job Board's
+      {/* More than one story: collapse the rest behind the production Job Board's
           "View all N …" expander (inline toggle → "Show less"). */}
       {hiddenCount > 0 && (
         <button

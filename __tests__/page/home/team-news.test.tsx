@@ -614,7 +614,7 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: 1, items: [acmeDhrItem] },
     ];
 
-    it('renders one card per team, collapsing a team with more than 3 stories behind an expander', () => {
+    it('renders one card per team, collapsing extra stories behind an expander', () => {
       renderTeamNews(<TeamNews groups={groupsWithSharedTeam} />);
       // On the default "All" tab, Acme's cluster merges all 6 of its stories (5 AI + 1 DHR).
       expect(screen.getAllByRole('link', { name: 'Acme' })).toHaveLength(1);

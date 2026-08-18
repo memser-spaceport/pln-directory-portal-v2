@@ -21,6 +21,7 @@ import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/component
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
 import type { ITeamNewsGroup, ITeamNewsItem, ITeamNewsPopularItem } from '@/types/team-news.types';
 import type { ForumDigestSettings } from '@/services/forum/hooks/useGetForumDigestSettings';
+import { FeedbackButton } from '@/components/page/home/FeedbackButton';
 
 export default async function Home() {
   const {
@@ -66,6 +67,7 @@ export default async function Home() {
       <HuskyDiscover isLoggedIn={isLoggedIn} />
       <AutoMarkNewsNotification />
       <MarkHomeVisited />
+      <FeedbackButton />
     </>
   );
 }

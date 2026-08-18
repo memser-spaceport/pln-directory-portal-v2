@@ -12,12 +12,30 @@
 }
 
 /* "Comments (N)" — the production forum PostComments `.title` class, imported
-   rather than restyled. Only the spacing is local: the thread's 22px flex gap
-   would leave the title equidistant from the composer below and the story body
-   above, i.e. attached to neither. Pulled to production's own 16px title→input
-   distance so it reads as heading the block it starts. */
+   rather than restyled, for its colour token and semibold weight. Two local
+   overrides, both because this heading landed on a different surface than the
+   one production tuned it for:
+
+   1. Size. On the forum page the post title is 24px/500 and the section title
+      20px/600 — a whole page whose subject IS the discussion. In the detail
+      modal the headline is 22px/600, so the same 20px/600 arrives only 2px
+      below the title at equal weight and reads as a rival headline rather than
+      a section inside the story. Stepped down to the scale's 18px, which sits
+      clearly under the 22px title and clearly over the 15px body.
+   2. Spacing. The thread's 22px flex gap would leave the heading equidistant
+      from the composer below and the story above, i.e. attached to neither.
+      Pulled to production's own 16px title→input distance so it reads as
+      heading the block it starts. */
 .heading {
   margin-bottom: -6px;
+}
+
+/* Double class so the size override beats the imported production `.title`
+   regardless of which stylesheet the bundler emits first. */
+.heading.heading {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.3px;
 }
 
 .list {

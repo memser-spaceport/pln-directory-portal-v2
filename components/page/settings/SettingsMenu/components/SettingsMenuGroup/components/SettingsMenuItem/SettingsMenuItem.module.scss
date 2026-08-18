@@ -1,0 +1,33 @@
+@use '../../../../../../../../styles/media';
+
+.root {
+  font-size: 16px;
+  line-height: 1;
+  padding: 16px 24px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+  color: #475569;
+  font-weight: 400;
+  text-transform: capitalize;
+
+  &.active {
+    background: #f1f5f9;
+    color: #156ff7;
+    border-radius: 8px;
+  }
+}
+
+.text {
+  flex: 1;
+}
+
+.arrow {
+  display: inline-block;
+
+  @include media.breakpoint-1024 {
+    display: none;
+  }
+}

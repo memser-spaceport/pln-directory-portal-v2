@@ -82,6 +82,8 @@ jest.mock('@/components/common/filters/SearchInput/SearchInput', () => ({
 
 type QueryState = {
   items: ITeamNewsItem[];
+  /** Page 1's total FOR THE CURRENT QUERY — it narrows as the reader searches. */
+  total: number;
   isLoading: boolean;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
@@ -112,8 +114,9 @@ const makeItem = (uid: string): ITeamNewsItem => ({
   discussion: { count: 0, latestTopicUrl: null } satisfies ITeamNewsDiscussion,
 });
 
-const loaded = (items: ITeamNewsItem[]): QueryState => ({
+const loaded = (items: ITeamNewsItem[], total = items.length): QueryState => ({
   items,
+  total,
   isLoading: false,
   isFetchingNextPage: false,
   hasNextPage: false,
@@ -122,6 +125,7 @@ const loaded = (items: ITeamNewsItem[]): QueryState => ({
 
 const loading = (): QueryState => ({
   items: [],
+  total: 0,
   isLoading: true,
   isFetchingNextPage: false,
   hasNextPage: false,
@@ -388,5 +392,71 @@ describe('TeamNewsModal drill', () => {
 
     rerenderModal(rerender, { fullscreen: true });
     expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
+  });
+
+  // Opened from a listing card's "N new posts" chip, the caller has no archive
+  // total to pass — the chip counted a 30-day window, this box lists everything.
+  describe('without a `total` prop', () => {
+    const renderChipOpened = (props: Partial<React.ComponentProps<typeof TeamNewsModal>> = {}) =>
+      render(
+        <TeamNewsModal
+          isOpen
+          focusUid={null}
+          onClose={jest.fn()}
+          teamUid="team-1"
+          teamName="Protocol Labs"
+          source="teams-listing-modal"
+          {...props}
+        />,
+      );
+
+    it('takes the archive size from its own first unfiltered fetch', () => {
+      queryState = loaded([makeItem('news-1')], 47);
+      renderChipOpened();
+
+      expect(screen.getByText('Protocol Labs News (47)')).toBeInTheDocument();
+    });
+
+    it('holds the header still while the reader searches', () => {
+      queryState = loaded([makeItem('news-1'), makeItem('news-2')], 47);
+      const { rerender } = renderChipOpened();
+      expect(screen.getByText('Protocol Labs News (47)')).toBeInTheDocument();
+
+      // Typing narrows the list, and with it the hook's `total`. Reading that
+      // live would tick the header down to (2) — the search reporting itself
+      // twice, in the one line that is supposed to say where you are.
+      act(() => {
+        fireEvent.change(screen.getByPlaceholderText(/Search news/i), { target: { value: 'funding' } });
+      });
+      queryState = loaded([makeItem('news-1')], 2);
+      rerender(
+        <TeamNewsModal
+          isOpen
+          focusUid={null}
+          onClose={jest.fn()}
+          teamUid="team-1"
+          teamName="Protocol Labs"
+          source="teams-listing-modal"
+        />,
+      );
+
+      expect(screen.getByText('Protocol Labs News (47)')).toBeInTheDocument();
+      expect(screen.queryByText('Protocol Labs News (2)')).not.toBeInTheDocument();
+    });
+
+    it('still prefers an explicit total when the caller has one', () => {
+      queryState = loaded([makeItem('news-1')], 47);
+      renderChipOpened({ total: 9 });
+
+      expect(screen.getByText('Protocol Labs News (9)')).toBeInTheDocument();
+    });
+
+    it('sends the opening surface to the footer link, not the profile default', () => {
+      queryState = loaded([makeItem('news-1')], 47);
+      renderChipOpened();
+
+      fireEvent.click(screen.getByRole('link', { name: /All network updates/i }));
+      expect(mockOnAllNetworkUpdatesClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 'teams-listing-modal');
+    });
   });
 });

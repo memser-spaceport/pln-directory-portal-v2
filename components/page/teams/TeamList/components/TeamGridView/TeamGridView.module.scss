@@ -5,6 +5,10 @@
   min-height: 168px;
   background-color: #fff;
   border-radius: 12px;
+  /* Containing block for .newsChip. Safe to add: the only absolutely-positioned
+     descendant today is .profileImage, which is already contained by
+     .profileContainer's own `position: relative`. */
+  position: relative;
   box-shadow:
     0px 4px 4px 0px rgba(15, 23, 42, 0.04),
     0px 0px 1px 0px rgba(15, 23, 42, 0.12);
@@ -347,4 +351,20 @@
   .tagsDesc {
     display: block;
   }
+}
+
+/* The "N new posts" chip, in the card's top-right corner — the slot the (now
+   commented-out) Follow control used to hold, and the one the eye already
+   checks. Absolute rather than in flow so a card with no recent news keeps the
+   exact layout it has today: the chip is the only thing on this card that comes
+   and goes, and it must not push the name or the description around when it
+   arrives after hydration.
+
+   z-index because it sits over .profileContainer's banner and has to take the
+   click before the card-wide link does. */
+.newsChip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
 }

@@ -3,15 +3,16 @@
 import Link from 'next/link';
 
 import { ArrowUpRightIcon } from '@/components/icons';
-import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics, type TeamNewsFeedLinkSource } from '@/analytics/team-news.analytics';
 
 import s from './TeamNewsRail.module.scss';
 
 interface TeamNewsFeedLinkProps {
   teamUid: string;
   teamName: string;
-  /** Which list the member is leaving: the rail preview or the full archive. */
-  source: 'team-profile-rail' | 'team-profile-modal';
+  /** Which list the member is leaving — the rail preview, the full archive, or
+   *  that same archive opened over a listing page by a "N new posts" chip. */
+  source: TeamNewsFeedLinkSource;
   /**
    * 'paired' — the rail, where this link sits beside "View all news" and takes
    * the quieter half: two exits, and leaving is the rarer intent.

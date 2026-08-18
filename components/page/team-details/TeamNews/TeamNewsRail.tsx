@@ -16,6 +16,7 @@ import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.t
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { TeamNewsModal } from './TeamNewsModal';
+import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
 
 import s from './TeamNewsRail.module.scss';
 
@@ -25,7 +26,9 @@ interface TeamNewsRailProps {
   initialData: ITeamNewsByTeamResponse;
 }
 
-export type TeamNewsUpvoteOverlay = Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>;
+// Re-exported for the callers that already import them from here.
+export { mergeUpvoteOverlay };
+export type { TeamNewsUpvoteOverlay };
 
 // One state for what's open over the profile, so illegal combinations can't
 // exist: the archive and a rail-opened story are never both up, closing always
@@ -36,11 +39,6 @@ export type TeamNewsUpvoteOverlay = Map<string, { viewerHasUpvoted: boolean; upv
 // itself (TeamNewsModal owns that state) rather than stacking this modal on top
 // of it — two overlays would mean two close buttons and an ambiguous Escape.
 type NewsModalState = { kind: 'none' } | { kind: 'archive'; focusUid: string | null } | { kind: 'detail'; uid: string };
-
-export function mergeUpvoteOverlay(items: ITeamNewsItem[], overlay: TeamNewsUpvoteOverlay): ITeamNewsItem[] {
-  if (overlay.size === 0) return items;
-  return items.map((item) => (overlay.has(item.uid) ? { ...item, ...overlay.get(item.uid) } : item));
-}
 
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
   const [modalState, setModalState] = useState<NewsModalState>({ kind: 'none' });

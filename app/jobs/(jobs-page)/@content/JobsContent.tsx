@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
@@ -26,6 +26,10 @@ import JobAlertEmptyState from '@/components/page/jobs/JobAlertEmptyState/JobAle
 import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
 
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
+import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
+import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts';
+import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import s from './JobsContent.module.scss';
 
 // Flip to true to simulate a logged-in user with a saved alert during local dev
@@ -65,6 +69,21 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const { userAlert: fetchedAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
   const userAlert = DEV_MOCK_ALERT ? MOCK_USER_ALERT : fetchedAlert;
   const [indicatorDismissed, setIndicatorDismissed] = useState(false);
+
+  // Counts behind the "N new posts" chips. Here the identifier is `team.uid`,
+  // where the teams grid uses `team.id` — same backend value, different field
+  // name on each surface's view model.
+  const newsTeamUids = useMemo(() => groups.map((group) => group.team.uid).filter(Boolean), [groups]);
+  useTeamNewsCounts({ uids: newsTeamUids, enabled: SHOW_TEAM_NEWS_COUNT_CHIP });
+
+  // Which team's news is open over the board. Someone weighing a role hasn't
+  // asked to leave the board to find out what a team has been up to.
+  const [newsModal, setNewsModal] = useState<{ teamUid: string; teamName: string } | null>(null);
+  const openTeamNews = useCallback((teamUid: string, teamName: string) => {
+    setNewsModal({ teamUid, teamName });
+  }, []);
+  const closeTeamNews = useCallback(() => setNewsModal(null), []);
+  const isNewsModalMobile = useIsMobile();
 
   // Auto-apply the user's saved job alert filters on /jobs landing.
   // Done client-side (not server-side via redirect()) because Next.js parallel routes
@@ -200,6 +219,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
               <TeamGroupCard
                 key={group.team.uid}
                 group={group}
+                onOpenTeamNews={openTeamNews}
                 onRoleClick={(role, indexInGroup) => {
                   analytics.onJobClicked({
                     job_id: role.uid,
@@ -218,6 +238,21 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
             {isFetchingNextPage && <CardsLoader />}
           </div>
         </InfiniteScroll>
+      )}
+
+      {/* Rendered outside the groups.length branch so an open modal survives the
+          list emptying underneath it — a filter change while reading a team's
+          news shouldn't yank the news away. */}
+      {newsModal && (
+        <TeamNewsModal
+          isOpen
+          focusUid={null}
+          onClose={closeTeamNews}
+          teamUid={newsModal.teamUid}
+          teamName={newsModal.teamName}
+          fullscreen={isNewsModalMobile}
+          source="job-board-modal"
+        />
       )}
     </div>
   );

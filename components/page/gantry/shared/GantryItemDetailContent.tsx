@@ -37,20 +37,6 @@ import s from '../GantryDetailPage.module.scss';
 
 const editableStages: GantryStage[] = ['IDEA', 'BACKLOG'];
 
-/**
- * Temporarily hides the "Build with AI" action — not shipping yet.
- *
- * Set back to `true` to re-enable; nothing else needs changing. Gated here, at
- * the single call site, rather than inside BuildWithAgentsButton, so the
- * feature itself stays intact and fully covered by
- * __tests__/page/gantry/build-with-agents-button.test.tsx while it's dark.
- *
- * This covers BOTH surfaces the action appears on: this component renders in
- * the drawer AND on the /gantry/[uid] page, and "not released yet" has to mean
- * both.
- */
-const SHOW_BUILD_WITH_AGENTS = false;
-
 export type GantryItemDetailVariant = 'page' | 'drawer';
 
 interface Props {
@@ -216,9 +202,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
                 {/* Gates itself on agent-sessions admin — deliberately not on
                     `canEdit`, which is stage-limited to IDEA/BACKLOG and would
                     hide the button on exactly the items worth building. */}
-                {SHOW_BUILD_WITH_AGENTS && (
-                  <BuildWithAgentsButton uid={item.uid} title={item.title} description={item.description} />
-                )}
+                <BuildWithAgentsButton uid={item.uid} title={item.title} description={item.description} />
               </div>
             )}
           </div>

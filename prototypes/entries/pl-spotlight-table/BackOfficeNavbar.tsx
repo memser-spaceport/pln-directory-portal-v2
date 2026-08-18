@@ -39,32 +39,42 @@
 //  - Open/hover/active states. A static frame has none. Hover tints the row
 //    background and darkens the label; an open trigger keeps that tint so the
 //    panel reads as attached to it.
-//  - Nothing navigates. Triggers are <button>s, leaf items are href="#" links
-//    that preventDefault, and sign-out only clears the locally "open" menu —
-//    a prototype never routes or authenticates.
+//  - Almost nothing navigates. Two items in the whole bar have a `route` and
+//    change what the page renders — Demo Days → PL Spotlight, and Settings.
+//    Everything else closes the menu and stops there, because the screens behind
+//    those labels do not exist in this prototype.
+//    The highlight is now the PARENT's to give, not this bar's to invent: it used
+//    to keep its own `activeKey`, seeded to Members, so the bar claimed a page
+//    the screen underneath was not. `activeRoute` comes in as a prop, an item is
+//    active when its own route or one of its menu routes matches, and a click on
+//    a route-less item leaves the highlight where it is rather than lying about
+//    where you are.
+//  - Sign-out only clears the locally "open" menu — a prototype never
+//    authenticates.
 //  - Settings is NOT in the frame at all. Everything above is transcription;
 //    this one item is a placement proposal, put into the real bar so it can be
 //    judged where it will actually live rather than argued about in the
-//    abstract. Three things about it were decided here:
+//    abstract. It is now also the bar's one working destination: it opens the
+//    Email templates list (SettingsEmailTemplates.tsx). Three things about it
+//    were decided here:
 //      · It goes last, after Guides. The row already has a shape: domain items
 //        first (Members / Teams / Demo Days / IRL Gathering — the things that
 //        have records behind them), then non-domain utility items last and
 //        chevron-less (Deals, Guides). Settings is utility. Putting it in the
 //        utility slot keeps that split legible; putting it among the domain
 //        items would make it read as a seventh kind of record.
-//      · It gets no chevron and no dropdown, on purpose. The thing it is
-//        eventually for is an "Email templates" surface — the wording of the
-//        invite mail that inviteTemplate.ts and InviteEmailModal.tsx currently
-//        only let you edit one send at a time. A dropdown holding exactly one
-//        link is a click that reveals nothing, so Email templates becomes a
-//        section on a settings page rather than a menu entry, and the nav item
-//        stays plain until there is genuinely more than one thing behind it.
+//      · It gets no chevron and no dropdown, on purpose — and keeps none now
+//        that the page behind it is real. Email templates is a CARD on the
+//        Settings page, not a menu entry: a dropdown holding one link is a click
+//        that reveals nothing, and the list's own rows are the second level.
+//        The item stays plain until Settings has a second section, at which point
+//        the chevron is worth its click.
 //      · Its icon is traced, not drawn: Icon / Gear at Weight=Fill, pulled from
 //        the same shared library as the other eight (see SpotlightIcons.tsx).
 //    Behaviour is identical to Deals and Guides — sets the active item, closes
 //    any open menu, goes nowhere.
 
-import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type MouseEvent as ReactMouseEvent } from 'react';
 import {
   NavCaretDownIcon,
   NavDealsIcon,
@@ -79,12 +89,17 @@ import {
 } from './SpotlightIcons';
 import s from './BackOfficeNavbar.module.scss';
 
+/** A leaf inside a dropdown. `route` present ⇒ it goes somewhere that exists. */
+type NavLeaf = { label: string; route?: string };
+
 type NavItem = {
   key: string;
   label: string;
   Icon: ComponentType<{ className?: string }>;
   /** Present ⇒ the item is a dropdown trigger; absent ⇒ a plain destination. */
-  menu?: string[];
+  menu?: NavLeaf[];
+  /** Present ⇒ clicking the item itself renders a screen. Only Settings has one. */
+  route?: string;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -92,32 +107,50 @@ const NAV_ITEMS: NavItem[] = [
     key: 'members',
     label: 'Members',
     Icon: NavMembersIcon,
-    menu: ['All members', 'Pending approvals', 'Access levels'],
+    menu: [{ label: 'All members' }, { label: 'Pending approvals' }, { label: 'Access levels' }],
   },
-  { key: 'teams', label: 'Teams', Icon: NavTeamsIcon, menu: ['All teams', 'Pending approvals', 'Focus areas'] },
+  {
+    key: 'teams',
+    label: 'Teams',
+    Icon: NavTeamsIcon,
+    menu: [{ label: 'All teams' }, { label: 'Pending approvals' }, { label: 'Focus areas' }],
+  },
   {
     key: 'demo-days',
     label: 'Demo Days',
     Icon: NavDemoDaysIcon,
-    menu: ['Upcoming demo day', 'Past demo days', 'PL Spotlight', 'Investor access'],
+    // The one leaf that lands on a screen this prototype has: the participants
+    // table IS Demo Days → PL Spotlight, so it is also the way back from Settings.
+    menu: [
+      { label: 'Upcoming demo day' },
+      { label: 'Past demo days' },
+      { label: 'PL Spotlight', route: 'spotlight' },
+      { label: 'Investor access' },
+    ],
   },
   {
     key: 'irl-gathering',
     label: 'IRL Gathering',
     Icon: NavIrlGatheringIcon,
-    menu: ['Upcoming gatherings', 'Past gatherings', 'Attendee lists'],
+    menu: [{ label: 'Upcoming gatherings' }, { label: 'Past gatherings' }, { label: 'Attendee lists' }],
   },
   { key: 'deals', label: 'Deals', Icon: NavDealsIcon },
   { key: 'guides', label: 'Guides', Icon: NavGuidesIcon },
-  // Not in the frame — a placement proposal. See the header note.
-  { key: 'settings', label: 'Settings', Icon: NavSettingsIcon },
+  // Not in the frame — a placement proposal, and the bar's one working
+  // destination. See the header note.
+  { key: 'settings', label: 'Settings', Icon: NavSettingsIcon, route: 'settings' },
 ];
 
-export default function BackOfficeNavbar() {
-  // Which trigger is open, and which item is "the page you are on". Both are
-  // local state over mock labels — neither reads or writes a route.
+interface BackOfficeNavbarProps {
+  /** The screen currently rendered below. Highlights the item that leads to it. */
+  activeRoute: string;
+  onNavigate: (route: string) => void;
+}
+
+export default function BackOfficeNavbar({ activeRoute, onNavigate }: BackOfficeNavbarProps) {
+  // Which trigger is open. The only state this bar still owns: where you *are*
+  // is the parent's answer, passed in as `activeRoute`.
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const [activeKey, setActiveKey] = useState<string>('members');
   const navRef = useRef<HTMLElement>(null);
 
   // Click-away and Escape. A menu you cannot dismiss reads as broken even in a
@@ -144,18 +177,19 @@ export default function BackOfficeNavbar() {
 
   const handleTriggerClick = (item: NavItem) => {
     if (!item.menu) {
-      setActiveKey(item.key);
       setOpenKey(null);
+      if (item.route) onNavigate(item.route);
       return;
     }
     setOpenKey((current) => (current === item.key ? null : item.key));
   };
 
-  const handleMenuItemClick = (item: NavItem, event: React.MouseEvent<HTMLAnchorElement>) => {
-    // Mocked target — prototypes never link out to a real screen.
+  const handleMenuItemClick = (leaf: NavLeaf, event: ReactMouseEvent<HTMLAnchorElement>) => {
+    // Never a real href — the two leaves that go anywhere go there through the
+    // parent's state, and the rest have nowhere to go.
     event.preventDefault();
-    setActiveKey(item.key);
     setOpenKey(null);
+    if (leaf.route) onNavigate(leaf.route);
   };
 
   return (
@@ -171,7 +205,11 @@ export default function BackOfficeNavbar() {
         <nav className={s.menuItems} aria-label="Back office">
           {NAV_ITEMS.map((item) => {
             const isOpen = openKey === item.key;
-            const isActive = activeKey === item.key;
+            // A dropdown trigger is active when the screen you are on sits under
+            // it — so Demo Days is lit while the PL Spotlight table is up, which
+            // is where that table actually lives.
+            const isActive =
+              item.route === activeRoute || Boolean(item.menu?.some((leaf) => leaf.route === activeRoute));
             return (
               <div className={s.navItem} key={item.key}>
                 <button
@@ -188,15 +226,16 @@ export default function BackOfficeNavbar() {
 
                 {item.menu && isOpen ? (
                   <div className={s.menu} role="menu" aria-label={item.label}>
-                    {item.menu.map((entry) => (
+                    {item.menu.map((leaf) => (
                       <a
-                        key={entry}
-                        className={s.menuItem}
+                        key={leaf.label}
+                        className={`${s.menuItem} ${leaf.route === activeRoute ? s.menuItemActive : ''}`}
                         href="#"
                         role="menuitem"
-                        onClick={(event) => handleMenuItemClick(item, event)}
+                        aria-current={leaf.route === activeRoute ? 'page' : undefined}
+                        onClick={(event) => handleMenuItemClick(leaf, event)}
                       >
-                        {entry}
+                        {leaf.label}
                       </a>
                     ))}
                   </div>

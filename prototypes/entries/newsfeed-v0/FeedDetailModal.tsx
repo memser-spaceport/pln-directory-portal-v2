@@ -277,6 +277,7 @@ export function FeedDetailBody({
             {detail.kind === 'news' && showComments && (
               <div ref={commentsRef}>
                 <CommentsThread
+                  heading
                   comments={comments}
                   onAddComment={onAddComment ?? (() => {})}
                   isCommentLiked={isCommentLiked ?? (() => false)}

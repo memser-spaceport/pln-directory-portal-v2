@@ -312,3 +312,8 @@ export function getScenario(key: ScenarioKey): Scenario {
 export const RESUMED_REPLY_BODY = `Got it — resuming on \`${WORKING_BRANCH}\`.
 
 Starting a new execution from the current branch state; I'll report back when the change is pushed.`;
+
+/** The agent's canned answer to "Retry run" from the failure block. */
+export const RETRY_REPLY_BODY = `Retrying from \`${WORKING_BRANCH}\` at the last good commit.
+
+Re-running the build with the same prompt; I'll stop and ask if I hit the same \`EmptyStateProps\` mismatch again.`;

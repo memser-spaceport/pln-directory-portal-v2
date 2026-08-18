@@ -11,6 +11,15 @@
   margin-top: 16px; /* + the body's 16px gap = 32px above the comment field */
 }
 
+/* "Comments (N)" — the production forum PostComments `.title` class, imported
+   rather than restyled. Only the spacing is local: the thread's 22px flex gap
+   would leave the title equidistant from the composer below and the story body
+   above, i.e. attached to neither. Pulled to production's own 16px title→input
+   distance so it reads as heading the block it starts. */
+.heading {
+  margin-bottom: -6px;
+}
+
 .list {
   display: flex;
   flex-direction: column;

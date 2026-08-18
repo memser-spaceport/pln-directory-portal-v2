@@ -1,0 +1,173 @@
+// Metrics transcribed from production FormTextArea.module.scss and
+// FormField.module.scss — see the header note in TemplateSyntaxFields.tsx for
+// why they are restated here rather than imported.
+//
+// THE ONE INVARIANT
+// `.mirror` and `.field` must produce identical line boxes. Every property that
+// affects glyph advance or line breaking is therefore set on the SHARED metrics
+// class (`.areaMetrics` / `.inputMetrics`), never on one of the two — if you add
+// a font, spacing or wrapping property below, it goes on the shared class or the
+// caret drifts away from the text under it.
+
+// ── The bordered box ──────────────────────────────────────────────────────────
+
+.box {
+  position: relative;
+  display: flex;
+  min-height: 80px;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: var(--background-base-white, #ffffff);
+
+  // Production puts this on `:focus-within` of the wrapper, which still works:
+  // the real field is a child, the mirror is not focusable.
+  &:focus-within {
+    border: 1px solid #5e718d;
+    box-shadow: 0 0 0 4px rgba(27, 56, 96, 0.12);
+  }
+}
+
+.boxSingleLine {
+  min-height: 0;
+  height: 50px;
+}
+
+// ── The two layers ────────────────────────────────────────────────────────────
+
+// Under the field, and inert: it exists to be read, never clicked. Clicks and
+// selection all belong to the real control on top.
+.mirror {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  color: #455468;
+}
+
+// Transparent text, visible caret. The text you see is the mirror's; the text
+// you edit is this one's.
+.field {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: #455468;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  // The selection band still paints even though the glyphs do not, which is
+  // what makes select-all-and-retype feel normal rather than broken.
+  &::selection {
+    background: rgba(27, 77, 255, 0.18);
+  }
+}
+
+// ── Shared metrics ────────────────────────────────────────────────────────────
+
+.areaMetrics {
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  tab-size: 4;
+  resize: none;
+}
+
+.inputMetrics {
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 30px; // fills the 50px box minus its 10px padding, so one line centres
+  letter-spacing: normal;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+// ── Tokens ────────────────────────────────────────────────────────────────────
+
+// Metrically neutral by construction: colour, background and radius only, with
+// the 2px of breathing room cancelled by an equal negative margin so the run
+// occupies exactly the width it would as plain text. Do not add font-weight,
+// font-family or an uncancelled padding here — see the invariant at the top.
+.variable,
+.control,
+.unknown {
+  padding: 1px 2px;
+  margin: -1px -2px;
+  border-radius: 4px;
+}
+
+// A value that will be substituted. Brand blue, matching the `{{token}}` chips
+// in the Variables row below the editor — the chip and the thing it inserts
+// should be recognisably the same object.
+.variable {
+  background: rgba(27, 77, 255, 0.1);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+// Structure rather than content: `{{#if}}`, `{{else}}`, `{{/if}}` produce no
+// text of their own. Held back to a neutral tint so the eye reads the sentence
+// first and the scaffolding second — three blue blocks per conditional would
+// make the branch louder than the copy inside it.
+.control {
+  background: rgba(27, 56, 96, 0.08);
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// A name no variable answers to. This ships literally — `{{frist_name}}` arrives
+// in the inbox as those nine characters — so it gets the warning colour the
+// resend notice already uses, plus an underline for anyone who cannot separate
+// the two tints.
+.unknown {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--foreground-warning-primary, #b45309);
+  text-decoration: underline wavy currentColor 1px;
+  text-underline-offset: 2px;
+}
+
+// ── Chrome around the fields ──────────────────────────────────────────────────
+
+.inputBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Matched to `.bodyLabel` in InviteEmailModal.module.scss — "Email body" — not
+// to production FormField's own label, which is a hair different (#475569,
+// 18px line). The two labels sit one above the other on this card, so agreeing
+// with the neighbour matters more than agreeing with the component this field
+// replaced.
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.counterRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.counter {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-variant-numeric: tabular-nums;
+}

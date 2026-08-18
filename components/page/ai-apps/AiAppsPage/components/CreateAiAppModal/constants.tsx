@@ -57,6 +57,13 @@ export const MODAL_INTRO =
 
 export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = [
   {
+    version: '1.9',
+    items: [
+      'Your agent can now send usage data (button clicks, feature usage) to help the PL team understand how AI Apps are used.',
+      'This is optional and never required for a deploy to succeed; there’s no usage dashboard for your own app yet',
+    ],
+  },
+  {
     version: '1.8',
     items: [
       'Already have your own database? Your agent can now migrate it to a PL-managed one for you, carrying over your existing data structure',

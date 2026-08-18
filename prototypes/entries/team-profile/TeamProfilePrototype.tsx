@@ -29,16 +29,13 @@ import { TeamDetailsView } from './TeamDetailsView';
 import { TeamInvestorView } from './TeamInvestorView';
 import { TeamContactView } from './TeamContactView';
 import { TeamMembersView } from './TeamMembersView';
-import { TeamContributionsView, type ContributionsVariant } from './TeamContributionsView';
+import { TeamContributionsView } from './TeamContributionsView';
 import { TeamProjectsView } from './TeamProjectsView';
+import { TeamOpenRolesView } from './TeamOpenRolesView';
 import { NewsCardView } from './NewsCardView';
 import { NewsFullPageView } from './NewsFullPageView';
 import { TeamFollowBlock } from './TeamFollowBlock';
 import { TeamAdminActions } from './TeamAdminActions';
-// Contributions (Events) block + its mocks live in the demoday-tag-placements
-// entry; reuse the recommended "feature" Demo Day treatment here in full context.
-import { EventsContributionsView } from '../demoday-tag-placements/EventsContributionsView';
-import { MOCK_EVENT_GROUPS, MOCK_DEMO_DAY_CONTRIB } from '../demoday-tag-placements/mocks';
 import { FollowPill } from '../follow-shared/FollowPill';
 import { FollowToast } from '../follow-shared/FollowToast';
 // The archive itself — the same component the teams grid's news chip opens, so
@@ -64,6 +61,7 @@ import {
   MOCK_FOLLOWERS,
   TEAM_FOLLOWER_COUNT,
   MOCK_TEAM_DEMO_DAY,
+  MOCK_TEAM_ROLES,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -95,8 +93,6 @@ export default function TeamProfilePrototype() {
   // card's top-right corner: public gets the Follow pill, team gets the
   // follower avatar stack + count (opens the full-list modal).
   const [view, setView] = useState<'public' | 'team'>('team');
-  // Demo-only: compare the two role-tag treatments.
-  const [contribVariant, setContribVariant] = useState<ContributionsVariant>('vibrant');
   useEffect(() => setMounted(true), []);
   useEffect(() => () => {
     if (followToastTimer.current) clearTimeout(followToastTimer.current);
@@ -286,9 +282,14 @@ export default function TeamProfilePrototype() {
         <div className={shell.teamDetail__container}>
         {/* Details — the follow block sits before the About section. */}
         <div className={shell.teamDetail__Container__details}>
+          {/* No `demoDayParticipation`: the Demo Day emblem beside the team name
+              is gone. The participation itself still reads on the page — as a
+              tile in Contributions, where it sits among the team's other events
+              instead of qualifying the team's name. The placement variants stay
+              on TeamDetailsView for the demoday-tag-placements prototype, which
+              exists to compare them. */}
           <TeamDetailsView
             team={team}
-            demoDayParticipation={MOCK_TEAM_DEMO_DAY}
             headerAction={
               view === 'public' ? (
                 <div className={`${local.followHeader} ${local.followClusterMobile}`}>
@@ -351,43 +352,25 @@ export default function TeamProfilePrototype() {
           <TeamMembersView team={team} members={MOCK_MEMBERS} />
         </div>
 
+        {/* Open roles — directly under Members because they're the same axis in
+            two tenses: who's here, and who the team is looking for. Not in the
+            news rail (that's a cross-surface stream, and 340px can't hold a role
+            row); not near the top, because roles are perishable and most teams
+            have none. Renders nothing when there are none. */}
+        <TeamOpenRolesView group={MOCK_TEAM_ROLES} />
+
         {/* Focus areas — import-safe production view. */}
         <DetailsSection>
           <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
         </DetailsSection>
 
           {/* Contributions — event-primary tiles; Demo Day featured when present.
-              Demo-only switch between the two role-tag treatments. */}
-          <div className={local.contribLayoutBar}>
-            <span className={local.demoLabel}>Role tags</span>
-            <div className={local.demoSwitch}>
-              {([
-                ['vibrant', 'Vibrant'],
-                ['muted', 'Muted'],
-              ] as [ContributionsVariant, string][]).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`${local.demoBtn} ${contribVariant === key ? local.demoBtnActive : ''}`}
-                  onClick={() => setContribVariant(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <TeamContributionsView
-            contributions={MOCK_CONTRIBUTIONS}
-            demoDay={MOCK_TEAM_DEMO_DAY}
-            variant={contribVariant}
-          />
+              Muted role tags, settled: the vibrant/muted switch was scaffolding
+              for choosing between them, and it dies with the choice. */}
+          <TeamContributionsView contributions={MOCK_CONTRIBUTIONS} demoDay={MOCK_TEAM_DEMO_DAY} variant="muted" />
 
           {/* Projects */}
           <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
-
-          {/* Contributions (Events) — Demo Day reads as a normal event: a
-              "Participant" role row + a plain chip, same weight as Host/Sponsor. */}
-          <EventsContributionsView groups={MOCK_EVENT_GROUPS} demoDay={MOCK_DEMO_DAY_CONTRIB} variant="native" />
         </div>
       </div>
 

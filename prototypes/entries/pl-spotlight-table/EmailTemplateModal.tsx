@@ -1,6 +1,6 @@
 'use client';
 
-// Overview → Email Template → "Edit template".
+// The template editor, opened from two places.
 //
 // WHY THIS EXISTS SEPARATELY FROM InviteEmailModal
 // That modal edits one send: you open it from a row, retouch a sentence for that
@@ -9,14 +9,27 @@
 // versus "what does the invite say" — so they are two surfaces, and the second
 // one lives on the record the table belongs to rather than on any row of it.
 //
-// (BackOfficeNavbar's note argues Email templates belongs in Settings. Both are
-// true and they are different objects: Settings would hold the org-wide default,
-// this holds the override for *this* spotlight. The per-spotlight one comes
-// first because the copy that actually needs changing — the sector hook, the
-// team, the pitch — is per-spotlight by nature.)
+// ONE EDITOR, TWO SCOPES
+// Settings → Email templates edits the default every spotlight starts from; the
+// Overview card edits one spotlight's copy of it. Same job, same instrument — so
+// this is the same component in both places rather than a second editor that
+// would drift a variable chip or a syntax rule away from the first.
+//
+// What differs between the two is COPY and what "default" means, so both are
+// props now: `heading`, `description`, `saveNote`, and `baseTemplate` +
+// `resetLabel` for the reset link. That is why this file no longer contains the
+// sentences it used to — they are at the two call sites, in
+// SettingsEmailTemplates.tsx and PlSpotlightTablePrototype.tsx, next to the state
+// that makes them true. The layout, the chips, the preview and the drop-rule
+// notes are the same in both scopes and stay here.
 //
 // REUSE MAP (prototypes/CLAUDE.md #2)
-//  - Modal, Button, CloseIcon, FormField, FormTextArea — production components.
+//  - Modal, Button, CloseIcon, Tabs — production components.
+//  - Subject and body are NOT FormField / FormTextArea any more. A form control
+//    cannot paint its own contents, and the tokens have to be visible in the
+//    text being typed — so both are transcribed into TemplateSyntaxFields.tsx
+//    with a highlight layer behind them, production metrics restated verbatim.
+//    Everything else on the card is unchanged; see that file's header.
 //  - The chrome classes are IMPORTED from InviteEmailModal.module.scss rather
 //    than copied: same prototype entry, same modal, and two copies of the
 //    ReferModal transcription would drift the moment one of them is nudged.
@@ -34,13 +47,15 @@
 //    a label could. The sources survive on hover, and the two that reach back
 //    into the Overview — the pair nobody would guess — are named in that note.
 //  - The preview is not optional, not collapsed, and not below the fold. The
-//    template's one surprising rule is that a paragraph holding an unfilled
-//    variable is dropped whole (inviteTemplate.ts), and the only honest way to
-//    teach that is to show the same template resolving two ways. The toggle
-//    picks a COHORT, not a person — rows that carry something in the table's
-//    Template vars column, and rows that carry nothing — with the size of each
-//    attached, because 8 of 18 is what makes the drop worth knowing about. The
-//    drop itself is visible as a missing paragraph, and named underneath.
+//    left column is placeholders; this is the only place it becomes an email a
+//    person could read, and the notes underneath say what resolved and what did
+//    not. It resolves against a STAND-IN recipient, not a participant — see the
+//    note on `PREVIEW_RECIPIENT` in mocks.ts.
+//    (It used to carry a With / No template vars cohort toggle, because the drop
+//    rule was invisible and the only way to teach it was to show the template
+//    resolving two ways. Both branches are now written into the template itself,
+//    on either tab, so the toggle was re-answering a question the editor beside
+//    it already answers in words.)
 //    That requirement is what sets the card's shape: stacked under the editor,
 //    the preview opened out of sight at the 860px height cap this modal family
 //    uses, so the card takes an edit-and-preview split instead and the two
@@ -51,18 +66,30 @@
 //    version history in a prototype, so the alternative to that sentence is an
 //    admin guessing.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
+import { Tabs } from '@/components/common/Tabs/Tabs';
 import { CloseIcon } from '@/components/icons';
-import { FormField } from '@/components/form/FormField';
-import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 
-import type { InviteContext, SpotlightParticipant } from './mocks';
-import type { InviteTemplate } from './inviteTemplate';
-import { DEFAULT_INVITE_TEMPLATE, TEMPLATE_VARIABLES, buildInviteDraft, isDefaultTemplate } from './inviteTemplate';
+import { TemplateSyntaxInput, TemplateSyntaxTextArea } from './TemplateSyntaxFields';
+
+import type { InviteContext } from './mocks';
+import { PREVIEW_RECIPIENT } from './mocks';
+import type { DynamicRule, InviteTemplate } from './inviteTemplate';
+import {
+  TEMPLATE_VARIABLES,
+  appendDynamicRule,
+  applyDynamicRule,
+  buildInviteDraft,
+  conditionalSnippet,
+  parseDynamicRules,
+  removeDynamicRule,
+  templatesMatch,
+} from './inviteTemplate';
+import DynamicContentPanel from './DynamicContentPanel';
 
 import chrome from './InviteEmailModal.module.scss';
 import s from './EmailTemplateModal.module.scss';
@@ -78,47 +105,80 @@ const SUBJECT_MAX_LENGTH = 140;
  */
 type TemplateFormData = { templateSubject: string; templateBody: string };
 
+/**
+ * Two ways to write the same conditional, not two templates.
+ *
+ * Conditional leads because it is the one that shows the whole email at once —
+ * you can read the thing you are sending. Rules is the way in for someone who
+ * would never type a handlebar, and it costs a click to reach, which is the
+ * right order for a surface an admin opens rarely and reads carefully.
+ *
+ * No sub-labels: the note under each tab's own controls says what that tab does,
+ * and the preview opposite shows it happening.
+ */
+type TemplateView = 'syntax' | 'rules';
+
+const VIEW_TABS: { key: TemplateView; label: string }[] = [
+  { key: 'syntax', label: 'Conditional' },
+  { key: 'rules', label: 'Rules' },
+];
+
 interface EmailTemplateModalProps {
   open: boolean;
   /** Currently saved template; the form is seeded from it on every open. */
   template: InviteTemplate;
+  /**
+   * What "reset" restores, and what the reset link's visibility is measured
+   * against. NOT the same thing at the two scopes: Settings resets to the text
+   * that shipped, a spotlight resets to whatever Settings currently says. Passing
+   * it in is the whole reason editing the Settings default cannot leave a
+   * spotlight quietly resetting to last month's wording.
+   */
+  baseTemplate: InviteTemplate;
+  /** The reset link's words, because the base has a different name at each scope. */
+  resetLabel: string;
+  /** Names the template being edited. The spotlight scope names the email, Settings names the entry. */
+  heading: string;
+  /** Says whose wording this is and what saving it reaches. */
+  description: ReactNode;
+  /** Sits above the save button: what a save does to mail already out, and to overrides. */
+  saveNote: ReactNode;
   /** Live Overview values — the preview has to resolve against what is set now. */
   context: InviteContext;
-  /** The table's rows, used only to size the two preview cohorts and take a specimen of each. */
-  rows: SpotlightParticipant[];
+  /**
+   * Where the preview's *values* come from, when that is not obvious.
+   *
+   * The recipient is a stand-in at both scopes (`PREVIEW_RECIPIENT`), so this no
+   * longer has to name a borrowed person. What it still has to name is the
+   * spotlight supplying `{{company_name}}` and `{{close_date}}`: the Overview
+   * card is opened from that spotlight, so it says nothing, while the Settings
+   * list sits above every record and has to say which one it borrowed.
+   */
+  previewNote?: ReactNode;
   /** Changes per open, so the card re-mounts with a clean form. Same trick as the invite modal. */
   session: string;
   onClose: () => void;
   onSave: (template: InviteTemplate) => void;
 }
 
-export default function EmailTemplateModal({
-  open,
-  template,
-  context,
-  rows,
-  session,
-  onClose,
-  onSave,
-}: EmailTemplateModalProps) {
+export default function EmailTemplateModal({ open, session, onClose, ...card }: EmailTemplateModalProps) {
   return (
     <Modal isOpen={open} onClose={onClose} closeOnBackdropClick={false} lockScroll className={s.wideContainer}>
-      <EmailTemplateCard
-        key={session}
-        template={template}
-        context={context}
-        rows={rows}
-        onClose={onClose}
-        onSave={onSave}
-      />
+      <EmailTemplateCard key={session} {...card} onClose={onClose} />
     </Modal>
   );
 }
 
 function EmailTemplateCard({
   template,
+  baseTemplate,
+  resetLabel,
+  heading,
+  description,
+  saveNote,
   context,
-  rows,
+
+  previewNote,
   onClose,
   onSave,
 }: Omit<EmailTemplateModalProps, 'open' | 'session'>) {
@@ -133,34 +193,40 @@ function EmailTemplateCard({
 
   const draftTemplate: InviteTemplate = { subject, body };
   const changed = subject !== template.subject || body !== template.body;
+
+  // ── Two views of one template ───────────────────────────────────────────────
+  // The tabs hold no state of their own. Both read `templateBody` and both write
+  // it back, so nothing has to be stashed on the way out of a tab and the two can
+  // never disagree — switching is free because there is only ever one draft.
+  //
+  // An earlier pass gave each tab its own draft, which had to be true when the
+  // tabs were two different TEXTS. They are now two editors over the same one,
+  // and the stash went with the premise.
+  const [view, setView] = useState<TemplateView>('syntax');
+
+  // Re-derived from the body on every keystroke rather than held in state: the
+  // syntax tab can edit the same blocks, and a cached rule list would be one
+  // render behind the text it describes.
+  const rules = useMemo(() => parseDynamicRules(body), [body]);
+
+  const writeBody = (next: string) => setValue('templateBody', next, { shouldDirty: true });
+
   const canSave = Boolean(subject.trim() && body.trim()) && changed;
 
-  // The two COHORTS the preview switches between, not two people.
+  // A STAND-IN, not a participant.
   //
-  // An earlier pass labelled these tabs with the sample rows' names. That read
-  // as a recipient picker inside a modal that has nothing to do with choosing
-  // recipients, and "Polina Bublii" says nothing about why the two previews
-  // differ. What actually separates them is whether the row carries anything in
-  // the table's Template vars column — so that is what the tabs say, in the
-  // table's own words, with the size of each cohort attached. The row behind
-  // each tab is just the first of its kind; it is a specimen, not a choice.
+  // Two things came off this preview in turn. First the With / No template vars
+  // cohort toggle, once both branches were written into the template itself and
+  // the toggle was re-answering a question the editor already answers in words.
+  // Then the real row it had been borrowing: a specimen named "Polina Bublii"
+  // reads as an email *about* her, and she is also whoever is signed in, so the
+  // pane looked like it was showing the admin their own mail.
   //
-  // Labelled by the row DATA rather than by the outcome ("missing a variable"),
-  // so the labels stay true if the template stops using a per-row variable
-  // altogether — at which point both cohorts resolve fully and the note below
-  // says so.
-  const cohorts = useMemo(() => {
-    const withVars = rows.filter((row) => row.templateVars);
-    const withoutVars = rows.filter((row) => !row.templateVars);
-    return [
-      { key: 'with', label: 'With template vars', rows: withVars },
-      { key: 'without', label: 'No template vars', rows: withoutVars },
-    ].filter((cohort) => cohort.rows.length > 0);
-  }, [rows]);
-
-  const [cohortKey, setCohortKey] = useState<string | null>(cohorts[0]?.key ?? null);
-  const cohort = cohorts.find((candidate) => candidate.key === cohortKey) ?? cohorts[0] ?? null;
-  const sample = cohort?.rows[0] ?? null;
+  // `PREVIEW_RECIPIENT` is John Doe — obviously nobody, which is the point, and
+  // which is also why the caption naming the specimen went with him. There is no
+  // one to name any more, and "as John Doe receives it" would have been a label
+  // stating that a placeholder is a placeholder.
+  const sample = PREVIEW_RECIPIENT;
   const preview = useMemo(
     () => (sample ? buildInviteDraft(sample, draftTemplate, context) : null),
     // draftTemplate is a fresh object each render; its two strings are the real deps.
@@ -173,18 +239,23 @@ function EmailTemplateCard({
    * editor that always appends makes you cut and paste it into place — at which
    * point the chip has saved nothing.
    */
-  const insertVariable = (key: string) => {
-    const token = `{{${key}}}`;
+  const insertToken = (makeToken: (selected: string) => string) => {
     const field = typeof document === 'undefined' ? null : document.getElementById('templateBody');
     const textarea = field instanceof HTMLTextAreaElement ? field : null;
 
     if (!textarea) {
-      setValue('templateBody', `${body}${token}`, { shouldDirty: true });
+      setValue('templateBody', `${body}${makeToken('')}`, { shouldDirty: true });
       return;
     }
 
     const start = textarea.selectionStart ?? body.length;
     const end = textarea.selectionEnd ?? start;
+    // The selection is passed to the token builder rather than simply replaced,
+    // so the `{{#if}}` chip can WRAP the sentence you highlighted — which is how
+    // an optional paragraph actually gets written: you type it, then decide it
+    // is conditional. A variable chip ignores the argument and overwrites, which
+    // is the same behaviour it had before.
+    const token = makeToken(body.slice(start, end));
     setValue('templateBody', `${body.slice(0, start)}${token}${body.slice(end)}`, { shouldDirty: true });
 
     // After React has written the new value back into the textarea, or the
@@ -196,9 +267,15 @@ function EmailTemplateCard({
     });
   };
 
-  const resetToDefault = () => {
-    setValue('templateSubject', DEFAULT_INVITE_TEMPLATE.subject);
-    setValue('templateBody', DEFAULT_INVITE_TEMPLATE.body);
+  const insertVariable = (key: string) => insertToken(() => `{{${key}}}`);
+  const insertConditional = (key: string) => insertToken((selected) => conditionalSnippet(key, selected));
+
+  // Resets to whatever the caller called the base — the shipped text in Settings,
+  // the Settings text in a spotlight. Never to a module constant: that is exactly
+  // the bug the two scopes would otherwise have.
+  const resetToBase = () => {
+    setValue('templateSubject', baseTemplate.subject, { shouldDirty: true });
+    setValue('templateBody', baseTemplate.body, { shouldDirty: true });
   };
 
   const handleSave = () => {
@@ -222,12 +299,25 @@ function EmailTemplateCard({
           already fighting for height. The rule does the work the icon was
           pretending to: it separates what this modal is from what it edits. */}
       <div className={s.header}>
-        <h2 className={`${chrome.title} ${s.headerText}`}>Invite email template</h2>
-        <p className={`${chrome.desc} ${s.headerText}`}>
-          The draft every invite for {context.companyName} starts from. Editing one email before it sends doesn’t change
-          this.
-        </p>
+        <h2 className={`${chrome.title} ${s.headerText}`}>{heading}</h2>
+        <p className={`${chrome.desc} ${s.headerText}`}>{description}</p>
       </div>
+
+      {/* Above the editor and outside the columns, because it governs both of
+          them — the subject, the body, the chips and the preview all change
+          meaning with it. Inside the left column it would read as a property of
+          the body field alone.
+          Production's Tabs (components/common/Tabs), underline variant, rather
+          than the pill toggle the preview uses: these are not two views of one
+          thing, and a second pill control on the same card would have claimed
+          they were. */}
+      <Tabs
+        tabs={VIEW_TABS.map((tab) => ({ label: tab.label, value: tab.key }))}
+        value={view}
+        onValueChange={(next) => setView(next as TemplateView)}
+        variant="underline"
+        classes={{ root: s.styleTabs }}
+      />
 
       <FormProvider {...methods}>
         <form
@@ -240,7 +330,7 @@ function EmailTemplateCard({
           <div className={chrome.fields}>
             <div className={s.columns}>
               <div className={s.column}>
-                <FormField
+                <TemplateSyntaxInput
                   name="templateSubject"
                   label="Subject"
                   placeholder="Subject line"
@@ -250,102 +340,152 @@ function EmailTemplateCard({
                 <div className={chrome.bodyBlock}>
                   <div className={chrome.bodyLabelRow}>
                     <span className={chrome.bodyLabel}>Email body</span>
-                    {!isDefaultTemplate(draftTemplate) && (
-                      <button type="button" className={chrome.resetLink} onClick={resetToDefault}>
-                        Reset to default
+                    {!templatesMatch(draftTemplate, baseTemplate) && (
+                      <button type="button" className={chrome.resetLink} onClick={resetToBase}>
+                        {resetLabel}
                       </button>
                     )}
                   </div>
-                  <FormTextArea
+                  {/* Shorter on the Rules tab. The body is what you edit on the
+                      Conditional tab and merely context on this one — at 7 rows
+                      it pushed "If it doesn't match then display", the row this
+                      whole tab exists for, below the card's fold. */}
+                  <TemplateSyntaxTextArea
                     name="templateBody"
                     placeholder="Write the template…"
-                    rows={7}
+                    rows={view === 'rules' ? 4 : 7}
                     maxLength={BODY_MAX_LENGTH}
                     showCharCount
                   />
                 </div>
 
-                {/* Variables. Chips rather than a legend, because the useful
-                    action is "put this in the text", not "read that this
-                    exists" — so they sit in the editing column, next to the
-                    caret they insert into. */}
-                <div className={s.block}>
-                  <span className={s.blockLabel}>Variables</span>
-                  <div className={s.varList}>
-                    {TEMPLATE_VARIABLES.map((variable) => (
+                {/* The tab's own controls. Both tabs edit the same body above —
+                    only the instrument changes, which is why this is the one
+                    region that swaps and the fields never do. */}
+                {view === 'syntax' ? (
+                  /* Variables. Chips rather than a legend, because the useful
+                     action is "put this in the text", not "read that this
+                     exists" — so they sit in the editing column, next to the
+                     caret they insert into. */
+                  <div className={s.block}>
+                    <span className={s.blockLabel}>Variables</span>
+                    <div className={s.varList}>
+                      {TEMPLATE_VARIABLES.map((variable) => (
+                        <button
+                          key={variable.key}
+                          type="button"
+                          className={s.varChip}
+                          onClick={() => insertVariable(variable.key)}
+                          title={`Insert at the cursor — filled from ${variable.source}`}
+                        >
+                          <code className={s.varChipToken}>{`{{${variable.key}}}`}</code>
+                        </button>
+                      ))}
+                      {/* Same row, same chip, same insert-at-caret — a
+                          conditional is a thing you put in the text, so it
+                          belongs with the other things you put in the text
+                          rather than in a "syntax" panel of its own. It carries
+                          `{{sector_hook}}` because that is the one variable a
+                          row can lack; the others resolve for everyone and
+                          wrapping them would only add a branch that never runs. */}
                       <button
-                        key={variable.key}
                         type="button"
-                        className={s.varChip}
-                        onClick={() => insertVariable(variable.key)}
-                        title={`Insert at the cursor — filled from ${variable.source}`}
+                        className={`${s.varChip} ${s.ifChip}`}
+                        onClick={() => insertConditional('sector_hook')}
+                        title="Insert at the cursor — wraps the selected text, or leaves placeholders to fill in"
                       >
-                        <code className={s.varChipToken}>{`{{${variable.key}}}`}</code>
+                        <code className={s.varChipToken}>{'{{#if}}'}</code>
                       </button>
-                    ))}
+                    </div>
+                    {/* The chips carry the token alone and put `source` on hover.
+                        Printing every source inline stacked them five rows deep
+                        and pushed this note out of the card — and the preview
+                        opposite already answers "what does this resolve to"
+                        better than a label could. What the preview cannot show
+                        is the two that reach back into the Overview, so those
+                        are named here. */}
+                    <p className={chrome.noteLine}>
+                      Click to insert at the cursor. <code className={chrome.varToken}>{'{{close_date}}'}</code> and{' '}
+                      <code className={chrome.varToken}>{'{{sender_name}}'}</code> come from the Overview;{' '}
+                      <code className={chrome.varToken}>{'{{sector_hook}}'}</code> from each row’s Template vars.{' '}
+                      <code className={chrome.varToken}>{'{{#if}}'}</code> resolves against those same values at the
+                      same moment — the block keeps its first half when the variable has a value and its{' '}
+                      <code className={chrome.varToken}>{'{{else}}'}</code> half when it doesn’t. Leave off the{' '}
+                      <code className={chrome.varToken}>{'{{else}}'}</code> to drop the passage, as the sign-off does.
+                    </p>
                   </div>
-                  {/* The chips carry the token alone and put `source` on hover.
-                      Printing every source inline stacked them five rows deep
-                      and pushed this note out of the card — and the preview
-                      opposite already answers "what does this resolve to"
-                      better than a label could. What the preview cannot show is
-                      the two that reach back into the Overview, so those are
-                      named here. */}
-                  <p className={chrome.noteLine}>
-                    Click to insert at the cursor. <code className={chrome.varToken}>{'{{close_date}}'}</code> and{' '}
-                    <code className={chrome.varToken}>{'{{sender_name}}'}</code> come from the Overview;{' '}
-                    <code className={chrome.varToken}>{'{{sector_hook}}'}</code> from each row’s Template vars — and a
-                    paragraph whose variable has no value for a recipient is left out whole rather than sent with a gap
-                    in it.
-                  </p>
-                </div>
+                ) : (
+                  <DynamicContentPanel
+                    rules={rules}
+                    onChange={(rule, patch) => writeBody(applyDynamicRule(body, rule, patch))}
+                    onRemove={(rule) => writeBody(removeDynamicRule(body, rule))}
+                    onAdd={(key) => writeBody(appendDynamicRule(body, key))}
+                  />
+                )}
               </div>
 
-              {/* Preview. Fixed, not collapsible: it is the only place the drop
-                  rule opposite is visible rather than merely asserted. */}
-              {cohort && sample && preview && (
+              {/* Preview. Fixed, not collapsible: the template opposite is full
+                  of placeholders, and this is the only place it becomes an
+                  email anyone could read. */}
+              {sample && preview && (
                 <div className={s.column}>
                   <div className={s.block}>
                     <div className={s.previewHeader}>
                       <span className={s.blockLabel}>Preview</span>
-                      <div className={s.sampleToggle} role="group" aria-label="Preview against">
-                        {cohorts.map((candidate) => (
-                          <button
-                            key={candidate.key}
-                            type="button"
-                            className={`${s.sampleButton} ${candidate.key === cohort.key ? s.sampleButtonActive : ''}`}
-                            aria-pressed={candidate.key === cohort.key}
-                            onClick={() => setCohortKey(candidate.key)}
-                          >
-                            {candidate.label}
-                            <span className={s.sampleCount}>{candidate.rows.length}</span>
-                          </button>
-                        ))}
-                      </div>
                     </div>
+
+                    {/* Above the box rather than under the notes, because it
+                        frames everything in it: at the Settings scope the
+                        specimen is borrowed from a record the reader did not
+                        open, and a preview that resolves {{sector_hook}} without
+                        saying whose spotlight supplied it reads as a promise
+                        about every recipient. */}
+                    {previewNote && <p className={chrome.noteLine}>{previewNote}</p>}
 
                     <div className={s.preview}>
                       <p className={s.previewSubject}>{preview.subject}</p>
                       <p className={s.previewBody}>{preview.body}</p>
                     </div>
 
-                    {/* Reports the cohort, not the specimen: the count is what
-                        makes the drop worth caring about, and naming one
-                        participant would put the person back in a control that
-                        just stopped being about people. */}
-                    {preview.missing.length > 0 ? (
-                      <p className={chrome.noteLine}>
-                        No{' '}
-                        {preview.missing.map((key) => (
-                          <code key={key} className={chrome.varToken}>{`{{${key}}}`}</code>
-                        ))}{' '}
-                        on these {cohort.rows.length} rows — the paragraph using it is missing above, and would be
-                        missing from their emails.
-                      </p>
+                    {/* Ordered by how much the reader needs it: a broken
+                        template makes the preview above meaningless, so it
+                        speaks first and the other two stay quiet.
+                        All three now describe THIS email rather than a cohort —
+                        the counts went with the toggle, and a count nobody can
+                        switch to is just a number. */}
+                    {preview.syntaxError ? (
+                      <p className={`${chrome.noteLine} ${s.syntaxError}`}>Preview paused — {preview.syntaxError}</p>
                     ) : (
-                      <p className={chrome.noteLine}>
-                        Every variable resolves for these {cohort.rows.length} rows; nothing is left out.
-                      </p>
+                      <>
+                        {preview.missing.length > 0 && (
+                          <p className={chrome.noteLine}>
+                            No{' '}
+                            {preview.missing.map((key) => (
+                              <code key={key} className={chrome.varToken}>{`{{${key}}}`}</code>
+                            ))}{' '}
+                            on this row — the paragraph using it is missing above, and would be missing from the email.
+                          </p>
+                        )}
+                        {/* The conditional line replaces the "nothing is left
+                            out" reassurance rather than joining it: once the
+                            template branches, "nothing is left out" is not the
+                            good news — which branch ran is. */}
+                        {preview.conditionals.length > 0 ? (
+                          <p className={chrome.noteLine}>
+                            {preview.conditionals.map((branch, index) => (
+                              <span key={`${branch.key}-${index}`}>
+                                {index > 0 && ' '}
+                                <code className={chrome.varToken}>{`{{#if ${branch.key}}}`}</code>{' '}
+                                {branch.taken === 'then' ? 'kept its main text.' : 'used its fallback.'}
+                              </span>
+                            ))}
+                          </p>
+                        ) : (
+                          preview.missing.length === 0 && (
+                            <p className={chrome.noteLine}>Every variable resolves here; nothing is left out.</p>
+                          )
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -356,7 +496,7 @@ function EmailTemplateCard({
           {/* Outside `.fields`, so it cannot scroll away from the button it
               qualifies — the one question a save provokes is "does this rewrite
               what I already sent". */}
-          <p className={s.saveNote}>Applies to invites sent from now on. Emails already delivered stay as they were.</p>
+          <p className={s.saveNote}>{saveNote}</p>
 
           <div className={chrome.actions}>
             <Button style="border" variant="primary" className={chrome.actionButton} onClick={onClose}>

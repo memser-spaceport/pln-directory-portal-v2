@@ -13,6 +13,9 @@
     display: block;
     visibility: hidden;
     pointer-events: none;
+    /* Every child of the capped rail is shrinkable by default; a squeezed
+       spacer would quietly give back the offset that aligns the panel. */
+    flex-shrink: 0;
   }
 }
 
@@ -549,6 +552,13 @@
   list-style: none;
   max-height: 60vh;
   overflow-y: auto;
+  /* No track here either — the row clipped at the 60vh cut is the cue, and one
+     scroll treatment across the prototype beats a per-region decision. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .subRow {
@@ -663,15 +673,6 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
-// Demo-only role-tag switch sitting just above the Contributions section.
-.contribLayoutBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
 /* Two-column layout: team profile (main) + news rail (right) on desktop;
    stacks vertically below tablet-landscape. */
 .layout {
@@ -723,6 +724,13 @@
     flex-shrink: 0;
     position: sticky;
     top: 16px;
+    /* Cap the sticky rail to the viewport (16px sticky top + 16px bottom gap).
+       Uncapped, a rail taller than the screen parks its bottom below the fold
+       for good — at a 700px viewport the two exits sat off-screen at every
+       scroll position, because once the page bottom is reached a pinned rail
+       has nowhere left to move. The news list scrolls inside this cap instead
+       (the same mechanism production's TeamNewsRail uses). */
+    max-height: calc(100dvh - 32px);
   }
 }
 
@@ -767,6 +775,17 @@
      reads as a grey seam once the surface behind it turns blue. */
   [class*='cardFlat']:not(:last-child) {
     border-bottom-color: var(--border-brand-subtle, #aebfff);
+  }
+
+  @include media.tablet-landscape {
+    /* Flex items default to min-height: auto, so without this the panel refuses
+       to shrink inside the capped rail and .newsList never gets a scrollbar. */
+    min-height: 0;
+
+    /* The header labels the panel and stays with it; only the list scrolls. */
+    > *:first-child {
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -903,6 +922,29 @@
   > * {
     flex-shrink: 0;
   }
+
+  /* Desktop only — the list is the single scrolling region inside the capped
+     rail, so the header above it and the exits below it stay reachable however
+     tall the news gets. On mobile the rail isn't sticky and flows with the page,
+     so a second scroll region there would be a trap. */
+  @include media.tablet-landscape {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* Reaching the end of the list shouldn't start scrolling the page under it. */
+    overscroll-behavior: contain;
+
+    /* Scrolls, but shows no track. A rail is a side signal on someone else's
+       page, and 4px of chrome running down a 340px panel announces machinery
+       where the content should be doing the talking. The card clipped at the
+       fold is the affordance instead — same treatment as the newsfeed,
+       newsfeed-v0, gantry and person-city-calendar scroll regions. */
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 /* The desktop archive's own modal used to live here (.newsModal / .modal*), a
@@ -924,6 +966,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
   gap: 8px;
+  /* Keeping these two on screen is the whole point of the rail's height cap. */
+  flex-shrink: 0;
 }
 
 /* Shared box for both — same height, border and radius, so they read as a pair.
@@ -994,6 +1038,13 @@
   background: var(--Neutral-White, #fff);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Same no-track treatment as the rail's list — this is that panel, one tap
+     away, so a scrollbar appearing here would read as a different surface. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Header / count pill / close button copied from the production UpdatesPanel

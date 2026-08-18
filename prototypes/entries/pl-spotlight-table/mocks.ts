@@ -171,6 +171,38 @@ export type SpotlightParticipant = {
   accessLevel: AccessLevel;
 };
 
+/**
+ * The stand-in the template editor's preview resolves against.
+ *
+ * NOT a row from the table. The preview used to borrow the first participant,
+ * which put a real person's name on a specimen email and invited two wrong
+ * readings: that the wording had something to do with her, and — since she is
+ * also whoever is signed in — that the editor was showing the admin their own
+ * mail. A template is written for nobody in particular, so it previews against
+ * nobody in particular.
+ *
+ * It carries a `sector_hook`, because the preview can only show one branch and
+ * the fuller email is the more useful one to land on; the notes under the preview
+ * name which branch ran either way. Everything else is the shape
+ * `buildInviteDraft` needs and nothing more — this row is never rendered in a
+ * table, so its avatar, team and access fields are only here to satisfy the type.
+ */
+export const PREVIEW_RECIPIENT: SpotlightParticipant = {
+  id: 'preview-recipient',
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  avatarUrl: null,
+  team: null,
+  investorType: 'not provided',
+  inviteAccepted: false,
+  followUpsSent: 0,
+  followUpDate: null,
+  templateVars: '{"sector_hook":"climate and energy"}',
+  inviteSent: false,
+  participantType: 'INVESTOR',
+  accessLevel: 'L5',
+};
+
 export const mockSpotlightParticipants: SpotlightParticipant[] = [
   {
     id: 'polina-bublii',

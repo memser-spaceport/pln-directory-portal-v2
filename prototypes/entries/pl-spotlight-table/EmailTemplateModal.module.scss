@@ -141,72 +141,16 @@
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 
-// Wraps, because the tabs are labelled by cohort now and those labels are far
-// longer than the two names they replaced. On a narrow column the toggle drops
-// to its own line rather than squeezing "With template vars" to three per line.
+// Holds only the "Preview" label now — the cohort toggle went when both branches
+// became readable in the template, and the specimen caption went with the named
+// recipient. Kept as a flex row rather than flattened to the bare label, because
+// this is where a preview-scoped control would land if one is ever earned back.
 .previewHeader {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px 12px;
-}
-
-// A two-state segmented control: the template resolves exactly two ways — for
-// rows that carry template vars and for rows that don't — so it is a toggle over
-// two cohorts, not a dropdown over eighteen names.
-.sampleToggle {
-  display: inline-flex;
-  padding: 2px;
-  gap: 2px;
-  border-radius: 9999px;
-  background: var(--background-neutral-soft-surface, #f9fafb);
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-}
-
-.sampleButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border: none;
-  border-radius: 9999px;
-  background: none;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover {
-    color: var(--foreground-neutral-primary, #0a0c11);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
-    outline-offset: 1px;
-  }
-}
-
-// The cohort size, riding the label it qualifies. Tabular figures so the two
-// counts sit at the same width and switching tabs doesn't nudge the control.
-.sampleCount {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-}
-
-.sampleButtonActive .sampleCount {
-  color: var(--foreground-brand-primary, #1b4dff);
-}
-
-.sampleButtonActive,
-.sampleButtonActive:hover {
-  background: var(--background-base-white, #ffffff);
-  color: var(--foreground-neutral-primary, #0a0c11);
-  box-shadow: 0 1px 2px rgba(14, 15, 17, 0.06);
+  gap: 4px 12px;
 }
 
 // The rendered email. Reading text, so it drops the -0.2px tracking the UI
@@ -269,4 +213,64 @@
   line-height: 18px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// ── Template style tabs ───────────────────────────────────────────────────────
+
+// Production's Tabs component brings its own type, indicator and hover; all this
+// adds is where it sits — flush under the header rule, and far enough from the
+// Subject field below that it reads as governing the whole card rather than
+// labelling that one input.
+// `flex-shrink: 0` is the whole fix, and it is not optional.
+//
+// The card is a flex column with an 860px cap, so every direct child is a
+// shrinkable flex item. Production's Tabs root sets `overflow: auto` — which
+// means when the card runs out of room this row does not push back and does not
+// overflow visibly: it silently gives up height and CLIPS ITS OWN LABELS. It was
+// rendering at 35px around 54px of content, shearing the bottom off
+// "Conditional" and "Rules".
+//
+// An earlier pass misread that as the underline indicator hanging past the list
+// and added 6px of padding, which made it worse — padding is more content for a
+// box that is being squeezed. The 2px that remains is only the indicator's
+// overhang; the shrink is what was actually wrong.
+//
+// Checked the card's other children the same way: header, form and close button
+// all size to their content. This row is the only one with `overflow: auto`, and
+// therefore the only one that could lose height without anyone seeing it.
+// The negative top margin eats into the card's 24px flex gap.
+//
+// Left alone the row sat 40px below the header rule and 42px above the Subject
+// field — equidistant, so it read as floating between the two rather than
+// belonging to either. A tab row belongs to the header whose content it swaps,
+// so it moves up until that reading is unambiguous: ~20px above, ~34px below.
+// The asymmetry is the whole point; making the two gaps equal is what broke it.
+.styleTabs {
+  flex-shrink: 0;
+  margin-top: -16px;
+  padding-bottom: 2px;
+  margin-bottom: -4px;
+}
+
+// The `{{#if}}` chip. Same shape and same insert-at-caret job as a variable
+// chip, so it takes the same style — but it is a BLOCK, not a value, and mixing
+// it into a row of interchangeable-looking pills would invite clicking it where
+// a variable belongs. A dashed edge is the smallest mark that says "this one
+// wraps text" without promoting it out of the row.
+.ifChip {
+  border-style: dashed;
+}
+
+// ── Preview: template is unparseable ──────────────────────────────────────────
+
+// Amber, not red: the template is mid-edit, and a half-typed `{{#if}}` is the
+// normal state of typing one — an error colour would flash destructive every
+// time someone opens a block before closing it.
+//
+// The preview above keeps rendering, with the unbalanced tags left in the text
+// where the resolver gave up. That is deliberate: the unclosed block is visible
+// in the output at the point it went wrong, which locates the problem better
+// than a cleared pane or a frozen previous render would.
+.syntaxError.syntaxError {
+  color: var(--foreground-warning-primary, #b45309);
 }

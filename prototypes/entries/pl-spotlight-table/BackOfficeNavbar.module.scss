@@ -214,6 +214,16 @@
   }
 }
 
+// The leaf you are already on. Not in the frame — its one open menu has no
+// current item — but the moment a leaf actually routes, a menu that cannot say
+// which of its four rows you came from is a menu you have to remember your way
+// out of. Weight and tone only: a background here would read as hover, and the
+// row would look like it is about to do something.
+.menuItemActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+}
+
 // ── Sign out ──────────────────────────────────────────────────────────────────
 // The frame's only right-hand control: a 24px glyph in 12px of padding, in the
 // lighter of the two neutrals. No label, no user menu.

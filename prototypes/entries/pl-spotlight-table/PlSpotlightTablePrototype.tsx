@@ -42,6 +42,18 @@
 //    template, and the Overview's Title / Support Email feed the same draft's
 //    `{{spotlight_title}}` / `{{support_email}}` — so renaming the spotlight
 //    renames every subject line, live.
+//  - THREE levels of email wording, not two. Settings → Email templates holds the
+//    default (SettingsEmailTemplates.tsx), the Overview holds this spotlight's
+//    copy of it, and the envelope button holds one send's draft. This component
+//    owns all three pieces of state because each is read a level below where it
+//    is written, and it enforces the one rule that keeps them honest: a spotlight
+//    template saved identical to the Settings default clears the override instead
+//    of storing a duplicate, so "back on the default" is reachable without a
+//    revert button and the Settings list's override count stays true.
+//    Why the split exists at all is argued in emailTemplateLibrary.ts.
+//  - The navbar is a real router now, for exactly two destinations: Settings, and
+//    Demo Days → PL Spotlight back to this screen. Everything else in that bar
+//    still goes nowhere, and the bar no longer invents its own highlight.
 
 import { useMemo, useRef, useState } from 'react';
 import CustomTooltip from '@/components/ui/Tooltip/Tooltip';
@@ -63,7 +75,9 @@ import type {
   SpotlightParticipant,
 } from './mocks';
 import type { InviteTemplate } from './inviteTemplate';
-import { DEFAULT_INVITE_TEMPLATE } from './inviteTemplate';
+import { templatesMatch } from './inviteTemplate';
+import type { EmailTemplateId, EmailTemplateOverrides, EmailTemplateState } from './emailTemplateLibrary';
+import { INITIAL_EMAIL_TEMPLATES, JUST_EDITED } from './emailTemplateLibrary';
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -77,6 +91,7 @@ import InviteEmailModal from './InviteEmailModal';
 import EmailTemplateModal from './EmailTemplateModal';
 import SpotlightOverview from './SpotlightOverview';
 import BackOfficeNavbar from './BackOfficeNavbar';
+import SettingsEmailTemplates from './SettingsEmailTemplates';
 import s from './PlSpotlightTablePrototype.module.scss';
 
 const BADGE_CLASS: Record<InvestorType, string> = {
@@ -101,11 +116,28 @@ export default function PlSpotlightTablePrototype() {
   const inviteCount = useRef(0);
   const selectAllRef = useRef<HTMLInputElement>(null);
 
+  // Which screen the navbar has us on. Two values, because two items in that bar
+  // lead anywhere: this table, and Settings.
+  const [route, setRoute] = useState<'spotlight' | 'settings'>('spotlight');
+
   // The spotlight record and its invite wording. Both live here rather than in
   // the Overview card: the card edits them, but the table's send modal reads
   // them, so the state has to sit above both.
   const [overview, setOverview] = useState<SpotlightOverviewData>(mockSpotlightOverview);
-  const [template, setTemplate] = useState<InviteTemplate>(DEFAULT_INVITE_TEMPLATE);
+
+  // The org-wide templates, as Settings holds them.
+  const [orgTemplates, setOrgTemplates] = useState<EmailTemplateState>(INITIAL_EMAIL_TEMPLATES);
+
+  // This spotlight's own copy of the invite — `null` while it is still using the
+  // Settings wording, which is the state it starts in and can get back to.
+  //
+  // Deliberately an override rather than a seeded copy: seeding would mean every
+  // spotlight silently froze the default the day it was created, and editing the
+  // default in Settings would then reach nothing that already exists.
+  const [inviteOverride, setInviteOverride] = useState<InviteTemplate | null>(null);
+  const orgInviteTemplate = orgTemplates['spotlight-invite'].template;
+  const template = inviteOverride ?? orgInviteTemplate;
+
   const [templateOpen, setTemplateOpen] = useState(false);
   // Same re-mount trick the invite modal uses — a fresh session per open means
   // the editor always reopens on the saved template, never on a stale draft.
@@ -187,11 +219,37 @@ export default function PlSpotlightTablePrototype() {
   };
 
   const handleTemplateSave = (next: InviteTemplate) => {
-    setTemplate(next);
+    // Saving the Settings wording back verbatim is a request to stop overriding
+    // it, not a request to store a second identical template. Storing one would
+    // also detach this spotlight from every future edit made in Settings, which
+    // is the opposite of what pressing "Reset to Settings default" and then Save
+    // looks like it means.
+    const backOnDefault = templatesMatch(next, orgInviteTemplate);
+    setInviteOverride(backOnDefault ? null : next);
     setTemplateOpen(false);
     setLastRemoved(null);
-    setStatus('Invite email template saved. Every new invite starts from it.');
+    setStatus(
+      backOnDefault
+        ? 'Back on the Settings default. New invites follow it, including future edits made there.'
+        : 'Invite template saved for this spotlight only. Settings → Email templates still holds the default.',
+    );
   };
+
+  const handleOrgTemplateSave = (id: EmailTemplateId, next: InviteTemplate) => {
+    setOrgTemplates((current) => ({ ...current, [id]: { template: next, lastEdited: JUST_EDITED } }));
+  };
+
+  // Read by the Settings list, which otherwise has no way to know that editing a
+  // default reaches nothing here. One spotlight is all this prototype models, so
+  // the count is 0 or 1 — but it is derived, not mocked, and it moves while you
+  // use the screens.
+  const templateOverrides: EmailTemplateOverrides = useMemo(
+    () => ({
+      'spotlight-invite': inviteOverride ? [overview.title] : [],
+      'spotlight-follow-up': [],
+    }),
+    [inviteOverride, overview.title],
+  );
 
   const handleFollowUp = (row: SpotlightParticipant) => {
     const next = row.followUpsSent + 1;
@@ -224,12 +282,39 @@ export default function PlSpotlightTablePrototype() {
     return `${selectedIds.length} of ${rows.length} selected`;
   }, [rows.length, selectedIds.length]);
 
+  // Only the two routes the bar can actually serve. A leaf with no screen behind
+  // it never calls this, so there is nothing to guard against beyond the types.
+  const handleNavigate = (next: string) => {
+    if (next === 'settings' || next === 'spotlight') setRoute(next);
+  };
+
+  // The Settings screen replaces the spotlight screen rather than opening over it:
+  // it is a different page of the same app, and a modal would have made an org-wide
+  // list read as a property of the spotlight underneath it.
+  if (route === 'settings') {
+    return (
+      <>
+        <BackOfficeNavbar activeRoute={route} onNavigate={handleNavigate} />
+        <SettingsEmailTemplates
+          templates={orgTemplates}
+          overrides={templateOverrides}
+          // The preview inside the editor still needs real VALUES — a company
+          // name, a close date — and this prototype has exactly one spotlight to
+          // lend them. The recipient is a stand-in, so no row goes with them; the
+          // editor names where the values came from, see its `previewNote`.
+          context={inviteContext}
+          onSave={handleOrgTemplateSave}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       {/* The back-office chrome this screen actually sits under. Rendered
           outside `.root` so the bar is full-bleed and the table keeps its
           24px gutter. */}
-      <BackOfficeNavbar />
+      <BackOfficeNavbar activeRoute={route} onNavigate={handleNavigate} />
 
       <div className={s.root}>
         {/* The record the table is a list of. It leads because it answers what
@@ -483,8 +568,19 @@ export default function PlSpotlightTablePrototype() {
         <EmailTemplateModal
           open={templateOpen}
           template={template}
+          // Reset goes back to what Settings says NOW, not to what shipped — that
+          // is the difference between an override that stays connected to the
+          // default and one that quietly freezes it.
+          baseTemplate={orgInviteTemplate}
+          resetLabel="Reset to Settings default"
+          heading="Invite email template"
+          description={
+            inviteOverride
+              ? `${overview.title}’s own invite wording. Settings → Email templates holds the default it started from, and editing one email before it sends doesn’t change either.`
+              : `The draft every invite for ${inviteContext.companyName} starts from, set in Settings → Email templates. Saving here keeps a copy for this spotlight alone.`
+          }
+          saveNote="Applies to invites sent from now on. Emails already delivered stay as they were."
           context={inviteContext}
-          rows={rows}
           session={`template-${templateSession}`}
           onClose={() => setTemplateOpen(false)}
           onSave={handleTemplateSave}

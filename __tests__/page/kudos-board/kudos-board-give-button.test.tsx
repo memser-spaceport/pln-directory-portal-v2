@@ -3,7 +3,17 @@ import { render, screen } from '@testing-library/react';
 
 import KudosBoardComponent from '@/components/page/aligement-assets/kudos-board/kudos-board-component';
 
-const DEFAULT_POOL = { pointsRemaining: 100, totalBudget: 100, pointsUsed: 0, eligible: true };
+const DEFAULT_POOL = {
+  pointsRemaining: 100,
+  totalBudget: 100,
+  pointsUsed: 0,
+  eligible: true,
+  pointsMin: 10,
+  pointsMax: 100,
+  pointsStep: 10,
+  messageMin: 25,
+  messageMax: 500,
+};
 const poolReturn = { data: { ...DEFAULT_POOL } };
 
 jest.mock('@/hooks/use-kudos', () => ({

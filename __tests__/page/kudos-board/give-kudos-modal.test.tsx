@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { GiveCommunityKudosModal } from '@/components/page/aligement-assets/kudos-board/give-kudos-modal';
+import type { CommunityKudosLimits } from '@/schema/kudos-forms';
 
 const mutateAsync = jest.fn().mockResolvedValue({});
 jest.mock('@/hooks/use-kudos', () => ({
@@ -18,15 +19,30 @@ const recipients = [
   { memberId: 'uid-b', name: 'Bob' },
 ];
 
+const LIMITS: CommunityKudosLimits = { pointsMin: 10, pointsMax: 100, pointsStep: 10, messageMin: 25, messageMax: 500 };
+
 function renderModal(poolRemaining: number) {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={recipients} poolRemaining={poolRemaining} />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={recipients}
+      poolRemaining={poolRemaining}
+      limits={LIMITS}
+    />,
   );
 }
 
 function renderLoadingModal() {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={[]} poolRemaining={100} recipientsLoading />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={[]}
+      poolRemaining={100}
+      recipientsLoading
+      limits={LIMITS}
+    />,
   );
 }
 

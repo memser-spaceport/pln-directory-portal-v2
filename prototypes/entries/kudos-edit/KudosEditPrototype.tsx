@@ -7,29 +7,10 @@ import { KudosCard } from '@/components/page/aligement-assets/kudos-board/kudos-
 import { mockCurrentUser, mockRecipients, mockLimits, mockKudos, mockPoolRemaining } from './mocks';
 
 /**
- * PLAA-50 (Enable Givers to Edit Community Kudos) — click-through of the three
- * card states without needing a real login or the PLAA backend:
- *   1. Your own kudos, current round  -> Edit action
- *   2. Your own kudos, a past round   -> lock icon, frozen
- *   3. Someone else's kudos           -> neither
- *
- * KudosCard itself is the real production component, unmodified in behavior
- * for the real app:
- *   - `currentUserForPreview` feeds the "is this my kudos" check instead of
- *     the real session. Do NOT seed the real `useCurrentUserStore` here — it's
- *     a global singleton several other always-mounted app components watch
- *     for real session state, and a fake user with no backing cookies reads
- *     to them as a broken session (that's what caused a repeating "logged
- *     out" toast the first version of this file produced).
- *   - `onSaveForPreview` stands in for the real update mutation, which needs
- *     a reachable PLAA backend. Without it, "Save changes" would show a real
- *     error toast instead of demonstrating what a successful edit looks like.
- *   - `limits` mirrors what the real board threads down from `useCommunityPool()`
- *     (`ICommunityPool`'s `pointsMin`/`pointsMax`/`pointsStep`/`messageMin`/
- *     `messageMax` — server-driven, not a hardcoded client constant).
- *
- * No local <ToastContainer> — the app already mounts one globally
- * (components/core/ToastContainer, in app/layout.tsx).
+ * PLAA-50 click-through, no login or PLAA backend needed. Renders the real
+ * KudosCard via its preview props. Don't seed the real `useCurrentUserStore`
+ * here: other always-mounted components watch it for real session state, and
+ * a fake user reads to them as a broken session.
  */
 export default function KudosEditPrototype() {
   const [kudosList, setKudosList] = useState(mockKudos);

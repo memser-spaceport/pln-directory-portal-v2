@@ -85,11 +85,7 @@ export function submitCommunityKudos(input: ICommunityKudosInput): Promise<IComm
   });
 }
 
-/**
- * Only the original giver may edit, and only while the kudos' round is still
- * open — both enforced server-side. The giver and round are immutable and
- * never sent.
- */
+/** Giver-only, round-must-be-open — both enforced server-side. Giver and round are immutable and never sent. */
 export function updateCommunityKudos(id: string, input: ICommunityKudosInput): Promise<ICommunityKudos> {
   return request<ICommunityKudos>(`/kudos/community/${id}`, {
     method: 'PATCH',

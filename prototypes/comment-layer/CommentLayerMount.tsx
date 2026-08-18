@@ -52,15 +52,10 @@ export function CommentLayerMount() {
 
     (async () => {
       try {
-        // Load the CDN dependency FIRST, in isolation. The vendored bundles
-        // below attach their own global listeners (click/mousemove, for pin
-        // placement) as a side effect of merely being imported — before
-        // `.init()` ever runs. If they're imported in parallel with a CDN
-        // script that then fails (e.g. no network egress to jsdelivr.net in
-        // this environment), those listeners are already live and firing on
-        // every click, throwing on DOM elements `.init()` never got to
-        // create. That reads as "the whole page is unstable" even though it
-        // has nothing to do with whatever's actually being reviewed.
+        // Load in isolation first: the vendored bundles below attach global
+        // click/mousemove listeners as a side effect of import, before
+        // .init() runs — if the CDN script fails, those listeners are still
+        // live and throw on every click.
         await ensureScript(SUPABASE_JS_CDN, () => !!(window as any).supabase);
         if (disposed) return;
 

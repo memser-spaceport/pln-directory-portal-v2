@@ -2,12 +2,7 @@ import { getCurrentRoundNumber } from '@/utils/plaa-round.utils';
 import type { CommunityKudosLimits } from '@/schema/kudos-forms';
 import type { ICommunityKudos, IUserSummary } from '@/components/page/aligement-assets/kudos-board/data/kudos-board.types';
 
-/**
- * The signed-in giver this prototype simulates — matches PLAA-50's mockup
- * persona. Carries both `uid` (what `currentUserForPreview` compares against)
- * and `memberId` (what `IUserSummary`/`kudos.giver` uses for the same person)
- * since this object doubles as both below — they must be the same value.
- */
+// Doubles as both `currentUserForPreview` and `kudos.giver` below — uid and memberId must match.
 export const mockCurrentUser = { uid: 'uid-ada-chen', memberId: 'uid-ada-chen', name: 'Ada Chen' };
 
 export const mockRecipients: IUserSummary[] = [
@@ -28,13 +23,9 @@ export const mockLimits: CommunityKudosLimits = {
 const currentRoundId = String(getCurrentRoundNumber());
 const pastRoundId = String(getCurrentRoundNumber() - 1);
 
-// Fixed, literal timestamps — NOT `Date.now() - N`. This module runs once
-// during server render and again during client hydration; a `Date.now()`
-// computed at module scope produces a different value each time (seconds or
-// more apart), so `formatRelativeTime()` renders different text server- vs
-// client-side, React flags a hydration mismatch, and force-rerenders right
-// after load. That reads as "the page isn't stable" even though nothing is
-// actually broken — literal strings sidestep it entirely.
+// Literal timestamps, not `Date.now() - N`: this module runs once at server
+// render and again at hydration, and a module-scope `Date.now()` would
+// differ between the two and trip a hydration mismatch.
 export const mockKudos: ICommunityKudos[] = [
   {
     id: 'kudos-editable',
@@ -43,7 +34,7 @@ export const mockKudos: ICommunityKudos[] = [
     roundId: currentRoundId,
     points: 60,
     message: 'Ran the retro that finally got the two teams talking about the shared schema.',
-    createdAt: '2026-08-15T09:00:00.000Z', // renders as "Yesterday" as of this prototype's mock "today"
+    createdAt: '2026-08-15T09:00:00.000Z',
   },
   {
     id: 'kudos-finalized',

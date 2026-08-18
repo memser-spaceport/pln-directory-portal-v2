@@ -13,11 +13,8 @@ import { buildCommunityKudosSchema, type CommunityKudosFormValues, type Communit
 import { communityGiftOptions } from './data/kudos-board.data';
 import type { ICommunityKudos, ICommunityKudosInput, IUserSummary } from './data/kudos-board.types';
 
-// Only used when `limits` hasn't loaded yet — `canEdit` requires `limits` to
-// be defined, so the edit form (and therefore this schema) is unreachable
-// while this placeholder would otherwise apply. useForm still needs *some*
-// resolver on every render, hence the placeholder rather than a conditional
-// hook call.
+// useForm needs a resolver every render, even before `limits` loads and the
+// edit form (which needs `limits`) is reachable.
 const PLACEHOLDER_LIMITS: CommunityKudosLimits = {
   pointsMin: 0,
   pointsMax: 0,
@@ -28,28 +25,14 @@ const PLACEHOLDER_LIMITS: CommunityKudosLimits = {
 
 interface IKudosCardProps {
   kudos: ICommunityKudos;
-  /** Needed for the edit form's Recipient field — same list the give-kudos modal uses. */
   recipients: IUserSummary[];
   recipientsLoading?: boolean;
   /** Remaining pool *before* this kudos' own points are added back for editing. */
   poolRemaining: number;
-  /** Gift-amount limits, live from the community pool. Editing is disabled until these are loaded. */
   limits?: CommunityKudosLimits;
-  /**
-   * Overrides the signed-in user used for the "is this my kudos" check.
-   * Production call sites never pass this — they get the real session from
-   * `useCurrentUserStore`. It exists only for prototypes/tests: seeding that
-   * store directly with a fake user conflicts with the several other
-   * always-mounted app components that watch it for real session state and
-   * will force a genuine logout when they see a user with no backing cookies.
-   */
+  /** Prototypes/tests only: seeding the real `useCurrentUserStore` with a fake user forces a genuine logout. */
   currentUserForPreview?: { uid?: string } | null;
-  /**
-   * Overrides the save behavior for the edit form. Production call sites
-   * never pass this — real saves go through `useUpdateCommunityKudos()`,
-   * which needs a reachable PLAA backend. It exists only for prototypes/tests
-   * that want to demo a full successful save without one.
-   */
+  /** Prototypes/tests only: stands in for `useUpdateCommunityKudos()`, which needs a reachable PLAA backend. */
   onSaveForPreview?: (args: { id: string; input: ICommunityKudosInput }) => Promise<ICommunityKudos>;
 }
 
@@ -185,15 +168,12 @@ export function KudosCard({
 
   const isSaving = mutation.isPending || isSavingPreview;
 
-  // The current recipient might no longer be in the active-recipients list
-  // (e.g. they've left the roster) — keep them selectable so the form doesn't
-  // silently fall back to a blank picker on open.
+  // Keep a since-departed recipient selectable so the form doesn't blank out.
   const recipientOptions = recipients.some((r) => r.memberId === kudos.recipient.memberId)
     ? recipients
     : [kudos.recipient, ...recipients];
 
-  // This kudos' own points are already "spent" against the pool, so editing
-  // (even to the same amount) shouldn't be blocked by them counting twice.
+  // Add this kudos' own points back so editing isn't blocked by double-counting them.
   const pointOpts = limits
     ? communityGiftOptions(poolRemaining + kudos.points, limits.pointsMin, limits.pointsMax, limits.pointsStep)
     : [];

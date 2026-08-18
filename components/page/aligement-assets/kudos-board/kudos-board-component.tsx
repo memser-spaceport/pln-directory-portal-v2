@@ -49,10 +49,7 @@ export default function KudosBoardComponent({
 
   return (
     <div className="kudos-board">
-      {/* No local <ToastContainer> here — the app already mounts one globally
-          (components/core/ToastContainer, in app/layout.tsx). react-toastify
-          broadcasts every toast() call to every mounted container, so adding
-          a second one here just double-renders each kudos toast. */}
+      {/* No local <ToastContainer> — the app already mounts one globally; a second one double-renders every toast. */}
       <div className="kudos-board__container">
         <header className="kudos-board__header">
           <div>

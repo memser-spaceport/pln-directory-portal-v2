@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
+
+import { PAGE_ROUTES } from '@/utils/constants';
 
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -152,7 +155,14 @@ export function JobTeamGroupCard({
           {/* The story belongs to the team, so it sits with the team's name; it
               wraps under the name when there's no room for both. */}
           <div className={`${js.nameRow} ${newsVariant === 'count' ? js.nameRowChip : ''}`}>
-            <h3 className={s.teamName}>{team.name}</h3>
+            <h3 className={s.teamName}>
+              <Link
+                prefetch={false}
+                href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
+              >
+                {team.name}
+              </Link>
+            </h3>
             {newsOnNameRow && newsStrip}
           </div>
           {!isEmpty(focusTags) && (

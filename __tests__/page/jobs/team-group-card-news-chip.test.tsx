@@ -80,6 +80,12 @@ describe('TeamGroupCard news chip', () => {
     expect(onOpenTeamNews).toHaveBeenCalledWith('team-1', 'Acme');
   });
 
+  it('links the team name to the team profile', () => {
+    render(<TeamGroupCard group={group} onRoleClick={onRoleClick} onOpenTeamNews={onOpenTeamNews} />);
+
+    expect(screen.getByRole('link', { name: 'Acme' })).toHaveAttribute('href', '/teams/team-1?backTo=%2Fjobs');
+  });
+
   it('leaves the open-roles count alone', () => {
     render(<TeamGroupCard group={group} onRoleClick={onRoleClick} onOpenTeamNews={onOpenTeamNews} />);
 

@@ -1,10 +1,12 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
 import { TagsList } from '@/components/common/profile/TagsList';
 
@@ -54,7 +56,14 @@ export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupC
               — two "new"s on one card, told apart by their nouns and by being
               visually unlike (grey chip with a blue dot vs a green pill). */}
           <div className={s.nameRow}>
-            <h3 className={s.teamName}>{team.name}</h3>
+            <h3 className={s.teamName}>
+              <Link
+                prefetch={false}
+                href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
+              >
+                {team.name}
+              </Link>
+            </h3>
             {onOpenTeamNews && (
               <TeamNewsCountChip teamUid={team.uid} teamName={team.name} source="job-board" onOpen={onOpenTeamNews} />
             )}

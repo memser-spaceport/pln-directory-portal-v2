@@ -1,0 +1,1 @@
+export { McpAuthorizePage } from './McpAuthorizePage';

@@ -6,9 +6,12 @@ import { useRouter } from 'next/navigation';
 import s from './ConnectedAccounts.module.scss';
 import { triggerLoader } from '@/utils/common.utils';
 import LinkAuthAccounts from '@/components/page/member-info/link-auth-accounts';
+import { McpSection } from '@/components/page/connected-accounts/McpSection';
+import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
 
 export const ConnectedAccounts = () => {
   const router = useRouter();
+  const { canConnect } = useMcpAccess();
 
   useEffect(() => {
     triggerLoader(false);
@@ -32,6 +35,7 @@ export const ConnectedAccounts = () => {
     <div className={s.root}>
       <h5 className={s.title}>Connected Accounts</h5>
       <LinkAuthAccounts />
+      {canConnect && <McpSection />}
     </div>
   );
 };

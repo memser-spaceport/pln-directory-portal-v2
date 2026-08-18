@@ -1040,6 +1040,10 @@ export const TeamNews = ({
           onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
           isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
           onFollowToggle={handleFollowToggle}
+          // Constructed, not left to the body's current-URL fallback: the ?news=
+          // param is written with raw history.replaceState, so the round-trip
+          // has to name the story explicitly to survive a sign-in.
+          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
         />
       )}
       {activeForumPost && (

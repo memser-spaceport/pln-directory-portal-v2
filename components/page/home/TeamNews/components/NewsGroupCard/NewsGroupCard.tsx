@@ -28,7 +28,7 @@ import { hasNewsSource } from '../../utils/getNewsSources';
 import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import s from './NewsGroupCard.module.scss';
 
-const VISIBLE_STORIES = 3;
+const VISIBLE_STORIES = 1;
 
 interface NewsGroupCardProps {
   cluster: TeamCluster;

@@ -608,6 +608,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
+  // The other exit from a team-scoped news list: "View all news" stays inside
+  // the team, this one widens to the whole network feed. Two different intents
+  // sitting on one row, so they need two events to be told apart.
+  TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED: 'team-news-all-network-updates-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',

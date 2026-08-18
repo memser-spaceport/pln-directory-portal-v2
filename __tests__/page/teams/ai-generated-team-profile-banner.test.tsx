@@ -43,7 +43,10 @@ describe('AiGeneratedTeamProfileBanner', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /i have reviewed the profile/i }));
 
-    expect(mutate).toHaveBeenCalledWith({ teamUid: 'team-1' }, expect.objectContaining({ onError: expect.any(Function) }));
+    expect(mutate).toHaveBeenCalledWith(
+      { teamUid: 'team-1' },
+      expect.objectContaining({ onError: expect.any(Function) }),
+    );
     expect(screen.queryByTestId('ai-generated-team-profile-banner')).not.toBeInTheDocument();
   });
 

@@ -6,12 +6,41 @@ import type { ITeamNewsDiscussion, ITeamNewsItem, TeamNewsEventType } from '@/ty
 
 const mockOnCardClicked = jest.fn();
 const mockOnLoadMoreClicked = jest.fn();
+const mockOnAllNetworkUpdatesClicked = jest.fn();
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
     onTeamNewsLoadMoreClicked: (...a: unknown[]) => mockOnLoadMoreClicked(...a),
+    onTeamNewsAllNetworkUpdatesClicked: (...a: unknown[]) => mockOnAllNetworkUpdatesClicked(...a),
+    onTeamNewsShared: jest.fn(),
   }),
+}));
+
+// The story itself is /home's NewsDetailBody, covered by its own suite. What
+// this box owns is the drill: which of the two views is on screen, and what
+// Back does.
+let lastStoryProps: Record<string, unknown> | null = null;
+jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({
+  NewsDetailBody: (props: { item: { uid: string }; onBack?: () => void; onClose: () => void }) => {
+    lastStoryProps = props;
+    return (
+      <div data-testid="story-view">
+        <span>{props.item.uid}</span>
+        <button type="button" onClick={props.onBack}>
+          Back to the news list
+        </button>
+        <button type="button" onClick={props.onClose}>
+          Close story
+        </button>
+      </div>
+    );
+  },
+  NEWS_DETAIL_TITLE_ID: 'news-detail-modal-title',
+}));
+
+jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
+  useFeedCommentCount: () => undefined,
 }));
 
 jest.mock('@/services/auth/store', () => ({
@@ -229,5 +258,111 @@ describe('TeamNewsModal reveal', () => {
     renderModal();
     expect(screen.queryByTestId('truncated-summary')).toBeNull();
     expect(screen.getByText('Full summary for news-1 with every word intact.')).toBeInTheDocument();
+  });
+});
+
+describe('TeamNewsModal drill', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    scrollToMock.mockClear();
+    lastStoryProps = null;
+    queryState = loaded([makeItem('news-1'), makeItem('news-2'), makeItem('news-3')]);
+  });
+
+  const openStory = (uid: string) => fireEvent.click(screen.getByText(`Headline ${uid}`));
+
+  it('swaps the box to the clicked story instead of stacking a second modal', () => {
+    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+    renderModal();
+
+    openStory('news-2');
+
+    expect(screen.getByTestId('story-view')).toHaveTextContent('news-2');
+    // The list is gone, not layered over: one view, one Close, one Escape.
+    expect(screen.queryByText('Headline news-1')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search news by keyword or type')).not.toBeInTheDocument();
+    expect(open).not.toHaveBeenCalled();
+    expect(lastStoryProps?.source).toBe('team-profile-modal');
+    open.mockRestore();
+  });
+
+  it('Back returns to the list and puts the reader back on the row they opened', () => {
+    jest.useFakeTimers();
+    renderModal();
+    openStory('news-3');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the news list' }));
+
+    expect(screen.queryByTestId('story-view')).toBeNull();
+    expect(screen.getByText('Headline news-1')).toBeInTheDocument();
+    expect(scrollToMock).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('[data-story-uid="news-3"]')).toHaveAttribute('data-highlighted', 'true');
+  });
+
+  it('Back keeps the search the reader had typed', () => {
+    renderModal();
+    fireEvent.change(screen.getByPlaceholderText('Search news by keyword or type'), { target: { value: 'ipfs' } });
+
+    openStory('news-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the news list' }));
+
+    expect(screen.getByPlaceholderText('Search news by keyword or type')).toHaveValue('ipfs');
+  });
+
+  it('Close from a drilled story leaves the modal entirely', () => {
+    const onClose = jest.fn();
+    renderModal({ onClose });
+    openStory('news-2');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close story' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('reopening the archive after a close starts on the list, not the last story', () => {
+    const { rerender } = renderModal();
+    openStory('news-2');
+
+    rerenderModal(rerender, { isOpen: false });
+    rerenderModal(rerender, { isOpen: true });
+
+    expect(screen.queryByTestId('story-view')).toBeNull();
+    expect(screen.getByText('Headline news-1')).toBeInTheDocument();
+  });
+
+  it('the comment count drills to the same story, reported as its own via', () => {
+    renderModal();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Comments, open' })[2]);
+
+    expect(screen.getByTestId('story-view')).toHaveTextContent('news-3');
+    expect(mockOnCardClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'news-3' }),
+      2,
+      'team-profile-modal',
+      'comments',
+    );
+  });
+
+  it('drills inside the fullscreen page variant too', () => {
+    renderModal({ fullscreen: true });
+
+    openStory('news-1');
+    expect(screen.getByTestId('story-view')).toHaveTextContent('news-1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the news list' }));
+    expect(screen.getByText('Headline news-1')).toBeInTheDocument();
+  });
+
+  it('offers All network updates from the list, in both shells', () => {
+    const { rerender } = renderModal();
+
+    const link = screen.getByRole('link', { name: /All network updates/i });
+    expect(link).toHaveAttribute('href', '/home');
+    fireEvent.click(link);
+    expect(mockOnAllNetworkUpdatesClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 'team-profile-modal');
+
+    rerenderModal(rerender, { fullscreen: true });
+    expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
   });
 });

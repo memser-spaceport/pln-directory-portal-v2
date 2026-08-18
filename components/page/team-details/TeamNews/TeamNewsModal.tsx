@@ -7,10 +7,12 @@ import { SearchInput } from '@/components/common/filters/SearchInput/SearchInput
 import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { NewsDetailBody, NEWS_DETAIL_TITLE_ID } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
+import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './TeamNewsRail';
 import { useNewsReveal } from './useNewsReveal';
 import s from './TeamNewsRail.module.scss';
@@ -41,6 +43,19 @@ export function TeamNewsModal({
   onUpvoteToggle,
 }: TeamNewsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  // The story this box has drilled into, if any. DRILLS, never stacks: clicking
+  // a row swaps this same box to the story with Back on the left and Close still
+  // on the right. A story modal opened on top would give the reader two close
+  // buttons and an Escape key that means two things.
+  const [storyUid, setStoryUid] = useState<string | null>(null);
+  // Row to scroll back to and flash when Back returns to the list. A ref, not
+  // state: the reveal has to wait for the list to remount, so it can't happen in
+  // the click handler — and a state write from the effect that consumes it would
+  // cascade a render for a value nothing renders (same call as revealConsumedRef).
+  const backRevealUidRef = useRef<string | null>(null);
+  // While the drilled story's share popover is open the Modal's own
+  // Escape/backdrop closers are detached, so one gesture never dismisses both.
+  const [shareOpen, setShareOpen] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
   const effectiveQuery = searchQuery === '' ? '' : debouncedQuery;
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -73,9 +88,12 @@ export function TeamNewsModal({
     [fetchedItems, upvoteOverlay],
   );
 
+  const story = storyUid ? (items.find((item) => item.uid === storyUid) ?? null) : null;
+
   const handleClose = useCallback(() => {
     onClose();
     setSearchQuery('');
+    setStoryUid(null);
   }, [onClose]);
 
   const handleCardClick = useCallback(
@@ -85,12 +103,44 @@ export function TeamNewsModal({
     [onTeamNewsCardClicked],
   );
 
+  const handleOpenDetail = useCallback(
+    (item: ITeamNewsItem, position: number, via: 'row' | 'comments') => {
+      // The row's own click already reported through `onClick`; only the comment
+      // count is this handler's to record.
+      if (via === 'comments') onTeamNewsCardClicked(item, position, 'team-profile-modal', 'comments');
+      setStoryUid(item.uid);
+    },
+    [onTeamNewsCardClicked],
+  );
+
+  // Back leaves the search query alone: the filtered list is where the reader
+  // was, so that's where Back returns them.
+  const handleBack = useCallback(() => {
+    backRevealUidRef.current = storyUid;
+    setStoryUid(null);
+  }, [storyUid]);
+
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery('');
+      setStoryUid(null);
       revealConsumedRef.current = false;
     }
   }, [isOpen]);
+
+  // Returning from a story: put the reader back on the row they opened, flashed
+  // the same way "Show more" used to flash its target. Runs once per return —
+  // clearing the uid is what makes it a one-shot.
+  useEffect(() => {
+    const uid = backRevealUidRef.current;
+    if (!uid || story) return;
+    backRevealUidRef.current = null;
+    const container = scrollContainerRef.current;
+    const el = container?.querySelector<HTMLElement>(`[data-story-uid="${CSS.escape(uid)}"]`);
+    // Not found (filtered out by a search typed before Back, or paged away):
+    // land on the list at the top, no highlight, no error.
+    if (container && el) reveal(el, container);
+  }, [story, reveal]);
 
   const hasFirstPage = !isLoading && items.length > 0;
 
@@ -171,6 +221,7 @@ export function TeamNewsModal({
             onUpvoteToggle={
               onUpvoteToggle ? (toggled) => onUpvoteToggle(toggled, index, 'team-profile-modal') : undefined
             }
+            onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
           />
         ))}
       </div>
@@ -183,8 +234,32 @@ export function TeamNewsModal({
     </div>
   );
 
+  // The drilled story, wearing this box's chrome: Back leads its header, Close
+  // stays where it was. Rendered by both shells from one definition so a story
+  // reads identically on desktop and on the full-page mobile view.
+  const storyContent = story && (
+    <NewsDetailBody
+      item={story}
+      onClose={handleClose}
+      onBack={handleBack}
+      onUpvoteToggle={(item) =>
+        onUpvoteToggle?.(
+          item,
+          items.findIndex((listItem) => listItem.uid === item.uid),
+          'team-profile-modal',
+        )
+      }
+      source="team-profile-modal"
+      onShareOpenChange={setShareOpen}
+    />
+  );
+
   if (fullscreen) {
     if (!isOpen) return null;
+
+    // The page keeps its shell and swaps its body — the story draws its own
+    // Back-led header, so this one steps aside rather than stacking two.
+    if (storyContent) return <div className={s.newsPage}>{storyContent}</div>;
 
     return (
       <div className={s.newsPage} ref={scrollContainerRef}>
@@ -207,26 +282,47 @@ export function TeamNewsModal({
         </div>
 
         {feedContent}
+
+        <div className={s.modalFooter}>
+          <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-modal" variant="solo" />
+        </div>
       </div>
     );
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} className={s.newsModal}>
-      <div className={s.modalHeader}>
-        <span className={s.modalTitle}>
-          {teamName} News ({total})
-        </span>
-        <button type="button" className={s.modalClose} onClick={handleClose} aria-label="Close">
-          <ModalCloseIcon />
-        </button>
-      </div>
-      <div className={s.modalSearchWrap}>
-        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search news by keyword or type" />
-      </div>
-      <div className={s.modalBody} ref={scrollContainerRef}>
-        {feedContent}
-      </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      className={s.newsModal}
+      ariaLabelledBy={story ? NEWS_DETAIL_TITLE_ID : undefined}
+      closeOnEscape={!shareOpen}
+      closeOnBackdropClick={!shareOpen}
+    >
+      {storyContent ?? (
+        <>
+          <div className={s.modalHeader}>
+            <span className={s.modalTitle}>
+              {teamName} News ({total})
+            </span>
+            <button type="button" className={s.modalClose} onClick={handleClose} aria-label="Close">
+              <ModalCloseIcon />
+            </button>
+          </div>
+          <div className={s.modalSearchWrap}>
+            <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search news by keyword or type" />
+          </div>
+          <div className={s.modalBody} ref={scrollContainerRef}>
+            {feedContent}
+          </div>
+          {/* The way out of the archive that isn't Close: this box answers "what
+              has this team been doing" but closes off "and what else happened",
+              so the feed stays one click away. */}
+          <div className={s.modalFooter}>
+            <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-modal" variant="solo" />
+          </div>
+        </>
+      )}
     </Modal>
   );
 }

@@ -167,7 +167,12 @@ export function NewsDetailBody({
           ) : (
             <div className={newsCardStyles.logoFallback}>{getTeamLogoFallback(item.teamName)}</div>
           )}
-          <a href={`/teams/${item.teamUid}`} target="_blank" rel="noopener noreferrer" className={newsCardStyles.teamName}>
+          <a
+            href={`/teams/${item.teamUid}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={newsCardStyles.teamName}
+          >
             {item.teamName}
           </a>
           {isHydrated && onFollowToggle && (

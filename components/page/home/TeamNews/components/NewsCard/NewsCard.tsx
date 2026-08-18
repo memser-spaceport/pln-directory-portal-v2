@@ -13,6 +13,8 @@ import { getEventTypeConfig } from '../../utils/getEventTypeConfig';
 import { hasNewsSource } from '../../utils/getNewsSources';
 
 import { UpvoteButton } from './components/UpvoteButton/UpvoteButton';
+import { CommentButton } from './components/CommentButton/CommentButton';
+import { NewsShareMenu } from '../NewsShareMenu';
 import { SourceList } from '../SourceList/SourceList';
 import { TruncatedSummary } from './TruncatedSummary';
 import { ViewCount } from '../ViewCount/ViewCount';
@@ -42,6 +44,20 @@ interface NewsCardProps {
   onShowMore?: (item: ITeamNewsItem) => void;
   /** Render the summary in full, overriding the compact two-line clamp (modal feed). */
   fullSummary?: boolean;
+  /**
+   * Opens the story in a dialog instead of leaving for `sourceUrl`, and lights
+   * up the Share and Comments actions — the row the feed already renders
+   * (NewsGroupCard). A profile rail is somewhere the reader is mid-task:
+   * bouncing the whole page out to a publisher on a stray tap costs them the
+   * scroll position and everything they had open, and the tap target here is a
+   * whole card. The source is still one deliberate click away, from the meta
+   * line or from inside the story.
+   *
+   * `via` is which affordance asked — the row itself or the comment count. The
+   * caller owns the analytics for it: the row already reports through `onClick`,
+   * so only the comment path is the caller's to record.
+   */
+  onOpenDetail?: (item: ITeamNewsItem, via: 'row' | 'comments') => void;
 }
 
 export const NewsCard = ({
@@ -61,6 +77,7 @@ export const NewsCard = ({
   onUpvoteToggle,
   onShowMore,
   fullSummary = false,
+  onOpenDetail,
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
@@ -84,6 +101,10 @@ export const NewsCard = ({
 
   const handleClick = () => {
     onClick?.(item);
+    if (onOpenDetail) {
+      onOpenDetail(item, 'row');
+      return;
+    }
     window.open(item.sourceUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -101,7 +122,12 @@ export const NewsCard = ({
 
   return (
     <div
-      role="link"
+      // Opens a dialog here, still leaves the page without `onOpenDetail` — the
+      // role has to say which, or the announcement promises the wrong thing.
+      // role="button" is also what NewsDetailModal's focus restore looks for
+      // when it hands focus back to the row that opened it.
+      role={onOpenDetail ? 'button' : 'link'}
+      aria-haspopup={onOpenDetail ? 'dialog' : undefined}
       tabIndex={0}
       data-story-uid={item.uid}
       className={clsx(
@@ -161,12 +187,28 @@ export const NewsCard = ({
           <span className={s.sep} aria-hidden="true" />
           <span className={s.time}>{formatTimeAgo(item.eventDate)}</span>
         </div>
+        {/* Share · Views · Like · Comments — the feed row's order (NewsGroupCard),
+            so one story carries one set of actions wherever it's read. Share and
+            Comments only appear where the card can open the story: without a
+            detail view a comment count would point at nothing. */}
         <span className={s.actions}>
+          {onOpenDetail && <NewsShareMenu item={item} source={analyticsSource} />}
           <ViewCount count={item.viewCount} />
           {/* Gated on hydration (like FollowButton) so a pre-hydration click
               can't misread a signed-in viewer as a guest. */}
           {isHydrated && onUpvoteToggle && (
             <UpvoteButton count={upvoteCount} voted={viewerHasUpvoted} onToggle={handleUpvoteToggle} />
+          )}
+          {onOpenDetail && (
+            // opensDetail: nothing unfolds in place — a thread inside a ~340px
+            // rail would push the rest of the news off-screen, the same call the
+            // top-stories band makes.
+            <CommentButton
+              itemUid={item.uid}
+              open={false}
+              onToggle={() => onOpenDetail(item, 'comments')}
+              opensDetail
+            />
           )}
         </span>
       </div>

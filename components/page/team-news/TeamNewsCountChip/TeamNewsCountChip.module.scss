@@ -1,0 +1,72 @@
+/* The shell is the design system's Badge `default` (grey), narrowed from its
+   14px/20 in `2px 8px` to the 11px/16 in `0 6px` the prototype settled on — a
+   card corner can't carry a full-size badge without the badge becoming the card.
+   Only the flex row, the dot and the hover live here; every colour comes from
+   Badge.default. */
+
+/* A bare <button> wrapper so the Badge (a <span>) can take the click. The button
+   carries no visual weight of its own — it exists to be the interactive element,
+   because a clickable <span> is not one. */
+.link {
+  display: inline-flex;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 26px;
+  }
+}
+
+.chip {
+  gap: 4px;
+  padding: 0 6px;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* Production's unread dot verbatim (NavBar .newsDot / NotificationItem
+   .unreadDot). Brand-coloured at rest where the chip's text is grey: a dot
+   carries no meaning of its own, so if it isn't the unread colour it's just a
+   bullet. */
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--foreground-brand-secondary_inverted, #4174ff);
+  transition: background 0.15s ease;
+}
+
+/* Grey at rest, brand on hover — the chip states a fact until you reach for it,
+   then answers like every other pressable chip in the product. Twelve of these
+   down a grid in brand-blue at rest would be twelve things competing with the
+   team name for the same click. */
+.link:hover .chip {
+  background: #e8edff;
+  border-color: var(--border-brand-subtle, #aebfff);
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The dot rides the text colour once the chip goes brand rather than being left
+   a shade behind the label. */
+.link:hover .dot {
+  background: currentColor;
+}

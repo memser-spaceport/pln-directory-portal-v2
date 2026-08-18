@@ -1,5 +1,5 @@
 import styles from './page.module.css';
-import SettingsMenu from '@/components/page/settings/menu';
+import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import { redirect } from 'next/navigation';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import SettingsMobileHandler from '@/components/page/settings/settings-mobile-handler';

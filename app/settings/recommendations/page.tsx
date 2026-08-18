@@ -1,4 +1,4 @@
-import SettingsMenu from '@/components/page/settings/menu';
+import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { getMemberNotificationSettings, getMemberPreferences } from '@/services/preferences.service';
 import styles from './page.module.css';
@@ -96,7 +96,7 @@ async function RecommendationsPage(props: { searchParams: Promise<any> }) {
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="recommendations" userInfo={userInfo} />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
             <RecommendationsSettingsForm uid={userInfo.uid} userInfo={userInfo} initialData={notificationSettings} />

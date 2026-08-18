@@ -21,6 +21,13 @@ interface TeamNewsFeedLinkProps {
    * and gets marked as such.
    */
   variant?: 'paired' | 'solo';
+  /**
+   * Replaces the variant class outright, for surfaces whose card supplies its
+   * own button chrome — the member profile's rail card wears BookWithOther's
+   * button, which neither variant here is. The copy and the analytics stay
+   * single-sourced; only the skin differs.
+   */
+  className?: string;
 }
 
 /**
@@ -36,14 +43,14 @@ interface TeamNewsFeedLinkProps {
  * One component for both lists so the two can't drift into different words for
  * the same trip.
  */
-export function TeamNewsFeedLink({ teamUid, teamName, source, variant = 'paired' }: TeamNewsFeedLinkProps) {
+export function TeamNewsFeedLink({ teamUid, teamName, source, variant = 'paired', className }: TeamNewsFeedLinkProps) {
   const { onTeamNewsAllNetworkUpdatesClicked } = useTeamNewsAnalytics();
 
   return (
     <Link
       href="/home"
       prefetch={false}
-      className={variant === 'solo' ? s.viewFeedSolo : s.viewFeed}
+      className={className ?? (variant === 'solo' ? s.viewFeedSolo : s.viewFeed)}
       onClick={() => onTeamNewsAllNetworkUpdatesClicked(teamUid, teamName, source)}
     >
       All network updates

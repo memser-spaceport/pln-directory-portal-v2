@@ -32,6 +32,9 @@ import Head from 'next/head';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
+import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
+import { useMemberTeamNewsCard } from '@/components/page/member-details/TeamNewsDetails/hooks/useMemberTeamNewsCard';
+import { useIsBelowTabletLandscape } from '@/hooks/useIsBelowTabletLandscape';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
@@ -105,7 +108,12 @@ const MemberDetails = (props: { params: Promise<any> }) => {
     hasAffinityAccess && (affinityLoading || (!!affinityData && !affinityData.relationship.empty));
   const showOtherConnectOptions =
     !hasAffinityContent && !isAvailableToConnect && isLoggedIn && currentUser?.rbac?.status === 'APPROVED' && !isOwner;
-  const showSidebar = showOtherConnectOptions || hasAffinityContent;
+  // The news card lives in the rail, so its visibility has to open the rail —
+  // otherwise a member whose only rail content is news gets no rail at all.
+  // Resolved here and in the card itself; both land on the same query entry.
+  const isBelowTabletLandscape = useIsBelowTabletLandscape();
+  const { visible: showTeamNews } = useMemberTeamNewsCard({ member, isLoggedIn, userInfo });
+  const showSidebar = showOtherConnectOptions || hasAffinityContent || (showTeamNews && !isBelowTabletLandscape);
   const status = member?.rbac?.status;
   const isNewInvestor = status === 'PENDING' && isOwner && isDemodaySignUpSource(member?.signUpSource);
 
@@ -179,6 +187,12 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
         <ForumActivity member={member} userInfo={userInfo} isOwner={isOwner} />
         <TeamsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+        {/* Below the two-column breakpoint the rail is hidden, so the card falls
+            in here — directly under the teams it describes, as the prototype
+            does. Exactly one of the two mounts is ever rendered: two would put
+            duplicate data-story-uid nodes on the page and focus restore
+            resolves that attribute by querySelector. */}
+        {isBelowTabletLandscape && <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
         {!isInvestorOnly && (
           <>
             <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
@@ -223,6 +237,9 @@ const MemberDetails = (props: { params: Promise<any> }) => {
                 <BackButton to={`/members`} />
               </div>
               {hasAffinityAccess && <RelationshipDetails memberUid={memberId} />}
+              {!isBelowTabletLandscape && (
+                <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />
+              )}
               {showOtherConnectOptions && <BookWithOther count={availableToConnectCount} member={member} />}
             </div>
           )}

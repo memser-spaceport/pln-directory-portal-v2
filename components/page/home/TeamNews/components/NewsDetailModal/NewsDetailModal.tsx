@@ -28,7 +28,13 @@ interface NewsDetailModalProps {
  *  NewsCard also stamps data-story-uid, but only rows that open a dialog carry
  *  the button role. Deep-linked stories may have no row in the DOM (beyond the
  *  fold / collapsed cluster); fall back to the feed root rather than letting
- *  focus drop to <body>. */
+ *  focus drop to <body>.
+ *
+ *  data-news-feed-root now means "the surface that opened this", not only the
+ *  feed: the member profile's primary-team card stamps it too, because a
+ *  refetch there can drop the originating row before the reader closes. Any new
+ *  surface mounting this modal must stamp it as well, or its close lands on
+ *  <body> and throws a keyboard reader to the top of the document. */
 function restoreFocusToRow(uid: string) {
   const row = document.querySelector<HTMLElement>(`[role="button"][data-story-uid="${CSS.escape(uid)}"]`);
   const target = row ?? document.querySelector<HTMLElement>('[data-news-feed-root]');

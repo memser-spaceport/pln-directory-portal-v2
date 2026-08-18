@@ -20,7 +20,12 @@ export type TeamNewsAnalyticsSource =
   // answer — does a chip on a directory page earn its place — can't be asked of
   // traffic that is pooled with the profile's.
   | 'teams-listing-modal'
-  | 'job-board-modal';
+  | 'job-board-modal'
+  // The primary-team news card on a member profile. Kept apart from
+  // 'team-profile-rail' for the same reason as the listing chips above: whether
+  // news on a person's page earns its slot can't be asked of traffic pooled
+  // with the team's own page.
+  | 'member-profile';
 
 /**
  * Surfaces that carry the "All network updates" exit — a team-scoped list, with
@@ -29,7 +34,7 @@ export type TeamNewsAnalyticsSource =
  */
 export type TeamNewsFeedLinkSource = Extract<
   TeamNewsAnalyticsSource,
-  'team-profile-rail' | 'team-profile-modal' | 'teams-listing-modal' | 'job-board-modal'
+  'team-profile-rail' | 'team-profile-modal' | 'teams-listing-modal' | 'job-board-modal' | 'member-profile'
 >;
 
 /** Where a "N new posts" chip was clicked. */
@@ -53,6 +58,10 @@ const MODAL_OPENING_SOURCES: readonly TeamNewsAnalyticsSource[] = [
   // — reporting that the reader left for the publisher when they did not.
   'teams-listing-modal',
   'job-board-modal',
+  // The member profile's card opens the story in place too. This list is
+  // separate from the union above, so widening one without the other is exactly
+  // how a surface ends up reporting `outcome: 'source'` for a modal it opened.
+  'member-profile',
 ];
 
 /** Which affordance opened the detail modal. On /home the comment badge is a

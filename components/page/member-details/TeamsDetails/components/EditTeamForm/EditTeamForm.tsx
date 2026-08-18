@@ -1,30 +1,34 @@
-import React, { useMemo, useState } from 'react';
-
-import { FormProvider, useForm } from 'react-hook-form';
-import { FormField } from '@/components/form/FormField';
-import { IMember } from '@/types/members.types';
-import { EditFormControls } from '@/components/common/profile/EditFormControls';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Skeleton from 'react-loading-skeleton';
+import React, { useMemo, useState } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import 'react-loading-skeleton/dist/skeleton.css';
+
+import { ITeam } from '@/types/teams.types';
+import { IMember } from '@/types/members.types';
+import { TEditTeamForm } from '@/components/page/member-details/TeamsDetails/types';
+
+import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { editTeamSchema } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm/helpers';
+
+import { useMember } from '@/services/members/hooks/useMember';
+import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
+import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+
+import { FormField } from '@/components/form/FormField';
+import { FormSelect } from '@/components/form/FormSelect';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
+import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm/AddTeamInlineForm';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+
+import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 
 import s from './EditTeamForm.module.scss';
-import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { ITeam } from '@/types/teams.types';
-import { editTeamSchema } from '@/components/page/member-details/TeamsDetails/components/EditTeamForm/helpers';
-import { TEditTeamForm } from '@/components/page/member-details/TeamsDetails/types';
-import { FormSelect } from '@/components/form/FormSelect';
-import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
-import { omit } from 'lodash';
-import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import Image from 'next/image';
-import { useGetTeam } from '@/services/teams/hooks/useGetTeam';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
-import Link from 'next/link';
-import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm/AddTeamInlineForm';
-import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
 
 interface Props {
   onClose: () => void;
@@ -354,34 +358,9 @@ export function formatPayload(
     });
   }
 
-  return {
-    imageUid: memberInfo.imageUid,
-    name: memberInfo.name,
-    email: memberInfo.email,
-    plnStartDate: memberInfo.plnStartDate,
-    city: memberInfo?.location?.city || '',
-    region: memberInfo?.location?.region || '',
-    country: memberInfo?.location?.country || '',
-    teamOrProjectURL: memberInfo.teamOrProjectURL,
-    linkedinHandler: memberInfo.linkedinHandler,
-    discordHandler: memberInfo.discordHandler,
-    twitterHandler: memberInfo.twitterHandler,
-    githubHandler: memberInfo.githubHandler,
-    telegramHandler: memberInfo.telegramHandler,
-    officeHours: memberInfo.officeHours,
-    moreDetails: memberInfo.moreDetails,
-    openToWork: memberInfo.openToWork,
-    plnFriend: memberInfo.plnFriend,
+  return buildMemberUpdatePayload(memberInfo, {
     teamAndRoles: teams,
-    projectContributions: memberInfo.projectContributions?.map((contribution: any) => ({
-      ...omit(contribution, 'projectName'),
-    })),
-    skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
-    })),
-    bio: memberInfo.bio,
-  };
+  });
 }
 
 const ExpIcon = () => (

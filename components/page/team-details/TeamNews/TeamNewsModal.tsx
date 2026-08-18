@@ -6,7 +6,11 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { SearchInput } from '@/components/common/filters/SearchInput/SearchInput';
 import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import {
+  useTeamNewsAnalytics,
+  type TeamNewsAnalyticsSource,
+  type TeamNewsFeedLinkSource,
+} from '@/analytics/team-news.analytics';
 import { NewsDetailBody, NEWS_DETAIL_TITLE_ID } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
@@ -14,7 +18,7 @@ import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
-import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './TeamNewsRail';
+import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
 import { useNewsReveal } from './useNewsReveal';
 import s from './TeamNewsRail.module.scss';
 
@@ -25,8 +29,31 @@ interface TeamNewsModalProps {
   onClose: () => void;
   teamUid: string;
   teamName: string;
-  total: number;
+  /**
+   * The archive's size, for the header.
+   *
+   * Optional because the surfaces that open this from a listing card don't know
+   * it — the "N new posts" chip counts a 30-day window, not the whole archive,
+   * and passing that here would put "(3)" over 47 rows. Omit it and the modal
+   * latches the figure from its own first unfiltered fetch instead.
+   *
+   * The team profile still passes it: the rail already has the number, and
+   * handing it over means the header is right on the first paint rather than
+   * after a round trip.
+   */
+  total?: number;
   fullscreen?: boolean;
+  /**
+   * Which surface this modal was opened from, for analytics. Defaults to the
+   * team profile because that is where it started; the teams grid and the job
+   * board pass their own so the events don't all claim to be profile traffic.
+   *
+   * Narrower than TeamNewsAnalyticsSource on purpose — only surfaces that carry
+   * the "All network updates" exit can open this box, and the footer link's own
+   * prop is typed the same way. 'home' here would be a lie no reviewer would
+   * catch.
+   */
+  source?: TeamNewsFeedLinkSource;
   /** Owned by TeamNewsRail so votes stay in sync between the rail and this view. */
   upvoteOverlay?: TeamNewsUpvoteOverlay;
   onUpvoteToggle?: (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => void;
@@ -40,6 +67,7 @@ export function TeamNewsModal({
   teamName,
   total,
   fullscreen = false,
+  source = 'team-profile-modal',
   upvoteOverlay,
   onUpvoteToggle,
 }: TeamNewsModalProps) {
@@ -74,6 +102,7 @@ export function TeamNewsModal({
 
   const {
     items: fetchedItems,
+    total: fetchedTotal,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -83,6 +112,33 @@ export function TeamNewsModal({
     q: effectiveQuery,
     enabled: isOpen,
   });
+
+  // The archive's size, captured ONCE from the first unfiltered fetch of this
+  // open (reset on close).
+  //
+  // The hook's `total` is page 1's total for the CURRENT query, so reading it
+  // live would make the header count down as the reader types. The title names
+  // the whole archive, so it has to hold still while the list narrows — a number
+  // shrinking as you search is the search reporting itself twice, and the second
+  // report lands in the one line that is supposed to say where you are.
+  //
+  // First-wins rather than last-unfiltered-wins, because `effectiveQuery` lags
+  // `searchQuery` by the debounce: on CLEARING a search it returns to '' while
+  // the hook is still serving the filtered page, and a plain assignment would
+  // latch that narrowed total. The archive's size doesn't change while a reader
+  // is looking at it, so the first answer is the right one to keep.
+  //
+  // Adjusted during render rather than in an effect — React's own alternative
+  // when state is derived from fetched data. React re-runs this component before
+  // anything commits, so there is no second render to cascade from.
+  //
+  // Callers that already know the total (the team profile) pass it and never
+  // reach this.
+  const [latchedTotal, setLatchedTotal] = useState<number | null>(null);
+  if (latchedTotal === null && effectiveQuery === '' && fetchedTotal > 0) {
+    setLatchedTotal(fetchedTotal);
+  }
+  const displayTotal = total ?? latchedTotal ?? 0;
 
   const items = useMemo(
     () => (upvoteOverlay ? mergeUpvoteOverlay(fetchedItems, upvoteOverlay) : fetchedItems),
@@ -105,19 +161,19 @@ export function TeamNewsModal({
 
   const handleCardClick = useCallback(
     (item: ITeamNewsItem, position: number) => {
-      onTeamNewsCardClicked(item, position, 'team-profile-modal');
+      onTeamNewsCardClicked(item, position, source);
     },
-    [onTeamNewsCardClicked],
+    [onTeamNewsCardClicked, source],
   );
 
   const handleOpenDetail = useCallback(
     (item: ITeamNewsItem, position: number, via: 'row' | 'comments') => {
       // The row's own click already reported through `onClick`; only the comment
       // count is this handler's to record.
-      if (via === 'comments') onTeamNewsCardClicked(item, position, 'team-profile-modal', 'comments');
+      if (via === 'comments') onTeamNewsCardClicked(item, position, source, 'comments');
       setStoryUid(item.uid);
     },
-    [onTeamNewsCardClicked],
+    [onTeamNewsCardClicked, source],
   );
 
   // Back leaves the search query alone: the filtered list is where the reader
@@ -131,6 +187,7 @@ export function TeamNewsModal({
     if (!isOpen) {
       setSearchQuery('');
       setStoryUid(null);
+      setLatchedTotal(null);
       revealConsumedRef.current = false;
     }
   }, [isOpen]);
@@ -187,7 +244,7 @@ export function TeamNewsModal({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          onTeamNewsLoadMoreClicked(items.length, total, 'team-profile-modal', {
+          onTeamNewsLoadMoreClicked(items.length, displayTotal, source, {
             teamUid,
             searchQuery: effectiveQuery,
           });
@@ -208,7 +265,8 @@ export function TeamNewsModal({
     items.length,
     onTeamNewsLoadMoreClicked,
     teamUid,
-    total,
+    displayTotal,
+    source,
   ]);
 
   const feedContent = isLoading ? (
@@ -223,11 +281,9 @@ export function TeamNewsModal({
             position={index}
             variant="outline"
             fullSummary
-            analyticsSource="team-profile-modal"
+            analyticsSource={source}
             onClick={(clicked) => handleCardClick(clicked, index)}
-            onUpvoteToggle={
-              onUpvoteToggle ? (toggled) => onUpvoteToggle(toggled, index, 'team-profile-modal') : undefined
-            }
+            onUpvoteToggle={onUpvoteToggle ? (toggled) => onUpvoteToggle(toggled, index, source) : undefined}
             onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
           />
         ))}
@@ -253,10 +309,10 @@ export function TeamNewsModal({
         onUpvoteToggle?.(
           item,
           items.findIndex((listItem) => listItem.uid === item.uid),
-          'team-profile-modal',
+          source,
         )
       }
-      source="team-profile-modal"
+      source={source}
       onShareOpenChange={setShareOpen}
     />
   );
@@ -273,9 +329,9 @@ export function TeamNewsModal({
         <div className={s.newsPageHeader}>
           <div className={s.newsPageTitleRow}>
             <h2 className={s.newsPageTitle}>{teamName} News</h2>
-            {total > 0 && (
+            {displayTotal > 0 && (
               <div className={s.newsPageBadge}>
-                <span className={s.newsPageBadgeText}>{total}</span>
+                <span className={s.newsPageBadgeText}>{displayTotal}</span>
               </div>
             )}
           </div>
@@ -291,7 +347,7 @@ export function TeamNewsModal({
         {feedContent}
 
         <div className={s.modalFooter}>
-          <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-modal" variant="solo" />
+          <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source={source} variant="solo" />
         </div>
       </div>
     );
@@ -310,7 +366,7 @@ export function TeamNewsModal({
         <>
           <div className={s.modalHeader}>
             <span className={s.modalTitle}>
-              {teamName} News ({total})
+              {teamName} News ({displayTotal})
             </span>
             <button type="button" className={s.modalClose} onClick={handleClose} aria-label="Close">
               <ModalCloseIcon />
@@ -326,7 +382,7 @@ export function TeamNewsModal({
               has this team been doing" but closes off "and what else happened",
               so the feed stays one click away. */}
           <div className={s.modalFooter}>
-            <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-modal" variant="solo" />
+            <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source={source} variant="solo" />
           </div>
         </>
       )}

@@ -27,6 +27,12 @@ interface TeamListProps {
   userInfo?: IUserInfo;
   filterValues?: ITeamFilterSelectedItems;
   isLoggedIn?: boolean;
+  /**
+   * Open a team's news over the grid, from its "N new posts" chip. Owned by
+   * TeamsContent so the modal outlives this list, and stable (useCallback) so
+   * threading it down doesn't defeat TeamGridView's memo.
+   */
+  onOpenTeamNews?: (teamUid: string, teamName: string) => void;
 }
 
 export function TeamList(props: TeamListProps) {
@@ -41,6 +47,7 @@ export function TeamList(props: TeamListProps) {
     userInfo,
     filterValues,
     isLoggedIn,
+    onOpenTeamNews,
   } = props;
 
   const analytics = useTeamAnalytics();
@@ -92,6 +99,7 @@ export function TeamList(props: TeamListProps) {
                   viewType={VIEW_TYPE_OPTIONS.GRID}
                   isLoggedIn={isLoggedIn}
                   searchParams={searchParams}
+                  onOpenTeamNews={onOpenTeamNews}
                 />
               </Link>
             </div>

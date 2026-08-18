@@ -168,3 +168,48 @@ export function sendTeamNewsImpressionsBeacon(uids: string[]): boolean {
   const blob = new Blob([JSON.stringify({ newsItemUids: uids })], { type: 'application/json' });
   return navigator.sendBeacon(`${process.env.DIRECTORY_API_URL}/v1/team-news/impressions`, blob);
 }
+
+// ── Recent post counts ───────────────────────────────────────────────────────
+
+// The server rejects a batch larger than this (TeamNewsCountsRequestSchema caps
+// `teamUids` at 200) — one oversized request would 400 and take every chip on
+// the page down with it. Mirrors COMMENT_COUNTS_BATCH_SIZE.
+const TEAM_NEWS_COUNTS_BATCH_SIZE = 200;
+
+/**
+ * How many news items each team published in the last 30 days.
+ *
+ * A React Query queryFn, so it THROWS on failure rather than returning null the
+ * way the SSR fetchers above do. That difference matters here: useTeamNewsCounts
+ * releases its ledger claim in `.catch`, so a throw lets a later mount retry,
+ * whereas a swallowed `{}` would mark those uids answered-with-nothing for the
+ * rest of the session.
+ *
+ * No auth token — the endpoint takes none. The count is the same for every
+ * viewer, signed in or not.
+ */
+export async function getTeamNewsCounts(teamUids: string[]): Promise<Record<string, number>> {
+  if (teamUids.length === 0) return {};
+
+  const batches: string[][] = [];
+  for (let i = 0; i < teamUids.length; i += TEAM_NEWS_COUNTS_BATCH_SIZE) {
+    batches.push(teamUids.slice(i, i + TEAM_NEWS_COUNTS_BATCH_SIZE));
+  }
+
+  const results = await Promise.all(batches.map((batch) => fetchTeamNewsCountBatch(batch)));
+
+  return Object.assign({}, ...results) as Record<string, number>;
+}
+
+async function fetchTeamNewsCountBatch(teamUids: string[]): Promise<Record<string, number>> {
+  // POST body, not query string — 200 team uids do not fit in a URL.
+  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/team-news/counts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ teamUids }),
+  });
+  if (!response.ok) throw new Error('Failed to fetch team news counts');
+
+  const { counts } = (await response.json()) as { counts: Record<string, number> };
+  return counts ?? {};
+}

@@ -612,6 +612,7 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // the team, this one widens to the whole network feed. Two different intents
   // sitting on one row, so they need two events to be told apart.
   TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED: 'team-news-all-network-updates-clicked',
+  TEAM_NEWS_COUNT_CHIP_CLICKED: 'team-news-count-chip-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',

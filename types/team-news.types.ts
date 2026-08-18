@@ -159,3 +159,10 @@ export interface ITeamNewsFiltersResponse {
   eventType: Array<{ value: string; count: number }>;
   focus: Array<{ value: string; count: number }>;
 }
+
+/**
+ * POST /v1/team-news/counts — recent post counts keyed by team uid.
+ * A uid ABSENT from the map means zero, not "unknown to the server": groupBy
+ * returns no row for a team with nothing recent. Both render as no chip.
+ */
+export type ITeamNewsCountsResponse = Record<string, number>;

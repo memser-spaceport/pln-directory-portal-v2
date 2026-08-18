@@ -122,6 +122,17 @@
   }
 }
 
+// Greys out an element's own box while keeping it in flow, so a skeleton card
+// occupies the same space as the real one. Applied alongside .icon/.title/
+// .description (see ActionCardSkeleton) rather than replacing them, so the
+// geometry stays defined in exactly one place.
+.skeletonBlock {
+  background: var(--Neutral-Slate-100, #f1f5f9);
+  border-radius: 4px;
+  color: transparent;
+  box-shadow: none;
+}
+
 .arrow {
   flex-shrink: 0;
 

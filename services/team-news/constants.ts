@@ -34,12 +34,11 @@ export const TEAM_NEWS_COUNT_WINDOW_DAYS = 30;
 /**
  * The "N new posts" chip on the teams grid and the job board.
  *
- * Flip to true once POST /v1/team-news/counts is live on dev. Code-level rather
- * than an env var because this repo has no runtime flag system — see
- * SHOW_HIRING_NEWS in components/page/home/TeamNews/constants.ts, which this
- * follows in shape and in one hard-won rule: gate the WORK, not the render.
- * Passing this to the counts query's `enabled` keeps a 404 off every teams-page
- * load while the endpoint is still in review; gating only the chip would fire
- * the request anyway.
+ * ON since 2026-08-18, once POST /v1/team-news/counts was verified live on dev.
+ * Code-level rather than an env var because this repo has no runtime flag system
+ * — see SHOW_HIRING_NEWS in components/page/home/TeamNews/constants.ts, which
+ * this follows in shape and in one hard-won rule: gate the WORK, not the render.
+ * It is passed to the counts query's `enabled`, so turning it off again stops
+ * the request rather than merely hiding its result.
  */
-export const SHOW_TEAM_NEWS_COUNT_CHIP = false;
+export const SHOW_TEAM_NEWS_COUNT_CHIP = true;

@@ -8,6 +8,7 @@ import { CloseIcon } from '@/components/core/UpdatesPanel/icons';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { NewsDetailBody, NEWS_DETAIL_TITLE_ID } from '@/components/page/home/TeamNews/components/NewsDetailModal';
+import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
@@ -87,6 +88,12 @@ export function TeamNewsModal({
     () => (upvoteOverlay ? mergeUpvoteOverlay(fetchedItems, upvoteOverlay) : fetchedItems),
     [fetchedItems, upvoteOverlay],
   );
+
+  // Counts for whatever the archive has loaded. The list grows a page at a time
+  // and the shared entry is filled incrementally, so each page costs one request
+  // for its own uids — the rail's three, already asked for, are not re-fetched.
+  const listedUids = useMemo(() => items.map((item) => item.uid), [items]);
+  useFeedCommentCounts({ uids: listedUids, enabled: isOpen });
 
   const story = storyUid ? (items.find((item) => item.uid === storyUid) ?? null) : null;
 

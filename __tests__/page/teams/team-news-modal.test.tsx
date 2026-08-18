@@ -39,8 +39,14 @@ jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({
   NEWS_DETAIL_TITLE_ID: 'news-detail-modal-title',
 }));
 
+// The badge's number, and the request that fills it. Default: unknown, which
+// renders as the bare noun rather than a fake 0.
+const mockCommentCount = jest.fn<number | undefined, []>(() => undefined);
+const mockRequestCommentCounts = jest.fn();
+
 jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
-  useFeedCommentCount: () => undefined,
+  useFeedCommentCount: () => mockCommentCount(),
+  useFeedCommentCounts: (...a: unknown[]) => mockRequestCommentCounts(...a),
 }));
 
 jest.mock('@/services/auth/store', () => ({
@@ -328,6 +334,24 @@ describe('TeamNewsModal drill', () => {
 
     expect(screen.queryByTestId('story-view')).toBeNull();
     expect(screen.getByText('Headline news-1')).toBeInTheDocument();
+  });
+
+  it('asks for the counts of every row it has loaded, and again as pages arrive', () => {
+    const { rerender } = renderModal();
+    expect(mockRequestCommentCounts).toHaveBeenLastCalledWith({
+      uids: ['news-1', 'news-2', 'news-3'],
+      enabled: true,
+    });
+
+    // A second page: the hook is handed the grown list and asks only for what's
+    // new — the archive's uid universe is not fixed at open.
+    queryState = loaded([makeItem('news-1'), makeItem('news-2'), makeItem('news-3'), makeItem('news-4')]);
+    rerenderModal(rerender);
+
+    expect(mockRequestCommentCounts).toHaveBeenLastCalledWith({
+      uids: ['news-1', 'news-2', 'news-3', 'news-4'],
+      enabled: true,
+    });
   });
 
   it('the comment count drills to the same story, reported as its own via', () => {

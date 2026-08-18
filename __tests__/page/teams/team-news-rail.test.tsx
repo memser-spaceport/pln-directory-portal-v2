@@ -38,10 +38,14 @@ jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({
   NEWS_DETAIL_TITLE_ID: 'news-detail-modal-title',
 }));
 
-// No counts fetcher is mounted on a team profile, so the badge reads "Comments"
-// with no number — the shared cache's "unknown", never a fake 0.
+// The badge's number, and the request that fills it. Default: unknown, which
+// renders as the bare noun rather than a fake 0.
+const mockCommentCount = jest.fn<number | undefined, []>(() => undefined);
+const mockRequestCommentCounts = jest.fn();
+
 jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
-  useFeedCommentCount: () => undefined,
+  useFeedCommentCount: () => mockCommentCount(),
+  useFeedCommentCounts: (...a: unknown[]) => mockRequestCommentCounts(...a),
 }));
 
 // jsdom has no layout, so the real measured teaser never shows its button
@@ -320,11 +324,28 @@ describe('TeamNewsRail', () => {
     expect(row).toHaveAttribute('aria-haspopup', 'dialog');
   });
 
+  it('asks for the counts of the stories it shows', () => {
+    renderRailWithSummaries();
+
+    expect(mockRequestCommentCounts).toHaveBeenCalledWith({ uids: ['news-1', 'news-2'], enabled: true });
+  });
+
+  it('renders a known count and stays bare when the count is unknown', () => {
+    mockCommentCount.mockReturnValue(4);
+    const { unmount } = renderRailWithSummaries();
+    expect(screen.getAllByRole('button', { name: '4 Comments, open' })).toHaveLength(2);
+
+    unmount();
+    // Absent from the response means zero OR not yet known — the button says the
+    // noun and nothing else rather than claiming a 0 it can't stand behind.
+    mockCommentCount.mockReturnValue(undefined);
+    renderRailWithSummaries();
+    expect(screen.getAllByRole('button', { name: 'Comments, open' })).toHaveLength(2);
+  });
+
   it('the comment count opens the same story, reported as its own via', () => {
     renderRailWithSummaries();
 
-    // No number: nothing fetches counts on a team profile yet, and "unknown"
-    // renders as the bare noun rather than a fake 0.
     fireEvent.click(screen.getAllByRole('button', { name: 'Comments, open' })[1]);
 
     expect(screen.getByTestId('news-detail-modal')).toHaveTextContent('news-2');

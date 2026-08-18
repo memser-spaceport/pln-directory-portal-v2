@@ -8,6 +8,7 @@ import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
+import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
@@ -114,6 +115,13 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
     [initialData.items, upvoteOverlay],
   );
   const hasMore = total > TEAM_NEWS_PREVIEW_LIMIT;
+
+  // Counts for the rows on screen. The shared entry is filled incrementally, so
+  // asking here for three uids costs one request and leaves /home free to ask
+  // for its own when the reader follows "All network updates". Public, like the
+  // feed's — signed-out visitors see counts too.
+  const previewUids = useMemo(() => previewItems.map((item) => item.uid), [previewItems]);
+  useFeedCommentCounts({ uids: previewUids, enabled: true });
 
   // Tapping the row and clicking its comment count are two ways of asking for
   // the same thing — this story, in full — so both open the story over the

@@ -1,29 +1,32 @@
+import Link from 'next/link';
+import { omit } from 'lodash';
 import React, { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { FormField } from '@/components/form/FormField';
+
 import { IMember, IProjectContribution } from '@/types/members.types';
-import { EditFormControls } from '@/components/common/profile/EditFormControls';
-
 import { TEditContributionsForm } from '@/components/page/member-details/ContributionsDetails/types';
-import { ContributionsDescriptionInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDescriptionInput';
-import { ContributionsDatesInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDatesInput';
 
+import { toast } from '@/components/core/ToastContainer';
+import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
+
+import { useMember } from '@/services/members/hooks/useMember';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+
+import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+import { ContributionsDatesInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDatesInput';
+import { ContributionsDescriptionInput } from '@/components/page/member-details/ContributionsDetails/components/ContributionsDescriptionInput';
+
+import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
 
 import s from './EditContributionsForm.module.scss';
-import { omit } from 'lodash';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
-import { useRouter } from 'next/navigation';
-import ConfirmDialog from '../../../../../core/ConfirmDialog/ConfirmDialog';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { editContributionsSchema } from '@/components/page/member-details/ContributionsDetails/components/EditContributionsForm/helpers';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
-import Link from 'next/link';
-import { toast } from '@/components/core/ToastContainer';
 
 interface Props {
   onClose: () => void;
@@ -234,32 +237,9 @@ function formatPayload(
     });
   }
 
-  return {
-    imageUid: memberInfo.imageUid,
-    name: memberInfo.name,
-    email: memberInfo.email,
-    plnStartDate: memberInfo.plnStartDate,
-    city: memberInfo?.location?.city || '',
-    region: memberInfo?.location?.region || '',
-    country: memberInfo?.location?.country || '',
-    teamOrProjectURL: memberInfo.teamOrProjectURL,
-    linkedinHandler: memberInfo.linkedinHandler,
-    discordHandler: memberInfo.discordHandler,
-    twitterHandler: memberInfo.twitterHandler,
-    githubHandler: memberInfo.githubHandler,
-    telegramHandler: memberInfo.telegramHandler,
-    officeHours: memberInfo.officeHours,
-    moreDetails: memberInfo.moreDetails,
-    openToWork: memberInfo.openToWork,
-    plnFriend: memberInfo.plnFriend,
-    teamAndRoles: memberInfo.teamMemberRoles,
+  return buildMemberUpdatePayload(memberInfo, {
     projectContributions,
-    skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
-    })),
-    bio: memberInfo.bio,
-  };
+  });
 }
 
 const DeleteIcon = () => (

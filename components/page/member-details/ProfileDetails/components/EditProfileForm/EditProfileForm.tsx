@@ -1,42 +1,44 @@
+import { useRouter } from 'next/navigation';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
-import { FormProvider, useForm } from 'react-hook-form';
-import { FormField } from '@/components/form/FormField';
-
-import { ProfileLocationInput } from '@/components/page/member-details/ProfileDetails/components/ProfileLocationInput';
-import { ProfileSkillsInput } from '@/components/page/member-details/ProfileDetails/components/ProfileSkillsInput';
-import { TEditProfileForm } from '@/components/page/member-details/ProfileDetails/types';
-import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
-import { EditFormControls } from '@/components/common/profile/EditFormControls';
-import { omit } from 'lodash';
-import { saveRegistrationImage } from '@/services/registration.service';
-import { useMember } from '@/services/members/hooks/useMember';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
-import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
-import { useRouter } from 'next/navigation';
-import { useCurrentUserStore } from '@/services/auth/store';
-import { updateMemberInfoCookie } from '@/utils/member.utils';
-
-import s from './EditProfileForm.module.scss';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { toast } from '@/components/core/ToastContainer';
-import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { MAX_NAME_LENGTH } from '@/constants/profile';
-import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
-import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
-import { FormSelect } from '@/components/form/FormSelect';
+import { TEditProfileForm } from '@/components/page/member-details/ProfileDetails/types';
+
+import { toast } from '@/components/core/ToastContainer';
+import { updateMemberInfoCookie } from '@/utils/member.utils';
+import { saveRegistrationImage } from '@/services/registration.service';
+import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { editProfileSchema } from '@/components/page/member-details/ProfileDetails/components/EditProfileForm/helpers';
+
+import { useCurrentUserStore } from '@/services/auth/store';
+import { useMember } from '@/services/members/hooks/useMember';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
+import { useDeleteMemberImage } from '@/services/members/hooks/useDeleteMemberImage';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
+import { useInvestorAccess } from '@/services/access-control/hooks/useInvestorAccess';
+import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
+import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
+import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
+
+import { FormField } from '@/components/form/FormField';
+import { FormSelect } from '@/components/form/FormSelect';
 import ImageWithFallback from '@/components/common/ImageWithFallback';
 import { AddTeamInlineForm } from '@/components/form/AddTeamInlineForm';
-import { useUpdateMemberSelfRole } from '@/services/members/hooks/useUpdateMemberSelfRole';
-import { useDeleteMemberImage } from '@/services/members/hooks/useDeleteMemberImage';
+import { EditFormControls } from '@/components/common/profile/EditFormControls';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
-import { useCreateTeamRequest } from '@/services/teams/hooks/useCreateTeamRequest';
+import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
+import { ProfileImageInput } from '@/components/page/member-details/ProfileDetails/components/ProfileImageInput';
+import { ProfileSkillsInput } from '@/components/page/member-details/ProfileDetails/components/ProfileSkillsInput';
+import { ProfileLocationInput } from '@/components/page/member-details/ProfileDetails/components/ProfileLocationInput';
+import { ProfileCollaborateInput } from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput';
+
+import s from './EditProfileForm.module.scss';
 
 interface Props {
   onClose: () => void;
@@ -513,30 +515,18 @@ function formatPayload(memberInfo: any, formData: TEditProfileForm) {
     }));
   }
 
-  return {
+  return buildMemberUpdatePayload(memberInfo, {
     name: formData.name,
-    email: memberInfo.email,
-    plnStartDate: memberInfo.plnStartDate,
     city: formData.city,
     region: formData.state,
     country: formData.country,
-    teamOrProjectURL: memberInfo.teamOrProjectURL,
-    linkedinHandler: memberInfo.linkedinHandler,
-    discordHandler: memberInfo.discordHandler,
-    twitterHandler: memberInfo.twitterHandler,
-    githubHandler: memberInfo.githubHandler,
-    telegramHandler: memberInfo.telegramHandler,
-    officeHours: memberInfo.officeHours,
-    moreDetails: memberInfo.moreDetails,
     openToWork: formData.openToCollaborate,
-    plnFriend: memberInfo.plnFriend,
     teamAndRoles: updatedTeamAndRoles,
-    projectContributions: memberInfo.projectContributions?.map((contribution: any) => ({
-      ...omit(contribution, 'projectName'),
-    })),
     skills: formData.skills?.map((skill: any) => ({
       title: skill.label,
       uid: skill.value,
     })),
-  };
+    // bio is saved separately through updateMemberParams, so it must not ride along on the PUT
+    bio: undefined,
+  });
 }

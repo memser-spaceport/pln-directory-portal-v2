@@ -290,3 +290,54 @@ export interface IAnalyticsMemberInfo {
   id: string;
   name: string;
 }
+
+/**
+ * Raw member record returned by `GET /v1/members/{uid}` and held in `memberData.memberInfo`.
+ * Distinct from `IMemberResponse`, which describes the list endpoints.
+ */
+export interface IMemberUpdateSource {
+  imageUid?: string | null;
+  name?: string;
+  email?: string;
+  plnStartDate?: string | null;
+  location?: Partial<Pick<IMemberLocation, 'city' | 'region' | 'country'>> | null;
+  teamOrProjectURL?: string | null;
+  linkedinHandler?: string | null;
+  discordHandler?: string | null;
+  twitterHandler?: string | null;
+  githubHandler?: string | null;
+  telegramHandler?: string | null;
+  officeHours?: string | null;
+  moreDetails?: string | null;
+  openToWork?: boolean;
+  plnFriend?: boolean;
+  teamMemberRoles?: any[];
+  projectContributions?: any[];
+  skills?: { id?: string; name?: string }[];
+  bio?: string | null;
+}
+
+/** Shape of `newData` accepted by `PUT /v1/member/{uid}`. */
+export interface IMemberUpdatePayload {
+  imageUid?: string | null;
+  name?: string;
+  email?: string;
+  plnStartDate?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+  teamOrProjectURL?: string | null;
+  linkedinHandler?: string | null;
+  discordHandler?: string | null;
+  twitterHandler?: string | null;
+  githubHandler?: string | null;
+  telegramHandler?: string | null;
+  officeHours?: string | null;
+  moreDetails?: string | null;
+  openToWork?: boolean;
+  plnFriend?: boolean;
+  teamAndRoles?: any[];
+  projectContributions?: any[];
+  skills?: { title?: string; uid?: string }[];
+  bio?: string | null;
+}

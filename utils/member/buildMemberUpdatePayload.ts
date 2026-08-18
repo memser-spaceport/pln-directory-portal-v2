@@ -1,5 +1,7 @@
 import { omit } from 'lodash';
 
+import { IMemberUpdatePayload, IMemberUpdateSource } from '@/types/members.types';
+
 /**
  * `PUT /v1/member/{uid}` replaces the whole member record, so every form that saves a single
  * section still has to send every other section's fields back untouched. Keeping that
@@ -8,59 +10,6 @@ import { omit } from 'lodash';
  * is saved.
  *
  * Add new member fields HERE, not in the individual forms.
- */
-
-/** Raw member record as returned by the API (`memberData.memberInfo`). */
-export interface IMemberUpdateSource {
-  imageUid?: string | null;
-  name?: string;
-  email?: string;
-  plnStartDate?: string | null;
-  location?: { city?: string | null; region?: string | null; country?: string | null } | null;
-  teamOrProjectURL?: string | null;
-  linkedinHandler?: string | null;
-  discordHandler?: string | null;
-  twitterHandler?: string | null;
-  githubHandler?: string | null;
-  telegramHandler?: string | null;
-  officeHours?: string | null;
-  moreDetails?: string | null;
-  openToWork?: boolean;
-  plnFriend?: boolean;
-  teamMemberRoles?: any[];
-  projectContributions?: any[];
-  skills?: { id?: string; name?: string }[];
-  bio?: string | null;
-}
-
-/** Shape of `newData` accepted by the member update endpoint. */
-export interface IMemberUpdatePayload {
-  imageUid?: string | null;
-  name?: string;
-  email?: string;
-  plnStartDate?: string | null;
-  city?: string | null;
-  region?: string | null;
-  country?: string | null;
-  teamOrProjectURL?: string | null;
-  linkedinHandler?: string | null;
-  discordHandler?: string | null;
-  twitterHandler?: string | null;
-  githubHandler?: string | null;
-  telegramHandler?: string | null;
-  officeHours?: string | null;
-  moreDetails?: string | null;
-  openToWork?: boolean;
-  plnFriend?: boolean;
-  teamAndRoles?: any[];
-  projectContributions?: any[];
-  skills?: { title?: string; uid?: string }[];
-  bio?: string | null;
-}
-
-/**
- * Builds the full `newData` payload from the current member record, then applies the caller's
- * overrides for the section it actually edits.
  *
  * Setting an override to `undefined` drops the field from the request, since the payload is
  * serialised with `JSON.stringify`. Use that for fields a form deliberately updates elsewhere.

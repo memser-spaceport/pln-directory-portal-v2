@@ -80,8 +80,19 @@ interface PrototypeNavBarProps {
    * account avatar over a "sign in" page makes the state incoherent.
    */
   isLoggedIn?: boolean;
-  /** What Sign up / Sign in do while `isLoggedIn` is false. */
+  /** What Sign in does while `isLoggedIn` is false — and Sign up too, unless
+   *  `onSignUp` is given. */
   onSignIn?: () => void;
+  /**
+   * What Sign up does, when it is a different door from Sign in.
+   *
+   * Optional, falling back to `onSignIn`, because for most entries sharing this
+   * header the pair is decorative and either click just signs the mock in. The
+   * job board is the exception: there, signing up opens a real form that creates
+   * the account, so the two buttons genuinely lead to different places and the
+   * header has to be able to say so.
+   */
+  onSignUp?: () => void;
   /**
    * Turns the header search glyph into a real trigger for `PrototypeSearchModal`.
    * Off by default — every other entry sharing this header keeps the inert
@@ -98,6 +109,7 @@ export function PrototypeNavBar({
   onHomeReselect,
   isLoggedIn = true,
   onSignIn,
+  onSignUp,
   searchable = false,
 }: PrototypeNavBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -242,7 +254,7 @@ export function PrototypeNavBar({
               </>
             ) : (
               <div className={s.signInWrapper}>
-                <button type="button" className={signup.root} onClick={onSignIn}>
+                <button type="button" className={signup.root} onClick={onSignUp ?? onSignIn}>
                   Sign up
                 </button>
                 <button type="button" className={login.root} onClick={onSignIn}>

@@ -33,9 +33,13 @@ interface TeamOpenRolesViewProps {
  * team's — `?team=` isn't consumed server-side — so the label would misname
  * where it goes. The section answers in place, and so does its expander.
  *
- * `showMatch` is off: the badge's contract on the board is that it appears only
- * while the match sort is active, and there is no sort here. Always-on would put
- * a permanent marker on most rows and stop meaning anything.
+ * **Apply leads the row.** This section is where that ranking was first argued:
+ * once you're on a team's profile you have already chosen the team, so applying
+ * is the point of the row and should look like it, with referring someone else
+ * as the sideline rather than its peer. The board has since agreed — the row
+ * ranks its actions that way everywhere — so there is no prop to pass here any
+ * more. What stays different is the destination: the board applies in-app, this
+ * keeps Apply as a plain link out to the team's own posting.
  */
 export function TeamOpenRolesView({ group }: TeamOpenRolesViewProps) {
   const [expanded, setExpanded] = useState(false);
@@ -52,17 +56,7 @@ export function TeamOpenRolesView({ group }: TeamOpenRolesViewProps) {
       <DetailsSectionHeader title={`Open roles (${totalRoles})`} />
       <div className={l.list}>
         {visible.map((role) => (
-          <JobReferRoleRow
-            key={role.uid}
-            role={role}
-            teamId={team.uid}
-            teamName={team.name}
-            source="team-profile"
-            showMatch={false}
-            // Applying is the point of the row once you've already chosen the
-            // team, so it gets the primary button and Refer steps back.
-            primaryApply
-          />
+          <JobReferRoleRow key={role.uid} role={role} teamId={team.uid} teamName={team.name} source="team-profile" />
         ))}
       </div>
       {roles.length > ROLES_SHOWN && (

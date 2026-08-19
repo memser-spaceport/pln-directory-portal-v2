@@ -291,13 +291,26 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
           <CloseIcon />
         </Button>
 
-        <div className={s.iconWrapper}>
+        {/* The masthead aligns to the state under it, which is why these three
+            carry a modifier rather than a fixed alignment.
+
+            Composing, the card is a form — a recipient field, a message box,
+            twin footer actions — and a form has one left edge that every label
+            and field starts from; a centred icon and title over it put two
+            alignment axes in a 400px card. Sent, there is no form left: one
+            sentence and a `Done` button, which is an announcement, and an
+            announcement is the thing centring is actually for. Same rule the
+            apply modal follows (see `.headerLeft` there), applied to a dialog
+            that happens to be both kinds of card in turn. */}
+        <div className={`${s.iconWrapper} ${sent ? '' : s.headerIconLeft}`}>
           <EnvelopeIcon />
         </div>
 
-        <h2 className={s.title}>{sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}</h2>
+        <h2 className={`${s.title} ${sent ? '' : s.headerLeft}`}>
+          {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
+        </h2>
 
-        <p className={s.desc}>
+        <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
           {sent
             ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
             : 'Referral email will be sent to everyone listed including you.'}

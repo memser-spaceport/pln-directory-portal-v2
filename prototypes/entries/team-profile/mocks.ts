@@ -70,6 +70,35 @@ export const MOCK_TEAM = {
   asks: [],
 } satisfies Partial<ITeam>;
 
+/* ----------------------- Header facts (founded / size / location) -----------------------
+   Kept out of MOCK_TEAM on purpose: `ITeam` has no fields for these yet, and
+   MOCK_TEAM is pinned with `satisfies Partial<ITeam>`. Modelling them as their
+   own block also matches how they'd arrive — a few company facts, each
+   independently optional, any of which a team may simply not have filled in.
+
+   `teamSize` is deliberately a string, not a number: the spec allows an exact
+   count ("50") or a bucket ("11-50"), and a bucket is not a number. This holds
+   the value only — the view appends the unit. */
+export type TeamFacts = {
+  /** 4-digit founding year, e.g. 2014. */
+  foundedYear?: number;
+  /** Exact count ("50") or a range label ("11-50"). Rendered as "<size> people". */
+  teamSize?: string;
+  /** Free-text place label, e.g. "San Francisco, United States". */
+  location?: string;
+};
+
+/** A team is either operating or it isn't. See TeamDetailsView for why only
+ *  the second one draws a badge. */
+export type TeamStatus = 'active' | 'inactive';
+
+export const MOCK_TEAM_FACTS: TeamFacts = {
+  foundedYear: 2014,
+  // En dash, not a hyphen — it's a numeric range, not a compound word.
+  teamSize: '201–500',
+  location: 'San Francisco, United States',
+};
+
 /* --------------- Demo Day participation (drives the header badge) --------------- */
 // Points at a real demo day so the badge / contribution tile actually deep-links
 // to a page that loads (an invented slug renders an endless skeleton).

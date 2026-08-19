@@ -47,12 +47,12 @@ interface JobTeamGroupCardProps {
    * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
-  /** True while "Best match for me" is the active sort. */
-  matchMode?: boolean;
-  /** Which of this group's roles match the viewer's saved preferences. */
-  isMatch?: (role: IJobRole) => boolean;
   canRefer?: boolean;
   onReferBlocked?: () => void;
+  /** Handed straight to the row: applying happens in-app, so the board owns the press. */
+  onApply?: (role: IJobRole) => void;
+  /** Uids of roles already applied to. */
+  appliedRoleUids?: Set<string>;
 }
 
 /**
@@ -63,22 +63,18 @@ interface JobTeamGroupCardProps {
 export function JobTeamGroupCard({
   group,
   newsVariant = 'full',
-  matchMode = false,
-  isMatch,
   canRefer = true,
   onReferBlocked,
+  onApply,
+  appliedRoleUids,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
-  /* Under the match sort, matching roles lead the group. The board is grouped by
-     team, so ranking has to happen at both levels — the caller reorders the cards,
-     this reorders inside one. Only the first three roles show before the expander,
-     so a match sitting fourth would be ranked and then hidden. */
-  const orderedRoles =
-    matchMode && isMatch ? [...roles].sort((a, b) => Number(isMatch(b)) - Number(isMatch(a))) : roles;
-
-  const visibleRoles = expanded ? orderedRoles : orderedRoles.slice(0, INITIAL_ROLES_SHOWN);
+  /* The group's own order, untouched. Roles inside a card were briefly reordered
+     to float matches to the top; with matching gone there is nothing to rank
+     them by, and a team's list of openings has no second opinion to offer. */
+  const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
@@ -183,9 +179,11 @@ export function JobTeamGroupCard({
             <JobReferRoleRow
               role={role}
               teamName={team.name}
-              showMatch={matchMode && !!isMatch?.(role)}
+              source="job-board"
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}
+              onApply={onApply}
+              applied={appliedRoleUids?.has(role.uid) ?? false}
               teamId={team.uid}
             />
           </li>

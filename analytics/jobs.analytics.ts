@@ -6,6 +6,17 @@ type FilterStateParam = Record<string, unknown>;
 
 export type JobReferShareNetwork = 'linkedin' | 'x' | 'copy_link';
 
+/**
+ * Which surface a role was acted on from. The same role card now renders on the job
+ * board and on a team profile, and without this the two are indistinguishable in
+ * PostHog — which would make it impossible to tell whether the team-profile section
+ * drives any clicks or referrals at all.
+ *
+ * Required, never defaulted: a default would silently mislabel the next surface that
+ * forgets to pass it.
+ */
+export type JobSurface = 'job-board' | 'team-profile';
+
 export type JobReferBaseParams = {
   job_id: string;
   team_id: string;
@@ -13,6 +24,7 @@ export type JobReferBaseParams = {
   role_title: string;
   role_category: string | null;
   seniority: string | null;
+  source: JobSurface;
 };
 
 export const useJobsAnalytics = () => {
@@ -72,7 +84,9 @@ export const useJobsAnalytics = () => {
     seniority: string | null;
     focus_areas: string[];
     position_in_list: number;
-    filter_state: FilterStateParam;
+    source: JobSurface;
+    /** Board-only: a team profile has no filters, so it sends nothing rather than `{}`. */
+    filter_state?: FilterStateParam;
   }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_CLICKED, { ...args });
   };

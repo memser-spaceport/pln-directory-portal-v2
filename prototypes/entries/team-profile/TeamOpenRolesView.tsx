@@ -57,6 +57,7 @@ export function TeamOpenRolesView({ group }: TeamOpenRolesViewProps) {
             role={role}
             teamId={team.uid}
             teamName={team.name}
+            source="team-profile"
             showMatch={false}
             // Applying is the point of the row once you've already chosen the
             // team, so it gets the primary button and Refer steps back.

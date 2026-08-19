@@ -88,6 +88,7 @@ export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupC
             teamName={team.name}
             key={role.uid}
             role={role}
+            source="job-board"
             onClick={() => {
               onRoleClick(role, idx);
             }}

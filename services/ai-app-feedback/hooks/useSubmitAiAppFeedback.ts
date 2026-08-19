@@ -30,6 +30,7 @@ export function useSubmitAiAppFeedback() {
           uid: `optimistic-${Date.now()}`,
           appUid,
           text,
+          status: 'NEW',
           createdAt: new Date().toISOString(),
           member: currentUser?.uid ? { uid: currentUser.uid, name: currentUser.name ?? 'You' } : null,
         };

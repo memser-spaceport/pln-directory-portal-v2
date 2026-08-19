@@ -7,6 +7,7 @@ function makeRow(overrides: Partial<AiAppFeedbackRow> = {}): AiAppFeedbackRow {
     appUid: 'app-1',
     appName: 'Test App',
     text: 'Great app!',
+    status: 'NEW',
     member: { uid: 'member-1', name: 'Ada Lovelace' },
     createdAt: '2026-07-08T00:00:00.000Z',
     ...overrides,
@@ -59,9 +60,9 @@ describe('exportAiAppFeedbackCsv', () => {
 
     const [header, dataLine] = capturedCsvText!.split('\r\n');
 
-    expect(header).toBe('app_name,feedback,submitter,date');
+    expect(header).toBe('app_name,feedback,submitter,status,date');
     expect(dataLine).toBe(
-      'Test App,"Contains, a comma and ""quotes""\nand a newline",Ada Lovelace,2026-07-08T00:00:00.000Z',
+      'Test App,"Contains, a comma and ""quotes""\nand a newline",Ada Lovelace,New,2026-07-08T00:00:00.000Z',
     );
   });
 
@@ -90,6 +91,6 @@ describe('exportAiAppFeedbackCsv', () => {
     exportAiAppFeedbackCsv([makeRow({ member: null })], 'feedback.csv');
 
     const [, dataLine] = capturedCsvText!.split('\r\n');
-    expect(dataLine).toBe('Test App,Great app!,Unknown member,2026-07-08T00:00:00.000Z');
+    expect(dataLine).toBe('Test App,Great app!,Unknown member,New,2026-07-08T00:00:00.000Z');
   });
 });

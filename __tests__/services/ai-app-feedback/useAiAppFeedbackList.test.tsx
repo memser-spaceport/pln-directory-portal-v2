@@ -95,8 +95,26 @@ describe('useAiAppFeedbackList', () => {
     mockFetchAiAppFeedbackForApp.mockImplementation((appUid: string) =>
       Promise.resolve(
         appUid === 'app-1'
-          ? [{ uid: 'fb-1', appUid: 'app-1', text: 'older', member: null, createdAt: '2026-07-01T00:00:00.000Z' }]
-          : [{ uid: 'fb-2', appUid: 'app-2', text: 'newer', member: null, createdAt: '2026-07-05T00:00:00.000Z' }],
+          ? [
+              {
+                uid: 'fb-1',
+                appUid: 'app-1',
+                text: 'older',
+                status: 'NEW',
+                member: null,
+                createdAt: '2026-07-01T00:00:00.000Z',
+              },
+            ]
+          : [
+              {
+                uid: 'fb-2',
+                appUid: 'app-2',
+                text: 'newer',
+                status: 'VIEWED',
+                member: null,
+                createdAt: '2026-07-05T00:00:00.000Z',
+              },
+            ],
       ),
     );
 
@@ -120,7 +138,16 @@ describe('useAiAppFeedbackList', () => {
     mockFetchAiAppFeedbackForApp.mockImplementation((appUid: string) =>
       Promise.resolve(
         appUid === 'app-1'
-          ? [{ uid: 'fb-1', appUid: 'app-1', text: 'hi', member: null, createdAt: '2026-07-01T00:00:00.000Z' }]
+          ? [
+              {
+                uid: 'fb-1',
+                appUid: 'app-1',
+                text: 'hi',
+                status: 'NEW',
+                member: null,
+                createdAt: '2026-07-01T00:00:00.000Z',
+              },
+            ]
           : [],
       ),
     );

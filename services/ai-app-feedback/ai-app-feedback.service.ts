@@ -1,4 +1,7 @@
 import { customFetch } from '@/utils/fetch-wrapper';
+import type { AiAppFeedbackStatus } from './constants';
+
+export type { AiAppFeedbackStatus } from './constants';
 
 const AI_APPS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/ai-apps`;
 
@@ -11,6 +14,7 @@ export interface AiAppFeedback {
   uid: string;
   appUid: string;
   text: string;
+  status: AiAppFeedbackStatus;
   createdAt: string;
   member: { uid: string; name: string } | null;
 }
@@ -47,6 +51,35 @@ export async function fetchAiAppFeedbackForApp(appUid: string): Promise<AiAppFee
 
   if (!response || !response.ok) {
     return [];
+  }
+
+  return response.json();
+}
+
+/**
+ * PATCH /v1/ai-apps/:uid/feedback/:feedbackUid - body is `{ status }`.
+ * Restricted to the app's creator or a directory admin (same as the list GET).
+ * Any of NEW / VIEWED / IMPLEMENTED is always allowed.
+ */
+export async function updateAiAppFeedbackStatus(
+  appUid: string,
+  feedbackUid: string,
+  status: AiAppFeedbackStatus,
+): Promise<AiAppFeedback> {
+  const response = await customFetch(
+    `${AI_APPS_API_URL}/${appUid}/feedback/${feedbackUid}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw new Error('Failed to update AI App feedback status');
   }
 
   return response.json();

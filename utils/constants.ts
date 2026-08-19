@@ -2466,6 +2466,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_REVIEW_VIEWED: 'ai_apps_feedback_review_viewed',
   FEEDBACK_TAB_FILTERED: 'ai_apps_feedback_tab_filtered',
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
+  FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',

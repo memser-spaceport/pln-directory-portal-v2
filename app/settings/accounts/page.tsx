@@ -32,7 +32,7 @@ async function AccountsPage(props: { searchParams: Promise<any> }) {
             <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
-            <ConnectedAccounts />
+            <ConnectedAccounts userInfo={userInfo} />
           </div>
         </div>
       </div>

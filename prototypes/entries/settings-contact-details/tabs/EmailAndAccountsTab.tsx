@@ -19,7 +19,7 @@ import cardCss from '@/components/page/email-preferences/components/Newsletter/N
 import contactCss from '@/components/page/member-details/ContactDetails/components/EditContactForm/EditContactForm.module.scss';
 
 import { EmailIdentityRow } from '../EmailIdentityRow';
-import { LINKED_ACCOUNTS, MOCK_MEMBER } from '../mocks';
+import { LINKED_ACCOUNTS, MOCK_MEMBER, MOCK_MEMBER_UID, MOCK_USER_INFO } from '../mocks';
 import s from '../SettingsContactDetails.module.scss';
 
 /** The five handles production renders below email, in production's order. */
@@ -65,22 +65,20 @@ const SIGN_IN_METHODS = [
  * moves from tab level down to section level — a scroll instead of a navigation.
  *
  * COPY-SIMPLIFY of `EditContactForm` + `ConnectedAccounts`/`LinkAuthAccounts`.
- * Production's data layer (react-query, cookies, analytics, the Privy auth bus)
- * is dropped for local state; markup, classes, measurements and field copy are
- * production's.
+ * Production's data layer (react-query, cookies, analytics) is dropped for local
+ * state in the two lower sections; markup, classes, measurements and field copy
+ * are production's.
+ *
+ * The Email section is the exception, and deliberately so: it renders the shipped
+ * `EmailIdentityRow`, wired to the real Privy handoff, rather than a mocked twin
+ * of it. Settings › Connected accounts renders the same component.
  *
  * One restyle, deliberate: production wraps the sign-in methods in a grey `lc`
  * panel holding white rows. Inside a settings section card that would be a card
  * within a card, so the rows are bordered directly on the card surface instead.
  * Their padding (12px 16px), gap (16px) and colors are unchanged.
  */
-export function EmailAndAccountsTab({
-  email,
-  onEmailChanged,
-}: {
-  email: string;
-  onEmailChanged: (next: string) => void;
-}) {
+export function EmailAndAccountsTab() {
   const [saved, setSaved] = useState(false);
   const [linked, setLinked] = useState<string[]>(LINKED_ACCOUNTS);
 
@@ -101,13 +99,8 @@ export function EmailAndAccountsTab({
         <div className={cardCss.root}>
           <div className={cardCss.header}>Email</div>
           <div className={clsx(contactCss.body, s.cardBody)}>
-            <EmailIdentityRow
-              email={email}
-              onChanged={(next) => {
-                onEmailChanged(next);
-                setSaved(false);
-              }}
-            />
+            {/* The shipped component, not a copy of it — see EmailIdentityRow's docblock. */}
+            <EmailIdentityRow uid={MOCK_MEMBER_UID} email={MOCK_MEMBER.email} userInfo={MOCK_USER_INFO} />
           </div>
         </div>
 

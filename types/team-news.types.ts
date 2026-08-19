@@ -130,6 +130,8 @@ export interface ITeamNewsGroupedResponse {
   groups: ITeamNewsGroup[];
   /** Allowlisted teams with no focus-area group; merged into the home "All" tab only. */
   allTabExtraItems?: ITeamNewsItem[];
+  /** Memberships ∪ follows ∪ Teams-to-follow matches; empty for anonymous. */
+  forYouTeamUids?: string[];
 }
 
 export interface TeamCluster {

@@ -2041,4 +2041,111 @@ describe('TeamNews', () => {
       }
     });
   });
+
+  describe('For You category', () => {
+    const membershipLatest = {
+      ...makeItem('mem-1', 'FUNDING', ['AI & Robotics']),
+      teamUid: 'team-mem',
+      teamName: 'Mem Team',
+      createdAt: '2026-05-01T12:00:00.000Z',
+    };
+    const membershipSameDayOlder = {
+      ...makeItem('mem-same-old', 'MILESTONE', ['AI & Robotics']),
+      teamUid: 'team-mem',
+      teamName: 'Mem Team',
+      createdAt: '2026-05-01T10:00:00.000Z',
+    };
+    const membershipOlderDay = {
+      ...makeItem('mem-0', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-mem',
+      teamName: 'Mem Team',
+      eventDate: '2026-04-01T12:00:00.000Z',
+      createdAt: '2026-04-01T12:00:00.000Z',
+    };
+    const recommendedItem = {
+      ...makeItem('rec-1', 'LAUNCH', ['AI & Robotics']),
+      teamUid: 'team-rec',
+      teamName: 'Rec Team',
+    };
+    const unmatchedItem = {
+      ...makeItem('other-1', 'ANNOUNCEMENT', ['AI & Robotics']),
+      teamUid: 'team-other',
+      teamName: 'Other Team',
+    };
+    const membershipDhr = {
+      ...makeItem('mem-dhr', 'MILESTONE', ['Digital Human Rights']),
+      teamUid: 'team-mem',
+      teamName: 'Mem Team',
+    };
+
+    const forYouGroups: ITeamNewsGroup[] = [
+      {
+        focusArea: FA_AI,
+        total: 5,
+        items: [membershipLatest, membershipSameDayOlder, membershipOlderDay, recommendedItem, unmatchedItem],
+      },
+      { focusArea: FA_DHR, total: 1, items: [membershipDhr] },
+    ];
+
+    it('defaults to For You, hides Top Stories, and shows one latest item per matching team', () => {
+      renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+      expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
+      expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
+      expect(screen.queryByText('Headline mem-same-old')).not.toBeInTheDocument();
+      expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
+      expect(screen.getByText('Headline rec-1')).toBeInTheDocument();
+      expect(screen.queryByText('Headline other-1')).not.toBeInTheDocument();
+    });
+
+    it('shows the full multi-item clusters on All categories', () => {
+      renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+      expect(screen.getByText('Headline other-1')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'View all 4 updates from Mem Team' })).toBeInTheDocument();
+    });
+
+    it('keeps All categories as the full feed with multi-item clusters and Top Stories', () => {
+      const editorialByIndex: Record<number, number> = { 4: 1, 7: 2, 1: 3 };
+      const items = Array.from({ length: 9 }, (_, i) => ({
+        ...makeItem(`b-${i}`, 'FUNDING', ['AI & Robotics']),
+        teamUid: i === 0 ? 'team-mem' : `team-b-${i}`,
+        teamName: i === 0 ? 'Mem Team' : `Team b-${i}`,
+        editorialRank: editorialByIndex[i] ?? null,
+        eventDate: `2026-05-${String(9 - i).padStart(2, '0')}T12:00:00.000Z`,
+      }));
+
+      renderTeamNews(
+        <TeamNews groups={[{ focusArea: FA_AI, total: items.length, items }]} forYouTeamUids={['team-mem']} />,
+      );
+
+      expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+      expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+      expect(screen.getByRole('region', { name: 'Top stories' })).toBeInTheDocument();
+    });
+
+    it('hides the pill and stays on All categories when matching teams have no news', () => {
+      renderTeamNews(<TeamNews groups={groups} forYouTeamUids={['team-does-not-exist']} />);
+
+      expect(within(catRow()).queryByRole('button', { name: /For You/ })).not.toBeInTheDocument();
+      expect(within(catRow()).getByRole('button', { name: /All categories/ })).toHaveClass(/catActive/);
+    });
+
+    it('keeps For You selected when switching focus-area tabs', () => {
+      renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+      fireEvent.click(screen.getByRole('tab', { name: /Digital Human Rights/ }));
+
+      expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
+      expect(screen.getByText('Headline mem-dhr')).toBeInTheDocument();
+      expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
+      expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
+    });
+  });
 });

@@ -33,6 +33,8 @@ import {
   ALL_CAT,
   CATEGORIES,
   DISCUSSIONS_CAT,
+  FOR_YOU_CAT,
+  FOR_YOU_CATEGORY,
   SHOW_HIRING_NEWS,
   DISCUSSIONS_CATEGORY,
   SHOW_POPULAR_THIS_WEEK,
@@ -59,6 +61,7 @@ import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
+import { selectForYouItems } from './utils/selectForYouItems';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
 import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
 
@@ -94,6 +97,8 @@ interface TeamNewsProps {
   groups: ITeamNewsGroup[];
   /** Allowlisted teams with no focus-area group; shown on "All" only. */
   allTabExtraItems?: ITeamNewsItem[];
+  /** Memberships ∪ follows ∪ matcher teams; empty for guests. Frozen at mount. */
+  forYouTeamUids?: string[];
   /** Server-ranked "Popular this week" (GET /v1/team-news/popular), fetched SSR
    * alongside `groups`. Empty → the rail's Popular module hides itself. */
   popularItems?: ITeamNewsPopularItem[];
@@ -104,12 +109,17 @@ interface TeamNewsProps {
 export const TeamNews = ({
   groups,
   allTabExtraItems = [],
+  forYouTeamUids = [],
   popularItems = [],
   pageSize = 6,
   initialDigestSettings = null,
 }: TeamNewsProps) => {
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(ALL_CAT);
+  const [initialForYouTeamUids] = useState<ReadonlySet<string>>(() => new Set(forYouTeamUids));
+  const [activeCategory, setActiveCategory] = useState<TeamNewsCategoryId>(() => {
+    const items = sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems]));
+    return selectForYouItems(items, new Set(forYouTeamUids)).length > 0 ? FOR_YOU_CAT : ALL_CAT;
+  });
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -206,6 +216,16 @@ export const TeamNews = ({
     return applyUpvoteOverlay(group?.items ?? [], upvoteOverlay);
   }, [activeTab, allItems, groups, upvoteOverlay]);
 
+  const forYouItemsForActiveTab = useMemo(
+    () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids),
+    [itemsForActiveTab, initialForYouTeamUids],
+  );
+
+  const hasForYouNews = useMemo(
+    () => selectForYouItems(allItems, initialForYouTeamUids).length > 0,
+    [allItems, initialForYouTeamUids],
+  );
+
   // Forum posts joining the current tab (they only ever show under the "All"
   // category pill — a post has no event type). Memoized so its array identity
   // can't re-run the merge on unrelated renders (e.g. upvote overlay writes).
@@ -219,6 +239,7 @@ export const TeamNews = ({
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
+      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length;
       const newsCount =
         id === ALL_CAT
           ? itemsForActiveTab.length
@@ -226,7 +247,7 @@ export const TeamNews = ({
       // Forum posts show under All and Discussions, and nowhere else.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab],
   );
 
   const categoriesWithCounts = useMemo(() => {
@@ -243,21 +264,26 @@ export const TeamNews = ({
     }, []);
 
     const discussionsCount = countForCategory(DISCUSSIONS_CAT);
+    const forYouCount = countForCategory(FOR_YOU_CAT);
+
+    const withForYou: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = hasForYouNews
+      ? [{ ...FOR_YOU_CATEGORY, count: forYouCount }, ...base]
+      : base;
 
     // Nothing to filter to ⇒ no pill, the same rule every other pill follows.
     if (discussionsCount === 0) {
-      return base;
+      return withForYou;
     }
 
     const withDiscussions: Array<{ id: TeamNewsCategoryId; label: string; count: number }> = [];
-    for (const c of base) {
+    for (const c of withForYou) {
       withDiscussions.push(c);
       if (c.id === ALL_CAT) {
         withDiscussions.push({ ...DISCUSSIONS_CATEGORY, count: discussionsCount });
       }
     }
     return withDiscussions;
-  }, [countForCategory]);
+  }, [countForCategory, hasForYouNews]);
 
   /**
    * The same list the pills render, shaped for the mobile "Type:" dropdown.
@@ -273,15 +299,16 @@ export const TeamNews = ({
   const categoryOptions = useMemo(
     () =>
       categoriesWithCounts
-        .filter((c) => c.id === ALL_CAT || c.count > 0)
+        .filter((c) => c.id === ALL_CAT || c.id === FOR_YOU_CAT || c.count > 0)
         .map((c) => ({ value: c.id, label: c.id === ALL_CAT ? c.label : `${c.label} (${c.count})` })),
     [categoriesWithCounts],
   );
 
   const filteredItems = useMemo(() => {
+    if (activeCategory === FOR_YOU_CAT) return forYouItemsForActiveTab;
     if (activeCategory === ALL_CAT) return itemsForActiveTab;
     return itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, activeCategory));
-  }, [activeCategory, itemsForActiveTab]);
+  }, [activeCategory, itemsForActiveTab, forYouItemsForActiveTab]);
 
   // Narrows filteredItems by team name, story title, summary, or tags —
   // combines with (doesn't replace) the active tab/category filter.
@@ -493,7 +520,9 @@ export const TeamNews = ({
     const nextItems = id === ALL_TAB ? allItems : (groups.find((g) => g.focusArea.title === id)?.items ?? []);
     analytics.onTeamNewsTabClicked(id, nextItems.length);
     setActiveTab(id);
-    setActiveCategory(ALL_CAT);
+    if (activeCategory !== FOR_YOU_CAT) {
+      setActiveCategory(ALL_CAT);
+    }
     setExpanded(false);
   };
 
@@ -769,7 +798,11 @@ export const TeamNews = ({
     // same ALL_TAB-vs-group lookup inline — accurate here, before any of this
     // handler's own setState calls have applied.
     const tabMismatch = activeTab !== ALL_TAB && !itemsForActiveTab.some((i) => i.uid === fullItem.uid);
-    const categoryMismatch = activeCategory !== ALL_CAT && !matchesTeamNewsCategory(fullItem, activeCategory);
+    const categoryMismatch =
+      activeCategory !== ALL_CAT &&
+      (activeCategory === FOR_YOU_CAT
+        ? !forYouItemsForActiveTab.some((i) => i.uid === fullItem.uid)
+        : !matchesTeamNewsCategory(fullItem, activeCategory));
     const searchMismatch = query.trim() !== '' && !matchesTeamNewsQuery(fullItem, query.trim().toLowerCase());
     const filtersChanging = tabMismatch || categoryMismatch || searchMismatch;
 
@@ -852,7 +885,7 @@ export const TeamNews = ({
         <div className={s.catRow}>
           {categoriesWithCounts.map((c) => {
             const isActive = activeCategory === c.id;
-            const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+            const isDisabled = c.count === 0 && c.id !== ALL_CAT && c.id !== FOR_YOU_CAT;
             return (
               <button
                 key={c.id}

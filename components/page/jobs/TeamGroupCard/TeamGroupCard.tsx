@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
@@ -14,7 +15,7 @@ import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip
 
 import { useGetFocusTags } from './hooks/useGetFocusTags';
 
-import { ReferRoleRow } from './component/ReferRoleRow';
+import { ReferRoleRow, type RowApplyProps } from './component/ReferRoleRow';
 
 import s from './TeamGroupCard.module.scss';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -24,12 +25,18 @@ const MAX_FOCUS_CHIPS = 100;
 
 interface TeamGroupCardProps {
   group: IJobTeamGroup;
-  onRoleClick: (role: IJobRole, indexInGroup: number) => void;
+  /** This group's index in the board list — passed back through `onRoleClick` so
+   *  the host can keep ONE stable callback instead of a closure per card (the
+   *  card is memoized; per-card closures would defeat it). */
+  groupIndex?: number;
+  onRoleClick: (role: IJobRole, indexInGroup: number, group: IJobTeamGroup, groupIndex: number) => void;
   /** Open this team's news over the board, from its "N new posts" chip. */
   onOpenTeamNews?: (teamUid: string, teamName: string) => void;
+  /** In-app apply wiring, threaded to rows. Presence is the gate — see RowApplyProps. */
+  apply?: RowApplyProps;
 }
 
-export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupCardProps) {
+function TeamGroupCardImpl({ group, groupIndex = 0, onRoleClick, onOpenTeamNews, apply }: TeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
@@ -89,8 +96,9 @@ export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupC
             key={role.uid}
             role={role}
             source="job-board"
+            apply={apply}
             onClick={() => {
-              onRoleClick(role, idx);
+              onRoleClick(role, idx, group, groupIndex);
             }}
           />
         ))}
@@ -104,3 +112,11 @@ export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupC
     </article>
   );
 }
+
+/**
+ * Memoized: the board host re-renders on every apply-flow transition (modal
+ * open/close, submit), and without this every scrolled-in card reconciles on
+ * each of them. Applied-state changes bypass this via each row's own per-row
+ * query subscription, so memoization never holds a row stale.
+ */
+export const TeamGroupCard = memo(TeamGroupCardImpl);

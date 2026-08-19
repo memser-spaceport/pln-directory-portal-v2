@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Action strip at the foot of a grey warm-path card: "Can you refer?" + "Give feedback".
- * Promoted from prototypes/entries/warm-intros-v2; persists via WarmPathV2Feedback API.
+ * Action strip at the foot of a grey warm-path card: "Can you refer?" + "Give feedback" + notes.
+ * Promoted from prototypes/entries/warm-intros-v2; persists via WarmPathV2Feedback / WarmPathV2Note APIs.
  */
 
 import { useState } from 'react';
@@ -10,15 +10,24 @@ import clsx from 'clsx';
 import { Button } from '@/components/common/Button/Button';
 import { CheckIcon } from '@/components/icons';
 import { useWarmPathV2Feedback } from '@/services/investors/hooks/useWarmPathV2Feedback';
-import type { WarmPathFeedbackSummary, WarmPathMyFeedback } from '@/services/investors/warm-intros-v2.types';
+import { useWarmPathV2Note } from '@/services/investors/hooks/useWarmPathV2Note';
+import type {
+  WarmPathFeedbackSummary,
+  WarmPathMyFeedback,
+  WarmPathMyNote,
+  WarmPathNoteRecent,
+} from '@/services/investors/warm-intros-v2.types';
 import { PathFeedbackModal, type PathContext } from './PathFeedbackModal';
 import { PathFeedbackAdminSummary } from './PathFeedbackAdminSummary';
+import { PathNoteModal } from './PathNoteModal';
+import { PathNotesAdminSummary } from './PathNotesAdminSummary';
 import f from './PathFeedback.module.scss';
 
 type ReferVerdict = 'yes' | 'no';
 
 /** Temporarily hidden — re-enable when refer flow ships. */
 const SHOW_CAN_REFER = false;
+const OWN_NOTE_PREVIEW_MAX = 120;
 
 interface Props {
   warmPathUid: string;
@@ -28,6 +37,8 @@ interface Props {
   context: PathContext;
   myFeedback?: WarmPathMyFeedback | null;
   feedbackSummary?: WarmPathFeedbackSummary | null;
+  myNote?: WarmPathMyNote | null;
+  notes?: WarmPathNoteRecent[] | null;
   canEdit?: boolean;
 }
 
@@ -39,20 +50,29 @@ export function PathActions({
   context,
   myFeedback,
   feedbackSummary,
+  myNote,
+  notes,
   canEdit = false,
 }: Props) {
   const { upsert, clearRefer } = useWarmPathV2Feedback({
     investorProfileUid,
     targetSet,
   });
+  const { upsert: upsertNote } = useWarmPathV2Note({
+    investorProfileUid,
+    targetSet,
+  });
   const [asking, setAsking] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
 
   const answered = (myFeedback?.canRefer as ReferVerdict | null | undefined) ?? undefined;
   const hasNote = !!(myFeedback?.note && myFeedback.note.trim());
+  const ownNoteText = myNote?.note?.trim() || '';
+  const hasOwnNote = ownNoteText.length > 0;
   const resting = !answered && !asking;
   const connector = context.connectorName;
-  const busy = upsert.isPending || clearRefer.isPending;
+  const busy = upsert.isPending || clearRefer.isPending || upsertNote.isPending;
 
   const setRefer = (verdict: ReferVerdict) => {
     upsert.mutate({
@@ -145,10 +165,31 @@ export function PathActions({
           >
             {hasNote ? 'Edit' : 'Give feedback'}
           </Button>
+          <span className={f.linkDivider} aria-hidden>
+            ·
+          </span>
+          <Button
+            style="link"
+            variant="secondary"
+            size="xxs"
+            underline
+            disabled={busy}
+            onClick={() => setNoteModalOpen(true)}
+          >
+            {hasOwnNote ? 'Edit note' : 'Add note'}
+          </Button>
         </div>
       </div>
 
+      {hasOwnNote ? (
+        <p className={f.ownNote}>
+          {ownNoteText.slice(0, OWN_NOTE_PREVIEW_MAX)}
+          {ownNoteText.length > OWN_NOTE_PREVIEW_MAX ? '…' : ''}
+        </p>
+      ) : null}
+
       {canEdit && feedbackSummary ? <PathFeedbackAdminSummary summary={feedbackSummary} /> : null}
+      {canEdit && notes && notes.length > 0 ? <PathNotesAdminSummary notes={notes} /> : null}
 
       <PathFeedbackModal
         open={modalOpen}
@@ -162,6 +203,31 @@ export function PathActions({
           });
           setModalOpen(false);
         }}
+      />
+
+      <PathNoteModal
+        open={noteModalOpen}
+        onClose={() => setNoteModalOpen(false)}
+        context={context}
+        initial={hasOwnNote ? { note: ownNoteText } : undefined}
+        onSubmit={(value) => {
+          upsertNote.mutate({
+            warmPathUid,
+            body: { connectorProfileUid, note: value.note },
+          });
+          setNoteModalOpen(false);
+        }}
+        onClear={
+          hasOwnNote
+            ? () => {
+                upsertNote.mutate({
+                  warmPathUid,
+                  body: { connectorProfileUid, note: null },
+                });
+                setNoteModalOpen(false);
+              }
+            : undefined
+        }
       />
     </>
   );

@@ -363,6 +363,8 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                         canEdit={canEdit}
                         myFeedback={bestPath.myFeedbackByConnector?.[bestPath.bestConnectorProfileUid]}
                         feedbackSummary={bestPath.feedbackSummaryByConnector?.[bestPath.bestConnectorProfileUid]}
+                        myNote={bestPath.myNoteByConnector?.[bestPath.bestConnectorProfileUid]}
+                        notes={bestPath.notesByConnector?.[bestPath.bestConnectorProfileUid]}
                         context={{
                           nodes: hops.map((hop) => ({
                             profileUid: hop.profileUid,
@@ -438,6 +440,8 @@ export function WarmIntrosV2InvestorDrawer({ row, open, onClose, onOpenMasterPro
                                     canEdit={canEdit}
                                     myFeedback={bestPath.myFeedbackByConnector?.[alt.profileUid]}
                                     feedbackSummary={bestPath.feedbackSummaryByConnector?.[alt.profileUid]}
+                                    myNote={bestPath.myNoteByConnector?.[alt.profileUid]}
+                                    notes={bestPath.notesByConnector?.[alt.profileUid]}
                                     context={{
                                       nodes: [
                                         {

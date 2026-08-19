@@ -2,7 +2,10 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/core/ToastContainer';
-import { AiAppFeedback, updateAiAppFeedbackStatus } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import {
+  updateAiAppFeedbackStatus,
+  type AiAppFeedbackRow,
+} from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { AiAppFeedbackQueryKeys, type AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 
 export interface UpdateAiAppFeedbackStatusData {
@@ -11,35 +14,36 @@ export interface UpdateAiAppFeedbackStatusData {
   status: AiAppFeedbackStatus;
 }
 
+const LIST_QUERY_KEY = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST];
+
 export function useUpdateAiAppFeedbackStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ appUid, feedbackUid, status }: UpdateAiAppFeedbackStatusData) =>
       updateAiAppFeedbackStatus(appUid, feedbackUid, status),
-    onMutate: async ({ appUid, feedbackUid, status }: UpdateAiAppFeedbackStatusData) => {
-      const queryKey = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST, appUid];
-      await queryClient.cancelQueries({ queryKey });
+    onMutate: async ({ feedbackUid, status }: UpdateAiAppFeedbackStatusData) => {
+      await queryClient.cancelQueries({ queryKey: LIST_QUERY_KEY });
 
-      const previous = queryClient.getQueryData<AiAppFeedback[]>(queryKey);
+      const previous = queryClient.getQueryData<AiAppFeedbackRow[]>(LIST_QUERY_KEY);
       if (previous) {
-        queryClient.setQueryData<AiAppFeedback[]>(
-          queryKey,
+        queryClient.setQueryData<AiAppFeedbackRow[]>(
+          LIST_QUERY_KEY,
           previous.map((row) => (row.uid === feedbackUid ? { ...row, status } : row)),
         );
       }
 
-      return { previous, queryKey };
+      return { previous };
     },
     onError: (error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(context.queryKey, context.previous);
+        queryClient.setQueryData(LIST_QUERY_KEY, context.previous);
       }
       toast.error('Something went wrong. Please try again.');
       console.error('Failed to update AI App feedback status:', error);
     },
-    onSettled: (_data, _error, { appUid }) => {
-      queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST, appUid] });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
     },
   });
 }

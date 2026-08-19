@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AiAppFeedback, submitAiAppFeedback } from '@/services/ai-app-feedback/ai-app-feedback.service';
+import { submitAiAppFeedback, type AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 import { AiAppFeedbackQueryKeys } from '@/services/ai-app-feedback/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 
@@ -10,45 +10,41 @@ export interface SubmitAiAppFeedbackData {
   text: string;
 }
 
+const LIST_QUERY_KEY = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST];
+
 export function useSubmitAiAppFeedback() {
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUserStore();
 
   return useMutation({
     mutationFn: ({ appUid, text }: SubmitAiAppFeedbackData) => submitAiAppFeedback(appUid, text),
-    // Optimistically prepend the new row to the per-app feedback cache so the
-    // "View feedback" badge and review table update without a reload. Only an
-    // already-cached list is touched - if the viewer can't review this app,
-    // there's no cache entry to update and nothing should appear anyway.
     onMutate: async ({ appUid, text }: SubmitAiAppFeedbackData) => {
-      const queryKey = [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST, appUid];
-      await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: LIST_QUERY_KEY });
 
-      const previous = queryClient.getQueryData<AiAppFeedback[]>(queryKey);
+      const previous = queryClient.getQueryData<AiAppFeedbackRow[]>(LIST_QUERY_KEY);
       if (previous) {
-        const optimisticRow: AiAppFeedback = {
+        const optimisticRow: AiAppFeedbackRow = {
           uid: `optimistic-${Date.now()}`,
           appUid,
+          appName: previous.find((row) => row.appUid === appUid)?.appName ?? '',
           text,
           status: 'NEW',
           createdAt: new Date().toISOString(),
           member: currentUser?.uid ? { uid: currentUser.uid, name: currentUser.name ?? 'You' } : null,
         };
-        queryClient.setQueryData<AiAppFeedback[]>(queryKey, [optimisticRow, ...previous]);
+        queryClient.setQueryData<AiAppFeedbackRow[]>(LIST_QUERY_KEY, [optimisticRow, ...previous]);
       }
 
-      return { previous, queryKey };
+      return { previous };
     },
     onError: (error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(context.queryKey, context.previous);
+        queryClient.setQueryData(LIST_QUERY_KEY, context.previous);
       }
       console.error('Failed to submit AI App feedback:', error);
     },
-    // Refetch regardless of outcome so the optimistic row (with its fake uid)
-    // is replaced by the server's canonical list.
-    onSettled: (_data, _error, { appUid }) => {
-      queryClient.invalidateQueries({ queryKey: [AiAppFeedbackQueryKeys.AI_APP_FEEDBACK_LIST, appUid] });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
     },
   });
 }

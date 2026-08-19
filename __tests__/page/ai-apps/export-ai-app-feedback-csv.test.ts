@@ -1,5 +1,5 @@
 import { exportAiAppFeedbackCsv } from '@/components/page/ai-apps/AiAppFeedbackPage/utils/exportAiAppFeedbackCsv';
-import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 function makeRow(overrides: Partial<AiAppFeedbackRow> = {}): AiAppFeedbackRow {
   return {

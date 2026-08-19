@@ -147,7 +147,7 @@ export function EmailAndAccountsTab({
         {/* 3. How other members reach you — a different job, so its own section,
             with the save bar scoped to it since it holds the only editable fields. */}
         <div className={cardCss.root}>
-          <div className={cardCss.header}>Contact handles</div>
+          <div className={cardCss.header}>Social links</div>
           <div className={clsx(contactCss.body, s.cardBody)}>
             {HANDLES.map((handle) => (
               <div key={handle.name} className={contactCss.row}>
@@ -170,7 +170,7 @@ export function EmailAndAccountsTab({
             <div className={s.saveBar}>
               {saved && !formState.isDirty && (
                 <p className={clsx(s.hint, s.savedNote)} role="status" aria-live="polite">
-                  Contact handles saved.
+                  Social links saved.
                 </p>
               )}
               <Button

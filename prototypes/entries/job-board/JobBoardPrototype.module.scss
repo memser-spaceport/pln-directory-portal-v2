@@ -8,20 +8,20 @@
   min-height: 60vh;
 }
 
-// The review band: prototype-only switches, worn twice — once above the navbar
-// (the two variant switches) and once below it (the sign-in prompt trigger).
+// The review band: the prototype-only "Preview as" tabs, sitting directly under
+// the navbar. The mobile-bar switch that used to share it is gone, so this is
+// the only scaffolding left on the page.
 //
 // They sat between the toolbar and the job list, where they read as part of the
-// product and pushed the thing under review below the fold. Outside the header
-// they are plainly scaffolding — and because the navbar is sticky and these
-// aren't, they scroll away and leave the board to be judged on its own.
+// product and pushed the thing under review below the fold. Outside the page
+// column they are plainly scaffolding — and because the navbar is sticky and
+// this band is not, they scroll away and leave the board to be judged on its own.
 //
 // Tinted, not bordered. The navbar is white and carries its own
-// `0 1px 4px #e2e8f0` shadow, so a border on the upper band would draw a second
-// line 12px above that one; a tint separates band from header without adding
-// anything, and works either side of it. Horizontal padding matches NavBar's
-// `.Root` (16px, 24px from tablet-landscape) so the switches start on the logo's
-// left edge.
+// `0 1px 4px #e2e8f0` shadow; a border here would draw a second line directly
+// under that one, where a tint separates band from header without adding
+// anything. Horizontal padding matches NavBar's `.Root` (16px, 24px from
+// tablet-landscape) so the tabs start on the logo's left edge.
 .reviewBand {
   padding: 12px 16px;
   background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
@@ -31,53 +31,25 @@
   }
 }
 
-// The sign-in prompt trigger, sitting inside the content column under the Welcome
-// banner rather than in a full-bleed band. So it takes the column's own edges —
-// no header-matching padding — and a radius, which turns it from a page-width
-// stripe into a block that clearly belongs to the column it's in. Same tint as
-// `.reviewBand`, so both read as one kind of thing: scaffolding, not product.
-.promptBand {
-  padding: 10px 12px;
-  border-radius: var(--corner-radius-sm, 6px);
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-}
-
-// The match line under the page title, and its Edit. Only ever rendered while the
-// board is sorted by match, so it explains the order on screen and offers the one
-// thing you'd want next.
+// The role count inside production's `.titleCount` parenthetical. Brand blue and
+// 600, against the 400 muted grey the rest of the line keeps — the contrast is
+// the point, so lifting the whole parenthetical would buy nothing.
 //
-// 14px/20px against the 24px/700 title above it: this is a caption on the heading,
-// not a second heading. `titleGroup` is already a 2px-gap column, so no margin
-// here — spacing is the parent's.
-.matchLine {
-  margin: 0;
-
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+// Colour and weight only: no size change. It sits inside a 24px/700 h1 as a
+// smaller aside, and growing it would start a second heading rather than
+// emphasise a word inside one.
+// Primary black, not brand blue. Blue is this product's link-and-action colour —
+// on a page whose every card carries a blue Apply button, a blue phrase inside
+// the heading reads as something to press. The contrast against the muted grey
+// the rest of the parenthetical keeps is what does the work; weight and tone are
+// enough, and they don't promise a click that isn't there.
+.titleCountRoles {
+  font-weight: 600;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
-// A link, not a button: it reopens a form rather than committing anything, and a
-// filled control here would outweigh the sort dropdown across the toolbar from it.
-.matchEdit {
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-
-  font: inherit;
-  font-weight: 500;
-  color: var(--foreground-brand-primary, #1b4dff);
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-// `mobileHeader` is a no-wrap baseline row; the match line needs its own line
-// under the title rather than being pushed off the edge beside it.
+// `mobileHeader` is a no-wrap baseline row; keep it able to wrap so a long title
+// block never gets pushed off the edge.
 .mobileHeaderWrap {
   flex-wrap: wrap;
 }
@@ -90,19 +62,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-}
-
-// The locked "Best match for me" option. SortDropdown has no disabled state, so
-// the lock is the whole signal — it stays fully legible (a dimmed option would
-// read as broken rather than as something you can unlock).
-.lockedOption {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  img {
-    flex-shrink: 0;
-  }
 }
 
 .empty {

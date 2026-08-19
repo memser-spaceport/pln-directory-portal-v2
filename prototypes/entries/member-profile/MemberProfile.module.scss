@@ -271,29 +271,11 @@
   padding: 16px;
 }
 
-/* Uppercase "PL Team only" pill, top-right of the card header. */
-.internalPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-}
-
+/* The "PL Team only" pill moved to prototypes/entries/profile-shared/ when the
+   job-board profile drawer needed the same mark. Deleted here rather than left
+   behind: two definitions of one privacy marker is the drift the move existed to
+   prevent. The blue variant's `.plBanner` strip below is a different treatment
+   and stays. */
 
 .sourceChip {
   display: inline-flex;

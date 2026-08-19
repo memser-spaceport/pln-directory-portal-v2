@@ -1,0 +1,370 @@
+// Local extras only. The 24px card, close button, centred icon / title / desc,
+// form stack and twin footer actions are Demo Day's "Make an intro" chrome
+// (ReferCompanyModal.module.scss), imported as-is by the component — the same
+// chrome ReferModal wears.
+@use 'styles/media';
+
+// Doubled selector on purpose: this class and the reference's `.modal` have equal
+// specificity, so without it the winner would depend on CSS bundle order.
+//
+// 440px, matching the preferences modal rather than the reference's 400px. The
+// read-back's first line is one sentence — "Senior Protocol Engineer at Lattice
+// Compute" — and at 400px a real title-plus-team wrapped, which turns a glance
+// into a paragraph and undoes the point of showing it.
+.modal.modal {
+  max-width: 440px;
+
+  // Sized to its content, capped at the viewport. A six-row letter under a
+  // read-back panel makes this the tallest card in the flow, and the submit
+  // button is the one thing that must never fall below the fold. dvh so
+  // collapsing mobile browser chrome can't clip the actions.
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+
+  @include media.mobile-only {
+    max-width: 100%;
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+// (`.icon` — the brand tint for the circled document glyph — went with the glyph.
+//  See the note in the component: an announcement's mark on top of a form.)
+
+// --- The masthead, un-centred ------------------------------------------------
+//
+// Demo Day's chrome centres its icon (`margin: 0 auto`), title and description,
+// which is right for what that component usually is: a short announcement with
+// two buttons under it, where the whole card is one centred block.
+//
+// This card isn't that. Under the description sit a labelled panel, a labelled
+// textarea and a character count — a form, and a form has one left edge that
+// every label, field and note starts from. A centred masthead over it puts two
+// alignment axes in a 440px card, and the reader's eye tracks the mismatch
+// rather than the content. `JobSignUpModal`, the other "Apply for <role>" card
+// in this flow, already left-aligns its own title for the same reason.
+//
+// Doubled selectors: the classes being overridden are single-class rules in
+// another CSS module, so equal specificity would leave the winner to bundle
+// order.
+.headerLeft.headerLeft {
+  text-align: left;
+}
+
+// The description belongs to the title, and the chrome's uniform `gap: 24px` was
+// denying it: `.modal` is a flex column, so icon → title → description → leads →
+// form all sat exactly 24px apart, which says those five are five peers. They
+// aren't. A title and the sentence qualifying it are one header; 8px says so,
+// and the 24px that remains everywhere else now marks a real break instead of
+// being the only measurement in the card.
+//
+// Negative margin cancelling part of the parent's gap, rather than a smaller
+// `gap` on `.modal` — the container's number is correct for every other pair,
+// and changing it would move four things to fix one.
+.headerDesc.headerDesc {
+  margin-top: -16px;
+}
+
+// The title is the card's first row now that the glyph above it is gone, and the
+// close button is absolutely positioned at top/right 12 — so a long role title
+// ("Senior Distributed Systems Engineer") would run under it. 32px of right
+// padding is the 24px button plus its inset; the text wraps before it reaches
+// the ✕ instead of passing behind it.
+.headerTitle.headerTitle {
+  padding-right: 32px;
+}
+
+// --- Who receives it ---------------------------------------------------------
+
+// The hiring team's leads: overlapping faces, then the same people in words.
+//
+// TRANSCRIBED from production's `TeamFollowBlock.module.scss` (`.subStack`,
+// `.subAvatars`, `.subAvatar`, `.subCount`) — the team-details page's follower
+// facepile, which is this exact shape already: three round avatars at the head
+// of a line that says who they are. Values are its own, verbatim: 28px circles,
+// `& + & { margin-left: -10px }`, a 2px white ring, 8px to the text, 14px
+// secondary type.
+//
+// Production has no shared avatar-group *component* to import — there are six
+// hand-rolled stacks that disagree on size, ring and overlap direction, and the
+// one real `AvatarStack` lives in `pl-design-system`, which this app's tsconfig
+// excludes. `TeamFollowBlock` is the closest match by *job*: a facepile whose
+// point is to make a count of people feel like people. So its numbers are the
+// ones to copy rather than average.
+//
+// This replaced three stacked face/name/role rows, which spent ~90px and read as
+// a section of the form rather than a note on the sentence above them.
+//
+// Left, like everything else in this card's content column — the near-miss
+// centring this block used to have (`fit-content` + auto margins) put it a few
+// pixels inside the edge that the label, the profile panel and the cover-letter
+// field all start from.
+.leads {
+  display: flex;
+  // Top, not centre. With first names the line fitted on one and centring was
+  // invisible; with surnames it wraps to two, and a centred 28px stack then
+  // floats in the gap between the lines, tied to neither. Aligned to the top the
+  // faces sit against the first line, where the first name is.
+  align-items: flex-start;
+  gap: 8px;
+
+  // 12px under the description, 28px above the form. These faces are that
+  // sentence made concrete — "<team> receives your profile" and here is who that
+  // means — so they hug it, and the larger space below is where the card
+  // actually changes subject from "who gets this" to "what you're sending".
+  margin: -12px 0 4px;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.leadAvatars {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+// Each face is a link to that member's profile.
+//
+// **The overlap lives here, not on the image.** `TeamFollowBlock` puts
+// `& + & { margin-left: -10px }` on the avatars themselves because there they
+// are siblings; wrapping each one in an anchor makes the anchors the siblings
+// and that rule stops matching entirely — the stack silently un-stacks. Same
+// trap as any wrapper component that becomes the flex item.
+//
+// `display: flex` so the anchor is exactly its image: an inline `<a>` adds a
+// descender's worth of line-box under the circle and pushes the row off centre.
+//
+// Hover is production's own treatment for a hoverable member avatar — the events
+// contributors grid (`members-list.tsx`) scales to 1.1 over 0.2s and lifts the
+// z-index so the enlarged face isn't clipped by the one stacked on top of it.
+// Deliberately not a ring-colour change: the ring is white because its job is to
+// cut each face out of the one behind it, so tinting it on hover breaks the
+// cut-out to say something the scale already says.
+.leadAvatarLink {
+  display: flex;
+  position: relative;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+
+  & + & {
+    margin-left: -10px;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    z-index: 2;
+  }
+}
+
+// `TeamFollowBlock .subAvatar`, unchanged. 28px is deliberately larger than the
+// 14px line beside it — the faces are the part that does the work here, and at
+// the 20–24px the denser stacks in this codebase use they read as favicons next
+// to the text rather than as people.
+.leadAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  // White, not the card's border token: the ring's job is to cut each face out
+  // of the one behind it, and it can only do that in the colour of the surface.
+  border: 2px solid #fff;
+
+  // The overlap that `TeamFollowBlock` puts here has moved up to
+  // `.leadAvatarLink` — see the note there. These images are no longer siblings.
+}
+
+// Takes the card's leftover height so `.body` has something to scroll within.
+.form {
+  flex: 1;
+  min-height: 0;
+}
+
+// Only the two blocks scroll — icon, title, description, note and actions hold
+// still, so the contract at the top and the button at the bottom are always both
+// on screen.
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  // 16px, not the reference's 10px: each block carries its own label, and at 10px
+  // a label sat as close to the block above it as to the block it names.
+  gap: 16px;
+
+  // Room for focus rings against the scroll edge.
+  padding: 2px;
+  margin: -2px;
+}
+
+// A labelled block: header row, then the thing it names.
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// One label idiom for both blocks — ReferModal's `.templateLabelRow` /
+// `.templateLabel`, transcribed rather than imported so this file owns its own
+// classes. The profile panel and the cover letter are two halves of one
+// application; giving them different headings would make them look like a
+// summary and a form.
+.blockLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.blockLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ReferModal's `.resetLink` — the established quiet-link idiom for a corrective
+// escape sitting in a label row. 12px so it stays under the 14px label it shares
+// the row with: it's a way out, not a second heading.
+.editLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// (`.editProfileLink` — the inline-flex + arrow-glyph treatment for the
+//  `target="_blank"` version of Edit profile — went when that link became a
+//  button again. See the note in the component.)
+
+// The applicant's name, at the top of the read-back.
+//
+// Semibold against the role line's medium, the same one-step lift the profile's
+// own header card puts between the name and the role under it: on both surfaces
+// the name is who this is and the role is what they do, and reading them at the
+// same weight makes them one run-on label.
+//
+// (`.profileEmpty` used to live here, for a panel with nothing to quote. There
+// is no such panel any more — the current role is required and the name is
+// always known — so the class went with the apology it styled.)
+.profileName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Hairline only, no fill. Two reasons: a tinted panel would swallow the grey
+// skill chips inside it, and the card already contains one filled-and-shadowed
+// box — the textarea. Border-only at 0.12 against the field's 0.16 plus shadow is
+// what separates "this is what we'll send" from "type here".
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  // 4px, not the 10px this card used when it held a single line: the summary and
+  // its dates are one fact in two lines, so they hug. The chips restore the
+  // larger gap themselves — see `.skills`.
+  gap: 4px;
+
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+// Primary tone and medium weight: this is the sentence the hiring team reads, so
+// inside the card it outranks the labels around it.
+.profileSummary {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// Dates for the line above, in the note idiom (12px secondary) already used by
+// `.note` at the bottom of the card. Deliberately not the summary's weight or
+// tone: it qualifies that sentence, and a hiring team reading the panel should
+// land on the role first and the years second.
+.profileDates {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  // The card's own gap is tuned for the summary/dates pair, so the chips carry
+  // the break between "who this is" and "what they work in" themselves.
+  margin-top: 6px;
+}
+
+// Doubled selector to beat `Tag`'s own `.default`, which caps chips at 80px
+// (150px past 1024) because it was sized for a table cell. A read-back exists to
+// show exactly what is being sent, so "Distributed Sys…" is the one thing it must
+// never do; the cap comes off and long skills wrap instead.
+.skillTag.skillTag {
+  max-width: none;
+  white-space: normal;
+  text-align: left;
+}
+
+// A name in the sentence, linking to that member's profile.
+//
+// **Not brand blue**, which is what every other link in this card is. Three blue
+// names in the line directly under the title would out-shout `Edit profile` and
+// read as three calls to action, when the sentence is a statement of fact that
+// happens to be explorable. Primary tone at 500 instead — the same lift
+// `.profileSummary` uses to mark the content of a block against the secondary
+// prose around it — so the names read as the substance of the line and the
+// underline on hover proves they are links.
+//
+// `inherit` for size and leading rather than restating them: the names are the
+// sentence, and a link that sets its own type would break the line's rhythm the
+// moment `.leads` changed.
+.leadLink {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+// ReferModal's `.privacyNote`: 12px secondary, left-aligned with the blocks above
+// it rather than centred with the title, because it is about the field it sits
+// under, not about the card.
+.note {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

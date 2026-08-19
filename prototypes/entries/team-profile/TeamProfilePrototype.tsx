@@ -62,6 +62,8 @@ import {
   TEAM_FOLLOWER_COUNT,
   MOCK_TEAM_DEMO_DAY,
   MOCK_TEAM_ROLES,
+  MOCK_TEAM_FACTS,
+  type TeamStatus,
 } from './mocks';
 
 const team = MOCK_TEAM as unknown as ITeam;
@@ -93,10 +95,17 @@ export default function TeamProfilePrototype() {
   // card's top-right corner: public gets the Follow pill, team gets the
   // follower avatar stack + count (opens the full-list modal).
   const [view, setView] = useState<'public' | 'team'>('team');
+  // Demo-only: with one mock team, flipping status is the only way to see the
+  // inactive treatment at all. It lives in the demo bar with the view switch,
+  // outside the page card — a prototype control, not something on the profile.
+  const [status, setStatus] = useState<TeamStatus>('active');
   useEffect(() => setMounted(true), []);
-  useEffect(() => () => {
-    if (followToastTimer.current) clearTimeout(followToastTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (followToastTimer.current) clearTimeout(followToastTimer.current);
+    },
+    [],
+  );
 
   const handleFollowToggle = () => {
     setFollowing((prev) => {
@@ -198,9 +207,7 @@ export default function TeamProfilePrototype() {
    */
   const [archiveStory, setArchiveStory] = useState<FeedDetail | null>(null);
 
-  const displayNews = [...MOCK_NEWS].sort(
-    (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
-  );
+  const displayNews = [...MOCK_NEWS].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
 
   // Rail previews a few; "View all" opens the full feed in a modal.
   const previewNews = displayNews.slice(0, NEWS_PREVIEW_COUNT);
@@ -256,230 +263,253 @@ export default function TeamProfilePrototype() {
   return (
     <div className={local.page}>
       <div className={local.demoBar}>
-        <span className={local.demoLabel}>View</span>
-        <div className={local.demoSwitch}>
-          <button
-            type="button"
-            className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('team')}
-          >
-            Team
-          </button>
-          <button
-            type="button"
-            className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
-            onClick={() => setView('public')}
-          >
-            Public
-          </button>
+        <div className={local.demoGroup}>
+          <span className={local.demoLabel}>View</span>
+          <div className={local.demoSwitch}>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${view === 'team' ? local.demoBtnActive : ''}`}
+              onClick={() => setView('team')}
+            >
+              Team
+            </button>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${view === 'public' ? local.demoBtnActive : ''}`}
+              onClick={() => setView('public')}
+            >
+              Public
+            </button>
+          </div>
         </div>
 
+        <div className={local.demoGroup}>
+          <span className={local.demoLabel}>Status</span>
+          <div className={local.demoSwitch}>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${status === 'active' ? local.demoBtnActive : ''}`}
+              onClick={() => setStatus('active')}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              className={`${local.demoBtn} ${status === 'inactive' ? local.demoBtnActive : ''}`}
+              onClick={() => setStatus('inactive')}
+            >
+              Inactive
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className={local.layout}>
         <div className={`${shell.teamDetail} ${local.mainCol}`}>
-        <BackButton to="/prototypes/teams" />
-        <div className={shell.teamDetail__container}>
-        {/* Details — the follow block sits before the About section. */}
-        <div className={shell.teamDetail__Container__details}>
-          {/* No `demoDayParticipation`: the Demo Day emblem beside the team name
+          <BackButton to="/prototypes/teams" />
+          <div className={shell.teamDetail__container}>
+            {/* Details — the follow block sits before the About section. */}
+            <div className={shell.teamDetail__Container__details}>
+              {/* No `demoDayParticipation`: the Demo Day emblem beside the team name
               is gone. The participation itself still reads on the page — as a
               tile in Contributions, where it sits among the team's other events
               instead of qualifying the team's name. The placement variants stay
               on TeamDetailsView for the demoday-tag-placements prototype, which
               exists to compare them. */}
-          <TeamDetailsView
-            team={team}
-            headerAction={
-              view === 'public' ? (
-                <div className={`${local.followHeader} ${local.followClusterMobile}`}>
-                  <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
-                  {/* Reserve the caption's height once following so nothing below jumps. */}
-                  <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
-                    Get updates &amp; announcements
-                  </p>
-                </div>
-              ) : (
-                <div className={local.teamHeaderCluster}>
-                  {/* Admin actions row (Edit + Delete): pinned top-right, level with the
+              <TeamDetailsView
+                team={team}
+                facts={MOCK_TEAM_FACTS}
+                status={status}
+                headerAction={
+                  view === 'public' ? (
+                    <div className={`${local.followHeader} ${local.followClusterMobile}`}>
+                      <FollowPill following={following} onToggle={handleFollowToggle} name={team.name ?? 'this team'} />
+                      {/* Reserve the caption's height once following so nothing below jumps. */}
+                      <p className={`${local.followCaption} ${following ? local.followCaptionHidden : ''}`}>
+                        Get updates &amp; announcements
+                      </p>
+                    </div>
+                  ) : (
+                    <div className={local.teamHeaderCluster}>
+                      {/* Admin actions row (Edit + Delete): pinned top-right, level with the
                       team name, on every viewport — on mobile this escapes the
                       full-width wrap below via absolute positioning so it doesn't
                       end up stranded under the logo/tags. TeamFollowBlock (the
                       follower stack) keeps wrapping below on mobile as before. */}
-                  <div className={local.adminActionsCorner}>
-                    <TeamAdminActions teamName={team.name ?? 'this team'} />
-                  </div>
-                  <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
-                </div>
-              )
-            }
-          />
-        </div>
+                      <div className={local.adminActionsCorner}>
+                        <TeamAdminActions teamName={team.name ?? 'this team'} />
+                      </div>
+                      <TeamFollowBlock count={followCount} followers={MOCK_FOLLOWERS} />
+                    </div>
+                  )
+                }
+              />
+            </div>
 
-        {/* Fund details (team.isFund) */}
-        {team?.isFund && <TeamInvestorView team={team} />}
+            {/* Fund details (team.isFund) */}
+            {team?.isFund && <TeamInvestorView team={team} />}
 
-        {/* Contact */}
-        <div className={shell.teamDetail__container__contact}>
-          <TeamContactView team={team} />
-        </div>
+            {/* Contact */}
+            <div className={shell.teamDetail__container__contact}>
+              <TeamContactView team={team} />
+            </div>
 
-        {/* Membership source + community affiliations — import-safe production view. */}
-        <DetailsSection>
-          <DetailsSectionHeader title="Membership Source" />
-          <DetailsSectionGreyContentContainer>
-            {team?.membershipSources?.length ? (
-              <TagsList tags={team.membershipSources} tagsToShow={5} />
-            ) : (
-              <NoDataBlock>No membership source added.</NoDataBlock>
-            )}
-          </DetailsSectionGreyContentContainer>
-        </DetailsSection>
+            {/* Membership source + community affiliations — import-safe production view. */}
+            <DetailsSection>
+              <DetailsSectionHeader title="Membership Source" />
+              <DetailsSectionGreyContentContainer>
+                {team?.membershipSources?.length ? (
+                  <TagsList tags={team.membershipSources} tagsToShow={5} />
+                ) : (
+                  <NoDataBlock>No membership source added.</NoDataBlock>
+                )}
+              </DetailsSectionGreyContentContainer>
+            </DetailsSection>
 
-        <DetailsSection>
-          <DetailsSectionHeader title="Community Affiliations" />
-          <DetailsSectionGreyContentContainer>
-            {team?.communityAffiliations?.length ? (
-              <TagsList tags={team.communityAffiliations} tagsToShow={5} />
-            ) : (
-              <NoDataBlock>No community affiliations.</NoDataBlock>
-            )}
-          </DetailsSectionGreyContentContainer>
-        </DetailsSection>
+            <DetailsSection>
+              <DetailsSectionHeader title="Community Affiliations" />
+              <DetailsSectionGreyContentContainer>
+                {team?.communityAffiliations?.length ? (
+                  <TagsList tags={team.communityAffiliations} tagsToShow={5} />
+                ) : (
+                  <NoDataBlock>No community affiliations.</NoDataBlock>
+                )}
+              </DetailsSectionGreyContentContainer>
+            </DetailsSection>
 
-        {/* Members */}
-        <div className={shell.teamDetail__container__member}>
-          <TeamMembersView team={team} members={MOCK_MEMBERS} />
-        </div>
+            {/* Members */}
+            <div className={shell.teamDetail__container__member}>
+              <TeamMembersView team={team} members={MOCK_MEMBERS} />
+            </div>
 
-        {/* Open roles — directly under Members because they're the same axis in
+            {/* Open roles — directly under Members because they're the same axis in
             two tenses: who's here, and who the team is looking for. Not in the
             news rail (that's a cross-surface stream, and 340px can't hold a role
             row); not near the top, because roles are perishable and most teams
             have none. Renders nothing when there are none. */}
-        <TeamOpenRolesView group={MOCK_TEAM_ROLES} />
+            <TeamOpenRolesView group={MOCK_TEAM_ROLES} />
 
-        {/* Focus areas — import-safe production view. */}
-        <DetailsSection>
-          <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
-        </DetailsSection>
+            {/* Focus areas — import-safe production view. */}
+            <DetailsSection>
+              <TeamFocusAreasView team={team} userInfo={null} focusAreas={focusAreas} toggleIsEditMode={() => {}} />
+            </DetailsSection>
 
-          {/* Contributions — event-primary tiles; Demo Day featured when present.
+            {/* Contributions — event-primary tiles; Demo Day featured when present.
               Muted role tags, settled: the vibrant/muted switch was scaffolding
               for choosing between them, and it dies with the choice. */}
-          <TeamContributionsView contributions={MOCK_CONTRIBUTIONS} demoDay={MOCK_TEAM_DEMO_DAY} variant="muted" />
+            <TeamContributionsView contributions={MOCK_CONTRIBUTIONS} demoDay={MOCK_TEAM_DEMO_DAY} variant="muted" />
 
-          {/* Projects */}
-          <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
-        </div>
-      </div>
-
-      {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
-      <aside className={local.rail}>
-        {/* Reserve the Back button's height so the news panel lines up with the
-            team card top (the main column has a Back button above it). */}
-        <div className={local.railBackSpacer} aria-hidden="true">
-          <BackButton to="/prototypes/teams" />
-        </div>
-        <div className={local.newsPanel}>
-          <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
-          <div className={local.newsList}>
-            {previewNews.map((item) => (
-              <NewsCardView
-                key={item.uid}
-                item={item}
-                flat
-                hideTeam
-                views={viewsFor(item.uid)}
-                likes={likesFor(item.uid)}
-                liked={likedNews.has(item.uid)}
-                comments={commentsFor(item.uid)}
-                onToggleLike={() => toggleNewsLike(item.uid)}
-                // Tap, "Show more" and the comment count are three ways of
-                // asking for the same thing: this story, in full.
-                onOpenComments={() => openDetail(item)}
-                onShowMore={() => openDetail(item)}
-              />
-            ))}
+            {/* Projects */}
+            <TeamProjectsView team={team} projects={MOCK_PROJECTS} />
           </div>
-          {/* The rail's two exits, paired on one row. They're deliberately not
+        </div>
+
+        {/* News rail — team-related news (mocked), reusing the homepage NewsCard. */}
+        <aside className={local.rail}>
+          {/* Reserve the Back button's height so the news panel lines up with the
+            team card top (the main column has a Back button above it). */}
+          <div className={local.railBackSpacer} aria-hidden="true">
+            <BackButton to="/prototypes/teams" />
+          </div>
+          <div className={local.newsPanel}>
+            <DetailsSectionHeader title={`${team.name} News (${displayNews.length})`} />
+            <div className={local.newsList}>
+              {previewNews.map((item) => (
+                <NewsCardView
+                  key={item.uid}
+                  item={item}
+                  flat
+                  hideTeam
+                  views={viewsFor(item.uid)}
+                  likes={likesFor(item.uid)}
+                  liked={likedNews.has(item.uid)}
+                  comments={commentsFor(item.uid)}
+                  onToggleLike={() => toggleNewsLike(item.uid)}
+                  // Tap, "Show more" and the comment count are three ways of
+                  // asking for the same thing: this story, in full.
+                  onOpenComments={() => openDetail(item)}
+                  onShowMore={() => openDetail(item)}
+                />
+              ))}
+            </div>
+            {/* The rail's two exits, paired on one row. They're deliberately not
               interchangeable: "View all news" stays inside this team (the modal
               is its own archive), while "All network updates" leaves for the home feed
               (which carries forum/events/Demo Day too — not just team news; "all"
               is the word marking that widening, and the ↗ carries "elsewhere")
               — hence the ↗ and the quieter neutral text against the blue. When
               there's no archive to open, the remaining button takes the row. */}
-          <div className={local.newsFooter}>
-            {hasMore && (
-              <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
-                View all news ({displayNews.length})
-              </button>
-            )}
-            <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
-              All network updates
-              <ArrowUpRightIcon aria-hidden="true" />
-            </Link>
+            <div className={local.newsFooter}>
+              {hasMore && (
+                <button type="button" className={local.viewAll} onClick={() => openNewsFeed()}>
+                  View all news ({displayNews.length})
+                </button>
+              )}
+              <Link href="/prototypes/newsfeed" prefetch={false} className={local.viewFeed}>
+                All network updates
+                <ArrowUpRightIcon aria-hidden="true" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* The team's full archive. Mobile gets a full-screen page
+        {/* The team's full archive. Mobile gets a full-screen page
           (Notifications-style), desktop a modal with its own scroll.
           Either way it DRILLS rather than stacks: click a story and the same box
           swaps to it with Back on the left, Close still on the right. A second
           overlay on top would mean two close buttons and an ambiguous Escape —
           the pattern Mixpanel's Event History and Threads' post activity both
           avoid the same way. */}
-      {newsModalOpen && isMobile ? (
-        <NewsFullPageView
-          title={`${team.name} News`}
-          count={displayNews.length}
-          items={filteredNews}
-          focusUid={newsFocusUid}
-          query={newsQuery}
-          onQueryChange={setNewsQuery}
-          onClose={closeNewsModal}
-          viewsFor={viewsFor}
-          likesFor={likesFor}
-          commentsFor={commentsFor}
-          likedNews={likedNews}
-          onToggleLike={toggleNewsLike}
-          onOpenStory={openArchiveStory}
-          story={archiveStory}
-          onBack={backToArchiveList}
-          storyComments={archiveStory ? threadFor(archiveStory.id) : []}
-          onAddStoryComment={(text, parentUid) => archiveStory && addComment(archiveStory.id, text, parentUid)}
-          isCommentLiked={(uid) => likedComments.has(uid)}
-          onToggleCommentLike={toggleCommentLike}
-        />
-      ) : (
-        newsModalOpen && (
-          // The same box the teams grid's "N new posts" chip opens, and the job
-          // board's. This used to be its own modal written out here, which put
-          // two different-looking answers behind two doors onto one thing: the
-          // team's news. The extras the archive needs — a search field over a
-          // whole history, the like/comment state it shares with the rail —
-          // ride in as props rather than as a second component.
-          <TeamNewsModal
-            teamName={team.name ?? 'This team'}
-            teamLogo={teamLogo}
-            items={filteredNews}
+        {newsModalOpen && isMobile ? (
+          <NewsFullPageView
+            title={`${team.name} News`}
             count={displayNews.length}
-            onClose={closeNewsModal}
+            items={filteredNews}
+            focusUid={newsFocusUid}
             query={newsQuery}
             onQueryChange={setNewsQuery}
+            onClose={closeNewsModal}
             viewsFor={viewsFor}
             likesFor={likesFor}
             commentsFor={commentsFor}
-            isLiked={(uid) => likedNews.has(uid)}
+            likedNews={likedNews}
             onToggleLike={toggleNewsLike}
-            threadFor={threadFor}
-            onAddComment={addComment}
+            onOpenStory={openArchiveStory}
+            story={archiveStory}
+            onBack={backToArchiveList}
+            storyComments={archiveStory ? threadFor(archiveStory.id) : []}
+            onAddStoryComment={(text, parentUid) => archiveStory && addComment(archiveStory.id, text, parentUid)}
             isCommentLiked={(uid) => likedComments.has(uid)}
             onToggleCommentLike={toggleCommentLike}
           />
-        )
-      )}
+        ) : (
+          newsModalOpen && (
+            // The same box the teams grid's "N new posts" chip opens, and the job
+            // board's. This used to be its own modal written out here, which put
+            // two different-looking answers behind two doors onto one thing: the
+            // team's news. The extras the archive needs — a search field over a
+            // whole history, the like/comment state it shares with the rail —
+            // ride in as props rather than as a second component.
+            <TeamNewsModal
+              teamName={team.name ?? 'This team'}
+              teamLogo={teamLogo}
+              items={filteredNews}
+              count={displayNews.length}
+              onClose={closeNewsModal}
+              query={newsQuery}
+              onQueryChange={setNewsQuery}
+              viewsFor={viewsFor}
+              likesFor={likesFor}
+              commentsFor={commentsFor}
+              isLiked={(uid) => likedNews.has(uid)}
+              onToggleLike={toggleNewsLike}
+              threadFor={threadFor}
+              onAddComment={addComment}
+              isCommentLiked={(uid) => likedComments.has(uid)}
+              onToggleCommentLike={toggleCommentLike}
+            />
+          )
+        )}
       </div>
 
       {/* One story, in full — the feed's own modal. Rendered outside the news
@@ -506,4 +536,3 @@ export default function TeamProfilePrototype() {
     </div>
   );
 }
-

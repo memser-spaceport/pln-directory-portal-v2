@@ -1,91 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from '@/components/core/ToastContainer';
-import Cookies from 'js-cookie';
-import { getAnalyticsUserInfo, triggerLoader } from '@/utils/common.utils';
-import { decodeToken } from '@/utils/auth.utils';
-import { useRouter } from 'next/navigation';
-import { updateUserDirectoryEmail } from '@/services/members.service';
-import { useAuthAnalytics } from '@/analytics/auth.analytics';
+
+import { useUpdateEmail } from '@/services/members/hooks/useUpdateEmail';
 import { useCurrentUserStore } from '@/services/auth/store';
-import { authEvents } from '@/components/core/login/utils';
+
 function SelfEmailUpdate(props: any) {
   const email = props.email;
   const uid = props.uid;
   const [currentEmail, setCurrentEmail] = useState(email);
-  const router = useRouter();
   const { currentUser: userInfo } = useCurrentUserStore();
-  const analytics = useAuthAnalytics();
+  // Errors surface as toasts here: this row is a bare label and value, with nowhere to put one.
+  const { requestEmailChange } = useUpdateEmail({ uid, email, userInfo });
 
   const onEmailEdit = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
 
-    analytics.onUpdateEmailClicked(getAnalyticsUserInfo(userInfo));
-    const authToken = Cookies.get('authToken');
-    if (!authToken) {
-      return;
-    }
-
-    authEvents.emit('auth:link-account', 'updateEmail');
+    requestEmailChange();
   };
 
   useEffect(() => {
     setCurrentEmail(email);
   }, [email]);
-
-  useEffect(() => {
-    async function updateUserEmail(data: { newEmail: string }) {
-      try {
-        const { newEmail } = data;
-        const oldAccessToken = Cookies.get('authToken');
-        if (!oldAccessToken) {
-          return;
-        }
-        const header = {
-          Authorization: `Bearer ${JSON.parse(oldAccessToken)}`,
-          'Content-Type': 'application/json',
-        };
-        if (newEmail === email) {
-          analytics.onUpdateSameEmailProvided({ newEmail, oldEmail: currentEmail });
-          triggerLoader(false);
-          toast.error('New and current email cannot be same');
-          return;
-        }
-        const result = await updateUserDirectoryEmail({ newEmail }, uid, header);
-        triggerLoader(false);
-        const { refreshToken, accessToken, userInfo: newUserInfo } = result;
-        if (refreshToken && accessToken) {
-          const accessTokenExpiry = decodeToken(accessToken);
-          const refreshTokenExpiry = decodeToken(refreshToken);
-          Cookies.set('authToken', JSON.stringify(accessToken), {
-            expires: new Date(accessTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('refreshToken', JSON.stringify(refreshToken), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          Cookies.set('userInfo', JSON.stringify(newUserInfo), {
-            expires: new Date(refreshTokenExpiry.exp * 1000),
-            domain: process.env.COOKIE_DOMAIN || '',
-          });
-          document.dispatchEvent(new CustomEvent('app-loader-status'));
-          analytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail });
-          toast.success('Email Updated Successfully');
-          window.location.reload();
-        }
-      } catch {
-        analytics.onUpdateEmailFailure({ newEmail: data.newEmail, oldEmail: currentEmail });
-        document.dispatchEvent(new CustomEvent('app-loader-status'));
-        toast.error('Email Update Failed');
-      }
-    }
-
-    const unsubscribe = authEvents.on('auth:update-email', updateUserEmail);
-    return unsubscribe;
-  }, []);
 
   return (
     <>

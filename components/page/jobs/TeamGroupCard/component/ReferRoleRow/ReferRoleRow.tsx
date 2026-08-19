@@ -53,7 +53,13 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     Boolean,
   );
 
-  const linkProps: HTMLProps<HTMLAnchorElement> = applyUrl
+  // Not every posting has a destination. Without one there is nothing to open, so the
+  // row drops both affordances rather than rendering an <a> with no href: `.titleLink`
+  // and `.applyArrow` both carry hover states and a pointer cursor, which would offer a
+  // click that silently does nothing.
+  const hasApplyUrl = Boolean(applyUrl);
+
+  const linkProps: HTMLProps<HTMLAnchorElement> = hasApplyUrl
     ? { href: `${applyUrl}?${jobApplyQueryParams(source)}`, target: '_blank', rel: 'noopener noreferrer', onClick }
     : {};
 
@@ -82,9 +88,13 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     <div className={`${s.root} ${s.row}`}>
       <div className={s.body}>
         <div className={s.titleRow}>
-          <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
-            {roleTitle}
-          </a>
+          {hasApplyUrl ? (
+            <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
+              {roleTitle}
+            </a>
+          ) : (
+            <span className={s.title}>{roleTitle}</span>
+          )}
           {/* Mobile-only: "New" aligned to the top-right, in line with the role name. */}
           {showNew && <span className={`${s.newBadge} ${s.newBadgeMobile}`}>● New</span>}
         </div>
@@ -107,9 +117,11 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
 
           <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
-          <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
-            <ArrowIcon />
-          </a>
+          {hasApplyUrl && (
+            <a className={s.applyArrow} aria-label={`Apply to ${roleTitle}`} {...linkProps}>
+              <ArrowIcon />
+            </a>
+          )}
         </div>
       </div>
 

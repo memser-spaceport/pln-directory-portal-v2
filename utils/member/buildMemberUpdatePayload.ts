@@ -30,6 +30,7 @@ export function buildMemberUpdatePayload(
     linkedinHandler: memberInfo.linkedinHandler,
     discordHandler: memberInfo.discordHandler,
     twitterHandler: memberInfo.twitterHandler,
+    blueskyHandler: memberInfo.blueskyHandler,
     githubHandler: memberInfo.githubHandler,
     telegramHandler: memberInfo.telegramHandler,
     officeHours: memberInfo.officeHours,

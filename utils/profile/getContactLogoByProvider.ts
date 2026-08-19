@@ -24,6 +24,9 @@ export function getContactLogoByProvider(provider: string): string {
     case 'blog': {
       return '/icons/contact/blog-contact-logo.svg';
     }
+    case 'bluesky': {
+      return '/icons/contact/Bluesky_logo.svg';
+    }
     default: {
       return '/icons/contact/website-contact-logo-v2.svg';
     }

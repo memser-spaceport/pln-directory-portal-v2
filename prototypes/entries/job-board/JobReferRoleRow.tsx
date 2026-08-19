@@ -12,7 +12,7 @@ import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { ReferMenu } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu';
 import { ArrowIcon, ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
-import { JOB_QUERY_PARAMS } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 // Reuse the production ReferRoleRow styling 1:1, with local extras for the button.
 import s from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
@@ -75,7 +75,17 @@ interface JobReferRoleRowProps {
  * link (the team profile), an arrow would be the same door drawn twice.
  */
 export function JobReferRoleRow(props: JobReferRoleRowProps) {
-  const { role, teamId, teamName, onClick, canRefer = true, onReferBlocked, onApply, applied = false } = props;
+  const {
+    role,
+    teamId,
+    teamName,
+    source = 'job-board',
+    onClick,
+    canRefer = true,
+    onReferBlocked,
+    onApply,
+    applied = false,
+  } = props;
   const [referOpen, setReferOpen] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
@@ -90,7 +100,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
   );
 
   const linkProps: HTMLProps<HTMLAnchorElement> = applyUrl
-    ? { href: `${applyUrl}?${JOB_QUERY_PARAMS}`, target: '_blank', rel: 'noopener noreferrer', onClick }
+    ? { href: `${applyUrl}?${jobApplyQueryParams(source)}`, target: '_blank', rel: 'noopener noreferrer', onClick }
     : {};
 
   return (

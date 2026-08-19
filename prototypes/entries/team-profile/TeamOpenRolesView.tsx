@@ -56,17 +56,7 @@ export function TeamOpenRolesView({ group }: TeamOpenRolesViewProps) {
       <DetailsSectionHeader title={`Open roles (${totalRoles})`} />
       <div className={l.list}>
         {visible.map((role) => (
-          <JobReferRoleRow
-            key={role.uid}
-            role={role}
-            teamId={team.uid}
-            teamName={team.name}
-            source="team-profile"
-            showMatch={false}
-            // Applying is the point of the row once you've already chosen the
-            // team, so it gets the primary button and Refer steps back.
-            primaryApply
-          />
+          <JobReferRoleRow key={role.uid} role={role} teamId={team.uid} teamName={team.name} source="team-profile" />
         ))}
       </div>
       {roles.length > ROLES_SHOWN && (

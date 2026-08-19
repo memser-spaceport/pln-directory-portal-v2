@@ -1,3 +1,5 @@
+import { IUserInfo } from '@/types/shared.types';
+
 /** Mocked member for the Settings › Contact details prototype. No API, no stores. */
 export const MOCK_MEMBER = {
   email: 'a@plrs.xyz',
@@ -13,8 +15,13 @@ export const MOCK_MEMBER = {
 export const LINKED_ACCOUNTS = ['google'];
 
 /**
- * Stand-in for the backend's "this address is already linked to another LabOS
- * account" rejection, so the failure copy can be reviewed without a server.
- * Production surfaces this today as a bare `toast.error('Email Update Failed')`.
+ * `EmailIdentityRow` is the shipped component, so it takes a real member identity. Analytics is
+ * all it reads this for; the uid it would PATCH is this one, which no account matches.
  */
-export const ALREADY_TAKEN_EMAIL = 'taken@gmail.com';
+export const MOCK_MEMBER_UID = 'mock-member-uid';
+
+export const MOCK_USER_INFO = {
+  uid: MOCK_MEMBER_UID,
+  email: MOCK_MEMBER.email,
+  name: 'John Doe',
+} as IUserInfo;

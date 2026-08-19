@@ -13,7 +13,6 @@ import { SettingsMenuMock } from './SettingsMenuMock';
 import { EmailAndAccountsTab } from './tabs/EmailAndAccountsTab';
 import { NotificationPreferencesTab } from './tabs/NotificationPreferencesTab';
 import { JobPreferencesTab } from './tabs/JobPreferencesTab';
-import { MOCK_MEMBER } from './mocks';
 
 /**
  * Titles match production's `SettingsBackButton title` prop per route, which is
@@ -69,7 +68,6 @@ export default function SettingsContactDetailsPrototype() {
     return () => mq.removeEventListener('change', sync);
   }, []);
 
-  const [email, setEmail] = useState(MOCK_MEMBER.email);
   // `null` is the mobile menu page. Desktop always has a tab open.
   const [activeItem, setActiveItem] = useState<string | null>(null);
 
@@ -98,7 +96,7 @@ export default function SettingsContactDetailsPrototype() {
       case 'job preferences':
         return <JobPreferencesTab />;
       default:
-        return <EmailAndAccountsTab email={email} onEmailChanged={setEmail} />;
+        return <EmailAndAccountsTab />;
     }
   };
 

@@ -482,10 +482,22 @@ export const updateUserDirectoryEmail = async (payload: any, uid: string, header
   });
 
   if (!result.ok) {
+    // Rejections carry a reason in the body ("email already in use", and so on). Read it
+    // defensively — not every failure answers with JSON — so callers can name the cause
+    // instead of showing a bare status.
+    let errorData: any;
+
+    try {
+      errorData = await result.json();
+    } catch {
+      errorData = undefined;
+    }
+
     return {
       isError: true,
       status: result.status,
-      message: result.statusText,
+      message: errorData?.message || result.statusText,
+      errorData,
     };
   }
 

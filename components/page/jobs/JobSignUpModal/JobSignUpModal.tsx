@@ -127,13 +127,18 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Reset on every open: the modal is mounted for the life of the board and can
-  // be opened against a different role each time.
+  // be opened against a different role each time. The server error clears on
+  // close (below) rather than here — setState in an effect body cascades.
   useEffect(() => {
     if (open) {
       reset(EMPTY_FORM);
-      setServerError(null);
     }
   }, [open, reset]);
+
+  const handleClose = () => {
+    setServerError(null);
+    onClose();
+  };
 
   // The same teams source production's sign-up wizard uses, minus projects —
   // the field asks for a current company, not a contribution.
@@ -169,13 +174,13 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   return (
     <Modal
       isOpen={open}
-      onClose={onClose}
+      onClose={handleClose}
       overlayClassname={s.overlay}
       closeOnBackdropClick={false}
       closeOnEscape
       className={s.modal}
     >
-      <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
+      <button type="button" className={s.closeButton} onClick={handleClose} aria-label="Close">
         <CloseIcon />
       </button>
 
@@ -245,7 +250,7 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
             </div>
 
             <div className={s.footer}>
-              <Button type="button" size="m" variant="secondary" style="border" onClick={onClose}>
+              <Button type="button" size="m" variant="secondary" style="border" onClick={handleClose}>
                 Cancel
               </Button>
               {/* Disabled only while submitting, never on `!isValid` — with

@@ -1,0 +1,203 @@
+'use client';
+
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+
+import { toast } from '@/components/core/ToastContainer';
+import { useSignupV2 } from '@/services/signup/hooks/useSignup';
+import { getMember } from '@/services/members.service';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import type { IUserInfo } from '@/types/shared.types';
+
+import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
+import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
+
+/* Most visitors never press Apply, and logged-out visitors can only ever reach
+   the sign-up form — so the stack (drawer chrome, RHF forms, member sections)
+   loads on demand. Conditional render below is what actually defers the fetch:
+   an always-mounted dynamic component would load on page view anyway. */
+const JobSignUpModal = dynamic(
+  () => import('@/components/page/jobs/JobSignUpModal/JobSignUpModal').then((m) => m.JobSignUpModal),
+  { ssr: false },
+);
+const JobProfileDrawer = dynamic(
+  () => import('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer').then((m) => m.JobProfileDrawer),
+  { ssr: false },
+);
+const JobApplyModal = dynamic(
+  () => import('@/components/page/jobs/JobApplyModal/JobApplyModal').then((m) => m.JobApplyModal),
+  { ssr: false },
+);
+
+interface JobApplyFlowControllerProps {
+  flow: ReturnType<typeof useJobApplyFlow>;
+  viewer: JobBoardViewerResult;
+  isLoggedIn: boolean;
+  userInfo: IUserInfo | undefined;
+  source: JobSurface;
+}
+
+/**
+ * The modal/drawer stack behind in-app Apply, wired to `useJobApplyFlow`.
+ *
+ * Hosted OUTSIDE the board's list branch (the TeamNewsModal precedent): a
+ * filter change that empties the list mid-application must not yank an open
+ * modal. The board is host #1; the team profile becomes host #2 in the
+ * feature's phase 2 by rendering this same controller beside its own list.
+ */
+export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
+  const { flow, viewer, isLoggedIn, userInfo, source } = props;
+  const { state } = flow;
+
+  const router = useRouter();
+  const analytics = useJobsAnalytics();
+  const signUpMutation = useSignupV2();
+
+  const { currentUser } = useCurrentUserStore();
+  const isAdmin = isAdminUser(currentUser);
+  const isOwner = !!currentUser && currentUser.uid === viewer.memberUid;
+
+  // The read-back's member — the same record (and cache entry) the drawer's
+  // sections edit, so "Edit profile" can never come back to a stale quote.
+  const { data: member } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, viewer.memberUid, isLoggedIn, currentUser?.uid],
+    queryFn: () =>
+      getMember(
+        viewer.memberUid as string,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        isLoggedIn,
+        currentUser,
+        !isAdmin && !isOwner,
+        true,
+      ),
+    enabled: state.step === 'apply' && !!viewer.memberUid,
+    select: (data) => data?.data?.formattedData,
+  });
+
+  const pushLogin = () => {
+    router.push(`${window.location.pathname}${window.location.search}#login`);
+  };
+
+  /**
+   * Filing the participants-request IS the sign-up; Privy authentication
+   * follows. Ordering matters: await the POST, then close, then push `#login` —
+   * stash-free, so a failed POST leaves nothing behind to replay later.
+   */
+  const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
+    const target = state.step === 'sign-up' ? state.target : null;
+    const analyticsBase = {
+      job_id: target?.role.uid ?? null,
+      team_id: target?.teamId ?? null,
+      viewer_state: viewer.viewer,
+      source,
+    };
+
+    const result = await signUpMutation.mutateAsync({
+      uniqueIdentifier: details.email,
+      role: details.role,
+      isTeamNew: false,
+      team: details.teamUid ? { uid: details.teamUid } : {},
+      project: {},
+      newData: {
+        name: details.name,
+        email: details.email,
+        ...(details.linkedin ? { linkedinHandler: details.linkedin } : {}),
+      },
+      signUpSource: 'job-board',
+      signUpMedium: source,
+      // The pending role uid rides the request metadata — the only server-side
+      // record of the interrupted intent, and what a future "you're approved,
+      // finish applying" email deep link would be built on. Greppable format.
+      ...(target ? { signUpCampaign: `job-role:${target.role.uid}` } : {}),
+    });
+
+    if (result.success) {
+      analytics.onJobApplySignUpSubmitted({ ...analyticsBase, trigger: target ? 'row' : 'banner' });
+      // The existing Privy prefill transport (localStorage, consumed by
+      // PrivyModals' handleInitLogin) — deliberately NOT a query param, which
+      // would put the email into history, logs, and PostHog's $current_url.
+      try {
+        window.localStorage.setItem('prefillEmail', details.email);
+      } catch {
+        /* storage unavailable — Privy just opens without the prefill */
+      }
+      flow.closeSignUp();
+      pushLogin();
+      return { success: true };
+    }
+
+    analytics.onJobApplySignUpFailed({
+      ...analyticsBase,
+      failure_category: /exist|already|pending/i.test(result.message ?? '') ? 'duplicate' : 'request-failed',
+    });
+    return { success: false, message: result.message };
+  };
+
+  /** The modal's "Already have an account? Sign in" escape — ordinary Privy. */
+  const handleModalSignIn = () => {
+    flow.closeSignUp();
+    pushLogin();
+  };
+
+  const handleDrawerFooter = ({ profileComplete }: { profileComplete: boolean }) => {
+    const willResume =
+      state.step === 'drawer' && !!state.pendingApply && viewer.verdict === 'approved' && profileComplete;
+    flow.onDrawerSaved({ profileComplete, canApply: viewer.verdict === 'approved' });
+    if (!willResume) {
+      // Sections already committed their own saves — this press just ends the
+      // visit, and the toast is the receipt.
+      toast.success('Profile saved.');
+    }
+  };
+
+  return (
+    <>
+      {state.step === 'sign-up' && (
+        <JobSignUpModal
+          open
+          onClose={flow.closeSignUp}
+          role={state.target?.role ?? null}
+          teamName={state.target?.teamName ?? ''}
+          onSignUp={handleSignUp}
+          onSignIn={handleModalSignIn}
+        />
+      )}
+
+      {state.step === 'drawer' && viewer.memberUid && (
+        <JobProfileDrawer
+          open
+          onClose={flow.closeDrawer}
+          memberUid={viewer.memberUid}
+          isLoggedIn={isLoggedIn}
+          pendingRoleTitle={state.pendingApply?.role.roleTitle ?? null}
+          pendingApproval={viewer.viewer === 'pending-approval'}
+          needsIdentityVerification={userInfo?.rbac?.status === 'PENDING'}
+          resumeIntoApply={!!state.pendingApply}
+          onFooterAction={handleDrawerFooter}
+        />
+      )}
+
+      {state.step === 'apply' && (
+        <JobApplyModal
+          open
+          onClose={flow.closeApply}
+          role={state.target.role}
+          teamId={state.target.teamId}
+          teamName={state.target.teamName}
+          member={member ?? null}
+          memberUid={viewer.memberUid}
+          viewerState={viewer.viewer}
+          source={source}
+          onEditProfile={flow.onEditProfileFromApply}
+          initialCoverLetter={state.coverLetterDraft}
+          onSubmitted={flow.onSubmitted}
+        />
+      )}
+    </>
+  );
+}

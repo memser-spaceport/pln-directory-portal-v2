@@ -140,11 +140,14 @@ export function JobApplyModal(props: JobApplyModalProps) {
   const inFlightRoleUid = useRef<string | null>(null);
 
   const experienceQuery = useMemberExperience(memberUid ?? '');
-  const experiences: FormattedMemberExperience[] = Array.isArray(experienceQuery.data) ? experienceQuery.data : [];
   const primary = useMemo(() => {
+    const experiences: FormattedMemberExperience[] = Array.isArray(experienceQuery.data) ? experienceQuery.data : [];
     if (!experiences.length) return null;
-    return experiences.find((entry) => entry.isCurrent) ?? [...experiences].sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? ''))[0];
-  }, [experiences]);
+    return (
+      experiences.find((entry) => entry.isCurrent) ??
+      [...experiences].sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? ''))[0]
+    );
+  }, [experienceQuery.data]);
 
   const methods = useForm<ApplyFormData>({
     defaultValues: { coverLetter: '' },

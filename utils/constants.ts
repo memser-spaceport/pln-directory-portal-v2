@@ -2490,3 +2490,20 @@ export const AI_APPS_ANALYTICS = {
   DEPLOYMENT_LOGS_TAB_SWITCHED: 'ai_apps_deployment_logs_tab_switched',
   DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
 };
+
+export const MCP_ANALYTICS_EVENTS = {
+  SETTINGS_SECTION_VIEWED: 'mcp-settings-section-viewed',
+  SETUP_SNIPPET_COPIED: 'mcp-setup-snippet-copied',
+  CONNECT_PAGE_VIEWED: 'mcp-connect-page-viewed',
+  CONNECT_SIGN_IN_CLICKED: 'mcp-connect-sign-in-clicked',
+  CONNECT_APPROVED: 'mcp-connect-approved',
+  CONNECT_DENIED: 'mcp-connect-denied',
+  CONNECT_ERROR: 'mcp-connect-error',
+  AUTHORIZATION_REVOKED: 'mcp-authorization-revoked',
+  AUTHORIZATION_REVOKE_FAILED: 'mcp-authorization-revoke-failed',
+  WARM_PATH_FEEDBACK_OPENED: 'mcp-warm-path-feedback-opened',
+  WARM_PATH_FEEDBACK_SUBMITTED: 'mcp-warm-path-feedback-submitted',
+  WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
+  WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
+  WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
+};

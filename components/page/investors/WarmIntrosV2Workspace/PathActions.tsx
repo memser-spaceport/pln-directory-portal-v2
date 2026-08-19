@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import clsx from 'clsx';
+import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { CheckIcon } from '@/components/icons';
 import { useWarmPathV2Feedback } from '@/services/investors/hooks/useWarmPathV2Feedback';
@@ -54,6 +55,7 @@ export function PathActions({
   notes,
   canEdit = false,
 }: Props) {
+  const analytics = useMcpAnalytics();
   const { upsert, clearRefer } = useWarmPathV2Feedback({
     investorProfileUid,
     targetSet,
@@ -161,7 +163,10 @@ export function PathActions({
             size="xxs"
             underline
             disabled={busy}
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              analytics.onWarmPathFeedbackOpened({ warmPathUid, investorProfileUid, isEdit: hasNote });
+              setModalOpen(true);
+            }}
           >
             {hasNote ? 'Edit' : 'Give feedback'}
           </Button>
@@ -174,7 +179,10 @@ export function PathActions({
             size="xxs"
             underline
             disabled={busy}
-            onClick={() => setNoteModalOpen(true)}
+            onClick={() => {
+              analytics.onWarmPathNoteOpened({ warmPathUid, investorProfileUid, isEdit: hasOwnNote });
+              setNoteModalOpen(true);
+            }}
           >
             {hasOwnNote ? 'Edit note' : 'Add note'}
           </Button>
@@ -197,10 +205,17 @@ export function PathActions({
         context={context}
         initial={hasNote && myFeedback?.note ? { note: myFeedback.note } : undefined}
         onSubmit={(value) => {
-          upsert.mutate({
-            warmPathUid,
-            body: { connectorProfileUid, note: value.note },
-          });
+          upsert.mutate(
+            {
+              warmPathUid,
+              body: { connectorProfileUid, note: value.note },
+            },
+            {
+              onSuccess: () => {
+                analytics.onWarmPathFeedbackSubmitted({ warmPathUid, investorProfileUid, isEdit: hasNote });
+              },
+            },
+          );
           setModalOpen(false);
         }}
       />
@@ -211,19 +226,33 @@ export function PathActions({
         context={context}
         initial={hasOwnNote ? { note: ownNoteText } : undefined}
         onSubmit={(value) => {
-          upsertNote.mutate({
-            warmPathUid,
-            body: { connectorProfileUid, note: value.note },
-          });
+          upsertNote.mutate(
+            {
+              warmPathUid,
+              body: { connectorProfileUid, note: value.note },
+            },
+            {
+              onSuccess: () => {
+                analytics.onWarmPathNoteSubmitted({ warmPathUid, investorProfileUid, isEdit: hasOwnNote });
+              },
+            },
+          );
           setNoteModalOpen(false);
         }}
         onClear={
           hasOwnNote
             ? () => {
-                upsertNote.mutate({
-                  warmPathUid,
-                  body: { connectorProfileUid, note: null },
-                });
+                upsertNote.mutate(
+                  {
+                    warmPathUid,
+                    body: { connectorProfileUid, note: null },
+                  },
+                  {
+                    onSuccess: () => {
+                      analytics.onWarmPathNoteCleared({ warmPathUid, investorProfileUid });
+                    },
+                  },
+                );
                 setNoteModalOpen(false);
               }
             : undefined

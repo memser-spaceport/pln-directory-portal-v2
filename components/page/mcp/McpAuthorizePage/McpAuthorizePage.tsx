@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { useMcpAnalytics } from '@/analytics/mcp.analytics';
 import { Button } from '@/components/common/Button/Button';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useMcpAccess } from '@/services/rbac/hooks/useMcpAccess';
@@ -15,10 +16,12 @@ type View = 'loading' | 'invalid' | 'signedOut' | 'pending' | 'denied' | 'error'
 export function McpAuthorizePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const analytics = useMcpAnalytics();
   const { currentUser, isHydrated } = useCurrentUserStore();
   const { canConnect, isLoading: accessLoading } = useMcpAccess();
   const [isApproving, setIsApproving] = useState(false);
   const [viewOverride, setViewOverride] = useState<View | null>(null);
+  const trackedViewRef = useRef<string | null>(null);
 
   const clientId = searchParams.get('client_id') ?? '';
   const redirectUri = searchParams.get('redirect_uri') ?? '';
@@ -49,11 +52,24 @@ export function McpAuthorizePage() {
     return 'pending';
   }, [viewOverride, paramsValid, isHydrated, accessLoading, currentUser, canConnect]);
 
+  useEffect(() => {
+    if (view === 'loading') return;
+    const key = `${clientId}:${view}`;
+    if (trackedViewRef.current === key) return;
+    trackedViewRef.current = key;
+    analytics.onConnectPageViewed({ view, clientId });
+    if (view === 'denied') {
+      analytics.onConnectDenied({ clientId, reason: 'missing_permission' });
+    }
+  }, [view, clientId, analytics]);
+
   const onSignIn = useCallback(() => {
+    analytics.onConnectSignInClicked({ clientId });
     router.push(`${window.location.pathname}${window.location.search}#login`, { scroll: false });
-  }, [router]);
+  }, [router, analytics, clientId]);
 
   const denyRedirect = useCallback(() => {
+    analytics.onConnectDenied({ clientId, reason: 'user_denied' });
     try {
       const url = new URL(redirectUri);
       url.searchParams.set('error', 'access_denied');
@@ -62,9 +78,10 @@ export function McpAuthorizePage() {
       }
       window.location.assign(url.toString());
     } catch {
+      analytics.onConnectError({ clientId, errorKind: 'redirect_invalid' });
       setViewOverride('error');
     }
-  }, [redirectUri, state]);
+  }, [redirectUri, state, analytics, clientId]);
 
   const onApprove = useCallback(async () => {
     setIsApproving(true);
@@ -78,11 +95,17 @@ export function McpAuthorizePage() {
     });
     setIsApproving(false);
     if ('redirectUrl' in result) {
+      analytics.onConnectApproved({ clientId });
       window.location.assign(result.redirectUrl);
       return;
     }
-    setViewOverride(result.error === 'forbidden' ? 'denied' : 'error');
-  }, [clientId, redirectUri, codeChallenge, state, resource]);
+    if (result.error === 'forbidden') {
+      setViewOverride('denied');
+      return;
+    }
+    analytics.onConnectError({ clientId, errorKind: 'approve_failed' });
+    setViewOverride('error');
+  }, [clientId, redirectUri, codeChallenge, state, resource, analytics]);
 
   return (
     <div className={s.page}>

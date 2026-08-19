@@ -357,8 +357,18 @@
   // nudges the neighboring actions.
   font-variant-numeric: tabular-nums;
 
-  &:hover {
+  &:hover:not(:disabled) {
     filter: brightness(0.8);
+  }
+
+  // A Like the viewer can never use — their own forum post, which NodeBB
+  // refuses to self-vote. Same treatment every other disabled control in the
+  // feed uses (the thread's Delete/Cancel, the category chips): dimmed and
+  // not-allowed, so it reads as unavailable at a glance rather than looking
+  // live until you click it. The count stays legible through the opacity.
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

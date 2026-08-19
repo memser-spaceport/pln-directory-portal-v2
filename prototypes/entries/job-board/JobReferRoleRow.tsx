@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
 import type { IJobRole } from '@/types/jobs.types';
+import type { JobSurface } from '@/analytics/jobs.analytics';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { Button } from '@/components/common/Button';
@@ -26,6 +27,8 @@ interface JobReferRoleRowProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
+  source?: JobSurface;
   onClick?: () => void;
   /** Referring needs a signed-in referrer; logged out, the button nudges instead. */
   canRefer?: boolean;
@@ -135,7 +138,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               Refer
             </Button>
 
-            <ReferMenu role={role} teamId={teamId} teamName={teamName} />
+            <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
             {/* The arrow out to the posting — production's own `.applyArrow`, kept
                 on the board.
@@ -212,6 +215,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         role={role}
         teamId={teamId}
         teamName={teamName}
+        source={source}
       />
     </>
   );

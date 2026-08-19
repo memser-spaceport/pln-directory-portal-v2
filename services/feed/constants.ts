@@ -11,8 +11,12 @@ export enum FeedQueryKeys {
 export const feedQueryKeys = {
   all: ['feed'] as const,
   forumPosts: () => [...feedQueryKeys.all, FeedQueryKeys.FORUM_POSTS] as const,
-  // ONE cache entry per session — the fetcher posts the stable news-uid set;
-  // forum-post counts are seeded into the same entry from the posts response.
+  // ONE cache entry per session, filled INCREMENTALLY: each surface (the feed,
+  // a team profile's rail, its archive as it pages) asks only for the uids
+  // nobody has asked for yet and merges the answer in. Forum-post counts are
+  // seeded into the same entry from the posts response. Deliberately not keyed
+  // by the visible uid set — that would mint a new entry per tab/search/page and
+  // make the comment mutations' count patch untargetable.
   commentCounts: () => [...feedQueryKeys.all, FeedQueryKeys.COMMENT_COUNTS] as const,
   comments: (itemUid: string) => [...feedQueryKeys.all, FeedQueryKeys.COMMENTS, itemUid] as const,
 };

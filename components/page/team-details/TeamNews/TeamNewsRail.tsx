@@ -7,12 +7,16 @@ import { useCallback, useMemo, useState } from 'react';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
+import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
+import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { TeamNewsModal } from './TeamNewsModal';
+import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
 
 import s from './TeamNewsRail.module.scss';
 
@@ -22,20 +26,22 @@ interface TeamNewsRailProps {
   initialData: ITeamNewsByTeamResponse;
 }
 
-export type TeamNewsUpvoteOverlay = Map<string, { viewerHasUpvoted: boolean; upvoteCount: number }>;
+// Re-exported for the callers that already import them from here.
+export { mergeUpvoteOverlay };
+export type { TeamNewsUpvoteOverlay };
 
-// One state for the modal so illegal combinations can't exist: closing always
+// One state for what's open over the profile, so illegal combinations can't
+// exist: the archive and a rail-opened story are never both up, closing always
 // drops the focus target, and "View all" after a "Show more" open is unfocused
 // by construction.
-type NewsModalState = { isOpen: false } | { isOpen: true; focusUid: string | null };
-
-export function mergeUpvoteOverlay(items: ITeamNewsItem[], overlay: TeamNewsUpvoteOverlay): ITeamNewsItem[] {
-  if (overlay.size === 0) return items;
-  return items.map((item) => (overlay.has(item.uid) ? { ...item, ...overlay.get(item.uid) } : item));
-}
+//
+// `detail` is the story opened FROM THE RAIL. The archive drills into stories
+// itself (TeamNewsModal owns that state) rather than stacking this modal on top
+// of it — two overlays would mean two close buttons and an ambiguous Escape.
+type NewsModalState = { kind: 'none' } | { kind: 'archive'; focusUid: string | null } | { kind: 'detail'; uid: string };
 
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
-  const [modalState, setModalState] = useState<NewsModalState>({ isOpen: false });
+  const [modalState, setModalState] = useState<NewsModalState>({ kind: 'none' });
   const isMobile = useIsMobile();
   const {
     onTeamNewsCardClicked,
@@ -108,6 +114,16 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
   );
   const hasMore = total > TEAM_NEWS_PREVIEW_LIMIT;
 
+  // Counts for the rows on screen. The shared entry is filled incrementally, so
+  // asking here for three uids costs one request and leaves /home free to ask
+  // for its own when the reader follows "All network updates". Public, like the
+  // feed's — signed-out visitors see counts too.
+  const previewUids = useMemo(() => previewItems.map((item) => item.uid), [previewItems]);
+  useFeedCommentCounts({ uids: previewUids, enabled: true });
+
+  // Tapping the row and clicking its comment count are two ways of asking for
+  // the same thing — this story, in full — so both open the story over the
+  // profile and both report as a card click, split by `via`.
   const handleCardClick = useCallback(
     (item: ITeamNewsItem, position: number) => {
       onTeamNewsCardClicked(item, position, 'team-profile-rail');
@@ -115,16 +131,28 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
     [onTeamNewsCardClicked],
   );
 
-  // "Show more" on a rail card opens the full feed focused on that item; the
-  // plain "View all" button opens it at the top (focusUid: null). Deliberately
-  // fires neither the card-click nor the view-all event.
+  const handleOpenDetail = useCallback(
+    (item: ITeamNewsItem, position: number, via: 'row' | 'comments') => {
+      // The row's own click already reported through `onClick` (handleCardClick);
+      // reporting again here would double-count every card tap.
+      if (via === 'comments') onTeamNewsCardClicked(item, position, 'team-profile-rail', 'comments');
+      setModalState({ kind: 'detail', uid: item.uid });
+    },
+    [onTeamNewsCardClicked],
+  );
+
+  // The third way of asking for the same story. Deliberately keeps its own event
+  // (it measures the teaser's clamp, not the row) and fires no card-click.
   const handleShowMore = useCallback(
     (item: ITeamNewsItem, position: number) => {
       onTeamNewsShowMoreClicked(item, position);
-      setModalState({ isOpen: true, focusUid: item.uid });
+      setModalState({ kind: 'detail', uid: item.uid });
     },
     [onTeamNewsShowMoreClicked],
   );
+
+  const detailItem =
+    modalState.kind === 'detail' ? (previewItems.find((item) => item.uid === modalState.uid) ?? null) : null;
 
   return (
     <>
@@ -147,28 +175,35 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
                 onClick={(clicked) => handleCardClick(clicked, index)}
                 onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
                 onShowMore={(clicked) => handleShowMore(clicked, index)}
+                onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
               />
             ))}
           </div>
-          {hasMore && (
-            <button
-              type="button"
-              className={s.viewAll}
-              onClick={() => {
-                onTeamNewsViewAllClicked(teamUid, teamName, total);
-                setModalState({ isOpen: true, focusUid: null });
-              }}
-            >
-              View all news ({total})
-            </button>
-          )}
+          {/* The panel's two exits, paired on one row: "View all news" stays
+              inside this team, "All network updates" widens to the feed. When
+              there's no archive to open, the remaining exit takes the row. */}
+          <div className={s.newsFooter}>
+            {hasMore && (
+              <button
+                type="button"
+                className={s.viewAll}
+                onClick={() => {
+                  onTeamNewsViewAllClicked(teamUid, teamName, total);
+                  setModalState({ kind: 'archive', focusUid: null });
+                }}
+              >
+                View all news ({total})
+              </button>
+            )}
+            <TeamNewsFeedLink teamUid={teamUid} teamName={teamName} source="team-profile-rail" />
+          </div>
         </div>
       </aside>
 
       <TeamNewsModal
-        isOpen={modalState.isOpen}
-        focusUid={modalState.isOpen ? modalState.focusUid : null}
-        onClose={() => setModalState({ isOpen: false })}
+        isOpen={modalState.kind === 'archive'}
+        focusUid={modalState.kind === 'archive' ? modalState.focusUid : null}
+        onClose={() => setModalState({ kind: 'none' })}
         teamUid={teamUid}
         teamName={teamName}
         total={total}
@@ -176,6 +211,24 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         upvoteOverlay={upvoteOverlay}
         onUpvoteToggle={handleUpvoteToggle}
       />
+
+      {/* Conditional mount, no isOpen half-state: the item prop is always the
+          live overlay-merged object, so the story and the card behind it can
+          never disagree about a vote (same call as /home's). */}
+      {detailItem && (
+        <NewsDetailModal
+          item={detailItem}
+          onClose={() => setModalState({ kind: 'none' })}
+          onUpvoteToggle={(item) =>
+            handleUpvoteToggle(
+              item,
+              previewItems.findIndex((preview) => preview.uid === item.uid),
+              'team-profile-rail',
+            )
+          }
+          source="team-profile-rail"
+        />
+      )}
     </>
   );
 }

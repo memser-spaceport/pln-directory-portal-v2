@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TipContent } from '../types';
@@ -12,35 +12,47 @@ interface SnapshotProgressSectionProps {
   tipContent: TipContent;
 }
 
-/**
- * Check if a URL is internal (starts with /)
- */
 function isInternalUrl(url: string): boolean {
   return url.startsWith('/');
 }
 
-/**
- * SnapshotProgressSection - Displays snapshot period progress and tip content
- * @param startDate - Snapshot period start date
- * @param endDate - Snapshot period end date
- * @param tipContent - Tip section content from master JSON
- */
 export default function SnapshotProgressSection({ startDate, endDate, tipContent }: SnapshotProgressSectionProps) {
   const { onSnapshotTipLinkClicked } = useAlignmentAssetsAnalytics();
 
   const handleTipLinkClick = (linkText: string, url: string) => {
     onSnapshotTipLinkClicked(linkText, url);
   };
+  // Left null through SSR and first paint to avoid a hydration mismatch,
+  // then filled in after mount.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
   const { progressPercentage, timeRemaining, dateRangeLabel } = useMemo(() => {
-    const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
-    // Calculate total duration and elapsed time
+
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    };
+    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
+    const startDay = start.getDate();
+    const endDay = end.getDate();
+    const year = end.getFullYear();
+
+    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const dateRangeLabel = isSameMonth
+      ? `${startMonth} ${startDay}-${endDay}, ${year}`
+      : `${formatDate(start)} - ${formatDate(end)}`;
+
+    if (!now) {
+      return { progressPercentage: 0, timeRemaining: '', dateRangeLabel };
+    }
+
     const totalDuration = end.getTime() - start.getTime();
     const elapsedTime = now.getTime() - start.getTime();
-    
-    // Calculate percentage (clamped between 0 and 100)
+
     let percentage = 0;
     if (now < start) {
       percentage = 0;
@@ -49,12 +61,11 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     } else {
       percentage = Math.min(100, Math.max(0, (elapsedTime / totalDuration) * 100));
     }
-    
-    // Calculate remaining calendar days (including today)
+
     const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
     const remainingDays = Math.max(0, Math.floor((endDateOnly.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-    
+
     let remaining = '';
     if (now > end) {
       remaining = 'Snapshot period has ended';
@@ -65,40 +76,23 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     } else {
       remaining = `${remainingDays} days remaining in current snapshot period`;
     }
-    
-    // Format date range label
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    };
-    const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const year = end.getFullYear();
-    
-    // Check if same month
-    const isSameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-    const label = isSameMonth 
-      ? `${startMonth} ${startDay}-${endDay}, ${year}`
-      : `${formatDate(start)} - ${formatDate(end)}`;
-    
+
     return {
       progressPercentage: Math.round(percentage * 100) / 100,
       timeRemaining: remaining,
-      dateRangeLabel: label
+      dateRangeLabel
     };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, now]);
 
   return (
     <>
       <section className="snapshot-section">
         <div className="snapshot-section__container">
-          {/* Header */}
           <div className="snapshot-section__header">
             <h2 className="snapshot-section__title">Total Alignment Asset Points &amp; Tokens Collected by Category</h2>
             <p className="snapshot-section__subtitle">Current Snapshot Period - {dateRangeLabel}</p>
           </div>
 
-          {/* Progress Bar Container */}
           <div className="snapshot-section__progress-container">
             <h3 className="snapshot-section__progress-title">Current Snapshot Period - {dateRangeLabel}</h3>
             
@@ -112,7 +106,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
             <p className="snapshot-section__progress-text">{timeRemaining}</p>
           </div>
 
-          {/* Tip Info Section */}
           <div className="snapshot-section__tip">
             <div className="snapshot-section__tip-icon">
               <Image src="/icons/rounds/idea.svg" alt="" width={18} height={18} />

@@ -1,9 +1,4 @@
-/**
- * Trust & Holdings data service. The dataset (and all NAV derivation) lives in
- * plaa-service; the page fetches it from there at request time.
- */
-
-/** Next.js Data Cache tag for the trust & holdings fetch (used by /api/revalidate). */
+// Cache tag for this fetch, used by /api/revalidate.
 export const TRUST_HOLDINGS_CACHE_TAG = 'trust-holdings';
 
 export interface NavPoint {
@@ -34,6 +29,7 @@ export interface DonutSlice {
 
 export interface TrustHoldingsData {
   navPerPlaaHeadline: string;
+  asOfDate: string;
   trustTotalValue: string;
   portfolioCompanies: number;
   quarterly: NavPoint[];
@@ -50,9 +46,6 @@ export const getTrustHoldings = async (): Promise<{ data?: TrustHoldingsData; er
     const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
-      // Time-based fallback (300s) + a cache tag so the data can be flushed on
-      // demand via POST /api/revalidate { tags: ['trust-holdings'] } right after
-      // the backend dataset changes.
       next: { revalidate: 300, tags: [TRUST_HOLDINGS_CACHE_TAG] },
     });
 

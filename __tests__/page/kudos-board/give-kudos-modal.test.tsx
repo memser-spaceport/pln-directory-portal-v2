@@ -18,15 +18,30 @@ const recipients = [
   { memberId: 'uid-b', name: 'Bob' },
 ];
 
+const LIMITS = { pointsMin: 10, pointsMax: 100, pointsStep: 10, messageMin: 25, messageMax: 500 };
+
 function renderModal(poolRemaining: number) {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={recipients} poolRemaining={poolRemaining} />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={recipients}
+      poolRemaining={poolRemaining}
+      limits={LIMITS}
+    />,
   );
 }
 
 function renderLoadingModal() {
   return render(
-    <GiveCommunityKudosModal open onClose={jest.fn()} recipients={[]} poolRemaining={100} recipientsLoading />,
+    <GiveCommunityKudosModal
+      open
+      onClose={jest.fn()}
+      recipients={[]}
+      poolRemaining={100}
+      limits={LIMITS}
+      recipientsLoading
+    />,
   );
 }
 
@@ -62,10 +77,7 @@ describe('GiveCommunityKudosModal — send button gating', () => {
 
     await user.selectOptions(screen.getByLabelText(/recipient/i), 'uid-a');
     await user.selectOptions(screen.getByLabelText(/points to give/i), '20');
-    await user.type(
-      screen.getByLabelText(/your message/i),
-      'Thanks for the thorough review and quick turnaround.',
-    );
+    await user.type(screen.getByLabelText(/your message/i), 'Thanks for the thorough review and quick turnaround.');
 
     await waitFor(() => expect(sendBtn()).toBeEnabled());
   });

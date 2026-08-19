@@ -34,4 +34,31 @@ describe('UpvoteButton', () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
     expect(onParentClick).not.toHaveBeenCalled();
   });
+
+  describe('when the viewer cannot like this item', () => {
+    const REASON = 'You can’t like your own post';
+
+    it('still shows the count — it is information, not just the state of an action', () => {
+      render(<UpvoteButton count={4} voted={false} onToggle={jest.fn()} disabledReason={REASON} />);
+
+      expect(screen.getByRole('button', { name: `Like (4) — ${REASON}` })).toHaveTextContent('4');
+    });
+
+    it('says WHY in the tooltip and the accessible name, not just by being dead', () => {
+      render(<UpvoteButton count={4} voted={false} onToggle={jest.fn()} disabledReason={REASON} />);
+
+      const btn = screen.getByRole('button', { name: `Like (4) — ${REASON}` });
+      expect(btn).toBeDisabled();
+      expect(btn).toHaveAttribute('title', `Like (4) — ${REASON}`);
+    });
+
+    it('does not fire onToggle when clicked', () => {
+      const onToggle = jest.fn();
+      render(<UpvoteButton count={4} voted={false} onToggle={onToggle} disabledReason={REASON} />);
+
+      fireEvent.click(screen.getByRole('button', { name: `Like (4) — ${REASON}` }));
+
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -43,6 +43,7 @@ const TOPIC = {
   lastposttime: 1782906219045,
   postcount: 3,
   upvotes: 5,
+  viewcount: 87,
   user: {
     memberUid: 'cmo6tw96g005kq04h7yu2rkar',
     displayname: 'Matt Curran',
@@ -119,9 +120,36 @@ describe('feed.service', () => {
           category: 'Intros',
           forumTopicUrl: '/forum/topics/5/96',
           likeCount: 5,
+          viewCount: 87,
           viewerHasLiked: false,
         }),
       ]);
+    });
+
+    it('carries the topic’s viewcount through, so the feed card can show what the forum shows', async () => {
+      customFetchMock.mockResolvedValue({ ok: true, json: async () => ({ topics: [TOPIC] }) });
+
+      const { items } = await getFeedForumPosts();
+
+      expect(items[0].viewCount).toBe(87);
+    });
+
+    it('reports zero views, never NaN, when the topic carries no usable viewcount', async () => {
+      customFetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          topics: [
+            { ...TOPIC, viewcount: undefined },
+            { ...TOPIC, viewcount: 'lots' },
+          ],
+        }),
+      });
+
+      const { items } = await getFeedForumPosts();
+
+      // "NaN Views" would reach the card — formatNumber has no guard of its own.
+      expect(items[0].viewCount).toBe(0);
+      expect(items[1].viewCount).toBe(0);
     });
 
     it('carries last activity separately from creation, so the feed window can use it', async () => {

@@ -27,6 +27,9 @@ export const PERMISSIONS = {
     PERM_VIEW: 'code_agent_sessions.view',
     PERM_ADMIN: 'code_agent_sessions.admin',
   },
+  MCP: {
+    PERM_CONNECT: 'mcp.connect',
+  },
   FOUNDER_GUIDE: {
     PERM_VIEW: 'founder_guides.view',
   },

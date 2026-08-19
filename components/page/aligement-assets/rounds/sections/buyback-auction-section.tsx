@@ -10,10 +10,6 @@ interface BuybackAuctionSectionProps {
   data: BuybackAuctionSectionData;
 }
 
-/**
- * BuybackAuctionSection - Displays buyback auction results and bid table
- * @param data - Buyback auction data from master JSON
- */
 export default function BuybackAuctionSection({ data }: BuybackAuctionSectionProps) {
   const [visibleBids, setVisibleBids] = useState(10);
   const { onBuybackShowMoreClicked } = useAlignmentAssetsAnalytics();
@@ -31,12 +27,11 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
     <>
       <section className="buyback-section">
         <div className="buyback-section__container">
-          {/* Header */}
           <div className="buyback-section__header">
             <div className="buyback-section__header-left">
               <h2 className="buyback-section__title">Buyback Auction Results</h2>
               <p className="buyback-section__description">
-                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how much of the buyback pool was used, the number of winning bidders, and the total tokens purchased.
+                Below is a summary of the key outcomes from the most recent Buyback Auction — the clearing price, how much of the buyback pool was used, the number of accepted bidders, and the total PLAA redeemed.
               </p>
             </div>
             <div className="buyback-section__header-right">
@@ -47,7 +42,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          {/* Auction Summary Box */}
           <div className="buyback-section__summary">
             <h3 className="buyback-section__summary-title">{data.summary.title}</h3>
             <div className="buyback-section__summary-grid">
@@ -63,7 +57,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
             </div>
           </div>
 
-          {/* Auction Table */}
           <div className={`buyback-section__table-container ${!hasMore ? 'buyback-section__table-container--no-more' : ''}`}>
             <table className="buyback-section__table">
               <thead>
@@ -137,7 +130,6 @@ export default function BuybackAuctionSection({ data }: BuybackAuctionSectionPro
               </tbody>
             </table>
 
-            {/* Show More Button */}
             {hasMore && (
               <div className="buyback-section__show-more">
                 <button className="buyback-section__show-more-btn" onClick={handleShowMore}>

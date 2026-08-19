@@ -182,6 +182,8 @@ export const COMMON_ANALYTICS_EVENTS = {
   NAVBAR_NOTIFICATION_MENU_CLICKED: 'navbar-notification-menu-clicked',
   NAVBAR_APP_LOGO_CLICKED: 'navbar_app_logo_clicked',
   SUBMIT_A_TEAM_BTN_CLICKED: 'submit_a_team_btn_clicked',
+  NAVBAR_HOME_CLICKED: 'navbar-home-clicked',
+  NAVBAR_HOME_NEW_NEWS_DOT_SHOWN: 'navbar-home-new-news-dot-shown',
 };
 
 export const NOTIFICATION_ANALYTICS_EVENTS = {
@@ -606,6 +608,11 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   TEAM_NEWS_SORT_CHANGED: 'team-news-sort-changed',
   TEAM_NEWS_LOAD_MORE_CLICKED: 'team-news-load-more-clicked',
   TEAM_NEWS_VIEW_ALL_CLICKED: 'team-news-view-all-clicked',
+  // The other exit from a team-scoped news list: "View all news" stays inside
+  // the team, this one widens to the whole network feed. Two different intents
+  // sitting on one row, so they need two events to be told apart.
+  TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED: 'team-news-all-network-updates-clicked',
+  TEAM_NEWS_COUNT_CHIP_CLICKED: 'team-news-count-chip-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
@@ -2459,6 +2466,7 @@ export const AI_APPS_ANALYTICS = {
   FEEDBACK_REVIEW_VIEWED: 'ai_apps_feedback_review_viewed',
   FEEDBACK_TAB_FILTERED: 'ai_apps_feedback_tab_filtered',
   FEEDBACK_EXPORTED: 'ai_apps_feedback_exported',
+  FEEDBACK_STATUS_CHANGED: 'ai_apps_feedback_status_changed',
   FEEDBACK_DIALOG_OPENED: 'ai_apps_feedback_dialog_opened',
   VIEW_FEEDBACK_CLICKED: 'ai_apps_view_feedback_clicked',
   SECRETS_PANEL_OPENED: 'ai_apps_secrets_panel_opened',
@@ -2481,4 +2489,21 @@ export const AI_APPS_ANALYTICS = {
   DEPLOYMENT_LOGS_OPENED: 'ai_apps_deployment_logs_opened',
   DEPLOYMENT_LOGS_TAB_SWITCHED: 'ai_apps_deployment_logs_tab_switched',
   DEPLOYMENT_LOGS_EXPORTED: 'ai_apps_deployment_logs_exported',
+};
+
+export const MCP_ANALYTICS_EVENTS = {
+  SETTINGS_SECTION_VIEWED: 'mcp-settings-section-viewed',
+  SETUP_SNIPPET_COPIED: 'mcp-setup-snippet-copied',
+  CONNECT_PAGE_VIEWED: 'mcp-connect-page-viewed',
+  CONNECT_SIGN_IN_CLICKED: 'mcp-connect-sign-in-clicked',
+  CONNECT_APPROVED: 'mcp-connect-approved',
+  CONNECT_DENIED: 'mcp-connect-denied',
+  CONNECT_ERROR: 'mcp-connect-error',
+  AUTHORIZATION_REVOKED: 'mcp-authorization-revoked',
+  AUTHORIZATION_REVOKE_FAILED: 'mcp-authorization-revoke-failed',
+  WARM_PATH_FEEDBACK_OPENED: 'mcp-warm-path-feedback-opened',
+  WARM_PATH_FEEDBACK_SUBMITTED: 'mcp-warm-path-feedback-submitted',
+  WARM_PATH_NOTE_OPENED: 'mcp-warm-path-note-opened',
+  WARM_PATH_NOTE_SUBMITTED: 'mcp-warm-path-note-submitted',
+  WARM_PATH_NOTE_CLEARED: 'mcp-warm-path-note-cleared',
 };

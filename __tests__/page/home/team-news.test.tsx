@@ -512,6 +512,7 @@ describe('TeamNews', () => {
         forumTopicUrl: '/forum/topics/5/96',
         commentCount: 2,
         likeCount: 5,
+        viewCount: 0,
         viewerHasLiked: false,
       };
 
@@ -613,7 +614,7 @@ describe('TeamNews', () => {
       { focusArea: FA_DHR, total: 1, items: [acmeDhrItem] },
     ];
 
-    it('renders one card per team, collapsing a team with more than 3 stories behind an expander', () => {
+    it('renders one card per team, collapsing extra stories behind an expander', () => {
       renderTeamNews(<TeamNews groups={groupsWithSharedTeam} />);
       // On the default "All" tab, Acme's cluster merges all 6 of its stories (5 AI + 1 DHR).
       expect(screen.getAllByRole('link', { name: 'Acme' })).toHaveLength(1);
@@ -1681,6 +1682,20 @@ describe('TeamNews', () => {
       const first = document.querySelector('[data-news-feed-list]')!.firstElementChild!;
       expect(first.textContent).not.toContain('is hiring');
       expect(first.textContent).not.toContain('Vendor d1');
+    });
+
+    // #2775 hid HiringCard at the render layer while injectFeedSignals kept
+    // injecting the entry, so an invisible card silently spent one of the six
+    // first-page slots (and shifted the analytics `position` of everything after
+    // it). Deliberately NOT gated on SHOW_HIRING_NEWS: a full first page is the
+    // contract under BOTH flag states — off, the entry never enters the feed;
+    // on, it enters and renders. Gating this would retire the coverage exactly
+    // when the flag makes it load-bearing.
+    it('never spends a first-page slot on a hiring roll-up it cannot show', () => {
+      mockUseFeedHiring.mockReturnValue({ hiring: [hiringGroup('acme')] });
+      renderTeamNews(<TeamNews groups={wideGroups} />); // default pageSize of 6
+
+      expect(document.querySelector('[data-news-feed-list]')!.children).toHaveLength(6);
     });
 
     itHiring('carries the job board attribution params on role links', () => {

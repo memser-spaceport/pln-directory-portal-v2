@@ -1,12 +1,16 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
 
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
+import { PAGE_ROUTES } from '@/utils/constants';
 import { getJobDate, isNew, teamInitials } from '@/utils/jobs.utils';
 import { TagsList } from '@/components/common/profile/TagsList';
+
+import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip';
 
 import { useGetFocusTags } from './hooks/useGetFocusTags';
 
@@ -21,9 +25,11 @@ const MAX_FOCUS_CHIPS = 100;
 interface TeamGroupCardProps {
   group: IJobTeamGroup;
   onRoleClick: (role: IJobRole, indexInGroup: number) => void;
+  /** Open this team's news over the board, from its "N new posts" chip. */
+  onOpenTeamNews?: (teamUid: string, teamName: string) => void;
 }
 
-export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
+export function TeamGroupCard({ group, onRoleClick, onOpenTeamNews }: TeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
@@ -45,7 +51,23 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
         </div>
 
         <div className={s.headerMain}>
-          <h3 className={s.teamName}>{team.name}</h3>
+          {/* The news chip rides the name row, where the prototype put it. It
+              counts POSTS while the green badge in .countBlock counts new ROLES
+              — two "new"s on one card, told apart by their nouns and by being
+              visually unlike (grey chip with a blue dot vs a green pill). */}
+          <div className={s.nameRow}>
+            <h3 className={s.teamName}>
+              <Link
+                prefetch={false}
+                href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
+              >
+                {team.name}
+              </Link>
+            </h3>
+            {onOpenTeamNews && (
+              <TeamNewsCountChip teamUid={team.uid} teamName={team.name} source="job-board" onOpen={onOpenTeamNews} />
+            )}
+          </div>
           {!isEmpty(focusTags) && (
             <TagsList tags={focusTags} tagsToShow={MAX_FOCUS_CHIPS} classes={{ root: s.focusRow, tag: s.focusTag }} />
           )}
@@ -66,6 +88,7 @@ export function TeamGroupCard({ group, onRoleClick }: TeamGroupCardProps) {
             teamName={team.name}
             key={role.uid}
             role={role}
+            source="job-board"
             onClick={() => {
               onRoleClick(role, idx);
             }}

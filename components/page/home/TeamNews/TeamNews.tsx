@@ -53,6 +53,8 @@ import { getSearchInputEl } from './utils/getSearchInputEl';
 import { injectFeedSignals } from './utils/injectFeedSignals';
 import { applyUpvoteOverlay } from './utils/applyUpvoteOverlay';
 import { resolveForumPostLike } from './utils/resolveForumPostLike';
+import { setStoredForumPostLike } from '@/utils/forumPostLikeStorage';
+import { isOwnForumPost } from './utils/isOwnForumPost';
 import { matchesTeamNewsQuery } from './utils/matchesTeamNewsQuery';
 import { matchesTeamNewsCategory } from './utils/matchesTeamNewsCategory';
 import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
@@ -77,6 +79,7 @@ import { NewsSearch } from './components/NewsSearch';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { ForumPostCard } from './components/ForumPostCard';
+import { AutoMarkNewsCommentNotification } from './AutoMarkNewsCommentNotification';
 import { NewsDetailModal } from './components/NewsDetailModal';
 import { HiringCard } from './components/HiringCard/HiringCard';
 import { ForumPostModal } from './components/ForumPostModal/ForumPostModal';
@@ -351,11 +354,20 @@ export const TeamNews = ({
   // Both are unfiltered by tab/category/search on purpose: neither carries a
   // focus area or an event type, so every narrowed view drops them. That falls
   // out of `isNarrowedView` below rather than being re-derived per stream.
+  // SHOW_HIRING_NEWS gates the INJECTION, not the render. Gating only the card
+  // (as #2775 did) still let the entry into `entries`, where it silently ate a
+  // `pageSize` slot — a first page of six showed five — and shifted the
+  // analytics `position` of every card after it. `undefined` is the same "leave
+  // the feed alone" signal a failed request already sends.
   const entries = useMemo(
     () =>
       isNarrowedView
         ? rankedEntries
-        : injectFeedSignals({ entries: rankedEntries, hiring: feedHiring, deals: feedDeals }),
+        : injectFeedSignals({
+            entries: rankedEntries,
+            hiring: SHOW_HIRING_NEWS ? feedHiring : undefined,
+            deals: feedDeals,
+          }),
     [rankedEntries, isNarrowedView, feedHiring, feedDeals],
   );
 
@@ -417,6 +429,15 @@ export const TeamNews = ({
   // handleForumPostLikeToggle, the correction lands in the overlay on first use
   // and outlives the modal.
   const activePostTopicLike = useFeedForumTopicLike(activePostUid);
+
+  // Persists the topic's correction to the local like cache the moment it's
+  // learned, so it also benefits this card on a future reload/session — not
+  // just the modal's own render (which resolvePostLike already covers).
+  useEffect(() => {
+    if (!activePostUid || !activePostTopicLike) return;
+    setStoredForumPostLike(activePostUid, activePostTopicLike.viewerHasLiked);
+  }, [activePostUid, activePostTopicLike]);
+
   const resolvePostLike = useCallback(
     (post: IFeedForumPost) =>
       resolveForumPostLike(
@@ -696,12 +717,20 @@ export const TeamNews = ({
   // caller passes the overlay-merged post, so `viewerHasLiked` is current.
   // No signed-out branch: only access-holding (signed-in) viewers see posts.
   const handleForumPostLikeToggle = (post: IFeedForumPost, source: TeamNewsAnalyticsSource = 'home') => {
+    // The button is already disabled for your own post, but the identity it's
+    // derived from hydrates client-side: for the first paint after a reload
+    // there is no currentUser yet and the control is briefly live. Bail rather
+    // than send a vote NodeBB will refuse ([[error:self-vote]]) and book a
+    // like-FAILED event for something that was never going to work.
+    if (isOwnForumPost(post, currentUser?.uid)) return;
+
     const wasLiked = post.viewerHasLiked;
     const nextLiked = !wasLiked;
     const prevCount = post.likeCount;
     const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
 
     setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: nextLiked, likeCount: nextCount }));
+    setStoredForumPostLike(post.uid, nextLiked);
 
     const position = visibleEntries.findIndex((e) => feedEntryKey(e) === `forum:${post.uid}`);
 
@@ -710,11 +739,13 @@ export const TeamNews = ({
       {
         onError: () => {
           setPostLikeOverlay((prev) => new Map(prev).set(post.uid, { viewerHasLiked: wasLiked, likeCount: prevCount }));
+          setStoredForumPostLike(post.uid, wasLiked);
           analytics.onFeedForumPostLikeFailed(post, position, nextLiked, source);
         },
         onSuccess: (status) => {
           if (status) {
             setPostLikeOverlay((prev) => new Map(prev).set(post.uid, status));
+            setStoredForumPostLike(post.uid, status.viewerHasLiked);
           }
           analytics.onFeedForumPostLikeToggled(post, position, nextLiked, source);
         },
@@ -942,13 +973,17 @@ export const TeamNews = ({
                           // the feed.
                           post={resolvePostLike(entry.post)}
                           position={index}
+                          isOwnPost={isOwnForumPost(entry.post, currentUser?.uid)}
                           onOpenDetail={handleForumPostOpen}
                           onLikeToggle={handleForumPostLikeToggle}
-                          useLink={activeCategory === DISCUSSIONS_CAT}
                         />
                       );
                     case 'hiring':
-                      return SHOW_HIRING_NEWS ? (
+                      // No flag check here: with the injection gated above, a
+                      // hiring entry only exists when it is meant to be seen.
+                      // Re-checking would reintroduce the invisible-entry bug
+                      // the moment the two guards disagreed.
+                      return (
                         <HiringCard
                           key={key}
                           group={entry.group}
@@ -959,7 +994,7 @@ export const TeamNews = ({
                           }
                           onViewAllClick={(group) => analytics.onFeedHiringViewAllClicked(group, index)}
                         />
-                      ) : null;
+                      );
                     case 'deal':
                       return (
                         <DealCardCompact
@@ -997,6 +1032,7 @@ export const TeamNews = ({
 
       {/* Conditional mount, no isOpen half-state: the item prop is always the
           live overlay-merged object. Trades away the exit animation (accepted). */}
+      <AutoMarkNewsCommentNotification newsItemUid={activeNewsUid} />
       {activeNewsItem && (
         <NewsDetailModal
           item={activeNewsItem}
@@ -1004,13 +1040,17 @@ export const TeamNews = ({
           onUpvoteToggle={(item) => handleUpvoteToggle(item, 'news-modal')}
           isFollowing={followedTeamUids.has(activeNewsItem.teamUid)}
           onFollowToggle={handleFollowToggle}
+          // Constructed, not left to the body's current-URL fallback: the ?news=
+          // param is written with raw history.replaceState, so the round-trip
+          // has to name the story explicitly to survive a sign-in.
+          loginHref={`/home?news=${encodeURIComponent(activeNewsItem.uid)}#login`}
         />
       )}
       {activeForumPost && (
         <ForumPostModal
           onClose={closePost}
           post={activeForumPost}
-          useLink={activeCategory === DISCUSSIONS_CAT}
+          isOwnPost={isOwnForumPost(activeForumPost, currentUser?.uid)}
           onLikeToggle={(post) => handleForumPostLikeToggle(post, 'news-modal')}
         />
       )}

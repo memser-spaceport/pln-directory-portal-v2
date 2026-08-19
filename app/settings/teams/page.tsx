@@ -1,6 +1,6 @@
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import styles from './page.module.css';
-import SettingsMenu from '@/components/page/settings/menu';
+import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import { PAGE_ROUTES, SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ManageTeamsSettings from '@/components/page/settings/manage-teams';
 import Link from 'next/link';
@@ -106,7 +106,7 @@ export default async function ManageTeams(props: any) {
         </div>
         <div className={styles.ps__main}>
           <aside className={styles.ps__main__aside}>
-            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="manage teams" userInfo={userInfo} />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
           </aside>
           <div className={styles.ps__main__content}>
             <ManageTeamsSettings

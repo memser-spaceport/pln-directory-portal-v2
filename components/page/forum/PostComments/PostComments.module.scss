@@ -51,3 +51,13 @@
   gap: 24px;
   margin-top: 16px;
 }
+
+/* NodeBB serves one page of a topic's posts, and this page has no way to ask
+   for the next — so the heading's count can exceed the list. Quiet, but said
+   out loud: without it the difference just reads as replies going missing. */
+.partial {
+  margin: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 18px;
+}

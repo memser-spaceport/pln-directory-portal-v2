@@ -2,6 +2,7 @@ import { customFetch } from '@/utils/fetch-wrapper';
 import type {
   MasterProfileDetail,
   UpsertWarmPathFeedbackBody,
+  UpsertWarmPathNoteBody,
   WarmIntrosV2Facets,
   WarmIntrosV2InvestorPathsResponse,
   WarmIntrosV2ListParams,
@@ -142,6 +143,24 @@ export async function clearWarmPathRefer(
   );
   if (!res || !res.ok) return null;
   return (await res.json()) as WarmPathFeedbackRow | { deleted: true };
+}
+
+/** PUT /v1/warm-intros-v2/paths/:warmPathUid/notes — upsert caller’s path note. */
+export async function upsertWarmPathNote(
+  warmPathUid: string,
+  body: UpsertWarmPathNoteBody,
+): Promise<{ note: string; updatedAt: string } | { deleted: true } | null> {
+  const res = await customFetch(
+    `${BASE}/paths/${encodeURIComponent(warmPathUid)}/notes`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    true,
+  );
+  if (!res || !res.ok) return null;
+  return (await res.json()) as { note: string; updatedAt: string } | { deleted: true };
 }
 
 /** GET /v1/warm-intros-v2/feedback — admin queue (investor_db.edit). */

@@ -4,10 +4,13 @@ import { AiAppFeedbackPage } from '@/components/page/ai-apps/AiAppFeedbackPage';
 
 const mockUseAiAppFeedbackList = jest.fn();
 const mockUseAiAppFeedbackReviewAccess = jest.fn();
+const mockUseUpdateAiAppFeedbackStatus = jest.fn();
 const mockExportAiAppFeedbackCsv = jest.fn();
 const mockOnFeedbackReviewViewed = jest.fn();
 const mockOnFeedbackTabFiltered = jest.fn();
 const mockOnFeedbackExported = jest.fn();
+const mockOnFeedbackStatusChanged = jest.fn();
+const mockMutate = jest.fn();
 
 jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackList', () => ({
   useAiAppFeedbackList: () => mockUseAiAppFeedbackList(),
@@ -15,6 +18,10 @@ jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackList', () => ({
 
 jest.mock('@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess', () => ({
   useAiAppFeedbackReviewAccess: () => mockUseAiAppFeedbackReviewAccess(),
+}));
+
+jest.mock('@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus', () => ({
+  useUpdateAiAppFeedbackStatus: () => mockUseUpdateAiAppFeedbackStatus(),
 }));
 
 jest.mock('@/components/page/ai-apps/AiAppFeedbackPage/utils/exportAiAppFeedbackCsv', () => ({
@@ -26,6 +33,7 @@ jest.mock('@/analytics/ai-apps.analytics', () => ({
     onFeedbackReviewViewed: mockOnFeedbackReviewViewed,
     onFeedbackTabFiltered: mockOnFeedbackTabFiltered,
     onFeedbackExported: mockOnFeedbackExported,
+    onFeedbackStatusChanged: mockOnFeedbackStatusChanged,
   }),
 }));
 
@@ -35,6 +43,7 @@ const FEEDBACK = [
     appUid: 'app-1',
     appName: 'Alpha',
     text: 'Loved it',
+    status: 'NEW' as const,
     member: { uid: 'm-1', name: 'Ada Lovelace' },
     createdAt: '2026-07-01T00:00:00.000Z',
   },
@@ -43,6 +52,7 @@ const FEEDBACK = [
     appUid: 'app-2',
     appName: 'Beta',
     text: 'Needs work',
+    status: 'VIEWED' as const,
     member: { uid: 'm-2', name: 'Alan Turing' },
     createdAt: '2026-07-02T00:00:00.000Z',
   },
@@ -51,6 +61,11 @@ const FEEDBACK = [
 describe('AiAppFeedbackPage', () => {
   beforeEach(() => {
     mockUseAiAppFeedbackReviewAccess.mockReturnValue({ isDirectoryAdmin: false });
+    mockUseUpdateAiAppFeedbackStatus.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+      variables: undefined,
+    });
   });
 
   afterEach(() => {
@@ -132,6 +147,30 @@ describe('AiAppFeedbackPage', () => {
 
     expect(mockExportAiAppFeedbackCsv).toHaveBeenCalledWith([FEEDBACK[0]], 'ai-app-feedback-alpha.csv');
     expect(mockOnFeedbackExported).toHaveBeenCalledWith(1);
+  });
+
+  it('shows each row’s current status without marking it viewed', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<AiAppFeedbackPage />);
+
+    expect(screen.getByRole('button', { name: 'Change status (currently New)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Change status (currently Viewed)' })).toBeInTheDocument();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it('changes a row’s status when a different option is chosen', () => {
+    mockUseAiAppFeedbackList.mockReturnValue({ feedback: FEEDBACK, isLoading: false, isError: false });
+
+    render(<AiAppFeedbackPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change status (currently New)' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Implemented' }));
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      { appUid: 'app-1', feedbackUid: 'fb-1', status: 'IMPLEMENTED' },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 
   it('moves the sliding active-tab indicator to whichever tab was clicked', () => {

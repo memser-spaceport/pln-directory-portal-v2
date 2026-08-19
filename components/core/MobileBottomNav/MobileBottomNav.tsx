@@ -1,9 +1,13 @@
 'use client';
 
 import clsx from 'clsx';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+import { useCommonAnalytics } from '@/analytics/common.analytics';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { getAnalyticsUserInfo } from '@/utils/common.utils';
 
 import {
   EVENT_LINKS,
@@ -12,7 +16,8 @@ import {
   DEMO_DAY_ANALYTICS_LINK,
   FORUM_LINK,
 } from '@/components/core/navbar/constants/navLinks';
-import { MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
+import { HomeIcon, MoreIcon, StarFourIcon } from '@/components/core/navbar/components/icons';
+import { useHasNewNews } from '@/services/team-news/hooks/useHasNewNews';
 import { ISubItem } from '@/components/core/navbar/type';
 import { useDemoDayAnalyticsAccess } from '@/services/rbac/hooks/useDemoDayAnalyticsAccess';
 import { useMoreNavItems } from '@/components/core/navbar/components/navItems/MoreNavItems/hooks/useMoreNavItems';
@@ -34,8 +39,41 @@ export function MobileBottomNav() {
   const { hasAccess: hasDemoDayAnalyticsAccess } = useDemoDayAnalyticsAccess();
 
   const baseMoreItems = useMoreNavItems();
-  const moreItems = useMemo(() => [FORUM_LINK, ...baseMoreItems], [baseMoreItems]);
   const plInfraItems: ISubItem[] = useGetPlInfraNavItems();
+  const hasNewNews = useHasNewNews();
+
+  const analytics = useCommonAnalytics();
+  const currentUser = useCurrentUserStore((state) => state.currentUser);
+
+  // This bar reported nothing at all until now, so mobile navigation was
+  // invisible in analytics. It reuses the desktop bar's event rather than
+  // minting a mobile-only one — the question is which destinations members
+  // reach, and splitting that by bar would need every report to union two
+  // events to answer it.
+  const onNavItemClickHandler = useCallback(
+    (href: string, title: string) => {
+      if (pathname === href) return;
+      analytics.onNavItemClicked(title, getAnalyticsUserInfo(currentUser));
+    },
+    [analytics, currentUser, pathname],
+  );
+
+  // The dot's impression is reported by the desktop navbar alone (both bars
+  // stay mounted at every width), so this only adds the click side.
+  const onHomeClick = useCallback(() => {
+    if (pathname === '/home') return;
+    analytics.onHomeNavClicked('mobile-nav', hasNewNews);
+    analytics.onNavItemClicked('Home', getAnalyticsUserInfo(currentUser));
+  }, [analytics, currentUser, hasNewNews, pathname]);
+
+  // Five slots, and PL Infra members need one of them for PL Infra — so Events
+  // gives up the bar for them and moves into More. Everyone else keeps Events
+  // where it is. EVENT_LINKS spreads flat because More is a flat list.
+  const hasPlInfra = plInfraItems.length > 0;
+  const moreItems = useMemo(
+    () => (hasPlInfra ? [FORUM_LINK, ...EVENT_LINKS, ...baseMoreItems] : [FORUM_LINK, ...baseMoreItems]),
+    [hasPlInfra, baseMoreItems],
+  );
 
   if (isBareRoute(pathname)) return null;
 
@@ -48,19 +86,62 @@ export function MobileBottomNav() {
     >
       <NavigationMenu.Root style={{ width: '100%' }}>
         <NavigationMenu.List className={s.list}>
-          <MobileNavItemWithMenu icon={<DirectoryIcon />} label="Directory" items={DIRECTORY_LINKS} />
-          <MobileNavItemWithMenu icon={<EventsIcon />} label="Events" items={EVENT_LINKS} />
+          <MobileNavItemWithMenu
+            icon={<DirectoryIcon />}
+            label="Directory"
+            items={DIRECTORY_LINKS}
+            onNavItemClickHandler={onNavItemClickHandler}
+          />
+
+          {/* Slot 2 belongs to PL Infra for the members who have it, Events for
+              everyone else. `plInfraItems` comes from async permissions, so this
+              renders Events first and swaps once they resolve — a swap, not a
+              gap, which is why the slot is never left empty. */}
+          {hasPlInfra ? (
+            <MobileNavItemWithMenu
+              icon={<StarFourIcon />}
+              label="PL Infra"
+              items={plInfraItems}
+              onNavItemClickHandler={onNavItemClickHandler}
+            />
+          ) : (
+            <MobileNavItemWithMenu
+              icon={<EventsIcon />}
+              label="Events"
+              items={EVENT_LINKS}
+              onNavItemClickHandler={onNavItemClickHandler}
+            />
+          )}
+
+          <NavigationMenu.Item>
+            <Link
+              href="/home"
+              onClick={onHomeClick}
+              className={clsx(s.item, {
+                [s.itemActive]: pathname.startsWith('/home'),
+              })}
+            >
+              <span className={s.iconWithDot}>
+                <HomeIcon />
+                {hasNewNews && <span className={s.newsDot} aria-hidden />}
+              </span>
+              <span>Home</span>
+              {hasNewNews && <span className={s.srOnly}>New news</span>}
+            </Link>
+          </NavigationMenu.Item>
 
           {hasDemoDayAnalyticsAccess ? (
             <MobileNavItemWithMenu
               icon={<DemoDayIcon />}
               label="Demo Day"
               items={[DEMO_DAY_LINK, DEMO_DAY_ANALYTICS_LINK]}
+              onNavItemClickHandler={onNavItemClickHandler}
             />
           ) : (
             <NavigationMenu.Item>
               <Link
                 href="/demoday"
+                onClick={() => onNavItemClickHandler('/demoday', 'Demo Day')}
                 className={clsx(s.item, {
                   [s.itemActive]: pathname.startsWith('/demoday'),
                 })}
@@ -71,9 +152,13 @@ export function MobileBottomNav() {
             </NavigationMenu.Item>
           )}
 
-          {moreItems.length > 0 && <MobileNavItemWithMenu icon={<MoreIcon />} label="More" items={moreItems} />}
-          {plInfraItems.length > 0 && (
-            <MobileNavItemWithMenu icon={<StarFourIcon />} label="PL Infra" items={plInfraItems} />
+          {moreItems.length > 0 && (
+            <MobileNavItemWithMenu
+              icon={<MoreIcon />}
+              label="More"
+              items={moreItems}
+              onNavItemClickHandler={onNavItemClickHandler}
+            />
           )}
         </NavigationMenu.List>
       </NavigationMenu.Root>

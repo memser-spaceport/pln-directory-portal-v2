@@ -10,7 +10,7 @@ import { useReconcileFeedCommentCount } from '@/services/feed/hooks/useReconcile
 import { readCountFloors } from '@/services/feed/feedCommentCountFloor';
 import { feedQueryKeys } from '@/services/feed/constants';
 import { getFeedComments } from '@/services/feed/feed.service';
-import type { IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
+import type { IFeedComment, IFeedCommentCountsResponse, IFeedCommentsResponse } from '@/types/feed.types';
 
 jest.mock('@/services/feed/feed.service', () => ({ getFeedComments: jest.fn() }));
 jest.mock('@/utils/third-party.helper', () => ({ getCookiesFromClient: () => ({ authToken: 'token' }) }));
@@ -40,6 +40,24 @@ describe('useReconcileFeedCommentCount', () => {
         bodyHtml: '',
       },
     });
+  }
+
+  /** A news thread carries no forumTopic — its loaded tree IS the count. */
+  function seedNewsThread(uid: string, items: IFeedComment[]) {
+    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(uid), { items });
+  }
+
+  function newsComment(uid: string, replies: IFeedComment[] = []): IFeedComment {
+    return {
+      uid,
+      itemUid: 'news-1',
+      parentUid: null,
+      author: { uid: `m-${uid}`, name: `Author ${uid}`, avatarUrl: null },
+      text: `Comment ${uid}`,
+      createdAt: '2026-08-01T00:00:00.000Z',
+      isOwn: false,
+      replies,
+    };
   }
 
   function counts() {
@@ -93,14 +111,52 @@ describe('useReconcileFeedCommentCount', () => {
     expect(counts()).toEqual({ fp_96: 5 });
   });
 
-  it('ignores a news item — its count is server-authoritative', () => {
+  it('reconciles a news item from its loaded tree — the counts entry is the stale one', () => {
+    // Fetched once per session and then held at staleTime: Infinity, so the
+    // moment anybody else comments the card is behind and the thread is not.
     client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { 'news-1': 2 });
-    client.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments('news-1'), { items: [] });
+    seedNewsThread('news-1', [newsComment('c1'), newsComment('c2'), newsComment('c3')]);
 
     renderHook(() => useReconcileFeedCommentCount('news-1'), { wrapper });
 
-    expect(counts()).toEqual({ 'news-1': 2 });
+    expect(counts()).toEqual({ 'news-1': 3 });
+  });
+
+  it('counts a news item’s replies at any depth, not just its top-level comments', () => {
+    seedNewsThread('news-1', [newsComment('c1', [newsComment('r1', [newsComment('r2')])]), newsComment('c2')]);
+
+    renderHook(() => useReconcileFeedCommentCount('news-1'), { wrapper });
+
+    expect(counts()).toEqual({ 'news-1': 4 });
+  });
+
+  it('takes a news item to 0 — the count the counts endpoint cannot express', () => {
+    // Its groupBy emits no row for a zero-comment item, so the fetched entry
+    // can only ever omit the uid. Reconciling is the one path that writes 0.
+    client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { 'news-1': 1 });
+    seedNewsThread('news-1', []);
+
+    renderHook(() => useReconcileFeedCommentCount('news-1'), { wrapper });
+
+    expect(counts()).toEqual({ 'news-1': 0 });
+  });
+
+  it('remembers no floor for a news item — that exists for NodeBB staleness only', () => {
+    seedNewsThread('news-1', [newsComment('c1')]);
+
+    renderHook(() => useReconcileFeedCommentCount('news-1'), { wrapper });
+
     expect(readCountFloors()).toEqual({});
+  });
+
+  it('leaves a news entry alone when the cache holds no items — a partial write is not an empty thread', () => {
+    client.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), { 'news-1': 2 });
+    client.setQueryData(feedQueryKeys.comments('news-1'), {} as IFeedCommentsResponse);
+
+    renderHook(() => useReconcileFeedCommentCount('news-1'), { wrapper });
+
+    // Reporting 0 here would read as "every comment on this item was deleted".
+    expect(counts()).toEqual({ 'news-1': 2 });
   });
 
   it('does nothing before the thread has been opened', () => {

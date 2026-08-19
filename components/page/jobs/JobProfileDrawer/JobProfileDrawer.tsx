@@ -1,0 +1,269 @@
+'use client';
+
+import React from 'react';
+import clsx from 'clsx';
+import { useQuery } from '@tanstack/react-query';
+
+import { Drawer } from '@/components/common/Drawer';
+import { Button } from '@/components/common/Button';
+import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
+import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
+import { ProfileDetails } from '@/components/page/member-details/ProfileDetails';
+import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
+import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
+import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { getMember } from '@/services/members.service';
+import { MembersQueryKeys } from '@/services/members/constants';
+import { useJobSearchStatus, useUpdateJobSearchStatus } from '@/services/jobs/hooks/useJobApplications';
+import { JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { useCurrentUserStore } from '@/services/auth/store';
+import { isAdminUser } from '@/utils/user/isAdminUser';
+
+import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
+import { PendingApprovalSteps } from './PendingApprovalSteps';
+
+// Demo Day's profile-completion chrome: the sticky 64px header with its "Back"
+// affordance, and the 720px-max centred content column.
+import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
+import d from './JobProfileDrawer.module.scss';
+
+/**
+ * "Complete your profile" — the one thing standing between a signed-in visitor
+ * and a one-click application.
+ *
+ * The Demo Day pattern (`EditInvestorProfileDrawer`), promoted from the
+ * job-board prototype — but where the prototype transcribed the member-detail
+ * sections against mock data, this composes the REAL section components, which
+ * own their editing and their saves (each section commits through its existing
+ * endpoints and invalidates the member queries). That is also what makes the
+ * footer's resume safe: "Continue to apply" enables off the same member cache
+ * the apply modal reads back, so the read-back can never quote a pre-edit
+ * profile.
+ *
+ * The gate on Apply is exactly two answers — current role + job search status
+ * (`isJobProfileComplete`). Their cards mark themselves while unanswered;
+ * everything else refines a read rather than making one possible.
+ *
+ * Escapable (Escape and overlay both close), unlike the investor drawer, which
+ * pins itself shut: someone who pressed Apply and changed their mind about the
+ * role is not someone to hold.
+ */
+
+interface JobProfileDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  memberUid: string;
+  isLoggedIn: boolean;
+  /** Set when the drawer is holding up an application — names the role. */
+  pendingRoleTitle: string | null;
+  /** Signed up but not yet approved: profile saves, applying waits. */
+  pendingApproval: boolean;
+  /** rbac PENDING (identity unverified) — the stepper nudges verification. */
+  needsIdentityVerification?: boolean;
+  /** True when saving can resume into the apply modal (role held + approved). */
+  resumeIntoApply: boolean;
+  /** The footer press. Completeness is reported from the drawer's own (freshest) read. */
+  onFooterAction: (args: { profileComplete: boolean }) => void;
+}
+
+export function JobProfileDrawer(props: JobProfileDrawerProps) {
+  const {
+    open,
+    onClose,
+    memberUid,
+    isLoggedIn,
+    pendingRoleTitle,
+    pendingApproval,
+    needsIdentityVerification = false,
+    resumeIntoApply,
+    onFooterAction,
+  } = props;
+
+  const { currentUser: userInfo } = useCurrentUserStore();
+  const isAdmin = isAdminUser(userInfo);
+  const isOwner = !!userInfo && userInfo.uid === memberUid;
+
+  // The same fetch the investor drawer and the member page make — the section
+  // components edit against this record and invalidate this key on save.
+  const { data: member, isLoading } = useQuery({
+    queryKey: [MembersQueryKeys.GET_MEMBER, memberUid, isLoggedIn, userInfo?.uid],
+    queryFn: () =>
+      getMember(memberUid, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, userInfo, !isAdmin && !isOwner, true),
+    enabled: open && !!memberUid,
+    select: (data) => data?.data?.formattedData,
+  });
+
+  const statusQuery = useJobSearchStatus({ memberUid, enabled: open && !!memberUid });
+  const updateStatus = useUpdateJobSearchStatus(memberUid);
+  // The Jest useQuery mock ignores `select`-less typing edge cases — guard the shape.
+  const jobSearchStatus: JobSearchStatus | null = typeof statusQuery.data === 'string' ? statusQuery.data : null;
+
+  const hasRole = Boolean(((member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim()).length);
+  const hasStatus = jobSearchStatus !== null;
+  const complete = hasRole && hasStatus;
+
+  return (
+    <Drawer isOpen={open} onClose={onClose}>
+      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+        <div className={s.breadcrumbs}>
+          <button type="button" className={s.backButton} onClick={onClose}>
+            <BackIcon />
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+
+      <div className={s.drawerContent}>
+        {/* Where a pending member is in the process — above the lede because it
+            answers "can I even do this". */}
+        {pendingApproval && <PendingApprovalSteps needsIdentityVerification={needsIdentityVerification} />}
+
+        <p className={d.lede}>
+          {pendingRoleTitle
+            ? pendingApproval
+              ? `You'll be able to apply to ${pendingRoleTitle} once your account is approved.`
+              : `We send your profile with your application to ${pendingRoleTitle}.`
+            : 'This is what hiring teams see when you apply.'}
+        </p>
+
+        {isLoading && <div className={d.loading}>Loading profile…</div>}
+
+        {member && (
+          <>
+            {/* 1. The header card — the first required answer (current role)
+                   lives in its editor. While the role is missing the card wears
+                   the required treatment: the strip names the consequence, the
+                   amber "+ Your Role" inside is production's own affordance. */}
+            <div className={clsx({ [d.missingCard]: !hasRole })}>
+              {!hasRole && (
+                <DataIncomplete className={d.incompleteStrip}>
+                  {pendingRoleTitle
+                    ? `Your current role is required to apply to ${pendingRoleTitle}.`
+                    : 'Your current role is required to apply.'}
+                </DataIncomplete>
+              )}
+              <div className={clsx({ [d.missingBody]: !hasRole })}>
+                <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+              </div>
+            </div>
+
+            {/* 2. Job search status — the required section, so it comes first
+                   after the header. PL-Team-only: the pill carries the
+                   audience, the note carries the purpose, and the value never
+                   appears on the public profile or in the apply read-back. */}
+            <DetailsSection missingData={!hasStatus}>
+              {!hasStatus && (
+                <DataIncomplete className={d.incompleteStrip}>
+                  {pendingRoleTitle
+                    ? `An answer here is required to apply to ${pendingRoleTitle}.`
+                    : 'An answer here is required to apply.'}
+                </DataIncomplete>
+              )}
+              <div className={clsx({ [d.missingBody]: !hasStatus })}>
+                <DetailsSectionHeader title="Job search status">
+                  <PlTeamOnlyPill />
+                </DetailsSectionHeader>
+                <JobSearchStatusInput
+                  value={jobSearchStatus}
+                  disabled={updateStatus.isPending}
+                  onChange={(value) => updateStatus.mutate(value)}
+                />
+              </div>
+            </DetailsSection>
+
+            {/* 3–5. Optional sections — what a hiring team actually reads.
+                   Real components: they edit in place and save themselves. */}
+            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          </>
+        )}
+      </div>
+
+      {/* The drawer's own action — always on screen, disabled until usable. The
+          sections' own Saves commit one card each; this one says what happens
+          NEXT: "Continue to apply" when a role is held and the account may
+          apply, "Save profile" otherwise (naming a destination the press cannot
+          reach would be the button lying about where it goes). */}
+      <div className={d.footer}>
+        <div className={d.footerInner}>
+          <p className={d.footerHint}>
+            {!complete
+              ? `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
+              : pendingApproval
+                ? 'Your profile is saved as you go; applying unlocks once the PL team approves your account.'
+                : 'Experience, skills and bio are optional — you can add them any time.'}
+          </p>
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            disabled={!complete}
+            onClick={() => onFooterAction({ profileComplete: complete })}
+          >
+            {resumeIntoApply && !pendingApproval ? 'Continue to apply' : 'Save profile'}
+          </Button>
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
+/** What's still owed, as a verb phrase the footer drops into its sentence. */
+function missingHint(hasRole: boolean, hasStatus: boolean): string {
+  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
+  if (!hasRole) return 'add your current role';
+  return 'choose a job search status';
+}
+
+const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+
+function JobSearchStatusInput({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: JobSearchStatus | null;
+  disabled?: boolean;
+  onChange: (next: JobSearchStatus) => void;
+}) {
+  return (
+    <div className={d.statusRoot}>
+      {/* The pill carries the audience; this line carries the purpose. */}
+      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
+
+      <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
+        {JOB_SEARCH_STATUS_OPTIONS.map((option) => (
+          <label key={option.value} className={clsx(d.statusOption, { [d.statusOptionOn]: value === option.value })}>
+            <input
+              type="radio"
+              name="job-search-status"
+              className={d.statusInput}
+              value={option.value}
+              checked={value === option.value}
+              disabled={disabled}
+              onChange={() => onChange(option.value)}
+            />
+            <span className={d.statusIndicator} aria-hidden="true" />
+            <span className={d.statusText}>
+              <span className={d.statusLabel}>{option.label}</span>
+              <span className={d.statusHint}>{option.hint}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// EditInvestorProfileDrawer's own glyph, copied so the Back control it sits in
+// is the same control, not a lookalike.
+const BackIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M17.5 9.99998C17.5 10.1657 17.4342 10.3247 17.3169 10.4419C17.1997 10.5591 17.0408 10.625 16.875 10.625H4.6336L9.19219 15.1828C9.25026 15.2409 9.29632 15.3098 9.32775 15.3857C9.35918 15.4615 9.37535 15.5429 9.37535 15.625C9.37535 15.7071 9.35918 15.7884 9.32775 15.8643C9.29632 15.9402 9.25026 16.0091 9.19219 16.0672C9.13412 16.1252 9.06518 16.1713 8.98931 16.2027C8.91344 16.2342 8.83213 16.2503 8.75 16.2503C8.66788 16.2503 8.58656 16.2342 8.51069 16.2027C8.43482 16.1713 8.36588 16.1252 8.30782 16.0672L2.68282 10.4422C2.62471 10.3841 2.57861 10.3152 2.54715 10.2393C2.5157 10.1634 2.49951 10.0821 2.49951 9.99998C2.49951 9.91785 2.5157 9.83652 2.54715 9.76064C2.57861 9.68477 2.62471 9.61584 2.68282 9.55779L8.30782 3.93279C8.42509 3.81552 8.58415 3.74963 8.75 3.74963C8.91586 3.74963 9.07492 3.81552 9.19219 3.93279C9.30947 4.05007 9.37535 4.20913 9.37535 4.37498C9.37535 4.54083 9.30947 4.69989 9.19219 4.81717L4.6336 9.37498H16.875C17.0408 9.37498 17.1997 9.44083 17.3169 9.55804C17.4342 9.67525 17.5 9.83422 17.5 9.99998Z"
+      fill="currentColor"
+    />
+  </svg>
+);

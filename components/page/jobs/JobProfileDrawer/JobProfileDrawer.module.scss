@@ -1,0 +1,246 @@
+// Promoted (subset) from prototypes/entries/job-board/JobProfileDrawer.module.scss.
+// Everything with a shape — the sticky 64px header and 720px column
+// (EditInvestorProfileDrawer.module.scss), the profile card, the section cards —
+// is imported by the component; what's left is what none of those stylesheets
+// has an opinion about: the drawer's own footer, the radio the design system
+// doesn't have, the required-card treatment, and two lines of prose.
+@use 'styles/media';
+
+// The sentence at the top of the column, naming the role the drawer is holding
+// up. `.drawerContent` centres its children, so prose has to claim the measure.
+.lede {
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The sticky Back header, lifted above the scrolling column: the pending
+// stepper's step indicators are positioned (the connector rail needs it) and
+// would otherwise scroll OVER the header and swallow the back arrow. Doubled
+// selector to beat production's single-class rule regardless of bundle order.
+.drawerHeaderLift.drawerHeaderLift {
+  z-index: 3;
+}
+
+// The header card in its "you need this" state. `ProfileDetails` is not a
+// `DetailsSection`, so `missingData` can't be passed in — the values are
+// transcribed from `DetailsSection.module.scss .missingData` verbatim so the
+// two required cards don't look like two different kinds of warning.
+.missingCard {
+  > * {
+    // The DataIncomplete strip caps the card; ProfileDetails supplies its own
+    // white body below via `.missingBody`.
+    border-radius: 0;
+  }
+
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: none;
+  border-radius: 8px;
+  overflow: hidden;
+
+  @include media.tablet-landscape {
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+  }
+}
+
+.missingBody {
+  background: var(--Neutral-White, #fff);
+  border-radius: 0 0 8px 8px;
+}
+
+// `DataIncomplete` is neutral by default; amber here, matching PitchDeckView and
+// ContactDetails, and left-aligned so it reads in the same column as the stack
+// it caps. Doubled to outrank production's `.root` at equal specificity.
+.incompleteStrip.incompleteStrip {
+  justify-content: flex-start;
+  color: var(--foreground-warning-secondary, #d97706);
+}
+
+// --- The drawer's own action ------------------------------------------------
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  flex-shrink: 0;
+  background: var(--Neutral-White, #fff);
+  box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+}
+
+.footerInner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px;
+
+  @include media.tablet-landscape {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 20px;
+  }
+}
+
+// One sentence, and it changes: before the requirement is met it says what is
+// missing, after it says what is optional. A disabled button with no reason
+// next to it is a door with no sign.
+.footerHint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// --- Job search status ------------------------------------------------------
+
+.statusRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* The consequence the pill can't carry, in the same 12px tertiary voice the
+   option hints use. */
+.statusPrivacyNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.statusOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
+}
+
+// The chosen one keeps the brand tint the rest of the product uses for a
+// selected surface: a filled row is easier to find again than a filled dot.
+.statusOptionOn {
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+}
+
+// The native input stays in the DOM and keeps the keyboard behaviour — made
+// invisible rather than `display: none`, which would drop it from focus order.
+.statusInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// The DS Checkbox, rounded — the system has no radio, and the nearest thing it
+// has is the control that answers the same kind of question.
+.statusIndicator {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--Neutral-White, #fff);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+  }
+}
+
+.statusInput:checked + .statusIndicator {
+  border-color: var(--action-background-brand-normal, #156ff7);
+  background: var(--action-background-brand-normal, #156ff7);
+
+  &::after {
+    transform: scale(1);
+  }
+}
+
+.statusInput:focus-visible + .statusIndicator {
+  outline: 2px solid var(--action-background-brand-normal, #156ff7);
+  outline-offset: 2px;
+}
+
+// The label-over-hint pair inside an option row (ProfileCollaborateInput's
+// shape, local so this component doesn't reach into that module).
+.statusText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statusLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.statusHint {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.loading {
+  width: 100%;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

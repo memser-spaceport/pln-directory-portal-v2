@@ -48,6 +48,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       linkedin: member.linkedinHandle,
       discord: member.discordHandle,
       twitter: member.twitter,
+      bluesky: member.blueskyHandle,
       email: member.email,
       shareContacts: getDefaultToggleValue(member.preferences),
     },
@@ -69,6 +70,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
     }
 
     const preferencesPayload = {
+      bluesky: formData.shareContacts,
       discord: formData.shareContacts,
       email: formData.shareContacts,
       github: formData.shareContacts,
@@ -82,6 +84,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
       showLinkedin: formData.shareContacts,
       showTelegram: formData.shareContacts,
       showTwitter: formData.shareContacts,
+      showBluesky: formData.shareContacts,
       telegram: formData.shareContacts,
       twitter: formData.shareContacts,
     };
@@ -234,6 +237,14 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
               placeholder="eg., @protocollabs or https://twitter.com/protocollabs"
             />
           </div>
+          <div className={s.row}>
+            <Image src={getContactLogoByProvider('bluesky')} alt="Bluesky" height={24} width={24} />
+            <FormField
+              name="bluesky"
+              label="Bluesky"
+              placeholder="eg., @protocol.ai or https://bsky.app/profile/protocol.ai"
+            />
+          </div>
           {variant !== 'drawer' && (
             <div className={clsx(s.row, s.center)}>
               <div className={s.switchLabelWrapper}>
@@ -257,6 +268,9 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
   const normalizedDiscord = formData.discord ? getProfileFromURL(formData.discord, 'discord') : formData.discord;
   const normalizedGithub = formData.github ? getProfileFromURL(formData.github, 'github') : formData.github;
   const normalizedTelegram = formData.telegram ? getProfileFromURL(formData.telegram, 'telegram') : formData.telegram;
+  const normalizedBluesky = formData.bluesky
+    ? getProfileFromURL(formData.bluesky.trim(), 'bluesky')
+    : formData.bluesky;
 
   return {
     imageUid: memberInfo.imageUid,
@@ -270,6 +284,7 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
     linkedinHandler: normalizedLinkedin,
     discordHandler: normalizedDiscord,
     twitterHandler: normalizedTwitter,
+    blueskyHandler: normalizedBluesky,
     githubHandler: normalizedGithub,
     telegramHandler: normalizedTelegram,
     moreDetails: memberInfo.moreDetails,

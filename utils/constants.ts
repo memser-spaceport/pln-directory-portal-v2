@@ -792,6 +792,7 @@ export const TWITTER_URL_REGEX = /(?:twitter|x)\.com\/([^/]+)/;
 export const GITHUB_URL_REGEX = /github\.com\/([^/]+)/;
 export const TELEGRAM_URL_REGEX = /t\.me\/([^/]+)/;
 export const DISCORD_URL_REGEX = /discord\.(?:com|gg)\/(?:users\/)?([^/\s]+)/;
+export const BLUESKY_URL_REGEX = /^\s*(?:https?:\/\/)?(?:www\.)?bsky\.app\/profile\/@?([^/?#\s]+)/i;
 export const EMAIL_REGEX = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
 export const LEARN_MORE_URL =
@@ -825,6 +826,7 @@ export const PRIVACY_CONSTANTS = {
     showDiscord: DEFAULT_PRIVACY_VISIBILITY,
     showGithubProjects: DEFAULT_PRIVACY_VISIBILITY,
     showTwitter: DEFAULT_PRIVACY_VISIBILITY,
+    showBluesky: DEFAULT_PRIVACY_VISIBILITY,
   },
 };
 

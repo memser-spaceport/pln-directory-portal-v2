@@ -32,6 +32,7 @@ export interface IMemberResponse {
   discordHandler: string;
   telegramHandler: string;
   twitterHandler: string;
+  blueskyHandler: string;
   officeHours: string;
   ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
@@ -134,6 +135,7 @@ export interface IMember {
   discordHandle?: string | null;
   telegramHandle?: string | null;
   twitter?: string | null;
+  blueskyHandle?: string | null;
   accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected' | 'L5' | 'L6';
   officeHours: string | null;
   ohInterest?: string[] | null;
@@ -277,6 +279,7 @@ export interface IMemberPreferences {
   showTelegram: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
+  showBluesky?: boolean;
   showOfficeHoursDialog?: boolean;
 }
 
@@ -305,6 +308,7 @@ export interface IMemberUpdateSource {
   linkedinHandler?: string | null;
   discordHandler?: string | null;
   twitterHandler?: string | null;
+  blueskyHandler?: string | null;
   githubHandler?: string | null;
   telegramHandler?: string | null;
   officeHours?: string | null;
@@ -330,6 +334,7 @@ export interface IMemberUpdatePayload {
   linkedinHandler?: string | null;
   discordHandler?: string | null;
   twitterHandler?: string | null;
+  blueskyHandler?: string | null;
   githubHandler?: string | null;
   telegramHandler?: string | null;
   officeHours?: string | null;

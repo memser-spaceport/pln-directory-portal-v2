@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
 import type { IJobRole } from '@/types/jobs.types';
+import type { JobSurface } from '@/analytics/jobs.analytics';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { Badge } from '@/components/common/Badge';
@@ -27,6 +28,8 @@ interface JobReferRoleRowProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
+  source?: JobSurface;
   onClick?: () => void;
   /** True only while the "Best match for me" sort is on — see `showMatch` below. */
   showMatch?: boolean;
@@ -67,6 +70,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     role,
     teamId,
     teamName,
+    source = 'job-board',
     onClick,
     showMatch = false,
     canRefer = true,
@@ -147,7 +151,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
               Refer
             </Button>
 
-            <ReferMenu role={role} teamId={teamId} teamName={teamName} />
+            <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
             {/* An anchor wearing Button's classes rather than a <Button>: this
                 opens an external posting, so it has to stay a real link (new
@@ -176,6 +180,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         role={role}
         teamId={teamId}
         teamName={teamName}
+        source={source}
       />
     </>
   );

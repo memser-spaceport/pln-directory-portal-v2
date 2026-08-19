@@ -230,6 +230,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
                     seniority: role.seniority,
                     focus_areas: group.team.focusAreas,
                     position_in_list: positionInList(groups, groupIndex, indexInGroup),
+                    source: 'job-board',
                     filter_state: filterState,
                   });
                 }}

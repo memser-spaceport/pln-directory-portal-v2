@@ -11,7 +11,7 @@ import { CloseIcon } from '@/components/icons';
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
-import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 
 import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
@@ -40,6 +40,8 @@ interface ReferModalProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  /** Surface the referral was started from, carried onto every event in the funnel. */
+  source: JobSurface;
 }
 
 type ReferFormData = {
@@ -76,7 +78,7 @@ type ReferFormData = {
  * directory as you type, which no production select can drive — see
  * `MemberSearchSelect` and `RecipientPicker`.
  */
-export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModalProps) {
+export function ReferModal({ open, onClose, role, teamId, teamName, source }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   const [recipientsSeeded, setRecipientsSeeded] = useState(false);
@@ -102,6 +104,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName }: ReferModal
     role_title: role.roleTitle,
     role_category: role.roleCategory,
     seniority: role.seniority,
+    source,
   };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.

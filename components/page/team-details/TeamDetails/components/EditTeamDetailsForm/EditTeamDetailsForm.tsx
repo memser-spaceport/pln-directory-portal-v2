@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormMultiSelect } from '@/components/form/FormMultiSelect';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormSwitch } from '@/components/form/FormSwitch';
 import { BioInput } from '@/components/page/member-details/BioDetails/components/BioInput';
 import { EditFormMobileControls } from '@/components/page/member-details/components/EditFormMobileControls';
 import { EditFormControls } from '@/components/common/profile/EditFormControls';
@@ -22,6 +23,8 @@ import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
+
+import { isTeamInactive } from '../../utils/isTeamInactive';
 
 import { editTeamDetailsSchema } from './helpers';
 
@@ -37,6 +40,7 @@ type TEditTeamDetailsForm = {
   dateFounded: string;
   teamSize: string;
   location: string;
+  isActive: boolean;
   isFund: boolean;
   fundingStage: TOption | null;
   industryTags: TOption[];
@@ -83,6 +87,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       dateFounded: team?.dateFounded ? String(team.dateFounded) : '',
       teamSize: team?.teamSize === null || team?.teamSize === undefined ? '' : String(team.teamSize),
       location: team?.location || '',
+      isActive: !isTeamInactive(team),
       isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
       industryTags: defaultIndustryTags,
@@ -157,6 +162,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       dateFounded: formData.dateFounded.trim() ? Number(formData.dateFounded.trim()) : null,
       teamSize: formData.teamSize.trim() || null,
       location: formData.location.trim() || null,
+      status: formData.isActive ? 'ACTIVE' : 'INACTIVE',
       isFund: formData.isFund,
       fundingStage: formData.fundingStage
         ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
@@ -180,6 +186,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
         dateFounded: formData.dateFounded.trim(),
         teamSize: formData.teamSize.trim(),
         location: formData.location.trim(),
+        isActive: formData.isActive,
         isFund: formData.isFund,
         fundingStage: formData.fundingStage?.value ?? null,
         industryTags: formData.industryTags.map((item) => item.value),
@@ -237,6 +244,12 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             placeholder="eg., San Francisco, United States"
             label="Location"
             description="Where your team is based."
+          />
+
+          <FormSwitch
+            name="isActive"
+            label="This team is active"
+            helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
           />
 
           <div className={s.checkboxLabel}>

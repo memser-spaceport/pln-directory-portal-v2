@@ -29,6 +29,7 @@ export const editTeamDetailsSchema = yup.object({
     })
     .defined(),
   location: yup.string().trim().defined(),
+  isActive: yup.boolean().defined(),
   isFund: yup.boolean().defined(),
   fundingStage: yup.object().nullable().defined(),
   industryTags: yup.array().of(yup.object()).defined(),

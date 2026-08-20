@@ -534,6 +534,12 @@ export default function JobBoardPrototype() {
       const newest = (g: IJobTeamGroup) => Math.max(...g.roles.map((r) => new Date(getJobDate(r)).getTime()));
       groups.sort((a, b) => newest(b) - newest(a));
     }
+
+    const plIndex = groups.findIndex((g) => g.team.name.trim().toLowerCase() === 'protocol labs');
+    if (plIndex > 0) {
+      const [protocolLabs] = groups.splice(plIndex, 1);
+      groups.unshift(protocolLabs);
+    }
     return groups;
   }, [railGroups, sort]);
 

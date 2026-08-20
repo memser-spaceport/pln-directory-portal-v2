@@ -52,7 +52,7 @@ function LinkAuthAccounts() {
   return (
     <>
       <div className="lc">
-        <h2 className="lc__title">Link your account for login</h2>
+        <h2 className="lc__title">Sign-in methods</h2>
         <div className="lc__list">
           {activeLinkedAccounts.map((account: any) => (
             <div key={account.name} className="lc__list__item">

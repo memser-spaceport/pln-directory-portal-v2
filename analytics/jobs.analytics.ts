@@ -1,6 +1,7 @@
 import { JOBS_ANALYTICS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
+import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
 type FilterStateParam = Record<string, unknown>;
 
@@ -24,6 +25,31 @@ export type JobReferBaseParams = {
   role_title: string;
   role_category: string | null;
   seniority: string | null;
+  source: JobSurface;
+};
+
+/**
+ * Which control started an apply-funnel step: a role row, the board banner, the
+ * header — or `resume`, which is the flow picking itself back up after the
+ * Privy round trip rather than anything the person pressed. Kept distinct so
+ * apply-click counts stay a count of actual clicks.
+ */
+export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume';
+
+/**
+ * Apply-funnel payloads carry ONLY what's listed here: uids, viewer state,
+ * source/trigger, and a failure category. Never form field values (email,
+ * name, linkedin), never the jobSearchStatus value (PL-Team-only — a PostHog
+ * dashboard is a wider audience than that), never cover-letter text.
+ * `captureEvent` already stamps the logged-in user's identity; add nothing.
+ *
+ * `job_id`/`team_id` are null for flows started without a role (banner/header
+ * sign-up, generic drawer edits).
+ */
+export type JobApplyBaseParams = {
+  job_id: string | null;
+  team_id: string | null;
+  viewer_state: BoardViewerState;
   source: JobSurface;
 };
 
@@ -213,6 +239,34 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARED, { ...args });
   };
 
+  const onJobApplyClicked = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
+  };
+
+  const onJobApplySignUpSubmitted = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_SUBMITTED, { ...args });
+  };
+
+  const onJobApplySignUpFailed = (args: JobApplyBaseParams & { failure_category: 'duplicate' | 'request-failed' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_FAILED, { ...args });
+  };
+
+  const onJobApplyDrawerOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_DRAWER_OPENED, { ...args });
+  };
+
+  const onJobApplyDrawerSaved = (args: JobApplyBaseParams & { profile_complete: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_DRAWER_SAVED, { ...args });
+  };
+
+  const onJobApplySubmitted = (args: JobApplyBaseParams & { cover_letter_length: number }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SUBMITTED, { ...args });
+  };
+
+  const onJobApplyFailed = (args: JobApplyBaseParams & { failure_category: 'already-applied' | 'request-failed' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FAILED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -240,5 +294,12 @@ export const useJobsAnalytics = () => {
     onJobReferFailed,
     onJobReferShareMenuOpened,
     onJobReferShared,
+    onJobApplyClicked,
+    onJobApplySignUpSubmitted,
+    onJobApplySignUpFailed,
+    onJobApplyDrawerOpened,
+    onJobApplyDrawerSaved,
+    onJobApplySubmitted,
+    onJobApplyFailed,
   };
 };

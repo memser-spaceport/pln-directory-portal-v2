@@ -46,6 +46,13 @@ export function buildMemberUpdatePayload(
       uid: skill.id,
     })),
     bio: memberInfo.bio,
+    currentCompany: memberInfo.currentCompany,
+    /* Carried like every other field, and for exactly the reason this helper
+       exists: the job board sets this from its own drawer, and without it here
+       the next save of an unrelated section — a bio edit, a contribution —
+       would post the whole record back without it and silently clear the
+       answer that gates applying. */
+    jobSearchStatus: memberInfo.jobSearchStatus,
     ...overrides,
   };
 }

@@ -13,6 +13,7 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { USE_ACCESS_CONTROL_V2 } from '@/utils/feature-flags';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
+import { isJobSearchStatus } from '@/services/jobs/job-board-viewer';
 
 const resolveAuthToken = (authToken?: string) => {
   if (authToken) return authToken;
@@ -227,6 +228,19 @@ export const getMember = async (
     ohStatus: result.ohStatus,
     investorProfile: result.investorProfile,
     signUpSource: result.signUpSource,
+    /** Optional profile text. The job-board application snapshot reads
+     *  `currentCompany ?? main team name`, so anything quoting the applicant's
+     *  company should prefer this to stay in step with what is actually sent. */
+    currentCompany: result.currentCompany ?? null,
+    /**
+     * PL-Team-only. The API omits this field entirely for anyone but the member
+     * themselves (or an admin) — absent, not null — so its presence here is
+     * already the permission check having passed. Validated rather than passed
+     * through so an unknown value surfaces instead of quietly failing the
+     * apply gate; this mapping is explicit field by field, and a field left out
+     * of it is a field that silently never arrives.
+     */
+    jobSearchStatus: isJobSearchStatus(result.jobSearchStatus) ? result.jobSearchStatus : null,
 
     rbac: {
       status: result.memberState,

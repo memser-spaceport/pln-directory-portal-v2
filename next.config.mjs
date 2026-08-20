@@ -5,6 +5,43 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // DELETE WITH: the `design-canvas/` folder.
+  // The canvas capture runs a production build to photograph its frames. Without
+  // this line CANVAS_BUILD_DIR is ignored, that build overwrites `.next`, and it
+  // takes down the dev server the reviewer is looking at. It fails silently,
+  // which is why it is here rather than left to the capture script.
+  distDir: process.env.CANVAS_BUILD_DIR || '.next',
+
+  // DELETE WITH: the `design-canvas/` folder.
+  // The vendored canvas core does not typecheck under this repo's `strict: true`
+  // — four errors in `core/comments-route.ts`, where TypeScript drops a guard's
+  // narrowing inside a closure and `shotHash` has no guard at all. The core is
+  // byte-for-byte frozen (the canvas has one appearance in every project that
+  // installs it) so it cannot be corrected here.
+  //
+  // Scoped to the two builds that EXIST FOR THE CANVAS, and no others:
+  //   CANVAS_BUILD_DIR            the local capture build, photographed and thrown away
+  //   NEXT_PUBLIC_CANVAS_VIEW_ONLY  the read-only published canvas (pln-prototypes)
+  // A real `npm run build` sets neither and still typechecks everything, core
+  // included. Without the second condition the published build fails outright,
+  // because the vendored core is in the tree whether or not the canvas is served.
+  typescript: {
+    ignoreBuildErrors: !!process.env.CANVAS_BUILD_DIR || process.env.NEXT_PUBLIC_CANVAS_VIEW_ONLY === '1',
+  },
+
+  // DELETE WITH: the `design-canvas/` folder.
+  // The captured frames live in `design-canvas/shots/`, outside `public/` on
+  // purpose, and NOTHING IMPORTS THEM — the shots route reads them off disk by
+  // id. So a serverless deployment traces the route's bundle, finds no reference
+  // to them, and ships a function that answers every picture with a 404: a canvas
+  // of empty frames, from a build that succeeded.
+  //
+  // Verify after a build by reading
+  // `.next/server/app/api/design-canvas/shots/route.js.nft.json` — the webp files
+  // should be listed there.
+  outputFileTracingIncludes: {
+    '/api/design-canvas/shots': ['./design-canvas/shots/**'],
+  },
   // Dev-only: lets the dev server accept HMR/asset requests when accessed
   // through a tunnel domain instead of localhost directly. No effect on
   // `next build`/`next start` — Next.js only enforces this origin check

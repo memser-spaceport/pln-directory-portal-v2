@@ -35,6 +35,7 @@ import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
 
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
+import { TeamProfileMeta } from './components/TeamProfileMeta';
 import { TeamFollowBlock } from '../TeamFollowBlock/TeamFollowBlock';
 import { TeamFollowButton } from '../TeamFollowButton';
 
@@ -188,6 +189,7 @@ export const TeamDetails = (props: Props) => {
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
             </div>
+            <TeamProfileMeta team={team} />
             <div className={s.tagsContainer}>
               {hasTeamEditAccess && !team?.fundingStage?.title && (
                 <div className={s.tags}>

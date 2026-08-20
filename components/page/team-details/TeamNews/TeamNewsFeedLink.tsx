@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 import { ArrowUpRightIcon } from '@/components/icons';
 import { useTeamNewsAnalytics, type TeamNewsFeedLinkSource } from '@/analytics/team-news.analytics';
 
@@ -42,19 +40,28 @@ interface TeamNewsFeedLinkProps {
  *
  * One component for both lists so the two can't drift into different words for
  * the same trip.
+ *
+ * Opens in a new tab, which is what the ↗ promised all along. Three of the five
+ * surfaces rendering this sit on top of state the reader paid for — an open
+ * archive modal, a filtered teams grid, a filtered job board — and the copy
+ * frames the trip as "and what else happened", not "take me away from here".
+ * Spending all of that on a side-trip is not the deal. A plain anchor rather
+ * than next/link on purpose: target="_blank" bypasses client-side routing, so
+ * Link would be a router that can never route.
  */
 export function TeamNewsFeedLink({ teamUid, teamName, source, variant = 'paired', className }: TeamNewsFeedLinkProps) {
   const { onTeamNewsAllNetworkUpdatesClicked } = useTeamNewsAnalytics();
 
   return (
-    <Link
+    <a
       href="/home"
-      prefetch={false}
+      target="_blank"
+      rel="noopener noreferrer"
       className={className ?? (variant === 'solo' ? s.viewFeedSolo : s.viewFeed)}
       onClick={() => onTeamNewsAllNetworkUpdatesClicked(teamUid, teamName, source)}
     >
       All network updates
       <ArrowUpRightIcon aria-hidden="true" />
-    </Link>
+    </a>
   );
 }

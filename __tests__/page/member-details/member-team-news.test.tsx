@@ -51,8 +51,15 @@ jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
   useFeedCommentCount: () => mockCommentCount(),
 }));
 
+// Stubbed to assert only what this card owns — that the footer is attributed to
+// this surface. The new-tab behaviour is the real component's, and asserting it
+// here would test this stub; the rail and modal suites render the real one.
 jest.mock('@/components/page/team-details/TeamNews/TeamNewsFeedLink', () => ({
-  TeamNewsFeedLink: (props: { source: string }) => <a href="/home">All network updates ({props.source})</a>,
+  TeamNewsFeedLink: (props: { source: string }) => (
+    <a href="/home" target="_blank" rel="noopener noreferrer">
+      All network updates ({props.source})
+    </a>
+  ),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({

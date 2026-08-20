@@ -387,6 +387,9 @@ describe('TeamNewsRail', () => {
 
     const link = screen.getByRole('link', { name: /All network updates/i });
     expect(link).toHaveAttribute('href', '/home');
+    // The ↗ promises "elsewhere", and the profile behind it is worth keeping.
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     expect(screen.getByRole('button', { name: 'View all news (5)' })).toBeInTheDocument();
 
     fireEvent.click(link);

@@ -387,11 +387,16 @@ describe('TeamNewsModal drill', () => {
 
     const link = screen.getByRole('link', { name: /All network updates/i });
     expect(link).toHaveAttribute('href', '/home');
+    // A new tab, so this box — and the reader's place in it — survives the trip.
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     fireEvent.click(link);
     expect(mockOnAllNetworkUpdatesClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 'team-profile-modal');
 
     rerenderModal(rerender, { fullscreen: true });
-    expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
+    const fullscreenLink = screen.getByRole('link', { name: /All network updates/i });
+    expect(fullscreenLink).toBeInTheDocument();
+    expect(fullscreenLink).toHaveAttribute('target', '_blank');
   });
 
   // Opened from a listing card's "N new posts" chip, the caller has no archive

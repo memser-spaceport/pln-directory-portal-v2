@@ -39,7 +39,7 @@ export const ConnectedAccounts = ({ userInfo }: { userInfo: IUserInfo }) => {
 
   return (
     <div className={s.root}>
-      <h5 className={s.title}>Connected Accounts</h5>
+      <h5 className={s.title}>Email & Accounts</h5>
 
       {/* Email leads: it is not one more connected account, it is the login itself. */}
       {uid && email && (

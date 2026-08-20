@@ -79,8 +79,28 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     select: (data) => data?.data?.formattedData,
   });
 
-  const pushLogin = () => {
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+  /**
+   * Hand off to Privy, optionally carrying the email the person just typed so
+   * they don't retype it into the login modal.
+   *
+   * The email HAS to travel as a query param: `AuthInfo` — which is what
+   * `#login` mounts — calls `localStorage.clear()` before it does anything
+   * else, so anything written to storage on the way here is gone by the time
+   * Privy asks for it. `AuthInfo` then reads `prefillEmail` off the URL and
+   * puts it back into storage, which is where `PrivyModals` looks. Same
+   * channel `SignupWizard`, `AccountCreatedSuccessModal` and
+   * `AppliedInvestorSteps` use.
+   *
+   * The rest of the search string rides along, so the rail the person narrowed
+   * before signing up is still narrowed when they land back on the board.
+   */
+  const pushLogin = (prefillEmail?: string) => {
+    const search = new URLSearchParams(window.location.search);
+    if (prefillEmail) {
+      search.set('prefillEmail', prefillEmail);
+    }
+    const qs = search.toString();
+    router.push(`${window.location.pathname}${qs ? `?${qs}` : ''}#login`);
   };
 
   /**
@@ -118,16 +138,10 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
     if (result.success) {
       analytics.onJobApplySignUpSubmitted({ ...analyticsBase, trigger: target ? 'row' : 'banner' });
-      // The existing Privy prefill transport (localStorage, consumed by
-      // PrivyModals' handleInitLogin) — deliberately NOT a query param, which
-      // would put the email into history, logs, and PostHog's $current_url.
-      try {
-        window.localStorage.setItem('prefillEmail', details.email);
-      } catch {
-        /* storage unavailable — Privy just opens without the prefill */
-      }
       flow.closeSignUp();
-      pushLogin();
+      // They just typed this email into the form the line above submitted —
+      // asking for it again in the login modal is asking twice for one fact.
+      pushLogin(details.email);
       return { success: true };
     }
 

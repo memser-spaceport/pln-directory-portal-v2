@@ -13,6 +13,12 @@ import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
 import { CloseIcon } from '@/components/icons';
 
+// Demo Day's profile-drawer chrome, for the mobile page's `← Back` header. The
+// same stylesheet `JobProfileDrawer` wears, so the two steps of this flow show
+// one header rather than two.
+import drawer from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
+
+import { BackIcon } from './JobProfileDrawer';
 import { MOCK_JOB_GROUPS } from './mocks';
 import s from './JobSignUpModal.module.scss';
 
@@ -201,19 +207,38 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   };
 
   return (
+    /* `lockScroll` was missing. It never showed while this was a card — the
+       overlay covered the board and nobody scrolled past it — but a full-height
+       page on a phone is a scroll container inside another scroll container, and
+       flicking past the end of the form would drift the board underneath. */
     <Modal
       isOpen={open}
       onClose={onClose}
       overlayClassname={s.overlay}
       closeOnBackdropClick={false}
       closeOnEscape
+      lockScroll
       className={s.modal}
     >
       <button type="button" className={s.closeButton} onClick={onClose} aria-label="Close">
         <CloseIcon />
       </button>
 
-      <div className={s.content}>
+      {/* The page's header, below 960 only.
+          `EditInvestorProfileDrawer`'s own bar — the same sticky 64px white row
+          with `← Back` that the profile drawer shows two steps later in this
+          flow, so a phone user meets one header rather than two designs of one.
+          Above 960 it is display:none and the floating ✕ takes over. */}
+      <div className={`${drawer.drawerHeader} ${s.mobileHeader}`}>
+        <div className={drawer.breadcrumbs}>
+          <button type="button" className={drawer.backButton} onClick={onClose}>
+            <BackIcon />
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+
+      <div className={`${s.content} ${s.pageBody}`}>
         {/* Two headers, because there are two ways in and they are different
             promises.
 
@@ -268,25 +293,35 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
             </div>
 
             <div className={s.bottomText}>
-              {/* Says what actually happens next, including the part nobody wants
-                  to read. An earlier draft ended "you can keep browsing and
-                  applying in the meantime" — browsing is true, applying is not:
-                  approval is precisely what unlocks it. Promising it here and
-                  then blocking it on the next screen would make the account feel
-                  like a bait-and-switch at the exact moment trust is being
-                  asked for. */}
-              {/* The first clause follows the entry point for the same reason
-                  the title does: "sends your details to Filecoin Foundation" is
-                  the truth when a role is pending and a fabrication when the
-                  person just pressed Sign up — nothing is being sent to anyone
-                  yet. The rest is identical, because what the PL team does next
-                  doesn't depend on which button was pressed. */}
+              {/* One line, and only the part nothing else on the card says.
+                  This ran to four lines and pushed "Already have an account?
+                  Sign in" off the bottom of any window shorter than ~730px —
+                  which hides the escape from precisely the people who need it,
+                  since someone who already has an account has no use for the
+                  form above it.
+
+                  What it lost was duplication and one falsehood. The account is
+                  already named twice — the subtitle says creating it is the
+                  first step, the submit button says "Create account" — so
+                  "submitting this creates your LabOS account" was the third
+                  telling. And "sends your details to <team>" was simply untrue:
+                  submitting creates a *pending* account and opens the profile
+                  drawer; the hiring team receives nothing until an approved
+                  member actually applies. Copy that overstates what a button
+                  does is worse than copy that is long.
+
+                  What survives is the fact the person cannot infer and would
+                  resent discovering later — that approval, not this button, is
+                  what unlocks applying. An earlier draft added "you can keep
+                  browsing in the meantime"; true, but the board is visible
+                  behind this card and the pending banner repeats it a second
+                  later, so it was reassurance charged against the one line that
+                  had to be read.
+
+                  No role/no-role branch any more: what the PL team does next
+                  doesn't depend on which button opened this. */}
               <p className={s.body}>
-                {role
-                  ? `Submitting this creates your LabOS account and sends your details to ${teamName}.`
-                  : 'Submitting this creates your LabOS account.'}{' '}
-                The PL team reviews new accounts first — you can keep browsing every role while you wait, and applying
-                opens up once you&apos;re approved.
+                The PL team reviews new accounts first — applying unlocks once you&apos;re approved.
               </p>
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
@@ -311,34 +346,61 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
               </p>
             </div>
 
-            <div className={s.footer}>
-              <Button type="button" size="m" variant="secondary" style="border" onClick={onClose}>
-                Cancel
-              </Button>
-              {/* Disabled only while submitting, never on `!isValid` — production's
+            {/* The dock: the actions and the sign-in escape, sticky together on
+                the mobile page.
+
+                One wrapper rather than two sticky elements, because two would
+                each stick to `bottom: 0` and land on top of each other. On the
+                desktop card it is `display: contents`, so the footer and the
+                sign-in row go back to being direct children of the form and lay
+                out exactly as they did before this existed. See `.actionsDock`. */}
+            <div className={s.actionsDock}>
+              <div className={s.footer}>
+                {/* Card only. On the mobile page the `← Back` header is the way
+                  out, and a second one pinned above the primary would spend a
+                  third of the sticky bar on leaving. See `.cancelButton`. */}
+                <Button
+                  type="button"
+                  size="m"
+                  variant="secondary"
+                  style="border"
+                  className={s.cancelButton}
+                  onClick={onClose}
+                >
+                  Cancel
+                </Button>
+                {/* Disabled only while submitting, never on `!isValid` — production's
                   own apply modal does the same. With `mode: "onBlur"`, `isValid`
                   stays false until every field has been blurred, so gating on it
                   leaves a dead button in front of someone who has filled the form
                   in and cannot tell what is wrong. Pressing Submit runs the
                   schema and puts the error under the field it belongs to. */}
-              {/* "& apply" only when an application is actually waiting behind
-                  this press. Opened from Sign up there is no role to apply to,
-                  and a button promising to apply would leave the person looking
-                  for the application it just filed. */}
-              <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
-                {role ? 'Create account & apply' : 'Create account'}
-              </Button>
-            </div>
+                {/* "Create account", both ways in.
 
-            {/* Copy note: the demo-day source words this "Already applied? Log
-                in". We diverge to "Sign in" per prototypes/AUTH-COPY-AUDIT.md —
-                reasoning in the file header. */}
-            <p className={s.signInRow}>
-              Already have an account?{' '}
-              <button type="button" className={s.signInLink} onClick={onSignIn}>
-                Sign in
-              </button>
-            </p>
+                  The role variant used to say "Create account & apply", which
+                  was wrong in the same way the old body copy was: this button
+                  creates a pending account and opens the profile drawer, and
+                  nothing is applied to until the PL team approves. With the
+                  line directly above it now saying "applying unlocks once
+                  you're approved", a button promising to apply would contradict
+                  its own caption an inch away. The role isn't lost — the title
+                  still names it and the flow resumes on it — so the button
+                  names the one thing the press actually does. */}
+                <Button type="submit" size="m" style="fill" variant="primary" disabled={isSubmitting}>
+                  Create account
+                </Button>
+              </div>
+
+              {/* Copy note: the demo-day source words this "Already applied? Log
+                  in". We diverge to "Sign in" per prototypes/AUTH-COPY-AUDIT.md —
+                  reasoning in the file header. */}
+              <p className={s.signInRow}>
+                Already have an account?{' '}
+                <button type="button" className={s.signInLink} onClick={onSignIn}>
+                  Sign in
+                </button>
+              </p>
+            </div>
           </form>
         </FormProvider>
       </div>

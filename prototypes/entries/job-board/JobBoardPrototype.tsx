@@ -150,11 +150,14 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
 import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
 import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
 import { JobProfileDrawer } from './JobProfileDrawer';
 import { JobApplyModal } from './JobApplyModal';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
+import { ApplicationEmailPreview } from './email/ApplicationEmailPreview';
+import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
   EMPTY_PROFILE,
   FILLED_PROFILE,
@@ -184,16 +187,49 @@ import s from './JobBoardPrototype.module.scss';
 const NEWS_VARIANT: JobCardNewsVariant = 'count';
 
 /**
+ * One filled specimen of the application email, for the `?email=1` review
+ * surface.
+ *
+ * Every value is read off the board's own mocks rather than typed here, so the
+ * specimen cannot drift from the roles on screen — except the two the mock has no
+ * source for: the recipient, and the letter.
+ *
+ * The recipient is a constant rather than the live `useTeamMembers` lookup on
+ * purpose. That hook hits the real directory, and a review surface for *copy*
+ * should render the same words every time it is opened rather than whatever the
+ * API returns today — the apply modal is where the live leads are already shown.
+ *
+ * The letter is written the way the template assumes letters are written: naming
+ * this role, from someone who read the posting. A lorem-ipsum specimen would make
+ * the one part of the email a human wrote look like the part that matters least.
+ */
+const SAMPLE_ROLE_GROUP = MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0];
+
+const SAMPLE_APPLICATION_EMAIL: ApplicationEmailInput = {
+  recipientName: 'Clara Tsao',
+  roleTitle: SAMPLE_ROLE_GROUP.roles[0].roleTitle,
+  teamName: SAMPLE_ROLE_GROUP.team.name,
+  profile: FILLED_PROFILE,
+  coverLetter:
+    'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
+  profileUrl: 'os.pl.xyz/members/cldvommb409tlu21kradd3rpm',
+};
+
+/**
  * Which viewer the mobile bottom bar is drawn for. Named after what the person
  * has, not after the slot that moves — "PL Infra viewer" is a fact about the
  * account; which of Events or PL Infra ends up in slot two is the consequence.
  */
-/** The four entry states the apply flow branches into — see `BoardViewer`. */
+/** The five entry states the apply flow branches into — see `BoardViewer`. */
 const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
   { value: 'logged-out', label: 'Logged out' },
   { value: 'pending-approval', label: 'Signed up, pending approval' },
   { value: 'profile-incomplete', label: 'Signed in, profile empty' },
   { value: 'profile-ready', label: 'Signed in, profile ready' },
+  /* Last, because the row reads as a sequence: no account → waiting → signed in
+     with nothing → signed in and ready → been and applied. Each tab is the next
+     thing that happens to the same person. */
+  { value: 'applied', label: 'Already applied' },
 ];
 
 const VIEWER_NOTE: Record<BoardViewer, string> = {
@@ -204,7 +240,58 @@ const VIEWER_NOTE: Record<BoardViewer, string> = {
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
     'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
+  applied:
+    'The returning member: two applications already sent. The Applied tab has a count and a list, those rows show “Applied” instead of an offer, and the rest of the board carries on as normal — having applied to two roles is no reason to change what the other eleven look like.',
 };
+
+/**
+ * What the `applied` viewer arrives having already done.
+ *
+ * Two roles from one team rather than one from each: applying twice to the same
+ * hiring team is the ordinary case on a board grouped by team, and it makes the
+ * Applied tab's own grouping visible — one card with two rows, rather than two
+ * cards with one row each, which would look like an unfiltered board.
+ *
+ * Read off `MOCK_JOB_GROUPS` rather than typed as uids, so a rename or reorder in
+ * the mocks can't leave this pointing at roles that no longer exist.
+ */
+const SEEDED_APPLICATION_ROLES = (
+  MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0]
+).roles.slice(0, 2);
+
+const SEEDED_APPLICATION_LETTERS = [
+  'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
+  'Most of my last two years has been grants-adjacent: scoping the work, writing the briefs, and chasing the reporting nobody enjoys. I would rather do it somewhere the grants are the product.',
+];
+
+/**
+ * The seeded applications, built fresh each time the viewer is selected.
+ *
+ * **Backdated on purpose.** `appliedAt` is normally stamped at submit, so it is
+ * always "just now" — true, and useless for reviewing a list whose whole job is
+ * to carry a chronology. Two applications both reading "0d ago" would make the
+ * date look like decoration. These land 2 and 9 days back, which is also what
+ * the board's own role dates do (`mocks.ts` generates every posting relative to
+ * now for the same reason).
+ *
+ * A function rather than a constant: the offsets are relative to the moment the
+ * tab is picked, and a module constant would freeze them at import.
+ */
+function seededApplications(): Map<string, JobApplication> {
+  const daysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString();
+  };
+  const offsets = [2, 9];
+
+  return new Map(
+    SEEDED_APPLICATION_ROLES.map((role, i) => [
+      role.uid,
+      { coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '', appliedAt: daysAgo(offsets[i] ?? 1) },
+    ]),
+  );
+}
 
 function decodeMulti(raw: string | null): string[] {
   if (!raw) return [];
@@ -233,6 +320,14 @@ const CRITERIA_KEYS = ['roleCategory', 'seniority', 'workplaceType', 'location']
 interface ApplyTarget {
   role: IJobRole;
   teamName: string;
+}
+
+/** One sent application. The letter is what went; `appliedAt` is what the Applied
+ *  tab reads to say how long ago it went. ISO, like every other date on the board,
+ *  so `getJobDate`'s own formatting helpers can read it. */
+interface JobApplication {
+  coverLetter: string;
+  appliedAt: string;
 }
 
 export default function JobBoardPrototype() {
@@ -265,9 +360,18 @@ export default function JobBoardPrototype() {
       if (asViewer && VIEWER_OPTIONS.some((o) => o.value === asViewer)) {
         setViewer(asViewer);
         setIsLoggedIn(asViewer !== 'logged-out');
-        setProfile(asViewer === 'profile-ready' ? FILLED_PROFILE : EMPTY_PROFILE);
+        setProfile(asViewer === 'profile-ready' || asViewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+        // Same seeding as the switcher, so `?viewer=applied` lands on the state
+        // the tab shows rather than on an empty version of it.
+        if (asViewer === 'applied') setApplications(seededApplications());
       }
       if (q.get('profile') === '1') setDrawerOpen(true);
+      /* `?email=1` opens the review surface for the email the hiring team gets
+         when someone applies — see `email/ApplicationEmailPreview`. A parameter
+         rather than a control on the board, because it is not part of the
+         product: it renders an artifact that leaves the product entirely, and a
+         button for it would put a reviewer's tool in an applicant's flow. */
+      if (q.get('email') === '1') setEmailPreviewOpen(true);
     } catch {
       /* no search params to read — the board just opens in its default state */
     }
@@ -345,16 +449,38 @@ export default function JobBoardPrototype() {
    * one. */
   const [coverLetterDraft, setCoverLetterDraft] = useState('');
 
+  /** Review surface for the application email — opened by `?email=1`, never by
+   *  anything on the board. See the mount effect. */
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+
   /* What's already been sent: role uid → the letter that went with it.
      Session-only, like everything else here — but the board has to show it,
      because an Apply button that looks identical after you've used it invites a
      second application nobody wants. Keyed by uid rather than a flat list so the
-     row lookup is a `has`, and holding the letter (rather than a bare flag)
-     keeps the mock honest about what an application actually is. */
-  const [applications, setApplications] = useState<Map<string, string>>(() => new Map());
+     row lookup is a `has`, and holding the record (rather than a bare flag)
+     keeps the mock honest about what an application actually is.
+
+     `appliedAt` arrived with the Applied tab. A list of things you have already
+     done needs a chronology: standing inside that tab, "have I gone for this
+     one?" is answered by the tab itself, and the only question left is *when*.
+     Stamped at submit rather than seeded, so it is always a real moment from
+     this session — and safe against hydration, because no application exists
+     before a click and the board only renders after mount. */
+  const [applications, setApplications] = useState<Map<string, JobApplication>>(() => new Map());
   const appliedRoleUids = useMemo(() => new Set(applications.keys()), [applications]);
+  /** The same map, reduced to what the row needs: uid → when. Derived rather than
+   *  passed whole, so the row never receives the cover letters — a list of roles
+   *  has no business carrying the letters that went with them. */
+  const appliedAtByRole = useMemo(
+    () => new Map([...applications].map(([uid, application]) => [uid, application.appliedAt])),
+    [applications],
+  );
 
   const sort = (params.get('sort') ?? 'newest') as JobsSortKey;
+
+  /** Which scope tab is open. A filter-store param like every other narrowing on
+   *  this board, so Clear All takes it off with the rest. */
+  const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
 
   /** What the rail is currently narrowed to — the intent the visitor has already expressed. */
   const criteria = useMemo<RoleCriteria>(
@@ -376,6 +502,14 @@ export default function JobBoardPrototype() {
     for (const group of MOCK_JOB_GROUPS) {
       const teamMatchesQ = !q || group.team.name.toLowerCase().includes(q);
       const roles = group.roles.filter((role) => {
+        /* The Applied scope narrows first, and narrows like every other filter:
+           it is one more predicate in this list rather than a separate list. So
+           the rail, the search box and the sort all keep working inside it — you
+           can search your own applications, or narrow them to Remote — and the
+           count in the toolbar stays the count of what is on screen. A tab that
+           swapped the data source instead would have had to reimplement all
+           three, or quietly drop them. */
+        if (appliedScope && !appliedRoleUids.has(role.uid)) return false;
         // The shared predicate — the same one the match badge runs, so a role that
         // survives the rail is always a role the badge would mark.
         if (!roleMatches(criteria, role)) return false;
@@ -385,7 +519,7 @@ export default function JobBoardPrototype() {
       if (roles.length) groups.push({ team: group.team, roles, totalRoles: roles.length });
     }
     return groups;
-  }, [params, criteria]);
+  }, [params, criteria, appliedScope, appliedRoleUids]);
 
   const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
     // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
@@ -590,7 +724,7 @@ export default function JobBoardPrototype() {
     if (!applyTarget) return;
     const { role, teamName } = applyTarget;
 
-    setApplications((prev) => new Map(prev).set(role.uid, coverLetter));
+    setApplications((prev) => new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString() }));
     setApplyTarget(null);
     /* Sent, so there is nothing left to preserve. */
     setCoverLetterDraft('');
@@ -612,11 +746,13 @@ export default function JobBoardPrototype() {
   const onSelectViewer = (next: BoardViewer) => {
     setViewer(next);
     setIsLoggedIn(next !== 'logged-out');
-    setProfile(next === 'profile-ready' ? FILLED_PROFILE : EMPTY_PROFILE);
+    /* `applied` is `profile-ready` plus a history: same finished profile, because
+       you cannot have applied without one. */
+    setProfile(next === 'profile-ready' || next === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
     setDrawerOpen(false);
     setApplyTarget(null);
     setPendingApply(null);
-    setApplications(new Map());
+    setApplications(next === 'applied' ? seededApplications() : new Map());
   };
 
   /**
@@ -664,6 +800,21 @@ export default function JobBoardPrototype() {
     );
   }
 
+  /* The email review surface takes the whole page rather than sitting over the
+     board. It is not a state the board can be in — it renders something that
+     leaves the product — so drawing it as a layer on top of a live board would
+     invite it to be read as a feature of one. */
+  if (emailPreviewOpen) {
+    return (
+      <>
+        {nav}
+        <div className={s.emailStage}>
+          <ApplicationEmailPreview input={SAMPLE_APPLICATION_EMAIL} />
+        </div>
+      </>
+    );
+  }
+
   const titleBlock = (
     <>
       <h1 className={contentCss.title}>
@@ -685,6 +836,30 @@ export default function JobBoardPrototype() {
       </h1>
     </>
   );
+
+  /* The scope strip, rendered ONCE and on its own row.
+   *
+   * Production puts it beside the title (`TeamList` → `.titleSec`), and that was
+   * the first attempt here — inside `titleBlock`. It doesn't transfer: this board
+   * has *two* title rows, because `JobsContent` renders one for mobile and one in
+   * the desktop toolbar and hides whichever doesn't apply. Duplicating an `<h1>`
+   * that way is production's own trick and harmless; duplicating a tab strip puts
+   * two live controls in the DOM, both wired to the same store, one of them
+   * invisible — which is a thing for assistive tech to read out twice and a thing
+   * for the next person to keep in sync.
+   *
+   * So it gets its own full-width row above the list, which is where a scope
+   * belongs regardless: the toolbar's controls reorder the list you are looking
+   * at, and this chooses which list that is.
+   *
+   * Signed in only, per production's rule (`TeamList` wraps it in `isLoggedIn`):
+   * a logged-out visitor has no applications, so the tab could only ever open on
+   * nothing. */
+  const scopeTabs = isLoggedIn ? (
+    <div className={s.scopeTabs}>
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
+    </div>
+  ) : null;
 
   const content = (
     <div className={contentCss.root}>
@@ -744,8 +919,33 @@ export default function JobBoardPrototype() {
         />
       </div>
 
+      {scopeTabs}
+
       {visibleGroups.length === 0 ? (
-        <div className={s.empty}>No roles match your filters. Try clearing some.</div>
+        /* Two empty states, because there are two different reasons to be here
+           and only one of them is a dead end you got to by narrowing.
+
+           In the Applied tab with nothing applied to, "try clearing some
+           filters" would be advice that doesn't apply — there is nothing to
+           clear, and the list is empty because of something the person hasn't
+           done yet rather than something they have. It says what the tab holds
+           and points at the tab that holds the roles. The distinction is between
+           "you have applied to nothing" and "nothing you applied to survived
+           this rail", which is why the filtered case still gets the original
+           line. */
+        <div className={s.empty}>
+          {appliedScope && appliedRoleUids.size === 0 ? (
+            <>
+              You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what you&apos;ve
+              already gone for.{' '}
+              <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                Browse all roles
+              </button>
+            </>
+          ) : (
+            <>No roles match your filters. Try clearing some.</>
+          )}
+        </div>
       ) : (
         <div className={contentCss.list}>
           {visibleGroups.map((group) => (
@@ -757,6 +957,7 @@ export default function JobBoardPrototype() {
               onReferBlocked={onSignIn}
               onApply={onApply}
               appliedRoleUids={appliedRoleUids}
+              appliedAtByRole={appliedAtByRole}
             />
           ))}
         </div>

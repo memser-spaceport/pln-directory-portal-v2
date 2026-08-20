@@ -53,6 +53,9 @@ interface JobTeamGroupCardProps {
   onApply?: (role: IJobRole) => void;
   /** Uids of roles already applied to. */
   appliedRoleUids?: Set<string>;
+  /** Role uid → when the application went, so an applied row can report its own
+   *  date instead of the posting age. Same map the board keys applications by. */
+  appliedAtByRole?: Map<string, string>;
 }
 
 /**
@@ -67,6 +70,7 @@ export function JobTeamGroupCard({
   onReferBlocked,
   onApply,
   appliedRoleUids,
+  appliedAtByRole,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
@@ -184,6 +188,7 @@ export function JobTeamGroupCard({
               onReferBlocked={onReferBlocked}
               onApply={onApply}
               applied={appliedRoleUids?.has(role.uid) ?? false}
+              appliedAt={appliedAtByRole?.get(role.uid)}
               teamId={team.uid}
             />
           </li>

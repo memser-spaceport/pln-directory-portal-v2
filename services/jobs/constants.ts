@@ -27,7 +27,7 @@ export enum JobsQueryKey {
  * in `job-applications.mock.ts` (session-scoped, never persisted server-side).
  * Nothing is sent to a hiring team yet — see that file's cutover note.
  */
-export const SHOW_JOB_BOARD_APPLY: boolean = true;
+export const SHOW_JOB_BOARD_APPLY: boolean = false;
 
 export const JOBS_SORT_OPTIONS = [
   { value: 'company_az', label: 'A-Z (Ascending)' },

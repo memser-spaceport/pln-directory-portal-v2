@@ -13,7 +13,13 @@ import { Tag } from '@/components/ui/Tag';
 import { toast } from '@/components/core/ToastContainer';
 
 import { useSubmitJobApplication } from '@/services/jobs/hooks/useJobApplications';
-import { isAlreadyAppliedError } from '@/services/jobs/job-applications.service';
+import {
+  isAlreadyAppliedError,
+  isJobGoneError,
+  isNotApprovedError,
+  isProfileIncompleteError,
+  isUnreachableTeamError,
+} from '@/services/jobs/job-applications.service';
 import { useMemberExperience, FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
@@ -57,6 +63,28 @@ function LeadNames({ shown, total }: { shown: DirectoryMember[]; total: number }
   return <>{parts}</>;
 }
 
+/**
+ * What to tell someone whose application the server refused. Every one of
+ * these is a gate the UI already enforces, so reaching one means the client's
+ * picture and the record have drifted apart — which is exactly when a generic
+ * "try again" is worst, because for most of these trying again cannot help.
+ */
+function applyFailureMessage(error: unknown): string {
+  if (isNotApprovedError(error)) {
+    return 'Your account is still being reviewed, so applications are on hold. Your note is saved here — we’ll email you the moment it’s approved.';
+  }
+  if (isJobGoneError(error)) {
+    return 'This role is no longer open, so there is nowhere to send this. Nothing was sent.';
+  }
+  if (isUnreachableTeamError(error)) {
+    return 'This team has no contact address on file, so applications can’t reach them yet. Nothing was sent — the posting link is still your way in.';
+  }
+  if (isProfileIncompleteError(error)) {
+    return 'Your profile is missing something we need before applying. Open Edit profile above, then send again.';
+  }
+  return 'Something went wrong and the application was not sent. Your note is still here — try again.';
+}
+
 /** "March 2021 — Present", off the ISO dates the experience API returns. */
 function formatExperienceDates(entry: FormattedMemberExperience): string {
   const pretty = (iso: string): string => {
@@ -76,7 +104,7 @@ interface JobApplyModalProps {
   teamId: string;
   teamName: string;
   /** The member whose profile goes with the application — complete when this opens. */
-  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills'> | null;
+  member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
   memberUid: string | undefined;
   /** For the analytics payload — never anything beyond uids/state/source. */
   viewerState: BoardViewerState;
@@ -173,7 +201,11 @@ export function JobApplyModal(props: JobApplyModalProps) {
      displays itself — current role (header precedence), plus the company and
      dates the primary experience entry is the authority for. */
   const roleLine = (member.mainTeam?.role ?? '').trim() || (member.role ?? '').trim();
-  const company = (primary?.company ?? member.mainTeam?.name ?? '').trim();
+  /* Same precedence the server uses to compose the application snapshot —
+     `currentCompany`, else the main team. A read-back exists to show what is
+     being sent, so quoting the experience entry instead (which the server
+     never looks at) could name a different company than the email carries. */
+  const company = (member.currentCompany ?? '').trim() || (member.mainTeam?.name ?? '').trim();
   const summary = roleLine && company ? `${roleLine} at ${company}` : roleLine || company;
   const skills = (member.skills ?? []).map((skill: { title: string } | string) =>
     typeof skill === 'string' ? skill : skill.title,
@@ -202,7 +234,7 @@ export function JobApplyModal(props: JobApplyModalProps) {
     analytics.onJobApplySubmitted({ ...analyticsBase, cover_letter_length: coverLetter.trim().length });
 
     submitMutation.mutate(
-      { roleUid: submittedRoleUid, teamUid: teamId, coverLetter: coverLetter.trim() },
+      { roleUid: submittedRoleUid, coverLetter: coverLetter.trim() },
       {
         onSuccess: () => {
           if (inFlightRoleUid.current !== submittedRoleUid) return;
@@ -223,7 +255,12 @@ export function JobApplyModal(props: JobApplyModalProps) {
             return;
           }
           analytics.onJobApplyFailed({ ...analyticsBase, failure_category: 'request-failed' });
-          setSubmitError('Something went wrong and the application was not sent. Your note is still here — try again.');
+          /* The server enforces every gate the UI shows, so a refusal here
+             means the client and the record disagree. Each case gets its own
+             sentence because only one of them is worth retrying — telling
+             someone to "try again" when the job is gone, or when the team has
+             no reachable inbox, is advice that cannot work. */
+          setSubmitError(applyFailureMessage(error));
         },
       },
     );

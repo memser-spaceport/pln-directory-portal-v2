@@ -15,8 +15,9 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
-import { useJobSearchStatus, useUpdateJobSearchStatus } from '@/services/jobs/hooks/useJobApplications';
-import { JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
@@ -94,10 +95,19 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
     select: (data) => data?.data?.formattedData,
   });
 
-  const statusQuery = useJobSearchStatus({ memberUid, enabled: open && !!memberUid });
-  const updateStatus = useUpdateJobSearchStatus(memberUid);
-  // The Jest useQuery mock ignores `select`-less typing edge cases — guard the shape.
-  const jobSearchStatus: JobSearchStatus | null = typeof statusQuery.data === 'string' ? statusQuery.data : null;
+  /* The status lives on the member record (PL-Team-only: the API omits it for
+     anyone but this member or an admin), so it arrives with the fetch above
+     and saves through the same full-record PUT every other profile section
+     uses. It has to be the full record: a partial patch of this one field is
+     rejected outright ("Database field validation error"), and the whole
+     reason `buildMemberUpdatePayload` exists is that this endpoint replaces
+     what it is sent. The mutation invalidates GET_MEMBER, so the value the
+     gate reads next is the one the server stored rather than the one we hoped
+     it stored. */
+  const updateMember = useUpdateMember();
+  const jobSearchStatus: JobSearchStatus | null = isJobSearchStatus(member?.jobSearchStatus)
+    ? member.jobSearchStatus
+    : null;
 
   const hasRole = Boolean(((member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim()).length);
   const hasStatus = jobSearchStatus !== null;
@@ -164,8 +174,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                 </DetailsSectionHeader>
                 <JobSearchStatusInput
                   value={jobSearchStatus}
-                  disabled={updateStatus.isPending}
-                  onChange={(value) => updateStatus.mutate(value)}
+                  disabled={updateMember.isPending}
+                  onChange={(value) =>
+                    updateMember.mutate({
+                      uid: memberUid,
+                      payload: buildMemberUpdatePayload(member, { jobSearchStatus: value }),
+                    })
+                  }
                 />
               </div>
             </DetailsSection>

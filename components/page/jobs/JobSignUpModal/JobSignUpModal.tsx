@@ -25,7 +25,7 @@ export interface JobSignUpDetails {
   teamUid: string | null;
 }
 
-export type JobSignUpResult = { success: true } | { success: false; message?: string };
+export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
 
 interface JobSignUpModalProps {
   open: boolean;
@@ -161,12 +161,16 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
       teamUid: data.company?.value ?? null,
     });
     if (!result.success) {
-      // One neutral sentence regardless of WHY the request couldn't be filed.
-      // "You already have an account" vs "your request is pending" would turn
-      // this unauthenticated form into an account-status oracle for arbitrary
-      // emails; signing in disambiguates after the person proves ownership.
+      /* Named rather than vague. The earlier version deliberately blurred
+         "email exists" into a generic message to avoid an account-enumeration
+         oracle — but the endpoint answers 409 either way, so anyone probing
+         reads it off the status code and the vagueness only confuses the
+         person who genuinely forgot they had an account. (The oracle is worth
+         raising about the endpoint itself, not papering over here.) */
       setServerError(
-        'We couldn’t file this request. If this email already has an account or a pending request, try signing in instead.',
+        result.emailTaken
+          ? 'This email already has an account. Sign in instead — your application picks up from there.'
+          : 'We couldn’t create your account just now. Please try again.',
       );
     }
   };

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 
 import { toast } from '@/components/core/ToastContainer';
-import { useSignupV2 } from '@/services/signup/hooks/useSignup';
+import { useMutation } from '@tanstack/react-query';
+import { isEmailTakenError, signUpToJobBoard } from '@/services/jobs/job-applications.service';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
@@ -57,7 +58,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
   const router = useRouter();
   const analytics = useJobsAnalytics();
-  const signUpMutation = useSignupV2();
+  const signUpMutation = useMutation({ mutationFn: signUpToJobBoard });
 
   const { currentUser } = useCurrentUserStore();
   const isAdmin = isAdminUser(currentUser);
@@ -107,9 +108,12 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   };
 
   /**
-   * Filing the participants-request IS the sign-up; Privy authentication
-   * follows. Ordering matters: await the POST, then close, then push `#login` —
-   * stash-free, so a failed POST leaves nothing behind to replay later.
+   * Filling the form IS the sign-up; Privy authentication follows. The board
+   * has its own endpoint for this — the participants-request route is
+   * explicitly not for job-board sign-up.
+   *
+   * Ordering matters: await the POST, then close, then push `#login`, so a
+   * failed request leaves nothing behind.
    */
   const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
     const target = state.step === 'sign-up' ? state.target : null;
@@ -120,39 +124,31 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       source,
     };
 
-    const result = await signUpMutation.mutateAsync({
-      uniqueIdentifier: details.email,
-      role: details.role,
-      isTeamNew: false,
-      team: details.teamUid ? { uid: details.teamUid } : {},
-      project: {},
-      newData: {
+    try {
+      await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
+        role: details.role,
         ...(details.linkedin ? { linkedinHandler: details.linkedin } : {}),
-      },
-      signUpSource: 'job-board',
-      signUpMedium: source,
-      // The pending role uid rides the request metadata — the only server-side
-      // record of the interrupted intent, and what a future "you're approved,
-      // finish applying" email deep link would be built on. Greppable format.
-      ...(target ? { signUpCampaign: `job-role:${target.role.uid}` } : {}),
-    });
-
-    if (result.success) {
-      analytics.onJobApplySignUpSubmitted({ ...analyticsBase, trigger: target ? 'row' : 'banner' });
-      flow.closeSignUp();
-      // They just typed this email into the form the line above submitted —
-      // asking for it again in the login modal is asking twice for one fact.
-      pushLogin({ prefillEmail: details.email, pendingRoleUid: target?.role.uid });
-      return { success: true };
+        // The company select offers existing network teams only, so this is
+        // always an affiliation rather than a new team. Omitted entirely when
+        // they skipped it — the endpoint reads that as no affiliation.
+        ...(details.teamUid ? { team: { uid: details.teamUid } } : {}),
+      });
+    } catch (error) {
+      analytics.onJobApplySignUpFailed({
+        ...analyticsBase,
+        failure_category: isEmailTakenError(error) ? 'duplicate' : 'request-failed',
+      });
+      return { success: false, emailTaken: isEmailTakenError(error) };
     }
 
-    analytics.onJobApplySignUpFailed({
-      ...analyticsBase,
-      failure_category: /exist|already|pending/i.test(result.message ?? '') ? 'duplicate' : 'request-failed',
-    });
-    return { success: false, message: result.message };
+    analytics.onJobApplySignUpSubmitted({ ...analyticsBase, trigger: target ? 'row' : 'banner' });
+    flow.closeSignUp();
+    // They just typed this email into the form the line above submitted —
+    // asking for it again in the login modal is asking twice for one fact.
+    pushLogin({ prefillEmail: details.email, pendingRoleUid: target?.role.uid });
+    return { success: true };
   };
 
   /**

@@ -1,66 +1,145 @@
 import {
   JobApplication,
+  jobApplicationListResponseSchema,
   jobApplicationSchema,
-  jobApplicationsResponseSchema,
+  JobBoardSignUpInput,
+  jobBoardSignUpInputSchema,
+  jobBoardSignUpResponseSchema,
   SubmitJobApplicationInput,
   submitJobApplicationInputSchema,
 } from '@/schema/job-applications';
-import {
-  mockFetchJobApplications,
-  mockFetchJobSearchStatus,
-  mockSubmitJobApplication,
-  mockUpdateJobSearchStatus,
-} from '@/services/jobs/job-applications.mock';
-import { JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { customFetch } from '@/utils/fetch-wrapper';
+
+const JOB_OPENINGS_API_URL = `${process.env.DIRECTORY_API_URL}/v1/job-openings`;
+
+export type { JobApplication, SubmitJobApplicationInput, JobBoardSignUpInput };
 
 /**
- * In-app job applications + the (PL-Team-only) job search status.
- *
- * The explicit return types on these fetchers ARE the contract — consumers type
- * against the signatures, never against the mock bodies, so swapping in the
- * real transport at cutover cannot silently change a shape. Every body below is
- * mock-only and client-only (`sessionStorage` inside); the real implementations
- * will be ordinary authenticated fetches against DIRECTORY_API_URL.
- *
- * NOTE for cutover: `fetchJobSearchStatus`/`updateJobSearchStatus` live here
- * provisionally — the field is member-profile state and is expected to migrate
- * to the members service once it has a backend home.
+ * A refusal from the apply/sign-up endpoints, carrying the status so callers
+ * can tell the cases apart. The distinctions matter to the person: "your
+ * account isn't approved yet", "this job is gone" and "we couldn't reach
+ * anyone at this team" are three different situations, and only one of them is
+ * worth retrying.
  */
+export class JobApplicationError extends Error {
+  readonly status: number;
 
-export type { JobApplication, SubmitJobApplicationInput };
-
-export async function fetchJobApplications(memberUid: string): Promise<JobApplication[]> {
-  // MOCK: delete at cutover — real impl: GET /v1/members/{uid}/job-applications
-  const applications = await mockFetchJobApplications(memberUid);
-  return jobApplicationsResponseSchema.parse(applications);
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'JobApplicationError';
+    this.status = status;
+  }
 }
 
+/**
+ * The server's own message, when it sent one worth reading.
+ *
+ * `customFetch` resolves to `undefined` when it gives up and logs the session
+ * out — there is no response to read, and the reload it triggers is already
+ * under way, so this only needs to not throw on the way there.
+ */
+async function errorFrom(response: Response | undefined, fallback: string): Promise<JobApplicationError> {
+  if (!response) {
+    return new JobApplicationError(401, 'Your session expired. Sign in and try again.');
+  }
+
+  let message = fallback;
+  try {
+    const body = await response.json();
+    const serverMessage = body?.message ?? body?.status?.message;
+    if (typeof serverMessage === 'string' && serverMessage.trim()) {
+      message = serverMessage;
+    }
+  } catch {
+    // A body we can't read is not worth failing differently over.
+  }
+  return new JobApplicationError(response.status, message);
+}
+
+/**
+ * Every role this member has applied to. One whole-list read: the universe is
+ * known server-side, so a uid absent from the response means not applied
+ * rather than not-yet-known.
+ */
+export async function fetchJobApplications(): Promise<JobApplication[]> {
+  const response = await customFetch(`${JOB_OPENINGS_API_URL}/applications`, { method: 'GET' }, true);
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not load your applications');
+  }
+
+  const { applications } = jobApplicationListResponseSchema.parse(await response.json());
+  return applications;
+}
+
+/**
+ * Apply to one role. The server independently enforces every gate the UI
+ * shows — approval, a current role, an answered job search status, and one
+ * application per job — so a client that drifts out of sync fails safe.
+ */
 export async function submitJobApplication(
-  memberUid: string,
+  roleUid: string,
   input: SubmitJobApplicationInput,
 ): Promise<JobApplication> {
-  const payload = submitJobApplicationInputSchema.parse(input);
-  // MOCK: delete at cutover — real impl: POST /v1/members/{uid}/job-applications
-  // (server must 403 non-approved members, validate the role uid, and 409 duplicates)
-  const application = await mockSubmitJobApplication(memberUid, payload);
-  return jobApplicationSchema.parse(application);
+  const body = submitJobApplicationInputSchema.parse(input);
+
+  const response = await customFetch(
+    `${JOB_OPENINGS_API_URL}/${roleUid}/applications`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    true,
+  );
+
+  if (!response?.ok) {
+    throw await errorFrom(response, 'Could not send your application');
+  }
+
+  return jobApplicationSchema.parse(await response.json());
 }
 
-export async function fetchJobSearchStatus(memberUid: string): Promise<JobSearchStatus | null> {
-  // MOCK: delete at cutover — real read comes with the member record or a
-  // dedicated endpoint; validate with isJobSearchStatus so a server that drops
-  // the field fails loudly on every read, not silently at the gate.
-  return mockFetchJobSearchStatus(memberUid);
+/**
+ * Job-board sign-up. Unauthenticated — filling the form IS the sign-up, and
+ * Privy authentication follows — so this uses a plain fetch rather than the
+ * token-refreshing wrapper.
+ */
+export async function signUpToJobBoard(input: JobBoardSignUpInput): Promise<{ uid: string }> {
+  const body = jobBoardSignUpInputSchema.parse(input);
+
+  const response = await fetch(`${JOB_OPENINGS_API_URL}/sign-up`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw await errorFrom(response, 'Could not create your account');
+  }
+
+  return jobBoardSignUpResponseSchema.parse(await response.json());
 }
 
-export async function updateJobSearchStatus(memberUid: string, status: JobSearchStatus): Promise<JobSearchStatus> {
-  // MOCK: delete at cutover — real impl PATCHes the member record; cutover
-  // requires the read-after-write check (non-strict APIs accept-and-drop
-  // unknown fields, and this field has no backend home yet).
-  return mockUpdateJobSearchStatus(memberUid, status);
-}
+const statusIs = (error: unknown, status: number): boolean =>
+  error instanceof JobApplicationError && error.status === status;
 
-/** True when a submit failure means "already applied" — the row should flip to Applied, not error. */
-export function isAlreadyAppliedError(error: unknown): boolean {
-  return !!error && typeof error === 'object' && (error as { status?: number }).status === 409;
-}
+/** Already applied. The row should report the fact, not argue with it. */
+export const isAlreadyAppliedError = (error: unknown): boolean => statusIs(error, 409);
+
+/** The account is not approved yet — applying waits, browsing doesn't. */
+export const isNotApprovedError = (error: unknown): boolean => statusIs(error, 403);
+
+/** The job was hidden or removed while the modal was open. */
+export const isJobGoneError = (error: unknown): boolean => statusIs(error, 404);
+
+/**
+ * A 400 the person cannot fix by trying again — currently "this job has no
+ * team leads with email addresses", i.e. there is nobody to send it to.
+ * Separated from the profile-gate 400s, which they CAN fix.
+ */
+export const isUnreachableTeamError = (error: unknown): boolean =>
+  statusIs(error, 400) && /team leads/i.test((error as JobApplicationError).message);
+
+/** A 400 saying the profile still misses something the gate requires. */
+export const isProfileIncompleteError = (error: unknown): boolean =>
+  statusIs(error, 400) && /required before applying/i.test((error as JobApplicationError).message);
+
+/** Sign-up refused because the email already has an account. */
+export const isEmailTakenError = (error: unknown): boolean => statusIs(error, 409);

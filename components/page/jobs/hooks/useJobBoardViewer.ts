@@ -5,12 +5,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useMember } from '@/services/members/hooks/useMember';
-import { useJobSearchStatus } from '@/services/jobs/hooks/useJobApplications';
 import {
   BoardViewerState,
   deriveBoardViewer,
   getJobsAccessVerdict,
   isJobProfileComplete,
+  isJobSearchStatus,
   JobsAccessVerdict,
   JobSearchStatus,
 } from '@/services/jobs/job-board-viewer';
@@ -58,7 +58,6 @@ export function useJobBoardViewer(args: {
 
   const active = enabled && isLoggedIn && !!memberUid;
   const memberQuery = useMember(active ? memberUid : undefined);
-  const statusQuery = useJobSearchStatus({ memberUid, enabled: active });
 
   const member = memberQuery.data && 'memberInfo' in memberQuery.data ? memberQuery.data.memberInfo : null;
 
@@ -69,11 +68,12 @@ export function useJobBoardViewer(args: {
     ? { ...userInfo, accessLevel: member.accessLevel ?? userInfo?.accessLevel, rbac: member.rbac ?? userInfo?.rbac }
     : (userInfo ?? null);
 
-  const memberSettled = memberQuery.isSuccess || memberQuery.isError;
-  const statusSettled = statusQuery.isSuccess || statusQuery.isError;
-  const isResolved = !active || (memberSettled && statusSettled);
+  // One query settles the whole viewer now: the job search status rides on the
+  // member record (PL-Team-only, so the API omits it for anyone else), rather
+  // than the separate endpoint the mocked version needed.
+  const isResolved = !active || memberQuery.isSuccess || memberQuery.isError;
 
-  const jobSearchStatus = statusQuery.data ?? null;
+  const jobSearchStatus = isJobSearchStatus(member?.jobSearchStatus) ? member.jobSearchStatus : null;
   const profileComplete = isJobProfileComplete(member, jobSearchStatus);
 
   const viewer = deriveBoardViewer({ isLoggedIn, userInfo: effectiveUserInfo, isResolved, profileComplete });

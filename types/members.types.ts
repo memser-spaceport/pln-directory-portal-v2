@@ -1,5 +1,6 @@
 import { IListOptions } from './shared.types';
 import { ITeam, ITeamResponse } from './teams.types';
+import type { JobSearchStatus } from '@/services/jobs/job-board-viewer';
 
 export type IMemberListOptions = IListOptions & {
   officeHours__not?: 'null';
@@ -122,6 +123,13 @@ export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
 
 export interface IMember {
   role?: string | null;
+  /** Optional free-text company. The job application snapshot prefers this
+   *  over the main team name, so read-backs should too. */
+  currentCompany?: string | null;
+  /** PL-Team-only: the API omits it for anyone but the member or an admin, so
+   *  it is `undefined` rather than `null` on other people's profiles. Never
+   *  render it publicly or in an application read-back. */
+  jobSearchStatus?: JobSearchStatus | null;
   profile?: string | null;
   id: string;
   name: string;
@@ -315,6 +323,8 @@ export interface IMemberUpdateSource {
   projectContributions?: any[];
   skills?: { id?: string; name?: string }[];
   bio?: string | null;
+  currentCompany?: string | null;
+  jobSearchStatus?: JobSearchStatus | null;
 }
 
 /** Shape of `newData` accepted by `PUT /v1/member/{uid}`. */
@@ -340,4 +350,6 @@ export interface IMemberUpdatePayload {
   projectContributions?: any[];
   skills?: { title?: string; uid?: string }[];
   bio?: string | null;
+  currentCompany?: string | null;
+  jobSearchStatus?: JobSearchStatus | null;
 }

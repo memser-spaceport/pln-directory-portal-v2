@@ -50,7 +50,7 @@ export const prototypeRegistry: PrototypeEntry[] = [
     key: 'teams',
     title: 'Teams — listing page',
     description:
-      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile.',
+      'Mocked recreation of the teams listing: filters rail, toolbar (search / sort / view toggle), and a responsive grid of real TeamGridView cards linking to the team profile. Teams that have wound down carry an "Inactive" state — muted card, grey badge, no news mark — and are out of the default set behind a "Show inactive teams" toggle in the filter rail.',
     category: 'Teams',
     load: () => import('./entries/teams/TeamsPrototype'),
   },

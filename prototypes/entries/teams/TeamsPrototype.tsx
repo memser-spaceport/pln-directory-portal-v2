@@ -14,7 +14,7 @@ import contentCss from '@/app/teams/(teams-page)/@content/page.module.css';
 import listCss from '@/components/page/teams/TeamList/TeamList.module.scss';
 
 import { MOCK_TEAMS } from './mocks';
-import { useMockTeamFilterStore } from './mockTeamFilterStore';
+import { useMockTeamFilterStore, countAppliedFilters } from './mockTeamFilterStore';
 import { TeamsFilterView } from './TeamsFilterView';
 import { TeamsToolbarView } from './TeamsToolbarView';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -23,16 +23,6 @@ import { TeamCardView, type TeamUpdatesMode } from './TeamCardView';
 // Shared with the job board, which opens the same modal from the same chip.
 import { TeamNewsModal } from '../news-shared/TeamNewsModal';
 import s from './TeamsPrototype.module.scss';
-
-const COUNTED_PARAMS = [
-  'membershipSources',
-  'tags',
-  'fundingStage',
-  'isFund',
-  'minTypicalCheckSize',
-  'maxTypicalCheckSize',
-  'investmentFocus',
-];
 
 function decodeMulti(raw: string | null): string[] {
   if (!raw) return [];
@@ -94,34 +84,85 @@ export default function TeamsPrototype() {
     teamLogo: string;
   } | null>(null);
 
-  const filterCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
+  const filterCount = countAppliedFilters(params);
 
-  const visibleTeams = useMemo(() => {
+  const { visibleTeams, hiddenInactiveCount } = useMemo(() => {
     const selectedTags = decodeMulti(params.get('tags'));
     const q = (params.get('searchBy') || '').trim().toLowerCase();
     const sort = params.get('sort') || SORT_OPTIONS.DEFAULT;
+    const showInactive = params.get('showInactive') === 'true';
 
-    let rows = MOCK_TEAMS.slice();
-    if (params.get('following') === 'true') {
-      rows = rows.filter((t) => followed.has(t.id));
-    }
-    if (selectedTags.length) {
-      rows = rows.filter((t) => (t.industryTags ?? []).some((tag) => selectedTags.includes(tag.title ?? '')));
-    }
-    if (q) {
-      rows = rows.filter(
-        (t) => (t.name ?? '').toLowerCase().includes(q) || (t.shortDescription ?? '').toLowerCase().includes(q),
-      );
-    }
+    /**
+     * Every filter except the inactive gate, in one predicate. Split out so the
+     * grid and the "N inactive teams are hidden" count can't disagree: the count
+     * is this same test run with the gate open, not a second reading of the
+     * rules. Two copies of a filter is how a list and its footnote end up
+     * describing different sets.
+     */
+    const matchesRest = (t: (typeof MOCK_TEAMS)[number]) => {
+      if (params.get('following') === 'true' && !followed.has(t.id)) return false;
+      if (selectedTags.length && !(t.industryTags ?? []).some((tag) => selectedTags.includes(tag.title ?? '')))
+        return false;
+      if (q && !((t.name ?? '').toLowerCase().includes(q) || (t.shortDescription ?? '').toLowerCase().includes(q)))
+        return false;
+      return true;
+    };
+
+    const matched = MOCK_TEAMS.filter(matchesRest);
+    /**
+     * Teams that have wound down are in the list by default — see the toggle's
+     * note in TeamsFilterView — and they sit wherever the sort puts them rather
+     * than being swept to the end. Demoting them would be a second, silent
+     * ranking on top of the one the reader picked from the Sort menu, and the
+     * card already says what they are.
+     */
+    const rows = showInactive ? matched.slice() : matched.filter((t) => !t.inactive);
+
     if (sort === SORT_OPTIONS.ASCENDING) rows.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
     if (sort === SORT_OPTIONS.DESCENDING) rows.sort((a, b) => (b.name ?? '').localeCompare(a.name ?? ''));
-    return rows;
+
+    return { visibleTeams: rows, hiddenInactiveCount: showInactive ? 0 : matched.length - rows.length };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, followed]);
 
   if (!mounted) {
     return <div className={s.mountGate} />;
   }
+
+  /**
+   * The empty state, when the only thing standing between the reader and a
+   * result is the inactive switch they turned off.
+   *
+   * "No teams match your filters. Try clearing some." would be advice that
+   * doesn't work — the tag or search is right, and the switch is what removed
+   * the answer. So the card names the actual reason and offers the way back
+   * rather than sending someone to the panel to guess which control it was.
+   *
+   * There used to be a second copy of this as a footnote above a *populated*
+   * grid, for the case where a match was sitting behind the default. That was
+   * scaffolding for a default that hid teams without being asked; now that they
+   * ship visible, hiding them is something the reader chose, with the switch
+   * still showing its state a few inches away. Telling them about a choice they
+   * just made, on every search, is noise. Only the empty case survives, because
+   * only there does the omission read as "this team isn't in the directory".
+   */
+  const showsHiddenNote = hiddenInactiveCount > 0 && visibleTeams.length === 0;
+  const one = hiddenInactiveCount === 1;
+
+  const hiddenNoteAction = (
+    <button type="button" className={s.hiddenNoteAction} onClick={() => setParam('showInactive', 'true')}>
+      Show {one ? 'it' : 'them'}
+    </button>
+  );
+
+  const emptyStateNote = showsHiddenNote ? (
+    <>
+      No teams match your filters. {one ? '1 inactive team does' : `${hiddenInactiveCount} inactive teams do`} —{' '}
+      {hiddenNoteAction}
+    </>
+  ) : (
+    'No teams match your filters. Try clearing some.'
+  );
 
   const content = (
     <div className={contentCss.team__right__content}>
@@ -172,7 +213,7 @@ export default function TeamsPrototype() {
           ) : params.get('following') === 'true' && followed.size === 0 ? (
             <div className={s.empty}>You&apos;re not following any teams yet. Follow a team to see it here.</div>
           ) : (
-            <div className={s.empty}>No teams match your filters. Try clearing some.</div>
+            <div className={s.empty}>{emptyStateNote}</div>
           )}
         </div>
       </div>

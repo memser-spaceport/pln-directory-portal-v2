@@ -1123,7 +1123,6 @@
   flex-shrink: 0;
 }
 
-
 /* Stacked outlined (stroked) news cards, matching the homepage mobile news
    grid (single column, 12px gap). */
 .newsPageList {
@@ -1226,6 +1225,27 @@
    truncated "Protocol Labs" to "Protocol…", which trades a real problem for a
    worse one. A full-width flex-basis is the only lever that moves the badge
    without touching the name. */
+/* `Badge` ships 14px/20px, drawn for the settings rows it usually sits in. On
+   this header that made it the *largest* chip on the page — bigger than the
+   Investment Fund / Infrastructure / Web3 row directly beneath it, which runs
+   12px/14px — and a small qualifier outsizing the chips that classify the whole
+   company is the hierarchy upside down. Measured, it also stood 26px tall
+   against the name's 32px line, so it filled the line rather than sitting in it.
+
+   12px/14px is not a size invented for it: it's the scale this header already
+   uses for chips, one row down. Copying that means the badge reads as a member
+   of the header's chip vocabulary rather than as its own object.
+
+   Note this deliberately does NOT match the teams grid's copy of the same badge,
+   which sits at 11px/16px — that corner takes its scale from the news chip it
+   shares the slot with. Same component and same word on both surfaces; the size
+   is a ratio to each surface's neighbours, not a constant. */
+.statusChip.statusChip {
+  font-size: 12px;
+  line-height: 14px;
+  min-width: 0;
+}
+
 .statusBadge {
   display: inline-flex;
   margin-left: 8px;

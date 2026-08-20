@@ -128,8 +128,8 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
    * the application resumes.
    */
   const onApply = useCallback(
-    async (target: ApplyTarget) => {
-      analytics.onJobApplyClicked({ ...applyBase(target), trigger: 'row' });
+    async (target: ApplyTarget, trigger: JobApplyTrigger = 'row') => {
+      analytics.onJobApplyClicked({ ...applyBase(target), trigger });
 
       if (viewer === 'logged-out') {
         // Not a sign-in prompt: the sign-up form IS the ask at the moment of
@@ -142,6 +142,12 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
       // first-paint window. Ignore rather than guess: acting on a half-derived
       // viewer risks opening the drawer at someone with nothing to fill in.
       if (viewer === 'resolving') return;
+
+      // A rejected account has no apply path. The row doesn't render the button
+      // for them, but `resumeAfterLogin` calls this directly — without the
+      // guard a rejected member with a complete profile would fall through the
+      // ternary below as `approved` and be handed the apply modal.
+      if (viewer === 'rejected') return;
 
       let verdict: JobsAccessVerdict = viewer === 'pending-approval' ? 'pending' : 'approved';
       if (viewer === 'pending-approval') {

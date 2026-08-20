@@ -16,6 +16,7 @@ import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
@@ -102,6 +103,51 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const pushLogin = useCallback(() => {
     router.push(`${window.location.pathname}${window.location.search}#login`);
   }, [router]);
+
+  /* Coming back from the Privy round trip: pick the application back up where
+     it was interrupted. The role uid travels in the URL (see
+     `job-apply-resume`) because the login path clears localStorage on its way
+     through and sessionStorage did not reliably survive it.
+
+     Gated on the viewer having actually settled — resuming against a
+     half-derived state would open the drawer at someone with nothing to fill
+     in — and on the list having loaded, since the uid has to be re-resolved
+     against what the board is showing now. */
+  const applyResumeHandled = useRef(false);
+  useEffect(() => {
+    if (!SHOW_JOB_BOARD_APPLY) return;
+    if (applyResumeHandled.current) return;
+
+    const roleUid = searchParams.get(PENDING_APPLY_PARAM);
+    if (!roleUid) return;
+    if (!isLoggedIn || boardViewer.viewer === 'resolving') return;
+    if (isLoading) return;
+
+    // Claimed before anything async runs, so a StrictMode double-invoke or a
+    // re-render mid-resume can't run the flow twice. The parameter goes with
+    // it: a one-time instruction must not replay on reload.
+    applyResumeHandled.current = true;
+    stripPendingApplyFromUrl();
+
+    let resumed: { role: IJobRole; teamId: string; teamName: string } | null = null;
+    for (const group of groups) {
+      const role = group.roles.find((r) => r.uid === roleUid);
+      if (role) {
+        resumed = { role, teamId: group.team.uid, teamName: group.team.name };
+        break;
+      }
+    }
+
+    if (resumed) {
+      applyFlow.onApply(resumed, 'resume');
+    } else {
+      /* The role closed, or the filters no longer show it. The profile is
+         still the thing standing between them and applying, so the drawer
+         opens without naming a role rather than resuming nothing at all. */
+      applyFlow.onUpdateProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, boardViewer.viewer, isLoading, groups]);
 
   /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
      closure minted per group re-renders every scrolled-in card on each host

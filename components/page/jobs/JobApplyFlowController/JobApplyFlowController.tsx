@@ -11,6 +11,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -94,13 +95,15 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (prefillEmail?: string) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string }) => {
     const search = new URLSearchParams(window.location.search);
-    if (prefillEmail) {
-      search.set('prefillEmail', prefillEmail);
+    if (opts?.prefillEmail) {
+      search.set('prefillEmail', opts.prefillEmail);
     }
-    const qs = search.toString();
-    router.push(`${window.location.pathname}${qs ? `?${qs}` : ''}#login`);
+    // The role rides the same channel, so signing in lands them back on the
+    // application instead of on a board they have to re-navigate.
+    const qs = withPendingApply(search.toString(), opts?.pendingRoleUid);
+    router.push(`${window.location.pathname}${qs}#login`);
   };
 
   /**
@@ -141,7 +144,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       flow.closeSignUp();
       // They just typed this email into the form the line above submitted —
       // asking for it again in the login modal is asking twice for one fact.
-      pushLogin(details.email);
+      pushLogin({ prefillEmail: details.email, pendingRoleUid: target?.role.uid });
       return { success: true };
     }
 
@@ -152,10 +155,14 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     return { success: false, message: result.message };
   };
 
-  /** The modal's "Already have an account? Sign in" escape — ordinary Privy. */
+  /** The modal's "Already have an account? Sign in" escape — ordinary Privy.
+   *  The role rides along the same way: they pressed Apply to get here, and an
+   *  existing account is the one case where the flow can resume all the way
+   *  into the letter. */
   const handleModalSignIn = () => {
+    const target = state.step === 'sign-up' ? state.target : null;
     flow.closeSignUp();
-    pushLogin();
+    pushLogin({ pendingRoleUid: target?.role.uid });
   };
 
   const handleDrawerFooter = ({ profileComplete }: { profileComplete: boolean }) => {

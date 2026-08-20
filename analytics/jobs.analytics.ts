@@ -28,8 +28,13 @@ export type JobReferBaseParams = {
   source: JobSurface;
 };
 
-/** Which control started an apply-funnel step: a role row, the board banner, or the header. */
-export type JobApplyTrigger = 'row' | 'banner' | 'header';
+/**
+ * Which control started an apply-funnel step: a role row, the board banner, the
+ * header — or `resume`, which is the flow picking itself back up after the
+ * Privy round trip rather than anything the person pressed. Kept distinct so
+ * apply-click counts stay a count of actual clicks.
+ */
+export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume';
 
 /**
  * Apply-funnel payloads carry ONLY what's listed here: uids, viewer state,

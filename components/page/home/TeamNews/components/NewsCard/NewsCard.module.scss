@@ -50,8 +50,12 @@
     padding-top: 0;
   }
 
+  /* Overridable so a tinted host panel can retint the seam — a neutral grey
+     divider reads as dirt once the surface behind it is coloured. The fallback
+     is the neutral default, so an untinted host is unchanged by construction
+     rather than by inspection. Set by the team profile's .newsPanel. */
   &:not(:last-child) {
-    border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+    border-bottom: 1px solid var(--news-card-divider, rgba(27, 56, 96, 0.12));
   }
 }
 

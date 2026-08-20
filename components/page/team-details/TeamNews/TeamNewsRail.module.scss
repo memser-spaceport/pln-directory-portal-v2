@@ -26,26 +26,36 @@
   }
 }
 
+/* Brand-tinted panel — the same soft surface and hairline news wears elsewhere
+   in the directory, so it reads as one coloured thread rather than a differently
+   styled block per page. The neutral card shadow goes with the white: a tinted
+   surface behind a coloured hairline is already lifted off the grey page, and
+   keeping both runs two competing elevation systems on one box. */
 .newsPanel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--Neutral-White, #fff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
   border-radius: 8px;
   padding: 16px;
-  box-shadow:
-    0 0 1px 0 rgba(15, 23, 42, 0.12),
-    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  /* Row seams follow the tint. Consumed by NewsCard's .cardFlat, which the rail
+     is the only surface to render. */
+  --news-card-divider: var(--border-brand-subtle, #aebfff);
 
   &.highlight {
     box-shadow: 0px -1px 5px 2px rgba(27, 77, 255, 0.75);
   }
 
+  /* The header labels the tint rather than merely sitting on it, so it takes
+     brand blue. Reached by element because the title comes from the shared
+     DetailsSectionHeader, whose own .title (#64748b) this already overrides. */
   h2 {
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;
-    color: var(--foreground-neutral-primary, #0f172a);
+    color: var(--foreground-brand-secondary, #4174ff);
   }
 
   @include media.tablet-landscape {

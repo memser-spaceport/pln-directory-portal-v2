@@ -135,7 +135,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
                    amber "+ Your Role" inside is production's own affordance. */}
-            <div className={clsx({ [d.missingCard]: !hasRole })}>
+            <div className={clsx(d.headerCard, { [d.missingCard]: !hasRole })}>
               {!hasRole && (
                 <DataIncomplete className={d.incompleteStrip}>
                   {pendingRoleTitle
@@ -143,9 +143,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     : 'Your current role is required to apply.'}
                 </DataIncomplete>
               )}
-              <div className={clsx({ [d.missingBody]: !hasRole })}>
-                <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-              </div>
+              <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             </div>
 
             {/* 2. Job search status — the required section, so it comes first

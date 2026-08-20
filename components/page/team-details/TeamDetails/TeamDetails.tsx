@@ -20,6 +20,7 @@ import { useMobileNavVisibility } from '@/hooks/useMobileNavVisibility';
 
 import { ExpandableDescription } from '@/components/common/ExpandableDescription';
 import { Tag } from '@/components/ui/Tag';
+import { Badge } from '@/components/common/Badge';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 import { TagsList } from '@/components/common/profile/TagsList';
 import {
@@ -32,6 +33,7 @@ import { EditButton } from '@/components/common/profile/EditButton';
 import { Divider } from '@/components/common/profile/Divider';
 
 import { isTeamLeaderOrAdmin } from '../utils/isTeamLeaderOrAdmin';
+import { isTeamInactive } from './utils/isTeamInactive';
 
 import { PlusIconCircle } from './icons';
 import { EditTeamDetailsForm } from './components/EditTeamDetailsForm';
@@ -79,6 +81,7 @@ export const TeamDetails = (props: Props) => {
   const about = team?.longDescription ?? '';
   const hasAbout = !!about && about.trim() !== '<p><br></p>';
   const hasTeamEditAccess = isTeamLeaderOrAdmin(currentUser, team?.id);
+  const isInactive = isTeamInactive(team);
 
   const {
     isFollowing,
@@ -188,6 +191,12 @@ export const TeamDetails = (props: Props) => {
           <div className={s.nameTagContainer}>
             <div className={s.nameAndActions}>
               <Tooltip asChild trigger={<h1 className={s.teamName}>{teamName}</h1>} content={teamName} />
+
+              {isInactive && (
+                <span className={s.statusBadge}>
+                  <Badge>Inactive</Badge>
+                </span>
+              )}
             </div>
             <TeamProfileMeta team={team} />
             <div className={s.tagsContainer}>

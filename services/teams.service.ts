@@ -169,6 +169,7 @@ export const getTeam = async (
     dateFounded: result?.dateFounded,
     teamSize: result?.teamSize,
     location: result?.location,
+    status: result?.status,
     communityAffiliations: result?.communityAffiliations,
     isFollowed: result.isFollowed,
   };

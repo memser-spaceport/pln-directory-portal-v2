@@ -27,6 +27,9 @@ export function getContactLogoByProvider(provider: string): string {
     case 'bluesky': {
       return '/icons/contact/Bluesky_logo.svg';
     }
+    case 'crunchbase': {
+      return '/icons/contact/Crunchbase_logo.svg';
+    }
     default: {
       return '/icons/contact/website-contact-logo-v2.svg';
     }

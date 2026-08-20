@@ -4,4 +4,6 @@ export const KEY_TO_HANDLER = {
   linkedinHandle: 'linkedin',
   telegramHandler: 'telegram',
   blog: 'blog',
-}
+  blueskyHandler: 'bluesky',
+  crunchbaseHandler: 'crunchbase',
+};

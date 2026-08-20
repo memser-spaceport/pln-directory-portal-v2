@@ -23,13 +23,27 @@
 
 export const PENDING_APPLY_PARAM = 'applyTo';
 
-/** Add the pending role to a search string, preserving whatever else is on it
- *  (the filters someone narrowed before signing up should still be narrowed
- *  when they land back). */
+/**
+ * Declare the pending role on a search string — or declare there isn't one,
+ * which REMOVES any role already sitting there.
+ *
+ * The removal is the load-bearing half. Only signing up resumes an
+ * application; signing in must not. But a person who signs up and then
+ * abandons the Privy modal leaves `applyTo` in the URL, and every later
+ * navigation carries the whole search string along — so a sign-in that merely
+ * declined to add the parameter would still inherit the stale one and resume a
+ * role the person didn't just act on. Passing no uid says "nothing is pending"
+ * and makes that true.
+ *
+ * Everything else on the search string is preserved: the filters someone
+ * narrowed before signing up should still be narrowed when they land back.
+ */
 export function withPendingApply(search: string, roleUid: string | undefined): string {
   const params = new URLSearchParams(search);
   if (roleUid) {
     params.set(PENDING_APPLY_PARAM, roleUid);
+  } else {
+    params.delete(PENDING_APPLY_PARAM);
   }
   const next = params.toString();
   return next ? `?${next}` : '';

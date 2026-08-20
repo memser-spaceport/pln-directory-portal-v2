@@ -155,14 +155,17 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     return { success: false, message: result.message };
   };
 
-  /** The modal's "Already have an account? Sign in" escape — ordinary Privy.
-   *  The role rides along the same way: they pressed Apply to get here, and an
-   *  existing account is the one case where the flow can resume all the way
-   *  into the letter. */
+  /**
+   * The modal's "Already have an account? Sign in" escape — ordinary Privy,
+   * and deliberately NOT a resume: only signing up reopens the flow on the
+   * way back. Someone who already has an account is returning to a board they
+   * know, and having a drawer open itself at them is an interruption rather
+   * than a continuation. Passing no role also clears any `applyTo` left in the
+   * URL by an abandoned sign-up, so a stale one can't resume here.
+   */
   const handleModalSignIn = () => {
-    const target = state.step === 'sign-up' ? state.target : null;
     flow.closeSignUp();
-    pushLogin({ pendingRoleUid: target?.role.uid });
+    pushLogin();
   };
 
   const handleDrawerFooter = ({ profileComplete }: { profileComplete: boolean }) => {

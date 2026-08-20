@@ -14,9 +14,16 @@ describe('withPendingApply', () => {
     expect(params.get(PENDING_APPLY_PARAM)).toBe('role-1');
   });
 
-  it('leaves the search string alone when there is no role — a banner sign-up has nothing to resume', () => {
+  it('keeps the rest of the search string when there is no role', () => {
     expect(withPendingApply('?roleCategory=Engineering', undefined)).toBe('?roleCategory=Engineering');
     expect(withPendingApply('', undefined)).toBe('');
+  });
+
+  it('CLEARS a stale role when none is given — signing in must not inherit an abandoned sign-up', () => {
+    expect(withPendingApply(`?${PENDING_APPLY_PARAM}=abandoned-role`, undefined)).toBe('');
+    expect(withPendingApply(`?roleCategory=Engineering&${PENDING_APPLY_PARAM}=abandoned-role`, undefined)).toBe(
+      '?roleCategory=Engineering',
+    );
   });
 
   it('replaces a stale role rather than appending a second one', () => {

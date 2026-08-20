@@ -16,7 +16,7 @@ import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
-import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl } from '@/services/jobs/job-apply-resume';
+import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
@@ -100,8 +100,12 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         : undefined,
     [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply],
   );
+  /* The banner's "Sign in". Signing in never resumes an application — only
+     signing up does — so any `applyTo` left in the URL by an abandoned
+     sign-up is dropped here rather than inherited through the round trip. */
   const pushLogin = useCallback(() => {
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    const search = withPendingApply(window.location.search, undefined);
+    router.push(`${window.location.pathname}${search}#login`);
   }, [router]);
 
   /* Coming back from the Privy round trip: pick the application back up where

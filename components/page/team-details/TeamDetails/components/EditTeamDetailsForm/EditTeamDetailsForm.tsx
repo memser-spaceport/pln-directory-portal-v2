@@ -34,6 +34,9 @@ type TEditTeamDetailsForm = {
   isImageDeleted: boolean;
   name: string;
   shortDescription: string;
+  dateFounded: string;
+  teamSize: string;
+  location: string;
   isFund: boolean;
   fundingStage: TOption | null;
   industryTags: TOption[];
@@ -77,6 +80,9 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       isImageDeleted: false,
       name: team?.name || '',
       shortDescription: team?.shortDescription || '',
+      dateFounded: team?.dateFounded ? String(team.dateFounded) : '',
+      teamSize: team?.teamSize === null || team?.teamSize === undefined ? '' : String(team.teamSize),
+      location: team?.location || '',
       isFund: team?.isFund ?? false,
       fundingStage: defaultFundingStage,
       industryTags: defaultIndustryTags,
@@ -86,10 +92,19 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
     resolver: yupResolver(editTeamDetailsSchema),
   });
 
-  const { handleSubmit, reset, watch } = methods;
+  const { handleSubmit, reset, watch, setValue } = methods;
   const formValues = watch();
   const prevValuesRef = useRef<Record<string, unknown>>({});
   const isFirstRenderRef = useRef(true);
+
+  const dateFoundedValue = formValues.dateFounded;
+  useEffect(() => {
+    const digitsOnly = (dateFoundedValue ?? '').replace(/\D/g, '').slice(0, 4);
+
+    if (digitsOnly !== dateFoundedValue) {
+      setValue('dateFounded', digitsOnly, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [dateFoundedValue, setValue]);
 
   useEffect(() => {
     if (isFirstRenderRef.current) {
@@ -139,6 +154,9 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       name: formData.name.trim(),
       shortDescription: formData.shortDescription.trim(),
       longDescription: formData.about,
+      dateFounded: formData.dateFounded.trim() ? Number(formData.dateFounded.trim()) : null,
+      teamSize: formData.teamSize.trim() || null,
+      location: formData.location.trim() || null,
       isFund: formData.isFund,
       fundingStage: formData.fundingStage
         ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
@@ -159,6 +177,9 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       values: {
         name: formData.name.trim(),
         shortDescription: formData.shortDescription.trim(),
+        dateFounded: formData.dateFounded.trim(),
+        teamSize: formData.teamSize.trim(),
+        location: formData.location.trim(),
         isFund: formData.isFund,
         fundingStage: formData.fundingStage?.value ?? null,
         industryTags: formData.industryTags.map((item) => item.value),
@@ -195,6 +216,29 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
               </>
             }
           />
+          <FormField
+            name="dateFounded"
+            placeholder="eg., 2014"
+            label="Date Founded"
+            maxLength={4}
+            inputMode="numeric"
+            description="The 4-digit year your team was founded."
+          />
+
+          <FormField
+            name="teamSize"
+            placeholder="eg., 50 or 11-50"
+            label="Team Size"
+            description="Employee count as a number, or a range label."
+          />
+
+          <FormField
+            name="location"
+            placeholder="eg., San Francisco, United States"
+            label="Location"
+            description="Where your team is based."
+          />
+
           <div className={s.checkboxLabel}>
             <Checkbox
               checked={!!methods.watch('isFund')}

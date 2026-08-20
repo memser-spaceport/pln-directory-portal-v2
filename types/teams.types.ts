@@ -75,6 +75,9 @@ export interface ITeamResponse {
   twitterHandler?: string;
   blueskyHandler?: string | null;
   crunchbaseHandler?: string | null;
+  dateFounded?: number | null;
+  teamSize?: string | number | null;
+  location?: string | null;
   linkedinHandle?: string | null;
   createdAt?: string;
   asks?: string[];
@@ -154,6 +157,9 @@ export interface ITeam {
   telegramHandler?: string | null;
   blueskyHandler?: string | null;
   crunchbaseHandler?: string | null;
+  dateFounded?: number | null;
+  teamSize?: string | number | null;
+  location?: string | null;
   blog?: string | null;
   isFollowed?: boolean;
 }

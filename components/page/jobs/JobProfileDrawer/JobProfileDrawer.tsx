@@ -15,8 +15,7 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
-import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -97,14 +96,12 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 
   /* The status lives on the member record (PL-Team-only: the API omits it for
      anyone but this member or an admin), so it arrives with the fetch above
-     and saves through the same full-record PUT every other profile section
-     uses. It has to be the full record: a partial patch of this one field is
-     rejected outright ("Database field validation error"), and the whole
-     reason `buildMemberUpdatePayload` exists is that this endpoint replaces
-     what it is sent. The mutation invalidates GET_MEMBER, so the value the
-     gate reads next is the one the server stored rather than the one we hoped
-     it stored. */
-  const updateMember = useUpdateMember();
+     and saves through a partial PATCH of just this field — the endpoint the
+     contract names for it, and the one that cannot clobber a section this
+     drawer never touched. The mutation invalidates GET_MEMBER, so the value
+     the gate reads next is the one the server stored rather than the one we
+     hoped it stored. */
+  const updateMember = useUpdateMemberParams();
   const jobSearchStatus: JobSearchStatus | null = isJobSearchStatus(member?.jobSearchStatus)
     ? member.jobSearchStatus
     : null;
@@ -175,12 +172,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                 <JobSearchStatusInput
                   value={jobSearchStatus}
                   disabled={updateMember.isPending}
-                  onChange={(value) =>
-                    updateMember.mutate({
-                      uid: memberUid,
-                      payload: buildMemberUpdatePayload(member, { jobSearchStatus: value }),
-                    })
-                  }
+                  onChange={(value) => updateMember.mutate({ uid: memberUid, payload: { jobSearchStatus: value } })}
                 />
               </div>
             </DetailsSection>

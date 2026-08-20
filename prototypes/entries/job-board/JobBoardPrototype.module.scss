@@ -75,3 +75,52 @@
   line-height: 20px;
   text-align: center;
 }
+
+// The `?email=1` review surface: the application email on its own page.
+//
+// Narrow and centred, because the thing under review is an email — reading it at
+// the board's full width would be reading it at a width no mail client uses. 640
+// is the digest's own reading measure.
+.emailStage {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+
+  @include media.tablet-landscape {
+    padding: 32px 0 64px;
+  }
+}
+
+// The All / Applied scope strip, on its own row above the list.
+//
+// Its own row rather than production's placement beside the title: this board
+// renders two title rows (mobile header + desktop toolbar) and hides one, which
+// is fine for a heading and wrong for a live control — see the note in the
+// component. One row, visible at every width, and the strip keeps its left edge
+// with the list it scopes.
+.scopeTabs {
+  // The list's own inset on mobile, flush from 1024 up, matching `JobsContent`'s
+  // `.list` so the tabs line up with the cards under them rather than with the
+  // toolbar above.
+  padding: 0 8px;
+
+  @include media.breakpoint-1024 {
+    padding: 0;
+  }
+}
+
+// The way back out of an empty Applied tab. A text button, not a filled one:
+// the empty state is a sentence, and the action is the last clause of it.
+.emptyLink {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

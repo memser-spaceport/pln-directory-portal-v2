@@ -39,6 +39,9 @@ interface JobReferRoleRowProps {
   onApply?: (role: IJobRole) => void;
   /** Already applied from this session — the row reports it instead of offering again. */
   applied?: boolean;
+  /** ISO stamp of when the application went. Present only when `applied`; the
+   *  clock slot reports this instead of the posting age — see the note there. */
+  appliedAt?: string;
 }
 
 /**
@@ -85,14 +88,25 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onReferBlocked,
     onApply,
     applied = false,
+    appliedAt,
   } = props;
   const [referOpen, setReferOpen] = useState(false);
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
   const date = getJobDate(role);
-  const relative = formatRelativeDays(date);
-  const showNew = isNew(date);
+  /* Once you have applied, the clock changes what it counts.
+   *
+   * The slot holds the posting's age, which is what you need in order to decide
+   * whether to go for it. On a row you have already gone for, that number is
+   * both useless and actively misleading — in the Applied tab especially, "9d
+   * ago" beside a role you applied to reads as when you applied. So the applied
+   * row reports its own date instead, labelled, and the posting age steps aside
+   * rather than sitting next to a second number nobody asked to compare. */
+  const relative = appliedAt ? `Applied ${formatRelativeDays(appliedAt)}` : formatRelativeDays(date);
+  /* No "New" on a row you have applied to. The badge is an invitation to look at
+     something before it goes stale, and that has already happened. */
+  const showNew = isNew(date) && !applied;
   const locationDisplay = isEmpty(location) ? null : location.join(', ');
 
   const metaParts = [seniority ? seniorityDisplayLabel(seniority) : null, roleCategory, locationDisplay].filter(

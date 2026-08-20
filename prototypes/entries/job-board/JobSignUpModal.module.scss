@@ -6,35 +6,132 @@
 // prototypes/CLAUDE.md #3. Sizes, spacing and structure are copied 1:1.
 @use 'styles/media';
 
+// A PAGE below 960, A CARD ABOVE IT.
+//
+// Written the way every takeover in this product is written — mobile-first
+// inverted. `DetailsSection.editView` is the canonical one: `position: fixed;
+// inset: 0` is the *base*, and `@include media.tablet-landscape` un-fixes it
+// back to a card with `position: relative; inset: unset`. `ProfileDetails` and
+// Demo Day's `EditProfileDrawer` repeat it verbatim. So the phone case is the
+// plain rules below and the desktop case is the override, rather than the other
+// way round.
+//
+// **Why 960 and not the 768 this file used to carry.** 768 came along in the
+// transcription from `ApplyForDemoDayModal` and is not a house breakpoint —
+// `media.scss` has 640 / 960 / 1024 / 1200 / 1440 / 1920 and nothing else. Every
+// mobile takeover in the product switches at 960 (`tablet-landscape`), and one
+// of them is *inside this very card*: `FormSelect` opens its full-screen option
+// list off `useMedia('(max-width: 960px)')`. At 768 the company select went
+// full-screen while its host was still a floating card — two layers disagreeing
+// about what kind of surface they were on, in the 768–959 band. They now change
+// together.
+//
+// `Modal` has no full-screen prop and never has: every sheet in this product
+// does it by hand through `overlayClassname` + `className`, which is what these
+// two rules are.
 .modal {
   position: relative;
   background: var(--background-neutral-primary, #ffffff);
-  border-radius: 16px;
   width: 100%;
-  // 560, not the source's 680. Demo Day's form carries an accredited-investor
-  // checkbox with a paragraph of legalese, an add-a-team sub-form and a longer
-  // description — content that needs the measure. This one is five fields, and
-  // at 680 the single-column inputs run to a line length that makes a short form
-  // look like a long one. 560 still clears the `role @ company` two-up row, which
-  // is the only thing here with a real width floor, and brings the card closer to
-  // its neighbours in this flow (the apply modal is 440).
-  max-width: 560px;
-  padding: 20px;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-  @media (max-width: 768px) {
-    max-width: 100%;
-    border-radius: 16px 16px 0 0;
+  // The page. Full-bleed, square, and at least as tall as the viewport so the
+  // white runs to the bottom edge even when the form is short.
+  //
+  // `max-width: none` is load-bearing: `Modal.modalContainer` — the element this
+  // class lands on — ships `max-width: 600px`, so without it the "page" is a
+  // 600px column centred in the viewport everywhere between 600 and 959. On a
+  // phone that is invisible (390 < 600) and on a tablet it is the bug.
+  max-width: none;
+  min-height: 100dvh;
+  padding: 0;
+
+  // NO fixed `height` here, only the min.
+  //
+  // This carried `@supports (-webkit-touch-callout: none) { height: 100dvh }`,
+  // lifted from `AppSearchMobile`. Two things wrong with it. That guard is not
+  // iOS-only — Chrome supports `-webkit-touch-callout` too, so the rule applied
+  // everywhere. And `AppSearchMobile` can afford a fixed height because it is a
+  // flex column that scrolls *inside* itself; this card is an ordinary growing
+  // document that the overlay scrolls. Clamping it to the viewport left the
+  // white background 844px tall under 922px of form, so Cancel and the Sign in
+  // row rendered outside the card, on the blurred backdrop.
+  //
+  // `min-height` alone gives the page what it was for — white to the bottom edge
+  // when the form is short — without capping it when the form is tall.
+
+  @include media.tablet-landscape {
+    // 560, not the source's 680. Demo Day's form carries an accredited-investor
+    // checkbox with a paragraph of legalese, an add-a-team sub-form and a longer
+    // description — content that needs the measure. This one is five fields, and
+    // at 680 the single-column inputs run to a line length that makes a short form
+    // look like a long one. 560 still clears the `role @ company` two-up row, which
+    // is the only thing here with a real width floor, and brings the card closer to
+    // its neighbours in this flow (the apply modal is 440).
+    max-width: 560px;
+    min-height: 0;
+    height: auto;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 }
 
-// Source's rule, doubled selector included: the form is taller than the
-// viewport on a phone, and a vertically centred card would push the first
-// field above the top edge.
+// The overlay stops being an overlay below 960: no gutter, no centring, nothing
+// of the board showing round the edges. `Modal.overlay` ships `padding: 16px 12px`
+// (24px from 960 up), so the padding has to be taken off here rather than simply
+// not added.
+//
+// Doubled selector is the source's, and still required: this and `Modal.overlay`
+// are both single-class rules in different modules, so equal specificity would
+// leave the winner to bundle order.
 .overlay.overlay {
+  padding: 0;
+
+  // `flex-start`, at BOTH sizes — and the mobile half of that is load-bearing,
+  // not cosmetic.
+  //
+  // This said `stretch` below 960, reasoning that a page should fill its
+  // viewport. It does the opposite: `stretch` sizes a flex item to the *line's*
+  // cross size, so the card was pinned to exactly 844px while holding 922px of
+  // form, and the last 78px — Cancel and the Sign in escape — rendered outside
+  // the white background, on the blurred backdrop. `min-height: 100dvh` on the
+  // card already fills a short viewport; stretch only ever capped a tall one.
+  //
+  // Above 960 this is the source's own rule, for the neighbouring reason: the
+  // form is taller than a laptop viewport, and a vertically centred card would
+  // push its first field off the top edge.
   align-items: flex-start;
+
+  @include media.tablet-landscape {
+    padding: 24px;
+  }
+}
+
+// The page's own header: a sticky 64px bar with `← Back`.
+//
+// Production chrome, not a new one — `EditInvestorProfileDrawer.module.scss`'s
+// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfileDrawer`
+// already renders two steps later in this same flow. A person who signs up on a
+// phone and then completes their profile meets the same bar twice.
+//
+// Only below 960: above it the card has the floating ✕ it has always had, and a
+// Back button on a dialog that isn't a page would be claiming a history entry
+// that doesn't exist.
+.mobileHeader {
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+// The body, once the card has no padding of its own to give it.
+.pageBody {
+  padding: 16px;
+
+  @include media.tablet-landscape {
+    padding: 0;
+  }
 }
 
 // The house close button: a 16px glyph in a 24px grey disc.
@@ -54,12 +151,15 @@
 // rgba. The scale-up goes with it: at 4px padding inside 24px, the glyph is
 // 16px, which is the size `CloseIcon` ships at.
 .closeButton {
+  // Gone below 960: the page has a `← Back` header instead, and a floating ✕ over
+  // a full-screen form reads as "dismiss this layer" when what it does is leave
+  // the page. One exit, and it says which one it is.
+  display: none;
   position: absolute;
   top: 12px;
   right: 12px;
   width: 24px;
   height: 24px;
-  display: flex;
   align-items: center;
   justify-content: center;
   background: var(--action-background-neutral-light_normal, rgba(14, 15, 17, 0.04));
@@ -70,6 +170,10 @@
   color: var(--foreground-neutral-secondary, #455468);
   transition: background 0.2s;
   z-index: 1;
+
+  @include media.tablet-landscape {
+    display: flex;
+  }
 
   &:hover {
     background: rgba(14, 15, 17, 0.08);
@@ -170,10 +274,23 @@
 
 // Source also sets `text-align: center` here, which both children immediately
 // override back to left. Dropped rather than transcribed dead.
+// The two lines of fine print above the actions: what the PL team does next,
+// and the Privacy / Terms line.
+//
+// 4px, down from the source's 8. Both lines are 12px/18px secondary — the same
+// voice, the same size, the same job of being read once before pressing the
+// button — and at 8px two single lines of that read as two separate notes with
+// a paragraph break between them, which is what made the block look loose once
+// the first line came down from three lines to one. 4px is the gap the apply
+// modal's read-back uses for its own "one fact, two lines" pair; it reads as one
+// block of small print, which is what this is.
+//
+// Not zero: the second line is legal boilerplate rather than product fact, so it
+// gets the smallest gap that still marks a change of subject rather than none.
 .bottomText {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .body {
@@ -225,8 +342,30 @@
   gap: 8px;
   padding-top: 4px;
 
-  @media (max-width: 768px) {
-    flex-direction: column-reverse;
+  // On the page, the primary action sticks to the bottom.
+  //
+  // **Why it has to.** The form's actions sit at a constant y≈770, so whether
+  // they are on screen is purely a question of viewport height — visible on a
+  // Pixel 7 (915), 145px below the fold on an iPhone SE (667). And those are
+  // chrome-less numbers: Safari's address bar takes ~100px, which puts the
+  // button under the fold on most phones in practice. A five-field form whose
+  // only forward action has to be hunted for is a form people abandon at the
+  // last field.
+  //
+  // **The idiom is production's.** `EditFormMobileControls` is a sticky bottom
+  // bar shown below 960 across sixteen production forms, and the profile drawer
+  // in this very flow already ends in a sticky `.footer` with the same white
+  // ground and upward shadow. This is that, so the two steps of signing up and
+  // filling in a profile end the same way on a phone.
+  //
+  // **Only the primary is pinned.** Cancel goes (see `.cancelButton`) — the page
+  // has a `← Back` header that does the same job, and two ways out plus one way
+  // forward would cost ~110px of a 667px viewport permanently. The "Already have
+  // an account? Sign in" escape stays in the flow below, where the modal's own
+  // reasoning wants it: it is the rarer path and should be findable without
+  // competing with the action most people came for.
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    flex-direction: column;
 
     button {
       width: 100%;
@@ -263,4 +402,54 @@
   border: none;
   padding: 0;
   cursor: pointer;
+}
+
+// The dock — the actions and the "Already have an account? Sign in" escape,
+// stuck to the bottom of the mobile page as one block.
+//
+// **Why they stick together.** The primary action was pinned first, and the
+// escape was left in the flow below it on the reasoning that it is the rarer
+// path. In a sticky layout that reasoning breaks: "below the pinned bar" is not
+// a quieter position, it is an unreachable one — the bar covers it, so the one
+// control a returning member needs was the only control they could never see.
+// The pair is what the bottom of this form is *for*: create an account, or say
+// you already have one.
+//
+// Two sticky siblings would both resolve to `bottom: 0` and stack on top of each
+// other, so one wrapper holds both and sticks once.
+//
+// **`display: contents` above 960** so the card is untouched: the wrapper stops
+// generating a box, and the footer and the sign-in row go back to being direct
+// children of `.form`, inheriting its 24px gap exactly as before.
+.actionsDock {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  // Full-bleed: the body's 16px inset stops at the dock so its white ground
+  // reaches both edges, the way a bar welded to the viewport should.
+  margin: 0 -16px;
+  padding: 12px 16px;
+  background: var(--background-neutral-primary, #ffffff);
+  box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
+
+  @include media.tablet-landscape {
+    display: contents;
+  }
+}
+
+// Cancel, on the mobile page only.
+//
+// Gone below 960. The page grew a `← Back` header that dismisses it, and the
+// actions row became a sticky bar; keeping Cancel there would pin two ways to
+// leave above one way to proceed, in the ~110px that costs on a 667px phone.
+// Above 960 it is the card's twin-action footer exactly as before.
+.cancelButton {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    display: none;
+  }
 }

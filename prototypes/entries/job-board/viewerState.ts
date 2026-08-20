@@ -222,7 +222,7 @@ export const FILLED_PROFILE: MemberProfile = {
  * Which of the board's entry states is being previewed.
  *
  * Prototype scaffolding — the real page reads cookies and an access level. What
- * is being reviewed is what each of these four people sees, because the apply
+ * is being reviewed is what each of these five people sees, because the apply
  * flow branches differently for each and only one of them (`logged-out`) was
  * ever visible without editing code.
  *
@@ -235,8 +235,16 @@ export const FILLED_PROFILE: MemberProfile = {
  *                         in" to "finish your profile".
  *  - `profile-ready`      signed in, profile already good. Applying should not
  *                         re-open a form; it should confirm what will be sent.
+ *  - `applied`            the returning member: same profile as `profile-ready`,
+ *                         but with applications already sent. It is the only
+ *                         state where the Applied tab has anything in it, where
+ *                         rows show the disabled "✓ Applied" button, and where
+ *                         the board is something you come *back* to rather than
+ *                         arrive at. Reaching it by hand meant applying to two
+ *                         roles first — three modals each — which is exactly the
+ *                         friction that stops a state from being reviewed.
  */
-export type BoardViewer = 'logged-out' | 'pending-approval' | 'profile-incomplete' | 'profile-ready';
+export type BoardViewer = 'logged-out' | 'pending-approval' | 'profile-incomplete' | 'profile-ready' | 'applied';
 
 /**
  * The gate on Apply: **your current role, and an answered job search status.**

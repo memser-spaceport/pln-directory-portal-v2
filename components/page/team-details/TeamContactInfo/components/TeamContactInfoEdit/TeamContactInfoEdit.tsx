@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ITeam } from '@/types/teams.types';
+import { getProfileFromURL } from '@/utils/common.utils';
 
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
@@ -33,6 +34,8 @@ export function TeamContactInfoEdit(props: Props) {
       linkedin: team?.linkedinHandle,
       telegram: team?.telegramHandler,
       contactMethod: team?.contactMethod ?? '',
+      bluesky: team?.blueskyHandler,
+      crunchbase: team?.crunchbaseHandler,
     },
     resolver: yupResolver(teamContactInfoSchema),
   });
@@ -47,6 +50,10 @@ export function TeamContactInfoEdit(props: Props) {
       twitterHandler: formData.twitter,
       telegramHandler: formData.telegram,
       blog: formData.blog,
+      blueskyHandler: formData.bluesky ? getProfileFromURL(formData.bluesky, 'bluesky') : formData.bluesky,
+      crunchbaseHandler: formData.crunchbase
+        ? getProfileFromURL(formData.crunchbase, 'crunchbase')
+        : formData.crunchbase,
     });
   };
 
@@ -75,6 +82,18 @@ export function TeamContactInfoEdit(props: Props) {
           <FormField name="telegram" label="Telegram" placeholder="eg.,name#1234" />
 
           <FormField name="blog" label="Blog" placeholder="Enter your teams blog address" />
+
+          <FormField
+            name="bluesky"
+            label="Bluesky"
+            placeholder="eg., @protocol.ai or https://bsky.app/profile/protocol.ai"
+          />
+
+          <FormField
+            name="crunchbase"
+            label="Crunchbase"
+            placeholder="eg., protocol-labs or https://www.crunchbase.com/organization/protocol-labs"
+          />
         </DetailsSection>
 
         <EditFormMobileControls />

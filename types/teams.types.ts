@@ -73,6 +73,8 @@ export interface ITeamResponse {
   teamMemberRoles?: [];
   linkedinHandler?: string;
   twitterHandler?: string;
+  blueskyHandler?: string | null;
+  crunchbaseHandler?: string | null;
   linkedinHandle?: string | null;
   createdAt?: string;
   asks?: string[];
@@ -150,6 +152,8 @@ export interface ITeam {
     [key: string]: unknown;
   };
   telegramHandler?: string | null;
+  blueskyHandler?: string | null;
+  crunchbaseHandler?: string | null;
   blog?: string | null;
   isFollowed?: boolean;
 }

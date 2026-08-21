@@ -155,7 +155,7 @@ describe('AiAppFeedbackPage', () => {
     render(<AiAppFeedbackPage />);
 
     expect(screen.getByRole('button', { name: 'Change status (currently New)' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Change status (currently Viewed)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Change status (currently Reviewed)' })).toBeInTheDocument();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
@@ -165,7 +165,7 @@ describe('AiAppFeedbackPage', () => {
     render(<AiAppFeedbackPage />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Change status (currently New)' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Implemented' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Shipped' }));
 
     expect(mockMutate).toHaveBeenCalledWith(
       { appUid: 'app-1', feedbackUid: 'fb-1', status: 'IMPLEMENTED' },

@@ -5,6 +5,8 @@ import {
   DISCUSSIONS_CATEGORY,
   ALL_CAT,
   ALL_TAB,
+  FOR_YOU_CAT,
+  FOR_YOU_CATEGORY,
   CATEGORIES,
   type TeamNewsCategoryId,
 } from '@/components/page/home/TeamNews/constants';
@@ -50,9 +52,13 @@ export const DEFAULT_VIEW: FeedView = { tab: ALL_TAB, category: ALL_CAT, sort: '
 export const isNarrowed = (v: FeedView): boolean =>
   v.tab !== ALL_TAB || v.category !== ALL_CAT || v.query.trim() !== '' || Boolean(v.team);
 
+// Both synthetic pills are listed: `CATEGORIES` holds only the event types, so
+// without these a view summarizes as its raw id ("forYou") in every place that
+// names a filter back to the reader.
 const CATEGORY_LABEL: Record<string, string> = {
   ...Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label])),
   [DISCUSSIONS_CAT]: DISCUSSIONS_CATEGORY.label,
+  [FOR_YOU_CAT]: FOR_YOU_CATEGORY.label,
 };
 
 /**

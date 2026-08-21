@@ -63,11 +63,7 @@ interface TopStoryCardProps {
   onToggleLike: () => void;
   commentCount: number;
   onOpen: () => void;
-  /**
-   * Renders `top.longSummary` as paragraphs in place of the one-line teaser. Set
-   * by the single-story version of the block, which has the room for it.
-   */
-  expanded?: boolean;
+
   /** Hidden on the "today" spine, where this story never reaches the feed. */
   className?: string;
 }
@@ -91,7 +87,6 @@ export function TopStoryCard({
   onToggleLike,
   commentCount,
   onOpen,
-  expanded = false,
   className,
 }: TopStoryCardProps) {
   const weekOf = new Date(top.weekOf).toLocaleDateString('en-US', WEEK_FORMAT);
@@ -107,9 +102,7 @@ export function TopStoryCard({
             and sparkles would claim it was AI. */}
         <span className={local.topBadge}>
           <PinFilledIcon className={local.topBadgeIcon} aria-hidden />
-          {/* Singular in the one-story version — the plural exists because the
-              block normally carries three, and it stops being true here. */}
-          {expanded ? 'Top story' : 'Top stories'}
+          Top stories
         </span>
         <span className={local.topWeek}>Week of {weekOf}</span>
       </div>
@@ -148,21 +141,12 @@ export function TopStoryCard({
         </div>
 
         <h2 className={local.topTitle}>{story.title}</h2>
-        {/* One pick means the space two runner-up rows used to take goes back into
-            the pick — so the teaser becomes a written body rather than a longer
-            clamp of the same sentence. */}
-        {expanded
-          ? top.longSummary.map((section) => (
-              <div key={section.heading ?? 'lede'} className={local.topSection}>
-                {section.heading && <h3 className={local.topSubhead}>{section.heading}</h3>}
-                {section.paragraphs.map((para) => (
-                  <p key={para.slice(0, 40)} className={local.topSummary}>
-                    {para}
-                  </p>
-                ))}
-              </div>
-            ))
-          : story.summary && <p className={local.topSummary}>{story.summary}</p>}
+        {/* `top.longSummary` used to render here instead, for the one-pick shape
+            of the block. That shape is gone (see `TopStoriesBlock`), so this is a
+            teaser and nothing in the prototype reads the long body today — the
+            mock keeps it for the Monday email, which is the surface a written
+            body has the room for. */}
+        {story.summary && <p className={local.topSummary}>{story.summary}</p>}
 
         {/* The "Why this made the top" reasoning block and the "Also considered"
             disclosure both used to sit here; the runners-up are visible rows under

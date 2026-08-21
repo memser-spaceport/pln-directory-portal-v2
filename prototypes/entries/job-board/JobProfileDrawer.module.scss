@@ -102,12 +102,17 @@
 
 // --- Repositories -----------------------------------------------------------
 
-// Two controls where every other section header has one: the `Github Profile`
-// link out, and Edit. `DetailsSectionHeader` puts its children straight after the
-// title with no rules of its own, so the pair needs its own row. 12px rather than
-// the 8px inside `.profileLink` itself, so the gap between the two controls reads
-// as wider than the gap between the link's icon and its label.
-.repoHeaderActions {
+// Two controls where every other section header has one. `DetailsSectionHeader`
+// puts its children straight after the title with no rules of its own, so a pair
+// left loose spreads across the header and reads as two unrelated things — which
+// is what "Update from CV" and "+ Add" did before this wrapper held them
+// together at the right-hand end.
+//
+// Used by two sections now: Repositories (the `Github Profile` link out, and
+// Edit) and Experience (Update from CV, and Add). 12px rather than the 8px inside
+// `.profileLink` itself, so the gap between the two controls reads as wider than
+// the gap between the link's icon and its label.
+.headerActions {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -182,6 +187,25 @@
 .incompleteStripEdit.incompleteStripEdit {
   margin: -16px -16px 12px;
   width: auto;
+}
+
+// --- Start with your CV ------------------------------------------------------
+
+// The one line under that card's title, saying what the document will fill in.
+//
+// 12px, not the 14 it started at. Measured, the first version was 14px/400 in
+// secondary under a section title that is 14px/500 in *grey* — the same size as
+// its own heading and darker than it, so the label meant to lead the card was
+// the quietest thing in it. This is `.footerHint`'s voice instead, which is the
+// drawer's settled treatment for exactly this job: one sentence explaining the
+// control beside it.
+.cvFirstNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 // --- The drawer's own action ------------------------------------------------
@@ -368,6 +392,58 @@
 .statusInput:focus-visible + .statusIndicator {
   outline: 2px solid var(--action-background-brand-normal, #156ff7);
   outline-offset: 2px;
+}
+
+// --- The importer card's Cancel ----------------------------------------------
+
+// Sits in `DetailsSectionHeader`'s right-hand slot, the same place `AddButton`
+// and the Github link sit. `HeaderActionBtn` — the component that slot is built
+// for — is a *brand* link button, which is right for Add and wrong for Cancel:
+// leaving is the quiet half of the pair. Same 14px/500 measure so the two read
+// as one family, in the secondary tone the drawer uses for every other
+// step-back.
+.headerCancel {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// --- The CV route in the Experience header -----------------------------------
+
+// `.formImportLine` and `.formImportButton` used to live here, styling an
+// "Already written down? Fill this in from your CV" line inside the Add
+// Experience form. That line was the only way back to the importer once the
+// section had entries; it is now this control, in the header, and the rules went
+// with it.
+//
+// Same face as `.headerCancel` above — 14px/500, secondary, darkening on hover —
+// because the two are the same kind of thing: a quiet text control sharing a
+// header slot with `AddButton`, whose brand blue is the loud one of the pair and
+// should stay the only one.
+.headerImport {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
 }
 
 // --- Experience dates -------------------------------------------------------

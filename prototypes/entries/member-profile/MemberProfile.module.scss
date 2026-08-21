@@ -9,14 +9,36 @@
 
 /* Segmented control to flip between an active vs neglected relationship,
    so the "quick read" value of the section is visible at a glance. */
+/* Left-aligned to the page's own content edge, not centred on its own width.
+   The geometry is `.memberDetail` + `.container` copied: 12px inline padding
+   around a 1216px max-width block, so the first pill starts exactly where the
+   Back button and the profile card start. Centring it put the block 158px
+   inside that edge — near-miss alignment, which reads as broken. */
 .demoSwitch {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  max-width: 900px;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: calc(1216px + 24px);
   margin: 0 auto;
   padding: 16px 12px 0;
+}
+
+/* Groups that govern the same card share a row — the two Affinity controls are
+   one subject, and stacking them spent four vertical bands on it. */
+.demoSwitchGroupRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 24px;
+}
+
+.demoSwitchGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .demoSwitchLabel {
@@ -191,6 +213,75 @@
   line-height: 16px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---- Bluesky ---- */
+
+/* Mobile copy of the rail placement, shown where the rail is hidden — the same
+   split .affinityMobile and .updatesMobile already make. */
+.blueskyMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* Rail card header: the butterfly names the account's kind before the words do,
+   the same job .updatesIcon does one card up. */
+.blueskyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blueskyLogo {
+  display: flex;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* The handle sits under the title, so the two posts below don't each have to
+   repeat whose account this is — the thing a 300px column cannot afford. */
+.blueskyHandle {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.blueskyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Owner-only footnote: who can see this, and where the setting lives. Sized to
+   ForumStats' meta line (12/18) so it reads as the quietest thing present, and
+   left to inherit its face like every other rule in this file. */
+.ownerNote {
+  margin: 0;
+  padding-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.ownerNoteLink {
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 /* ---- Profile header (mirrors MemberDetailHeader composition) ---- */

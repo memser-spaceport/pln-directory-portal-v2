@@ -1,0 +1,12 @@
+/* Tailwind source for the design canvas. DELETE WITH: the `design-canvas/` folder.
+ *
+ * Utilities only — no `@tailwind base`, because preflight is off (see
+ * tailwind.config.js for why) and base without preflight emits nothing useful.
+ *
+ * This file is NOT what the app loads. `npm run canvas:css` compiles it to
+ * canvas.generated.css with the Tailwind CLI, and the layout beside it imports
+ * that. Compiling ahead of time is what lets portal-v2 stay on Next's built-in
+ * PostCSS chain: a root postcss.config would replace that chain for every
+ * stylesheet in the repo, SCSS modules included.
+ */
+@tailwind utilities;

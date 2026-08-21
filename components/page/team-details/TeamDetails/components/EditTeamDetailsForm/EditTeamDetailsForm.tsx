@@ -22,6 +22,7 @@ import { useTeamsFormOptions } from '@/services/teams/hooks/useTeamsFormOptions'
 import { IUserInfo } from '@/types/shared.types';
 import { ITeam } from '@/types/teams.types';
 import { ENROLLMENT_TYPE } from '@/utils/constants';
+import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
 
 import { isTeamInactive } from '../../utils/isTeamInactive';
@@ -58,9 +59,10 @@ const toOption = (item?: { title?: string; uid?: string }, fallbackValue?: strin
   return { label: item?.title || fallbackValue || '', value: item?.uid || fallbackValue || item?.title || '' };
 };
 
-export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
+export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
   const { data: formOptions } = useTeamsFormOptions();
   const analytics = useTeamAnalytics();
+  const isAdmin = isAdminUser(userInfo);
 
   const fundingStageOptions =
     formOptions?.fundingStage?.map((item: { id: string; name: string }) => ({ label: item.name, value: item.id })) ||
@@ -162,7 +164,7 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
       dateFounded: formData.dateFounded.trim() ? Number(formData.dateFounded.trim()) : null,
       teamSize: formData.teamSize.trim() || null,
       location: formData.location.trim() || null,
-      status: formData.isActive ? 'ACTIVE' : 'INACTIVE',
+      ...(isAdmin ? { status: formData.isActive ? 'ACTIVE' : 'INACTIVE' } : {}),
       isFund: formData.isFund,
       fundingStage: formData.fundingStage
         ? { uid: formData.fundingStage.value, title: formData.fundingStage.label }
@@ -246,11 +248,13 @@ export const EditTeamDetailsForm = ({ team, onClose }: Props) => {
             description="Where your team is based."
           />
 
-          <FormSwitch
-            name="isActive"
-            label="This team is active"
-            helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
-          />
+          {isAdmin && (
+            <FormSwitch
+              name="isActive"
+              label="This team is active"
+              helperText="Inactive teams are hidden from the Teams page and search, and their profile shows an “Inactive” badge."
+            />
+          )}
 
           <div className={s.checkboxLabel}>
             <Checkbox

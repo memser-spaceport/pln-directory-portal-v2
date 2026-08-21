@@ -1,29 +1,33 @@
 'use client';
 
+import { clsx } from 'clsx';
+import Image from 'next/image';
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
+
+import { IUserInfo } from '@/types/shared.types';
+import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
+
+import { saveRegistrationImage } from '@/services/registration.service';
+import { buildMemberUpdatePayload } from '@/utils/member/buildMemberUpdatePayload';
+import { onboardingSchema } from '@/components/page/onboarding/components/OnboardingWizard/helpers';
+
 import { useOnboardingState } from '@/services/onboarding/store';
+import { useMemberAnalytics } from '@/analytics/members.analytics';
+import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
+
+import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
+import { WelcomeStep } from '@/components/page/onboarding/components/WelcomeStep';
+import { ProfileStep } from '@/components/page/onboarding/components/ProfileStep';
+import { ContactsStep } from '@/components/page/onboarding/components/ContactsStep';
+import Illustration from '@/components/page/onboarding/components/Illustartion/Illustration';
 import { OnboardingProgress } from '@/components/page/onboarding/components/OnboardingProgress';
 import { OnboardingNavigation } from '@/components/page/onboarding/components/OnboardingNavigation';
 
 import s from './OnboardingWizard.module.scss';
-import { IUserInfo } from '@/types/shared.types';
-import { WelcomeStep } from '@/components/page/onboarding/components/WelcomeStep';
-import { ProfileStep } from '@/components/page/onboarding/components/ProfileStep';
-import { ContactsStep } from '@/components/page/onboarding/components/ContactsStep';
-import { FormProvider, useForm } from 'react-hook-form';
-import { OnboardingForm } from '@/components/page/onboarding/components/OnboardingWizard/types';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Illustration from '@/components/page/onboarding/components/Illustartion/Illustration';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { onboardingSchema } from '@/components/page/onboarding/components/OnboardingWizard/helpers';
-import { AppLogo } from '@/components/page/onboarding/components/AppLogo';
-import { clsx } from 'clsx';
-import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
-import { saveRegistrationImage } from '@/services/registration.service';
-import { AnimatePresence } from 'framer-motion';
-import { omit } from 'lodash';
-import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 interface Props {
   userInfo: IUserInfo;
@@ -145,31 +149,13 @@ export const OnboardingWizard = ({ userInfo, memberData }: Props) => {
 };
 
 function formatPayload(memberInfo: any, formData: OnboardingForm) {
-  return {
+  return buildMemberUpdatePayload(memberInfo, {
     name: formData.name,
     email: formData.email,
-    plnStartDate: memberInfo.plnStartDate,
     city: '',
     region: '',
     country: '',
-    teamOrProjectURL: memberInfo.teamOrProjectURL,
-    linkedinHandler: memberInfo.linkedinHandler,
-    discordHandler: memberInfo.discordHandler,
-    twitterHandler: memberInfo.twitterHandler,
-    githubHandler: memberInfo.githubHandler,
     telegramHandler: formData.telegram,
     officeHours: formData.officeHours,
-    moreDetails: memberInfo.moreDetails,
-    openToWork: memberInfo.openToWork,
-    plnFriend: memberInfo.plnFriend,
-    teamAndRoles: memberInfo.teamMemberRoles,
-    projectContributions: memberInfo.projectContributions?.map((contribution: any) => ({
-      ...omit(contribution, 'projectName'),
-    })),
-    skills: memberInfo.skills?.map((skill: any) => ({
-      title: skill.name,
-      uid: skill.id,
-    })),
-    bio: memberInfo.bio,
-  };
+  });
 }

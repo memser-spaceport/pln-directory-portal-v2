@@ -5,11 +5,18 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { deriveProgressSteps, type DerivedStepPhase } from '@/services/agent-sessions/deriveProgressSteps';
 import { canDeleteFeatureEnv, canDeployFeatureEnv } from '@/services/agent-sessions/featureEnvActions';
 import type { AgentSession, AgentSessionMessage } from '@/services/agent-sessions/agent-sessions.service';
-import { formatDate, SessionStatusBadge } from '@/components/page/agent-sessions/shared/sessionStatus';
+import { formatDate, humanizeStatus, SessionStatusBadge } from '@/components/page/agent-sessions/shared/sessionStatus';
 import s from '@/components/page/agent-sessions/shared/AgentSessions.module.scss';
 
-import { AgentSessionChatMock } from './AgentSessionChatMock';
-import { getScenario, MOCK_SESSION_ID, RESUMED_REPLY_BODY, scenarios, type ScenarioKey } from './mocks';
+import { AgentSessionChatMock, useComposerDraft } from './AgentSessionChatMock';
+import {
+  getScenario,
+  MOCK_SESSION_ID,
+  RESUMED_REPLY_BODY,
+  RETRY_REPLY_BODY,
+  scenarios,
+  type ScenarioKey,
+} from './mocks';
 import proto from './AgentSessionChatPrototype.module.scss';
 
 /**
@@ -28,6 +35,17 @@ import proto from './AgentSessionChatPrototype.module.scss';
  */
 
 type DetailTab = 'overview' | 'chat';
+
+/**
+ * The tab bar had `role="tablist"` and none of the behaviour that role promises —
+ * verified in the browser: 0 `tabpanel`s, 0 `aria-controls`, both tabs in the tab
+ * order, and arrow keys doing nothing. This is the WAI-ARIA pattern: one stop in
+ * the tab order, arrows to move between tabs, and each tab wired to its panel.
+ */
+const TABS: Array<{ key: DetailTab; label: string }> = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'chat', label: 'Chat' },
+];
 
 const STEP_DOT_CLASS: Record<DerivedStepPhase, string> = {
   pending: '',
@@ -49,6 +67,13 @@ export default function AgentSessionChatPrototype() {
   const [isSending, setIsSending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Lives here, not in the composer: switching to Overview unmounts the chat pane,
+  // and the whole point is that a half-written reply survives that. Backed by
+  // localStorage, so it survives a reload too.
+  const { draft, setDraft, clearDraft, draftRestored } = useComposerDraft(MOCK_SESSION_ID);
+
+  const tabRefs = useRef<Partial<Record<DetailTab, HTMLButtonElement | null>>>({});
 
   // `formatDate` renders through `toLocaleString`, whose output depends on the
   // runtime locale and timezone — server and browser disagree. Prototype routes are
@@ -91,6 +116,9 @@ export default function AgentSessionChatPrototype() {
    */
   const handleSend = (body: string) => {
     const sentAt = new Date().toISOString();
+    // The draft has left the composer and become a message — this is the one moment
+    // it's safe to drop, and it has to be dropped or it restores on the next visit.
+    clearDraft();
     setMessages((current) => [
       ...current,
       {
@@ -121,6 +149,30 @@ export default function AgentSessionChatPrototype() {
         },
       ]);
     }, 1400);
+  };
+
+  /**
+   * Stands in for re-dispatching the orchestrator job with the same prompt and
+   * branch. A failed run previously offered nothing at all — the page just showed a
+   * red sentence and a composer.
+   */
+  const handleRetry = () => {
+    const at = new Date().toISOString();
+    setSession((current) => ({ ...current, status: 'running', error_code: null, error_message: null, updated_at: at }));
+    later(() => {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `msg-retry-${current.length + 1}`,
+          task_id: MOCK_SESSION_ID,
+          execution_id: 'exec-retry',
+          sender: 'agent',
+          message_type: 'reply',
+          body: RETRY_REPLY_BODY,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+    }, 1200);
   };
 
   const handleDeploy = () => {
@@ -167,7 +219,9 @@ export default function AgentSessionChatPrototype() {
   const showChat = canAdmin && activeTab === 'chat';
 
   return (
-    <div className={s.pageFrame}>
+    // `focusRing` is scoped here because the app ships a global
+    // `button { outline: none }` that erases the focus indicator on every button.
+    <div className={`${s.pageFrame} ${proto.focusRing}`}>
       <div className={s.content}>
         {/* Prototype-only chrome. Nothing below this block exists on the real page. */}
         <div className={proto.switcher}>
@@ -221,35 +275,66 @@ export default function AgentSessionChatPrototype() {
           {/* Chat is admin-only: a message starts a new agent run, so a VIEW-only
               user gets no tab bar at all rather than a read-only thread. */}
           {canAdmin ? (
-            <div className={s.tabs} role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'overview'}
-                className={`${s.tab} ${activeTab === 'overview' ? s.tabActive : ''}`}
-                onClick={() => setActiveTab('overview')}
-              >
-                Overview
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'chat'}
-                className={`${s.tab} ${activeTab === 'chat' ? s.tabActive : ''}`}
-                onClick={() => setActiveTab('chat')}
-              >
-                Chat
-              </button>
+            <div className={s.tabs} role="tablist" aria-label="Session detail">
+              {TABS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  id={`session-tab-${key}`}
+                  aria-selected={activeTab === key}
+                  aria-controls={`session-panel-${key}`}
+                  // Roving tabindex: the tab bar is one stop in the page's tab
+                  // order, and arrows move within it.
+                  tabIndex={activeTab === key ? 0 : -1}
+                  ref={(node) => {
+                    tabRefs.current[key] = node;
+                  }}
+                  className={`${s.tab} ${proto.tab} ${activeTab === key ? `${s.tabActive} ${proto.tabActive}` : ''}`}
+                  onClick={() => setActiveTab(key)}
+                  onKeyDown={(event) => {
+                    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+                    if (!delta) return;
+                    event.preventDefault();
+                    // Move relative to the tab the key landed on — `key`, not
+                    // `activeTab`. Those differ the moment focus is on a tab that
+                    // isn't the selected one, which is most of the time in a
+                    // roving-tabindex bar.
+                    const index = TABS.findIndex((tab) => tab.key === key);
+                    const next = TABS[(index + delta + TABS.length) % TABS.length].key;
+                    setActiveTab(next);
+                    tabRefs.current[next]?.focus();
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           ) : null}
         </div>
 
         {showChat ? (
-          <AgentSessionChatMock session={session} messages={messages} isSending={isSending} onSend={handleSend} />
+          <div role="tabpanel" id="session-panel-chat" aria-labelledby="session-tab-chat">
+            <AgentSessionChatMock
+              session={session}
+              messages={messages}
+              isSending={isSending}
+              onSend={handleSend}
+              onRetry={handleRetry}
+              draft={draft}
+              onDraftChange={setDraft}
+              draftRestored={draftRestored}
+            />
+          </div>
         ) : null}
 
         {!showChat ? (
-          <>
+          <div
+            role={canAdmin ? 'tabpanel' : undefined}
+            id={canAdmin ? 'session-panel-overview' : undefined}
+            aria-labelledby={canAdmin ? 'session-tab-overview' : undefined}
+            className={proto.overviewPanel}
+          >
             <div className={s.panel}>
               <h2 className={s.sectionTitle}>Overview</h2>
               <div className={s.metaGrid}>
@@ -344,8 +429,12 @@ export default function AgentSessionChatPrototype() {
                     <li key={step.key} className={s.step}>
                       <span className={`${s.stepDot} ${STEP_DOT_CLASS[step.phase]}`} aria-hidden />
                       <div className={s.stepBody}>
+                        {/* `humanizeStatus`, not `replace(/_/g, ' ')`. The badge
+                            vocabulary in sessionStatus.tsx deliberately stopped
+                            printing raw API values; the progress list still did,
+                            so the two disagreed on the same page. */}
                         <span className={s.stepKey}>
-                          {step.key.replace(/_/g, ' ')} · {step.displayStatus}
+                          {humanizeStatus(step.key)} · {step.displayStatus}
                         </span>
                         {step.message ? <span className={s.stepMessage}>{step.message}</span> : null}
                         {step.createdAt ? <span className={s.stepMeta}>{formatDate(step.createdAt)}</span> : null}
@@ -357,7 +446,7 @@ export default function AgentSessionChatPrototype() {
                 <p className={s.state}>No progress events yet.</p>
               )}
             </div>
-          </>
+          </div>
         ) : null}
       </div>
     </div>

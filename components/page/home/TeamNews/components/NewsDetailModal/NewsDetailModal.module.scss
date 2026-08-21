@@ -74,6 +74,31 @@
   min-width: 0;
 }
 
+// Leads the header when a shell drilled in place, so Back and Close sit at
+// opposite ends of the same bar: one step back, one way out. Quiet next to the
+// team identity it precedes — it's a return path, not the header's subject.
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+  padding: 6px 10px 6px 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(14, 15, 17, 0.04);
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
 .closeButton {
   display: flex;
   align-items: center;

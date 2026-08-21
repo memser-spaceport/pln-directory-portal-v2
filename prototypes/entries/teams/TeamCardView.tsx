@@ -97,6 +97,23 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
   const isStory = updates === 'headline';
   const isFollowRow = updates === 'follow';
   const hasTags = (team?.industryTags ?? []).length > 0;
+  /**
+   * A team that has wound down. Two things follow from it, and they're the whole
+   * treatment:
+   *
+   *  1. The card steps back. Logo to greyscale, body off white — so the state is
+   *     legible from across the grid without reading a word. What does NOT dim is
+   *     the type: the name and description are the content, and greying content
+   *     to signal state is how a directory becomes unreadable. The badge names
+   *     what the muting already showed.
+   *  2. The news mark goes. The corner holds one pill, and the two would be
+   *     indistinguishable at a glance — both grey, both the same shell — which is
+   *     exactly the drift worth avoiding when they mean different things. It's
+   *     also the right ranking: on a card for a team that no longer exists, an
+   *     unread count is not the headline. The news is still one click away on the
+   *     profile the card links to.
+   */
+  const isInactive = Boolean(team.inactive);
 
   /**
    * Every updates click lands on the newsfeed — never a modal rendered here. What
@@ -244,12 +261,33 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
     </button>
   );
 
+  /**
+   * The state, in the design system's own `Badge` at its `default` variant —
+   * the neutral grey the product already uses for a label that states a fact
+   * rather than offering a click. It carries no number and no glyph, sits on a
+   * card that has visibly stepped back, and is never on screen beside the news
+   * chip, so the two grey pills can't be mistaken for one another.
+   *
+   * `default` and not `error`/`warning`: nothing has gone wrong and there is
+   * nothing to fix. A wound-down team is a fact about the network, and red or
+   * amber would ask the reader to do something about it.
+   */
+  const stateBadge = (
+    <Badge variant="default" className={local.stateChip}>
+      Inactive
+    </Badge>
+  );
+
   // What rides the corner: the same count in two registers. Nothing when a
   // bottom row has taken over — in `follow` the badge moves down to pair with
   // the control, so leaving a copy in the corner would show it twice.
   // `short`, `dot` and `count` are one chip wearing three labels, so they all
   // land here; only `new` swaps the component underneath.
-  const cornerMark = updates === 'new' ? newBadge : isChipMode ? countChip : null;
+  //
+  // An inactive team's card gives the slot to its state instead — see
+  // `isInactive` above for why the count doesn't get to share it.
+  const newsMark = news.length > 0 ? (updates === 'new' ? newBadge : isChipMode ? countChip : null) : null;
+  const cornerMark = isInactive ? stateBadge : newsMark;
 
   /**
    * Badge left, Follow right — the pair the `follow` mode puts across the card's
@@ -267,8 +305,9 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
   const followPair = (
     <>
       {/* An empty span holds the left slot on newsless cards, so Follow stays
-          right-aligned instead of sliding across. */}
-      {news.length > 0 ? countChip : <span />}
+          right-aligned instead of sliding across. An inactive card puts its
+          state in the same slot — one mark per row, whichever the card has. */}
+      {isInactive ? stateBadge : news.length > 0 ? countChip : <span />}
       {/* The card is one big link, so the follow click has to stop here.
           FollowButton's own onClick fires first and this halts the bubble
           before the anchor sees it. */}
@@ -290,18 +329,22 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
   );
 
   return (
-    <div className={`${s.grid} ${local.teamCard} ${hasTags ? '' : local.teamCardNoTags}`}>
+    <div
+      className={`${s.grid} ${local.teamCard} ${hasTags ? '' : local.teamCardNoTags} ${
+        isInactive ? local.teamCardInactive : ''
+      }`}
+    >
       {/* Desktop: top-right corner — the slot the Follow control used to hold.
           Outside .detailsContainer because the card root is the positioning
-          context. */}
-      {news.length > 0 && cornerMark && <span className={local.cornerUpdates}>{cornerMark}</span>}
+          context. Holds the news count, or the state on an inactive card. */}
+      {cornerMark && <span className={local.cornerUpdates}>{cornerMark}</span>}
 
       {/* Desktop: the pair rides the top band, left and right of the logo —
           outside .detailsContainer because the card root is the positioning
           context. */}
       {isFollowRow && <div className={local.followTopRow}>{followPair}</div>}
 
-      <div className={s.profileContainer}>
+      <div className={`${s.profileContainer} ${isInactive ? local.mutedBand : ''}`}>
         <Image
           alt="profile"
           height={72}
@@ -310,25 +353,28 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
           loading="eager"
           priority={true}
           src={profile}
-          className={s.profileImage}
+          className={`${s.profileImage} ${isInactive ? local.mutedLogo : ''}`}
         />
       </div>
       <div className={s.detailsContainer}>
         <div className={s.teamDetail}>
-          <h2 className={s.teamName}>{team?.name}</h2>
+          <h2 className={`${s.teamName} ${isInactive ? local.mutedName : ''}`}>{team?.name}</h2>
           <p className={s.teamDesc}>{team?.shortDescription}</p>
         </div>
 
-        <div className={s.tagsDesc}>
+        {/* The tag chips carry the card's only other colour. Desaturated on an
+            inactive card so the row stops reading as live metadata — see
+            `.mutedTags`; the words stay, only the tint goes. */}
+        <div className={`${s.tagsDesc} ${isInactive ? local.mutedTags : ''}`}>
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={2} />
         </div>
-        <div className={s.tagsMob}>
+        <div className={`${s.tagsMob} ${isInactive ? local.mutedTags : ''}`}>
           <TeamsTagsList tags={team?.industryTags as ITag[]} noOfTagsToShow={1} />
         </div>
 
         {/* Mobile home for the corner mark: the two-up card is ~170px wide with
             a centred logo, so a corner chip would land on top of it. */}
-        {news.length > 0 && cornerMark && <div className={local.updatesRow}>{cornerMark}</div>}
+        {cornerMark && <div className={local.updatesRow}>{cornerMark}</div>}
 
         {/* The card's news row. `new` puts the count here in the source chip's
             shell with no headline; `headline` and `source` put the story itself
@@ -341,7 +387,7 @@ export function TeamCardView({ team, updates = 'dot', onOpenNews, following = fa
             of it. Below the tags is the only full-width slot mobile has. */}
         {isFollowRow && <div className={local.followRow}>{followPair}</div>}
 
-        {news.length > 0 && isStory && (
+        {news.length > 0 && isStory && !isInactive && (
           <div className={local.headlineRow}>
             <TeamUpdateStrip
               teamName={team.name ?? 'team'}

@@ -8,7 +8,10 @@ import { Button } from '@/components/common/Button/Button';
 import { ArrowBackIcon } from '@/components/icons';
 import { useAiAppFeedbackList } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
 import { useAiAppFeedbackReviewAccess } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackReviewAccess';
+import { useUpdateAiAppFeedbackStatus } from '@/services/ai-app-feedback/hooks/useUpdateAiAppFeedbackStatus';
+import type { AiAppFeedbackStatus } from '@/services/ai-app-feedback/constants';
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
+import { FeedbackStatusSelector } from './FeedbackStatusSelector/FeedbackStatusSelector';
 import { exportAiAppFeedbackCsv } from './utils/exportAiAppFeedbackCsv';
 import { getAvatarColor } from './utils/getAvatarColor';
 
@@ -31,6 +34,7 @@ const DownloadIcon = () => (
 export function AiAppFeedbackPage() {
   const { feedback, isLoading, isError } = useAiAppFeedbackList();
   const { isDirectoryAdmin } = useAiAppFeedbackReviewAccess();
+  const updateStatus = useUpdateAiAppFeedbackStatus();
   const analytics = useAiAppsAnalytics();
   const hasTrackedView = useRef(false);
   const [activeTab, setActiveTab] = useState(ALL_TAB);
@@ -62,6 +66,17 @@ export function AiAppFeedbackPage() {
     const slug = activeTab.toLowerCase().replace(/\s+/g, '-');
     exportAiAppFeedbackCsv(visibleRows, `ai-app-feedback-${slug}.csv`);
     analytics.onFeedbackExported(visibleRows.length);
+  };
+
+  const handleStatusSelect = (row: (typeof visibleRows)[number], status: AiAppFeedbackStatus) => {
+    if (status === row.status) return;
+    const from = row.status;
+    updateStatus.mutate(
+      { appUid: row.appUid, feedbackUid: row.uid, status },
+      {
+        onSuccess: () => analytics.onFeedbackStatusChanged({ appUid: row.appUid, from, to: status }),
+      },
+    );
   };
 
   return (
@@ -133,6 +148,7 @@ export function AiAppFeedbackPage() {
                       <th className={s.appCol}>App</th>
                       <th>Feedback</th>
                       <th className={s.fromCol}>From</th>
+                      <th className={s.statusCol}>Status</th>
                       <th className={s.dateCol}>Date</th>
                     </tr>
                   </thead>
@@ -156,6 +172,13 @@ export function AiAppFeedbackPage() {
                                 {submitterName}
                               </span>
                             </div>
+                          </td>
+                          <td>
+                            <FeedbackStatusSelector
+                              status={row.status}
+                              isPending={updateStatus.isPending && updateStatus.variables?.feedbackUid === row.uid}
+                              onStatusSelect={(status) => handleStatusSelect(row, status)}
+                            />
                           </td>
                           <td className={s.dateCell}>
                             {new Date(row.createdAt).toLocaleDateString('en-US', {

@@ -81,6 +81,16 @@ export function AiAppDetailPage(props: Props) {
     analytics.onDetailPageViewed(app.uid, app.name);
   }, [app, analytics]);
 
+  useEffect(() => {
+    const name = app?.name?.trim();
+    if (!name) return;
+    const previous = document.title;
+    document.title = name;
+    return () => {
+      document.title = previous;
+    };
+  }, [app?.name]);
+
   // Deep link: `?settings=deployment` opens the Deployment settings modal
   // straight away (shared with members to edit stored secrets & redeploy).
   // Creator/admin only — the modal exposes env-var names and failure notes, and

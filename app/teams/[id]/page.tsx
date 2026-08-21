@@ -31,6 +31,10 @@ import { hasTeamNewsItems } from '@/services/team-news/team-news.utils';
 import type { ITeamNewsByTeamResponse } from '@/types/team-news.types';
 import { getTeamFollowers } from '@/services/follow/follow.service';
 import type { ITeamFollowersResponse } from '@/types/follow.types';
+import { TeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles';
+import { selectTeamOpenRoles } from '@/components/page/team-details/TeamOpenRoles/selectTeamOpenRoles';
+import { getJobsList } from '@/app/actions/jobs.actions';
+import type { IJobTeamGroup } from '@/types/jobs.types';
 import layoutStyles from './TeamProfileLayout.module.scss';
 
 async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: Promise<{ backTo?: string }> }) {
@@ -52,6 +56,7 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
     hasEditAsksAccess,
     teamNews,
     followers,
+    openRoles,
   } = await getPageData(teamId);
 
   if (redirectTeamUid) {
@@ -109,6 +114,10 @@ async function Page(props: { params: Promise<ITeamDetailParams>; searchParams: P
         <div className={styles?.teamDetail__container__member}>
           <TeamMembers team={team} members={members} />
         </div>
+
+        {/* Who the team is looking for, next to who's already there. Absent, not empty,
+            when the team isn't hiring. */}
+        {openRoles && <TeamOpenRoles group={openRoles} />}
 
         <TeamFocusAreas team={team} focusAreas={focusAreas || []} teamFocusAreas={team?.teamFocusAreas || []} />
 
@@ -171,6 +180,7 @@ async function getPageData(teamId: string) {
   let memberTeams: never[] = [];
   let hasEditAsksAccess: boolean = false;
   let followers: ITeamFollowersResponse | null = null;
+  let openRoles: IJobTeamGroup | null = null;
 
   try {
     if (AIRTABLE_REGEX.test(teamId)) {
@@ -183,7 +193,7 @@ async function getPageData(teamId: string) {
       return { redirectTeamUid, team, members, hasProjectsEditAccess, teamProjectList, userInfo };
     }
 
-    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse, followersResponse] =
+    const [teamResponse, teamMembersResponse, focusAreaResponse, teamNewsResponse, followersResponse, jobsResponse] =
       await Promise.all([
         getTeam(
           teamId,
@@ -208,9 +218,15 @@ async function getPageData(teamId: string) {
         getFocusAreas('Team', {}),
         fetchTeamNewsByTeam(teamId, { page: 1, limit: TEAM_NEWS_PREVIEW_LIMIT }, authToken),
         isLoggedIn ? getTeamFollowers(teamId, { authToken }) : Promise.resolve(null),
+        // `limit` pages teams, not roles, so one group carries all of this team's
+        // postings. `getJobsList` resolves an error object rather than throwing, which
+        // matters here: the catch below turns any throw into a 404 for the whole
+        // profile, and a jobs-API blip must not take the team page down with it.
+        getJobsList(`teamUid=${encodeURIComponent(teamId)}&limit=1`),
       ]);
     teamNews = teamNewsResponse;
     followers = followersResponse;
+    openRoles = selectTeamOpenRoles(jobsResponse, teamId);
 
     if (isLoggedIn) {
       const allTeams = await getAllTeams(
@@ -285,6 +301,7 @@ async function getPageData(teamId: string) {
       hasEditAsksAccess,
       teamNews,
       followers,
+      openRoles,
     };
   } catch (error: any) {
     console.error(error);

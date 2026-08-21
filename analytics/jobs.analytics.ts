@@ -1,10 +1,22 @@
 import { JOBS_ANALYTICS } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { usePostHog } from 'posthog-js/react';
+import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
 type FilterStateParam = Record<string, unknown>;
 
 export type JobReferShareNetwork = 'linkedin' | 'x' | 'copy_link';
+
+/**
+ * Which surface a role was acted on from. The same role card now renders on the job
+ * board and on a team profile, and without this the two are indistinguishable in
+ * PostHog — which would make it impossible to tell whether the team-profile section
+ * drives any clicks or referrals at all.
+ *
+ * Required, never defaulted: a default would silently mislabel the next surface that
+ * forgets to pass it.
+ */
+export type JobSurface = 'job-board' | 'team-profile';
 
 export type JobReferBaseParams = {
   job_id: string;
@@ -13,6 +25,32 @@ export type JobReferBaseParams = {
   role_title: string;
   role_category: string | null;
   seniority: string | null;
+  source: JobSurface;
+};
+
+/**
+ * Which control started an apply-funnel step: a role row, the board banner, the
+ * header — or `resume`, which is the flow picking itself back up after the
+ * Privy round trip rather than anything the person pressed. Kept distinct so
+ * apply-click counts stay a count of actual clicks.
+ */
+export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume';
+
+/**
+ * Apply-funnel payloads carry ONLY what's listed here: uids, viewer state,
+ * source/trigger, and a failure category. Never form field values (email,
+ * name, linkedin), never the jobSearchStatus value (PL-Team-only — a PostHog
+ * dashboard is a wider audience than that), never cover-letter text.
+ * `captureEvent` already stamps the logged-in user's identity; add nothing.
+ *
+ * `job_id`/`team_id` are null for flows started without a role (banner/header
+ * sign-up, generic drawer edits).
+ */
+export type JobApplyBaseParams = {
+  job_id: string | null;
+  team_id: string | null;
+  viewer_state: BoardViewerState;
+  source: JobSurface;
 };
 
 export const useJobsAnalytics = () => {
@@ -72,7 +110,9 @@ export const useJobsAnalytics = () => {
     seniority: string | null;
     focus_areas: string[];
     position_in_list: number;
-    filter_state: FilterStateParam;
+    source: JobSurface;
+    /** Board-only: a team profile has no filters, so it sends nothing rather than `{}`. */
+    filter_state?: FilterStateParam;
   }) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_CLICKED, { ...args });
   };
@@ -199,6 +239,34 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_REFER_SHARED, { ...args });
   };
 
+  const onJobApplyClicked = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
+  };
+
+  const onJobApplySignUpSubmitted = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_SUBMITTED, { ...args });
+  };
+
+  const onJobApplySignUpFailed = (args: JobApplyBaseParams & { failure_category: 'duplicate' | 'request-failed' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_FAILED, { ...args });
+  };
+
+  const onJobApplyDrawerOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_DRAWER_OPENED, { ...args });
+  };
+
+  const onJobApplyDrawerSaved = (args: JobApplyBaseParams & { profile_complete: boolean }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_DRAWER_SAVED, { ...args });
+  };
+
+  const onJobApplySubmitted = (args: JobApplyBaseParams & { cover_letter_length: number }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SUBMITTED, { ...args });
+  };
+
+  const onJobApplyFailed = (args: JobApplyBaseParams & { failure_category: 'already-applied' | 'request-failed' }) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_FAILED, { ...args });
+  };
+
   return {
     onJobsPageViewed,
     onJobsFiltersApplied,
@@ -226,5 +294,12 @@ export const useJobsAnalytics = () => {
     onJobReferFailed,
     onJobReferShareMenuOpened,
     onJobReferShared,
+    onJobApplyClicked,
+    onJobApplySignUpSubmitted,
+    onJobApplySignUpFailed,
+    onJobApplyDrawerOpened,
+    onJobApplyDrawerSaved,
+    onJobApplySubmitted,
+    onJobApplyFailed,
   };
 };

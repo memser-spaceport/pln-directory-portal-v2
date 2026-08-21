@@ -19,6 +19,9 @@ interface TeamNewsCardProps {
   onShowMore?: (item: ITeamNewsItem) => void;
   /** Modal feed renders summaries in full (rail teasers are clamped/measured). */
   fullSummary?: boolean;
+  /** Opens the story over the page instead of leaving for the source, and adds
+   *  the Share/Comments half of the action row. See NewsCard's own prop. */
+  onOpenDetail?: (item: ITeamNewsItem, via: 'row' | 'comments') => void;
 }
 
 export function TeamNewsCard({
@@ -30,6 +33,7 @@ export function TeamNewsCard({
   onUpvoteToggle,
   onShowMore,
   fullSummary,
+  onOpenDetail,
 }: TeamNewsCardProps) {
   return (
     <NewsCard
@@ -45,6 +49,7 @@ export function TeamNewsCard({
       onUpvoteToggle={onUpvoteToggle}
       onShowMore={onShowMore}
       fullSummary={fullSummary}
+      onOpenDetail={onOpenDetail}
     />
   );
 }

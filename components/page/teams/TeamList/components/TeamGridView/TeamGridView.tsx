@@ -14,6 +14,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { isTierUser } from '@/utils/user/isTierUser';
 import { FollowButton } from '@/components/ui/FollowButton';
 import { useToggleTeamFollowInList } from '@/services/follow/hooks/useToggleTeamFollowInList';
+import { TeamNewsCountChip } from '@/components/page/team-news/TeamNewsCountChip';
 
 import s from './TeamGridView.module.scss';
 
@@ -23,13 +24,19 @@ interface ITeamGridView {
   viewType: string;
   isLoggedIn?: boolean;
   searchParams: ITeamsSearchParams;
+  /** Open this team's news over the grid. Absent = no chip. */
+  onOpenTeamNews?: (teamUid: string, teamName: string) => void;
 }
 
 export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
-  const { team, userInfo, isLoggedIn, searchParams } = props;
+  const { team, userInfo, isLoggedIn, searchParams, onOpenTeamNews } = props;
 
   const profile = team?.logo ?? '/icons/team-default-profile.svg';
   const teamName = team?.name;
+  // ITeam types `id` as optional; on this listing it is always the backend
+  // teamUid (getTeamList maps `id: team.uid`). Narrowed here so the chip, which
+  // needs a real uid to look a count up by, simply doesn't render without one.
+  const teamUid = team?.id;
   const description = team?.shortDescription;
   const analytics = useTeamAnalytics();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
@@ -68,6 +75,18 @@ export const TeamGridView = memo(function TeamGridView(props: ITeamGridView) {
 
   return (
     <div className={s.grid}>
+      {/* Reads its own count, so this card stays ignorant of the counts cache
+          and only the chips whose number lands re-render. */}
+      {onOpenTeamNews && teamUid && (
+        <div className={s.newsChip}>
+          <TeamNewsCountChip
+            teamUid={teamUid}
+            teamName={teamName ?? 'This team'}
+            source="teams-grid"
+            onOpen={onOpenTeamNews}
+          />
+        </div>
+      )}
       <div className={s.profileContainer}>
         <Image
           alt="profile"

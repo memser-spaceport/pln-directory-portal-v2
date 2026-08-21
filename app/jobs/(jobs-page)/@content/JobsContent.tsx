@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { IUserInfo } from '@/types/shared.types';
 import type { IJobAlert, IJobAlertFilterState } from '@/types/job-alerts.types';
-import type { JobsSortKey } from '@/types/jobs.types';
+import type { IJobRole, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
 import { useInfiniteJobsList } from '@/services/jobs/hooks/useJobsQueries';
 import { useJobsParamsUpdater } from '@/services/jobs/hooks/useJobsParamsUpdater';
@@ -15,7 +15,13 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
-import { JOBS_SORT_OPTIONS } from '@/services/jobs/constants';
+import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
+import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
+import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
+import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
 import { CardsLoader } from '@/components/core/loaders/CardsLoader';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { toast } from '@/components/core/ToastContainer';
@@ -26,6 +32,10 @@ import JobAlertEmptyState from '@/components/page/jobs/JobAlertEmptyState/JobAle
 import { JobAlertIndicator } from '@/components/page/jobs/JobAlertIndicator';
 
 import JobsMobileFilters from '@/components/page/jobs/JobsMobileFilters';
+import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
+import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts';
+import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import s from './JobsContent.module.scss';
 
 // Flip to true to simulate a logged-in user with a saved alert during local dev
@@ -65,6 +75,113 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const { userAlert: fetchedAlert, filtersMatchAlert } = useJobAlertMatch(alertFilterState, isLoggedIn);
   const userAlert = DEV_MOCK_ALERT ? MOCK_USER_ALERT : fetchedAlert;
   const [indicatorDismissed, setIndicatorDismissed] = useState(false);
+
+  // Counts behind the "N new posts" chips. Here the identifier is `team.uid`,
+  // where the teams grid uses `team.id` — same backend value, different field
+  // name on each surface's view model.
+  const newsTeamUids = useMemo(() => groups.map((group) => group.team.uid).filter(Boolean), [groups]);
+  useTeamNewsCounts({ uids: newsTeamUids, enabled: SHOW_TEAM_NEWS_COUNT_CHIP });
+
+  /* In-app Apply. `SHOW_JOB_BOARD_APPLY` is imported ONLY here on this page —
+     it reaches the hooks as `enabled` (flag off ⇒ zero requests, zero storage
+     touches) and the leaf components as prop absence (flag off ⇒ rows render
+     byte-identical to production today). */
+  const boardViewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled: SHOW_JOB_BOARD_APPLY });
+  const applyFlow = useJobApplyFlow({
+    viewer: boardViewer.viewer,
+    profileComplete: boardViewer.profileComplete,
+    refreshVerdict: boardViewer.refreshVerdict,
+    source: 'job-board',
+  });
+  const applyProps: RowApplyProps | undefined = useMemo(
+    () =>
+      SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
+        ? { onApply: applyFlow.onApply, memberUid: boardViewer.memberUid }
+        : undefined,
+    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply],
+  );
+  /* The banner's "Sign in". Signing in never resumes an application — only
+     signing up does — so any `applyTo` left in the URL by an abandoned
+     sign-up is dropped here rather than inherited through the round trip. */
+  const pushLogin = useCallback(() => {
+    const search = withPendingApply(window.location.search, undefined);
+    router.push(`${window.location.pathname}${search}#login`);
+  }, [router]);
+
+  /* Coming back from the Privy round trip: pick the application back up where
+     it was interrupted. The role uid travels in the URL (see
+     `job-apply-resume`) because the login path clears localStorage on its way
+     through and sessionStorage did not reliably survive it.
+
+     Gated on the viewer having actually settled — resuming against a
+     half-derived state would open the drawer at someone with nothing to fill
+     in — and on the list having loaded, since the uid has to be re-resolved
+     against what the board is showing now. */
+  const applyResumeHandled = useRef(false);
+  useEffect(() => {
+    if (!SHOW_JOB_BOARD_APPLY) return;
+    if (applyResumeHandled.current) return;
+
+    const roleUid = searchParams.get(PENDING_APPLY_PARAM);
+    if (!roleUid) return;
+    if (!isLoggedIn || boardViewer.viewer === 'resolving') return;
+    if (isLoading) return;
+
+    // Claimed before anything async runs, so a StrictMode double-invoke or a
+    // re-render mid-resume can't run the flow twice. The parameter goes with
+    // it: a one-time instruction must not replay on reload.
+    applyResumeHandled.current = true;
+    stripPendingApplyFromUrl();
+
+    let resumed: { role: IJobRole; teamId: string; teamName: string } | null = null;
+    for (const group of groups) {
+      const role = group.roles.find((r) => r.uid === roleUid);
+      if (role) {
+        resumed = { role, teamId: group.team.uid, teamName: group.team.name };
+        break;
+      }
+    }
+
+    if (resumed) {
+      applyFlow.onApply(resumed, 'resume');
+    } else {
+      /* The role closed, or the filters no longer show it. The profile is
+         still the thing standing between them and applying, so the drawer
+         opens without naming a role rather than resuming nothing at all. */
+      applyFlow.onUpdateProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, boardViewer.viewer, isLoading, groups]);
+
+  /* ONE stable callback for every card — `TeamGroupCard` is memoized, and a
+     closure minted per group re-renders every scrolled-in card on each host
+     state change (every modal open/close, every submit). */
+  const onRoleClick = useCallback(
+    (role: IJobRole, indexInGroup: number, group: IJobTeamGroup, groupIndex: number) => {
+      analytics.onJobClicked({
+        job_id: role.uid,
+        team_id: group.team.uid,
+        team_name: group.team.name,
+        role_title: role.roleTitle,
+        role_category: role.roleCategory,
+        seniority: role.seniority,
+        focus_areas: group.team.focusAreas,
+        position_in_list: positionInList(groups, groupIndex, indexInGroup),
+        source: 'job-board',
+        filter_state: filterStateFromURL(searchParams),
+      });
+    },
+    [analytics, groups, searchParams],
+  );
+
+  // Which team's news is open over the board. Someone weighing a role hasn't
+  // asked to leave the board to find out what a team has been up to.
+  const [newsModal, setNewsModal] = useState<{ teamUid: string; teamName: string } | null>(null);
+  const openTeamNews = useCallback((teamUid: string, teamName: string) => {
+    setNewsModal({ teamUid, teamName });
+  }, []);
+  const closeTeamNews = useCallback(() => setNewsModal(null), []);
+  const isNewsModalMobile = useIsMobile();
 
   // Auto-apply the user's saved job alert filters on /jobs landing.
   // Done client-side (not server-side via redirect()) because Next.js parallel routes
@@ -146,11 +263,25 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     analytics.onJobsSortChanged({ sort_key: value, result_count: totalRoles });
   };
 
-  const filterState = filterStateFromURL(searchParams);
   const showIndicator = Boolean(userAlert && hasFilters && filtersMatchAlert && !indicatorDismissed);
 
   return (
     <div className={s.root}>
+      {/* The board's one apply-flow banner slot — first block in the column,
+          above the page's own content, the same slot the home page gives its
+          signed-out Welcome. Renders nothing for resolving/rejected/ready. */}
+      {SHOW_JOB_BOARD_APPLY && (
+        <JobBoardBanner
+          viewer={boardViewer.viewer}
+          roleCount={totalRoles}
+          teamCount={totalGroups}
+          filterState={alertFilterState}
+          profileComplete={boardViewer.profileComplete}
+          onSignIn={pushLogin}
+          onSignUp={() => applyFlow.onSignUp('banner')}
+          onUpdateProfile={applyFlow.onUpdateProfile}
+        />
+      )}
       <div className={s.mobileHeader}>
         <h1 className={s.title}>
           Job Board{' '}
@@ -200,24 +331,43 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
               <TeamGroupCard
                 key={group.team.uid}
                 group={group}
-                onRoleClick={(role, indexInGroup) => {
-                  analytics.onJobClicked({
-                    job_id: role.uid,
-                    team_id: group.team.uid,
-                    team_name: group.team.name,
-                    role_title: role.roleTitle,
-                    role_category: role.roleCategory,
-                    seniority: role.seniority,
-                    focus_areas: group.team.focusAreas,
-                    position_in_list: positionInList(groups, groupIndex, indexInGroup),
-                    filter_state: filterState,
-                  });
-                }}
+                groupIndex={groupIndex}
+                onOpenTeamNews={openTeamNews}
+                onRoleClick={onRoleClick}
+                apply={applyProps}
               />
             ))}
             {isFetchingNextPage && <CardsLoader />}
           </div>
         </InfiniteScroll>
+      )}
+
+      {/* The apply-flow modal/drawer stack — outside the groups.length branch
+          for the same reason the news modal is: a filter change mid-application
+          must not yank an open modal. */}
+      {SHOW_JOB_BOARD_APPLY && (
+        <JobApplyFlowController
+          flow={applyFlow}
+          viewer={boardViewer}
+          isLoggedIn={isLoggedIn}
+          userInfo={userInfo}
+          source="job-board"
+        />
+      )}
+
+      {/* Rendered outside the groups.length branch so an open modal survives the
+          list emptying underneath it — a filter change while reading a team's
+          news shouldn't yank the news away. */}
+      {newsModal && (
+        <TeamNewsModal
+          isOpen
+          focusUid={null}
+          onClose={closeTeamNews}
+          teamUid={newsModal.teamUid}
+          teamName={newsModal.teamName}
+          fullscreen={isNewsModalMobile}
+          source="job-board-modal"
+        />
       )}
     </div>
   );

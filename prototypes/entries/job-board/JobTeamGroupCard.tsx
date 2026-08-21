@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import isEmpty from 'lodash/isEmpty';
 import { useToggle } from 'react-use';
+
+import { PAGE_ROUTES } from '@/utils/constants';
 
 import type { IJobRole, IJobTeamGroup } from '@/types/jobs.types';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -44,12 +47,15 @@ interface JobTeamGroupCardProps {
    * headline in that same slot instead; the other two put it below the roles.
    */
   newsVariant?: JobCardNewsVariant;
-  /** True while "Best match for me" is the active sort. */
-  matchMode?: boolean;
-  /** Which of this group's roles match the viewer's saved preferences. */
-  isMatch?: (role: IJobRole) => boolean;
   canRefer?: boolean;
   onReferBlocked?: () => void;
+  /** Handed straight to the row: applying happens in-app, so the board owns the press. */
+  onApply?: (role: IJobRole) => void;
+  /** Uids of roles already applied to. */
+  appliedRoleUids?: Set<string>;
+  /** Role uid → when the application went, so an applied row can report its own
+   *  date instead of the posting age. Same map the board keys applications by. */
+  appliedAtByRole?: Map<string, string>;
 }
 
 /**
@@ -60,22 +66,19 @@ interface JobTeamGroupCardProps {
 export function JobTeamGroupCard({
   group,
   newsVariant = 'full',
-  matchMode = false,
-  isMatch,
   canRefer = true,
   onReferBlocked,
+  onApply,
+  appliedRoleUids,
+  appliedAtByRole,
 }: JobTeamGroupCardProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const { team, roles, totalRoles } = group;
 
-  /* Under the match sort, matching roles lead the group. The board is grouped by
-     team, so ranking has to happen at both levels — the caller reorders the cards,
-     this reorders inside one. Only the first three roles show before the expander,
-     so a match sitting fourth would be ranked and then hidden. */
-  const orderedRoles =
-    matchMode && isMatch ? [...roles].sort((a, b) => Number(isMatch(b)) - Number(isMatch(a))) : roles;
-
-  const visibleRoles = expanded ? orderedRoles : orderedRoles.slice(0, INITIAL_ROLES_SHOWN);
+  /* The group's own order, untouched. Roles inside a card were briefly reordered
+     to float matches to the top; with matching gone there is nothing to rank
+     them by, and a team's list of openings has no second opinion to offer. */
+  const visibleRoles = expanded ? roles : roles.slice(0, INITIAL_ROLES_SHOWN);
   const newCount = roles.filter((r) => isNew(getJobDate(r))).length;
 
   const focusTags = useGetFocusTags(team);
@@ -152,7 +155,14 @@ export function JobTeamGroupCard({
           {/* The story belongs to the team, so it sits with the team's name; it
               wraps under the name when there's no room for both. */}
           <div className={`${js.nameRow} ${newsVariant === 'count' ? js.nameRowChip : ''}`}>
-            <h3 className={s.teamName}>{team.name}</h3>
+            <h3 className={s.teamName}>
+              <Link
+                prefetch={false}
+                href={`${PAGE_ROUTES.TEAMS}/${team.uid}?backTo=${encodeURIComponent(PAGE_ROUTES.JOBS)}`}
+              >
+                {team.name}
+              </Link>
+            </h3>
             {newsOnNameRow && newsStrip}
           </div>
           {!isEmpty(focusTags) && (
@@ -173,9 +183,12 @@ export function JobTeamGroupCard({
             <JobReferRoleRow
               role={role}
               teamName={team.name}
-              showMatch={matchMode && !!isMatch?.(role)}
+              source="job-board"
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}
+              onApply={onApply}
+              applied={appliedRoleUids?.has(role.uid) ?? false}
+              appliedAt={appliedAtByRole?.get(role.uid)}
               teamId={team.uid}
             />
           </li>

@@ -1,0 +1,201 @@
+// The Rules tab's panel. Portal palette with verified name+fallback pairs, like
+// the rest of this modal — Intercom's layout, not Intercom's colours.
+//
+// The screenshot's structure is a two-column ladder: a fixed label gutter on the
+// left, the control on the right, one row per thing being said. That gutter is
+// what makes it readable without any syntax — "If", "Then display", "If it
+// doesn't match then display" all start at the same x and read as a sentence
+// down the page.
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panelHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Matches `.blockLabel` in EmailTemplateModal.module.scss — this panel takes the
+// slot the Variables chips occupy on the other tab, so it wears the same hat.
+.panelTitle {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.panelDesc,
+.empty,
+.addNote {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.empty {
+  padding: 12px;
+  border: 1px dashed var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+}
+
+// ── One condition ─────────────────────────────────────────────────────────────
+
+.rule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+// The label gutter. Fixed width so the three labels line up as a column; they
+// wrap inside it rather than widening it, exactly as the reference does with
+// "If none of the above match then display".
+.rowLabel {
+  flex: 0 0 104px;
+  padding-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// A separating rule above the fallback, as in the reference: the else branch is
+// not a third peer of If/Then, it is what happens when the pair above fails.
+.rowFallback {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+.ruleControls {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+// Native selects, as the rest of this entry does — the back-office frame renders
+// native controls and there is no production select in portal-v2 that takes an
+// options list this small without dragging react-select in behind it.
+.select {
+  min-width: 0;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 6px;
+  background: var(--background-base-white, #ffffff);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+}
+
+// Reads as part of the sentence the labels make, not as a disabled control —
+// hence plain text weight and no box. See the note at its use site.
+.operator {
+  padding-top: 6px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  white-space: nowrap;
+}
+
+.contentField {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--foreground-neutral-secondary, #455468);
+  resize: vertical;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: #5e718d;
+    box-shadow: 0 0 0 3px rgba(27, 56, 96, 0.12);
+  }
+}
+
+// Destructive, but tertiary until you reach for it — the same grey-to-intent
+// escalation the table's own remove button uses, not a permanently red icon
+// sitting beside two text fields.
+.trash {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-error-primary, #d93030);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 1px;
+  }
+
+  // `TrashIcon` is the table's own glyph and hardcodes `stroke="#DC2626"` — right
+  // there, where it is the row's destructive action, wrong here, where it sits
+  // beside two text fields and would read as an alarm before anyone touched it.
+  // A CSS declaration beats the attribute, so handing it `currentColor` puts the
+  // tone back under the rules above: grey at rest, red once you reach for it.
+  svg {
+    width: 16px;
+    height: 16px;
+
+    path {
+      stroke: currentColor;
+    }
+  }
+}
+
+// ── Add ───────────────────────────────────────────────────────────────────────
+
+// Everything visual now comes from production `Button` (style="link"): the blue,
+// the darken-on-hover, the transparent background, the zero padding and radius.
+// All that is left here is the gap between the "+" and the label — which is what
+// production's own `.addButton` in MatchesEditor adds too, for the same reason.
+//
+// No `margin-left: -10px` any more either: that existed to cancel the invented
+// padding and pull the text back into line with the labels above. With the DS
+// button there is no padding to cancel, so it is already flush.
+.addButton {
+  align-self: flex-start;
+  gap: 6px;
+}

@@ -1,0 +1,1 @@
+export { TeamNewsCountChip } from './TeamNewsCountChip';

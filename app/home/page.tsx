@@ -36,6 +36,7 @@ export default async function Home() {
     focusAreas,
     teamNewsGroups,
     teamNewsAllTabExtraItems,
+    teamNewsForYouTeamUids,
     popularItems,
     initialDigestSettings,
     quickActionsState,
@@ -60,6 +61,7 @@ export default async function Home() {
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}
+              forYouTeamUids={teamNewsForYouTeamUids}
               popularItems={popularItems}
               initialDigestSettings={initialDigestSettings}
             />
@@ -87,6 +89,7 @@ const getPageData = async () => {
   let projectFocusAreas: IFocusArea[] = [];
   let teamNewsGroups: ITeamNewsGroup[] = [];
   let teamNewsAllTabExtraItems: ITeamNewsItem[] = [];
+  let teamNewsForYouTeamUids: string[] = [];
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
 
@@ -149,6 +152,7 @@ const getPageData = async () => {
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
     teamNewsAllTabExtraItems = teamNewsResponse?.allTabExtraItems ?? [];
+    teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
 
@@ -181,6 +185,7 @@ const getPageData = async () => {
         featuredData,
         teamNewsGroups,
         teamNewsAllTabExtraItems,
+        teamNewsForYouTeamUids,
         popularItems,
         initialDigestSettings,
         quickActionsState,
@@ -207,6 +212,7 @@ const getPageData = async () => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
+      teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
       quickActionsState,
@@ -227,6 +233,7 @@ const getPageData = async () => {
       discoverData,
       teamNewsGroups,
       teamNewsAllTabExtraItems,
+      teamNewsForYouTeamUids,
       popularItems,
       initialDigestSettings,
       quickActionsState,

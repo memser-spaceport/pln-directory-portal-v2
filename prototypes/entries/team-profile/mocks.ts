@@ -3,10 +3,13 @@ import type { IMember } from '@/types/members.types';
 import type { IFocusArea } from '@/types/shared.types';
 import type { ITeamFocusAres } from '@/components/page/team-details/TeamFocusAreas/types';
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { IJobTeamGroup } from '@/types/jobs.types';
 
 // The feed's own comment shape — the detail modal's thread is the feed's
 // component, so the data has to be the feed's type, not a parallel one.
 import type { FeedComment } from '../newsfeed-v0/mocks';
+// This team's open roles live with every other team's, on the job board.
+import { MOCK_JOB_GROUPS } from '../job-board/mocks';
 
 // One full mock team. The detail-page sections only read the fields populated
 // here. `logo` is left undefined so TeamDetails falls back to its dicebear
@@ -66,6 +69,35 @@ export const MOCK_TEAM = {
   contributingProjects: [],
   asks: [],
 } satisfies Partial<ITeam>;
+
+/* ----------------------- Header facts (founded / size / location) -----------------------
+   Kept out of MOCK_TEAM on purpose: `ITeam` has no fields for these yet, and
+   MOCK_TEAM is pinned with `satisfies Partial<ITeam>`. Modelling them as their
+   own block also matches how they'd arrive — a few company facts, each
+   independently optional, any of which a team may simply not have filled in.
+
+   `teamSize` is deliberately a string, not a number: the spec allows an exact
+   count ("50") or a bucket ("11-50"), and a bucket is not a number. This holds
+   the value only — the view appends the unit. */
+export type TeamFacts = {
+  /** 4-digit founding year, e.g. 2014. */
+  foundedYear?: number;
+  /** Exact count ("50") or a range label ("11-50"). Rendered as "<size> people". */
+  teamSize?: string;
+  /** Free-text place label, e.g. "San Francisco, United States". */
+  location?: string;
+};
+
+/** A team is either operating or it isn't. See TeamDetailsView for why only
+ *  the second one draws a badge. */
+export type TeamStatus = 'active' | 'inactive';
+
+export const MOCK_TEAM_FACTS: TeamFacts = {
+  foundedYear: 2014,
+  // En dash, not a hyphen — it's a numeric range, not a compound word.
+  teamSize: '201–500',
+  location: 'San Francisco, United States',
+};
 
 /* --------------- Demo Day participation (drives the header badge) --------------- */
 // Points at a real demo day so the badge / contribution tile actually deep-links
@@ -548,3 +580,15 @@ export const NEWS_COMMENT_THREADS: Record<string, FeedComment[]> = {
 
 /** Card counts, derived — never written twice. */
 export const commentCountFor = (uid: string): number => NEWS_COMMENT_THREADS[uid]?.length ?? 0;
+
+/**
+ * Open roles — looked up, not re-authored. The job board already groups every
+ * role under its team, and this mock team IS its `protocol-labs` group (4
+ * roles), so duplicating them here would give the same team two sets of jobs
+ * that drift apart on the first edit.
+ *
+ * Those mocks date roles relative to `now`, which is why this page stays behind
+ * its existing client-only mount gate.
+ */
+export const MOCK_TEAM_ROLES: IJobTeamGroup | null =
+  MOCK_JOB_GROUPS.find((g) => g.team.uid === MOCK_TEAM.id) ?? null;

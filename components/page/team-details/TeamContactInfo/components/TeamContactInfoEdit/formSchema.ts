@@ -6,5 +6,7 @@ export const teamContactInfoSchema = yup.object({
   website: yup.string().required('Website is required'),
   linkedin: yup.string().nullable().defined(),
   telegram: yup.string().nullable().defined(),
+  bluesky: yup.string().nullable().defined(),
+  crunchbase: yup.string().nullable().defined(),
   contactMethod: yup.string().required('Contact method is required'),
 });

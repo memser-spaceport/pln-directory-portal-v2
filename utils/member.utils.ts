@@ -108,6 +108,7 @@ export const parseMemberDetails = (members: IMemberResponse[], teamId: string, i
         discordHandle: null,
         telegramHandle: null,
         twitter: null,
+        blueskyHandle: null,
         linkedinHandle: null,
         repositories: [],
       };
@@ -137,6 +138,9 @@ export const hidePreferences = (preferences: IMemberPreferences, member: IMember
   }
   if (!preferences?.showTwitter) {
     delete member['twitter'];
+  }
+  if (!preferences?.showBluesky) {
+    delete member['blueskyHandle'];
   }
 };
 
@@ -758,6 +762,7 @@ export function getVisibleSocialHandles(member: any): string[] {
     twitter: ['twitter', 'showTwitter'],
     linkedin: ['linkedinHandle', 'showLinkedin'],
     telegram: ['telegramHandle', 'showTelegram'],
+    bluesky: ['blueskyHandle', 'showBluesky'],
   };
 
   const result: string[] = [];

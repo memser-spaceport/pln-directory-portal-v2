@@ -29,6 +29,8 @@
   }
 }
 
+// Was tertiary (#8897ae), which measured 2.71:1 on the #f1f5f9 page — a label
+// nobody could read. Secondary clears AA.
 .switcherLabel {
   flex-shrink: 0;
   min-width: 84px;
@@ -36,7 +38,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--foreground-neutral-tertiary, #8897ae);
+  color: var(--foreground-neutral-secondary, #455468);
 }
 
 .segmented {
@@ -77,4 +79,289 @@
   font-size: 13px;
   line-height: 20px;
   color: var(--foreground-neutral-secondary, #455468);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Design deviations from the production chat stylesheet, which is imported
+// read-only. Each rule is doubled (`.thread.thread`) purely for specificity —
+// both classes land on the same element, and source order between two CSS
+// modules is not something to rely on.
+//
+// The colour layer here is copied literally rather than translated to PL tokens:
+// this whole feature is authored in the slate/amber ramp (see
+// AgentSessions.module.scss), and half-translating one component would leave two
+// palettes on one page. Every value below is lifted from a production rule —
+// noted per block.
+
+// ── P0. Focus is invisible on every button in the app ────────────────────────
+// `styles/*` ships a global `button { cursor: pointer; outline: none }`, so a
+// keyboard-focused button matches :focus-visible and still computes
+// `outline: none 0px` — verified in the browser on the tab buttons. That is
+// WCAG 2.4.7 (AA) failing on, among other things, "Delete feature env".
+//
+// The real fix is one global rule in `styles/`, which a prototype must not
+// touch. This is the demonstration, scoped to the page. `:focus-visible` (not
+// `:focus`) so a mouse click doesn't leave a ring behind.
+.focusRing {
+  :is(button, [role='tab'], a, textarea, input, select):focus-visible {
+    outline: 2px solid #156ff7;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  // On the amber composer the brand blue nearly disappears; the ring switches to
+  // the same dark amber the copy uses so it stays visible against #fef3c7.
+  .composerWaiting :is(button, textarea):focus-visible {
+    outline-color: #78350f;
+  }
+}
+
+// The Overview and Progress cards used to be a fragment directly inside
+// `.content`, so they inherited its 16px gap. Wrapping them in a `tabpanel`
+// swallowed that; the wrapper carries it instead.
+.overviewPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// The composer's clearance moved out of the card and onto a measured spacer, so
+// the thread's bottom padding goes back to matching its other three sides.
+// Production reserves 264px here, which left the panel running 644px past its
+// last message as blank white.
+.thread.thread {
+  padding-bottom: 16px;
+}
+
+// ── Measure ──────────────────────────────────────────────────────────────────
+// Production caps the bubble at 80% of the column, which measured 814px at 13px
+// ≈ 125 characters per line. The cap is now whichever is narrower: the 80% the
+// layout wants, or a readable measure. `ch` so it tracks the font rather than a
+// px number that silently rots.
+//
+// Code blocks and tables are the deliberate exception — they are not prose, they
+// have their own horizontal scroll, and squeezing them to a prose measure only
+// moves the problem into a scrollbar.
+.bubble.bubble {
+  max-width: min(80%, 74ch);
+
+  pre,
+  table {
+    max-width: none;
+  }
+}
+
+// A bubble holding a wide code block or table may exceed the prose cap — those
+// two elements are why the cap can't just be a hard width.
+.bubbleWide.bubbleWide {
+  max-width: 80%;
+}
+
+// ── Contrast ─────────────────────────────────────────────────────────────────
+// Measured failures against WCAG AA, all of them replaced with values already in
+// this feature's palette rather than new ones.
+
+// The UA default placeholder rendered at 2.18:1 on white. This copy is the only
+// place the "vague instructions cost a full agent run" warning appears, so it
+// has to be legible. #64748b is production's own `.composerHint` colour.
+.textarea.textarea::placeholder {
+  color: #64748b;
+  opacity: 1; // Firefox dims placeholders by default; undo it or the fix is lost.
+}
+
+// `opacity: .7` white on the #156ff7 admin bubble measured 2.99:1. Full white on
+// that blue clears AA, so the timestamp gets colour instead of transparency:
+// dimmed on the light bubbles where there is headroom, plain white on the blue
+// where there isn't.
+.bubbleTime.bubbleTime {
+  opacity: 1;
+  color: #64748b;
+}
+
+.bubbleTimeOnBrand.bubbleTimeOnBrand {
+  color: #fff;
+}
+
+// #64748b inactive (4.34:1) and #156ff7 active (4.12:1) both missed AA against
+// the #f1f5f9 sticky-header background. #475569 and #0f5ed1 clear it — and
+// #0f5ed1 is already in this stylesheet family as `.sendButton:hover`.
+//
+// Also: 39px tall, under the 44px minimum target.
+.tab.tab {
+  min-height: 44px;
+  color: #475569;
+}
+
+.tabActive.tabActive {
+  color: #0f5ed1;
+  border-bottom-color: #0f5ed1;
+}
+
+.sendButton.sendButton {
+  min-height: 44px;
+}
+
+// Grows to fit instead of opening three rows deep with a drag handle. The handle
+// is what forced the worst-case reservation; with auto-grow the bar is only ever
+// as tall as what has actually been typed, so `resize` has nothing left to do.
+// `min-height` is one row plus the production 10px/12px padding.
+.textarea.textarea {
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  overflow-y: auto;
+}
+
+.composer.composer {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+// The waiting skin. Amber, border and text are the exact values production used
+// on `.waitingBanner` (#fef3c7 / #fde68a / #78350f) — the banner is gone, but the
+// vocabulary it shared with the `toneWaiting` status badge is kept.
+.composerWaiting.composerWaiting {
+  background: #fef3c7;
+  border-top: 2px solid #fde68a;
+}
+
+// Darker so it stays readable on amber — not bolder. The field is already the
+// loud part; a bold hint on top of it is the same alarm sounded twice.
+.composerHintWaiting.composerHintWaiting {
+  color: #78350f;
+}
+
+// ── Failure diagnostics ──────────────────────────────────────────────────────
+// A failed run used to be one red sentence. `error_code`, `kubernetes_namespace`
+// and `kubernetes_job_name` are all on the session object and were rendered
+// nowhere in the app — the job name is the first thing an admin needs to pull
+// logs. Danger tones are production's (#b42318 / #fee4e2 / #fda29b).
+.failureBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #fda29b;
+  border-radius: 8px;
+  background: #fef3f2;
+}
+
+.failureHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.failureMessage {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #b42318;
+}
+
+// Two columns on anything wider than a phone; the values are identifiers, so
+// they get the monospace treatment and stay selectable for copy-paste.
+.failureFacts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px 16px;
+  margin: 0;
+
+  @media (min-width: 640px) {
+    grid-template-columns: auto 1fr;
+  }
+}
+
+.failureFactLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.failureFactValue {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #0a0c11;
+  word-break: break-all;
+  user-select: all; // one click selects the whole job name
+}
+
+.failureActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// ── Draft state ──────────────────────────────────────────────────────────────
+// The product's input contract requires autosave to be *visible* — an autosave
+// nobody can see is a promise with no reason to believe it.
+.draftState {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.draftStateRestored {
+  color: #0f5ed1;
+  font-weight: 600;
+}
+
+.composerMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+// Available to assistive tech, absent from the page. Used for the chat panel's
+// heading, which the visual design carries with the tab instead.
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// markdown-to-jsx parses GFM tables that react-markdown dropped as raw pipes, so
+// there is now a table to style. Slate borders and the `#f8fafc` head match
+// `.table` in AgentSessions.module.scss; it scrolls in its own box because a wide
+// table must not widen the bubble.
+.markdownBody {
+  table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 0 0 8px;
+    font-size: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // Cells wrap: an agent's "Change" column holds sentences, and wrapping a
+  // sentence beats putting a scrollbar under it. `overflow-x` above is the escape
+  // hatch for tables that genuinely can't fit.
+  th,
+  td {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
 }

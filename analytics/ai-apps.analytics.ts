@@ -45,6 +45,8 @@ export function useAiAppsAnalytics() {
     onFeedbackReviewViewed: () => capture(AI_APPS_ANALYTICS.FEEDBACK_REVIEW_VIEWED),
     onFeedbackTabFiltered: (appName: string) => capture(AI_APPS_ANALYTICS.FEEDBACK_TAB_FILTERED, { appName }),
     onFeedbackExported: (rowCount: number) => capture(AI_APPS_ANALYTICS.FEEDBACK_EXPORTED, { rowCount }),
+    onFeedbackStatusChanged: (params: { appUid: string; from: string; to: string }) =>
+      capture(AI_APPS_ANALYTICS.FEEDBACK_STATUS_CHANGED, params),
     onFeedbackDialogOpened: (params: { appUid?: string; appName?: string } = {}) =>
       capture(AI_APPS_ANALYTICS.FEEDBACK_DIALOG_OPENED, params),
     onViewFeedbackClicked: (params: { feedbackCount: number }) =>

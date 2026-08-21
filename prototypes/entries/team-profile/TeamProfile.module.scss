@@ -13,6 +13,9 @@
     display: block;
     visibility: hidden;
     pointer-events: none;
+    /* Every child of the capped rail is shrinkable by default; a squeezed
+       spacer would quietly give back the offset that aligns the panel. */
+    flex-shrink: 0;
   }
 }
 
@@ -549,6 +552,13 @@
   list-style: none;
   max-height: 60vh;
   overflow-y: auto;
+  /* No track here either — the row clipped at the 60vh cut is the cue, and one
+     scroll treatment across the prototype beats a per-region decision. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .subRow {
@@ -663,15 +673,6 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
-// Demo-only role-tag switch sitting just above the Contributions section.
-.contribLayoutBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
 /* Two-column layout: team profile (main) + news rail (right) on desktop;
    stacks vertically below tablet-landscape. */
 .layout {
@@ -723,6 +724,13 @@
     flex-shrink: 0;
     position: sticky;
     top: 16px;
+    /* Cap the sticky rail to the viewport (16px sticky top + 16px bottom gap).
+       Uncapped, a rail taller than the screen parks its bottom below the fold
+       for good — at a 700px viewport the two exits sat off-screen at every
+       scroll position, because once the page bottom is reached a pinned rail
+       has nowhere left to move. The news list scrolls inside this cap instead
+       (the same mechanism production's TeamNewsRail uses). */
+    max-height: calc(100dvh - 32px);
   }
 }
 
@@ -767,6 +775,17 @@
      reads as a grey seam once the surface behind it turns blue. */
   [class*='cardFlat']:not(:last-child) {
     border-bottom-color: var(--border-brand-subtle, #aebfff);
+  }
+
+  @include media.tablet-landscape {
+    /* Flex items default to min-height: auto, so without this the panel refuses
+       to shrink inside the capped rail and .newsList never gets a scrollbar. */
+    min-height: 0;
+
+    /* The header labels the panel and stays with it; only the list scrolls. */
+    > *:first-child {
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -903,6 +922,29 @@
   > * {
     flex-shrink: 0;
   }
+
+  /* Desktop only — the list is the single scrolling region inside the capped
+     rail, so the header above it and the exits below it stay reachable however
+     tall the news gets. On mobile the rail isn't sticky and flows with the page,
+     so a second scroll region there would be a trap. */
+  @include media.tablet-landscape {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* Reaching the end of the list shouldn't start scrolling the page under it. */
+    overscroll-behavior: contain;
+
+    /* Scrolls, but shows no track. A rail is a side signal on someone else's
+       page, and 4px of chrome running down a 340px panel announces machinery
+       where the content should be doing the talking. The card clipped at the
+       fold is the affordance instead — same treatment as the newsfeed,
+       newsfeed-v0, gantry and person-city-calendar scroll regions. */
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 /* The desktop archive's own modal used to live here (.newsModal / .modal*), a
@@ -924,6 +966,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
   gap: 8px;
+  /* Keeping these two on screen is the whole point of the rail's height cap. */
+  flex-shrink: 0;
 }
 
 /* Shared box for both — same height, border and radius, so they read as a pair.
@@ -994,6 +1038,13 @@
   background: var(--Neutral-White, #fff);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Same no-track treatment as the rail's list — this is that panel, one tap
+     away, so a scrollbar appearing here would read as a different surface. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Header / count pill / close button copied from the production UpdatesPanel
@@ -1072,7 +1123,6 @@
   flex-shrink: 0;
 }
 
-
 /* Stacked outlined (stroked) news cards, matching the homepage mobile news
    grid (single column, 12px gap). */
 .newsPageList {
@@ -1104,4 +1154,124 @@
   line-height: 20px;
   letter-spacing: -0.2px;
   white-space: nowrap;
+}
+
+/* ---------------------- Header facts (founded / size / location) ----------------------
+   The row itself is MemberDetailHeader's `.roleAndLocation` (flex, wrap, 16px
+   gap, centred) — imported, not re-declared. These are the two things it can't
+   carry across: the member header's facts sit directly under an h1 in its own
+   grid cell, while here they're a row inside production's `.tagsContainer`
+   column, which already spends 12px between its children (that gap is the
+   spacing — nothing extra is added here).
+
+   Colour: every fact takes the member header's `.locationName` treatment
+   (secondary grey, 14/20/400) rather than its `.role` treatment (primary near-
+   black). A person's role is the headline fact about them, so primary earns it;
+   a team's founding year, headcount and city are all equally background, and
+   at primary weight three of them in a row compete with the team name one line
+   above. */
+.factsRow {
+  /* Production's `.nameTagContainer` is a column with a flat 16px gap, so
+     dropping this row in leaves it 16px from the name above and 16px from the
+     tag row below — equidistant, which reads as belonging to neither. The facts
+     qualify the name; the tag row is a separate classification block. Cancel
+     half the gap above so the binding is visible: 8px up, 16px down. Local
+     negative margin rather than touching the container's gap, which would move
+     the tag row for every team including ones with no facts at all. */
+  margin-top: -8px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  /* MemberDetailHeader's `.location` carries `padding-right: 24px` to clear the
+     Edit button that sits beside it there. No such neighbour here — the trailing
+     gap just reads as a stray indent, so it's cancelled. */
+  > span[class*='location'] {
+    padding-right: 0;
+  }
+
+  /* Mobile drops the hairlines and separates on space alone. Three facts can't
+     fit one line at 390px, and a divider that ends up at a wrap boundary dangles
+     at the edge of the line pointing at nothing. This is the same call the DS's
+     own `Divider` makes — it ships `display: none` below tablet-portrait, which
+     is why the tag row underneath loses its separators at this width too. */
+  @include media.mobile-only {
+    column-gap: 20px;
+
+    > span[class*='divider'] {
+      display: none;
+    }
+  }
+}
+
+/* The pin takes `currentColor` (see LocationGlyph) so the tone is set here
+   rather than baked into the SVG. Matches the fact text it labels. */
+.factIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* "Inactive" badge beside the team name. `Badge` is the design system's label
+   chip — no hover, no focus, not a control — which is what this is. The only
+   thing added is the gap from the name; the pill itself is untouched DS.
+
+   Mobile drops it to its own line under the name. The admin actions (Edit +
+   Delete) are lifted out of the flow there and pinned to the card's top-right
+   corner, so anything sitting after the name runs under them. Reserving the
+   corner's width instead was tried and rejected — it left the name 161px and
+   truncated "Protocol Labs" to "Protocol…", which trades a real problem for a
+   worse one. A full-width flex-basis is the only lever that moves the badge
+   without touching the name. */
+/* `Badge` ships 14px/20px, drawn for the settings rows it usually sits in. On
+   this header that made it the *largest* chip on the page — bigger than the
+   Investment Fund / Infrastructure / Web3 row directly beneath it, which runs
+   12px/14px — and a small qualifier outsizing the chips that classify the whole
+   company is the hierarchy upside down. Measured, it also stood 26px tall
+   against the name's 32px line, so it filled the line rather than sitting in it.
+
+   12px/14px is not a size invented for it: it's the scale this header already
+   uses for chips, one row down. Copying that means the badge reads as a member
+   of the header's chip vocabulary rather than as its own object.
+
+   Note this deliberately does NOT match the teams grid's copy of the same badge,
+   which sits at 11px/16px — that corner takes its scale from the news chip it
+   shares the slot with. Same component and same word on both surfaces; the size
+   is a ratio to each surface's neighbours, not a constant. */
+.statusChip.statusChip {
+  font-size: 12px;
+  line-height: 14px;
+  min-width: 0;
+}
+
+.statusBadge {
+  display: inline-flex;
+  margin-left: 8px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
+
+/* Only so `.statusBadge`'s mobile basis has somewhere to break. Production's
+   `.nameAndActions` is a nowrap flex row. */
+.nameRowWrap {
+  @include media.mobile-only {
+    flex-wrap: wrap;
+  }
+}
+
+/* One label + its switch. Now that the bar holds two of these, the bar's own
+   12px gap can't do both jobs — equal spacing inside and between the pairs
+   would read as four loose controls. The label binds to its switch at 8px; the
+   bar's 12px becomes the space between groups. */
+.demoGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }

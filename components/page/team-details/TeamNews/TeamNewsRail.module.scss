@@ -26,26 +26,36 @@
   }
 }
 
+/* Brand-tinted panel — the same soft surface and hairline news wears elsewhere
+   in the directory, so it reads as one coloured thread rather than a differently
+   styled block per page. The neutral card shadow goes with the white: a tinted
+   surface behind a coloured hairline is already lifted off the grey page, and
+   keeping both runs two competing elevation systems on one box. */
 .newsPanel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--Neutral-White, #fff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
   border-radius: 8px;
   padding: 16px;
-  box-shadow:
-    0 0 1px 0 rgba(15, 23, 42, 0.12),
-    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  /* Row seams follow the tint. Consumed by NewsCard's .cardFlat, which the rail
+     is the only surface to render. */
+  --news-card-divider: var(--border-brand-subtle, #aebfff);
 
   &.highlight {
-    box-shadow: 0px -1px 5px 2px rgba(27,77,255,0.75);
+    box-shadow: 0px -1px 5px 2px rgba(27, 77, 255, 0.75);
   }
 
+  /* The header labels the tint rather than merely sitting on it, so it takes
+     brand blue. Reached by element because the title comes from the shared
+     DetailsSectionHeader, whose own .title (#64748b) this already overrides. */
   h2 {
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;
-    color: var(--foreground-neutral-primary, #0f172a);
+    color: var(--foreground-brand-secondary, #4174ff);
   }
 
   @include media.tablet-landscape {
@@ -170,24 +180,119 @@
   font-size: 14px;
 }
 
-.viewAll {
+/* The panel's two exits. Equal columns rather than content-width: two labels of
+   different lengths side by side leave the shorter one looking like an
+   afterthought. `auto-fit` rather than a hard two-up, though — "All network
+   updates ↗" needs ~180px and the rail only has ~150px a column to give, so
+   inside the rail the pair stacks and each exit gets a full-width row. It goes
+   back to two up wherever the panel is wider (the archive's footer, and mobile,
+   where the rail runs the page width). Stacked beats squeezed: these are the two
+   ways out, and a way out that's been clipped to fit isn't one. */
+.newsFooter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+  gap: 8px;
+}
+
+/* Shared box for both — same height, border and radius, so they read as a pair.
+   Only the label colour separates them (see .viewFeed). */
+.viewAll,
+.viewFeed {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  gap: 4px;
+  min-width: 0;
   padding: 10px 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   background: var(--Neutral-White, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    text-decoration: none;
+  }
+}
+
+.viewAll {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The leaving half of the pair: neutral text against its blue neighbour, since
+   going to the whole feed is the rarer intent. The ↗ is the real tell — the
+   glyph the rest of the app uses for "this leaves the page". */
+.viewFeed {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+/* The archive's own footer band, holding the one exit that isn't Close. Pinned
+   below the scrolling list on desktop; on the full-page mobile view it simply
+   follows the list. */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  background: var(--Neutral-White, #fff);
+}
+
+/* Same box as the rail's exits — same height, radius and 14/20 label, so the
+   exit measures the same wherever it appears. Brand-tinted rather than neutral,
+   and that's the one deliberate difference: in the rail this link has a blue
+   sibling and takes the quieter half, while here it's the only thing in the
+   footer and the reader has already read the list. Tint at rest, fill on hover,
+   so it doesn't compete with the stories above while it's just sitting there. */
+.viewFeedSolo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+  /* Transparent, not removed — the border still holds the box's height and
+     width so nothing shifts between rest and the filled hover. */
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--background-brand-subtle, rgba(27, 77, 255, 0.08));
   color: var(--foreground-brand-primary, #1b4dff);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
 
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* The ↗ takes currentColor, so it follows the label from blue to white
+     without a rule of its own. */
   &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    background: var(--foreground-brand-primary, #1b4dff);
+    color: var(--Neutral-White, #fff);
+    text-decoration: none;
   }
 }
 

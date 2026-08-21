@@ -164,6 +164,12 @@ export const getTeam = async (
     dataEnrichment: result.dataEnrichment,
     blog: result?.blog,
     telegramHandler: result?.telegramHandler,
+    blueskyHandler: result?.blueskyHandler,
+    crunchbaseHandler: result?.crunchbaseHandler,
+    dateFounded: result?.dateFounded,
+    teamSize: result?.teamSize,
+    location: result?.location,
+    status: result?.status,
     communityAffiliations: result?.communityAffiliations,
     isFollowed: result.isFollowed,
   };

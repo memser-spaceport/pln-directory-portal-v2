@@ -55,11 +55,11 @@ export function useFeedSocial({ newsUids }: { newsUids: string[] }): UseFeedSoci
   // Existing values win — a count the viewer already bumped by commenting must
   // not be reset by a later posts arrival.
   //
-  // Watches the counts query too, not just the posts: that query fetches NEWS
-  // uids only and its response REPLACES this entry, so a response landing after
-  // the seed used to wipe every fp_ count for the rest of the session (the
-  // effect depended on `postsData` alone, which never changes again). Re-seeding
-  // on its data is what restores them.
+  // Watches the counts query too, not just the posts. The counts fetcher now
+  // MERGES its response instead of replacing the entry, so a late arrival can no
+  // longer wipe every fp_ count for the session the way it once did — this stays
+  // as the repair pass for anything that ever writes the entry wholesale, and
+  // no-ops (the `every` check below) when there's nothing to restore.
   const postsData = postsQuery.data;
   const countsData = countsQuery.data;
   useEffect(() => {

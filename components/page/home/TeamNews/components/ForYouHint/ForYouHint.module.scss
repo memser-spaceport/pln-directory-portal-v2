@@ -1,0 +1,25 @@
+.root {
+  margin: 0 0 16px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

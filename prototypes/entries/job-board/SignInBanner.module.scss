@@ -16,24 +16,125 @@
   }
 }
 
-/* The criteria read-back. 600 rather than the browser's default 700, matching the
-   weight `MatchNudgeStrip` gives the same string — emphasis by weight alone, so
-   it doesn't start reading as a link. */
+/* The criteria read-back. 600 rather than the browser's default 700 — emphasis
+   by weight alone, so it doesn't start reading as a link. */
 .criteria {
   font-weight: 600;
 }
 
+/* The two claims a profile is worth making, as a list rather than a paragraph.
+   Type comes from `welcome.sub`, which the element also wears; this adds only
+   what a `<ul>` needs and the browser's own margins take away.
+
+   Discs, not the icon-and-row treatment a feature list usually gets in this
+   product: two lines of the banner's own sub-copy is not a feature grid, and
+   giving them icons would make the strip announce itself as a section. 18px of
+   indent is the marker plus its gap — enough that a wrapped second line hangs
+   under the text rather than under the bullet. */
+.valueBullets {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+
+  li + li {
+    margin-top: 2px;
+  }
+}
+
+/* The two doors. `Welcome`'s CTA slot held one button and needs no wrapper; a pair
+   does, or the flex row that `.welcome` is would space them like two unrelated
+   children of the banner rather than one control group.
+
+   8px, the same gap the navbar leaves between its own Sign up / Sign in pills —
+   close enough to read as one cluster, far enough not to look like a split
+   button. `flex-shrink: 0` because `welcome.cta` sets it on itself and the group
+   now stands where that button used to: without it the pair gets compressed by a
+   long headline instead of the headline wrapping. */
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  /* Bottom-aligned, against `Welcome`'s centred row. Centring is right when the
+     text block is one or two lines and the pair reads as the row's other half;
+     at three lines the buttons float against the middle of a paragraph and
+     belong to neither the headline above nor the sentence beside them. Sitting
+     on the text block's last baseline, they read as what you do once you've
+     finished reading. `align-self` on the item, not `align-items` on `.welcome`,
+     because the text block is production's and should keep stretching. */
+  align-self: flex-end;
+
+  /* `.welcome` goes column + stretch on mobile, so the group inherits full width
+     and the two buttons split it evenly. `welcome.cta` already sets `width: 100%`
+     at this breakpoint, which would push its sibling out — `flex: 1` on both, and
+     `min-width: 0` so a button can be narrower than its own label box. */
+  @include media.mobile-only {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+    }
+  }
+}
+
+/* Sign up: the quiet half of the pair.
+
+   Geometry is `welcome.cta`'s, copied literally (10px/16px padding, 8px radius,
+   14/20 at 500, nowrap) so the two buttons are the same object in two tones
+   rather than two different buttons. Only the colour layer comes from the design
+   system's own signup control — `components/core/navbar/components/Signup` —
+   whose neutral text, slate border and white fill are what "secondary auth
+   action" already looks like in this product.
+
+   What is deliberately NOT copied from there: the 40px pill radius and the 24px
+   padding. Those belong to a header sitting on its own row; here the button has
+   to match the one beside it. */
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  color: var(--action-foreground-neutral-normal, #455468);
+  background: var(--Neutral-White, #fff);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
 /* The pinned (rail-narrowed) state. Deliberate simplification of `Welcome`, not a
    restyle of it: the card, type and CTA are still production's, and only the
-   height comes down — 20px of padding around a title that is no longer there
-   would leave the strip taller than the row it contains. */
+   height comes down — pinned, the strip rides over the list it belongs to, so it
+   spends as little of the viewport as the ask and its one supporting line need. */
 .condensed.condensed {
   padding: 12px 20px;
 }
 
-/* One line, truncated rather than wrapped: a long selection ("Engineering ·
-   Senior · Lead · Remote · Berlin") must not grow the strip it's pinned inside.
-   Desktop only — below 1024 the banner isn't pinned and has the room to wrap. */
+/* One line, truncated rather than wrapped — worn by the headline and the
+   selection read-back alike, since neither the ask nor a long selection
+   ("Engineering · Senior · Lead · Remote · Berlin") may grow the strip it's
+   pinned inside. Desktop only: below 1024 the banner isn't pinned and can wrap. */
 @include media.breakpoint-1024 {
   .oneLine {
     white-space: nowrap;
@@ -77,3 +178,12 @@
    at `top: var(--app-header-height)` with z-index 4, and two things competing for
    the same shelf would simply cover each other — the filter pill is a control,
    the banner is an offer, so the control keeps the shelf. */
+
+/* The pending-approval card sits in the same slot but is a different shape — an
+   `Alert`, not the `Welcome` card — so it doesn't inherit `Welcome`'s own top
+   margin from the column. Only the horizontal inset is shared, which `.slot`
+   already gives it; this exists so the rule has a name to hang future
+   pending-only spacing on rather than being an unexplained bare `.slot`. */
+.pendingSlot {
+  display: block;
+}

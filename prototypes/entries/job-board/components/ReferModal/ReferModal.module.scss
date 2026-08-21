@@ -110,6 +110,37 @@
   letter-spacing: -0.2px;
 }
 
+// The masthead while the form is open. `.title` and `.desc` above keep the Demo
+// Day chrome's centring because the *sent* state still wants it — one sentence
+// and a Done button is an announcement, and the whole card is one centred block.
+// Composing is the other kind of card: labels, fields and a character count all
+// starting from one left edge, which a centred icon and headline sit across.
+//
+// Modifier classes rather than an edit to the base rules, so the two states stay
+// visibly different decisions instead of one rule with an exception buried in it.
+.headerLeft {
+  text-align: left;
+}
+
+// The circle moves with the text. Left-aligning the headline while the icon
+// above it stayed centred would leave the one element that can't read as a
+// column heading floating over the column.
+.headerIconLeft {
+  margin: 0;
+}
+
+// The description belongs to the title. `.modal` is a flex column with a uniform
+// 24px gap, so icon → title → description → form all sat equally far apart,
+// which claims those four are peers; a title and the sentence qualifying it are
+// one header. 8px says so, and the untouched 24px elsewhere now marks a real
+// break. Applies in both states — the pairing is true of the sent card too.
+//
+// Negative margin against the parent's gap rather than a smaller `gap` on
+// `.modal`: that number is right for every other pair in the card.
+.headerDesc {
+  margin-top: -16px;
+}
+
 .form {
   display: flex;
   flex-direction: column;

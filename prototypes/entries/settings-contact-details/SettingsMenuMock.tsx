@@ -30,7 +30,7 @@
  * One item, not two. "Contact details" and "Connected accounts" sitting next to
  * each other both read as "where my identity lives", which reproduces the
  * dithering this change exists to remove — so they are merged into a single tab
- * holding the email address, the sign-in methods and the contact handles.
+ * holding the email address, the sign-in methods and the social links.
  *
  * The envelope is free again: it belonged to "email preferences", which is now
  * "notification preferences" under the bell. So the one item a member hunting

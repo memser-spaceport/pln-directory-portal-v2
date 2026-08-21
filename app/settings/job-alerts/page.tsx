@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
-import SettingsMenu from '@/components/page/settings/menu';
+import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { JobAlertsManager } from '@/components/page/job-alerts/JobAlertsManager';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
@@ -27,7 +27,7 @@ async function JobAlertsSettingsPage({ searchParams }: { searchParams: Promise<R
       </div>
       <div className={styles.privacy__main}>
         <aside className={styles.privacy__main__aside}>
-          <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} activeItem="job alert" userInfo={userInfo} />
+          <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
         </aside>
         <div className={styles.privacy__main__content}>
           <JobAlertsManager />

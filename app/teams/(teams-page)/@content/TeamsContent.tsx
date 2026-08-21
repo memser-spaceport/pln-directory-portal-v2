@@ -6,8 +6,12 @@ import Error from '../../../../components/core/error';
 import { TeamsToolbar } from '../../../../components/page/teams/TeamsToolbar';
 import { TeamList } from '@/components/page/teams/TeamList';
 import styles from './page.module.css';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { triggerLoader } from '@/utils/common.utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { TeamNewsModal } from '@/components/page/team-details/TeamNews';
+import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts';
+import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
 import { ContentPanelSkeletonLoader } from '@/components/core/dashboard-pages-layout/ContentPanelSkeletonLoader';
 import { useTeamsFilters } from '../hooks/useGetTeamsFilterValues';
 import { useGetTeamsFilterAsObjectFromStore } from '@/hooks/teams/useGetTeamsFilterAsObjectFromStore';
@@ -50,6 +54,27 @@ export default function TeamsContent(props: TeamsContentProps) {
   // tab whose cache was just invalidated) — otherwise the stale cached value gets briefly synced
   // in before the fresh one arrives, flashing the wrong count.
   const liveFollowingTotal = useFollowingTeamsCount(isRefetching ? undefined : followingTotal);
+
+  // Counts behind the "N new posts" chips, requested once per batch of teams the
+  // grid has rendered. `team.id` IS the backend teamUid here — getTeamList maps
+  // `id: team.uid` and its projection carries no `uid` field at all.
+  //
+  // Declared above the early returns below, which is not optional: hooks can't
+  // sit under a conditional return.
+  const teamUids = useMemo(() => teams.map((team) => team.id).filter(Boolean), [teams]);
+  useTeamNewsCounts({ uids: teamUids, enabled: SHOW_TEAM_NEWS_COUNT_CHIP });
+
+  // Which team's news is open over the grid. Held here rather than in TeamList
+  // so it survives the `teams.length > 0` swap to an empty state, and well above
+  // the memoized cards.
+  const [newsModal, setNewsModal] = useState<{ teamUid: string; teamName: string } | null>(null);
+  // Stable identity: TeamGridView is memo()'d with a shallow compare, so an
+  // inline arrow here would re-render every card on every parent render.
+  const openTeamNews = useCallback((teamUid: string, teamName: string) => {
+    setNewsModal({ teamUid, teamName });
+  }, []);
+  const closeTeamNews = useCallback(() => setNewsModal(null), []);
+  const isMobile = useIsMobile();
 
   const isLoading = isLoadingTeams || isLoadingFilters;
   const isError = isTeamsError || isFiltersError;
@@ -94,6 +119,7 @@ export default function TeamsContent(props: TeamsContentProps) {
             userInfo={userInfo}
             filterValues={filterValues}
             isLoggedIn={isLoggedIn}
+            onOpenTeamNews={openTeamNews}
           />
         ) : isFollowingOnly ? (
           <FollowingEmptyState />
@@ -101,6 +127,21 @@ export default function TeamsContent(props: TeamsContentProps) {
           <EmptyResult onClearAll={clearParams} />
         )}
       </div>
+
+      {/* The chip's answer: this team's news, over the grid rather than instead
+          of it. `total` is deliberately omitted — the chip counted 7 days and
+          this box lists the whole archive, so it latches its own figure. */}
+      {newsModal && (
+        <TeamNewsModal
+          isOpen
+          focusUid={null}
+          onClose={closeTeamNews}
+          teamUid={newsModal.teamUid}
+          teamName={newsModal.teamName}
+          fullscreen={isMobile}
+          source="teams-listing-modal"
+        />
+      )}
     </div>
   );
 }

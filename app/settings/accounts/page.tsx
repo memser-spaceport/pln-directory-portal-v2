@@ -1,8 +1,6 @@
-import SettingsMenu from '@/components/page/settings/menu';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
+import { SettingsMenu } from '@/components/page/settings/SettingsMenu';
 import styles from './page.module.css';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import SettingsBackButton from '@/components/page/settings/settings-back-btn';
 import { getCookiesFromHeaders } from '@/utils/next-helpers';
 import { Metadata } from 'next';
@@ -23,35 +21,18 @@ async function AccountsPage(props: { searchParams: Promise<any> }) {
   const leadingTeams = userInfo.leadingTeams ?? [];
   const isTeamLead = leadingTeams.length > 0;
 
-  const breadcrumbItems = [
-    { url: '/', icon: '/icons/home.svg' },
-    { text: 'Members', url: '/members' },
-    { text: `${userInfo.name}`, url: `/members/${userInfo.uid}` },
-    { text: 'Connected Accounts', url: '/settings/accounts' },
-  ];
-
   return (
     <>
       <div className={styles.privacy}>
-        {/*<div className={styles.privacy__breadcrumbs}>*/}
-        {/*  <div className={styles.privacy__breadcrumbs__desktop}>*/}
-        {/*    <Breadcrumbs items={breadcrumbItems} LinkComponent={Link} />*/}
-        {/*  </div>*/}
-        {/*</div>*/}
         <div className={styles.privacy__backbtn}>
           <SettingsBackButton title="Connected Accounts" />
         </div>
         <div className={styles.privacy__main}>
           <aside className={styles.privacy__main__aside}>
-            <SettingsMenu
-              isTeamLead={isTeamLead}
-              isAdmin={isAdmin}
-              activeItem="connected accounts"
-              userInfo={userInfo}
-            />
+            <SettingsMenu isTeamLead={isTeamLead} isAdmin={isAdmin} userInfo={userInfo} />
           </aside>
           <div className={styles.privacy__main__content}>
-            <ConnectedAccounts />
+            <ConnectedAccounts userInfo={userInfo} />
           </div>
         </div>
       </div>

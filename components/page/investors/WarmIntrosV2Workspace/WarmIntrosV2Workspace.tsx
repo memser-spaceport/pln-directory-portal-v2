@@ -27,6 +27,7 @@ import {
   type WarmIntrosV2PathListItem,
   type WarmIntrosV2SelectorValue,
 } from '@/services/investors/warm-intros-v2.types';
+import type { SelectedMember } from './alsoViaMembers';
 import { exportWarmIntrosV2Csv } from './exportWarmIntrosV2Csv';
 import { MasterProfileModal } from './MasterProfileModal';
 import { PathFeedbackQueuePanel } from './PathFeedbackQueuePanel';
@@ -274,6 +275,18 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
 
   const plBackerAvailable = facets?.plBackerCount ?? 0;
 
+  // A PL-member filter matches the best connector OR an alternate one, but the table
+  // draws only the best connector's chain — so rows can match on someone the chain
+  // never names. Hand the table the selection (names resolved the same way the active
+  // pill resolves them) so it can say so per row.
+  const selectedPathViaMembers = useMemo<SelectedMember[]>(
+    () =>
+      pathVia.value
+        .filter((via) => via.type === 'member')
+        .map((via) => ({ uid: via.value, name: describePathVia(via, facets ?? EMPTY_FACETS) })),
+    [pathVia.value, facets],
+  );
+
   const clearAll = useCallback(() => {
     pathVia.setValue([]);
     void setFilters({ wi2_sector: [], wi2_pl_backer: null });
@@ -490,6 +503,7 @@ export function WarmIntrosV2Workspace({ onCountChange }: Props) {
             onViewAllPaths={onViewAllPaths}
             onRowClick={onRowClick}
             showListName={selectorValue === WARM_INTROS_V2_ALL_TARGET_SET}
+            alsoViaSelected={selectedPathViaMembers}
             scrollRootRef={scrollRootRef}
             sentinelRef={sentinelRef}
             footer={isFetchingNextPage ? <div className={s.sentinelLoader}>Loading more…</div> : null}

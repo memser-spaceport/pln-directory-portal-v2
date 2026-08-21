@@ -21,58 +21,71 @@
  *                                            referral. Chrome = Demo Day's "Make an intro" modal
  *                                            (ReferCompanyModal.module.scss) inside production
  *                                            Modal; fields = FormSelect / FormTextArea. Mocked.
- * THE MATCH NUDGE (what this entry is asking about):
- *  A logged-out visitor sees exactly what a member sees, so signing in buys them nothing. The
- *  exchange offered here: tell the board what you're looking for, and it sorts around you and
- *  makes you findable by teams hiring for it.
- *  - viewerState          (new)             `RoleCriteria` = the four facet axes, which is also
- *                                            production's `IJobAlertFilterState`. One predicate,
- *                                            `roleMatches`, does filtering AND ranking so the two
- *                                            can't drift; the preference verb adds one guard —
- *                                            empty preferences match nothing, empty filters match
- *                                            everything.
+ * THE APPLY FLOW (what this entry is asking about):
+ *  A logged-out visitor sees exactly what a member sees, so signing in has to buy them something
+ *  real. The exchange offered here: **apply in one click.** Your profile is the reusable half of
+ *  every application, so once it exists, applying to any of the roles on this board is a cover
+ *  letter and nothing else.
+ *
+ *  This replaced an earlier *matching* answer to the same question — tell the board what you're
+ *  looking for, and it sorts around you and badges the fits "Matches you". That is gone: the badge,
+ *  the "Best match for me" sort, the nudge strip and the preferences modal with it. Two reasons.
+ *  A re-sorted list is a weak payoff for an account — you can see the whole board either way, so
+ *  nothing actually changed for the person. And the looking-for-work axes already have a permanent
+ *  home at `/settings/job-alerts` (the `settings-contact-details` entry edits exactly those four
+ *  fields), so the board was collecting them twice. What the board is uniquely placed to ask for is
+ *  the thing you need *at the moment you press Apply*.
+ *
+ *  - viewerState          (rewritten)       `RoleCriteria` is now only the filter rail. `MemberProfile`
+ *                                            is the new object, and it is production's member record
+ *                                            rather than a job-board form: an Experience list
+ *                                            (`ExperienceEntry`, field-for-field production's
+ *                                            `TEditExperienceForm`), plus skills, bio and location.
+ *                                            `isProfileComplete` is the one rule that gates Apply —
+ *                                            **your current role and an answered job search status**
+ *                                            — stated once and read from everywhere. It was one
+ *                                            experience entry until review: an entry is something
+ *                                            most real profiles already carry, while the status is
+ *                                            the one answer only this flow can collect and the one
+ *                                            that decides whether founders see the profile at all.
+ *                                            The role joined it because an application has to say
+ *                                            what you do now, and it is one field the header card
+ *                                            was already asking for.
  *  - SignInBanner         (new)             the logged-out ask, wearing production's home banner
  *                                            (components/page/home/Welcome, SCSS imported verbatim)
  *                                            so signing in looks the same here as at /home. Its
- *                                            second line reads the narrowed rail back, and once the
- *                                            rail IS narrowed the banner condenses to one line and
- *                                            pins under the header (desktop): the standing offer,
- *                                            escalating when intent is expressed.
- *  - SignInPromptModal    (new)             the requested timed prompt — "sign in and update your
- *                                            profile to increase your chances to match", opening
- *                                            itself after 20s of *visible* time on the board. It
- *                                            sits on top of the banner rather than replacing it,
- *                                            and everything that keeps a timed interstitial honest
- *                                            is in the timer, not the copy: logged-out only, once
- *                                            per session including dismissals, never over another
- *                                            dialog, paused in a background tab, and nothing on the
- *                                            board withheld to make it matter. Where the rail is
- *                                            already narrowed it reads that selection back instead
- *                                            of asking a question the person has answered.
- *  - MatchNudgeStrip      (new)             signed in, one self-extinguishing strip on production
- *                                            `DataIncomplete`. Names the criteria back when the
- *                                            rail is already narrowed — the intent is already
- *                                            expressed, so the strip offers to keep it rather than
- *                                            opening an empty form (the same intent-preserving
- *                                            move as JobAlertBanner).
- *  - JobPreferencesModal  (new)             fills in place, pre-filled from the rail, in two steps.
- *                                            Step 1 "what you want": four FormMultiSelects on the
- *                                            facet vocabulary + the profile's own "open to
- *                                            collaborate" row. Step 2 "what you do": Role, Team or
- *                                            organization and Skills — production's Experience
- *                                            entry and `member.skills`, which is what lets the
- *                                            modal say the answers go to Settings → Profile rather
- *                                            than into a job-board-only record. Step 2 is optional
- *                                            and never feeds the match; ranking stays on stated
- *                                            intent, so no seniority is inferred from a job title.
- *                                            The fields it doesn't ask for (description, dates,
- *                                            location) are editable in the profile-settings entry,
- *                                            which carries the full production field set.
- *  - "Best match for me"                    a third option on the existing SortDropdown, not a
- *                                            "For you" band: one sorted spine, and the control
- *                                            that already owns list order keeps owning it.
- * NOT gated: Apply. Blocking an application to harvest a login takes something from the person
- *  to get something from them, and the link leaves for an external ATS anyway.
+ *                                            headline is the offer, with the *filtered* role count
+ *                                            in it, so narrowing the rail narrows the number rather
+ *                                            than making it a lie. Once the rail IS narrowed the
+ *                                            banner condenses to one line and pins under the header
+ *                                            (desktop): the standing offer, still in view.
+ *  - JobProfileDrawer     (new)             the profile step, as a right-hand drawer — the same
+ *                                            pattern Demo Day uses for investor and founder profile
+ *                                            completion (`EditInvestorProfileDrawer`), whose header
+ *                                            and content chrome it imports verbatim. Profile
+ *                                            completion looks the same everywhere in the product
+ *                                            rather than being a job-board invention. **Your current
+ *                                            role and the private job-search status are the whole
+ *                                            requirement**, so they are the first two cards and each
+ *                                            marks itself while it is unanswered; experience, project
+ *                                            contributions, skills, bio and location refine a read
+ *                                            that is already possible without them. Teams was cut —
+ *                                            it duplicates an Experience entry's "Team or
+ *                                            Organization" field.
+ *  - JobApplyModal        (new)             the per-role step: who on the hiring team receives it
+ *                                            (an overlapping facepile of the leads, each name linking
+ *                                            to their profile), your profile read back so you can see
+ *                                            what is being sent — name, the current-role line, its
+ *                                            dates and your skills, not the whole history and never
+ *                                            the private status — an Edit escape that opens the
+ *                                            drawer in place and carries the half-written letter
+ *                                            through it, and a required cover letter. The letter is
+ *                                            required because without it "one-click apply" would send
+ *                                            thirteen identical applications and mean nothing to
+ *                                            anyone reading them.
+ * GATED: Apply, and only Apply. Not to harvest a login — a one-click application sends the team
+ *  your *profile* instead of a form, so there has to be a profile. Nothing on the board is hidden
+ *  from a logged-out visitor: every role, every detail, and the posting itself all stay open.
  * SHARED (prototypes/entries/nav-shared/, no registry entry — like follow-shared/):
  *  - PrototypeNavBar + PrototypeMobileNav   copies of the production navbar / bottom bar carrying the
  *                                            proposed **Home** item with an unread dot — first in the
@@ -119,7 +132,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { getJobDate } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
-import type { IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
+import type { IJobRole, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 
 // Reuse the production content shell styling 1:1 (root / toolbar / title / list).
 import contentCss from '@/app/jobs/(jobs-page)/@content/JobsContent.module.scss';
@@ -137,24 +150,24 @@ import { useMockJobsFilterStore } from './mockJobsFilterStore';
 import { JobBoardFilterView } from './JobBoardFilterView';
 import { JobBoardMobileFilters } from './JobBoardMobileFilters';
 import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
-import { MatchNudgeStrip } from './MatchNudgeStrip';
+import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
 import { SignInBanner } from './SignInBanner';
-import { SignInPromptModal } from './SignInPromptModal';
-import { JobPreferencesModal } from './JobPreferencesModal';
+import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
+import { JobProfileDrawer } from './JobProfileDrawer';
+import { JobApplyModal } from './JobApplyModal';
+import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
+import { ApplicationEmailPreview } from './email/ApplicationEmailPreview';
+import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
-  EMPTY_EXPERIENCE,
-  EMPTY_PREFERENCES,
-  SAVED_EXPERIENCE,
-  SAVED_PREFERENCES,
-  countMatches,
+  EMPTY_PROFILE,
+  FILLED_PROFILE,
+  type BoardViewer,
   hasCriteria,
-  matchesPreferences,
+  isProfileComplete,
   roleMatches,
-  summariseExperience,
-  type JobPreferences,
-  type MemberExperience,
+  summariseProfile,
+  type MemberProfile,
   type RoleCriteria,
-  type ViewerId,
 } from './viewerState';
 import s from './JobBoardPrototype.module.scss';
 
@@ -174,14 +187,111 @@ import s from './JobBoardPrototype.module.scss';
 const NEWS_VARIANT: JobCardNewsVariant = 'count';
 
 /**
+ * One filled specimen of the application email, for the `?email=1` review
+ * surface.
+ *
+ * Every value is read off the board's own mocks rather than typed here, so the
+ * specimen cannot drift from the roles on screen — except the two the mock has no
+ * source for: the recipient, and the letter.
+ *
+ * The recipient is a constant rather than the live `useTeamMembers` lookup on
+ * purpose. That hook hits the real directory, and a review surface for *copy*
+ * should render the same words every time it is opened rather than whatever the
+ * API returns today — the apply modal is where the live leads are already shown.
+ *
+ * The letter is written the way the template assumes letters are written: naming
+ * this role, from someone who read the posting. A lorem-ipsum specimen would make
+ * the one part of the email a human wrote look like the part that matters least.
+ */
+const SAMPLE_ROLE_GROUP = MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0];
+
+const SAMPLE_APPLICATION_EMAIL: ApplicationEmailInput = {
+  recipientName: 'Clara Tsao',
+  roleTitle: SAMPLE_ROLE_GROUP.roles[0].roleTitle,
+  teamName: SAMPLE_ROLE_GROUP.team.name,
+  profile: FILLED_PROFILE,
+  coverLetter:
+    'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
+  profileUrl: 'os.pl.xyz/members/cldvommb409tlu21kradd3rpm',
+};
+
+/**
  * Which viewer the mobile bottom bar is drawn for. Named after what the person
  * has, not after the slot that moves — "PL Infra viewer" is a fact about the
  * account; which of Events or PL Infra ends up in slot two is the consequence.
  */
-const PL_INFRA_OPTIONS: Array<{ value: boolean; label: string }> = [
-  { value: false, label: 'Standard viewer' },
-  { value: true, label: 'PL Infra viewer' },
+/** The five entry states the apply flow branches into — see `BoardViewer`. */
+const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
+  { value: 'logged-out', label: 'Logged out' },
+  { value: 'pending-approval', label: 'Signed up, pending approval' },
+  { value: 'profile-incomplete', label: 'Signed in, profile empty' },
+  { value: 'profile-ready', label: 'Signed in, profile ready' },
+  /* Last, because the row reads as a sequence: no account → waiting → signed in
+     with nothing → signed in and ready → been and applied. Each tab is the next
+     thing that happens to the same person. */
+  { value: 'applied', label: 'Already applied' },
 ];
+
+const VIEWER_NOTE: Record<BoardViewer, string> = {
+  'logged-out': 'No account. The banner is the standing offer, and Apply is the ask at the moment of intent.',
+  'pending-approval':
+    'Signed up, waiting on the PL team. Browsing is untouched and the profile is editable and saveable — finishing it is the one useful thing the wait allows — but applying is off until the account is approved.',
+  'profile-incomplete':
+    'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
+  'profile-ready':
+    'Signed in, profile already good. Apply goes straight to the cover letter — the modal reads the profile back, so a drawer in front of it would be showing the same thing twice.',
+  applied:
+    'The returning member: two applications already sent. The Applied tab has a count and a list, those rows show “Applied” instead of an offer, and the rest of the board carries on as normal — having applied to two roles is no reason to change what the other eleven look like.',
+};
+
+/**
+ * What the `applied` viewer arrives having already done.
+ *
+ * Two roles from one team rather than one from each: applying twice to the same
+ * hiring team is the ordinary case on a board grouped by team, and it makes the
+ * Applied tab's own grouping visible — one card with two rows, rather than two
+ * cards with one row each, which would look like an unfiltered board.
+ *
+ * Read off `MOCK_JOB_GROUPS` rather than typed as uids, so a rename or reorder in
+ * the mocks can't leave this pointing at roles that no longer exist.
+ */
+const SEEDED_APPLICATION_ROLES = (
+  MOCK_JOB_GROUPS.find((g) => g.team.name === 'Filecoin Foundation') ?? MOCK_JOB_GROUPS[0]
+).roles.slice(0, 2);
+
+const SEEDED_APPLICATION_LETTERS = [
+  'I built the transport layer this role touches — QUIC upgrade paths at Lattice, and the libp2p maintainer seat before that. Ecosystem growth here means talking to the teams already shipping on it, which is the half I have been doing informally for two years.',
+  'Most of my last two years has been grants-adjacent: scoping the work, writing the briefs, and chasing the reporting nobody enjoys. I would rather do it somewhere the grants are the product.',
+];
+
+/**
+ * The seeded applications, built fresh each time the viewer is selected.
+ *
+ * **Backdated on purpose.** `appliedAt` is normally stamped at submit, so it is
+ * always "just now" — true, and useless for reviewing a list whose whole job is
+ * to carry a chronology. Two applications both reading "0d ago" would make the
+ * date look like decoration. These land 2 and 9 days back, which is also what
+ * the board's own role dates do (`mocks.ts` generates every posting relative to
+ * now for the same reason).
+ *
+ * A function rather than a constant: the offsets are relative to the moment the
+ * tab is picked, and a module constant would freeze them at import.
+ */
+function seededApplications(): Map<string, JobApplication> {
+  const daysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString();
+  };
+  const offsets = [2, 9];
+
+  return new Map(
+    SEEDED_APPLICATION_ROLES.map((role, i) => [
+      role.uid,
+      { coverLetter: SEEDED_APPLICATION_LETTERS[i] ?? '', appliedAt: daysAgo(offsets[i] ?? 1) },
+    ]),
+  );
+}
 
 function decodeMulti(raw: string | null): string[] {
   if (!raw) return [];
@@ -202,40 +312,23 @@ function encodeMulti(values: string[]): string {
 
 const CRITERIA_KEYS = ['roleCategory', 'seniority', 'workplaceType', 'location'] as const;
 
-/** The three viewers the nudge has to answer to. Prototype scaffolding — the real
- *  page reads cookies; what's being reviewed is what each of them sees. */
-const VIEWER_OPTIONS: Array<{ value: ViewerId; label: string }> = [
-  { value: 'logged-out', label: 'Logged out' },
-  { value: 'no-preferences', label: 'Signed in' },
-  { value: 'preferences-set', label: 'Signed in, preferences set' },
-];
+/**
+ * A role plus the team that posted it — what the apply flow has to carry between
+ * pressing Apply and sending the letter, possibly across a sign-in and a drawer.
+ * The card hands the row only the role, so the team is looked up here.
+ */
+interface ApplyTarget {
+  role: IJobRole;
+  teamName: string;
+}
 
-const VIEWER_NOTE: Record<ViewerId, string> = {
-  'logged-out': 'Nothing is hidden and Apply still works — the only locked thing is the match itself.',
-  'no-preferences':
-    'Signed in, but the board still doesn’t know what they want. Narrow the rail to see the ask change.',
-  'preferences-set': 'Engineering · Senior, Lead · Remote. The strip is gone; the payoff is in the sort.',
-};
-
-const MATCH_SORT = 'best_match';
-
-/** How long a logged-out visitor browses before the sign-in prompt opens itself.
- *  Visible time only — a tab left open in the background hasn't been read. */
-const SIGN_IN_PROMPT_DWELL_MS = 20_000;
-
-/** Once per session, dismissal included. A prompt that comes back is a toll gate. */
-const PROMPT_SETTLED_KEY = 'pln-proto-jobs-signin-prompt-settled';
-
-/** A lock rides in the label — `SortOption.label` is a ReactNode, and SortDropdown
- *  has no disabled state, so the gate is swallowed in the change handler instead.
- *  Same lock asset family the production login strip uses, so "you need an account"
- *  looks the same here as everywhere else — the grey one, because `lock.svg` is
- *  stroked white for that strip's blue background and vanishes on a white menu. */
-const LOCKED_MATCH_LABEL = (
-  <span className={s.lockedOption}>
-    Best match for me <img src="/icons/lock-grey.svg" alt="" width={14} height={14} />
-  </span>
-);
+/** One sent application. The letter is what went; `appliedAt` is what the Applied
+ *  tab reads to say how long ago it went. ISO, like every other date on the board,
+ *  so `getJobDate`'s own formatting helpers can read it. */
+interface JobApplication {
+  coverLetter: string;
+  appliedAt: string;
+}
 
 export default function JobBoardPrototype() {
   // Reused filter components are base-ui / react-hook-form (client-only). Gate on
@@ -253,13 +346,34 @@ export default function JobBoardPrototype() {
      they had already answered. Read once, on mount, then drop the key. */
   useEffect(() => {
     setMounted(true);
+
+    /* The apply modal's "Edit profile" opens this route in a new tab with the
+       viewer it was opened from and `profile=1`. Honoured here so the tab lands
+       on the profile rather than on a logged-out board — the whole point of the
+       new tab is that the letter behind it survives, and a tab that opens on the
+       wrong person's board would have to be navigated back to be any use.
+       Prototype scaffolding: in production this is one signed-in account and the
+       parameter would only need to say "open the profile". */
     try {
-      /* Starts settled so the timer can't arm before this runs — a prompt that
-         appeared and then discovered it had already been dismissed would be the
-         second interruption the key exists to prevent. */
-      setPromptSettled(window.sessionStorage.getItem(PROMPT_SETTLED_KEY) === '1');
+      const q = new URLSearchParams(window.location.search);
+      const asViewer = q.get('viewer') as BoardViewer | null;
+      if (asViewer && VIEWER_OPTIONS.some((o) => o.value === asViewer)) {
+        setViewer(asViewer);
+        setIsLoggedIn(asViewer !== 'logged-out');
+        setProfile(asViewer === 'profile-ready' || asViewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+        // Same seeding as the switcher, so `?viewer=applied` lands on the state
+        // the tab shows rather than on an empty version of it.
+        if (asViewer === 'applied') setApplications(seededApplications());
+      }
+      if (q.get('profile') === '1') setDrawerOpen(true);
+      /* `?email=1` opens the review surface for the email the hiring team gets
+         when someone applies — see `email/ApplicationEmailPreview`. A parameter
+         rather than a control on the board, because it is not part of the
+         product: it renders an artifact that leaves the product entirely, and a
+         button for it would put a reviewer's tool in an applicant's flow. */
+      if (q.get('email') === '1') setEmailPreviewOpen(true);
     } catch {
-      /* storage unavailable: leave it settled. Erring toward not interrupting. */
+      /* no search params to read — the board just opens in its default state */
     }
 
     try {
@@ -281,32 +395,92 @@ export default function JobBoardPrototype() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Whether the viewer is one production would resolve PL Infra links for. Only
-     the mobile bar changes shape on it — that's the bar with a fixed number of
-     slots, so it's the only place the extra item has to displace something. */
-  const [plInfra, setPlInfra] = useState(false);
+  // Who's looking, and what the board knows about them. Prototype scaffolding
+  // stands in for the cookie read; everything downstream is the real decision.
+  /* Which of the four entry states the board is being reviewed in. `isLoggedIn`
+     and `profile` are derived from it on selection rather than tracked in
+     parallel, so the switch can't put the page in a combination that doesn't
+     exist — signed out with a filled profile, say. */
+  const [viewer, setViewer] = useState<BoardViewer>('logged-out');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profile, setProfile] = useState<MemberProfile>(EMPTY_PROFILE);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Who's looking, and what they've told the board. Prototype scaffolding stands
-  // in for the cookie read; everything downstream is the real decision.
-  const [viewer, setViewer] = useState<ViewerId>('logged-out');
-  const [preferences, setPreferences] = useState<JobPreferences>(EMPTY_PREFERENCES);
-  const [experience, setExperience] = useState<MemberExperience>(EMPTY_EXPERIENCE);
-  const [prefsOpen, setPrefsOpen] = useState(false);
+  /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
+  const isPendingApproval = viewer === 'pending-approval';
 
-  /* The dwell prompt. `settled` covers both outcomes — shown or dismissed — and
-     survives a reload, so the interruption is a once-per-session event rather
-     than something that meets the person again every time they come back to the
-     tab. */
-  const [promptOpen, setPromptOpen] = useState(false);
-  const [promptSettled, setPromptSettled] = useState(true);
+  /* The apply flow's two halves.
+   *
+   * `applyTarget` is the role whose modal is open. `pendingApply` is the role
+   * someone pressed Apply on *before* they could — logged out, or signed in with
+   * an incomplete profile — held across the sign-in and the drawer so the flow
+   * resumes where it was interrupted instead of dropping the person back on the
+   * board to find their place again. Losing it is the difference between a gate
+   * and a dead end. */
+  /* The sign-up modal's state, and the role it is carrying if any.
+   *
+   * `null` = closed. `{ target: null }` = open with no role, which is what a
+   * plain **Sign up** press produces — from the header or the banner, where the
+   * person is asking for an account rather than for one particular job.
+   * `{ target }` = open on a role, which is Apply-while-logged-out: filling the
+   * form in IS the sign-up, the same shape Demo Day uses for its investor
+   * application, and the role rides along so the flow can resume on it.
+   *
+   * One state rather than a boolean beside a target, because those two can
+   * disagree — open with a stale role, or a role with the modal shut — and every
+   * such pair eventually does. */
+  const [signUp, setSignUp] = useState<{ target: ApplyTarget | null } | null>(null);
+  const signUpTarget = signUp?.target ?? null;
+  const [applyTarget, setApplyTarget] = useState<ApplyTarget | null>(null);
+  const [pendingApply, setPendingApply] = useState<ApplyTarget | null>(null);
 
-  const isLoggedIn = viewer !== 'logged-out';
+  /* The cover letter, held only while the apply modal is *not* on screen.
+   *
+   * Pressing "Edit profile" mid-letter closes the modal and opens the drawer, so
+   * without this the letter would be gone by the time the drawer saved and the
+   * modal came back — and losing someone's writing to a detour they took at our
+   * suggestion is the kind of thing that stops people trusting a form. It lives
+   * here rather than in the modal because the modal unmounts its form state on
+   * close; the parent is what survives the round trip.
+   *
+   * Cleared whenever the trip ends for any reason other than coming back:
+   * submitting, cancelling the modal, or abandoning the drawer. A letter is
+   * written for one role, so it must never turn up pre-filled under a different
+   * one. */
+  const [coverLetterDraft, setCoverLetterDraft] = useState('');
 
-  const rawSort = params.get('sort') ?? 'newest';
-  // Only signed-in viewers with preferences can actually be ranked, so the match
-  // sort falls back rather than producing an order nobody can explain.
-  const matchMode = rawSort === MATCH_SORT && hasCriteria(preferences);
-  const sort = (matchMode ? MATCH_SORT : rawSort === MATCH_SORT ? 'newest' : rawSort) as JobsSortKey;
+  /** Review surface for the application email — opened by `?email=1`, never by
+   *  anything on the board. See the mount effect. */
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+
+  /* What's already been sent: role uid → the letter that went with it.
+     Session-only, like everything else here — but the board has to show it,
+     because an Apply button that looks identical after you've used it invites a
+     second application nobody wants. Keyed by uid rather than a flat list so the
+     row lookup is a `has`, and holding the record (rather than a bare flag)
+     keeps the mock honest about what an application actually is.
+
+     `appliedAt` arrived with the Applied tab. A list of things you have already
+     done needs a chronology: standing inside that tab, "have I gone for this
+     one?" is answered by the tab itself, and the only question left is *when*.
+     Stamped at submit rather than seeded, so it is always a real moment from
+     this session — and safe against hydration, because no application exists
+     before a click and the board only renders after mount. */
+  const [applications, setApplications] = useState<Map<string, JobApplication>>(() => new Map());
+  const appliedRoleUids = useMemo(() => new Set(applications.keys()), [applications]);
+  /** The same map, reduced to what the row needs: uid → when. Derived rather than
+   *  passed whole, so the row never receives the cover letters — a list of roles
+   *  has no business carrying the letters that went with them. */
+  const appliedAtByRole = useMemo(
+    () => new Map([...applications].map(([uid, application]) => [uid, application.appliedAt])),
+    [applications],
+  );
+
+  const sort = (params.get('sort') ?? 'newest') as JobsSortKey;
+
+  /** Which scope tab is open. A filter-store param like every other narrowing on
+   *  this board, so Clear All takes it off with the rest. */
+  const appliedScope = params.get(SCOPE_PARAM) === SCOPE_APPLIED;
 
   /** What the rail is currently narrowed to — the intent the visitor has already expressed. */
   const criteria = useMemo<RoleCriteria>(
@@ -328,6 +502,14 @@ export default function JobBoardPrototype() {
     for (const group of MOCK_JOB_GROUPS) {
       const teamMatchesQ = !q || group.team.name.toLowerCase().includes(q);
       const roles = group.roles.filter((role) => {
+        /* The Applied scope narrows first, and narrows like every other filter:
+           it is one more predicate in this list rather than a separate list. So
+           the rail, the search box and the sort all keep working inside it — you
+           can search your own applications, or narrow them to Remote — and the
+           count in the toolbar stays the count of what is on screen. A tab that
+           swapped the data source instead would have had to reimplement all
+           three, or quietly drop them. */
+        if (appliedScope && !appliedRoleUids.has(role.uid)) return false;
         // The shared predicate — the same one the match badge runs, so a role that
         // survives the rail is always a role the badge would mark.
         if (!roleMatches(criteria, role)) return false;
@@ -337,21 +519,13 @@ export default function JobBoardPrototype() {
       if (roles.length) groups.push({ team: group.team, roles, totalRoles: roles.length });
     }
     return groups;
-  }, [params, criteria]);
+  }, [params, criteria, appliedScope, appliedRoleUids]);
 
   const visibleGroups = useMemo<IJobTeamGroup[]>(() => {
     // A copy: the sorts below mutate, and `railGroups` is the memo's own value.
     const groups: IJobTeamGroup[] = [...railGroups];
 
-    if (matchMode) {
-      /* Groups lead with their best match. The board is grouped by team, so
-         ranking can't be a flat list with a cut line under it — the honest unit is
-         the card, ordered by how many of its roles fit and tie-broken by recency
-         so a one-match team doesn't outrank a three-match one. */
-      const score = (g: IJobTeamGroup) => g.roles.filter((r) => matchesPreferences(preferences, r)).length;
-      const newest = (g: IJobTeamGroup) => Math.max(...g.roles.map((r) => new Date(getJobDate(r)).getTime()));
-      groups.sort((a, b) => score(b) - score(a) || newest(b) - newest(a));
-    } else if (sort === 'company_az') {
+    if (sort === 'company_az') {
       groups.sort((a, b) => a.team.name.localeCompare(b.team.name));
     } else if ((sort as string) === 'company_za') {
       groups.sort((a, b) => b.team.name.localeCompare(a.team.name));
@@ -360,19 +534,17 @@ export default function JobBoardPrototype() {
       const newest = (g: IJobTeamGroup) => Math.max(...g.roles.map((r) => new Date(getJobDate(r)).getTime()));
       groups.sort((a, b) => newest(b) - newest(a));
     }
+
+    const plIndex = groups.findIndex((g) => g.team.name.trim().toLowerCase() === 'protocol labs');
+    if (plIndex > 0) {
+      const [protocolLabs] = groups.splice(plIndex, 1);
+      groups.unshift(protocolLabs);
+    }
     return groups;
-  }, [railGroups, sort, matchMode, preferences]);
+  }, [railGroups, sort]);
 
   const totalRoles = visibleGroups.reduce((sum, g) => sum + g.totalRoles, 0);
   const totalGroups = visibleGroups.length;
-
-  const sortOptions = useMemo<SortOption[]>(
-    () => [
-      ...JOBS_SORT_OPTIONS,
-      { value: MATCH_SORT, label: isLoggedIn && hasCriteria(preferences) ? 'Best match for me' : LOCKED_MATCH_LABEL },
-    ],
-    [isLoggedIn, preferences],
-  );
 
   /* Sign in. Production stashes the filter state and pushes `#login`, then replays
      it on return (JobAlertBanner → JobsContent). Pushing `#login` here would hand
@@ -381,162 +553,212 @@ export default function JobBoardPrototype() {
      the moment the design is about: you land signed in with the form already
      holding what you asked for. The mount effect above reads the stash back, so a
      real reload mid-flow lands in the same place. */
-  const signIn = (openPreferences: boolean) => {
+  const signIn = (openProfile: boolean) => {
     try {
       window.sessionStorage.setItem(PENDING_SAVE_STORAGE_KEY, JSON.stringify(criteria));
     } catch {
       /* sessionStorage unavailable — the replay is a nicety, not a requirement */
     }
-    setViewer('no-preferences');
-    if (openPreferences || hasCriteria(criteria)) setPrefsOpen(true);
+    setIsLoggedIn(true);
+    /* Straight into the drawer when the sign-in was asked for by something that
+       promised one-click applying — the profile is what makes that promise true,
+       so stopping at a signed-in board would leave the sentence unfinished. */
+    if (openProfile && !isProfileComplete(profile)) setDrawerOpen(true);
   };
 
   /* Passed to onClick handlers, so it takes no arguments — a bare `signIn` would
      be handed a MouseEvent as its flag. */
   const onSignIn = () => signIn(false);
 
-  /* The Welcome banner always opens the form, filters or no filters — its own
-     copy is "Sign in to tell us what you're looking for", so landing someone on
-     a signed-in board and stopping there breaks the sentence they just pressed.
-     Same contract as the dwell prompt, which makes the same promise in the same
-     words and answers it the same way. */
+  /* The banner promises applying in one click, so it lands on the thing that
+     makes it possible. */
   const onBannerSignIn = () => signIn(true);
 
-  /** Marks the dwell prompt done for the session, whichever way it ended. */
-  const settlePrompt = () => {
-    setPromptOpen(false);
-    setPromptSettled(true);
-    try {
-      window.sessionStorage.setItem(PROMPT_SETTLED_KEY, '1');
-    } catch {
-      /* storage unavailable — the in-memory flag still holds for this page life */
+  /* Sign up — the other door, and now genuinely a different one.
+   *
+   * It used to be an alias for `signIn`, on the argument that a brand-new
+   * account and this prototype's empty signed-in viewer both land on the same
+   * empty drawer, so splitting them would invent a difference the mock can't
+   * have. That was true only while sign-up had nothing of its own to show. It
+   * does now: `JobSignUpModal` is the form that creates the account, and it is
+   * already what Apply opens for a logged-out visitor. Sending the header and
+   * banner buttons somewhere else meant the board had two answers to "how do I
+   * get an account", one of which quietly skipped the form.
+   *
+   * No role — see the state's own note. The modal goes generic, and because
+   * submitting it lands the person in pending-approval, the sign-up door now
+   * shows the real consequence of signing up rather than a shortcut past it. */
+  const onSignUp = () => setSignUp({ target: null });
+
+  /** Which team posted a role. The card hands the row only the role, so the team
+   *  is recovered here rather than threaded through two components that have no
+   *  other use for it. */
+  const teamNameForRole = (role: IJobRole): string =>
+    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team.name ?? '';
+
+  /**
+   * Pressing Apply. One entry point, three outcomes, and the role is carried
+   * through all of them — whatever is missing gets asked for, and then the
+   * application resumes. The person never has to find their way back to the row.
+   */
+  const onApply = (role: IJobRole) => {
+    const target: ApplyTarget = { role, teamName: teamNameForRole(role) };
+
+    if (!isLoggedIn) {
+      /* Not a sign-in prompt. Demo Day answers this exact moment with an
+         application form whose submission creates the account, and defers real
+         authentication to a later step — so the ask is for the details we need
+         anyway, not for a password before anything has been offered. */
+      setSignUp({ target });
+      return;
     }
+
+    /* A finished profile goes straight to the letter.
+
+       For a while every Apply press went through the drawer first, including
+       this case, on the argument that the drawer is the last place an
+       application is legible before it's sent. It isn't — the apply modal is,
+       and it reads the same profile back. So the stack was being shown twice:
+       once as a full-height drawer nobody needed to touch, and then again, one
+       press of `Continue to apply` later, as the panel at the top of the modal.
+       A confirmation step whose only content is repeated by the next screen is a
+       press charged for nothing. The modal's read-back plus its `Edit profile`
+       link cover the "glance before sending" case at a fraction of the cost.
+
+       Pending members still land in the drawer, because for them the drawer is
+       the explanation — the stepper says where they are, the footer says what is
+       waiting, and answering an Apply press with a silent no-op would leave the
+       button looking broken. */
+    if (isProfileComplete(profile) && !isPendingApproval) {
+      setApplyTarget(target);
+      return;
+    }
+
+    setPendingApply(target);
+    setDrawerOpen(true);
   };
 
-  /* The dwell timer. Counts only while the tab is visible, never runs for a
-     signed-in viewer, never opens over the preferences modal, and arms once —
-     `promptSettled` is set the moment it fires, so a dismissal and a sign-in end
-     it the same way. Ticking a counter rather than one long `setTimeout` is what
-     lets a backgrounded tab pause instead of accruing time nobody spent reading. */
-  useEffect(() => {
-    if (!mounted || isLoggedIn || promptSettled || promptOpen || prefsOpen) return;
+  /* Filling in the form is the sign-up. The account exists from here on, and it
+     lands where a brand-new account actually lands: waiting on the PL team. The
+     role they pressed is kept, so the moment approval lands they resume on it
+     rather than having to find it again.
 
-    let spent = 0;
-    const id = window.setInterval(() => {
-      if (document.visibilityState !== 'visible') return;
-      spent += 1000;
-      if (spent < SIGN_IN_PROMPT_DWELL_MS) return;
-      window.clearInterval(id);
-      setPromptOpen(true);
-      setPromptSettled(true);
-      try {
-        window.sessionStorage.setItem(PROMPT_SETTLED_KEY, '1');
-      } catch {
-        /* see above */
-      }
-    }, 1000);
+     Nothing is persisted beyond the session — this is a mock — but the details
+     do seed the profile, because a sign-up that asked for a role and then showed
+     an empty profile would be asking twice. */
+  const onSignUpSubmit = (details: JobSignUpDetails) => {
+    setViewer('pending-approval');
+    setIsLoggedIn(true);
+    setProfile({ ...EMPTY_PROFILE, role: details.role });
+    setPendingApply(signUpTarget);
+    setSignUp(null);
+    setDrawerOpen(true);
+    toast.success(`Account created for ${details.email}. The PL team reviews new accounts before you can apply.`);
+  };
 
-    return () => window.clearInterval(id);
-  }, [mounted, isLoggedIn, promptSettled, promptOpen, prefsOpen]);
-
-  /* Signing in from the prompt always opens the form, filters or no filters: the
-     prompt asked for a profile update, so it has to land on the thing that
-     collects one. */
-  const onPromptSignIn = () => {
-    settlePrompt();
+  /* The escape for people who already have an account. Straight to the signed-in
+     board with the profile step still ahead of them — they are not a new account,
+     so nothing is pending. */
+  const onSignUpModalSignIn = () => {
+    const target = signUpTarget;
+    setSignUp(null);
+    setViewer('profile-incomplete');
+    setPendingApply(target);
     signIn(true);
   };
 
-  const onSavePreferences = (next: JobPreferences, nextExperience: MemberExperience) => {
+  const onSaveProfile = (next: MemberProfile) => {
     /* The stash has done its job. Left behind it would replay on the next load
-       and re-narrow the rail for someone whose preferences are already saved —
-       a filter they didn't set, from a session they'd finished. */
+       and re-narrow the rail for someone who had finished with it — a filter
+       they didn't set, from a session they'd closed. */
     try {
       window.sessionStorage.removeItem(PENDING_SAVE_STORAGE_KEY);
     } catch {
       /* nothing to clean up if storage is unavailable */
     }
-    setPreferences(next);
-    setExperience(nextExperience);
-    setViewer('preferences-set');
-    setPrefsOpen(false);
-    // The list re-sorts behind the modal — the reward has to be visible from where
-    // they were standing, not somewhere they'd have to go looking for it.
-    setParam('sort', MATCH_SORT);
+    setProfile(next);
+    setDrawerOpen(false);
 
-    /* The confirmation is a toast, not a strip in the page.
+    /* Resume. The drawer was a detour, so its exit is the thing the person was
+       doing when they were interrupted — not a "profile saved" dead end with the
+       role they wanted somewhere back up the page. */
+    if (pendingApply) {
+      setApplyTarget(pendingApply);
+      setPendingApply(null);
+      return;
+    }
 
-       It reports on something that just happened and then has nothing left to
-       say, which is what a toast is for — and it dismisses itself, so the
-       "report and leave" behaviour comes from the component instead of an 8s
-       timer clearing a flag. Production's `toast`, mounted app-wide in
-       app/layout.tsx: same shell, position and status icon as every other
-       confirmation in the product, including this prototype's own referral
-       error.
+    /* No pending role: this was an edit, so a toast is the whole report. It says
+       what the profile now reads rather than "Saved", because what changed is
+       what hiring teams will see — production's `toast`, mounted app-wide, same
+       shell as every other confirmation in the product.
 
-       It also unblocks the page. As a strip it took the slot directly above the
-       list, so the moment it appeared it pushed the newly re-sorted board down —
-       the confirmation covered the thing it was confirming.
-
-       Counts come off `next`, not the `preferences` state set two lines up: that
-       setter hasn't applied yet on this tick. `visibleGroups` is the rail's
-       current set, which saving doesn't change — only the sort does, and sorting
-       doesn't change how many roles match. */
-    const savedMatches = countMatches(visibleGroups, next);
-    const profileLine = summariseExperience(nextExperience);
-
-    toast.success(
-      <>
-        {/* One template string for the tail, not interleaved JSX: two expressions
-            with text between them lose the space at the wrap and it renders
-            "13roles". */}
-        Saved. <strong>{savedMatches}</strong>
-        {` of ${totalRoles} roles match what you're looking for — sorted to the top, and teams hiring for them can find you.`}
-        {/* Only when there's a line to name — skills alone are a real answer but
-            not a sentence, and "your profile now reads ." is worse than saying
-            nothing. */}
-        {profileLine && ` Your profile now reads ${profileLine}.`}
-      </>,
-    );
+       Unless there's nothing to read back: experience is optional now, so a
+       profile can be saved with only a job search status in it, and quoting an
+       empty summary would produce "Applications will read .". */
+    const summary = summariseProfile(next);
+    toast.success(summary ? `Profile saved. Applications will read ${summary}.` : 'Profile saved.');
   };
 
-  /* Prototype scaffolding: replay the dwell prompt on demand.
+  /* The drawer closed without saving. Whatever was pending is dropped — a person
+     who backed out of the profile step has not applied, and holding the role to
+     ambush them with the modal later would be the gate refusing to take no. */
+  const onCloseDrawer = () => {
+    setDrawerOpen(false);
+    setPendingApply(null);
+    /* The application is over, so the letter goes with it. Keeping it would mean
+       a draft written for one role sitting in wait for the next Apply press. */
+    setCoverLetterDraft('');
+  };
+
+  /**
+   * "Edit profile", pressed from inside the apply modal.
    *
-   * It can't be reviewed any other way. The prompt fires once per session after
-   * 20 seconds of *visible* time, and firing settles it permanently — so without
-   * this, seeing it a second time means a new session and another 20-second wait.
-   *
-   * Puts the viewer back to logged-out first, because a sign-in prompt shown to
-   * someone already signed in would be reviewing a state that can't happen. */
-  const showPromptNow = () => {
-    setViewer('logged-out');
-    setPreferences(EMPTY_PREFERENCES);
-    setExperience(EMPTY_EXPERIENCE);
-    setPrefsOpen(false);
-    try {
-      window.sessionStorage.removeItem(PROMPT_SETTLED_KEY);
-    } catch {
-      /* nothing to clear if storage is unavailable */
-    }
-    setPromptSettled(false);
-    setPromptOpen(true);
+   * Closes the modal, opens the drawer on this page, and keeps the role pending
+   * so `onSaveProfile` brings the modal straight back. The letter comes along as
+   * an argument rather than being read out of the modal afterwards — by the time
+   * this runs the modal is on its way to unmounting, and its form state with it.
+   */
+  const onEditProfileFromApply = (coverLetter: string) => {
+    setCoverLetterDraft(coverLetter);
+    setPendingApply(applyTarget);
+    setApplyTarget(null);
+    setDrawerOpen(true);
+  };
+
+  const onSubmitApplication = (coverLetter: string) => {
+    if (!applyTarget) return;
+    const { role, teamName } = applyTarget;
+
+    setApplications((prev) => new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString() }));
+    setApplyTarget(null);
+    /* Sent, so there is nothing left to preserve. */
+    setCoverLetterDraft('');
+
+    /* The board behind the modal already flips this role's button to "Applied",
+       so the toast doesn't repeat that. What it adds is the part the board can't
+       show: who has it now, and that the profile went with the note rather than
+       the note alone — which is the promise the whole flow was built on. */
+    toast.success(`Applied to ${role.roleTitle} at ${teamName}. Your profile went with your note.`);
   };
 
   /* PL Infra is a signed-in-only slot, so choosing that viewer has to sign the
      page in — otherwise the switch looks broken from the default logged-out
      state, which is the state a reviewer opens the board in. Turning it back off
      leaves the session alone: signing out isn't what "standard viewer" means. */
-  const onSelectMobileBar = (next: boolean) => {
-    setPlInfra(next);
-    if (next && !isLoggedIn) setViewer('no-preferences');
-  };
-
-  const onSelectViewer = (next: ViewerId) => {
+  /* Picking a viewer rebuilds the page's state from scratch rather than nudging
+     it, so every tab is reviewed from the same clean start — no half-open drawer
+     or stale application carried in from the tab before. */
+  const onSelectViewer = (next: BoardViewer) => {
     setViewer(next);
-    setPreferences(next === 'preferences-set' ? SAVED_PREFERENCES : EMPTY_PREFERENCES);
-    setExperience(next === 'preferences-set' ? SAVED_EXPERIENCE : EMPTY_EXPERIENCE);
-    setPrefsOpen(false);
-    setParam('sort', next === 'preferences-set' ? MATCH_SORT : undefined);
+    setIsLoggedIn(next !== 'logged-out');
+    /* `applied` is `profile-ready` plus a history: same finished profile, because
+       you cannot have applied without one. */
+    setProfile(next === 'profile-ready' || next === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+    setDrawerOpen(false);
+    setApplyTarget(null);
+    setPendingApply(null);
+    setApplications(next === 'applied' ? seededApplications() : new Map());
   };
 
   /**
@@ -554,22 +776,24 @@ export default function JobBoardPrototype() {
      cleared by visiting, which here means leaving for that route. */
   const nav = (
     <>
+      {/* `onSignUp` as well as `onSignIn`: on this board the two really are
+          different doors — Sign up opens the form that creates the account, the
+          same one Apply opens for a logged-out visitor — so the header pair
+          leads where the banner pair leads rather than collapsing into one
+          action. Other entries sharing this navbar pass only `onSignIn` and
+          keep today's behaviour. */}
       <PrototypeNavBar
         hasUnreadNews={hasNewsUpdates}
         newsHref="/prototypes/newsfeed"
         isLoggedIn={isLoggedIn}
         onSignIn={onSignIn}
+        onSignUp={onSignUp}
         searchable
       />
       {/* No auth prop: the mobile bottom bar carries no account cluster in
           production either, so there is nothing for it to switch. PL Infra is
           the exception — it's signed-in-only, so the slot follows the viewer. */}
-      <PrototypeMobileNav
-        hasUnreadNews={hasNewsUpdates}
-        newsHref="/prototypes/newsfeed"
-        active={false}
-        plInfra={isLoggedIn && plInfra}
-      />
+      <PrototypeMobileNav hasUnreadNews={hasNewsUpdates} newsHref="/prototypes/newsfeed" active={false} />
     </>
   );
 
@@ -582,44 +806,66 @@ export default function JobBoardPrototype() {
     );
   }
 
-  /* The way back into the preferences form.
+  /* The email review surface takes the whole page rather than sitting over the
+     board. It is not a state the board can be in — it renders something that
+     leaves the product — so drawing it as a layer on top of a live board would
+     invite it to be read as a feature of one. */
+  if (emailPreviewOpen) {
+    return (
+      <>
+        {nav}
+        <div className={s.emailStage}>
+          <ApplicationEmailPreview input={SAMPLE_APPLICATION_EMAIL} />
+        </div>
+      </>
+    );
+  }
 
-     Without it step 1 was write-once: the nudge strip removes itself the moment
-     preferences exist, and the sort gate stops firing for the same reason, so
-     between them there was no route back to the modal. Step 2's answers were
-     always editable — they land on real profile fields and the modal says so —
-     but the four things that actually sort the board were not.
-
-     Only while `matchMode` is on, which already implies saved preferences (see
-     its definition). That's the one moment the person is looking at a board
-     arranged by an answer they gave, so it's the one moment "change that answer"
-     is worth screen space. Under any other sort it would be a control for
-     something not currently happening.
-
-     Reopens the modal rather than linking to /settings/job-alerts, where this
-     state really lives: sending someone to settings to widen a search they are
-     standing in front of is the trip the modal exists to avoid. `prefsOpen` is
-     the existing state and the modal already seeds from saved preferences, so
-     this is a setter call and nothing else. */
   const titleBlock = (
     <>
       <h1 className={contentCss.title}>
         Job Board{' '}
+        {/* The role count carries the weight, the team count doesn't. They're one
+            parenthetical but not one fact: how much there is to apply to is the
+            number someone is actually reading, and how many teams it's spread
+            across is the qualifier. Emphasising both would flatten them back
+            together and leave the line no louder than before.
+
+            Weight and tone only, no colour — see `.titleCountRoles`. */}
         <span className={contentCss.titleCount}>
-          ({totalRoles} {totalRoles === 1 ? 'role' : 'roles'} across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'}
-          )
+          (
+          <strong className={s.titleCountRoles}>
+            {totalRoles} {totalRoles === 1 ? 'role' : 'roles'}
+          </strong>{' '}
+          across {totalGroups} {totalGroups === 1 ? 'team' : 'teams'})
         </span>
       </h1>
-      {matchMode && (
-        <p className={s.matchLine}>
-          Sorted around what you&apos;re looking for.{' '}
-          <button type="button" className={s.matchEdit} onClick={() => setPrefsOpen(true)}>
-            Edit
-          </button>
-        </p>
-      )}
     </>
   );
+
+  /* The scope strip, rendered ONCE and on its own row.
+   *
+   * Production puts it beside the title (`TeamList` → `.titleSec`), and that was
+   * the first attempt here — inside `titleBlock`. It doesn't transfer: this board
+   * has *two* title rows, because `JobsContent` renders one for mobile and one in
+   * the desktop toolbar and hides whichever doesn't apply. Duplicating an `<h1>`
+   * that way is production's own trick and harmless; duplicating a tab strip puts
+   * two live controls in the DOM, both wired to the same store, one of them
+   * invisible — which is a thing for assistive tech to read out twice and a thing
+   * for the next person to keep in sync.
+   *
+   * So it gets its own full-width row above the list, which is where a scope
+   * belongs regardless: the toolbar's controls reorder the list you are looking
+   * at, and this chooses which list that is.
+   *
+   * Signed in only, per production's rule (`TeamList` wraps it in `isLoggedIn`):
+   * a logged-out visitor has no applications, so the tab could only ever open on
+   * nothing. */
+  const scopeTabs = isLoggedIn ? (
+    <div className={s.scopeTabs}>
+      <JobBoardScopeTabs appliedCount={appliedRoleUids.size} />
+    </div>
+  ) : null;
 
   const content = (
     <div className={contentCss.root}>
@@ -627,36 +873,34 @@ export default function JobBoardPrototype() {
           visitor (`components/page/home/Welcome`), in the same slot it holds
           there — first block in the column, above the page's own content. One
           sign-in ask per page, and it's this one. */}
-      {!isLoggedIn && <SignInBanner criteria={criteria} onSignIn={onBannerSignIn} />}
+      {!isLoggedIn && (
+        <SignInBanner
+          criteria={criteria}
+          roleCount={totalRoles}
+          teamCount={totalGroups}
+          onSignIn={onBannerSignIn}
+          onSignUp={onSignUp}
+        />
+      )}
 
-      {/* Prototype-only: replay the dwell prompt without waiting out its timer.
-          Directly under the Welcome banner, because that's the state it belongs
-          to — the prompt is the logged-out ask, and pressing this puts the page
-          back to logged out, so the control and the thing it produces sit
-          together.
+      {/* Signed in, nothing filled in. Same slot, same card, one word of the ask
+          changed: the account exists, so what stands between them and applying is
+          the profile. Not shown to a pending member — telling someone to finish a
+          profile so they can apply, while approval is the thing actually blocking
+          them, would be pointing at the wrong obstacle. */}
+      {isLoggedIn && !isPendingApproval && !isProfileComplete(profile) && (
+        <ProfileNudgeBanner onUpdateProfile={() => setDrawerOpen(true)} />
+      )}
 
-          Note what it is *not*: the banner's own Sign in opens the preferences
-          modal, which is where the prompt leads, but the prompt itself is a
-          different dialog with its own copy. Reaching the destination is not the
-          same as reviewing the thing that sends you there.
-
-          Unconditional, unlike the banner above it — signed in, this is the way
-          back to the logged-out state, so gating it on `!isLoggedIn` would make
-          it unreachable exactly when it's needed. */}
-      <div className={s.promptBand}>
-        <div className={v0.switchBar}>
-          <span className={v0.switchLabel}>Sign-in prompt</span>
-          <div className={v0.switch}>
-            <button type="button" className={`${v0.switchBtn} ${v0.switchBtnActive}`} onClick={showPromptNow}>
-              Show it now
-            </button>
-          </div>
-          <span className={v0.switchNote}>
-            Logged out, it opens by itself after 20s of visible time on the page — once per session, never over another
-            dialog, and dismissing it settles it for good.
-          </span>
-        </div>
-      </div>
+      {/* Signed up, waiting. The board is untouched underneath; this says where
+          they are and — while there's still profile left to fill in — hands back
+          the one move that is theirs. */}
+      {isPendingApproval && (
+        <PendingApprovalBanner
+          profileComplete={isProfileComplete(profile)}
+          onUpdateProfile={() => setDrawerOpen(true)}
+        />
+      )}
 
       {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
       {/* `mobileHeader` is a baseline row with no wrap, so the match line would
@@ -669,37 +913,45 @@ export default function JobBoardPrototype() {
 
       <div className={contentCss.toolbar}>
         <div className={contentCss.titleGroup}>{titleBlock}</div>
+        {/* Production's own three options, unextended. The board used to carry a
+            fourth, "Best match for me", which is gone with the rest of the match
+            flow — sorting is now only sorting, and there is no locked item to
+            explain. */}
         <SortDropdown
-          options={sortOptions}
+          options={JOBS_SORT_OPTIONS}
           currentSort={sort}
-          onSortChange={(value) => {
-            /* The gate. SortDropdown fires on every item — there's no disabled
-               state — so picking the locked option becomes the nudge rather than
-               a sort that silently does nothing. */
-            if (value === MATCH_SORT && !hasCriteria(preferences)) {
-              /* Always ends in the modal, logged in or not: picking this option is
-                 the most explicit possible statement of intent, so answering it
-                 with a strip that asks again would be a dead end. */
-              if (!isLoggedIn) onSignIn();
-              setPrefsOpen(true);
-              return;
-            }
-            setParam('sort', value === 'newest' ? undefined : value);
-          }}
+          onSortChange={(value) => setParam('sort', value === 'newest' ? undefined : value)}
           sortByLabel="Sort by:"
         />
       </div>
 
-      {/* The nudge. Above the list, below the toolbar — production's job-alert
-          banner slot, and the only place a page-level offer belongs. Signed-in
-          only: logged out, the ask is the banner at the top of the column, and
-          the preference question comes after the account exists. */}
-      {isLoggedIn && (
-        <MatchNudgeStrip criteria={criteria} preferences={preferences} onSetPreferences={() => setPrefsOpen(true)} />
-      )}
+      {scopeTabs}
 
       {visibleGroups.length === 0 ? (
-        <div className={s.empty}>No roles match your filters. Try clearing some.</div>
+        /* Two empty states, because there are two different reasons to be here
+           and only one of them is a dead end you got to by narrowing.
+
+           In the Applied tab with nothing applied to, "try clearing some
+           filters" would be advice that doesn't apply — there is nothing to
+           clear, and the list is empty because of something the person hasn't
+           done yet rather than something they have. It says what the tab holds
+           and points at the tab that holds the roles. The distinction is between
+           "you have applied to nothing" and "nothing you applied to survived
+           this rail", which is why the filtered case still gets the original
+           line. */
+        <div className={s.empty}>
+          {appliedScope && appliedRoleUids.size === 0 ? (
+            <>
+              You haven&apos;t applied to anything yet. Roles you apply to collect here, so you can see what you&apos;ve
+              already gone for.{' '}
+              <button type="button" className={s.emptyLink} onClick={() => setParam(SCOPE_PARAM, undefined)}>
+                Browse all roles
+              </button>
+            </>
+          ) : (
+            <>No roles match your filters. Try clearing some.</>
+          )}
+        </div>
       ) : (
         <div className={contentCss.list}>
           {visibleGroups.map((group) => (
@@ -707,10 +959,11 @@ export default function JobBoardPrototype() {
               key={group.team.uid}
               group={group}
               newsVariant={NEWS_VARIANT}
-              matchMode={matchMode}
-              isMatch={(role) => matchesPreferences(preferences, role)}
               canRefer={isLoggedIn}
               onReferBlocked={onSignIn}
+              onApply={onApply}
+              appliedRoleUids={appliedRoleUids}
+              appliedAtByRole={appliedAtByRole}
             />
           ))}
         </div>
@@ -718,45 +971,36 @@ export default function JobBoardPrototype() {
     </div>
   );
 
-  /* Review chrome, above the navbar rather than inside the content column.
-     These switches are scaffolding for whoever is reviewing the prototype, not
-     part of the page — sitting between the toolbar and the list they read as a
-     product control, and they pushed the thing under review below the fold.
-     Above the header they're plainly outside the page, and they scroll away
-     while the (sticky) navbar stays, so the board is reviewed on its own. */
+  /* Review scaffolding: the four entry states, directly under the navbar.
+     Not inside the content column — between the toolbar and the list these read
+     as a product control and push the thing under review below the fold. Under
+     the header they are plainly outside the page, and because the navbar is
+     sticky and this band is not, they scroll away and leave the board to be
+     judged on its own. The mobile-bar switch that used to sit beside them is
+     gone; this is the only scaffolding left. */
   const reviewControls = (
     <div className={s.reviewBand}>
       <div className={s.versionRow}>
-        {/* The team-update switch used to lead here; the placement is settled, so
-            the cards just wear it (see NEWS_VARIANT). The "Preview as" viewer
-            switch is parked — the viewer state and `onSelectViewer` below still
-            drive the page from their defaults, so it can come back by rendering a
-            switchBar over VIEWER_OPTIONS. */}
-
-        {/* The mobile bar's fifth slot. Nothing above 1024px shows it, so it's
-            worth saying what it does rather than leaving the switch looking
-            broken on a desktop review. */}
+        {/* The four states the apply flow branches into. Only the first was ever
+            reachable without editing code, which meant the other three — the ones
+            most members are actually in — could not be looked at. */}
         <div className={v0.switchBar}>
-          <span className={v0.switchLabel}>Mobile bar</span>
-          <div className={v0.switch} role="tablist" aria-label="Mobile bottom bar variant">
-            {PL_INFRA_OPTIONS.map((opt) => (
+          <span className={v0.switchLabel}>Preview as</span>
+          <div className={v0.switch} role="tablist" aria-label="Board viewer state">
+            {VIEWER_OPTIONS.map((opt) => (
               <button
-                key={String(opt.value)}
+                key={opt.value}
                 type="button"
                 role="tab"
-                aria-selected={plInfra === opt.value}
-                className={`${v0.switchBtn} ${plInfra === opt.value ? v0.switchBtnActive : ''}`}
-                onClick={() => onSelectMobileBar(opt.value)}
+                aria-selected={viewer === opt.value}
+                className={`${v0.switchBtn} ${viewer === opt.value ? v0.switchBtnActive : ''}`}
+                onClick={() => onSelectViewer(opt.value)}
               >
                 {opt.label}
               </button>
             ))}
           </div>
-          <span className={v0.switchNote}>
-            Visible under 1024px. Home holds the centre slot in both orders — Directory · Events · Home · Demo Day ·
-            More, or Directory · PL Infra · Home · Demo Day · More, with Events demoted into More. Picking the PL Infra
-            viewer signs the page in, because nobody resolves PL Infra logged out.
-          </span>
+          <span className={v0.switchNote}>{VIEWER_NOTE[viewer]}</span>
         </div>
       </div>
     </div>
@@ -764,20 +1008,57 @@ export default function JobBoardPrototype() {
 
   return (
     <>
-      {reviewControls}
       {nav}
+      {reviewControls}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
-      {/* The dwell prompt. Never rendered alongside the preferences modal — the
-          timer won't fire while that's open, and signing in from here closes this
-          one before opening that one. */}
-      <SignInPromptModal open={promptOpen} criteria={criteria} onClose={settlePrompt} onSignIn={onPromptSignIn} />
-      <JobPreferencesModal
-        open={prefsOpen}
-        onClose={() => setPrefsOpen(false)}
-        preferences={preferences}
-        criteria={criteria}
-        experience={experience}
-        onSave={onSavePreferences}
+      {/* The profile step. `pendingRoleTitle` is what makes the drawer explain
+          itself: opened on the way to an application it names the role it's
+          holding up, and opened from the title line it doesn't, because there is
+          nothing waiting. */}
+      <JobProfileDrawer
+        open={drawerOpen}
+        onClose={onCloseDrawer}
+        profile={profile}
+        pendingRoleTitle={pendingApply?.role.roleTitle ?? null}
+        pendingApproval={isPendingApproval}
+        onSave={onSaveProfile}
+      />
+
+      {/* The account form, reached two ways: pressing Apply while logged out
+          (which carries the role, so the modal names it and the flow resumes on
+          it), and pressing Sign up in the header or the banner (which carries
+          nothing, and gets the generic header).
+
+          Unlike <applyTarget> below, the role can't double as the open flag —
+          this modal legitimately exists without one — so `signUp` is its own
+          nullable object and the role hangs off it. */}
+      <JobSignUpModal
+        open={!!signUp}
+        onClose={() => setSignUp(null)}
+        role={signUpTarget?.role ?? null}
+        teamName={signUpTarget?.teamName ?? ''}
+        onSignUp={onSignUpSubmit}
+        onSignIn={onSignUpModalSignIn}
+      />
+
+      {/* The per-role step. <applyTarget> is the open/closed state as well as the
+          data — there is no such thing as this modal without a role, so a
+          separate boolean would only be something to keep in sync. Editing from
+          here closes it and opens the drawer with the role still pending, so
+          saving lands straight back on this modal. */}
+      <JobApplyModal
+        open={!!applyTarget}
+        onClose={() => {
+          setApplyTarget(null);
+          /* Cancelled outright — not a detour, so the letter is not kept. */
+          setCoverLetterDraft('');
+        }}
+        role={applyTarget?.role ?? null}
+        teamName={applyTarget?.teamName ?? ''}
+        profile={profile}
+        initialCoverLetter={coverLetterDraft}
+        onEditProfile={onEditProfileFromApply}
+        onSubmit={onSubmitApplication}
       />
     </>
   );

@@ -90,6 +90,26 @@ export type WarmIntrosV2PathListItem = {
   myFeedbackByConnector?: Record<string, WarmPathMyFeedback>;
   /** Editors only — aggregated answers keyed by connectorProfileUid. */
   feedbackSummaryByConnector?: Record<string, WarmPathFeedbackSummary>;
+  /** Caller’s own path note keyed by connectorProfileUid (detail enrich). */
+  myNoteByConnector?: Record<string, WarmPathMyNote>;
+  /** Editors only — other people’s notes keyed by connectorProfileUid. */
+  notesByConnector?: Record<string, WarmPathNoteRecent[]>;
+};
+
+export type WarmPathMyNote = {
+  note: string;
+  updatedAt: string;
+};
+
+export type WarmPathNoteRecent = {
+  actorEmail: string | null;
+  note: string;
+  updatedAt: string;
+};
+
+export type UpsertWarmPathNoteBody = {
+  connectorProfileUid: string;
+  note: string | null;
 };
 
 export type UpsertWarmPathFeedbackBody = {

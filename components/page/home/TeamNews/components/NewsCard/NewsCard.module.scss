@@ -46,12 +46,29 @@
     color: inherit;
   }
 
+  /* Every flat row is a link, but the reset above deliberately drops the shadow
+     and returns colour to `inherit`, which left the row with no hover state at
+     all — .card rows lift their shadow instead, and a flat row has no shadow to
+     lift. So the headline carries it: brand blue on hover, nothing else moves.
+     Scoped to .cardFlat so .card keeps its lift and the homepage is untouched. */
+  .headline {
+    transition: color 0.12s ease;
+  }
+
+  &:hover .headline {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+
   &:first-child {
     padding-top: 0;
   }
 
+  /* Overridable so a tinted host panel can retint the seam — a neutral grey
+     divider reads as dirt once the surface behind it is coloured. The fallback
+     is the neutral default, so an untinted host is unchanged by construction
+     rather than by inspection. Set by the team profile's .newsPanel. */
   &:not(:last-child) {
-    border-bottom: 1px solid rgba(27, 56, 96, 0.12);
+    border-bottom: 1px solid var(--news-card-divider, rgba(27, 56, 96, 0.12));
   }
 }
 

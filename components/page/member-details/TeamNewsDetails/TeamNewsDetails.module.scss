@@ -1,0 +1,123 @@
+// Transcribed from the prototype, which composes production's BookWithOther
+// card (`book.root` + `book.header` + `book.button`) and overrides only the
+// surface — see prototypes/entries/member-profile/MemberTeamUpdates.tsx and
+// MemberProfile.module.scss `.updatesCard`. Values are copied literally rather
+// than re-derived, including the ones off the type scale.
+.card {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+
+  border-radius: 12px;
+
+  // `.updatesCard` over book.root: tinted surface, brand hairline, and the card
+  // shadow dropped — a shadow under a tinted card reads as a second elevation.
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  box-shadow: none;
+}
+
+// book.header — secondary, 500, -0.3px. Deliberately NOT the primary/600 a
+// section title would use: this is a rail card, not a page section.
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px; /* 150% */
+  letter-spacing: -0.3px;
+}
+
+.icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(:last-child) {
+    padding-bottom: 12px;
+    // Neutral hairlines disappear on the tinted surface — the divider tracks the
+    // card's own border instead.
+    border-bottom: 1px solid var(--border-brand-subtle, #aebfff);
+  }
+}
+
+/* The card's two exits. Copied from the rail's own footer
+   (TeamNewsRail.module.scss `.newsFooter`) so the pair reflows identically:
+   auto-fit collapses to one column at the ~300px rail width — stacked, as the
+   design shows — and goes side by side below 960px where this card moves into
+   the full-width main column, exactly as the team page's does at that width. */
+.footer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+  gap: 8px;
+  align-self: stretch;
+}
+
+// book.button — the shared chrome for both exits, so they read as a pair. Kept
+// as this card's own button (tinted-surface sibling of BookWithOther's) rather
+// than the rail's flatter one; only the label colour separates the two, which is
+// the rail's split too.
+.viewAll,
+.viewFeed {
+  display: flex;
+  padding: 8px var(--global-size-size-125, 10px);
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  align-self: stretch;
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--action-border-neutral-light_normal, rgba(14, 15, 17, 0.16));
+  background: var(--action-background-base-white, #fff);
+  box-shadow:
+    0 -2px 8px 0 var(--transparent-dark-2, rgba(14, 15, 17, 0.02)) inset,
+    0 1px 2px 0 var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(98%);
+  }
+}
+
+/* The staying half: blue, because keeping the reader inside this team is the
+   likelier intent of the two. */
+.viewAll {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The leaving half: neutral against its blue neighbour. The ↗ is the real tell
+   — the glyph the rest of the app uses for "this leaves the page". */
+.viewFeed {
+  color: var(--action-foreground-neutral-normal, #455468);
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}

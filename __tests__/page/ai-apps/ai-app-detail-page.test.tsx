@@ -158,10 +158,36 @@ describe('AiAppDetailPage', () => {
   beforeEach(() => {
     mockCanLikelyManage.mockReturnValue(true);
     mockSearchParams = new URLSearchParams();
+    document.title = 'AI Apps | Protocol Labs Directory';
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('document title', () => {
+    it('sets the tab title to the app name after load and restores it on unmount', () => {
+      mockUseAiAppReturn = { app: buildApp(), isLoading: false, isError: false };
+      const { unmount } = render(<AiAppDetailPage uid="app-1" />);
+
+      expect(document.title).toBe('News Summarizer');
+      unmount();
+      expect(document.title).toBe('AI Apps | Protocol Labs Directory');
+    });
+
+    it('does not overwrite the tab title while the app is still loading', () => {
+      mockUseAiAppReturn = { app: null, isLoading: true, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(document.title).toBe('AI Apps | Protocol Labs Directory');
+    });
+
+    it('does not overwrite the tab title when the app name is blank', () => {
+      mockUseAiAppReturn = { app: buildApp({ name: '   ' }), isLoading: false, isError: false };
+      render(<AiAppDetailPage uid="app-1" />);
+
+      expect(document.title).toBe('AI Apps | Protocol Labs Directory');
+    });
   });
 
   it('renders the centered setup card for a DRAFT app, with no top bar', () => {

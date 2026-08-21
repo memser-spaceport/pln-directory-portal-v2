@@ -45,8 +45,8 @@ jest.mock('@/analytics/auth.analytics', () => ({
 
 const userInfo = { uid: 'member-1', email: 'old@plrs.xyz', name: 'John Doe' } as IUserInfo;
 
-function renderUpdateEmail(onFailure?: jest.Mock) {
-  return renderHook(() => useUpdateEmail({ uid: 'member-1', email: 'old@plrs.xyz', userInfo, onFailure }));
+function renderUpdateEmail(onFailure?: jest.Mock, source?: 'email-and-accounts' | 'member-profile') {
+  return renderHook(() => useUpdateEmail({ uid: 'member-1', email: 'old@plrs.xyz', userInfo, onFailure, source }));
 }
 
 /** Privy answers a completed OTP flow with this event; the hook does the directory update. */
@@ -75,6 +75,14 @@ describe('useUpdateEmail', () => {
       unsubscribe();
     });
 
+    it('stamps which surface started the change', () => {
+      const { result } = renderUpdateEmail(undefined, 'email-and-accounts');
+
+      act(() => result.current.requestEmailChange());
+
+      expect(onUpdateEmailClicked.mock.calls[0][1]).toBe('email-and-accounts');
+    });
+
     it('does not start the flow without a session — completing it would change a real Privy email', () => {
       mockCookies.get.mockReturnValue(undefined);
       const linkAccount = jest.fn();
@@ -96,7 +104,10 @@ describe('useUpdateEmail', () => {
       await emitPrivyResult('old@plrs.xyz');
 
       expect(updateUserDirectoryEmail).not.toHaveBeenCalled();
-      expect(onUpdateSameEmailProvided).toHaveBeenCalledWith({ newEmail: 'old@plrs.xyz', oldEmail: 'old@plrs.xyz' });
+      expect(onUpdateSameEmailProvided).toHaveBeenCalledWith(
+        { newEmail: 'old@plrs.xyz', oldEmail: 'old@plrs.xyz' },
+        undefined,
+      );
       expect(onFailure).toHaveBeenCalledWith(
         expect.objectContaining({ reason: 'same-email', message: expect.stringContaining('already your email') }),
       );
@@ -180,7 +191,10 @@ describe('useUpdateEmail', () => {
         JSON.stringify({ uid: 'member-1', email: 'new@plrs.xyz' }),
         expect.anything(),
       );
-      expect(onUpdateEmailSuccess).toHaveBeenCalledWith({ newEmail: 'new@plrs.xyz', oldEmail: 'old@plrs.xyz' });
+      expect(onUpdateEmailSuccess).toHaveBeenCalledWith(
+        { newEmail: 'new@plrs.xyz', oldEmail: 'old@plrs.xyz' },
+        undefined,
+      );
       expect(toast.success).toHaveBeenCalledWith('Email Updated Successfully');
     });
   });

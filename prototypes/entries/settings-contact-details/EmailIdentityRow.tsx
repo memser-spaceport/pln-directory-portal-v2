@@ -8,6 +8,7 @@ import { Button } from '@/components/common/Button';
 import { useUpdateEmail } from '@/services/members/hooks/useUpdateEmail';
 import { IUserInfo } from '@/types/shared.types';
 import { getContactLogoByProvider } from '@/utils/profile/getContactLogoByProvider';
+import { useSettingsAnalytics } from '@/analytics/settings.analytics';
 
 import s from './EmailIdentityRow.module.scss';
 
@@ -43,11 +44,13 @@ interface Props {
 export function EmailIdentityRow({ uid, email, userInfo }: Props) {
   const [isChanging, setIsChanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { onEmailChangePanelOpened, onEmailChangeCancelled } = useSettingsAnalytics();
 
   const { requestEmailChange } = useUpdateEmail({
     uid,
     email,
     userInfo,
+    source: 'email-and-accounts',
     onFailure: ({ message }) => {
       // Reopen the panel: the message is about the change the member was making, so it has to
       // appear next to the flow they will retry, not on its own.
@@ -59,11 +62,13 @@ export function EmailIdentityRow({ uid, email, userInfo }: Props) {
   const onStartChange = () => {
     setError(null);
     setIsChanging(true);
+    onEmailChangePanelOpened();
   };
 
   const onCancel = () => {
     setError(null);
     setIsChanging(false);
+    onEmailChangeCancelled();
   };
 
   const onContinue = () => {

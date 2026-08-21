@@ -39,6 +39,12 @@ jest.mock('@/analytics/auth.analytics', () => ({
   }),
 }));
 
+const onEmailChangePanelOpened = jest.fn();
+const onEmailChangeCancelled = jest.fn();
+jest.mock('@/analytics/settings.analytics', () => ({
+  useSettingsAnalytics: () => ({ onEmailChangePanelOpened, onEmailChangeCancelled }),
+}));
+
 const userInfo = { uid: 'member-1', email: 'old@plrs.xyz', name: 'John Doe' } as IUserInfo;
 
 function renderRow() {
@@ -72,8 +78,19 @@ describe('EmailIdentityRow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Change email address' }));
 
+    expect(onEmailChangePanelOpened).toHaveBeenCalled();
     expect(screen.getByText(/send it a 6-digit code/)).toBeInTheDocument();
     expect(screen.getByText(/current address keeps working/)).toBeInTheDocument();
+  });
+
+  it('closes the panel without starting the Privy flow', () => {
+    renderRow();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change email address' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(onEmailChangeCancelled).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /^Continue$/ })).not.toBeInTheDocument();
   });
 
   it('asks Privy to run the update-email flow on Continue', () => {

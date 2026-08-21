@@ -433,6 +433,31 @@ export const useTeamAnalytics = () => {
     captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_FOLLOWERS_MODAL_OPENED, params);
   }
 
+  function onTeamDetailOpenRolesViewAllClicked(params: {
+    teamUid: string;
+    teamName: string;
+    totalRoles: number;
+    expanded: boolean;
+  }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_OPEN_ROLES_VIEW_ALL_CLICKED, params);
+  }
+
+  function onTeamDetailContactSaveClicked(params: { teamUid: string; hasBluesky: boolean; hasCrunchbase: boolean }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_CONTACT_SAVE_CLICKED, params);
+  }
+
+  function onTeamDetailEnrichmentReviewed(params: { teamUid: string }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_ENRICHMENT_REVIEWED, params);
+  }
+
+  function onTeamDetailStatusChanged(params: {
+    teamUid: string;
+    from: 'ACTIVE' | 'INACTIVE';
+    to: 'ACTIVE' | 'INACTIVE';
+  }) {
+    captureEvent(TEAMS_ANALYTICS_EVENTS.TEAM_DETAIL_STATUS_CHANGED, params);
+  }
+
   return {
     onOfficeHoursSelected,
     onFriendsOfProtocolSelected,
@@ -497,5 +522,9 @@ export const useTeamAnalytics = () => {
     onAllTabSelected,
     onFollowingEmptyBrowseAllClicked,
     onFollowersModalOpened,
+    onTeamDetailOpenRolesViewAllClicked,
+    onTeamDetailContactSaveClicked,
+    onTeamDetailEnrichmentReviewed,
+    onTeamDetailStatusChanged,
   };
 };

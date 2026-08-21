@@ -114,6 +114,7 @@ jest.mock('@/analytics/team-news.analytics', () => ({
     onFeedHiringRoleClicked: (...a: unknown[]) => mockOnFeedHiringRoleClicked(...a),
     onFeedHiringViewAllClicked: (...a: unknown[]) => mockOnFeedHiringViewAllClicked(...a),
     onFeedDealClicked: (...a: unknown[]) => mockOnFeedDealClicked(...a),
+    onTeamNewsForYouUpdateProfileClicked: jest.fn(),
   }),
 }));
 

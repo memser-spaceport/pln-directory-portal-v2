@@ -3,9 +3,14 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 const onJobClicked = jest.fn();
+const onTeamDetailOpenRolesViewAllClicked = jest.fn();
 
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({ onJobClicked }),
+}));
+
+jest.mock('@/analytics/teams.analytics', () => ({
+  useTeamAnalytics: () => ({ onTeamDetailOpenRolesViewAllClicked }),
 }));
 
 jest.mock('@/services/auth/store', () => ({
@@ -96,12 +101,24 @@ describe('TeamOpenRoles', () => {
     await user.click(expander);
 
     expect(uids()).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(onTeamDetailOpenRolesViewAllClicked).toHaveBeenCalledWith({
+      teamUid: 'team-1',
+      teamName: 'Acme',
+      totalRoles: 5,
+      expanded: true,
+    });
     const collapser = screen.getByRole('button', { name: 'Show less' });
     expect(collapser).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(collapser);
 
     expect(screen.getAllByTestId('role-row')).toHaveLength(2);
+    expect(onTeamDetailOpenRolesViewAllClicked).toHaveBeenLastCalledWith({
+      teamUid: 'team-1',
+      teamName: 'Acme',
+      totalRoles: 5,
+      expanded: false,
+    });
   });
 
   it('offers no expander when everything already fits', () => {

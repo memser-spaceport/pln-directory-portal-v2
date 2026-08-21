@@ -196,6 +196,17 @@ export const EditTeamDetailsForm = ({ team, userInfo, onClose }: Props) => {
       },
     });
 
+    if (isAdmin) {
+      const wasActive = !isTeamInactive(team);
+      if (formData.isActive !== wasActive) {
+        analytics.onTeamDetailStatusChanged({
+          teamUid: team.id,
+          from: wasActive ? 'ACTIVE' : 'INACTIVE',
+          to: formData.isActive ? 'ACTIVE' : 'INACTIVE',
+        });
+      }
+    }
+
     reset(formData);
   };
 

@@ -10,7 +10,10 @@ jest.mock('@/services/team-news/hooks/useTeamNewsCounts', () => ({
 }));
 
 jest.mock('@/analytics/team-news.analytics', () => ({
-  useTeamNewsAnalytics: () => ({ onTeamNewsCountChipClicked: jest.fn() }),
+  useTeamNewsAnalytics: () => ({
+    onTeamNewsCountChipClicked: jest.fn(),
+    onTeamNewsCountChipShown: jest.fn(),
+  }),
 }));
 
 jest.mock('@/components/page/jobs/TeamGroupCard/hooks/useGetFocusTags', () => ({

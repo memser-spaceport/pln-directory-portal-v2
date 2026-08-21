@@ -7,6 +7,7 @@ import { ITeam } from '@/types/teams.types';
 import { getProfileFromURL } from '@/utils/common.utils';
 
 import { useOnSubmit } from '@/components/page/team-details/hooks/useOnSubmit';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 import { FormField } from '@/components/form/FormField';
 import { DetailsSection } from '@/components/common/profile/DetailsSection';
@@ -41,6 +42,7 @@ export function TeamContactInfoEdit(props: Props) {
   });
 
   const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, toggleIsEditMode);
+  const { onTeamDetailContactSaveClicked } = useTeamAnalytics();
 
   const onSubmit = async (formData: EditTeamContactForm) => {
     await commonOnSubmit({
@@ -54,6 +56,11 @@ export function TeamContactInfoEdit(props: Props) {
       crunchbaseHandler: formData.crunchbase
         ? getProfileFromURL(formData.crunchbase, 'crunchbase')
         : formData.crunchbase,
+    });
+    onTeamDetailContactSaveClicked({
+      teamUid: team.id,
+      hasBluesky: Boolean(formData.bluesky),
+      hasCrunchbase: Boolean(formData.crunchbase),
     });
   };
 

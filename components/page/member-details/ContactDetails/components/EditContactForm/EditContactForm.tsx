@@ -56,7 +56,12 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
   const { data: memberData } = useMember(member.id);
   const { onSaveContactDetailsClicked } = useMemberAnalytics();
 
-  const { requestEmailChange } = useUpdateEmail({ uid: member.id, email: member.email, userInfo });
+  const { requestEmailChange } = useUpdateEmail({
+    uid: member.id,
+    email: member.email,
+    userInfo,
+    source: 'member-profile',
+  });
 
   const onSubmit = async (formData: TEditContactForm) => {
     onSaveContactDetailsClicked();
@@ -207,9 +212,7 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
   const normalizedDiscord = formData.discord ? getProfileFromURL(formData.discord, 'discord') : formData.discord;
   const normalizedGithub = formData.github ? getProfileFromURL(formData.github, 'github') : formData.github;
   const normalizedTelegram = formData.telegram ? getProfileFromURL(formData.telegram, 'telegram') : formData.telegram;
-  const normalizedBluesky = formData.bluesky
-    ? getProfileFromURL(formData.bluesky.trim(), 'bluesky')
-    : formData.bluesky;
+  const normalizedBluesky = formData.bluesky ? getProfileFromURL(formData.bluesky.trim(), 'bluesky') : formData.bluesky;
 
   return {
     imageUid: memberInfo.imageUid,

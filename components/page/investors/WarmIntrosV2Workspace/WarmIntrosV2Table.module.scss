@@ -220,6 +220,17 @@
   margin-left: 8px;
 }
 
+// Why this row matched a "Path via → PL member" filter when the chain above names
+// someone else. Explanatory, so it sits quieter than the path it annotates.
+.alsoVia {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--foreground-neutral-secondary, #64748b);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 // Below 640px the same DOM lays out as a list of cards — same markup, no second
 // render tree, no useMediaQuery. display: table roles are restated explicitly in
 // the JSX (role="table" etc.) since display: block drops the implicit ones.

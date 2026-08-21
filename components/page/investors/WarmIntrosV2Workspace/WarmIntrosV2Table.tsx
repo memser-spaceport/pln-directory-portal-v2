@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { CoInvestmentCountBadge, PlBackingMark } from '@/components/page/investors/PlBackingMark/PlBackingMark';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { alsoViaMembers, type SelectedMember } from './alsoViaMembers';
 import { ListMembershipTags } from './ListMembershipTags';
 import { hasRoleCaption, PathHop } from './PathHop';
 import { PathProfileChip } from './PathProfileChip';
@@ -20,6 +21,8 @@ interface Props {
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
   /** Show list badges beside the name — only when the scope spans more than one list. */
   showListName?: boolean;
+  /** Active "Path via → PL member" selection, so a row can say why it matched. */
+  alsoViaSelected?: SelectedMember[];
   /** Scroll container for infinite-scroll IntersectionObserver root. */
   scrollRootRef?: Ref<HTMLDivElement>;
   /** Placed at the bottom of the scrollable table body. */
@@ -48,6 +51,7 @@ export function WarmIntrosV2Table({
   onViewAllPaths,
   onRowClick,
   showListName = false,
+  alsoViaSelected = [],
   scrollRootRef,
   sentinelRef,
   footer,
@@ -78,6 +82,7 @@ export function WarmIntrosV2Table({
             const chain = parseWarmPathHopChain(row.hopChain);
             const hops = chain?.hops?.length ? chain.hops : null;
             const captionBand = hasRoleCaption(hops);
+            const alsoVia = alsoViaMembers(row, alsoViaSelected);
 
             const leadBadge = (
               <span className={clsx(s.proximityCell, s.joinGroup, s.proximityLead)}>
@@ -231,6 +236,9 @@ export function WarmIntrosV2Table({
                         View all ({count})
                       </button>
                     </div>
+                    {alsoVia.length > 0 ? (
+                      <div className={s.alsoVia}>↳ also via {alsoVia.join(' · ')}</div>
+                    ) : null}
                   </div>
                 </td>
               </tr>

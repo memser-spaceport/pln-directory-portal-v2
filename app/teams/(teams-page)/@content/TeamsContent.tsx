@@ -129,7 +129,7 @@ export default function TeamsContent(props: TeamsContentProps) {
       </div>
 
       {/* The chip's answer: this team's news, over the grid rather than instead
-          of it. `total` is deliberately omitted — the chip counted 30 days and
+          of it. `total` is deliberately omitted — the chip counted 7 days and
           this box lists the whole archive, so it latches its own figure. */}
       {newsModal && (
         <TeamNewsModal

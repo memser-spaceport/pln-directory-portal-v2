@@ -186,7 +186,7 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
             <FormField
               name="bluesky"
               label="Bluesky"
-              placeholder="eg., @protocol.ai or https://bsky.app/profile/protocol.ai"
+              placeholder="eg., @protocol.ai, protocol.ai or https://bsky.app/profile/protocol.ai"
             />
           </div>
           {variant !== 'drawer' && (

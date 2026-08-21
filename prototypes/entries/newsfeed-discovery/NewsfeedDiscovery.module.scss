@@ -1,0 +1,172 @@
+@import 'styles/media.scss';
+
+/* The nav pair lives in prototypes/entries/nav-shared/PrototypeNav.module.scss —
+   the job board renders the same proposal, so it is shared rather than copied.
+   The rule hiding the inherited production header/bottom bar moved to
+   prototypes/components/PrototypeRouteChrome/. */
+
+/* Page sizing/padding comes from the production home shell
+   (app/home/page.module.css); this only supplies the backdrop. */
+.page {
+  min-height: 100%;
+  background: var(--background-neutral-subtle, #f7f8fa);
+}
+
+/* Mirrors .home__cn from app/home/page.module.css so the reordered page sits in
+   the real home container, not an approximation of it. */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* Extra bottom padding clears the fixed mobile bar, which would otherwise
+     sit on top of the last card. */
+  padding: 14px 14px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (min-width: 1024px) {
+    width: 940px;
+    padding: 32px 0;
+    gap: 28px;
+  }
+
+  @media (min-width: 1280px) {
+    width: 1200px;
+  }
+}
+
+/* ---------- Quick Actions, demoted to a strip ---------- */
+
+/* The launcher is what you use to *leave*; the feed is the reason to stay. A
+   tab labelled News that opens on a card grid reads as a lie, so the grid
+   becomes a one-line chip row above the feed. */
+.qaStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.qaLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  margin-right: 4px;
+}
+
+.qaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ---------- Feed ---------- */
+
+.feedHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.feedTitle {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  margin: 0;
+}
+
+.feedMeta {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* Production's `.feed` gap, in production's feed column: TeamNews lays out as
+   `minmax(0, 1fr) 300px` with a 20px gap at desktop, so the cards measure right
+   only if the rail's 320px is reserved. The rail itself isn't mocked — nothing
+   in this proposal touches it, and filling it would pull attention off the
+   signal being judged. */
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 1200px) {
+    margin-right: 320px;
+  }
+}
+
+/* The Badge component at its native 14px/min-width 36px is a control-sized
+   pill; inside a card head row it needs to read as a quiet marker, so only the
+   scale is overridden — the brand colours stay the design system's. */
+.newTag {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+/* ---------- Prototype scaffolding ---------- */
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+}
+
+.controlsTitle {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-transform: uppercase;
+}
+
+.controlsNote {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  margin: 0;
+  max-width: 720px;
+}
+
+.controlsNoteMuted {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}

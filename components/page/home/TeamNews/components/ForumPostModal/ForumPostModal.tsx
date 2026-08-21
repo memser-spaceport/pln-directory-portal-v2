@@ -12,8 +12,10 @@ import { linkifyHtml, sanitizeForumPostHtml } from '@/utils/html';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { useFeedForumTopicBodyHtml } from '@/services/feed/hooks/useFeedComments';
 import type { IFeedForumPost } from '@/types/feed.types';
+import { ForumPostTitle } from '@/components/page/home/TeamNews/components/ForumPostTitle';
 
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton';
+import { OWN_FORUM_POST_LIKE_REASON } from '../../utils/isOwnForumPost';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
 import { FeedCommentsThread } from '../FeedCommentsThread/FeedCommentsThread';
 
@@ -40,6 +42,9 @@ interface ForumPostModalProps {
    *  Only viewers with forum access ever get here (TeamNews gates on live
    *  hasAccess and closes this modal on mid-session revocation). */
   post: IFeedForumPost;
+  /** Resolved by TeamNews against the signed-in member, for the same reason the
+   *  like state is: the modal must not disagree with the row behind it. */
+  isOwnPost?: boolean;
   onClose: () => void;
   onLikeToggle: (post: IFeedForumPost) => void;
 }
@@ -48,7 +53,7 @@ interface ForumPostModalProps {
  * Detail modal for a feed forum post (ported from the newsfeed-v0 prototype's
  * ForumPostModal, on the production news-modal chrome): author on top,
  * "Discussion" kicker, the post's FULL body, the shared inline comment thread,
- * and Like + Share in the footer.
+ * and Share + "Open in Forum" + Like in the footer.
  *
  * The body renders the same content /forum does, through the forum page's own
  * pipeline (processPostContent → linkify → parse) plus the feed's
@@ -57,7 +62,9 @@ interface ForumPostModalProps {
  * whole topic anyway); until that lands, the card's plain-text teaser
  * (`post.body`) stands in via JSX interpolation.
  */
-export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalProps) {
+export function ForumPostModal(props: ForumPostModalProps) {
+  const { post, isOwnPost = false, onClose, onLikeToggle } = props;
+
   // Same share-popover layering rule as the news modal: while the popover is
   // open, the modal's Escape/backdrop closers stand down so one gesture never
   // dismisses both layers.
@@ -135,9 +142,7 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
           {formatTimeAgo(post.createdAt)}
         </div>
 
-        <h3 id={TITLE_ID} className={modalStyles.title}>
-          {post.title}
-        </h3>
+        <ForumPostTitle id={TITLE_ID} post={post} asLink className={modalStyles.title} />
 
         {richBody ? (
           <div className={clsx(modalStyles.content, s.postBody)}>{richBody}</div>
@@ -151,7 +156,7 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
         <FeedCommentsThread itemUid={post.uid} kind="forum" source="news-modal" forumMainPid={post.mainPid} />
       </div>
 
-      <div className={modalStyles.footer}>
+      <div className={clsx(modalStyles.footer, s.footerSplit)}>
         <span className={modalStyles.footerActions}>
           <FeedForumPostShareMenu
             post={post}
@@ -160,9 +165,41 @@ export function ForumPostModal({ post, onClose, onLikeToggle }: ForumPostModalPr
             side="top"
             onOpenChange={setShareOpen}
           />
-          <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
+          {post.forumTopicUrl && (
+            <a className={s.openInForum} href={post.forumTopicUrl} target="_blank" rel="noopener noreferrer">
+              Open in Forum
+              <ExternalLinkIcon />
+            </a>
+          )}
         </span>
+        <UpvoteButton
+          count={post.likeCount}
+          voted={post.viewerHasLiked}
+          onToggle={() => onLikeToggle(post)}
+          disabledReason={isOwnPost ? OWN_FORUM_POST_LIKE_REASON : undefined}
+        />
       </div>
     </Modal>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M9.5 2.5H13.5V6.5M13.5 2.5L7.5 8.5"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12.5 9.5v3a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h3"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

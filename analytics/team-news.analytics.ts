@@ -9,17 +9,81 @@ import type { CommentFailure } from '@/services/feed/commentFailure';
  *  from the feed's own discriminator. */
 export type FeedItemKind = import('@/components/page/home/TeamNews/utils/mergeFeedEntries').FeedEntry['kind'];
 
-export type TeamNewsAnalyticsSource = 'home' | 'team-profile-rail' | 'team-profile-modal' | 'news-rail' | 'news-modal';
+export type TeamNewsAnalyticsSource =
+  | 'home'
+  | 'team-profile-rail'
+  | 'team-profile-modal'
+  | 'news-rail'
+  | 'news-modal'
+  // The same archive modal, opened from a listing card's "N new posts" chip
+  // rather than from a team profile. Distinct values because the question these
+  // answer — does a chip on a directory page earn its place — can't be asked of
+  // traffic that is pooled with the profile's.
+  | 'teams-listing-modal'
+  | 'job-board-modal'
+  // The primary-team news card on a member profile. Kept apart from
+  // 'team-profile-rail' for the same reason as the listing chips above: whether
+  // news on a person's page earns its slot can't be asked of traffic pooled
+  // with the team's own page.
+  | 'member-profile'
+  // That card's "View all news" archive — the same box the team profile opens,
+  // over a person's page instead. Split from 'member-profile' on the same
+  // grounds the listing modals above are split from the rail: the card is three
+  // rows, this is the whole archive, and "did the archive earn its slot on a
+  // person's page" cannot be asked of traffic pooled with the rows.
+  | 'member-profile-modal';
 
-/** What a team-news-card-clicked actually did: opened the /home detail modal,
- *  or navigated to the source article (team-details surfaces). */
+/**
+ * Surfaces that carry the "All network updates" exit — a team-scoped list, with
+ * the feed one click away. Named once and shared with TeamNewsFeedLink's own
+ * prop, so widening it is a single edit rather than two string lists that drift.
+ */
+export type TeamNewsFeedLinkSource = Extract<
+  TeamNewsAnalyticsSource,
+  | 'team-profile-rail'
+  | 'team-profile-modal'
+  | 'teams-listing-modal'
+  | 'job-board-modal'
+  | 'member-profile'
+  | 'member-profile-modal'
+>;
+
+/** Where a "N new posts" chip was clicked. */
+export type TeamNewsCountChipSource = 'teams-grid' | 'job-board';
+
+/** What a team-news-card-clicked actually did: opened the detail modal, or
+ *  navigated to the source article. */
 export type TeamNewsCardClickOutcome = 'modal' | 'source';
 
-/** Which affordance opened the detail modal. The comment badge is a disclosure
- *  toggle again, so it no longer appears here — the only way a comment intent
- *  reaches the modal is the card thread's "View all", which is a genuinely
- *  different signal: the member read the thread first and wanted more of it. */
-export type TeamNewsCardClickVia = 'row' | 'view-all-comments';
+/** Surfaces whose card click opens the story in a modal. Team-details rows used
+ *  to leave for the source article; now that the profile renders the story
+ *  itself — on the rail and drilled inside the archive — every listed surface
+ *  opens the modal. The field stays (dashboards split on it, and a future
+ *  surface may well go back to leaving for the source). */
+const MODAL_OPENING_SOURCES: readonly TeamNewsAnalyticsSource[] = [
+  'home',
+  'team-profile-rail',
+  'team-profile-modal',
+  // The listing surfaces drill in place, exactly as the profile's archive does.
+  // Omitting them here would label every one of those clicks `outcome: 'source'`
+  // — reporting that the reader left for the publisher when they did not.
+  'teams-listing-modal',
+  'job-board-modal',
+  // The member profile's card opens the story in place too. This list is
+  // separate from the union above, so widening one without the other is exactly
+  // how a surface ends up reporting `outcome: 'source'` for a modal it opened.
+  'member-profile',
+  // The archive opened from that card drills in place too, exactly as the team
+  // profile's does.
+  'member-profile-modal',
+];
+
+/** Which affordance opened the detail modal. On /home the comment badge is a
+ *  disclosure toggle, so a comment intent only reaches the modal through the
+ *  card thread's "View all" — the member read the thread first and wanted more
+ *  of it. In the team profile's ~340px rail there is nowhere to unfold a thread,
+ *  so the badge opens the story directly: that's `comments`. */
+export type TeamNewsCardClickVia = 'row' | 'view-all-comments' | 'comments';
 
 export type TeamNewsShareNetwork = 'linkedin' | 'x' | 'copy';
 
@@ -92,13 +156,74 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsViewAllClicked = (teamUid: string, teamName: string, total: number) => {
+  /**
+   * The staying half of the footer pair — the archive, not the feed.
+   *
+   * `source` names the surface whose archive was opened, and defaults to the
+   * rail because that is the only place this button existed first. It used to be
+   * hardcoded to that value inside the payload, which made the parameter list
+   * read as source-agnostic while every caller reported as the team profile —
+   * a new surface reusing the button would have filed its clicks as rail traffic
+   * with nothing at the call site to give it away.
+   */
+  const onTeamNewsViewAllClicked = (
+    teamUid: string,
+    teamName: string,
+    total: number,
+    source: TeamNewsAnalyticsSource = 'team-profile-rail',
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_VIEW_ALL_CLICKED, {
       teamUid,
       teamName,
       total,
-      source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
+      source,
     });
+  };
+
+  /** The leaving half of the rail/archive footer pair. `source` is which of the
+   *  two lists the member left from — the rail preview and the full archive are
+   *  different amounts of reading before the same decision to widen. */
+  const onTeamNewsAllNetworkUpdatesClicked = (teamUid: string, teamName: string, source: TeamNewsFeedLinkSource) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED, {
+      teamUid,
+      teamName,
+      source,
+    });
+  };
+
+  /** The "N new posts" chip on a listing card. `count` is what the chip claimed
+   *  — the number is the offer, so a click-through rate is only readable against
+   *  it (one waiting post and nine are not the same invitation). */
+  const onTeamNewsCountChipClicked = (
+    teamUid: string,
+    teamName: string,
+    count: number,
+    source: TeamNewsCountChipSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_COUNT_CHIP_CLICKED, {
+      teamUid,
+      teamName,
+      count,
+      source,
+    });
+  };
+
+  const onTeamNewsCountChipShown = (
+    teamUid: string,
+    teamName: string,
+    count: number,
+    source: TeamNewsCountChipSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_COUNT_CHIP_SHOWN, {
+      teamUid,
+      teamName,
+      count,
+      source,
+    });
+  };
+
+  const onTeamNewsForYouUpdateProfileClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED, { memberUid });
   };
 
   const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
@@ -131,11 +256,9 @@ export const useTeamNewsAnalytics = () => {
       position,
       source,
       via,
-      // The same event name now means "opened the detail modal" on /home but
-      // still "opened the source article" on team-details. Derived here — the
-      // one place that knows source→surface semantics — so dashboards can
-      // split without any call site changing.
-      outcome: (source === 'home' ? 'modal' : 'source') satisfies TeamNewsCardClickOutcome,
+      // Derived here — the one place that knows source→surface semantics — so
+      // dashboards can split without any call site changing.
+      outcome: (MODAL_OPENING_SOURCES.includes(source) ? 'modal' : 'source') satisfies TeamNewsCardClickOutcome,
     });
   };
 
@@ -604,6 +727,10 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsSortChanged,
     onTeamNewsLoadMoreClicked,
     onTeamNewsViewAllClicked,
+    onTeamNewsAllNetworkUpdatesClicked,
+    onTeamNewsCountChipClicked,
+    onTeamNewsCountChipShown,
+    onTeamNewsForYouUpdateProfileClicked,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsDetailModalOpened,

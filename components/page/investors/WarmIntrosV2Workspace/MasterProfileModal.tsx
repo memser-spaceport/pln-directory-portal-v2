@@ -198,19 +198,26 @@ export function MasterProfileModal({ profileUid, open, onClose }: Props) {
                     {coInvestments.length > 0 ? <span className={s.count}>{coInvestments.length}</span> : null}
                     <PlBackingMark backing={data?.plBacking} />
                   </h4>
-                  <ul className={s.itemList}>
-                    {coInvestments.map((item) => {
-                      const meta = [item.dealStage, item.dealDate, item.isLeadInvestor ? 'Lead' : null, item.dealAmount]
-                        .filter(Boolean)
-                        .join(' · ');
-                      return (
-                        <li key={item.teamUid || item.name} className={s.item}>
-                          <div className={s.itemPrimary}>{item.name}</div>
-                          {meta ? <div className={s.itemSecondary}>{meta}</div> : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {coInvestments.length > 0 ? (
+                    <ul className={s.itemList}>
+                      {coInvestments.map((item) => {
+                        const meta = [
+                          item.dealStage,
+                          item.dealDate,
+                          item.isLeadInvestor ? 'Lead' : null,
+                          item.dealAmount,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ');
+                        return (
+                          <li key={item.teamUid || item.name} className={s.item}>
+                            <div className={s.itemPrimary}>{item.name}</div>
+                            {meta ? <div className={s.itemSecondary}>{meta}</div> : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
                 </section>
               ) : null}
 

@@ -100,3 +100,32 @@
   color: #1b4dff;
   background: var(--background-brand-subtle, #f2f5ff);
 }
+
+// The dot rides the icon rather than the label: at this size a dot after the
+// text would sit under the neighbouring tab.
+.iconWithDot {
+  position: relative;
+  display: inline-flex;
+}
+
+.newsDot {
+  position: absolute;
+  top: -1px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #156ff7;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

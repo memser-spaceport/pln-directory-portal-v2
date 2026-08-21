@@ -6,6 +6,7 @@ import { removeCommentFromTree } from '@/utils/comments';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { feedQueryKeys } from '../constants';
 import { classifyCommentFailure } from '../commentFailure';
+import { writeCountFloor } from '../feedCommentCountFloor';
 import { deleteFeedComment } from '../feed.service';
 import type { FeedCommentContext } from './useAddFeedComment';
 
@@ -47,11 +48,29 @@ export function useDeleteFeedComment(itemUid: string, context?: FeedCommentConte
       // Spread `cached` for the same reason useAddFeedComment spreads `old`:
       // `forumTopic` rides on this entry and must survive the patch.
       if (cached)
-        queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), { ...cached, items });
+        queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), {
+          ...cached,
+          items,
+          // The topic's own tally drops with the subtree, so a remount's
+          // reconciliation re-applies THIS number rather than the pre-delete one.
+          forumTopic: cached.forumTopic
+            ? {
+                ...cached.forumTopic,
+                totalReplyCount: Math.max(0, cached.forumTopic.totalReplyCount - removedCount),
+              }
+            : cached.forumTopic,
+        });
       if (removedCount > 0) {
-        queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
-          old ? { ...old, [itemUid]: Math.max(0, (old[itemUid] ?? 0) - removedCount) } : old,
-        );
+        const counts = queryClient.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts());
+        if (counts) {
+          const nextCount = Math.max(0, (counts[itemUid] ?? 0) - removedCount);
+          queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
+            old ? { ...old, [itemUid]: nextCount } : old,
+          );
+          // Lowering the floor is the point: without it, a count the member
+          // just brought down would be pushed back up by the next seed.
+          writeCountFloor(itemUid, nextCount);
+        }
       }
 
       // `removedCount` is 0 for a comment that wasn't cached — a stale delete

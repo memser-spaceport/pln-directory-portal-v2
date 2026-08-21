@@ -12,6 +12,19 @@ export const DEFAULT_VALUES = {
   twitter: 'mayaokonkwo',
   telegram: 'mayaok',
   discord: 'maya#4417',
+  /* Experience — production's `TEditExperienceForm` field-for-field (title,
+     company, description, startDate, endDate, isCurrent, location), flattened
+     because `FormSwitch` and `FormTagsInput` read `values[name]` and would miss a
+     dotted path. The job board's step-2 modal writes `experienceTitle`,
+     `experienceCompany` and `skills`; the rest is only editable here, which is
+     what that modal means when it says "update it in Settings → Profile". */
+  experienceTitle: 'Co-founder & CEO',
+  experienceCompany: 'Lattice Compute',
+  experienceDescription: 'Building verifiable compute markets for AI training.',
+  experienceStartDate: '2022-03-01T00:00:00.000Z',
+  experienceEndDate: null as string | null,
+  experienceIsCurrent: true,
+  experienceLocation: 'Berlin, Germany',
   openToCollaborate: true,
   officeHours: true,
 };

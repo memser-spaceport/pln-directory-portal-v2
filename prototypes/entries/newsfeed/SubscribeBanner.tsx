@@ -26,9 +26,9 @@ interface SubscribeBannerProps {
  *
  * The complement of the top-stories block: unfiltered, the curator tells you what
  * mattered; filtered, you've said what matters to you, and the useful next move
- * is to stop having to come back and check. That is a *subscription*, not a saved
- * filter — `SavedFilterBanner` next door offers persistence ("your feed will open
- * on this next time"), which is a different promise, so the copy here is the
+ * is to stop having to come back and check. That is an *email subscription*, not a
+ * saved filter — `SavedFilterBanner` next door offers persistence ("your feed will
+ * open on this next time"), which is a different promise, so the copy here is the
  * alert framing instead and the object it creates is a Monitor subscription.
  *
  * The caller owns both guards, matching `SavedFilterBanner`: render only while
@@ -48,10 +48,13 @@ export function SubscribeBanner({ label, onSubscribe, onDismiss }: SubscribeBann
             down, via the `local.subscribe*` overrides. */}
         <div className={banner.body}>
           <div className={clsx(banner.copy, local.subscribeCopy)}>
-            <p className={clsx(banner.title, local.subscribeTitle)}>Get notified when new items match this filter.</p>
+            {/* Email, named as email — the same promise production's JobAlertBanner
+                makes ("Get an email when new roles match these filters"). The
+                curated feed's whole bet is the inbox, so "notifications" was the
+                vaguer word for the thing that actually happens. */}
+            <p className={clsx(banner.title, local.subscribeTitle)}>Get an email when new items match this filter.</p>
             <p className={clsx(banner.subtitle, local.subscribeSubtitle)}>
-              You&apos;re looking at <strong>{label}</strong>. We&apos;ll send it to your notifications, only when there
-              are new matches.
+              You&apos;re looking at <strong>{label}</strong>. We&apos;ll email you only when there are new matches.
             </p>
           </div>
         </div>

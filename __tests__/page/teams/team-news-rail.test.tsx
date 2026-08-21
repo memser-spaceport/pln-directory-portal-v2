@@ -10,18 +10,42 @@ const mockOnViewAllClicked = jest.fn();
 const mockOnShowMoreClicked = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
 const mockOnUpvoteFailed = jest.fn();
+const mockOnAllNetworkUpdatesClicked = jest.fn();
 const mockUpvoteMutate = jest.fn();
 const mockUseCurrentUserStore = jest.fn(() => ({ currentUser: { uid: 'm-1' }, isHydrated: true }));
 let lastModalProps: Record<string, unknown> | null = null;
+let lastDetailProps: Record<string, unknown> | null = null;
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
     onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
+    onTeamNewsAllNetworkUpdatesClicked: (...a: unknown[]) => mockOnAllNetworkUpdatesClicked(...a),
     onTeamNewsShowMoreClicked: (...a: unknown[]) => mockOnShowMoreClicked(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
     onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
+    onTeamNewsShared: jest.fn(),
   }),
+}));
+
+// The story modal is /home's, covered by its own suite — stub it to the props
+// the rail is responsible for handing over.
+jest.mock('@/components/page/home/TeamNews/components/NewsDetailModal', () => ({
+  NewsDetailModal: (props: { item: { uid: string } }) => {
+    lastDetailProps = props;
+    return <div data-testid="news-detail-modal">{props.item.uid}</div>;
+  },
+  NEWS_DETAIL_TITLE_ID: 'news-detail-modal-title',
+}));
+
+// The badge's number, and the request that fills it. Default: unknown, which
+// renders as the bare noun rather than a fake 0.
+const mockCommentCount = jest.fn<number | undefined, []>(() => undefined);
+const mockRequestCommentCounts = jest.fn();
+
+jest.mock('@/services/feed/hooks/useFeedCommentCounts', () => ({
+  useFeedCommentCount: () => mockCommentCount(),
+  useFeedCommentCounts: (...a: unknown[]) => mockRequestCommentCounts(...a),
 }));
 
 // jsdom has no layout, so the real measured teaser never shows its button
@@ -258,41 +282,122 @@ describe('TeamNewsRail', () => {
       />,
     );
 
-  it('opens the modal focused on the clicked item via Show more, firing only the show-more event', () => {
+  it('opens the story over the profile via Show more, firing only the show-more event', () => {
     renderRailWithSummaries();
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[1]);
 
-    expect(lastModalProps?.isOpen).toBe(true);
-    expect(lastModalProps?.focusUid).toBe('news-1');
-    expect(mockOnShowMoreClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'news-1' }), 0);
+    expect(screen.getByTestId('news-detail-modal')).toHaveTextContent('news-2');
+    // The archive stays shut: "Show more" asks for one story, not the list.
+    expect(lastModalProps?.isOpen).toBe(false);
+    expect(mockOnShowMoreClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'news-2' }), 1);
     expect(mockOnCardClicked).not.toHaveBeenCalled();
     expect(mockOnViewAllClicked).not.toHaveBeenCalled();
   });
 
-  it('View all after a prior Show more open is unfocused', () => {
+  it('Show more opens the story even when View all is not rendered (total ≤ preview limit)', () => {
+    renderRailWithSummaries(2);
+
+    expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[0]);
+
+    expect(screen.getByTestId('news-detail-modal')).toHaveTextContent('news-1');
+  });
+
+  it('tapping a card opens the story instead of leaving for the source', () => {
+    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+    renderRailWithSummaries();
+
+    fireEvent.click(screen.getByText('Headline news-1'));
+
+    expect(screen.getByTestId('news-detail-modal')).toHaveTextContent('news-1');
+    expect(open).not.toHaveBeenCalled();
+    expect(mockOnCardClicked).toHaveBeenCalledWith(expect.objectContaining({ uid: 'news-1' }), 0, 'team-profile-rail');
+    open.mockRestore();
+  });
+
+  it('announces the row as a dialog opener so focus can be handed back to it', () => {
+    renderRailWithSummaries();
+
+    const row = screen.getByText('Headline news-1').closest('[data-story-uid]');
+    expect(row).toHaveAttribute('role', 'button');
+    expect(row).toHaveAttribute('aria-haspopup', 'dialog');
+  });
+
+  it('asks for the counts of the stories it shows', () => {
+    renderRailWithSummaries();
+
+    expect(mockRequestCommentCounts).toHaveBeenCalledWith({ uids: ['news-1', 'news-2'], enabled: true });
+  });
+
+  it('renders a known count and stays bare when the count is unknown', () => {
+    mockCommentCount.mockReturnValue(4);
+    const { unmount } = renderRailWithSummaries();
+    expect(screen.getAllByRole('button', { name: '4 Comments, open' })).toHaveLength(2);
+
+    unmount();
+    // Absent from the response means zero OR not yet known — the button says the
+    // noun and nothing else rather than claiming a 0 it can't stand behind.
+    mockCommentCount.mockReturnValue(undefined);
+    renderRailWithSummaries();
+    expect(screen.getAllByRole('button', { name: 'Comments, open' })).toHaveLength(2);
+  });
+
+  it('the comment count opens the same story, reported as its own via', () => {
+    renderRailWithSummaries();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Comments, open' })[1]);
+
+    expect(screen.getByTestId('news-detail-modal')).toHaveTextContent('news-2');
+    expect(mockOnCardClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ uid: 'news-2' }),
+      1,
+      'team-profile-rail',
+      'comments',
+    );
+  });
+
+  it('closing the story leaves the profile as it was', () => {
+    renderRailWithSummaries();
+    fireEvent.click(screen.getByText('Headline news-1'));
+
+    act(() => {
+      (lastDetailProps?.onClose as () => void)();
+    });
+
+    expect(screen.queryByTestId('news-detail-modal')).not.toBeInTheDocument();
+    expect(lastModalProps?.isOpen).toBe(false);
+  });
+
+  it('View all after a prior story open is unfocused', () => {
     renderRailWithSummaries();
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[1]);
-    expect(lastModalProps?.focusUid).toBe('news-2');
-
     act(() => {
-      (lastModalProps?.onClose as () => void)();
+      (lastDetailProps?.onClose as () => void)();
     });
-    expect(lastModalProps?.isOpen).toBe(false);
 
     fireEvent.click(screen.getByRole('button', { name: 'View all news (5)' }));
     expect(lastModalProps?.isOpen).toBe(true);
     expect(lastModalProps?.focusUid).toBeNull();
   });
 
-  it('Show more opens the modal even when View all is not rendered (total ≤ preview limit)', () => {
+  it('offers All network updates beside View all, and alone when there is no archive', () => {
+    const { unmount } = renderRailWithSummaries();
+
+    const link = screen.getByRole('link', { name: /All network updates/i });
+    expect(link).toHaveAttribute('href', '/home');
+    // The ↗ promises "elsewhere", and the profile behind it is worth keeping.
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    expect(screen.getByRole('button', { name: 'View all news (5)' })).toBeInTheDocument();
+
+    fireEvent.click(link);
+    expect(mockOnAllNetworkUpdatesClicked).toHaveBeenCalledWith('team-1', 'Protocol Labs', 'team-profile-rail');
+
+    unmount();
     renderRailWithSummaries(2);
-
     expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Show more' })[0]);
-
-    expect(lastModalProps?.isOpen).toBe(true);
-    expect(lastModalProps?.focusUid).toBe('news-1');
+    expect(screen.getByRole('link', { name: /All network updates/i })).toBeInTheDocument();
   });
 });

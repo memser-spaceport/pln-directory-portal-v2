@@ -225,6 +225,14 @@ export const useSettingsAnalytics = () => {
     captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_DEMO_DAY_UPDATES_NOTIFICATION_TOGGLE_CLICKED, params);
   }
 
+  function onEmailChangePanelOpened() {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_EMAIL_CHANGE_PANEL_OPENED);
+  }
+
+  function onEmailChangeCancelled() {
+    captureEvent(SETTINGS_ANALYTICS_EVENTS.SETTINGS_EMAIL_CHANGE_CANCELLED);
+  }
+
   return {
     recordSettingsSideMenuClick,
     recordManageTeamsTeamChange,
@@ -256,5 +264,7 @@ export const useSettingsAnalytics = () => {
     onSubscribeToPlNewsletterChange,
     onSubscribeToDemoDayUpdatesChange,
     onDemoDayUpdatesNotificationToggleClicked,
+    onEmailChangePanelOpened,
+    onEmailChangeCancelled,
   };
 };

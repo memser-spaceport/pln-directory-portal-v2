@@ -12,9 +12,19 @@ function renderWithQueryClient(ui: ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+const mockUseCurrentUserStore = jest.fn();
+
 jest.mock('@/services/auth/store', () => ({
-  useCurrentUserStore: () => ({ currentUser: { uid: 'user-1', leadingTeams: ['team-1'], roles: [] } }),
+  useCurrentUserStore: () => mockUseCurrentUserStore(),
 }));
+
+const teamLeadUser = { uid: 'user-1', leadingTeams: ['team-1'], roles: [], rbac: { effectivePermissions: [] } };
+const adminUser = {
+  uid: 'admin-1',
+  leadingTeams: [],
+  roles: [],
+  rbac: { effectivePermissions: [{ code: 'directory.admin.full' }] },
+};
 
 const pushMock = jest.fn();
 
@@ -66,7 +76,27 @@ jest.mock('@/services/follow/hooks/useTeamFollowers', () => ({
   useTeamFollowers: jest.fn(() => ({ data: { items: [], total: 0 } })),
 }));
 
+const baseTeam = {
+  id: 'team-1',
+  name: 'Team Alpha',
+  logo: '/team.png',
+  shortDescription: 'Short description',
+  longDescription: '<p>About team</p>',
+  fundingStage: { title: 'Seed' },
+  industryTags: [{ title: 'AI' }],
+  technologies: [],
+  membershipSources: [],
+  asks: [],
+  maintainingProjects: [],
+  contributingProjects: [],
+  teamFocusAreas: [],
+};
+
 describe('TeamDetails inline edit', () => {
+  beforeEach(() => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: teamLeadUser });
+  });
+
   beforeAll(() => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -117,6 +147,30 @@ describe('TeamDetails inline edit', () => {
     expect(screen.getByText('Profile Image Input')).toBeInTheDocument();
     expect(screen.getByText('About Editor')).toBeInTheDocument();
     expect(screen.queryByText('About team')).not.toBeInTheDocument();
+    expect(screen.queryByText('This team is active')).not.toBeInTheDocument();
+  });
+
+  it('shows the active/inactive toggle to admins only', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: adminUser });
+
+    renderWithQueryClient(<TeamDetails team={{ ...baseTeam } as any} isCurrentUserTeamMember={true} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+
+    expect(screen.getByText('This team is active')).toBeInTheDocument();
+  });
+
+  it('shows the Inactive status tag to everyone', () => {
+    mockUseCurrentUserStore.mockReturnValue({
+      currentUser: { uid: 'viewer-1', leadingTeams: [], roles: [], rbac: { effectivePermissions: [] } },
+    });
+
+    renderWithQueryClient(
+      <TeamDetails team={{ ...baseTeam, status: 'INACTIVE' } as any} isCurrentUserTeamMember={false} />,
+    );
+
+    expect(screen.getByText('Inactive')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
   });
 
   it('renders empty state tags for missing details', () => {

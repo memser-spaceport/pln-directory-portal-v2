@@ -18,6 +18,8 @@ const EVENT_CLASS: Record<ITeamNewsItem['eventType'], string> = {
   ANNOUNCEMENT: 'eAnnouncement',
   MILESTONE: 'eMilestone',
   OTHER: 'eAnnouncement',
+  HIRING: 'eAnnouncement',
+  DEALS: 'eAnnouncement',
 };
 
 interface EmailDigestProps {

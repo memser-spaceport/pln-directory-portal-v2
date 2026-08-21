@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { InfoCircleIcon } from '@/components/icons';
 import { useReviewTeamEnrichmentMutation } from '@/services/teams/hooks/useReviewTeamEnrichmentMutation';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { ITeam } from '@/types/teams.types';
 
 import s from './AiGeneratedTeamProfileBanner.module.scss';
@@ -20,6 +21,7 @@ const REVIEWED_STATUS = 'Reviewed';
 export function AiGeneratedTeamProfileBanner({ team }: Props) {
   const [isReviewedOptimistically, setIsReviewedOptimistically] = useState(false);
   const { mutate } = useReviewTeamEnrichmentMutation();
+  const { onTeamDetailEnrichmentReviewed } = useTeamAnalytics();
 
   const isReviewed = isReviewedOptimistically || team?.dataEnrichment?.status === REVIEWED_STATUS;
 
@@ -29,6 +31,7 @@ export function AiGeneratedTeamProfileBanner({ team }: Props) {
 
   const handleReview = () => {
     setIsReviewedOptimistically(true);
+    onTeamDetailEnrichmentReviewed({ teamUid: team.id });
 
     mutate(
       { teamUid: team.id },

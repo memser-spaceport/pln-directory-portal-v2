@@ -79,6 +79,120 @@
   }
 }
 
+/* ---- "Updates from the team" rail card ---- */
+
+/* Mobile copy, shown where the rail is hidden — same split the Affinity card
+   above already makes. */
+.updatesMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include media.tablet-landscape {
+    display: none;
+  }
+}
+
+/* Brand-tinted surface over BookWithOther's card shell — the same
+   soft-surface + subtle-border pair the jobs alert banner uses. The shadow goes
+   with it: a tinted card reads as a distinct surface on its own, and keeping
+   both makes it float off a rail whose other cards are flat white. */
+.updatesCard.updatesCard {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  box-shadow: none;
+}
+
+/* Title row: the icon names the block's kind before the words do. */
+.updatesHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.updatesIcon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+.updatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li:not(:last-child) {
+    padding-bottom: 12px;
+    // Neutral hairlines disappear on the tinted surface — the divider tracks the
+    // card's own border instead.
+    border-bottom: 1px solid var(--border-brand-subtle, #aebfff);
+  }
+}
+
+.updateRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+
+  &:hover .updateTitle {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.updateTeam {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.updateTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  transition: color 0.12s ease;
+}
+
+/* Date left, engagement pinned to the card's right edge — the counts line up
+   in a column down the card, which is what makes three of them comparable at a
+   glance. The forum's meta items run 18px and the date 16px, so
+   `align-items: center` puts them on a shared centreline rather than a shared
+   baseline they don't have. */
+.updateMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  width: 100%;
+}
+
+.updateEngagement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.updateTime {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
 /* ---- Profile header (mirrors MemberDetailHeader composition) ---- */
 .bio {
   color: var(--foreground-neutral-secondary, #455468);
@@ -157,29 +271,11 @@
   padding: 16px;
 }
 
-/* Uppercase "PL Team only" pill, top-right of the card header. */
-.internalPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-}
-
+/* The "PL Team only" pill moved to prototypes/entries/profile-shared/ when the
+   job-board profile drawer needed the same mark. Deleted here rather than left
+   behind: two definitions of one privacy marker is the drift the move existed to
+   prevent. The blue variant's `.plBanner` strip below is a different treatment
+   and stays. */
 
 .sourceChip {
   display: inline-flex;

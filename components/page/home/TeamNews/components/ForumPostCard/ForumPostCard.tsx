@@ -15,7 +15,11 @@ import newsCardStyles from '../NewsCard/NewsCard.module.scss';
 import { UpvoteButton } from '../NewsCard/components/UpvoteButton/UpvoteButton';
 import { CommentButton } from '../NewsCard/components/CommentButton/CommentButton';
 import { FeedForumPostShareMenu } from '../NewsShareMenu';
+import { ViewCount } from '../ViewCount/ViewCount';
 import { FeedCommentsThread, feedThreadDomId } from '../FeedCommentsThread/FeedCommentsThread';
+
+import { ForumPostTitle } from '../ForumPostTitle';
+import { OWN_FORUM_POST_LIKE_REASON } from '../../utils/isOwnForumPost';
 
 import s from './ForumPostCard.module.scss';
 
@@ -24,6 +28,9 @@ interface ForumPostCardProps {
    *  same as news items' upvote fields. */
   post: IFeedForumPost;
   position: number;
+  /** Resolved by TeamNews against the signed-in member, like the like state
+   *  itself, so the card and the modal can never disagree about it. */
+  isOwnPost?: boolean;
   onOpenDetail: (post: IFeedForumPost) => void;
   onLikeToggle: (post: IFeedForumPost) => void;
 }
@@ -35,7 +42,9 @@ interface ForumPostCardProps {
  * there is no signed-out #login branch here. Title/body/author render via JSX
  * text interpolation only (plain text per the feed contract).
  */
-export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: ForumPostCardProps) {
+export function ForumPostCard(props: ForumPostCardProps) {
+  const { post, position, isOwnPost = false, onOpenDetail, onLikeToggle } = props;
+
   const analytics = useTeamNewsAnalytics();
   const [threadOpen, setThreadOpen] = useState(false);
   // See NewsGroupCard: an unsettled comment blocks collapse, because the
@@ -98,7 +107,7 @@ export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: Fo
           }
         }}
       >
-        <h3 className={clsx(newsCardStyles.headline, s.title)}>{post.title}</h3>
+        <ForumPostTitle post={post} />
         <p className={s.summary}>{post.body}</p>
         <div className={s.footer}>
           <span className={s.source}>
@@ -108,7 +117,13 @@ export function ForumPostCard({ post, position, onOpenDetail, onLikeToggle }: Fo
           </span>
           <span className={s.footerActions} onClick={(e) => e.stopPropagation()}>
             <FeedForumPostShareMenu post={post} source="home" />
-            <UpvoteButton count={post.likeCount} voted={post.viewerHasLiked} onToggle={() => onLikeToggle(post)} />
+            <ViewCount count={post.viewCount} />
+            <UpvoteButton
+              count={post.likeCount}
+              voted={post.viewerHasLiked}
+              onToggle={() => onLikeToggle(post)}
+              disabledReason={isOwnPost ? OWN_FORUM_POST_LIKE_REASON : undefined}
+            />
             <CommentButton
               itemUid={post.uid}
               open={threadOpen}

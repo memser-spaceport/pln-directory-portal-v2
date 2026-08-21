@@ -12,19 +12,8 @@ import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDiv
 import { FilterTagInput } from '@/components/form/FilterTagInput';
 import fs from '@/components/page/members/MembersFilter/MembersFilter.module.scss';
 
-import { useMockTeamFilterStore } from './mockTeamFilterStore';
+import { useMockTeamFilterStore, countAppliedFilters } from './mockTeamFilterStore';
 import { MOCK_TAGS, MOCK_MEMBERSHIP_SOURCES, MOCK_FUNDING_STAGES } from './mocks';
-
-// Params that count toward the "applied filters" badge (mirrors production's tracked set).
-const COUNTED_PARAMS = [
-  'membershipSources',
-  'tags',
-  'fundingStage',
-  'isFund',
-  'minTypicalCheckSize',
-  'maxTypicalCheckSize',
-  'investmentFocus',
-];
 
 interface Props {
   onClose?: () => void;
@@ -40,7 +29,7 @@ interface Props {
 export function TeamsFilterView({ onClose }: Props) {
   const { params, clearParams } = useMockTeamFilterStore();
 
-  const appliedFiltersCount = COUNTED_PARAMS.filter((k) => params.get(k)).length;
+  const appliedFiltersCount = countAppliedFilters(params);
   const isFund = params.get('isFund') === 'true';
 
   const getTeamTags = createFilterGetter(MOCK_TAGS);
@@ -59,6 +48,35 @@ export function TeamsFilterView({ onClose }: Props) {
           useGetDataHook={getMembershipSources}
         />
       </FilterSection>
+
+      {/*
+        Inactive teams — on by default, so this switch is how you take them out
+        rather than how you find them.
+
+        A toggle and not a third tab: the row above the grid is All / Following,
+        which is a scope of *relationship* — teams you've chosen to keep up with
+        versus all of them. "Inactive" is a fact about the team, a different
+        axis, and putting it in the same row would make that row mean two things.
+        The panel is where the product already asks "which teams count", so it
+        goes here, as the same `GenericFilterToggle` that runs "Show all funds"
+        three sections down — which also gets it into the applied-filters count
+        and under Clear all for free.
+
+        Loose between two sections rather than in one of its own: a "Team status"
+        heading over a single switch is a section that exists to hold a label.
+        Production does the same with its PortCo founders toggle on Members.
+
+        Below Membership Source rather than at the head of the panel: a control
+        that ships on isn't setting the scope, it's refining it, and the first
+        thing in a filter rail reads as the decision the rest hangs off. It's
+        still high enough to find without scrolling.
+      */}
+      <GenericFilterToggle
+        label="Show inactive teams"
+        paramKey="showInactive"
+        filterStore={useMockTeamFilterStore}
+        className={clsx(fs.Label, fs.toggle)}
+      />
 
       {/* Tags (Industry Tags) */}
       <FilterSection title="Tags">

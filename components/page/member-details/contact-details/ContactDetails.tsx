@@ -39,9 +39,10 @@ const SOCIAL_TO_HANDLE_MAP: Record<string, string> = {
   email: 'email',
   discord: 'discordHandle',
   telegram: 'telegramHandle',
+  bluesky: 'blueskyHandle',
 };
 
-const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'];
+const VISIBLE_HANDLES = ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github', 'bluesky'];
 const DRAWER_HANDLES = ['email', 'linkedin', 'telegram', 'twitter'];
 
 export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default' }: Props) => {

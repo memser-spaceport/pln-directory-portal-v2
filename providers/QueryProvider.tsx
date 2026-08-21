@@ -18,6 +18,14 @@ export const onQueryError = (error: Error, query: { queryKey: unknown; meta?: Re
   }
 };
 
+// Module scope: one instance per Node process, shared by every SSR request.
+// That is only safe because nothing writes to this cache on the server — query
+// functions need effects, which don't run during SSR, and no server component
+// seeds it. DO NOT seed it server-side (initialData, setQueryData or
+// HydrationBoundary rendered on the server): one user's data would land in
+// another user's HTML. Server data must reach components as props instead —
+// see app/home/page.tsx's Quick Actions seeding. If real server-side hydration
+// is ever needed, make this a per-request client first.
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: onQueryError,

@@ -142,6 +142,13 @@
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+
+  /* Every action inside gates itself, so a viewer with none of them leaves this
+     wrapper empty — and an empty flex item still claims `.headerTop`'s 16px gap,
+     narrowing the title and wrapping it a word early. */
+  &:empty {
+    display: none;
+  }
 }
 
 .archiveAction {

@@ -48,6 +48,12 @@ import { HeaderSearch } from './HeaderSearch';
 // Production search field, reused 1:1 for the mobile drop-down row.
 import { SearchInput } from '@/components/common/filters/SearchInput';
 import { FollowToast } from '../follow-shared/FollowToast';
+// Replaces the inherited production header/bottom bar, both hidden by
+// nav-shared's stylesheet. This route IS Home, so it has to render the nav that
+// says so — inheriting production's chrome here showed a navbar with no route
+// back to the page you were standing on.
+import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
+import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
 import { EVENT_TYPE_LABEL } from './eventMeta';
 import {
   MOCK_GROUPS,
@@ -134,6 +140,8 @@ const EVENT_HEX: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: '#475467',
   MILESTONE: '#b54708',
   OTHER: '#475467',
+  HIRING: '#475467',
+  DEALS: '#475467',
 };
 
 // How much each event type matters when picking a cluster's lead story.
@@ -144,6 +152,8 @@ const EVENT_TYPE_WEIGHT: Record<ITeamNewsItem['eventType'], number> = {
   MILESTONE: 2,
   ANNOUNCEMENT: 1,
   OTHER: 0,
+  HIRING: 0,
+  DEALS: 0,
 };
 
 /**
@@ -516,246 +526,269 @@ export default function NewsfeedV0Prototype() {
     desktopFieldRef.current?.querySelector('input')?.focus();
   }, [searchOpen]);
 
-  if (!mounted) return <div className={local.page} />;
+  /* You're standing on the feed, so there is nothing unread to point at: the dot
+     is off here by definition, and `active` is what the item shows instead. */
+  const nav = (
+    <>
+      <PrototypeNavBar hasUnreadNews={false} active />
+      <PrototypeMobileNav hasUnreadNews={false} active />
+    </>
+  );
+
+  // Rendered outside the mount gate so the page never paints without its chrome.
+  if (!mounted)
+    return (
+      <>
+        {nav}
+        <div className={local.page} />
+      </>
+    );
 
   return (
-    <div className={clsx(local.page, styles.home)}>
-      <div className={styles.home__cn}>
-        {/* Desktop: production Cards grid. Mobile: stacked-card scroller. */}
-        <div className={local.qaDesktop}>
-          <QuickActionsMock />
-        </div>
-        <div className={local.qaMobile}>
-          <MobileQuickActions />
-        </div>
+    <>
+      {nav}
+      <div className={clsx(local.page, styles.home)}>
+        <div className={styles.home__cn}>
+          {/* Desktop: production Cards grid. Mobile: stacked-card scroller. */}
+          <div className={local.qaDesktop}>
+            <QuickActionsMock />
+          </div>
+          <div className={local.qaMobile}>
+            <MobileQuickActions />
+          </div>
 
-        <div className={styles.home__cn__teamnews}>
-          {isEmpty(allItems) ? (
-            <NetworkUpdatesBase>
-              <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
-            </NetworkUpdatesBase>
-          ) : (
-            <NetworkUpdatesBase
-              headerDetails={
-                <div className={clsx(local.headerActions, local.headerActionsBanner)}>
-                  {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
-                  <HeaderSearch
-                    open={searchOpen}
+          <div className={styles.home__cn__teamnews}>
+            {isEmpty(allItems) ? (
+              <NetworkUpdatesBase>
+                <div className={s.empty}>No network news in the last 14 days yet. Check back soon.</div>
+              </NetworkUpdatesBase>
+            ) : (
+              <NetworkUpdatesBase
+                headerDetails={
+                  <div className={clsx(local.headerActions, local.headerActionsBanner)}>
+                    {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+                    <HeaderSearch
+                      open={searchOpen}
+                      value={query}
+                      onOpen={openSearch}
+                      onChange={handleSearch}
+                      onBlur={handleFieldBlur}
+                      fieldRef={desktopFieldRef}
+                    />
+                  </div>
+                }
+              >
+                {/* Mobile only: the header has no room to expand inline, so the field
+                lives here as a permanent full-width row. Hidden on desktop. */}
+                <div className={local.mobileSearchRow}>
+                  <SearchInput
                     value={query}
-                    onOpen={openSearch}
                     onChange={handleSearch}
-                    onBlur={handleFieldBlur}
-                    fieldRef={desktopFieldRef}
+                    placeholder="Search by team, member, or keyword…"
                   />
                 </div>
-              }
-            >
-              {/* Mobile only: the header has no room to expand inline, so the field
-                lives here as a permanent full-width row. Hidden on desktop. */}
-              <div className={local.mobileSearchRow}>
-                <SearchInput value={query} onChange={handleSearch} placeholder="Search by team, member, or keyword…" />
-              </div>
 
-              {/* Prototype-only: toggle the comments version on/off. */}
-              <div className={local.versionRow}>
-                <div className={local.switchBar}>
-                  <span className={local.switchLabel}>Comments</span>
-                  <div className={local.switch} role="tablist" aria-label="Comments version">
-                    {MODE_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        role="tab"
-                        aria-selected={commentsMode === opt.value}
-                        className={clsx(local.switchBtn, commentsMode === opt.value && local.switchBtnActive)}
-                        onClick={() => setCommentsMode(opt.value)}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                {/* Prototype-only: toggle the comments version on/off. */}
+                <div className={local.versionRow}>
+                  <div className={local.switchBar}>
+                    <span className={local.switchLabel}>Comments</span>
+                    <div className={local.switch} role="tablist" aria-label="Comments version">
+                      {MODE_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="tab"
+                          aria-selected={commentsMode === opt.value}
+                          className={clsx(local.switchBtn, commentsMode === opt.value && local.switchBtnActive)}
+                          onClick={() => setCommentsMode(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <span className={local.switchNote}>{MODE_NOTE[commentsMode]}</span>
                   </div>
-                  <span className={local.switchNote}>{MODE_NOTE[commentsMode]}</span>
+
+                  <div className={local.switchBar}>
+                    <span className={local.switchLabel}>Personalization</span>
+                    <div className={local.switch} role="tablist" aria-label="Personalization version">
+                      {PERSONALIZATION_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="tab"
+                          aria-selected={personalization === opt.value}
+                          className={clsx(local.switchBtn, personalization === opt.value && local.switchBtnActive)}
+                          onClick={() => setPersonalization(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <span className={local.switchNote}>{PERSONALIZATION_NOTE[personalization]}</span>
+                  </div>
                 </div>
 
-                <div className={local.switchBar}>
-                  <span className={local.switchLabel}>Personalization</span>
-                  <div className={local.switch} role="tablist" aria-label="Personalization version">
-                    {PERSONALIZATION_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        role="tab"
-                        aria-selected={personalization === opt.value}
-                        className={clsx(local.switchBtn, personalization === opt.value && local.switchBtnActive)}
-                        onClick={() => setPersonalization(opt.value)}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  <span className={local.switchNote}>{PERSONALIZATION_NOTE[personalization]}</span>
-                </div>
-              </div>
-
-              {/* Constrain the tabs' underline to end at the news-card's right edge
+                {/* Constrain the tabs' underline to end at the news-card's right edge
                 (reserve the rail column), instead of spanning the full width. */}
-              <div className={clsx(local.tabsConstrain, local.tabsConstrainBanner)}>
-                <NewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
-              </div>
-
-              <div className={local.filterBar}>
-                <div className={s.catRow}>
-                  {categoriesWithCounts.map((c) => {
-                    const isActive = activeCategory === c.id;
-                    const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className={clsx(s.cat, { [s.catActive]: isActive })}
-                        onClick={() => handleCategory(c.id)}
-                        disabled={isDisabled}
-                      >
-                        {c.label}
-                        {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-                      </button>
-                    );
-                  })}
+                <div className={clsx(local.tabsConstrain, local.tabsConstrainBanner)}>
+                  <NewsTabs groups={groups} allItems={allItems} activeTab={activeTab} onTabChange={handleTab} />
                 </div>
 
-                {/* Sort control opposite the event-type pills. Desktop: the
+                <div className={local.filterBar}>
+                  <div className={s.catRow}>
+                    {categoriesWithCounts.map((c) => {
+                      const isActive = activeCategory === c.id;
+                      const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={clsx(s.cat, { [s.catActive]: isActive })}
+                          onClick={() => handleCategory(c.id)}
+                          disabled={isDisabled}
+                        >
+                          {c.label}
+                          {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Sort control opposite the event-type pills. Desktop: the
                   "Sort by: …" dropdown. Mobile: the compact "Sort ▾" pill from
                   the Teams/Members mobile filter pattern. */}
-                <div className={local.filterActions}>
-                  {/* Standing entry point back to the saved filter — the banner
+                  <div className={local.filterActions}>
+                    {/* Standing entry point back to the saved filter — the banner
                       is a one-time offer, this is where the filter lives after. */}
-                  {personalization === 'filter' && savedFilter && (
-                    <SavedFilterChip
-                      savedFilter={savedFilter}
-                      view={view}
-                      onApply={() => {
-                        setView(savedFilter);
-                        setExpanded(false);
-                      }}
-                      onClear={clearSavedFilter}
-                    />
-                  )}
-                  <span className={local.sortDesktop}>
-                    <SortDropdown
-                      sortByLabel="Sort by:"
-                      options={SORT_OPTIONS}
-                      currentSort={sort}
-                      onSortChange={handleSort}
-                    />
-                  </span>
-                  <span className={local.sortMobile}>
-                    <MobileFeedSort options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
-                  </span>
+                    {personalization === 'filter' && savedFilter && (
+                      <SavedFilterChip
+                        savedFilter={savedFilter}
+                        view={view}
+                        onApply={() => {
+                          setView(savedFilter);
+                          setExpanded(false);
+                        }}
+                        onClear={clearSavedFilter}
+                      />
+                    )}
+                    <span className={local.sortDesktop}>
+                      <SortDropdown
+                        sortByLabel="Sort by:"
+                        options={SORT_OPTIONS}
+                        currentSort={sort}
+                        onSortChange={handleSort}
+                      />
+                    </span>
+                    <span className={local.sortMobile}>
+                      <MobileFeedSort options={SORT_OPTIONS} currentSort={sort} onSortChange={handleSort} />
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {entries.length === 0 ? (
-                <div className={s.empty}>
-                  {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
-                </div>
-              ) : (
-                <>
-                  <div className={clsx(local.feedLayout, local.feedLayoutBanner)}>
-                    <div className={local.feedList}>
-                      {/* Above the results the filters just produced — the job
+                {entries.length === 0 ? (
+                  <div className={s.empty}>
+                    {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
+                  </div>
+                ) : (
+                  <>
+                    <div className={clsx(local.feedLayout, local.feedLayoutBanner)}>
+                      <div className={local.feedList}>
+                        {/* Above the results the filters just produced — the job
                           board's slot (toolbar → banner → list), and the reason
                           that affordance converts where a rail module doesn't. */}
-                      {personalization === 'filter' && !bannerDismissed && (
-                        <SavedFilterBanner
-                          view={view}
-                          savedFilter={savedFilter}
-                          onSave={saveCurrentFilter}
-                          onDismiss={() => setBannerDismissed(true)}
-                        />
-                      )}
-                      {visibleEntries.map((entry) =>
-                        entry.kind === 'news' ? (
-                          <V0FeedCard
-                            key={`news-${entry.cluster.teamUid}`}
-                            cluster={entry.cluster}
-                            following={followedTeams.has(entry.cluster.teamUid)}
-                            onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
-                            showComments={commentsMode === 'with'}
-                            likeCount={likeCount}
-                            isLiked={isLiked}
-                            onToggleLike={toggleLike}
-                            commentsFor={commentsFor}
-                            onAddComment={addComment}
-                            onOpenStory={openStoryDetail}
+                        {personalization === 'filter' && !bannerDismissed && (
+                          <SavedFilterBanner
+                            view={view}
+                            savedFilter={savedFilter}
+                            onSave={saveCurrentFilter}
+                            onDismiss={() => setBannerDismissed(true)}
                           />
-                        ) : (
-                          <ForumPostCard
-                            key={`forum-${entry.post.uid}`}
-                            post={entry.post}
-                            showComments={commentsMode === 'with'}
-                            likeCount={likeCount(entry.post.uid)}
-                            liked={isLiked(entry.post.uid)}
-                            onToggleLike={() => toggleLike(entry.post.uid)}
-                            comments={commentsFor(entry.post.uid)}
-                            onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
-                            isCommentLiked={isLiked}
-                            onToggleCommentLike={toggleLike}
-                            onOpenDetail={() => openForumDetail(entry.post)}
-                          />
-                        ),
-                      )}
+                        )}
+                        {visibleEntries.map((entry) =>
+                          entry.kind === 'news' ? (
+                            <V0FeedCard
+                              key={`news-${entry.cluster.teamUid}`}
+                              cluster={entry.cluster}
+                              following={followedTeams.has(entry.cluster.teamUid)}
+                              onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
+                              showComments={commentsMode === 'with'}
+                              likeCount={likeCount}
+                              isLiked={isLiked}
+                              onToggleLike={toggleLike}
+                              commentsFor={commentsFor}
+                              onAddComment={addComment}
+                              onOpenStory={openStoryDetail}
+                            />
+                          ) : (
+                            <ForumPostCard
+                              key={`forum-${entry.post.uid}`}
+                              post={entry.post}
+                              showComments={commentsMode === 'with'}
+                              likeCount={likeCount(entry.post.uid)}
+                              liked={isLiked(entry.post.uid)}
+                              onToggleLike={() => toggleLike(entry.post.uid)}
+                              comments={commentsFor(entry.post.uid)}
+                              onAddComment={(text, parentUid) => addComment(entry.post.uid, text, parentUid)}
+                              isCommentLiked={isLiked}
+                              onToggleCommentLike={toggleLike}
+                              onOpenDetail={() => openForumDetail(entry.post)}
+                            />
+                          ),
+                        )}
+                      </div>
+                      {/* Follow-suggestions / popular rail in the reserved column. */}
+                      <aside className={local.feedRail}>
+                        <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
+                      </aside>
                     </div>
-                    {/* Follow-suggestions / popular rail in the reserved column. */}
-                    <aside className={local.feedRail}>
-                      <FeedRail followedTeams={followedTeams} onToggleFollow={toggleFollow} allItems={allItems} />
-                    </aside>
-                  </div>
-                  {entries.length > PAGE_SIZE && (
-                    <div className={clsx(s.showAll, local.showAllConstrain)}>
-                      <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
-                        {expanded ? 'Show Less' : 'Show All'}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </NetworkUpdatesBase>
-          )}
+                    {entries.length > PAGE_SIZE && (
+                      <div className={clsx(s.showAll, local.showAllConstrain)}>
+                        <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
+                          {expanded ? 'Show Less' : 'Show All'}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </NetworkUpdatesBase>
+            )}
+          </div>
         </div>
+
+        <FeedDetailModal
+          detail={detail}
+          onClose={() => setDetail(null)}
+          likeCount={detail ? likeCount(detail.id) : 0}
+          liked={detail ? isLiked(detail.id) : false}
+          onToggleLike={() => detail && toggleLike(detail.id)}
+          citationStyle="superscript"
+          showComments={commentsMode === 'with'}
+          comments={detail ? commentsFor(detail.id) : []}
+          onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
+          isCommentLiked={isLiked}
+          onToggleCommentLike={toggleLike}
+        />
+
+        <ForumPostModal
+          post={forumDetail}
+          onClose={() => setForumDetail(null)}
+          likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
+          liked={forumDetail ? isLiked(forumDetail.uid) : false}
+          onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
+          comments={forumDetail ? commentsFor(forumDetail.uid) : []}
+          onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
+          isCommentLiked={isLiked}
+          onToggleCommentLike={toggleLike}
+        />
+
+        {toast && (
+          <FollowToast>
+            You&apos;re now following {toast} — their updates will appear first in your feed. Manage who you follow from
+            your profile.
+          </FollowToast>
+        )}
       </div>
-
-      <FeedDetailModal
-        detail={detail}
-        onClose={() => setDetail(null)}
-        likeCount={detail ? likeCount(detail.id) : 0}
-        liked={detail ? isLiked(detail.id) : false}
-        onToggleLike={() => detail && toggleLike(detail.id)}
-        citationStyle="superscript"
-        showComments={commentsMode === 'with'}
-        comments={detail ? commentsFor(detail.id) : []}
-        onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
-        isCommentLiked={isLiked}
-        onToggleCommentLike={toggleLike}
-      />
-
-      <ForumPostModal
-        post={forumDetail}
-        onClose={() => setForumDetail(null)}
-        likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
-        liked={forumDetail ? isLiked(forumDetail.uid) : false}
-        onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
-        comments={forumDetail ? commentsFor(forumDetail.uid) : []}
-        onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
-        isCommentLiked={isLiked}
-        onToggleCommentLike={toggleLike}
-      />
-
-      {toast && (
-        <FollowToast>
-          You&apos;re now following {toast} — their updates will appear first in your feed. Manage who you follow from
-          your profile.
-        </FollowToast>
-      )}
-    </div>
+    </>
   );
 }

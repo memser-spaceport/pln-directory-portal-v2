@@ -23,6 +23,7 @@ interface Props extends PropsWithChildren {
   icon?: ReactNode;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   topDescription?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
 }
 
 export const FormField = ({
@@ -41,6 +42,7 @@ export const FormField = ({
   icon,
   onBlur,
   topDescription,
+  inputMode,
   ...rest
 }: Props) => {
   const {
@@ -103,6 +105,7 @@ export const FormField = ({
             className={clsx(s.inputElement, { [s.withIcon]: !!icon })}
             id={name}
             maxLength={maxLength}
+            inputMode={inputMode}
             {...rest}
           />
         </div>

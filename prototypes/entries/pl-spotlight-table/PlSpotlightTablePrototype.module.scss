@@ -1,0 +1,499 @@
+// PL Spotlight — back-office participants table.
+// Transcribed from Figma node 750:690 (Back Office | Protocol Labs).
+//
+// COLOR POLICY (prototypes/CLAUDE.md #3 + #6)
+// This frame belongs to the back-office app, which paints in Tailwind grays and
+// Tailwind badge ramps rather than the PL palette. Rule #6 says a transcription
+// keeps production's rendered color and only translates the *layer*: so every
+// color below is written as `var(--pl-design-system-role, #exact-figma-hex)`.
+// What renders today is byte-identical to the frame; the token name says which
+// PL role it should snap to if/when the back-office adopts the design system.
+//
+// Two consequences worth stating out loud rather than hiding:
+//  - #6b7280 and #9ca3af both map onto --foreground-neutral-tertiary. They are
+//    distinct today (the frame uses two muted grays) and would collapse into one
+//    on adoption. Kept separate here so the frame's hierarchy is not lost.
+//  - The Type pill is purple (#f3e8ff / #6b21a8). The PL design system has no
+//    purple family, so `--background-purple-soft-surface` is a placeholder name,
+//    not a verified token — the fallback is what does the work.
+//
+// SIZES are copied 1:1 from the frame, including the off-scale ones
+// (0.8px borders, 22.8px select pills, the 216.2 / 212.2 flex ratios).
+
+@use 'styles/media';
+
+.root {
+  padding: 24px;
+
+  @include media.mobile-only {
+    padding: 16px 0;
+  }
+}
+
+// The Overview card above the table. 16px, not the 24px gutter: they are two
+// views of one record, so they sit closer to each other than either does to the
+// edge of the page.
+.overview {
+  margin-bottom: 16px;
+}
+
+// ── The table card ────────────────────────────────────────────────────────────
+// Frame 750:691 measures 1488px around rows of 1486.4px, i.e. a 0.8px border on
+// every side. Radius is the one value the metadata does not carry; 8px matches
+// the rendered corners in the frame's screenshot.
+.card {
+  overflow: hidden;
+  border: 0.8px solid var(--border-neutral-subtle, #eee);
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+}
+
+.scroller {
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 1486.4px;
+}
+
+// ── Rows ──────────────────────────────────────────────────────────────────────
+.headRow,
+.row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 0.8px solid var(--border-neutral-subtle, #eee);
+}
+
+.headRow {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+}
+
+.row {
+  background: var(--background-base-white, #ffffff);
+
+  // Not in the frame — a static frame cannot show hover. At 18 rows × 10 columns
+  // an admin table needs a row tracker, so this is a deliberate addition.
+  &:hover {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+// ── Cells ─────────────────────────────────────────────────────────────────────
+.headCell,
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.headCell {
+  height: 52px;
+  padding: 4px 8px;
+}
+
+.cell {
+  padding: 12px 8px;
+}
+
+.headCell,
+.cell {
+  &.colSelect {
+    flex: 0 0 48px;
+    width: 48px;
+  }
+
+  // The frame's two fluid columns, at their exact flex ratios.
+  &.colMember {
+    flex: 216.2 0 0;
+    min-width: 0;
+    padding-right: 8px;
+    padding-left: 12px;
+  }
+
+  &.colTeam {
+    flex: 212.2 0 0;
+    min-width: 0;
+  }
+
+  &.colInvestorType {
+    flex: 0 0 120px;
+  }
+
+  &.colAccepted {
+    flex: 0 0 90px;
+  }
+
+  &.colFollowUp {
+    flex: 0 0 140px;
+  }
+
+  &.colTemplate {
+    flex: 0 0 180px;
+  }
+
+  &.colType {
+    flex: 0 0 150px;
+  }
+
+  &.colAccess {
+    flex: 0 0 220px;
+  }
+
+  &.colActions {
+    flex: 0 0 110px;
+  }
+}
+
+.headLabel {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+// ── Select column ─────────────────────────────────────────────────────────────
+// Left native: the frame renders the browser's own 16px checkbox (1px #767676
+// border, 2px radius), which is exactly what an unstyled input paints.
+.checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+// ── Member column ─────────────────────────────────────────────────────────────
+.member {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+// The frame's "Placeholder for Text" — a plain dark disc, no glyph.
+.avatarPlaceholder {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--background-neutral-inverted, #111827);
+}
+
+.memberText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.memberName,
+.memberEmail {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memberName {
+  color: var(--foreground-neutral-primary, #111827);
+}
+
+.memberEmail {
+  color: var(--foreground-neutral-tertiary, #6b7280);
+}
+
+// ── Team column ───────────────────────────────────────────────────────────────
+.teamLink {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--icon-link, #156ff7);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.teamName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teamLinkIcon {
+  flex-shrink: 0;
+  padding-left: 4px;
+  line-height: 0;
+}
+
+// ── Muted placeholders ────────────────────────────────────────────────────────
+// The frame's "-", "—" and "no data" all render in the same lighter gray.
+.muted {
+  color: var(--foreground-neutral-tertiary, #9ca3af);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+// "no data" is the one muted string the frame sets at 400, with no tracking.
+.mutedRegular {
+  color: var(--foreground-neutral-tertiary, #9ca3af);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+// ── Investor Type badge ───────────────────────────────────────────────────────
+.badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.badgeAngel {
+  background: var(--background-brand-soft-surface, #dbeafe);
+  color: var(--foreground-brand-secondary, #1e40af);
+}
+
+.badgeFund {
+  background: var(--background-success-soft-surface, #dcfce7);
+  color: var(--foreground-success-secondary, #166534);
+}
+
+.badgeUnknown {
+  background: var(--background-neutral-subtle, #f3f4f6);
+  color: var(--foreground-neutral-secondary, #4b5563);
+}
+
+// ── Invite Accepted ───────────────────────────────────────────────────────────
+// The frame centers the 20px glyph in a flex-1 box inside the 90px cell.
+.acceptedIcon {
+  display: flex;
+  flex: 1 0 0;
+  min-width: 0;
+  justify-content: center;
+  line-height: 0;
+}
+
+// ── Follow-up ─────────────────────────────────────────────────────────────────
+.followUp {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.followUpCount {
+  color: var(--foreground-neutral-secondary, #374151);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.followUpDate {
+  color: var(--foreground-neutral-tertiary, #6b7280);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+// ── Template vars ─────────────────────────────────────────────────────────────
+// A link-styled button whose 164px box clips the JSON. The production Tooltip
+// wrapping it only appears when the text is actually truncated, which is exactly
+// the affordance the clipped frame implies.
+.templateVars {
+  display: block;
+  max-width: 164px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--icon-link, #156ff7);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  cursor: default;
+}
+
+.templateVarsTooltip {
+  max-width: 360px;
+  word-break: break-all;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+// ── Type / Access selects ─────────────────────────────────────────────────────
+// The frame renders both as native <select>s: a full-round pill with the chevron
+// pinned inside the trailing 20px. Kept native so the control stays real.
+.selectWrap {
+  position: relative;
+  flex-shrink: 0;
+  height: 22.8px;
+}
+
+.select {
+  width: 100%;
+  height: 22.8px;
+  padding: 0 22px 0 8px;
+  border: none;
+  border-radius: 9999px;
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+.selectChevron {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  width: 20px;
+  height: 22.8px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.selectType {
+  width: 84px;
+}
+
+.selectType .select {
+  // No purple family exists in the PL design system — see the header note.
+  background: var(--background-purple-soft-surface, #f3e8ff);
+  color: var(--foreground-purple-secondary, #6b21a8);
+}
+
+.selectAccess {
+  width: 194.4px;
+}
+
+.selectAccess .select {
+  background: var(--background-brand-soft-surface, #dbeafe);
+  color: var(--foreground-brand-secondary, #1e40af);
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 24px;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+
+  // Hover / focus are not in the static frame; a 24px icon button needs them.
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+// ── Status bar (below the frame) ──────────────────────────────────────────────
+// Not part of the Figma frame. Remove participant is destructive and the frame
+// has no confirm step, so the prototype reports what happened and offers undo.
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 20px;
+  margin-top: 12px;
+  padding: 0 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.statusUndo {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--icon-link, #156ff7);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.selectionCount {
+  margin-left: auto;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

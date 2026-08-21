@@ -41,6 +41,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
     discord: rawPreferences?.discord ?? false,
     linkedin: rawPreferences?.linkedin ?? false,
     twitter: rawPreferences?.twitter ?? false,
+    bluesky: rawPreferences?.bluesky ?? false,
     githubProjects: rawPreferences?.github ?? false,
     newsLetter: true,
   };
@@ -52,6 +53,7 @@ export const getMemberPreferences = async (uid: string, authToken: string) => {
     discord: rawPreferences?.showDiscord,
     linkedin: rawPreferences?.showLinkedin,
     twitter: rawPreferences?.showTwitter,
+    bluesky: rawPreferences?.showBluesky,
     newsLetter: rawPreferences?.isSubscribedToNewsletter ?? false,
   };
 

@@ -1,0 +1,38 @@
+/* The list is uncapped: "View all" is the length control, so an inner max-height would
+ * be a second one fighting it — and a nested scroll region inside a page that already
+ * scrolls is a trap on touch. This is how the job board's own role list behaves under
+ * its expander.
+ */
+.list {
+  gap: 8px;
+  display: grid;
+}
+
+/* Projects' and Members' `.showAll` verbatim — same values, same token pair — because
+ * this is the team profile's own "reveal the rest" control and a reader meets it again
+ * further down the page. Re-declared here rather than imported so it can carry the
+ * resets a <button> needs: production applies that class to a <div> with an onClick,
+ * which a keyboard can't reach.
+ */
+.viewAll {
+  color: var(--action-foreground-brand-inverted_normal, #1b4dff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-align: center;
+
+  margin-top: 8px;
+
+  cursor: pointer;
+
+  border: none;
+  background: none;
+  padding: 0;
+  width: 100%;
+  font-family: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

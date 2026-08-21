@@ -1,0 +1,255 @@
+// Back Office — top navbar.
+// Transcribed from node 426:33970 in "Back Office | Protocol Labs", read off
+// Figma rather than off a screenshot: every size below is the frame's own.
+//
+// COLOR POLICY (prototypes/CLAUDE.md #3 + #4)
+// Unlike the table beside it, this bar does NOT paint in Tailwind grays. Figma
+// reports its label color as `action/foreground/neutral/normal` = #455468 and
+// the sign-out glyph as `action/foreground/neutral/normal_light` = #8897ae —
+// which are the PL design system's --foreground-neutral-secondary and
+// --foreground-neutral-tertiary exactly. So the token names here are verified,
+// not placeholders, and the fallbacks are the frame's literal values.
+// Two exceptions, both flagged where they appear: the #0f172a wordmark (a brand
+// mark, kept at the frame's near-black) and the #e2e8f0 drop shadow.
+//
+// SIZES are copied 1:1 from the frame, including 17.792px and 157.517px.
+
+@use 'styles/media';
+
+// ── The bar ───────────────────────────────────────────────────────────────────
+// 1440×80 in the frame: 16px vertical / 48px horizontal padding around a 48px
+// logo block, with the sign-out button pushed to the far edge.
+//
+// The frame separates the bar from the page with a drop shadow (Figma's
+// "Shadow 1 (Down)": #e2e8f0, y+1, radius 4), not a border — so that is what is
+// written here. It reads as the light-grey hairline it is meant to be.
+//
+// NOT in the frame: the bar is deliberately NOT sticky. The table below already
+// sticks its own header row to the top of the viewport; a sticky bar would have
+// to own a z-index and an offset for it, which is a layout decision the frame
+// does not make.
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 48px;
+  background: var(--background-base-white, #ffffff);
+  box-shadow: 0 1px 4px var(--shadow-down-1, #e2e8f0);
+
+  // Not in the frame — it is a 1440px desktop artboard. Below that the row has
+  // to give up its generous gutter and let the nav scroll rather than wrap,
+  // because wrapping would break the 80px bar.
+  @include media.mobile-only {
+    padding: 12px 16px;
+  }
+}
+
+.left {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 32px;
+
+  @include media.mobile-only {
+    gap: 16px;
+  }
+}
+
+// ── Logo ──────────────────────────────────────────────────────────────────────
+// 192×48. The exported mark carries the cube AND the "Protocol Labs" line as
+// vector, so line 2 is the only live text and it is positioned onto the mark's
+// second line at the frame's own 52 / 23 offsets.
+.logo {
+  position: relative;
+  flex-shrink: 0;
+  width: 192px;
+  height: 48px;
+}
+
+// The frame stretches the 157.517×32.876 export to 35.74px tall inside a
+// clipped 208px box. Rendered here at its natural height instead — same
+// vertical midpoint, no distorted wordmark — which is the one place this file
+// deliberately does not copy the frame's geometry.
+.logoMark {
+  position: absolute;
+  top: 50%;
+  left: 6.136px;
+  display: block;
+  transform: translateY(-50%);
+}
+
+.logoLine2 {
+  position: absolute;
+  top: 23px;
+  left: 52px;
+  // A brand lockup, so it keeps the frame's near-black rather than being
+  // translated to a neutral-text role.
+  color: var(--foreground-brandmark, #0f172a);
+  font-size: 17.792px;
+  font-weight: 600;
+  line-height: 17.792px;
+  white-space: nowrap;
+}
+
+// ── Nav items ─────────────────────────────────────────────────────────────────
+.menuItems {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+
+  @include media.mobile-only {
+    overflow-x: auto;
+    gap: 4px;
+  }
+}
+
+.navItem {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tabItem {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  // Hover / open / active are not in the static frame. A row of six dropdown
+  // triggers needs all three, so: hover tints and darkens, open keeps the tint
+  // so the panel reads as attached, and the current section stays dark.
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+.tabItemOpen {
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.tabItemActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.tabIcon,
+.tabCaret {
+  display: block;
+  flex-shrink: 0;
+}
+
+.tabCaret {
+  transition: transform 120ms ease;
+}
+
+.tabCaretOpen {
+  transform: rotate(180deg);
+}
+
+.tabLabel {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+// ── Dropdown panel ────────────────────────────────────────────────────────────
+// Row geometry is the frame's one open menu (426:33989): a 272px panel whose
+// 240px rows are 12/8px inside a 20px-radius pill, labelled 14/20 at -0.2px.
+// The panel's own chrome — radius, border, shadow, the 8px it hangs below the
+// trigger — is NOT in the frame and is invented here.
+.menu {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  min-width: 272px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #ffffff);
+  box-shadow: 0 8px 24px var(--transparent-dark-8, rgba(14, 15, 17, 0.08));
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+// The leaf you are already on. Not in the frame — its one open menu has no
+// current item — but the moment a leaf actually routes, a menu that cannot say
+// which of its four rows you came from is a menu you have to remember your way
+// out of. Weight and tone only: a background here would read as hover, and the
+// row would look like it is about to do something.
+.menuItemActive {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-weight: 600;
+}
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+// The frame's only right-hand control: a 24px glyph in 12px of padding, in the
+// lighter of the two neutrals. No label, no user menu.
+.signOut {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    color: var(--foreground-neutral-secondary, #455468);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--icon-link, #156ff7);
+    outline-offset: 1px;
+  }
+}
+
+.signOutIcon {
+  display: block;
+}

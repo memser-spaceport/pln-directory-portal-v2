@@ -78,10 +78,7 @@ describe('GiveCommunityKudosModal — send button gating', () => {
 
     await user.selectOptions(screen.getByLabelText(/recipient/i), 'uid-a');
     await user.selectOptions(screen.getByLabelText(/points to give/i), '20');
-    await user.type(
-      screen.getByLabelText(/your message/i),
-      'Thanks for the thorough review and quick turnaround.',
-    );
+    await user.type(screen.getByLabelText(/your message/i), 'Thanks for the thorough review and quick turnaround.');
 
     await waitFor(() => expect(sendBtn()).toBeEnabled());
   });

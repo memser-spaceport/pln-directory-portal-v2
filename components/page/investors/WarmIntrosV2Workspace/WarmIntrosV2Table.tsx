@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { CoInvestmentCountBadge, PlBackingMark } from '@/components/page/investors/PlBackingMark/PlBackingMark';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import type { WarmIntrosV2InvestorSummary, WarmIntrosV2PathListItem } from '@/services/investors/warm-intros-v2.types';
+import { alsoViaMembers, type SelectedMember } from './alsoViaMembers';
 import { ListMembershipTags } from './ListMembershipTags';
 import { hasRoleCaption, PathHop } from './PathHop';
 import { PathProfileChip } from './PathProfileChip';
@@ -20,6 +21,8 @@ interface Props {
   onRowClick?: (row: WarmIntrosV2PathListItem) => void;
   /** Show list badges beside the name — only when the scope spans more than one list. */
   showListName?: boolean;
+  /** Active "Path via → PL member" selection, so a row can say why it matched. */
+  alsoViaSelected?: SelectedMember[];
   /** Scroll container for infinite-scroll IntersectionObserver root. */
   scrollRootRef?: Ref<HTMLDivElement>;
   /** Placed at the bottom of the scrollable table body. */
@@ -48,6 +51,7 @@ export function WarmIntrosV2Table({
   onViewAllPaths,
   onRowClick,
   showListName = false,
+  alsoViaSelected = [],
   scrollRootRef,
   sentinelRef,
   footer,
@@ -78,6 +82,7 @@ export function WarmIntrosV2Table({
             const chain = parseWarmPathHopChain(row.hopChain);
             const hops = chain?.hops?.length ? chain.hops : null;
             const captionBand = hasRoleCaption(hops);
+            const alsoVia = alsoViaMembers(row, alsoViaSelected);
 
             const leadBadge = (
               <span className={clsx(s.proximityCell, s.joinGroup, s.proximityLead)}>
@@ -136,104 +141,104 @@ export function WarmIntrosV2Table({
                   <div className={clsx(s.pathCell, s.pathCellTight)}>
                     <div className={s.pathChain}>
                       {leadBadge}
-                      {hops
-                        ? hops.map((hop, i) => {
-                            const isOrg = hop.role === 'pl_org' || !hop.profileUid;
-                            const hopName =
-                              hop.name && hop.name !== hop.profileUid
-                                ? hop.name
-                                : hop.profileUid === connector?.profileUid
-                                  ? connector.name
-                                  : hop.profileUid === investor?.profileUid
-                                    ? name
-                                    : hop.name;
-                            const hopImage = isOrg
-                              ? null
-                              : hop.role === 'investor'
-                                ? avatarSrc
-                                : hop.memberUid
-                                  ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
-                                  : (hop.imageUrl ??
-                                    (connector?.profileUid === hop.profileUid
-                                      ? connector.memberUid
-                                        ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                                        : connector.imageUrl
-                                      : null));
-                            return (
-                              <span
-                                key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`}
-                                className={s.pathHop}
+                      {hops ? (
+                        hops.map((hop, i) => {
+                          const isOrg = hop.role === 'pl_org' || !hop.profileUid;
+                          const hopName =
+                            hop.name && hop.name !== hop.profileUid
+                              ? hop.name
+                              : hop.profileUid === connector?.profileUid
+                                ? connector.name
+                                : hop.profileUid === investor?.profileUid
+                                  ? name
+                                  : hop.name;
+                          const hopImage = isOrg
+                            ? null
+                            : hop.role === 'investor'
+                              ? avatarSrc
+                              : hop.memberUid
+                                ? hop.imageUrl?.trim() || getDefaultAvatar(hopName)
+                                : (hop.imageUrl ??
+                                  (connector?.profileUid === hop.profileUid
+                                    ? connector.memberUid
+                                      ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                      : connector.imageUrl
+                                    : null));
+                          return (
+                            <span key={`${hop.role ?? 'hop'}-${hop.profileUid || hop.name}-${i}`} className={s.pathHop}>
+                              {i > 0 ? <span className={s.pathArrow}>→</span> : null}
+                              <PathHop
+                                role={hop.role}
+                                memberUid={isOrg ? null : hop.memberUid}
+                                teamUid={isOrg ? null : hop.teamUid}
+                                name={hopName}
+                                isLast={i === hops.length - 1}
                               >
-                                {i > 0 ? <span className={s.pathArrow}>→</span> : null}
-                                <PathHop
-                                  role={hop.role}
+                                <PathProfileChip
+                                  name={hopName}
+                                  profileUid={hop.profileUid}
+                                  imageUrl={hopImage}
+                                  onOpen={onOpenProfileUid}
+                                  nonInteractive={isOrg}
                                   memberUid={isOrg ? null : hop.memberUid}
                                   teamUid={isOrg ? null : hop.teamUid}
-                                  name={hopName}
-                                  isLast={i === hops.length - 1}
-                                >
-                                  <PathProfileChip
-                                    name={hopName}
-                                    profileUid={hop.profileUid}
-                                    imageUrl={hopImage}
-                                    onOpen={onOpenProfileUid}
-                                    nonInteractive={isOrg}
-                                    memberUid={isOrg ? null : hop.memberUid}
-                                    teamUid={isOrg ? null : hop.teamUid}
-                                  />
-                                </PathHop>
-                              </span>
-                            );
-                          })
-                        : (
-                          <>
-                            {connector ? (
-                              <span className={s.pathHop}>
-                                <PathHop role="pl_connector" memberUid={connector.memberUid} name={connector.name}>
-                                  <PathProfileChip
-                                    name={connector.name}
-                                    profileUid={connector.profileUid}
-                                    imageUrl={
-                                      connector.memberUid
-                                        ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
-                                        : connector.imageUrl
-                                    }
-                                    onOpen={onOpenProfileUid}
-                                    memberUid={connector.memberUid}
-                                  />
-                                </PathHop>
-                              </span>
-                            ) : (
-                              <span className={s.muted}>—</span>
-                            )}
-                            {connector && investor ? <span className={s.pathArrow}>→</span> : null}
-                            {investor ? (
-                              <span className={s.pathHop}>
-                                <PathHop role="investor" memberUid={investor.memberUid} name={investor.name} isLast>
-                                  <PathProfileChip
-                                    name={investor.name}
-                                    profileUid={investor.profileUid}
-                                    imageUrl={avatarSrc}
-                                    onOpen={onOpenProfileUid}
-                                    memberUid={investor.memberUid}
-                                  />
-                                </PathHop>
-                              </span>
-                            ) : null}
-                          </>
-                        )}
+                                />
+                              </PathHop>
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <>
+                          {connector ? (
+                            <span className={s.pathHop}>
+                              <PathHop role="pl_connector" memberUid={connector.memberUid} name={connector.name}>
+                                <PathProfileChip
+                                  name={connector.name}
+                                  profileUid={connector.profileUid}
+                                  imageUrl={
+                                    connector.memberUid
+                                      ? connector.imageUrl?.trim() || getDefaultAvatar(connector.name)
+                                      : connector.imageUrl
+                                  }
+                                  onOpen={onOpenProfileUid}
+                                  memberUid={connector.memberUid}
+                                />
+                              </PathHop>
+                            </span>
+                          ) : (
+                            <span className={s.muted}>—</span>
+                          )}
+                          {connector && investor ? <span className={s.pathArrow}>→</span> : null}
+                          {investor ? (
+                            <span className={s.pathHop}>
+                              <PathHop role="investor" memberUid={investor.memberUid} name={investor.name} isLast>
+                                <PathProfileChip
+                                  name={investor.name}
+                                  profileUid={investor.profileUid}
+                                  imageUrl={avatarSrc}
+                                  onOpen={onOpenProfileUid}
+                                  memberUid={investor.memberUid}
+                                />
+                              </PathHop>
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        className={clsx(s.viewAllLink, captionBand && s.viewAllInCaptionBand)}
+                        aria-label={`View all ${count} paths for ${name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewAllPaths(row);
+                        }}
+                      >
+                        View all ({count})
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className={clsx(s.viewAllLink, captionBand && s.viewAllInCaptionBand)}
-                      aria-label={`View all ${count} paths for ${name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewAllPaths(row);
-                      }}
-                    >
-                      View all ({count})
-                    </button>
+                    {alsoVia.length > 0 ? (
+                      <div className={s.alsoVia}>↳ also via {alsoVia.join(' · ')}</div>
+                    ) : null}
                   </div>
                 </td>
               </tr>

@@ -88,6 +88,14 @@ export interface IFeedForumPost {
    *  getFeedComments. */
   commentCount: number;
   likeCount: number;
+  /** NodeBB's own topic viewcount — reads of the forum thread, NOT feed-card
+   *  impressions. A news item's viewCount is the latter (POST
+   *  /v1/team-news/impressions), so the two sit under one "Views" label in the
+   *  same feed while counting different events. Deliberate: this matches the
+   *  number the forum listing already shows for the same topic (Posts.tsx:45),
+   *  and the alternative meant teaching the impressions endpoint about forum
+   *  uids for a field NodeBB already hands us. */
+  viewCount: number;
   viewerHasLiked: boolean;
 }
 

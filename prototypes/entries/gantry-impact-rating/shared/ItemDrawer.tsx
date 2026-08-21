@@ -171,11 +171,13 @@ export function ItemDrawer({ item, viewer, goalMode, curatorView, onToggleBoost,
         </div>
 
         <div className={d.footerExtras}>
-          {/* Inert copy of production BuildWithAgentsButton (the real one fires a tracking API call). */}
-          <button type="button" className={shared.buildButton} aria-disabled="true">
+          {/* Frozen copy of the old production BuildWithAgentsButton. Production has since
+              replaced it with a live "Build with AI" button, so .buildButton/.comingSoon are
+              local now; only .buildButtonIcon still exists upstream to borrow. */}
+          <button type="button" className={s.buildButton} aria-disabled="true">
             <MagicSparklesIcon className={shared.buildButtonIcon} />
             <span>Build this with agents</span>
-            <span className={shared.comingSoon}>Coming soon</span>
+            <span className={s.comingSoon}>Coming soon</span>
           </button>
         </div>
       </div>

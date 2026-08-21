@@ -13,6 +13,9 @@
     display: block;
     visibility: hidden;
     pointer-events: none;
+    /* Every child of the capped rail is shrinkable by default; a squeezed
+       spacer would quietly give back the offset that aligns the panel. */
+    flex-shrink: 0;
   }
 }
 
@@ -549,6 +552,13 @@
   list-style: none;
   max-height: 60vh;
   overflow-y: auto;
+  /* No track here either — the row clipped at the 60vh cut is the cue, and one
+     scroll treatment across the prototype beats a per-region decision. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .subRow {
@@ -663,15 +673,6 @@
     0 4px 4px 0 rgba(15, 23, 42, 0.04);
 }
 
-// Demo-only role-tag switch sitting just above the Contributions section.
-.contribLayoutBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
 /* Two-column layout: team profile (main) + news rail (right) on desktop;
    stacks vertically below tablet-landscape. */
 .layout {
@@ -723,6 +724,13 @@
     flex-shrink: 0;
     position: sticky;
     top: 16px;
+    /* Cap the sticky rail to the viewport (16px sticky top + 16px bottom gap).
+       Uncapped, a rail taller than the screen parks its bottom below the fold
+       for good — at a 700px viewport the two exits sat off-screen at every
+       scroll position, because once the page bottom is reached a pinned rail
+       has nowhere left to move. The news list scrolls inside this cap instead
+       (the same mechanism production's TeamNewsRail uses). */
+    max-height: calc(100dvh - 32px);
   }
 }
 
@@ -739,18 +747,46 @@
 
 /* Transparent panel: just the "News" header + the homepage news cards, with no
    filled card wrapping them. */
+/* Brand-tinted panel — the same soft surface + hairline the "N new updates"
+   badge wears everywhere else in these prototypes
+   (news-shared/TeamUpdatesLink.module.scss), so news reads as one coloured
+   thread across the directory rather than a differently-styled block per page.
+   The neutral card shadow goes: a tinted surface with a coloured hairline is
+   already lifted off the grey page, and keeping both reads as two competing
+   elevation systems. */
 .newsPanel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 
-  /* Filled card, matching the team section cards. */
-  background: var(--Neutral-White, #fff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
   border-radius: 8px;
   padding: 16px;
-  box-shadow:
-    0 0 1px 0 rgba(15, 23, 42, 0.12),
-    0 4px 4px 0 rgba(15, 23, 42, 0.04);
+
+  /* The header sits in brand blue rather than production's #64748b grey — it
+     labels the tint. Reached by element because the title is a production
+     module class the prototype can't name. */
+  h2 {
+    color: var(--foreground-brand-secondary, #4174ff);
+  }
+
+  /* Row dividers follow the tint: production's neutral rgba(27, 56, 96, 0.12)
+     reads as a grey seam once the surface behind it turns blue. */
+  [class*='cardFlat']:not(:last-child) {
+    border-bottom-color: var(--border-brand-subtle, #aebfff);
+  }
+
+  @include media.tablet-landscape {
+    /* Flex items default to min-height: auto, so without this the panel refuses
+       to shrink inside the capped rail and .newsList never gets a scrollbar. */
+    min-height: 0;
+
+    /* The header labels the panel and stays with it; only the list scrolls. */
+    > *:first-child {
+      flex-shrink: 0;
+    }
+  }
 }
 
 /* One step down from the production 18px headline — the 340px rail reads
@@ -759,6 +795,8 @@
   font-size: 16px;
   line-height: 22px;
   letter-spacing: -0.3px;
+  /* Same easing as the member profile's update titles. */
+  transition: color 0.12s ease;
 }
 
 /* Rail teaser: JS trims it to two whole lines and appends an inline
@@ -849,6 +887,16 @@
 .newsRowTight.newsRowTight {
   gap: 8px;
   padding-bottom: 12px;
+
+  /* Every row here is a link, and production's `.cardFlat:hover` deliberately
+     resets to `color: inherit` — so the rail gave no sign the rows were
+     clickable. Same highlight the member profile's update rows use
+     (MemberProfile.module.scss .updateRow:hover .updateTitle): the headline
+     goes brand blue, nothing else moves. Doubled class + the hover chain beat
+     production's single-class .headline colour. */
+  &:hover .newsHeadline {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
 }
 
 /* Space above the wrapped Upvote/Discuss row. `.metaLine { gap: 6px }` is a
@@ -874,106 +922,106 @@
   > * {
     flex-shrink: 0;
   }
+
+  /* Desktop only — the list is the single scrolling region inside the capped
+     rail, so the header above it and the exits below it stay reachable however
+     tall the news gets. On mobile the rail isn't sticky and flows with the page,
+     so a second scroll region there would be a trap. */
+  @include media.tablet-landscape {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* Reaching the end of the list shouldn't start scrolling the page under it. */
+    overscroll-behavior: contain;
+
+    /* Scrolls, but shows no track. A rail is a side signal on someone else's
+       page, and 4px of chrome running down a 340px panel announces machinery
+       where the content should be doing the talking. The card clipped at the
+       fold is the affordance instead — same treatment as the newsfeed,
+       newsfeed-v0, gantry and person-city-calendar scroll regions. */
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
-/* Full-feed modal — bounded height, header pinned, body scrolls. Cards keep the
-   exact same NewsCard styling as the rail. */
-.newsModal {
-  display: flex;
-  flex-direction: column;
-  width: 920px;
-  max-width: calc(100vw - 32px);
-  max-height: 80vh;
-  background: var(--Neutral-White, #fff);
-  border-radius: 12px;
-  overflow: hidden;
-}
+/* The desktop archive's own modal used to live here (.newsModal / .modal*), a
+   920px box with its own header and no footer. It's gone: "View all news" now
+   opens `news-shared/TeamNewsModal`, the same 720px box the teams grid's news
+   chip opens, so one team's news measures the same however you reach it. The
+   mobile full-page view (.newsPage* below) is unchanged.
 
-/* Wraps the production SearchInput; spacing above (header) and below (cards). */
-.modalSearchWrap {
-  margin: 16px 20px 20px;
-  flex-shrink: 0;
-}
-
-.modalEmpty {
-  padding: 48px 16px;
-  text-align: center;
-  color: var(--foreground-neutral-tertiary, #8897ae);
-  font-size: 14px;
-}
-
-/* Full-feed list — one column so every item can show its full summary with room
-   to read (the rail's 2-line clamp is dropped here via `fullSummary`). */
-.modalGrid {
+   The rail's two exits. Equal columns rather than content-width: two labels of
+   different lengths side by side leave the shorter one looking like an
+   afterthought.
+   `auto-fit` rather than a hard two-up, though — "All network updates ↗" needs
+   ~180px, and the 340px rail only has ~150px a column to give, so inside the
+   rail the pair stacks and each exit gets a full-width row. It goes back to two
+   up wherever the panel is wider (mobile, where the rail runs the page width).
+   Stacked beats squeezed: these are the two ways out of the panel, and a way
+   out that's been clipped to fit isn't one. */
+.newsFooter {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-
-  /* Production NewsCard clamps the headline (<h3>) to 2 lines; allow 3 here. */
-  h3 {
-    -webkit-line-clamp: 3;
-  }
-}
-
-.modalHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+  gap: 8px;
+  /* Keeping these two on screen is the whole point of the rail's height cap. */
   flex-shrink: 0;
 }
 
-.modalTitle {
-  color: var(--foreground-neutral-primary, #0f172a);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 28px;
-}
-
-.modalClose {
+/* Shared box for both — same height, border and radius, so they read as a pair.
+   Only the label colour separates them (see .viewFeed). */
+.viewAll,
+.viewFeed {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--foreground-neutral-secondary, #455468);
-  cursor: pointer;
-
-  &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-  }
-}
-
-.modalBody {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px 20px 20px;
-  background: var(--background-neutral-subtle, #f1f5f9);
-}
-
-.viewAll {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  gap: 4px;
+  min-width: 0;
   padding: 10px 12px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 8px;
   background: var(--Neutral-White, #fff);
-  color: var(--foreground-brand-primary, #1b4dff);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
+  /* Belt and braces behind the auto-fit above: if a label ever outgrows even a
+     full-width row it gets clipped, rather than pushing the panel wider than
+     the rail. Clipped, not ellipsized — the box is a flex container, so the
+     label is an anonymous flex item and `text-overflow` has nothing to act on.
+     It's a backstop for a case the auto-fit shouldn't let happen, not the
+     mechanism. */
+  overflow: hidden;
+  text-decoration: none;
   cursor: pointer;
 
   &:hover {
     background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    text-decoration: none;
+  }
+}
+
+.viewAll {
+  color: var(--foreground-brand-primary, #1b4dff);
+}
+
+/* The leaving half of the pair: neutral text against its blue neighbour, since
+   going to the whole feed is the rarer intent. The ↗ is the real tell — it's
+   the glyph the rest of the prototype uses for "this leaves the page". */
+.viewFeed {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
   }
 }
 
@@ -990,6 +1038,13 @@
   background: var(--Neutral-White, #fff);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Same no-track treatment as the rail's list — this is that panel, one tap
+     away, so a scrollbar appearing here would read as a different surface. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Header / count pill / close button copied from the production UpdatesPanel
@@ -1099,4 +1154,124 @@
   line-height: 20px;
   letter-spacing: -0.2px;
   white-space: nowrap;
+}
+
+/* ---------------------- Header facts (founded / size / location) ----------------------
+   The row itself is MemberDetailHeader's `.roleAndLocation` (flex, wrap, 16px
+   gap, centred) — imported, not re-declared. These are the two things it can't
+   carry across: the member header's facts sit directly under an h1 in its own
+   grid cell, while here they're a row inside production's `.tagsContainer`
+   column, which already spends 12px between its children (that gap is the
+   spacing — nothing extra is added here).
+
+   Colour: every fact takes the member header's `.locationName` treatment
+   (secondary grey, 14/20/400) rather than its `.role` treatment (primary near-
+   black). A person's role is the headline fact about them, so primary earns it;
+   a team's founding year, headcount and city are all equally background, and
+   at primary weight three of them in a row compete with the team name one line
+   above. */
+.factsRow {
+  /* Production's `.nameTagContainer` is a column with a flat 16px gap, so
+     dropping this row in leaves it 16px from the name above and 16px from the
+     tag row below — equidistant, which reads as belonging to neither. The facts
+     qualify the name; the tag row is a separate classification block. Cancel
+     half the gap above so the binding is visible: 8px up, 16px down. Local
+     negative margin rather than touching the container's gap, which would move
+     the tag row for every team including ones with no facts at all. */
+  margin-top: -8px;
+
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  /* MemberDetailHeader's `.location` carries `padding-right: 24px` to clear the
+     Edit button that sits beside it there. No such neighbour here — the trailing
+     gap just reads as a stray indent, so it's cancelled. */
+  > span[class*='location'] {
+    padding-right: 0;
+  }
+
+  /* Mobile drops the hairlines and separates on space alone. Three facts can't
+     fit one line at 390px, and a divider that ends up at a wrap boundary dangles
+     at the edge of the line pointing at nothing. This is the same call the DS's
+     own `Divider` makes — it ships `display: none` below tablet-portrait, which
+     is why the tag row underneath loses its separators at this width too. */
+  @include media.mobile-only {
+    column-gap: 20px;
+
+    > span[class*='divider'] {
+      display: none;
+    }
+  }
+}
+
+/* The pin takes `currentColor` (see LocationGlyph) so the tone is set here
+   rather than baked into the SVG. Matches the fact text it labels. */
+.factIcon {
+  flex-shrink: 0;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* "Inactive" badge beside the team name. `Badge` is the design system's label
+   chip — no hover, no focus, not a control — which is what this is. The only
+   thing added is the gap from the name; the pill itself is untouched DS.
+
+   Mobile drops it to its own line under the name. The admin actions (Edit +
+   Delete) are lifted out of the flow there and pinned to the card's top-right
+   corner, so anything sitting after the name runs under them. Reserving the
+   corner's width instead was tried and rejected — it left the name 161px and
+   truncated "Protocol Labs" to "Protocol…", which trades a real problem for a
+   worse one. A full-width flex-basis is the only lever that moves the badge
+   without touching the name. */
+/* `Badge` ships 14px/20px, drawn for the settings rows it usually sits in. On
+   this header that made it the *largest* chip on the page — bigger than the
+   Investment Fund / Infrastructure / Web3 row directly beneath it, which runs
+   12px/14px — and a small qualifier outsizing the chips that classify the whole
+   company is the hierarchy upside down. Measured, it also stood 26px tall
+   against the name's 32px line, so it filled the line rather than sitting in it.
+
+   12px/14px is not a size invented for it: it's the scale this header already
+   uses for chips, one row down. Copying that means the badge reads as a member
+   of the header's chip vocabulary rather than as its own object.
+
+   Note this deliberately does NOT match the teams grid's copy of the same badge,
+   which sits at 11px/16px — that corner takes its scale from the news chip it
+   shares the slot with. Same component and same word on both surfaces; the size
+   is a ratio to each surface's neighbours, not a constant. */
+.statusChip.statusChip {
+  font-size: 12px;
+  line-height: 14px;
+  min-width: 0;
+}
+
+.statusBadge {
+  display: inline-flex;
+  margin-left: 8px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    flex-basis: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
+
+/* Only so `.statusBadge`'s mobile basis has somewhere to break. Production's
+   `.nameAndActions` is a nowrap flex row. */
+.nameRowWrap {
+  @include media.mobile-only {
+    flex-wrap: wrap;
+  }
+}
+
+/* One label + its switch. Now that the bar holds two of these, the bar's own
+   12px gap can't do both jobs — equal spacing inside and between the pairs
+   would read as four loose controls. The label binds to its switch at 8px; the
+   bar's 12px becomes the space between groups. */
+.demoGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }

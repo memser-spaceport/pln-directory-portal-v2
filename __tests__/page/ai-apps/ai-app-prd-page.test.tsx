@@ -54,6 +54,27 @@ const idlePrdQuery = { content: null, error: null, isLoading: false };
 describe('AiAppPrdPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    document.title = 'AI Apps | Protocol Labs Directory';
+  });
+
+  describe('document title', () => {
+    it('sets the tab title to the app name after load and restores it on unmount', () => {
+      mockUseAiAppReturn = { app: buildApp(), errorKind: null, isLoading: false };
+      mockUseAiAppPrdContentReturn = { content: '# Hello', error: null, isLoading: false };
+      const { unmount } = render(<AiAppPrdPage uid="app-1" />);
+
+      expect(document.title).toBe('News Summarizer');
+      unmount();
+      expect(document.title).toBe('AI Apps | Protocol Labs Directory');
+    });
+
+    it('does not overwrite the tab title while the app is still loading', () => {
+      mockUseAiAppReturn = { app: null, errorKind: null, isLoading: true };
+      mockUseAiAppPrdContentReturn = idlePrdQuery;
+      render(<AiAppPrdPage uid="app-1" />);
+
+      expect(document.title).toBe('AI Apps | Protocol Labs Directory');
+    });
   });
 
   it('shows a loading state while the app is loading', () => {

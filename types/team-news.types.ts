@@ -1,4 +1,12 @@
-export type TeamNewsEventType = 'FUNDING' | 'LAUNCH' | 'PARTNERSHIP' | 'ANNOUNCEMENT' | 'MILESTONE' | 'OTHER';
+export type TeamNewsEventType =
+  | 'FUNDING'
+  | 'LAUNCH'
+  | 'PARTNERSHIP'
+  | 'ANNOUNCEMENT'
+  | 'MILESTONE'
+  | 'OTHER'
+  | 'DEALS'
+  | 'HIRING';
 
 export interface ITeamNewsDiscussion {
   count: number;
@@ -38,6 +46,9 @@ export interface ITeamNewsItem {
   upvoteCount?: number;
   /** 1 = Top Stories lead, 2–3 = runners-up; null/absent when not featured. */
   editorialRank?: number | null;
+  /** Raw feed-card impression count, not deduplicated by user/session/repeat
+   *  viewing. Incremented via POST /v1/team-news/impressions. */
+  viewCount?: number;
 }
 
 /** Returned by POST/DELETE /v1/team-news/:uid/upvote and carried on every news item. */
@@ -119,6 +130,8 @@ export interface ITeamNewsGroupedResponse {
   groups: ITeamNewsGroup[];
   /** Allowlisted teams with no focus-area group; merged into the home "All" tab only. */
   allTabExtraItems?: ITeamNewsItem[];
+  /** Memberships ∪ follows ∪ Teams-to-follow matches; empty for anonymous. */
+  forYouTeamUids?: string[];
 }
 
 export interface TeamCluster {
@@ -148,3 +161,10 @@ export interface ITeamNewsFiltersResponse {
   eventType: Array<{ value: string; count: number }>;
   focus: Array<{ value: string; count: number }>;
 }
+
+/**
+ * POST /v1/team-news/counts — recent post counts keyed by team uid.
+ * A uid ABSENT from the map means zero, not "unknown to the server": groupBy
+ * returns no row for a team with nothing recent. Both render as no chip.
+ */
+export type ITeamNewsCountsResponse = Record<string, number>;

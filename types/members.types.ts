@@ -1,5 +1,6 @@
 import { IListOptions } from './shared.types';
 import { ITeam, ITeamResponse } from './teams.types';
+import type { JobSearchStatus } from '@/services/jobs/job-board-viewer';
 
 export type IMemberListOptions = IListOptions & {
   officeHours__not?: 'null';
@@ -32,6 +33,7 @@ export interface IMemberResponse {
   discordHandler: string;
   telegramHandler: string;
   twitterHandler: string;
+  blueskyHandler: string;
   officeHours: string;
   ohStatus: null | 'NOT_FOUND' | 'BROKEN' | 'OK';
   teamLead: boolean;
@@ -122,6 +124,13 @@ export type InvestorProfileType = 'ANGEL' | 'FUND' | 'ANGEL_AND_FUND';
 
 export interface IMember {
   role?: string | null;
+  /** Optional free-text company. The job application snapshot prefers this
+   *  over the main team name, so read-backs should too. */
+  currentCompany?: string | null;
+  /** PL-Team-only: the API omits it for anyone but the member or an admin, so
+   *  it is `undefined` rather than `null` on other people's profiles. Never
+   *  render it publicly or in an application read-back. */
+  jobSearchStatus?: JobSearchStatus | null;
   profile?: string | null;
   id: string;
   name: string;
@@ -134,6 +143,7 @@ export interface IMember {
   discordHandle?: string | null;
   telegramHandle?: string | null;
   twitter?: string | null;
+  blueskyHandle?: string | null;
   accessLevel: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'Rejected' | 'L5' | 'L6';
   officeHours: string | null;
   ohInterest?: string[] | null;
@@ -277,6 +287,7 @@ export interface IMemberPreferences {
   showTelegram: boolean;
   showGithubHandle: boolean;
   showGithubProjects: boolean;
+  showBluesky?: boolean;
   showOfficeHoursDialog?: boolean;
 }
 
@@ -289,4 +300,61 @@ export interface IMemberRepository {
 export interface IAnalyticsMemberInfo {
   id: string;
   name: string;
+}
+
+/**
+ * Raw member record returned by `GET /v1/members/{uid}` and held in `memberData.memberInfo`.
+ * Distinct from `IMemberResponse`, which describes the list endpoints.
+ */
+export interface IMemberUpdateSource {
+  imageUid?: string | null;
+  name?: string;
+  email?: string;
+  plnStartDate?: string | null;
+  location?: Partial<Pick<IMemberLocation, 'city' | 'region' | 'country'>> | null;
+  teamOrProjectURL?: string | null;
+  linkedinHandler?: string | null;
+  discordHandler?: string | null;
+  twitterHandler?: string | null;
+  blueskyHandler?: string | null;
+  githubHandler?: string | null;
+  telegramHandler?: string | null;
+  officeHours?: string | null;
+  moreDetails?: string | null;
+  openToWork?: boolean;
+  plnFriend?: boolean;
+  teamMemberRoles?: any[];
+  projectContributions?: any[];
+  skills?: { id?: string; name?: string }[];
+  bio?: string | null;
+  currentCompany?: string | null;
+  jobSearchStatus?: JobSearchStatus | null;
+}
+
+/** Shape of `newData` accepted by `PUT /v1/member/{uid}`. */
+export interface IMemberUpdatePayload {
+  imageUid?: string | null;
+  name?: string;
+  email?: string;
+  plnStartDate?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+  teamOrProjectURL?: string | null;
+  linkedinHandler?: string | null;
+  discordHandler?: string | null;
+  twitterHandler?: string | null;
+  blueskyHandler?: string | null;
+  githubHandler?: string | null;
+  telegramHandler?: string | null;
+  officeHours?: string | null;
+  moreDetails?: string | null;
+  openToWork?: boolean;
+  plnFriend?: boolean;
+  teamAndRoles?: any[];
+  projectContributions?: any[];
+  skills?: { title?: string; uid?: string }[];
+  bio?: string | null;
+  currentCompany?: string | null;
+  jobSearchStatus?: JobSearchStatus | null;
 }

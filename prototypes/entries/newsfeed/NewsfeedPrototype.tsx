@@ -68,8 +68,14 @@ import { FeedDetailModal, type FeedDetail } from '../newsfeed-v0/FeedDetailModal
 import { ForumPostModal } from '../newsfeed-v0/ForumPostModal';
 import { EVENT_TYPE_LABEL } from '../newsfeed-v0/eventMeta';
 import { isNarrowed, summarizeView, viewHashKey, type FeedView } from '../newsfeed-v0/feedView';
-import { SavedFilterChip } from '../newsfeed-v0/SavedFilterChip';
 import { FollowToast } from '../follow-shared/FollowToast';
+// Replaces the inherited production header/bottom bar, both hidden by
+// nav-shared's stylesheet. This route IS Home, so it has to render the nav that
+// says so — inheriting production's chrome here showed a navbar with no route
+// back to the page you were standing on.
+import { PrototypeNavBar } from '../nav-shared/PrototypeNavBar';
+import { PrototypeMobileNav } from '../nav-shared/PrototypeMobileNav';
+import { getTeamNews, teamNameFor } from '../news-shared/mockTeamNews';
 import {
   MOCK_GROUPS,
   FORUM_POSTS,
@@ -85,7 +91,7 @@ import {
   type FeedComment,
 } from '../newsfeed-v0/mocks';
 
-import { TopStoriesBlock } from './TopStoriesBlock';
+import { TopStoriesBlock, type TopBlockVariant } from './TopStoriesBlock';
 import { HiringCard } from './HiringCard';
 import { PerkCard } from './PerkCard';
 
@@ -96,7 +102,6 @@ import { CuratedRail } from './CuratedRail';
 import type { Subscription } from './subscription';
 import {
   ALL_CURATED_ITEMS,
-  CURATION_ATTRIBUTION,
   FOCUS_BY_UID,
   HIRING_SIGNALS,
   PERK_SIGNALS,
@@ -137,10 +142,22 @@ const SORT_OPTIONS = [
  *   Mix        — hiring and deals both on, with their caps intact
  *                (`HIRING_IN_MIXED_FEED` = 2, `PERKS_IN_MIXED_FEED` = 1) and news
  *                still holding the top slot.
- *   Curated by — human. The attribution line reads "Picked by the network team";
- *                `CURATION_ATTRIBUTION.ai` stays in the mock for when a model
- *                takes the pick over.
+ *   Curated by — human, but the card no longer says so: the attribution line was
+ *                cut from the eyebrow. `CURATION_ATTRIBUTION` stays in the mock
+ *                for the email digest, which still states who picked.
  */
+
+const TOP_VARIANT_OPTIONS: Array<{ value: TopBlockVariant; label: string }> = [
+  { value: 'three', label: '3 stories' },
+  { value: 'single', label: '1 story' },
+];
+
+const TOP_VARIANT_NOTE: Record<TopBlockVariant, string> = {
+  three:
+    'One lead plus two runner-up rows. Three chances to land on a weekly reader, at the cost of a clamped teaser on each.',
+  single:
+    'One pick, with the space the two rows used to take spent on a written body instead. Higher conviction — and if the reader does not want that story, the block gives them nothing this week. The other two return to the feed as ordinary cards.',
+};
 
 const HIRING_CAT = 'hiring' as const;
 const DEALS_CAT = 'deals' as const;
@@ -152,6 +169,8 @@ const EVENT_HEX: Record<TeamNewsEventType, string> = {
   ANNOUNCEMENT: '#475467',
   MILESTONE: '#b54708',
   OTHER: '#475467',
+  HIRING: '#475467',
+  DEALS: '#475467',
 };
 
 // Cluster helpers mirror newsfeed-v0's (they're local there, not exported).
@@ -164,6 +183,8 @@ const EVENT_TYPE_WEIGHT: Record<TeamNewsEventType, number> = {
   MILESTONE: 2,
   ANNOUNCEMENT: 1,
   OTHER: 0,
+  HIRING: 0,
+  DEALS: 0,
 };
 
 function pickLead(items: ITeamNewsItem[]): ITeamNewsItem {
@@ -208,6 +229,35 @@ type FeedEntry =
 /** News and discussion are the feed's reason to exist; everything else is supporting. */
 const isStory = (e: FeedEntry) => e.kind === 'news' || e.kind === 'forum';
 
+/**
+ * Land `el` at the top of the reading area — the arrival for `?focus=<teamUid>`.
+ *
+ * `scrollIntoView` alone can't do it for a team near the end of the feed: the
+ * page runs out of scroll before the card reaches the top, so it stops wherever
+ * the floor is and the reader arrives on a card sitting a third of the way down
+ * with a stranger's card above it. Measured: Protocol Labs' cluster settled at
+ * 279px against Filecoin Foundation's 96px, purely because the feed bottoms out
+ * — the scroll was already at its maximum, not drifting.
+ *
+ * So lay down exactly as much runway as the shortfall needs (usually none — any
+ * cluster with a viewport of feed under it already reaches the top) and then
+ * scroll. Precise rather than a blanket `padding-bottom: 100vh`: dead space at
+ * the end of a feed is a lie about how much there is to read, and this adds the
+ * minimum that makes the card reachable — often zero.
+ *
+ * The scroller is `document.body`, not the document element: portal-v2's layout
+ * scrolls the body, which is why `window.scrollY` reads 0 here at every scroll
+ * position.
+ */
+function landAtTop(el: Element) {
+  const scroller = document.body;
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const elTop = el.getBoundingClientRect().top + scroller.scrollTop;
+  const shortfall = elTop - margin - (scroller.scrollHeight - scroller.clientHeight);
+  if (shortfall > 0) scroller.style.paddingBottom = `${Math.ceil(shortfall)}px`;
+  el.scrollIntoView({ block: 'start' });
+}
+
 /** Local copy of production `NewsBase` with our own heading. */
 function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ headerDetails?: ReactNode }>) {
   return (
@@ -225,11 +275,23 @@ function NetworkUpdatesBase({ headerDetails, children }: PropsWithChildren<{ hea
 export default function NewsfeedPrototype() {
   const [mounted, setMounted] = useState(false);
 
+  /**
+   * Prototype chrome, not product UI — the two shapes for the top slot, side by
+   * side so the choice can be looked at rather than described.
+   */
+  const [topVariant, setTopVariant] = useState<TopBlockVariant>('three');
+
   // Feed state.
   const [activeFocus, setActiveFocus] = useState<string>(ALL_TAB);
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
   const [query, setQuery] = useState('');
+  /**
+   * Team scope, set from `?team=<uid>` — where every "N new updates" badge in the
+   * product lands (job board, teams grid, profile team rows). '' is the whole
+   * network.
+   */
+  const [teamFilter, setTeamFilter] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -330,6 +392,88 @@ export default function NewsfeedPrototype() {
       readUrl: story.sourceUrl ?? undefined,
     });
 
+  /**
+   * The two links the rest of the product can point here with, read once at mount:
+   *
+   *  - `?team=<uid>` scopes the feed to one team — where the "N new updates"
+   *    badges land, so a badge reading 3 delivers all 3.
+   *  - `?news=<uid>` opens one story — the param production's /home already
+   *    understands (`useNewsDeepLink`), and what a news notification should use.
+   *
+   * Read-once, like production: the params seed state and are never re-read, so
+   * clearing the chip or closing the modal can't be undone by a re-render.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const team = params.get('team');
+    const known = team && (ALL_CURATED_ITEMS.some((i) => i.teamUid === team) || getTeamNews(team).length > 0);
+    if (known && team) setTeamFilter(team);
+
+    const newsUid = params.get('news');
+    const story = newsUid ? ALL_CURATED_ITEMS.find((i) => i.uid === newsUid) : undefined;
+    if (story) {
+      openStoryDetail(story);
+      // Consume the param. The modal is a one-shot arrival, so leaving `news` in
+      // the URL means a reload re-opens a story the reader already closed — and
+      // the read-once effect above can't undo it. `replaceState` for the same
+      // reason `clearTeamFilter` gives: this isn't a navigation, and Back should
+      // leave the page rather than reopen a modal.
+      const next = new URLSearchParams(window.location.search);
+      next.delete('news');
+      const nextSearch = next.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`);
+    }
+
+    /**
+     * `?focus=<teamUid>` scrolls that team's card into view and leaves it there —
+     * no scope chip, no modal. It's what "+N more updates" on the job board wants:
+     * show me the rest of this team's news *in* the feed, without narrowing the
+     * feed to it.
+     *
+     * Expands first, because the feed only renders its first page by default and
+     * the team being asked for is usually past it — scrolling to a card that
+     * hasn't rendered silently does nothing. Then polls for the anchor, since it
+     * lands a frame or two after the state change.
+     *
+     * Top-aligned, not centred. Centring dropped the reader into the middle of a
+     * feed with half a stranger's card above the one they asked for, which reads
+     * as an arbitrary scroll position rather than an arrival — you can't tell
+     * what you're looking at without scrolling up. Landed at the top, the card
+     * they clicked is the first thing under the header and the rest of the feed
+     * runs below it. `.focusAnchor` carries the offset that keeps it clear of the
+     * sticky header; `landAtTop()` makes the top reachable for the last clusters
+     * in the feed, which the page would otherwise run out of scroll before.
+     */
+    const focusTeam = params.get('focus');
+    if (focusTeam) {
+      setExpanded(true);
+      let tries = 0;
+      const find = () => {
+        const el = document.querySelector(`[data-feed-team="${focusTeam}"]`);
+        if (el) {
+          landAtTop(el);
+          return;
+        }
+        if (tries++ < 120) {
+          requestAnimationFrame(find);
+          return;
+        }
+        // Out of tries: this team has no cluster in the feed at all. Landing on
+        // an unfiltered feed carrying none of its stories is a silent dead end —
+        // the reader asked for a team and got no sign of it. Scope to the team
+        // instead, which always renders (it falls back to `getTeamNews`) and
+        // shows a chip to widen back out.
+        //
+        // A fallback, not the behaviour: every team the grid and job board link
+        // to has a cluster, so this should never fire. It's here so a future
+        // fixture-only team degrades to something legible.
+        setTeamFilter(focusTeam);
+      };
+      requestAnimationFrame(find);
+    }
+  }, []);
+
   // ---------- The view, as one addressable value ----------
 
   /**
@@ -338,11 +482,32 @@ export default function NewsfeedPrototype() {
    * comparisons — and what a subscription is made *of*.
    */
   const view: FeedView = useMemo(
-    () => ({ tab: activeFocus, category: activeCategory as FeedView['category'], sort, query }),
-    [activeFocus, activeCategory, sort, query],
+    () => ({ tab: activeFocus, category: activeCategory as FeedView['category'], sort, query, team: teamFilter }),
+    [activeFocus, activeCategory, sort, query, teamFilter],
   );
 
   const narrowed = isNarrowed(view);
+
+  /** Display name for the team scope, read off the stories themselves. */
+  const teamFilterName = useMemo(
+    () =>
+      teamFilter ? (ALL_CURATED_ITEMS.find((i) => i.teamUid === teamFilter)?.teamName ?? teamNameFor(teamFilter)) : '',
+    [teamFilter],
+  );
+
+  /**
+   * Clearing the scope also strips the param, so a reload doesn't reinstate a
+   * filter the reader just dismissed. `replaceState` rather than router.replace —
+   * the same reason production's `useNewsDeepLink` gives: this is a filter, not a
+   * navigation, and Back should leave the page rather than toggle a chip.
+   */
+  const clearTeamFilter = () => {
+    setTeamFilter('');
+    const params = new URLSearchParams(window.location.search);
+    params.delete('team');
+    const search = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`);
+  };
 
   // ---------- The spine ----------
 
@@ -356,8 +521,20 @@ export default function NewsfeedPrototype() {
     // The hiring roll-up carries the "opened N roles" fact, so the one-off
     // announcement of the same thing is dropped rather than said twice. With
     // hiring switched off the roll-up isn't there to carry it, so it stays.
-    return showHiring ? items.filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid)) : items;
-  }, [showHiring]);
+    const withHiring = showHiring ? items.filter((i) => !SUPERSEDED_BY_HIRING.has(i.uid)) : items;
+    if (!teamFilter) return withHiring;
+
+    // The team scope narrows the whole page, not just the card list — so tab and
+    // category counts describe the team you asked for rather than the network
+    // behind it. Anything else makes a badge reading "6" sit above three cards.
+    const scoped = withHiring.filter((i) => i.teamUid === teamFilter);
+
+    // The curated week and the badge fixtures are different team rosters (this
+    // feed's mock is an editorial week; the job board's and the teams grid's are
+    // their own). A badge must still land on the stories it counted, so a team
+    // this week doesn't cover is served from the shared fixture instead.
+    return scoped.length ? scoped : getTeamNews(teamFilter);
+  }, [showHiring, teamFilter]);
 
   /**
    * Monitor reads the whole week, unfiltered by the editorial levers — a standing
@@ -382,8 +559,16 @@ export default function NewsfeedPrototype() {
    */
   const showTopStory = topStoryItem !== null && !narrowed;
 
-  /** Every uid the block owns, so none of them can also appear as a feed card. */
-  const blockUids = useMemo(() => new Set([TOP_STORY.uid, ...alsoItems.map((i) => i.uid)]), [alsoItems]);
+  /**
+   * Every uid the block owns, so none of them can also appear as a feed card.
+   * On the single-story version the block owns only the lead — the two runner-ups
+   * are not in it, so they go back to being ordinary feed cards rather than
+   * disappearing from the week entirely.
+   */
+  const blockUids = useMemo(
+    () => new Set(topVariant === 'single' ? [TOP_STORY.uid] : [TOP_STORY.uid, ...alsoItems.map((i) => i.uid)]),
+    [alsoItems, topVariant],
+  );
 
   /**
    * The block owns its stories only where the block renders. Keyed on
@@ -440,10 +625,15 @@ export default function NewsfeedPrototype() {
     // already injects "Active Discussions". Deals follows the same pattern — and
     // its count is deliberately the full set, so the gap between what exists and
     // what earned a feed slot is one click away.
-    if (showHiring) out.push({ id: HIRING_CAT, label: 'Hiring', count: HIRING_SIGNALS.length });
-    if (showPerks) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
+    // Both counts obey the team scope for the same reason the pill counts above
+    // do: a pill reading "Deals 3" over an empty scoped feed is a defect.
+    const hiringCount = teamFilter
+      ? HIRING_SIGNALS.filter((h) => h.teamUid === teamFilter).length
+      : HIRING_SIGNALS.length;
+    if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
+    if (showPerks && !teamFilter) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
     return out;
-  }, [scopedItems, showHiring, showPerks]);
+  }, [scopedItems, showHiring, showPerks, teamFilter]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -487,6 +677,10 @@ export default function NewsfeedPrototype() {
 
   const forumPosts = useMemo(() => {
     if (activeCategory !== ALL_CAT) return [];
+    // A forum post is a person speaking, not a team shipping. Under a team scope
+    // the reader asked for one team's updates, so posts step out — including
+    // posts by that team's own members, which are still that member's opinion.
+    if (teamFilter) return [];
     const scoped = activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
     const q = query.trim().toLowerCase();
     if (!q) return scoped;
@@ -498,7 +692,7 @@ export default function NewsfeedPrototype() {
         p.category.toLowerCase().includes(q) ||
         p.tags.some((t) => t.toLowerCase().includes(q)),
     );
-  }, [activeCategory, activeFocus, query]);
+  }, [activeCategory, activeFocus, query, teamFilter]);
 
   /**
    * Hiring is supporting signal, not the story — so the mixed feed carries at
@@ -511,14 +705,18 @@ export default function NewsfeedPrototype() {
   const hiringEntries = useMemo(() => {
     if (!showHiring) return [];
     if (activeCategory !== ALL_CAT && activeCategory !== HIRING_CAT) return [];
+    // Hiring rides beside the stories rather than in them, so the team scope has
+    // to be applied to it separately — otherwise "Updates from Protocol Labs"
+    // carries another team's open roles. Its own hiring is still an update.
+    const scoped = teamFilter ? HIRING_SIGNALS.filter((h) => h.teamUid === teamFilter) : HIRING_SIGNALS;
     const q = query.trim().toLowerCase();
     const matched = q
-      ? HIRING_SIGNALS.filter(
+      ? scoped.filter(
           (h) => h.teamName.toLowerCase().includes(q) || h.roles.some((r) => r.title.toLowerCase().includes(q)),
         )
-      : HIRING_SIGNALS;
+      : scoped;
     return activeCategory === HIRING_CAT ? matched : matched.slice(0, HIRING_IN_MIXED_FEED);
-  }, [showHiring, activeCategory, query]);
+  }, [showHiring, activeCategory, query, teamFilter]);
 
   /**
    * Deals get a tighter cap than hiring, and a shape test on top of it: a perk
@@ -531,6 +729,9 @@ export default function NewsfeedPrototype() {
   const perkEntries = useMemo(() => {
     if (!showPerks) return [];
     if (activeCategory !== ALL_CAT && activeCategory !== DEALS_CAT) return [];
+    // A vendor deal belongs to the network, not to a team — under a team scope
+    // there is no version of it that is "an update from this team".
+    if (teamFilter) return [];
     const q = query.trim().toLowerCase();
     const matched = q
       ? PERK_SIGNALS.filter(
@@ -540,7 +741,7 @@ export default function NewsfeedPrototype() {
     // The pill shows everything /deals holds; the feed shows only what earned it.
     if (activeCategory === DEALS_CAT) return matched;
     return matched.filter((p) => p.shape === 'announcement').slice(0, PERKS_IN_MIXED_FEED);
-  }, [showPerks, activeCategory, query]);
+  }, [showPerks, activeCategory, query, teamFilter]);
 
   const entries = useMemo<FeedEntry[]>(() => {
     const clusterDate = (c: TeamCluster) =>
@@ -586,7 +787,9 @@ export default function NewsfeedPrototype() {
   }, [clusters, forumPosts, hiringEntries, perkEntries, sort, followedTeams, likedIds]);
 
   const visibleEntries = expanded ? entries : entries.slice(0, PAGE_SIZE);
-  const newCount = sourceItems.length + FORUM_POSTS.length;
+  // Forum posts step out under a team scope (see `forumPosts`), so the header
+  // count has to drop them too — otherwise it reads 9 over a feed of 5.
+  const newCount = sourceItems.length + (teamFilter ? 0 : FORUM_POSTS.length);
 
   /**
    * Popular this week, ranked once and rendered twice: the rail card on desktop,
@@ -620,24 +823,25 @@ export default function NewsfeedPrototype() {
     desktopFieldRef.current?.querySelector('input')?.focus();
   }, [searchOpen]);
 
-  const attribution = CURATION_ATTRIBUTION.human;
-
   const renderEntry = (entry: FeedEntry) => {
     if (entry.kind === 'news') {
       return (
-        <V0FeedCard
-          key={`news-${entry.cluster.teamUid}`}
-          cluster={entry.cluster}
-          following={followedTeams.has(entry.cluster.teamUid)}
-          onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
-          showComments
-          likeCount={likeCount}
-          isLiked={isLiked}
-          onToggleLike={toggleLike}
-          commentsFor={commentsFor}
-          onAddComment={addComment}
-          onOpenStory={openStoryDetail}
-        />
+        // Anchor for `?focus=<teamUid>` — the job board's "+N more updates" lands
+        // on this card rather than scoping the whole feed to the team.
+        <div key={`news-${entry.cluster.teamUid}`} data-feed-team={entry.cluster.teamUid} className={local.focusAnchor}>
+          <V0FeedCard
+            cluster={entry.cluster}
+            following={followedTeams.has(entry.cluster.teamUid)}
+            onToggleFollow={() => toggleFollow(entry.cluster.teamUid, entry.cluster.teamName)}
+            showComments
+            likeCount={likeCount}
+            isLiked={isLiked}
+            onToggleLike={toggleLike}
+            commentsFor={commentsFor}
+            onAddComment={addComment}
+            onOpenStory={openStoryDetail}
+          />
+        </div>
       );
     }
     if (entry.kind === 'hiring') {
@@ -672,285 +876,336 @@ export default function NewsfeedPrototype() {
     );
   };
 
-  if (!mounted) return <div className={v0.page} />;
+  /* You're standing on the feed, so there is nothing unread to point at: the dot
+     is off here by definition, and `active` is what the item shows instead. */
+  const nav = (
+    <>
+      <PrototypeNavBar hasUnreadNews={false} active />
+      <PrototypeMobileNav hasUnreadNews={false} active />
+    </>
+  );
+
+  // Rendered outside the mount gate so the page never paints without its chrome.
+  if (!mounted)
+    return (
+      <>
+        {nav}
+        <div className={v0.page} />
+      </>
+    );
 
   /* Rendered on both paths — Monitor returns early, and a subscription set there
      needs the same confirmation. */
   const subscribeToast = subToast ? (
     <FollowToast>
-      You&apos;ll be notified about <strong>{subToast}</strong> — new matches will appear in your notifications. Manage
-      what you get from <a href="/settings/recommendations">Settings</a>.
+      You&apos;ll get an email about <strong>{subToast}</strong> — only when there are new matches. Manage what you get
+      from <a href="/settings/recommendations">Settings</a>.
     </FollowToast>
   ) : null;
 
   return (
-    <div className={clsx(v0.page, styles.home)}>
-      <div className={styles.home__cn}>
-        <div className={v0.qaDesktop}>
-          <QuickActionsMock />
-        </div>
-        <div className={v0.qaMobile}>
-          <MobileQuickActions />
-        </div>
+    <>
+      {nav}
+      <div className={clsx(v0.page, styles.home)}>
+        <div className={styles.home__cn}>
+          <div className={v0.qaDesktop}>
+            <QuickActionsMock />
+          </div>
+          <div className={v0.qaMobile}>
+            <MobileQuickActions />
+          </div>
 
-        <div className={styles.home__cn__teamnews}>
-          <NetworkUpdatesBase
-            headerDetails={
-              <div className={clsx(v0.headerActions, v0.headerActionsBanner)}>
-                {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
-                <HeaderSearch
-                  open={searchOpen}
+          <div className={styles.home__cn__teamnews}>
+            <NetworkUpdatesBase
+              headerDetails={
+                <div className={clsx(v0.headerActions, v0.headerActionsBanner)}>
+                  {newCount > 0 && <span className={s.unreadBadge}>{newCount} new</span>}
+                  <HeaderSearch
+                    open={searchOpen}
+                    value={query}
+                    onOpen={() => setSearchOpen(true)}
+                    onChange={(value) => {
+                      setQuery(value);
+                      resetPaging();
+                    }}
+                    onBlur={handleFieldBlur}
+                    fieldRef={desktopFieldRef}
+                  />
+                </div>
+              }
+            >
+              <div className={v0.mobileSearchRow}>
+                <SearchInput
                   value={query}
-                  onOpen={() => setSearchOpen(true)}
                   onChange={(value) => {
                     setQuery(value);
                     resetPaging();
                   }}
-                  onBlur={handleFieldBlur}
-                  fieldRef={desktopFieldRef}
+                  placeholder="Search by team, member, or keyword…"
                 />
               </div>
-            }
-          >
-            <div className={v0.mobileSearchRow}>
-              <SearchInput
-                value={query}
-                onChange={(value) => {
-                  setQuery(value);
-                  resetPaging();
-                }}
-                placeholder="Search by team, member, or keyword…"
-              />
-            </div>
 
-            {/* Navigation first, then content: focus tabs, category pills, and only
+              {/* Navigation first, then content: focus tabs, category pills, and only
                 then the week's picks. The two filter rows read as a hierarchy —
                 which part of the network, then what kind of update — and the
                 editorial block leads the content rather than the page. */}
-            <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.focusTabs)}>
-              {/* allItems drives the All badge, so it takes the whole stream —
+              <div
+                className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain, local.focusTabs)}
+              >
+                {/* allItems drives the All badge, so it takes the whole stream —
                   same reason as tabGroups: badges must not move as you navigate. */}
-              <NewsTabs groups={tabGroups} allItems={sourceItems} activeTab={activeFocus} onTabChange={handleFocus} />
-            </div>
+                <NewsTabs groups={tabGroups} allItems={sourceItems} activeTab={activeFocus} onTabChange={handleFocus} />
+              </div>
 
-            {/* Event type is pills on desktop, a dropdown below 640px — the same
+              {/* Event type is pills on desktop, a dropdown below 640px — the same
                 split `v0.sortDesktop` / `v0.sortMobile` already make for Sort.
                 Desktop has the width to show every type and its count at a glance;
                 on a 390px screen the same row wraps to three lines of chrome
                 before any news. */}
-            <div className={v0.filterBar}>
-              <div className={clsx(s.catRow, local.catRowDesktop)}>
-                {categoriesWithCounts.map((c) => {
-                  const isActive = activeCategory === c.id;
-                  const isDisabled = c.count === 0 && c.id !== ALL_CAT;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={clsx(s.cat, { [s.catActive]: isActive })}
-                      onClick={() => {
-                        setActiveCategory(c.id);
+              <div className={v0.filterBar}>
+                <div className={clsx(s.catRow, local.catRowDesktop)}>
+                  {categoriesWithCounts.map((c) => {
+                    const isActive = activeCategory === c.id;
+                    const isDisabled = c.count === 0 && c.id !== ALL_CAT;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={clsx(s.cat, { [s.catActive]: isActive })}
+                        onClick={() => {
+                          setActiveCategory(c.id);
+                          resetPaging();
+                        }}
+                        disabled={isDisabled}
+                      >
+                        {c.label}
+                        {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className={clsx(v0.filterActions, local.filterActionsLeft)}>
+                  {/* Scope chip — the toolbar slot the saved-filter chip used to hold.
+                    That one promised navigation the subscribe offer never made; this
+                    one reports where you actually are, arrived from a "N new updates"
+                    badge, and × puts the network back. Production's saved-view chip
+                    styling (via newsfeed-v0), label + ×, minus the apply action. */}
+                  {teamFilter && (
+                    <span className={clsx(v0.savedView, v0.savedFilterChip, local.scopeChip)}>
+                      <span className={clsx(v0.savedViewBody, local.scopeChipLabel)}>
+                        Updates from <strong>{teamFilterName}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        className={v0.savedViewDelete}
+                        aria-label={`Show all network updates instead of just ${teamFilterName}`}
+                        onClick={clearTeamFilter}
+                      >
+                        <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+                          <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </span>
+                  )}
+                  {/* Mobile only — the pill row above holds desktop. */}
+                  <span className={v0.sortMobile}>
+                    <MobileFeedSort
+                      label="Type:"
+                      options={categoryOptions}
+                      currentSort={activeCategory}
+                      onSortChange={(value) => {
+                        setActiveCategory(value);
                         resetPaging();
                       }}
-                      disabled={isDisabled}
-                    >
-                      {c.label}
-                      {c.count > 0 && c.id !== ALL_CAT && <span>{c.count}</span>}
-                    </button>
-                  );
-                })}
+                    />
+                  </span>
+                  <span className={v0.sortDesktop}>
+                    <SortDropdown
+                      sortByLabel="Sort by:"
+                      options={SORT_OPTIONS}
+                      currentSort={sort}
+                      onSortChange={(value) => {
+                        setSort(value as Sort);
+                        resetPaging();
+                      }}
+                    />
+                  </span>
+                  <span className={v0.sortMobile}>
+                    <MobileFeedSort
+                      options={SORT_OPTIONS}
+                      currentSort={sort}
+                      onSortChange={(value) => {
+                        setSort(value as Sort);
+                        resetPaging();
+                      }}
+                    />
+                  </span>
+                </div>
               </div>
 
-              <div className={clsx(v0.filterActions, local.filterActionsLeft)}>
-                {/* Once subscribed, the chip is the standing way back to that
-                    filter — the banner is a one-time offer and goes quiet. */}
-                {subscription?.view && (
-                  <SavedFilterChip
-                    savedFilter={subscription.view}
-                    view={view}
-                    onApply={() => {
-                      const saved = subscription.view!;
-                      setActiveFocus(saved.tab);
-                      setActiveCategory(saved.category);
-                      setSort(saved.sort as Sort);
-                      setQuery(saved.query);
-                      resetPaging();
-                    }}
-                    onClear={() => setSubscription(null)}
+              {narrowed && !subscription && !subscribeDismissed && (
+                <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain)}>
+                  <SubscribeBanner
+                    label={summarizeView(view, teamFilterName)}
+                    onSubscribe={() =>
+                      handleSubscribe({
+                        key: viewHashKey(view),
+                        label: summarizeView(view, teamFilterName),
+                        source: 'feed',
+                        view,
+                      })
+                    }
+                    onDismiss={() => setSubscribeDismissed(true)}
                   />
-                )}
-                {/* Mobile only — the pill row above holds desktop. */}
-                <span className={v0.sortMobile}>
-                  <MobileFeedSort
-                    label="Type:"
-                    options={categoryOptions}
-                    currentSort={activeCategory}
-                    onSortChange={(value) => {
-                      setActiveCategory(value);
-                      resetPaging();
-                    }}
-                  />
-                </span>
-                <span className={v0.sortDesktop}>
-                  <SortDropdown
-                    sortByLabel="Sort by:"
-                    options={SORT_OPTIONS}
-                    currentSort={sort}
-                    onSortChange={(value) => {
-                      setSort(value as Sort);
-                      resetPaging();
-                    }}
-                  />
-                </span>
-                <span className={v0.sortMobile}>
-                  <MobileFeedSort
-                    options={SORT_OPTIONS}
-                    currentSort={sort}
-                    onSortChange={(value) => {
-                      setSort(value as Sort);
-                      resetPaging();
-                    }}
-                  />
-                </span>
-              </div>
-            </div>
+                </div>
+              )}
 
-            {narrowed && !subscription && !subscribeDismissed && (
-              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner)}>
-                <SubscribeBanner
-                  label={summarizeView(view)}
-                  onSubscribe={() =>
-                    handleSubscribe({
-                      key: viewHashKey(view),
-                      label: summarizeView(view),
-                      source: 'feed',
-                      view,
-                    })
-                  }
-                  onDismiss={() => setSubscribeDismissed(true)}
-                />
-              </div>
-            )}
-
-            {/* The Deals pill is the exhibit: everything /deals holds, including
+              {/* The Deals pill is the exhibit: everything /deals holds, including
                 the entries that did not earn a place in the stream. */}
-            {activeCategory === DEALS_CAT && (
-              <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.pillNote)}>
-                All {PERK_SIGNALS.length} perks, including the{' '}
-                {PERK_SIGNALS.filter((p) => p.shape !== 'announcement').length} the feed did not carry. This is what
-                &ldquo;add deals to the feed&rdquo; injects if nothing filters it — standing offers with no event behind
-                them, most of them gated to an audience the average reader isn&apos;t in.
-              </div>
-            )}
+              {activeCategory === DEALS_CAT && (
+                <div
+                  className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain, local.pillNote)}
+                >
+                  All {PERK_SIGNALS.length} perks, including the{' '}
+                  {PERK_SIGNALS.filter((p) => p.shape !== 'announcement').length} the feed did not carry. This is what
+                  &ldquo;add deals to the feed&rdquo; injects if nothing filters it — standing offers with no event
+                  behind them, most of them gated to an audience the average reader isn&apos;t in.
+                </div>
+              )}
 
-            {entries.length === 0 ? (
-              <div className={s.empty}>
-                {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
-              </div>
-            ) : (
-              <>
-                <div className={clsx(v0.feedLayout, v0.feedLayoutBanner)}>
-                  <div className={v0.feedList}>
-                    {/* The block lives in the feed column of the *same* grid as the
+              {entries.length === 0 ? (
+                <div className={s.empty}>
+                  {query.trim() ? `No updates match “${query.trim()}”.` : 'No updates in this filter.'}
+                </div>
+              ) : (
+                <>
+                  <div className={clsx(v0.feedLayout, v0.feedLayoutBanner, local.feedGutter)}>
+                    <div className={v0.feedList}>
+                      {/* The block lives in the feed column of the *same* grid as the
                         rail, so the rail runs as one continuous column: Teams to
                         follow, then Popular this week, digest — no gap where the
                         block used to sit in a grid of its own. */}
-                    {showTopStory && topStoryItem && (
-                      <TopStoriesBlock
-                        lead={topStoryItem}
-                        also={alsoItems}
-                        top={TOP_STORY}
-                        attribution={attribution}
-                        followedTeams={followedTeams}
-                        onToggleFollow={toggleFollow}
-                        likeCount={likeCount}
-                        isLiked={isLiked}
-                        onToggleLike={toggleLike}
-                        commentCount={(uid) => commentsFor(uid).length}
-                        onOpenStory={openStoryDetail}
-                      />
-                    )}
+                      {/* Prototype chrome. Reuses the same switch this entry used for
+                        its earlier version toggles, rather than inventing a tab
+                        control that would then compete with the focus tabs above. */}
+                      {showTopStory && topStoryItem && (
+                        <div className={v0.versionRow}>
+                          <div className={v0.switch} role="tablist" aria-label="Top stories version">
+                            {TOP_VARIANT_OPTIONS.map((opt) => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                role="tab"
+                                aria-selected={topVariant === opt.value}
+                                className={clsx(v0.switchBtn, topVariant === opt.value && v0.switchBtnActive)}
+                                onClick={() => setTopVariant(opt.value)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                          <span className={v0.switchNote}>{TOP_VARIANT_NOTE[topVariant]}</span>
+                        </div>
+                      )}
 
-                    {/* Below 960px the rail stacks under the whole feed, which put
+                      {showTopStory && topStoryItem && (
+                        <TopStoriesBlock
+                          lead={topStoryItem}
+                          also={alsoItems}
+                          variant={topVariant}
+                          top={TOP_STORY}
+                          followedTeams={followedTeams}
+                          onToggleFollow={toggleFollow}
+                          likeCount={likeCount}
+                          isLiked={isLiked}
+                          onToggleLike={toggleLike}
+                          commentCount={(uid) => commentsFor(uid).length}
+                          onOpenStory={openStoryDetail}
+                        />
+                      )}
+
+                      {/* Below 960px the rail stacks under the whole feed, which put
                         Teams to follow ~3 screens down. This lifts it to just under
                         the block; the rail copy hides at those widths so exactly one
                         instance is ever on screen. */}
-                    {showTopStory && (
-                      <div className={local.followScrollSlot}>
-                        <FollowTeamsScroller followedTeams={followedTeams} onToggleFollow={toggleFollow} />
-                      </div>
-                    )}
+                      {showTopStory && (
+                        <div className={local.followScrollSlot}>
+                          <FollowTeamsScroller followedTeams={followedTeams} onToggleFollow={toggleFollow} />
+                        </div>
+                      )}
 
-                    {/* Straight after Teams to follow, so the two lifted rail
+                      {/* Straight after Teams to follow, so the two lifted rail
                         modules stay in their rail order instead of one of them
                         turning up mid-stream. Unconditional, unlike the scroller:
                         Popular is in the rail at every filter, so the strip
                         stands in for it at every filter too. */}
-                    <div className={local.popularScrollSlot}>
-                      <PopularScroller items={popularItems} />
-                    </div>
+                      <div className={local.popularScrollSlot}>
+                        <PopularScroller items={popularItems} />
+                      </div>
 
-                    {visibleEntries.map(renderEntry)}
-                  </div>
-                  <aside className={v0.feedRail}>
-                    <CuratedRail
-                      followedTeams={followedTeams}
-                      onToggleFollow={toggleFollow}
-                      popularItems={popularItems}
-                      /* Hidden below 960px only while the scroller is rendering.
+                      {visibleEntries.map(renderEntry)}
+                    </div>
+                    <aside className={v0.feedRail}>
+                      <CuratedRail
+                        followedTeams={followedTeams}
+                        onToggleFollow={toggleFollow}
+                        popularItems={popularItems}
+                        /* Hidden below 960px only while the scroller is rendering.
                          When the block goes (narrowed view) the scroller goes with
                          it, and the rail takes the module back at every width. */
-                      followCardClassName={showTopStory ? local.hideBelowDesktop : undefined}
-                    />
-                  </aside>
-                </div>
-                {entries.length > PAGE_SIZE && (
-                  <div className={clsx(s.showAll, v0.showAllConstrain)}>
-                    <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
-                      {expanded ? 'Show Less' : 'Show All'}
-                    </Button>
+                        followCardClassName={showTopStory ? local.hideBelowDesktop : undefined}
+                      />
+                    </aside>
                   </div>
-                )}
-              </>
-            )}
-          </NetworkUpdatesBase>
+                  {entries.length > PAGE_SIZE && (
+                    <div className={clsx(s.showAll, v0.showAllConstrain, local.railGutterConstrain)}>
+                      <Button style="border" variant="secondary" type="button" onClick={() => setExpanded((v) => !v)}>
+                        {expanded ? 'Show Less' : 'Show All'}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </NetworkUpdatesBase>
+          </div>
         </div>
+
+        <FeedDetailModal
+          detail={detail}
+          onClose={() => setDetail(null)}
+          likeCount={detail ? likeCount(detail.id) : 0}
+          liked={detail ? isLiked(detail.id) : false}
+          onToggleLike={() => detail && toggleLike(detail.id)}
+          citationStyle="superscript"
+          showComments
+          comments={detail ? commentsFor(detail.id) : []}
+          onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
+          isCommentLiked={isLiked}
+          onToggleCommentLike={toggleLike}
+        />
+
+        <ForumPostModal
+          post={forumDetail}
+          onClose={() => setForumDetail(null)}
+          likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
+          liked={forumDetail ? isLiked(forumDetail.uid) : false}
+          onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
+          comments={forumDetail ? commentsFor(forumDetail.uid) : []}
+          onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
+          isCommentLiked={isLiked}
+          onToggleCommentLike={toggleLike}
+        />
+
+        {toast && (
+          <FollowToast>
+            You&apos;re now following {toast} — their updates will appear first in your feed. Manage who you follow from
+            your profile.
+          </FollowToast>
+        )}
+
+        {subscribeToast}
       </div>
-
-      <FeedDetailModal
-        detail={detail}
-        onClose={() => setDetail(null)}
-        likeCount={detail ? likeCount(detail.id) : 0}
-        liked={detail ? isLiked(detail.id) : false}
-        onToggleLike={() => detail && toggleLike(detail.id)}
-        citationStyle="superscript"
-        showComments
-        comments={detail ? commentsFor(detail.id) : []}
-        onAddComment={(text, parentUid) => detail && addComment(detail.id, text, parentUid)}
-        isCommentLiked={isLiked}
-        onToggleCommentLike={toggleLike}
-      />
-
-      <ForumPostModal
-        post={forumDetail}
-        onClose={() => setForumDetail(null)}
-        likeCount={forumDetail ? likeCount(forumDetail.uid) : 0}
-        liked={forumDetail ? isLiked(forumDetail.uid) : false}
-        onToggleLike={() => forumDetail && toggleLike(forumDetail.uid)}
-        comments={forumDetail ? commentsFor(forumDetail.uid) : []}
-        onAddComment={(text, parentUid) => forumDetail && addComment(forumDetail.uid, text, parentUid)}
-        isCommentLiked={isLiked}
-        onToggleCommentLike={toggleLike}
-      />
-
-      {toast && (
-        <FollowToast>
-          You&apos;re now following {toast} — their updates will appear first in your feed. Manage who you follow from
-          your profile.
-        </FollowToast>
-      )}
-
-      {subscribeToast}
-    </div>
+    </>
   );
 }

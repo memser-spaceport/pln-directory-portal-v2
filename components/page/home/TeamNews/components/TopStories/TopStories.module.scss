@@ -1,5 +1,16 @@
 @import '../../../../../../styles/media';
 
+/* Shared by .leadTitle and .alsoTitle so both stay in sync — the lead used to
+   render larger, but multi-story cards read as inconsistent with two title
+   sizes in one card. Distinguishing the top story without font size is a
+   separate, upcoming design pass. */
+%storyTitle {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
 /* One band holding a lead plus two rows. Without the shared border the rows read
    as feed items that happen to sit high, rather than as part of the pick.
 
@@ -112,19 +123,10 @@
 }
 
 .leadTitle {
+  @extend %storyTitle;
   margin: 0;
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 600;
-  letter-spacing: -0.6px;
   color: var(--foreground-neutral-primary, #0a0c11);
   transition: color 0.12s ease;
-
-  @include mobile-only {
-    font-size: 20px;
-    line-height: 28px;
-    letter-spacing: -0.4px;
-  }
 }
 
 .leadSummary {
@@ -188,10 +190,7 @@
 }
 
 .alsoTitle {
-  font-size: 15px;
-  line-height: 22px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
+  @extend %storyTitle;
   color: var(--foreground-neutral-primary, #0a0c11);
   transition: color 0.12s ease;
 }

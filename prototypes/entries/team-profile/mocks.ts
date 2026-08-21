@@ -3,10 +3,20 @@ import type { IMember } from '@/types/members.types';
 import type { IFocusArea } from '@/types/shared.types';
 import type { ITeamFocusAres } from '@/components/page/team-details/TeamFocusAreas/types';
 import type { ITeamNewsItem } from '@/types/team-news.types';
+import type { IJobTeamGroup } from '@/types/jobs.types';
+
+// The feed's own comment shape — the detail modal's thread is the feed's
+// component, so the data has to be the feed's type, not a parallel one.
+import type { FeedComment } from '../newsfeed-v0/mocks';
+// This team's open roles live with every other team's, on the job board.
+import { MOCK_JOB_GROUPS } from '../job-board/mocks';
 
 // One full mock team. The detail-page sections only read the fields populated
 // here. `logo` is left undefined so TeamDetails falls back to its dicebear
 // default avatar (no remote-image domain config in this app).
+//
+// Tried the real PL mark and reverted: the only Protocol Labs asset in public/
+// is the Demo Day wordmark at 142×24, which a square logo slot crops to "toc".
 export const MOCK_TEAM = {
   id: 'protocol-labs',
   name: 'Protocol Labs',
@@ -59,6 +69,35 @@ export const MOCK_TEAM = {
   contributingProjects: [],
   asks: [],
 } satisfies Partial<ITeam>;
+
+/* ----------------------- Header facts (founded / size / location) -----------------------
+   Kept out of MOCK_TEAM on purpose: `ITeam` has no fields for these yet, and
+   MOCK_TEAM is pinned with `satisfies Partial<ITeam>`. Modelling them as their
+   own block also matches how they'd arrive — a few company facts, each
+   independently optional, any of which a team may simply not have filled in.
+
+   `teamSize` is deliberately a string, not a number: the spec allows an exact
+   count ("50") or a bucket ("11-50"), and a bucket is not a number. This holds
+   the value only — the view appends the unit. */
+export type TeamFacts = {
+  /** 4-digit founding year, e.g. 2014. */
+  foundedYear?: number;
+  /** Exact count ("50") or a range label ("11-50"). Rendered as "<size> people". */
+  teamSize?: string;
+  /** Free-text place label, e.g. "San Francisco, United States". */
+  location?: string;
+};
+
+/** A team is either operating or it isn't. See TeamDetailsView for why only
+ *  the second one draws a badge. */
+export type TeamStatus = 'active' | 'inactive';
+
+export const MOCK_TEAM_FACTS: TeamFacts = {
+  foundedYear: 2014,
+  // En dash, not a hyphen — it's a numeric range, not a compound word.
+  teamSize: '201–500',
+  location: 'San Francisco, United States',
+};
 
 /* --------------- Demo Day participation (drives the header badge) --------------- */
 // Points at a real demo day so the badge / contribution tile actually deep-links
@@ -396,9 +435,13 @@ export const MOCK_NEWS: ITeamNewsItem[] = [
   },
 ];
 
-/* Mock upvote counts per news item, keyed by uid (same shape as the newsfeed
-   prototype's UPVOTES). Zeros demo the hidden-zero state — plain "Upvote". */
-export const NEWS_UPVOTES: Record<string, number> = {
+/* Mock engagement per news item, keyed by uid — the newsfeed's Views · Likes ·
+   Comments trio, same shape as that prototype's maps. Zeros are kept in on
+   purpose: a rail where every story has traction is the one thing the real feed
+   never looks like, and the counts are what tell you which story is worth the
+   click. Views run an order of magnitude above likes, likes above comments, the
+   way engagement actually falls off. */
+export const NEWS_LIKES: Record<string, number> = {
   'news-1': 12,
   'news-2': 0,
   'news-3': 5,
@@ -409,3 +452,143 @@ export const NEWS_UPVOTES: Record<string, number> = {
   'news-8': 0,
   'news-9': 2,
 };
+
+export const NEWS_VIEWS: Record<string, number> = {
+  'news-1': 1240,
+  'news-2': 86,
+  'news-3': 410,
+  'news-4': 2180,
+  'news-5': 630,
+  'news-6': 295,
+  'news-7': 870,
+  'news-8': 54,
+  'news-9': 188,
+};
+
+/**
+ * Mock comment threads, in the feed's own `FeedComment` shape so the detail
+ * modal's `CommentsThread` renders them unchanged. Flat with `parentUid`,
+ * nested at render time — mirroring the production forum.
+ *
+ * The card counts are derived from these rather than hand-written beside them:
+ * a card promising "4 Comments" over a modal with none is the exact lie this
+ * prototype exists to avoid.
+ */
+export const NEWS_COMMENT_THREADS: Record<string, FeedComment[]> = {
+  'news-1': [
+    {
+      uid: 'c-news-1-1',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Is the phased rollout opt-in for operators, or does the gateway default change land for everyone at once?',
+      createdAt: '2026-06-21T12:20:00.000Z',
+      likes: 3,
+    },
+    {
+      uid: 'c-news-1-2',
+      author: 'Mira Chen',
+      role: 'Infrastructure Lead @ Protocol Labs',
+      text: 'Opt-in for the first two weeks — the defaults flip after that, and the migration guide covers pinning your old behaviour if you need longer.',
+      createdAt: '2026-06-21T13:05:00.000Z',
+      parentUid: 'c-news-1-1',
+      likes: 6,
+    },
+    {
+      uid: 'c-news-1-3',
+      author: 'Sam Whitfield',
+      role: 'Storage Provider',
+      text: 'The retrieval latency numbers match what we saw on the testnet. Content routing is the real win here.',
+      createdAt: '2026-06-21T15:40:00.000Z',
+      likes: 2,
+    },
+    {
+      uid: 'c-news-1-4',
+      author: 'Ana Duarte',
+      role: 'Engineer @ Bacalhau',
+      text: 'Any guidance for clusters still on the old bootstrap list?',
+      createdAt: '2026-06-22T09:15:00.000Z',
+      likes: 0,
+    },
+  ],
+  'news-3': [
+    {
+      uid: 'c-news-3-1',
+      author: 'Priya Raman',
+      role: 'Networking @ libp2p',
+      text: 'Conformance tests are the part that makes this real — without them "standard" just means "our implementation".',
+      createdAt: '2026-06-20T17:30:00.000Z',
+      likes: 5,
+    },
+  ],
+  'news-4': [
+    {
+      uid: 'c-news-4-1',
+      author: 'Tomas Nilsson',
+      role: 'Analyst',
+      text: 'Is the growth mostly large-dataset onboarding, or are renewals carrying it?',
+      createdAt: '2026-06-18T14:10:00.000Z',
+      likes: 1,
+    },
+    {
+      uid: 'c-news-4-2',
+      author: 'Mira Chen',
+      role: 'Infrastructure Lead @ Protocol Labs',
+      text: 'Roughly two thirds new onboarding this quarter. Renewals held steady, which is the healthier signal of the two.',
+      createdAt: '2026-06-18T14:52:00.000Z',
+      parentUid: 'c-news-4-1',
+      likes: 4,
+    },
+    {
+      uid: 'c-news-4-3',
+      author: 'Sam Whitfield',
+      role: 'Storage Provider',
+      text: 'Capacity across three continents is the sentence worth reading twice.',
+      createdAt: '2026-06-19T08:05:00.000Z',
+      likes: 2,
+    },
+  ],
+  'news-5': [
+    {
+      uid: 'c-news-5-1',
+      author: 'Ana Duarte',
+      role: 'Engineer @ Bacalhau',
+      text: 'Congrats to the team. Is the compute layer going to be permissionless from launch?',
+      createdAt: '2026-06-16T11:00:00.000Z',
+      likes: 2,
+    },
+    {
+      uid: 'c-news-5-2',
+      author: 'Devon Okoro',
+      role: 'Protocol Engineer @ libp2p',
+      text: 'Gated for the first cohort, from what I heard at Camp — worth confirming with them directly.',
+      createdAt: '2026-06-16T12:30:00.000Z',
+      parentUid: 'c-news-5-1',
+      likes: 1,
+    },
+  ],
+  'news-7': [
+    {
+      uid: 'c-news-7-1',
+      author: 'Priya Raman',
+      role: 'Networking @ libp2p',
+      text: '40% on cold storage is a bigger deal than the headline makes it sound.',
+      createdAt: '2026-06-12T16:20:00.000Z',
+      likes: 3,
+    },
+  ],
+};
+
+/** Card counts, derived — never written twice. */
+export const commentCountFor = (uid: string): number => NEWS_COMMENT_THREADS[uid]?.length ?? 0;
+
+/**
+ * Open roles — looked up, not re-authored. The job board already groups every
+ * role under its team, and this mock team IS its `protocol-labs` group (4
+ * roles), so duplicating them here would give the same team two sets of jobs
+ * that drift apart on the first edit.
+ *
+ * Those mocks date roles relative to `now`, which is why this page stays behind
+ * its existing client-only mount gate.
+ */
+export const MOCK_TEAM_ROLES: IJobTeamGroup | null =
+  MOCK_JOB_GROUPS.find((g) => g.team.uid === MOCK_TEAM.id) ?? null;

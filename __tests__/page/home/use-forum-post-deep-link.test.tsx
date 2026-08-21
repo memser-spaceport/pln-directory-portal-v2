@@ -25,6 +25,7 @@ function post(uid: string): IFeedForumPost {
     forumTopicUrl: null,
     commentCount: 0,
     likeCount: 0,
+    viewCount: 0,
     viewerHasLiked: false,
   };
 }
@@ -137,5 +138,25 @@ describe('useForumPostDeepLink — user interaction latch', () => {
     rerender({ posts: [post('fp_live')], isSettled: true });
     expect(currentPostParam()).toBe('fp_live');
     expect(result.current.activePostUid).toBe('fp_live');
+  });
+
+  it('soft-nav after close reopens the modal (LAB-2281 close latch)', () => {
+    setUrl('?post=fp_a');
+    const onDeepLinkOpen = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      useForumPostDeepLink({ posts: [post('fp_a')], isSettled: true, onDeepLinkOpen }),
+    );
+    expect(result.current.activePostUid).toBe('fp_a');
+    expect(onDeepLinkOpen).toHaveBeenCalledTimes(1);
+
+    act(() => result.current.closePost());
+    expect(result.current.activePostUid).toBeNull();
+    expect(currentPostParam()).toBeNull();
+
+    setUrl('?post=fp_a');
+    rerender();
+
+    expect(result.current.activePostUid).toBe('fp_a');
+    expect(currentPostParam()).toBe('fp_a');
   });
 });

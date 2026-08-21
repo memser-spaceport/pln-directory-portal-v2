@@ -59,11 +59,55 @@ export interface AgentSessionProgress {
   steps: AgentSessionProgressStep[];
 }
 
+export interface AgentSessionMessage {
+  id: string;
+  task_id: string;
+  execution_id: string | null;
+  sender: 'admin' | 'agent';
+  /**
+   * Widened to `string` on purpose. The orchestrator emits `instruction`, `status`,
+   * `reply` and `question` today and is free to add more — an unknown type must
+   * render as an ordinary bubble, never disappear or break parsing.
+   */
+  message_type: string;
+  body: string;
+  created_at: string;
+}
+
+/** 202 envelope returned when a message resumes the agent. */
+export interface SendAgentSessionMessageResult {
+  message: AgentSessionMessage;
+  executionId: string;
+  executionNumber: number;
+  executionStatus: string;
+  kubernetesJobName: string;
+}
+
 export interface CreateAgentSessionInput {
   repository: string;
   baseBranch?: string;
   prompt: string;
   createFeatureEnvironment?: boolean;
+}
+
+/**
+ * Carries the HTTP status alongside the message so callers can tell a permanent
+ * failure (404 route missing, 403 not an admin) from a transient one and skip
+ * pointless retries.
+ */
+export class AgentSessionRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'AgentSessionRequestError';
+    this.status = status;
+  }
+}
+
+/** 4xx means the request itself is wrong — retrying cannot fix it. */
+export function isPermanentAgentSessionError(error: unknown): boolean {
+  return error instanceof AgentSessionRequestError && error.status >= 400 && error.status < 500;
 }
 
 function extractErrorMessage(body: unknown, fallbackMessage: string): string {
@@ -87,7 +131,7 @@ async function parseJson<T>(response: Response | undefined, fallbackMessage: str
     } catch {
       // ignore parse errors
     }
-    throw new Error(detail);
+    throw new AgentSessionRequestError(detail, response.status);
   }
   return response.json() as Promise<T>;
 }
@@ -110,6 +154,33 @@ export async function fetchAgentSessionProgress(id: string): Promise<AgentSessio
     true,
   );
   return parseJson<AgentSessionProgress>(response, 'Failed to load session progress');
+}
+
+export async function fetchAgentSessionMessages(id: string): Promise<AgentSessionMessage[]> {
+  const response = await customFetch(
+    `${AGENT_SESSIONS_API_URL}/${encodeURIComponent(id)}/messages`,
+    { method: 'GET' },
+    true,
+  );
+  const data = await parseJson<{ items: AgentSessionMessage[] }>(response, 'Failed to load messages');
+  return data.items ?? [];
+}
+
+/**
+ * Sending resumes the agent from the session's existing branch — this starts a
+ * real run, it does not just append text.
+ */
+export async function sendAgentSessionMessage(id: string, message: string): Promise<SendAgentSessionMessageResult> {
+  const response = await customFetch(
+    `${AGENT_SESSIONS_API_URL}/${encodeURIComponent(id)}/messages`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    },
+    true,
+  );
+  return parseJson<SendAgentSessionMessageResult>(response, 'Failed to send message');
 }
 
 export async function fetchAgentSessionRepositories(): Promise<AgentSessionRepository[]> {

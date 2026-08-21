@@ -1,0 +1,111 @@
+@use 'styles/media';
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+/**
+ * Provider icons are hidden below tablet-landscape, as they are in the profile's contact
+ * editor. Where they do show, the icon aligns to the middle of the 50px value box (half the
+ * box, less half the 24px icon) rather than to the bottom of the row — this row is taller
+ * than one field, so bottom alignment would drag it below the address.
+ */
+.providerIcon {
+  display: none;
+
+  @include media.tablet-landscape {
+    display: block;
+    margin-top: 13px;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Read-only, not disabled: the same box as an editable field, with no caret and the action
+   inside it. Mirrors FormField's `.input`. */
+.value {
+  display: flex;
+  height: 50px;
+  padding: 0 16px;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: #fff;
+}
+
+.address {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.description {
+  margin-top: 8px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.panelTitle {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.panelText {
+  margin-top: 4px;
+  max-width: 62ch;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.errorText {
+  margin-top: 8px;
+  max-width: 62ch;
+  /* Not FormField's `.errorMsg`: that writes a bare `var(--action-border-error-focus)` with
+     no fallback, which resolves to nothing in this app. */
+  color: var(--foreground-error-primary, #d21a0e);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}

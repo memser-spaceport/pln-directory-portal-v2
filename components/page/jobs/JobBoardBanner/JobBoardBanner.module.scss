@@ -1,0 +1,138 @@
+@use 'styles/media';
+
+/* Promoted from prototypes/entries/job-board/SignInBanner.module.scss — the slot
+   only; everything the banner looks like lives in production's own
+   `Welcome.module.scss`, imported verbatim by the component.
+
+   Lines the block up with the board's cards: `JobsContent.module.scss .list` is
+   inset 8px on mobile and flush from 1024 up. Vertical rhythm needs nothing —
+   `JobsContent .root` is a 16px-gap column and the banner is one of its children. */
+.slot {
+  padding: 0 8px;
+}
+
+@include media.breakpoint-1024 {
+  .slot {
+    padding: 0;
+  }
+}
+
+/* The criteria read-back. 600 rather than the browser's default 700 — emphasis
+   by weight alone, so it doesn't start reading as a link. */
+.criteria {
+  font-weight: 600;
+}
+
+/* The two claims a profile is worth making, as a list rather than a paragraph.
+   Type comes from `welcome.sub`, which the element also wears; this adds only
+   what a `<ul>` needs and the browser's own margins take away. */
+.valueBullets {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+
+  li + li {
+    margin-top: 2px;
+  }
+}
+
+/* The two doors. 8px, the same gap the navbar leaves between its own Sign up /
+   Sign in pills — close enough to read as one cluster, far enough not to look
+   like a split button. `flex-shrink: 0` because `welcome.cta` sets it on itself
+   and the group now stands where that button used to. */
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  /* Bottom-aligned, against `Welcome`'s centred row: sitting on the text
+     block's last baseline, the buttons read as what you do once you've
+     finished reading. */
+  align-self: flex-end;
+
+  @include media.mobile-only {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+    }
+  }
+}
+
+/* Sign up: the quiet half of the pair. Geometry is `welcome.cta`'s, copied
+   literally, so the two buttons are the same object in two tones; only the
+   colour layer comes from the design system's own signup control. */
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  color: var(--action-foreground-neutral-normal, #455468);
+  background: var(--Neutral-White, #fff);
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* The pinned (rail-narrowed) state: only the height comes down — pinned, the
+   strip rides over the list it belongs to, so it spends as little of the
+   viewport as the ask and its one supporting line need. */
+.condensed.condensed {
+  padding: 12px 20px;
+}
+
+@include media.breakpoint-1024 {
+  /* One line, truncated rather than wrapped — neither the ask nor a long
+     selection may grow the strip it's pinned inside. */
+  .oneLine {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Parks under the header at the same offset as every other sticky rail. The
+     16px of air is padding on the slot, not a larger `top` — an offset gap
+     would let scrolling cards show through between header and strip. z-index
+     under the app header, above the cards. */
+  .pinned {
+    position: sticky;
+    top: var(--app-header-height, 80px);
+    z-index: 4;
+    padding-top: 16px;
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  /* Pinned, the strip is a white card holding still over white cards moving
+     underneath — just enough shadow to separate the layers. */
+  .pinned .condensed {
+    box-shadow: 0 2px 8px rgba(14, 15, 17, 0.08);
+  }
+}
+
+/* The pending-approval card sits in the same slot but is a different shape (an
+   Alert, not the Welcome card); only the horizontal inset is shared. */
+.pendingSlot {
+  display: block;
+}

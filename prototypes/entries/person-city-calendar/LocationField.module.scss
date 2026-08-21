@@ -1,0 +1,445 @@
+@use 'styles/media';
+
+/* Deltas only. The field's own label / control / hint come from production's
+   ProfileLocationInput.module.scss, imported alongside this file — everything
+   here is the "somewhere else on these dates" extension below it. */
+
+/* No divider. A rule across the top said "separate section", which is the exact
+   opposite of the argument — these dates are the Location field continued, not a
+   second thing under it. Proximity carries it instead: 12px to the hint above,
+   against the 24px `EditProfileForm.module.scss .body` puts between real fields,
+   so the two halves group and the next field doesn't. */
+.stays {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  /* 8px + the 4px `loc.root` already puts between its children = 12px. */
+  margin-top: 8px;
+}
+
+.staysHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: #f2f5ff;
+  }
+}
+
+.stayList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stayRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+
+  &.stayRowActive {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: #f2f5ff;
+  }
+
+  /* A stay you deleted that the RSVP behind it still justifies. Dashed and
+     de-emphasised: it is an offer, not something on your profile. */
+  &.stayRowRemoved {
+    border-style: dashed;
+    background: transparent;
+
+    .stayCity {
+      color: var(--foreground-neutral-tertiary, #8897ae);
+      font-weight: 500;
+    }
+  }
+}
+
+.addBackBtn {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-brand-subtle, #aebfff);
+    background: #f2f5ff;
+  }
+}
+
+.stayMain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stayCity {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+.stayDates {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.stayNote {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* The event badge from the team page — team-irl-contributions.tsx's <style jsx>
+   (.root__irlCrbts__col__event__cnt, lines 396-459). Chrome copied verbatim:
+   40-115px wide, 0 12px, 4px radius, 1px #cbd5e1 on #f1f5f9, name at
+   12px/500/14px clipped at 93px.
+   One deliberate deviation: production stacks a month under the name and is
+   40px tall for it. This row already states the exact dates, so the month is
+   dropped and the height collapses to a single line — a 40px box around one
+   12px line reads as a component with a missing second row. */
+.eventBadge {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 40px;
+  max-width: 115px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+}
+
+.eventBadgeTitle {
+  width: 93px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.confirmBtn {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--foreground-brand-primary, #1b4dff);
+  color: var(--background-base-white, #fff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* What Confirm resolves to. Production already ships this exact resolution —
+   contributing-team-popup.tsx:156-161 and maintaining-team-popup.tsx:153 swap a
+   "Select" button for `/icons/added.svg` + "Added" in #475569 with a 4px gap,
+   `cursor: default`, and no pill at all. Copied: grey, chromeless, stated.
+   The one deviation is size — production's is 14px in a 14px list; this row runs
+   at 12px, and the tag should match the row it sits in rather than the row it
+   came from. Height stays 26px so replacing the button doesn't shift anything. */
+.addedTag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 4px;
+  color: var(--foreground-neutral-secondary, #475569);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: default;
+}
+
+.removeBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  }
+}
+
+/* Shown in place of the whole dates block on a profile with no city yet. */
+.locked {
+  margin: 8px 0 0;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+}
+
+/* ---- the picker, revealed under the list ---- */
+
+.picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 12px;
+  background: var(--background-base-white, #fff);
+
+  @include media.tablet-landscape {
+    grid-template-columns: 380px minmax(260px, 1fr);
+    /* stretch, not start: the two cards are a pair, so the calendar's bottom
+       edge lines up with the editor's instead of floating short of it. */
+    align-items: stretch;
+  }
+}
+
+.pickerCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+
+  /* the single card in each column takes the full row height */
+  > * {
+    flex: 1;
+  }
+}
+
+.pickerHint {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 13px;
+  line-height: 19px;
+
+  strong {
+    color: var(--foreground-neutral-secondary, #455468);
+    font-weight: 600;
+  }
+}
+
+/* Stand-in for production's BioInput (a rich-text editor bound to react-query).
+   Border and radius copied from FormField.module.scss so the row still measures
+   like its neighbours. */
+.bioArea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  border-radius: 8px;
+  background: var(--background-base-white, #fff);
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-brand-subtle, #aebfff);
+  }
+}
+
+/* ---- header chip: upcoming stays, beside the location in MemberDetailHeader ---- */
+
+/* The pin and the chip are one statement — "based in Lisbon, in San Francisco
+   Sep 7-11" — so they sit together. Production's `.location` carries
+   `padding-right: 24px` to separate itself from whatever follows
+   (MemberDetailHeader.module.scss:148-153); that padding belongs to the group
+   now, not between the two halves of the same sentence. */
+/* 12px: 4px more than the 8px it was. Still tighter than the 16px
+   `roleAndLocation` uses between its own items, so the pin and the chip read as
+   one pair rather than two entries in the strip. */
+.locationGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 24px;
+}
+
+/* `.location` minus its trailing padding — same 4px icon gap as production. */
+.locationSlot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chipWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* One line always. Without this the pill itself wraps at narrow widths and
+     becomes a two-line blob; the whole chip should move to the next line of the
+     header strip instead, which is what `roleAndLocation`'s flex-wrap does. */
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+  background: #f2f5ff;
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  }
+
+  /* Touch: hover can't carry the affordance and 22px is under any sane tap
+     target, so the chip grows on phones. */
+  @include media.mobile-only {
+    min-height: 32px;
+    padding: 4px 10px;
+  }
+}
+
+.chipCaret {
+  flex-shrink: 0;
+  margin-left: 2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+  transition: transform 150ms ease;
+}
+
+.chipCaretOpen {
+  transform: rotate(180deg);
+}
+
+.popoverNow {
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--transparent-brand-8, rgba(27, 77, 255, 0.08));
+  color: var(--foreground-brand-primary, #1b4dff);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: 264px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--background-base-white, #fff);
+  box-shadow:
+    0 0 1px 0 rgba(15, 23, 42, 0.12),
+    0 4px 12px 0 rgba(15, 23, 42, 0.12);
+}
+
+.popoverTitle {
+  margin: 0 0 8px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.popoverList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.popoverRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.popoverHead {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.popoverNote {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.popoverCity {
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.popoverDates {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 12px;
+  line-height: 18px;
+}

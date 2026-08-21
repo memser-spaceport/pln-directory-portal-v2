@@ -7,6 +7,7 @@ import { countMentions } from '@/utils/html';
 import { useTeamNewsAnalytics, type FeedItemKind, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import { feedQueryKeys } from '../constants';
 import { classifyCommentFailure } from '../commentFailure';
+import { writeCountFloor } from '../feedCommentCountFloor';
 import { createFeedComment } from '../feed.service';
 
 /** Which surface a write came from, so its analytics can say. */
@@ -84,12 +85,33 @@ export function useAddFeedComment(itemUid: string, forumMainPid?: number, contex
       // alone erased it on the first post, which silently took out the "N more
       // comments on the forum" link, the escalation label's honesty about
       // unloaded replies, and useFeedForumTopicLike's view of the vote state.
-      queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), (old) =>
-        old ? { ...old, items: insertCommentIntoTree(old.items, created) } : { items: [created] },
-      );
+      queryClient.setQueryData<IFeedCommentsResponse>(feedQueryKeys.comments(itemUid), (old) => {
+        if (!old) return { items: [created] };
+        return {
+          ...old,
+          items: insertCommentIntoTree(old.items, created),
+          // The topic just gained a reply, so its own tally moves with it.
+          // Leaving this at the pre-comment value would let
+          // useReconcileFeedCommentCount write that number straight back over
+          // the count below the next time the thread remounts.
+          forumTopic: old.forumTopic
+            ? { ...old.forumTopic, totalReplyCount: old.forumTopic.totalReplyCount + 1 }
+            : old.forumTopic,
+        };
+      });
+
+      // Read out rather than computed inside the updater: the floor below needs
+      // the resulting number, and a side effect in an updater is the wrong
+      // place to get it.
+      const counts = queryClient.getQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts());
+      const nextCount = (counts?.[itemUid] ?? 0) + 1;
       queryClient.setQueryData<IFeedCommentCountsResponse>(feedQueryKeys.commentCounts(), (old) =>
-        old ? { ...old, [itemUid]: (old[itemUid] ?? 0) + 1 } : { [itemUid]: 1 },
+        old ? { ...old, [itemUid]: nextCount } : { [itemUid]: nextCount },
       );
+      // Survives the reload that NodeBB's listing spends still reporting the
+      // pre-comment count. No-op for news items, whose counts are already
+      // authoritative — the floor module ignores anything but a forum uid.
+      writeCountFloor(itemUid, nextCount);
     },
   });
 }

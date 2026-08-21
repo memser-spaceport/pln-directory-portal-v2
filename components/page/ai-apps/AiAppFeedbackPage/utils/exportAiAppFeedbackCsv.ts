@@ -1,4 +1,5 @@
-import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/hooks/useAiAppFeedbackList';
+import { AI_APP_FEEDBACK_STATUS_LABELS } from '@/services/ai-app-feedback/constants';
+import type { AiAppFeedbackRow } from '@/services/ai-app-feedback/ai-app-feedback.service';
 
 /**
  * Serialize a value for CSV: quote if it contains comma / quote / newline.
@@ -17,6 +18,7 @@ const COLUMNS: Array<{ header: string; getter: (row: AiAppFeedbackRow) => unknow
   { header: 'app_name', getter: (row) => row.appName },
   { header: 'feedback', getter: (row) => row.text },
   { header: 'submitter', getter: (row) => row.member?.name ?? 'Unknown member' },
+  { header: 'status', getter: (row) => AI_APP_FEEDBACK_STATUS_LABELS[row.status] },
   { header: 'date', getter: (row) => row.createdAt },
 ];
 

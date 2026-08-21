@@ -26,14 +26,26 @@ const KICKER_COLOR_CLASS: Record<ITeamNewsItem['eventType'], string> = {
   ANNOUNCEMENT: 'kAnnouncement',
   MILESTONE: 'kMilestone',
   OTHER: 'kAnnouncement',
+  HIRING: 'kAnnouncement',
+  DEALS: 'kAnnouncement',
 };
+
+/**
+ * Two shapes for the same slot, so they can be compared rather than argued about.
+ *
+ *   three  — one lead plus two runner-up rows. More chances to land, at the cost
+ *            of a clamped teaser on each.
+ *   single — one pick with a written body. Higher conviction, and the reader
+ *            either wants that story or gets nothing from the block this week.
+ */
+export type TopBlockVariant = 'three' | 'single';
 
 interface TopStoriesBlockProps {
   lead: ITeamNewsItem;
-  /** The other two picks. Rendered as rows, not cards. */
+  /** The other two picks. Rendered as rows, not cards. Ignored when variant is 'single'. */
   also: ITeamNewsItem[];
+  variant: TopBlockVariant;
   top: TopStory;
-  attribution: string;
   followedTeams: Set<string>;
   onToggleFollow: (teamUid: string, teamName: string) => void;
   likeCount: (uid: string) => number;
@@ -49,9 +61,9 @@ interface TopStoriesBlockProps {
  * Asymmetric on purpose. Three equal heroes would cost three written why-lines
  * every week — which is exactly what makes the human-curated start unsustainable,
  * and the human-curated start is how the ranking criteria get proven before a
- * model inherits them. So the lead keeps the reasoning and the attribution, and
- * the other two are rows: chip, headline, team. Same shape Apple News, Ghost and
- * NAVER all land on.
+ * model inherits them. So the lead keeps the pick's weight — full card, teaser,
+ * engagement — and the other two are rows: chip, headline, team. Same shape Apple
+ * News, Ghost and NAVER all land on.
  *
  * One band, not three cards — otherwise the two rows read as feed items that
  * happen to sit high, rather than as part of the pick.
@@ -59,8 +71,8 @@ interface TopStoriesBlockProps {
 export function TopStoriesBlock({
   lead,
   also,
+  variant,
   top,
-  attribution,
   followedTeams,
   onToggleFollow,
   likeCount,
@@ -74,7 +86,6 @@ export function TopStoriesBlock({
       <TopStoryCard
         story={lead}
         top={top}
-        attribution={attribution}
         following={followedTeams.has(lead.teamUid)}
         onToggleFollow={() => onToggleFollow(lead.teamUid, lead.teamName)}
         likeCount={likeCount(lead.uid)}
@@ -82,9 +93,10 @@ export function TopStoriesBlock({
         onToggleLike={() => onToggleLike(lead.uid)}
         commentCount={commentCount(lead.uid)}
         onOpen={() => onOpenStory(lead)}
+        expanded={variant === 'single'}
       />
 
-      {also.length > 0 && (
+      {variant === 'three' && also.length > 0 && (
         <ul className={local.alsoList}>
           {also.map((item) => (
             /* Same head row as every other news card — logo, team name, Follow.

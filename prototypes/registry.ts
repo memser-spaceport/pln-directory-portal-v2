@@ -295,6 +295,14 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/auth-copy-audit/AuthCopyAuditPrototype'),
   },
   {
+    key: 'kudos-edit',
+    title: 'Kudos — edit states',
+    description:
+      'PLAA-50 click-through with the real KudosCard component and a mocked signed-in giver: your own kudos on the current round (Edit action), your own kudos on a past round (locked, frozen), and someone else\'s kudos (neither). Save changes calls a mocked update so you can see a full successful edit without a reachable PLAA_API_URL.',
+    category: 'PLAA',
+    load: () => import('./entries/kudos-edit/KudosEditPrototype'),
+  },
+  {
     key: 'pl-spotlight-table',
     title: 'PL Spotlight — back-office participants table',
     description:

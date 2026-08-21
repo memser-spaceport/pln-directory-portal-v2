@@ -84,3 +84,11 @@ export function submitCommunityKudos(input: ICommunityKudosInput): Promise<IComm
     body: JSON.stringify(input),
   });
 }
+
+/** Giver-only, round-must-be-open — both enforced server-side. Giver and round are immutable and never sent. */
+export function updateCommunityKudos(id: string, input: ICommunityKudosInput): Promise<ICommunityKudos> {
+  return request<ICommunityKudos>(`/kudos/community/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}

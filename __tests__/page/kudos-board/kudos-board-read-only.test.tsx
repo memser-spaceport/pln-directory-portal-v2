@@ -46,16 +46,18 @@ jest.mock('@/hooks/use-kudos', () => ({
   useCommunityPool: () => poolReturn,
   useRecipients: () => ({ data: { items: [] } }),
   useGiveCommunityKudos: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useUpdateCommunityKudos: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 jest.mock('@/analytics/kudos.analytics', () => ({
   useKudosAnalytics: () => ({
     onKudosPageViewed: jest.fn(),
     onGiveKudosOpened: jest.fn(),
     onCommunityKudosSubmitted: jest.fn(),
+    onEditKudosOpened: jest.fn(),
+    onCommunityKudosUpdated: jest.fn(),
   }),
 }));
 jest.mock('@/utils/plaa-round.utils', () => ({ getCurrentRoundNumber: () => 5 }));
-jest.mock('react-toastify', () => ({ ToastContainer: () => null }));
 
 const poolModule = () => screen.queryByText(/community points to give this round/i);
 const giveButtons = () => screen.queryAllByRole('button', { name: /give community kudos/i });

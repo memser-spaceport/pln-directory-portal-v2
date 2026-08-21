@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import KudosCard from './kudos-card';
 import GiveCommunityKudosModal from './give-kudos-modal';
@@ -51,8 +49,7 @@ export default function KudosBoardComponent({
 
   return (
     <div className="kudos-board">
-      <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar theme="dark" />
-
+      {/* No local <ToastContainer> — the app already mounts one globally; a second one double-renders every toast. */}
       <div className="kudos-board__container">
         <header className="kudos-board__header">
           <div>
@@ -115,7 +112,15 @@ export default function KudosBoardComponent({
         ) : (
           <div className="feed-grid">
             {feed.data!.items.map((k) => (
-              <KudosCard key={k.id} kudos={k} />
+              <KudosCard
+                key={k.id}
+                kudos={k}
+                recipients={recipients.data?.items ?? []}
+                recipientsLoading={recipients.isLoading}
+                poolRemaining={poolRemaining}
+                limits={pool.data}
+                currentRoundId={pool.data?.roundId}
+              />
             ))}
           </div>
         )}

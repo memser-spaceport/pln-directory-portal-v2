@@ -5,6 +5,7 @@ import {
   getCommunityPool,
   getRecipients,
   submitCommunityKudos,
+  updateCommunityKudos,
   type IGetKudosFeedParams,
 } from '@/services/kudos.service';
 import type { ICommunityKudosInput } from '@/components/page/aligement-assets/kudos-board/data/kudos-board.types';
@@ -54,6 +55,18 @@ export function useGiveCommunityKudos() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: ICommunityKudosInput) => submitCommunityKudos(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['kudos', 'feed'] });
+      qc.invalidateQueries({ queryKey: ['kudos', 'pool'] });
+    },
+  });
+}
+
+/** Editing the recipient or points moves budget between recipients/pool, so both caches need invalidating too. */
+export function useUpdateCommunityKudos() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ICommunityKudosInput }) => updateCommunityKudos(id, input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['kudos', 'feed'] });
       qc.invalidateQueries({ queryKey: ['kudos', 'pool'] });

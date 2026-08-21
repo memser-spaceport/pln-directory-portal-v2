@@ -33,7 +33,6 @@
   }
 }
 
-
 /* Mobile: tabs span the full row, each half stretched. Desktop: content-width,
    left-aligned to the header (the -12px cancels the first tab's own padding). */
 .tabsRoot {
@@ -106,6 +105,125 @@
    height so the white card body fills to the bottom edge. */
 .teamCard.teamCard > :last-child {
   flex: 1;
+}
+
+/* ── Inactive team ─────────────────────────────────────────────────────────
+   A team that has wound down. The card steps back so the state reads from
+   across the grid; the badge in the corner names it once you're close.
+
+   Everything on the card steps down a rank: body off white, elevation dropped
+   for a hairline, logo desaturated, name to secondary, tag chips drained of
+   colour. The description alone is left where it is — it's already the card's
+   quietest type, and taking it further would put 12px text under the contrast
+   floor on a tinted card (#8897ae on #f9fafb measures 2.85:1, well short of
+   4.5). Muting is a hierarchy move, not a disabled state: the card is still a
+   link to a real profile with real people on it, and every word on it stays
+   readable.
+
+   Doubled selector to out-specify production's `.grid`, the same trick
+   `.teamCard.teamCard` above uses. */
+.teamCardInactive.teamCardInactive {
+  /* One step off white, against the #f1f5f9 page. `--background-neutral-subtle`
+     would have been the obvious name, but production spends it six different
+     ways (#f8f9fa, #f0f3f9, #f1f5f9, #f9fafb, an rgba…) and one of those is the
+     page background itself, which would sink the card into the page.
+     `soft-surface` is the pair production actually agrees on — 22 uses, one
+     value — and it means what is wanted here: a surface a step below white. */
+  background-color: var(--background-neutral-soft-surface, #f9fafb);
+
+  /* The tint alone did not survive contact with a real grid — rendered next to
+     eleven white cards, a 3% background step is invisible past arm's length,
+     and the badge ended up carrying the whole state on its own. Elevation is
+     what actually reads at a glance: every other card floats on a soft drop
+     shadow, so an inactive one sits flat inside a hairline border instead.
+     Same footprint, no motion, and legible from across the grid — which is what
+     the muting was for.
+
+     A real `border`, after an inset `box-shadow` failed here. Two things were
+     wrong with the inset: it is painted *behind* the element's children, so
+     `.profileContainer` — an opaque full-bleed band across the top third —
+     covered the whole top edge and both upper corners, leaving the card open at
+     the exact place a border is first read. And the reason for reaching for it
+     was false: the note said a border would push the card 2px past its
+     siblings, but `app/globals.scss` sets `* { box-sizing: border-box }`
+     globally, so a border costs no width at all. */
+  box-shadow: none;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+
+  /* Production's card answers hover with a brand ring, which reads as "act on
+     this". Kept, at the neutral border tone: the card is still a link to a real
+     profile with real people on it, and it should still say so — just without
+     the invitation. The border deepens with it so the whole outline moves as
+     one thing rather than growing a second, differently-coloured edge. */
+  &:hover,
+  &:active {
+    outline: none;
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    box-shadow: 0 0 0 2px var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* The logo is the card's face and the loudest thing on it, so it carries most
+   of the muting. Greyscale rather than opacity alone: a half-transparent mark
+   over a tinted card just looks like a rendering bug, where a desaturated one
+   reads as deliberate. */
+.mutedLogo {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+/* Production draws the card name at #0f172a — the darkest thing on the grid,
+   and on an inactive card the one element still shouting. Down to the secondary
+   text tone, which is where the description already sits: the two now differ by
+   size and weight (18px/600 against 12px/400) rather than by darkness, so the
+   name still leads its card without leading the grid. */
+.mutedName.mutedName {
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The card's top band — production draws it `linear-gradient(180deg, #fff 0%,
+   #e2e8f0 205%)`, so it opens on pure white and was the thing still making an
+   inactive card read light from a distance. Measured, it's a third of the card
+   above the fold of the name.
+
+   Flattened to one muted tone rather than re-tinted as a gradient: a gradient
+   is a light source, and the whole point of the state is that this card isn't
+   lit. A step cooler and darker than the body below it, so the band still reads
+   as a band and the logo still has something to sit on. */
+.mutedBand.mutedBand {
+  background: var(--background-neutral-subtle, #f0f3f9);
+  border-bottom-color: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+}
+
+/* The tag chips take their fill from `--tag-color`, which production sets
+   per-tag; desaturating the row drains those without touching `Tag` itself, and
+   greyscale moves hue rather than lightness so the 12px labels keep their own
+   contrast. Worth stating plainly: against *these* mocks it is a no-op — none
+   of MOCK_TEAMS' tags carry a `color`, so every chip is already the neutral
+   #f1f5f9 default. It's here for the production data this grid stands in for,
+   where they do. The chips still recede on an inactive card, just passively:
+   a #f1f5f9 fill on a #f9fafb body has almost nowhere to be seen, where the
+   same chip on a white card has a whole step of contrast. */
+.mutedTags {
+  filter: grayscale(1);
+}
+
+/* The state badge: production `Badge` at `default`, re-ranked for this corner.
+
+   Badge ships 14px/20px, which is right for the settings rows it was drawn for
+   and wrong here — against an 18px card title, a 14px state label lands at 78%
+   of the name and competes with it for a fact nobody came to read. The corner
+   already has a scale: the news chip wears 11px/16px, so this takes the same
+   one. Size is not what tells the two pills apart — the news chip carries a dot
+   and a number and sits on a white card; this carries a bare word on a grey
+   one. */
+.stateChip.stateChip {
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+  min-width: 0;
+  /* "Inactive" breaking across two lines in a corner would read as a bug. */
+  white-space: nowrap;
 }
 
 /* Demo-only bar to switch how the updates badge labels itself. */
@@ -184,7 +302,10 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 /* The glyph sized to the 11px chip rather than the 16px box it ships in — the
@@ -343,6 +464,25 @@
    left edge. */
 .mobileFiltersGutter {
   padding: 0 16px;
+}
+
+/* The "Show it" inside the empty state — the one pressable thing in a sentence
+   that is otherwise a statement, so it takes the link tone and nothing else. */
+.hiddenNoteAction {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  /* The link pair, not the chip-dot pair the card uses a few rules up: this is
+     running text someone reads and presses, so it takes the brand tone the rest
+     of the product gives a link. */
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .empty {

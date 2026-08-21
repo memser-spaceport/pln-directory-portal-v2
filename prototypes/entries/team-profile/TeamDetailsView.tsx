@@ -161,7 +161,7 @@ export function TeamDetailsView({
                   swallowed the mobile line break below.) */}
               {status === 'inactive' && (
                 <span className={local.statusBadge}>
-                  <Badge>Inactive</Badge>
+                  <Badge className={local.statusChip}>Inactive</Badge>
                 </span>
               )}
               {demoDayParticipation && isNameEmblem && (

@@ -63,7 +63,7 @@ describe('EmailIdentityRow', () => {
 
     expect(screen.getByLabelText('Email address')).toHaveTextContent('old@plrs.xyz');
     expect(screen.getByText('Verified')).toBeInTheDocument();
-    expect(screen.getByText(/You sign in with this address/)).toBeInTheDocument();
+    expect(screen.getByText(/You sign in with this email/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Continue$/ })).not.toBeInTheDocument();
   });
 

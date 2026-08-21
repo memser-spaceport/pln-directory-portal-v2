@@ -33,7 +33,7 @@ interface TeamNewsModalProps {
    * The archive's size, for the header.
    *
    * Optional because the surfaces that open this from a listing card don't know
-   * it — the "N new posts" chip counts a 30-day window, not the whole archive,
+   * it — the "N new posts" chip counts a 7-day window, not the whole archive,
    * and passing that here would put "(3)" over 47 rows. Omit it and the modal
    * latches the figure from its own first unfiltered fetch instead.
    *

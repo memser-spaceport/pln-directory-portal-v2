@@ -2092,11 +2092,31 @@ describe('TeamNews', () => {
 
       expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
       expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
+      expect(screen.getByText(/Your feed is based on your focus areas, skills, and teams/)).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Update profile/ })).not.toBeInTheDocument();
       expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-same-old')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline mem-0')).not.toBeInTheDocument();
       expect(screen.getByText('Headline rec-1')).toBeInTheDocument();
       expect(screen.queryByText('Headline other-1')).not.toBeInTheDocument();
+    });
+
+    it('explains the personalized feed and links to the member profile', () => {
+      useCurrentUserStore.setState({ currentUser: { uid: 'user-1' }, isHydrated: true });
+      try {
+        renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+        expect(screen.getByText(/Your feed is based on your focus areas, skills, and teams/)).toBeInTheDocument();
+        const profileLink = screen.getByRole('link', { name: /Update profile/ });
+        expect(profileLink).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
+        expect(profileLink).toHaveAttribute('target', '_blank');
+
+        fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+        expect(screen.queryByText(/Your feed is based on your focus areas, skills, and teams/)).not.toBeInTheDocument();
+      } finally {
+        useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
+      }
     });
 
     it('shows the full multi-item clusters on All categories', () => {

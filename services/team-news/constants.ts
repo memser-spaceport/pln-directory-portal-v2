@@ -23,13 +23,13 @@ export const TEAM_NEWS_POPULAR_LIMIT = 7;
 export const TEAM_NEWS_MODAL_PAGE_SIZE = 20;
 
 /**
- * The "N new posts" chip's window — 30, while the feed's own default is 14
+ * The "N new posts" chip's window — 7, while the feed's own default is 14
  * (TEAM_NEWS_DEFAULT_WINDOW_DAYS above). The divergence is intentional and
  * mirrored server-side: the chip counts what a team published, the feed decides
  * what it still shows. Kept here only so the two sit next to each other; the
  * server owns the real number.
  */
-export const TEAM_NEWS_COUNT_WINDOW_DAYS = 30;
+export const TEAM_NEWS_COUNT_WINDOW_DAYS = 7;
 
 /**
  * The "N new posts" chip on the teams grid and the job board.

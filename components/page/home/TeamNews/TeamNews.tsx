@@ -79,6 +79,7 @@ import { useForumPostDeepLink } from './hooks/useForumPostDeepLink';
 import { NewsBase } from './components/NewsBase';
 import { NewsRail } from './components/NewsRail';
 import { NewsSearch } from './components/NewsSearch';
+import { ForYouHint } from './components/ForYouHint/ForYouHint';
 import { TeamNewsTabs } from './components/TeamNewsTabs';
 import { NewsGroupCard } from './components/NewsGroupCard';
 import { ForumPostCard } from './components/ForumPostCard';
@@ -922,6 +923,7 @@ export const TeamNews = ({
             the originating row is gone (deep link to a folded story) — focus must
             land somewhere in the feed, never on <body>. */}
         <div className={s.main} data-news-feed-root tabIndex={-1}>
+          {activeCategory === FOR_YOU_CAT && <ForYouHint memberUid={currentUser?.uid} />}
           {topStories?.lead && (
             <div className={s.topStories}>
               <TopStoriesBlock

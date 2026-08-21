@@ -400,7 +400,7 @@ describe('TeamNewsModal drill', () => {
   });
 
   // Opened from a listing card's "N new posts" chip, the caller has no archive
-  // total to pass — the chip counted a 30-day window, this box lists everything.
+  // total to pass — the chip counted a 7-day window, this box lists everything.
   describe('without a `total` prop', () => {
     const renderChipOpened = (props: Partial<React.ComponentProps<typeof TeamNewsModal>> = {}) =>
       render(

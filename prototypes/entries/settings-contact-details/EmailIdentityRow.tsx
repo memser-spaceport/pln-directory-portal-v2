@@ -99,13 +99,13 @@ export function EmailIdentityRow({ uid, email, userInfo }: Props) {
           )}
         </div>
 
-        <p className={s.description}>You sign in with this address. Changing it changes how you sign in.</p>
+        <p className={s.description}>You sign in with this email. Changing it changes how you sign in.</p>
 
         {isChanging && (
           <div className={s.panel}>
-            <p className={s.panelTitle}>Change your email address</p>
+            <p className={s.panelTitle}>Change your email</p>
             <p className={s.panelText}>
-              We’ll ask for the new address and send it a 6-digit code to confirm it’s yours. Your current address keeps
+              We’ll ask for the new email and send it a 6-digit code to confirm it’s yours. Your current address keeps
               working until you enter the code.
             </p>
 

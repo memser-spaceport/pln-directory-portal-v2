@@ -177,7 +177,7 @@ export function sendTeamNewsImpressionsBeacon(uids: string[]): boolean {
 const TEAM_NEWS_COUNTS_BATCH_SIZE = 200;
 
 /**
- * How many news items each team published in the last 30 days.
+ * How many news items each team published in the last 7 days.
  *
  * A React Query queryFn, so it THROWS on failure rather than returning null the
  * way the SSR fetchers above do. That difference matters here: useTeamNewsCounts

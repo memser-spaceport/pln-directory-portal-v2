@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@/components/form/FormField';
 import { IMember, IMemberPreferences } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
@@ -13,6 +14,9 @@ import { omit } from 'lodash';
 import { useMember } from '@/services/members/hooks/useMember';
 import { useUpdateMember } from '@/services/members/hooks/useUpdateMember';
 import { getProfileFromURL } from '@/utils/common.utils';
+import { toSocialFieldInputValue } from '@/utils/profile/toSocialFieldInputValue';
+
+import { buildEditContactSchema } from './formSchema';
 
 import s from './EditContactForm.module.scss';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
@@ -36,17 +40,22 @@ interface Props {
 
 export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, variant }: Props) => {
   const router = useRouter();
+  const schema = useMemo(() => buildEditContactSchema(!!linkedinRequired), [linkedinRequired]);
+
   const methods = useForm<TEditContactForm>({
+    // Handles are stored bare, but the X / Telegram / Bluesky fields require a leading "@", so
+    // seed those with it — otherwise re-saving an untouched profile fails validation.
     defaultValues: {
-      telegram: member.telegramHandle,
+      telegram: toSocialFieldInputValue('telegram', member.telegramHandle),
       github: member.githubHandle,
       linkedin: member.linkedinHandle,
       discord: member.discordHandle,
-      twitter: member.twitter,
-      bluesky: member.blueskyHandle,
+      twitter: toSocialFieldInputValue('twitter', member.twitter),
+      bluesky: toSocialFieldInputValue('bluesky', member.blueskyHandle),
       email: member.email,
       shareContacts: getDefaultToggleValue(member.preferences),
     },
+    resolver: yupResolver(schema),
   });
   const isAdmin = isAdminUser(userInfo);
   const isOwner = userInfo && userInfo.uid === member.id;
@@ -145,7 +154,6 @@ export const EditContactForm = ({ onClose, member, userInfo, linkedinRequired, v
               label="LinkedIn"
               placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
               isRequired={linkedinRequired}
-              rules={linkedinRequired ? { required: 'LinkedIn is required' } : undefined}
             />
           </div>
           <div className={s.row}>
@@ -207,9 +215,7 @@ function formatPayload(memberInfo: any, formData: TEditContactForm, isAdmin: boo
   const normalizedDiscord = formData.discord ? getProfileFromURL(formData.discord, 'discord') : formData.discord;
   const normalizedGithub = formData.github ? getProfileFromURL(formData.github, 'github') : formData.github;
   const normalizedTelegram = formData.telegram ? getProfileFromURL(formData.telegram, 'telegram') : formData.telegram;
-  const normalizedBluesky = formData.bluesky
-    ? getProfileFromURL(formData.bluesky.trim(), 'bluesky')
-    : formData.bluesky;
+  const normalizedBluesky = formData.bluesky ? getProfileFromURL(formData.bluesky.trim(), 'bluesky') : formData.bluesky;
 
   return {
     imageUid: memberInfo.imageUid,

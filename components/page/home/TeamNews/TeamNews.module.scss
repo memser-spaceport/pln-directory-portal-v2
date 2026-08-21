@@ -51,7 +51,7 @@
   flex-shrink: 0;
 
   @include mobile-only {
-    margin-left: auto;
+    gap: 4px;
   }
 }
 

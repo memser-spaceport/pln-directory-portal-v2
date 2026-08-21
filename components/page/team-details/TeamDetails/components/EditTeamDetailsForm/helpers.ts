@@ -23,6 +23,7 @@ export const editTeamDetailsSchema = yup.object({
   teamSize: yup
     .string()
     .trim()
+    .max(13, 'Must be at most 13 characters')
     .matches(/^(\d+\s*[-–]\s*\d+|\d+\+?)$/, {
       message: 'Enter a number (e.g. 50) or a range (e.g. 11-50)',
       excludeEmptyString: true,

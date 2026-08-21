@@ -157,6 +157,24 @@ export interface MemberProfile {
    * never typed.
    */
   githubHandle: string;
+  /**
+   * Production's `member.linkedinHandle` — a handle or a profile URL, as the
+   * sign-up form accepts it.
+   *
+   * It is here because the sign-up modal has always *asked* for it and then
+   * dropped the answer on the floor: `onSignUpSubmit` seeded only `role`, and
+   * `MemberProfile` had nowhere to put the rest. A field that asks for something
+   * and does nothing with it is the worst kind of field — it spends the person's
+   * attention and returns nothing.
+   *
+   * What it is not: an import source. Production's LinkedIn OAuth
+   * (`useLinkedInVerification`) returns `ILinkedinProfile.profileData` — name,
+   * email, picture, locale — and no positions at all, which is why
+   * `ExperiencesList` carries a commented-out "Connect LinkedIn" button rather
+   * than a working one. Work history comes from a document; see
+   * `profile-shared/ExperienceImport`.
+   */
+  linkedin: string;
   /** Private — see `JobSearchStatus`. Empty until answered. */
   jobSearchStatus: JobSearchStatus | '';
 }
@@ -169,6 +187,7 @@ export const EMPTY_PROFILE: MemberProfile = {
   experiences: [],
   contributions: [],
   githubHandle: '',
+  linkedin: '',
   jobSearchStatus: '',
 };
 
@@ -215,6 +234,8 @@ export const FILLED_PROFILE: MemberProfile = {
     },
   ],
   githubHandle: '',
+  /* Matches `VIEWER_NAME`, which is who this profile belongs to. */
+  linkedin: 'polina-bublii',
   jobSearchStatus: 'open-to-right-role',
 };
 

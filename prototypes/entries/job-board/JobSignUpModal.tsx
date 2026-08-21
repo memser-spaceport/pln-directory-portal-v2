@@ -50,6 +50,20 @@ interface JobSignUpModalProps {
   onSignUp: (details: JobSignUpDetails) => void;
   /** The escape for people who already have an account. */
   onSignIn: () => void;
+  /**
+   * DELETE WITH: the `design-canvas/` folder.
+   *
+   * Two review-only beats the design canvas needs frames of, and the only two on
+   * this board that cannot be forced from outside the component: what the form
+   * looks like with answers in it, and what it looks like when the press is
+   * refused. Both live inside react-hook-form's own state, so a URL parameter
+   * read by the parent cannot reach them.
+   *
+   * Neither is a feature: nothing on the board sets them, and each only forces a
+   * state this form already produces on its own.
+   */
+  canvasFilled?: boolean;
+  canvasRefused?: boolean;
 }
 
 /** What the form holds. `company` is a react-select Option, not a string —
@@ -68,6 +82,29 @@ const EMPTY_FORM: SignUpFormData = {
   name: '',
   linkedin: '',
   role: '',
+  company: null,
+};
+
+/**
+ * DELETE WITH: the `design-canvas/` folder.
+ *
+ * The same form with answers in it, so the canvas can hold the filled beat beside
+ * the empty one — a form with placeholders in every field and a form someone has
+ * worked through are two different designs, and only one of them was reviewable.
+ *
+ * The person is the board's own viewer (see `FILLED_PROFILE` and `VIEWER_NAME`),
+ * not a second invented member: the sign-up form, the profile and the application
+ * email should all describe one applicant.
+ *
+ * `company` stays null. It is a react-select option object rather than a string,
+ * and the list it is chosen from is built at render from the board's own teams —
+ * so a value hard-coded here could name a team the select does not offer.
+ */
+const CANVAS_FILLED_FORM: SignUpFormData = {
+  email: 'polina@lattice.computer',
+  name: 'Polina Bublii',
+  linkedin: 'polina-bublii',
+  role: 'Senior Protocol Engineer',
   company: null,
 };
 
@@ -156,7 +193,16 @@ const signUpSchema = yup.object({
  * and sign-in prompt, which already use it. Matching the neighbours the person
  * can actually see beats matching a component they can't.
  */
-export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSignIn }: JobSignUpModalProps) {
+export function JobSignUpModal({
+  open,
+  onClose,
+  role,
+  teamName,
+  onSignUp,
+  onSignIn,
+  canvasFilled,
+  canvasRefused,
+}: JobSignUpModalProps) {
   const methods = useForm<SignUpFormData>({
     defaultValues: EMPTY_FORM,
     resolver: yupResolver(signUpSchema) as Resolver<SignUpFormData>,
@@ -166,6 +212,7 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   const {
     handleSubmit,
     reset,
+    trigger,
     formState: { isSubmitting },
   } = methods;
 
@@ -175,9 +222,20 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
   // something about a person it holds no account for.
   useEffect(() => {
     if (open) {
-      reset(EMPTY_FORM);
+      reset(canvasFilled ? CANVAS_FILLED_FORM : EMPTY_FORM);
     }
-  }, [open, reset]);
+  }, [open, reset, canvasFilled]);
+
+  /* DELETE WITH: the `design-canvas/` folder.
+     The refused beat, for the canvas. Runs the real schema against the real
+     empty form, so the frame shows the errors this form actually renders rather
+     than copy written to look like them. After the reset above, so it validates
+     the state the person would be in. */
+  useEffect(() => {
+    if (!open || !canvasRefused) return;
+    const id = window.setTimeout(() => void trigger(), 0);
+    return () => window.clearTimeout(id);
+  }, [open, canvasRefused, trigger]);
 
   // The board's own teams, so the company list matches the companies on screen.
   // Production feeds this select from a members-form-options query; a prototype
@@ -270,10 +328,22 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
 
             <FormField name="name" label="Full name" placeholder="Enter your full name" isRequired />
 
+            {/* The field always asked for this and the answer used to be thrown
+                away — `onSignUpSubmit` seeded only `role`. It now lands on the
+                profile, and the description says what it is *for*, because an
+                optional field with no stated payoff is one people skip.
+
+                The description used to end "...bring your LinkedIn profile as a
+                PDF in the next step", pointing at the importer's LinkedIn door.
+                That door is gone, so the sentence went with it rather than
+                surviving as an instruction for a control nobody will find. What
+                is left is the whole truth about this field: it is a link on your
+                profile, not a way to fill anything in. */}
             <FormField
               name="linkedin"
               label="LinkedIn profile"
               placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+              description="Shown on your profile, alongside your other links."
             />
 
             <div className={s.column}>

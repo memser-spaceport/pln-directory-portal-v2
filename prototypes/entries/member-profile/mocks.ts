@@ -4,6 +4,7 @@
 // we can feed them straight into the real components.
 
 import type { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
+import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 
 export type FrequencyTier = 'high' | 'neglected';
 
@@ -47,7 +48,13 @@ export const TIER_META: Record<FrequencyTier, { label: string; variant: 'success
 };
 
 /* ---------------- Full founder profile (mirrors IMember view fields) ---------------- */
-export const MOCK_AVATAR = 'https://i.pravatar.cc/160?img=47';
+/* Production's own placeholder, not a stock photo: `getDefaultAvatar` is what
+   `MemberDetailHeader` falls back to for a member with no picture, and what
+   `ForumAvatar` renders when `src` is empty. It's a dicebear `shapes` avatar —
+   abstract geometry seeded off the name, so it's stable per person and carries
+   no face at all. Deterministic for a given seed, so it's safe to compute once
+   here. */
+export const MOCK_AVATAR = getDefaultAvatar('Maya Okonkwo');
 
 export const MOCK_MEMBER = {
   id: 'maya-okonkwo',
@@ -63,7 +70,11 @@ export const MOCK_MEMBER = {
   twitter: 'mayaokonkwo',
   telegramHandle: 'mayaok',
   discordHandle: 'maya#4417',
-  visibleHandles: ['email', 'linkedin', 'telegram', 'twitter', 'discord', 'github'],
+  // Production ships Bluesky as a contact handle with its own `showBluesky`
+  // visibility flag. The Activity section's Bluesky tab reads this same handle —
+  // one field, so the contact row and the tab can't disagree about who she is.
+  blueskyHandle: 'maya.bsky.social',
+  visibleHandles: ['email', 'linkedin', 'telegram', 'twitter', 'bluesky', 'discord', 'github'],
   scheduleMeetingCount: 12,
   officeHours: 'https://cal.com/maya-okonkwo/15min',
   ohInterest: ['Verifiable compute', 'AI infra', 'Seed fundraising'],

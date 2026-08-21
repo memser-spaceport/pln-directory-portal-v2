@@ -25,7 +25,13 @@ export type TeamNewsAnalyticsSource =
   // 'team-profile-rail' for the same reason as the listing chips above: whether
   // news on a person's page earns its slot can't be asked of traffic pooled
   // with the team's own page.
-  | 'member-profile';
+  | 'member-profile'
+  // That card's "View all news" archive — the same box the team profile opens,
+  // over a person's page instead. Split from 'member-profile' on the same
+  // grounds the listing modals above are split from the rail: the card is three
+  // rows, this is the whole archive, and "did the archive earn its slot on a
+  // person's page" cannot be asked of traffic pooled with the rows.
+  | 'member-profile-modal';
 
 /**
  * Surfaces that carry the "All network updates" exit — a team-scoped list, with
@@ -34,7 +40,12 @@ export type TeamNewsAnalyticsSource =
  */
 export type TeamNewsFeedLinkSource = Extract<
   TeamNewsAnalyticsSource,
-  'team-profile-rail' | 'team-profile-modal' | 'teams-listing-modal' | 'job-board-modal' | 'member-profile'
+  | 'team-profile-rail'
+  | 'team-profile-modal'
+  | 'teams-listing-modal'
+  | 'job-board-modal'
+  | 'member-profile'
+  | 'member-profile-modal'
 >;
 
 /** Where a "N new posts" chip was clicked. */
@@ -62,6 +73,9 @@ const MODAL_OPENING_SOURCES: readonly TeamNewsAnalyticsSource[] = [
   // separate from the union above, so widening one without the other is exactly
   // how a surface ends up reporting `outcome: 'source'` for a modal it opened.
   'member-profile',
+  // The archive opened from that card drills in place too, exactly as the team
+  // profile's does.
+  'member-profile-modal',
 ];
 
 /** Which affordance opened the detail modal. On /home the comment badge is a
@@ -142,12 +156,27 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
-  const onTeamNewsViewAllClicked = (teamUid: string, teamName: string, total: number) => {
+  /**
+   * The staying half of the footer pair — the archive, not the feed.
+   *
+   * `source` names the surface whose archive was opened, and defaults to the
+   * rail because that is the only place this button existed first. It used to be
+   * hardcoded to that value inside the payload, which made the parameter list
+   * read as source-agnostic while every caller reported as the team profile —
+   * a new surface reusing the button would have filed its clicks as rail traffic
+   * with nothing at the call site to give it away.
+   */
+  const onTeamNewsViewAllClicked = (
+    teamUid: string,
+    teamName: string,
+    total: number,
+    source: TeamNewsAnalyticsSource = 'team-profile-rail',
+  ) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_VIEW_ALL_CLICKED, {
       teamUid,
       teamName,
       total,
-      source: 'team-profile-rail' satisfies TeamNewsAnalyticsSource,
+      source,
     });
   };
 

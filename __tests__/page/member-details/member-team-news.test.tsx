@@ -7,6 +7,7 @@ import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.t
 import type { IUserInfo } from '@/types/shared.types';
 
 const mockOnCardClicked = jest.fn();
+const mockOnViewAllClicked = jest.fn();
 const mockOnUpvoteToggled = jest.fn();
 const mockOnUpvoteFailed = jest.fn();
 const mockUpvoteMutate = jest.fn();
@@ -14,13 +15,30 @@ const mockCommentCount = jest.fn<number | undefined, []>(() => undefined);
 
 let newsState: { data: ITeamNewsByTeamResponse | undefined; isPending: boolean };
 let lastDetailProps: Record<string, unknown> | null = null;
+let lastArchiveProps: Record<string, unknown> | null = null;
 
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCardClicked: (...a: unknown[]) => mockOnCardClicked(...a),
+    onTeamNewsViewAllClicked: (...a: unknown[]) => mockOnViewAllClicked(...a),
     onTeamNewsUpvoteToggled: (...a: unknown[]) => mockOnUpvoteToggled(...a),
     onTeamNewsUpvoteFailed: (...a: unknown[]) => mockOnUpvoteFailed(...a),
   }),
+}));
+
+// The archive is the team profile's and has its own suite — stub it to the
+// props this card is responsible for handing over. Renders nothing when closed,
+// like the real one's fullscreen branch, so "is the archive up" is a DOM query.
+jest.mock('@/components/page/team-details/TeamNews/TeamNewsModal', () => ({
+  TeamNewsModal: (props: { isOpen: boolean; teamName: string; total?: number }) => {
+    lastArchiveProps = props;
+    if (!props.isOpen) return null;
+    return (
+      <div data-testid="team-news-archive">
+        {props.teamName} archive ({props.total})
+      </div>
+    );
+  },
 }));
 
 // The story modal is /home's and has its own suite — stub it down to the props
@@ -112,8 +130,13 @@ function renderCard(member: IMember = makeMember(), userInfo: IUserInfo | null =
 beforeEach(() => {
   jest.clearAllMocks();
   lastDetailProps = null;
+  lastArchiveProps = null;
   newsState = { data: makeResponse([makeItem('news-1'), makeItem('news-2')]), isPending: false };
 });
+
+/** The card's story rows. Asserting on getAllByRole('button') would also count
+ *  the footer's "View all news", which is not a row. */
+const storyRows = (container: HTMLElement) => container.querySelectorAll('[data-story-uid]');
 
 describe('TeamNewsDetails', () => {
   it('renders the primary team header and a row per story', () => {
@@ -129,9 +152,9 @@ describe('TeamNewsDetails', () => {
       data: makeResponse([makeItem('n1'), makeItem('n2'), makeItem('n3'), makeItem('n4')]),
       isPending: false,
     };
-    renderCard();
+    const { container } = renderCard();
 
-    expect(screen.getAllByRole('button')).toHaveLength(3);
+    expect(storyRows(container)).toHaveLength(3);
     expect(screen.queryByText('Story n4')).not.toBeInTheDocument();
   });
 
@@ -217,16 +240,119 @@ describe('TeamNewsDetails', () => {
       data: { ...makeResponse([makeItem('n1'), makeItem('n2'), makeItem('n3')]), total: 47 },
       isPending: false,
     };
-    renderCard();
+    const { container } = renderCard();
 
     // 3 rows shown, 47 stories exist — the footer is what reaches the rest.
     expect(screen.getByRole('heading', { name: /Updates from the team \(47\)/ })).toBeInTheDocument();
-    expect(screen.getAllByRole('button')).toHaveLength(3);
+    expect(storyRows(container)).toHaveLength(3);
   });
 
   it('renders the All network updates footer attributed to this surface', () => {
     renderCard();
     expect(screen.getByText('All network updates (member-profile)')).toBeInTheDocument();
+  });
+
+  describe('View all news', () => {
+    const withTotal = (total: number, items = [makeItem('n1'), makeItem('n2'), makeItem('n3')]) => {
+      newsState = { data: { ...makeResponse(items), total }, isPending: false };
+    };
+
+    it('is absent when the card already shows every story', () => {
+      // 3 of 3: the archive would list the same three rows and cost a fetch to
+      // do it, so "All network updates" takes the footer row alone.
+      withTotal(3);
+      renderCard();
+
+      expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
+      expect(screen.getByText('All network updates (member-profile)')).toBeInTheDocument();
+    });
+
+    it('is absent when there are fewer stories than the preview limit', () => {
+      withTotal(2, [makeItem('n1'), makeItem('n2')]);
+      renderCard();
+
+      expect(screen.queryByRole('button', { name: /View all news/i })).not.toBeInTheDocument();
+    });
+
+    it('counts the whole archive, not the rows on screen', () => {
+      withTotal(47);
+      renderCard();
+
+      expect(screen.getByRole('button', { name: 'View all news (47)' })).toBeInTheDocument();
+    });
+
+    it('opens the archive and reports it as this surface, not the rail', () => {
+      withTotal(47);
+      renderCard();
+
+      expect(screen.queryByTestId('team-news-archive')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'View all news (47)' }));
+
+      expect(screen.getByTestId('team-news-archive')).toBeInTheDocument();
+      // The 4th argument is the whole point: onTeamNewsViewAllClicked used to
+      // bake in 'team-profile-rail', which would have filed these clicks as
+      // team-profile traffic with nothing at the call site to show it.
+      expect(mockOnViewAllClicked).toHaveBeenCalledWith('team-1', 'Filecoin', 47, 'member-profile-modal');
+    });
+
+    it('hands the archive the total it already has, so the header needs no round trip', () => {
+      withTotal(47);
+      renderCard();
+      fireEvent.click(screen.getByRole('button', { name: 'View all news (47)' }));
+
+      expect(screen.getByTestId('team-news-archive')).toHaveTextContent('Filecoin archive (47)');
+      expect(lastArchiveProps).toMatchObject({
+        teamUid: 'team-1',
+        total: 47,
+        focusUid: null,
+        source: 'member-profile-modal',
+      });
+    });
+
+    it('shares the card upvote overlay with the archive', () => {
+      // Without this the vote a reader casts inside the archive would not move
+      // the row behind it, and the next click would POST again instead of DELETE.
+      withTotal(47);
+      renderCard();
+      fireEvent.click(screen.getByRole('button', { name: 'View all news (47)' }));
+
+      expect(lastArchiveProps?.upvoteOverlay).toBeInstanceOf(Map);
+      expect(typeof lastArchiveProps?.onUpvoteToggle).toBe('function');
+    });
+
+    it('closes the archive back to the card', () => {
+      withTotal(47);
+      renderCard();
+      fireEvent.click(screen.getByRole('button', { name: 'View all news (47)' }));
+
+      act(() => {
+        (lastArchiveProps?.onClose as () => void)();
+      });
+
+      expect(screen.queryByTestId('team-news-archive')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'View all news (47)' })).toBeInTheDocument();
+    });
+
+    it('never has the archive and a story open at once', () => {
+      // TeamNewsModal renders its Modal without inertBackground, so the rows
+      // behind it stay reachable by keyboard. One state is what stops a second
+      // overlay stacking on the first — two close buttons, one ambiguous Escape.
+      withTotal(47);
+      const { container } = renderCard();
+
+      fireEvent.click(storyRows(container)[0] as HTMLElement);
+      expect(screen.getByTestId('news-detail-modal')).toBeInTheDocument();
+      expect(screen.queryByTestId('team-news-archive')).not.toBeInTheDocument();
+
+      act(() => {
+        (lastDetailProps?.onClose as () => void)();
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'View all news (47)' }));
+
+      expect(screen.getByTestId('team-news-archive')).toBeInTheDocument();
+      expect(screen.queryByTestId('news-detail-modal')).not.toBeInTheDocument();
+    });
   });
 
   it('shows the like count and the comment count on each row', () => {

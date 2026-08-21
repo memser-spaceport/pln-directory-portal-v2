@@ -208,6 +208,24 @@ export const useTeamNewsAnalytics = () => {
     });
   };
 
+  const onTeamNewsCountChipShown = (
+    teamUid: string,
+    teamName: string,
+    count: number,
+    source: TeamNewsCountChipSource,
+  ) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_COUNT_CHIP_SHOWN, {
+      teamUid,
+      teamName,
+      count,
+      source,
+    });
+  };
+
+  const onTeamNewsForYouUpdateProfileClicked = (memberUid: string) => {
+    captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED, { memberUid });
+  };
+
   const onTeamNewsShowMoreClicked = (item: ITeamNewsItem, position: number) => {
     captureEvent(TEAM_NEWS_ANALYTICS_EVENTS.TEAM_NEWS_SHOW_MORE_CLICKED, {
       itemUid: item.uid,
@@ -711,6 +729,8 @@ export const useTeamNewsAnalytics = () => {
     onTeamNewsViewAllClicked,
     onTeamNewsAllNetworkUpdatesClicked,
     onTeamNewsCountChipClicked,
+    onTeamNewsCountChipShown,
+    onTeamNewsForYouUpdateProfileClicked,
     onTeamNewsShowMoreClicked,
     onTeamNewsCardClicked,
     onTeamNewsDetailModalOpened,

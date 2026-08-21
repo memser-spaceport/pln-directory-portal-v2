@@ -222,6 +222,8 @@ export const SETTINGS_ANALYTICS_EVENTS = {
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CLICK: 'settings-member-change-email-clicked',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_CANCEL: 'settings-member-change-email-cancelled',
   SETTINGS_MEMBER_EMAIL_ADMIN_EDIT_SUCCESS: 'settings-member-change-email-success',
+  SETTINGS_EMAIL_CHANGE_PANEL_OPENED: 'settings-email-change-panel-opened',
+  SETTINGS_EMAIL_CHANGE_CANCELLED: 'settings-email-change-cancelled',
   SETTINGS_USER_PROFILE_EDIT_FORM: 'settings-user-profile-edit-form',
   SETTINGS_MEMBER_PROFILE_EDIT_FORM: 'settings-member-profile-edit-form',
   SETTINGS_TEAM_PROFILE_EDIT_FORM: 'settings-team-profile-edit-form',
@@ -428,6 +430,10 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAMS_ALL_TAB_SELECTED: 'teams-all-tab-selected',
   TEAMS_FOLLOWING_EMPTY_BROWSE_ALL_CLICKED: 'teams-following-empty-browse-all-clicked',
   TEAM_FOLLOWERS_MODAL_OPENED: 'team-followers-modal-opened',
+  TEAM_DETAIL_OPEN_ROLES_VIEW_ALL_CLICKED: 'team-detail-open-roles-view-all-clicked',
+  TEAM_DETAIL_CONTACT_SAVE_CLICKED: 'team-detail-contact-save-clicked',
+  TEAM_DETAIL_ENRICHMENT_REVIEWED: 'team-detail-enrichment-reviewed',
+  TEAM_DETAIL_STATUS_CHANGED: 'team-detail-status-changed',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -620,6 +626,10 @@ export const TEAM_NEWS_ANALYTICS_EVENTS = {
   // sitting on one row, so they need two events to be told apart.
   TEAM_NEWS_ALL_NETWORK_UPDATES_CLICKED: 'team-news-all-network-updates-clicked',
   TEAM_NEWS_COUNT_CHIP_CLICKED: 'team-news-count-chip-clicked',
+  // Denominator for COUNT_CHIP_CLICKED — without it a low click count can't be
+  // told apart from a chip nobody saw.
+  TEAM_NEWS_COUNT_CHIP_SHOWN: 'team-news-count-chip-shown',
+  TEAM_NEWS_FOR_YOU_UPDATE_PROFILE_CLICKED: 'team-news-for-you-update-profile-clicked',
   TEAM_NEWS_SHOW_MORE_CLICKED: 'team-news-show-more-clicked',
   TEAM_NEWS_CARD_CLICKED: 'team-news-card-clicked',
   TEAM_NEWS_DETAIL_MODAL_OPENED: 'team-news-detail-modal-opened',
@@ -854,6 +864,39 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.25 - LabOS MCP, News Discovery & Profiles',
+    tag: 'New Feature',
+    date: '21, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on and ones recommended for you.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">New posts</span> - Team cards on Teams and the Job Board show an "N new posts" chip when a team has published in the last week.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">News detail</span> - Open a story in a modal from the team news rail, or jump to All network updates for the full archive.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Open roles</span> - See a team's current openings directly on their profile.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Profile details</span> - Founded year, team size, location, Bluesky, and Crunchbase now appear on team profiles.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Inactive teams</span> - Inactive teams are hidden from the Teams directory and search; their profile shows an Inactive badge.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Member Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Team news</span> - Member profiles show recent headlines from the member's primary team, with story modals and a link to All network updates.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Bluesky</span> - Add a Bluesky handle to contact details.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Account Settings</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">LabOS MCP</span> - Connect Claude Code, Codex, or any HTTP MCP client to LabOS from Email & Accounts; the agent acts as you and can work with Warm Intros data.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Change email</span> - Update your sign-in email from Email & Accounts without contacting support.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.24 - Top Stories, Job Referrals & Warm Intros',
     tag: 'New Feature',

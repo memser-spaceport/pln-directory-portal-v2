@@ -11,7 +11,7 @@ function SelfEmailUpdate(props: any) {
   const [currentEmail, setCurrentEmail] = useState(email);
   const { currentUser: userInfo } = useCurrentUserStore();
   // Errors surface as toasts here: this row is a bare label and value, with nowhere to put one.
-  const { requestEmailChange } = useUpdateEmail({ uid, email, userInfo });
+  const { requestEmailChange } = useUpdateEmail({ uid, email, userInfo, source: 'member-profile' });
 
   const onEmailEdit = (e: any) => {
     e.stopPropagation();

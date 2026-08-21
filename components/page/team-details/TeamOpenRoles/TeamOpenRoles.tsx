@@ -5,6 +5,7 @@ import { useToggle } from 'react-use';
 import type { IJobTeamGroup } from '@/types/jobs.types';
 import { getJobDate } from '@/utils/jobs.utils';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { useCurrentUserStore } from '@/services/auth/store';
 
 import { DetailsSection, DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
@@ -40,6 +41,7 @@ interface TeamOpenRolesProps {
 export function TeamOpenRoles({ group }: TeamOpenRolesProps) {
   const [expanded, toggleExpanded] = useToggle(false);
   const analytics = useJobsAnalytics();
+  const teamAnalytics = useTeamAnalytics();
   const currentUser = useCurrentUserStore((state) => state.currentUser);
 
   const { team } = group;
@@ -89,7 +91,21 @@ export function TeamOpenRoles({ group }: TeamOpenRolesProps) {
       {roles.length > ROLES_SHOWN && (
         // Expands in place rather than opening a modal or leaving for the board: this is
         // a short list, and the reader came to the page for the team.
-        <button type="button" className={s.viewAll} aria-expanded={expanded} onClick={toggleExpanded}>
+        <button
+          type="button"
+          className={s.viewAll}
+          aria-expanded={expanded}
+          onClick={() => {
+            const nextExpanded = !expanded;
+            teamAnalytics.onTeamDetailOpenRolesViewAllClicked({
+              teamUid: team.uid,
+              teamName: team.name,
+              totalRoles: roles.length,
+              expanded: nextExpanded,
+            });
+            toggleExpanded();
+          }}
+        >
           {expanded ? 'Show less' : `View all ${roles.length} roles`}
         </button>
       )}

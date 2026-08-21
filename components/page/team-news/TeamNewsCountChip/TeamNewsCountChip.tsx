@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 import { Badge } from '@/components/common/Badge';
 import { useTeamNewsAnalytics, type TeamNewsCountChipSource } from '@/analytics/team-news.analytics';
 import { useTeamNewsCount } from '@/services/team-news/hooks/useTeamNewsCounts';
@@ -41,7 +43,18 @@ interface TeamNewsCountChipProps {
  */
 export function TeamNewsCountChip({ teamUid, teamName, source, onOpen }: TeamNewsCountChipProps) {
   const count = useTeamNewsCount(teamUid);
-  const { onTeamNewsCountChipClicked } = useTeamNewsAnalytics();
+  const { onTeamNewsCountChipClicked, onTeamNewsCountChipShown } = useTeamNewsAnalytics();
+  const shownRef = useRef(false);
+
+  useEffect(() => {
+    if (!count) {
+      shownRef.current = false;
+      return;
+    }
+    if (shownRef.current) return;
+    shownRef.current = true;
+    onTeamNewsCountChipShown(teamUid, teamName, count, source);
+  }, [count, teamUid, teamName, source, onTeamNewsCountChipShown]);
 
   if (!count) return null;
 

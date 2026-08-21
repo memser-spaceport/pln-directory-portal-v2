@@ -8,6 +8,11 @@ jest.mock('@/services/teams/hooks/useReviewTeamEnrichmentMutation', () => ({
   useReviewTeamEnrichmentMutation: jest.fn(),
 }));
 
+const onTeamDetailEnrichmentReviewed = jest.fn();
+jest.mock('@/analytics/teams.analytics', () => ({
+  useTeamAnalytics: () => ({ onTeamDetailEnrichmentReviewed }),
+}));
+
 const mockedUseReviewTeamEnrichmentMutation = useReviewTeamEnrichmentMutation as jest.Mock;
 
 const team = {
@@ -47,6 +52,7 @@ describe('AiGeneratedTeamProfileBanner', () => {
       { teamUid: 'team-1' },
       expect.objectContaining({ onError: expect.any(Function) }),
     );
+    expect(onTeamDetailEnrichmentReviewed).toHaveBeenCalledWith({ teamUid: 'team-1' });
     expect(screen.queryByTestId('ai-generated-team-profile-banner')).not.toBeInTheDocument();
   });
 

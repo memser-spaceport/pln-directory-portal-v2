@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import Cookies from 'js-cookie';
 
-import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useAuthAnalytics, type EmailUpdateSource } from '@/analytics/auth.analytics';
 import { authEvents } from '@/components/core/login/utils';
 import { toast } from '@/components/core/ToastContainer';
 import { updateUserDirectoryEmail } from '@/services/members.service';
@@ -36,6 +36,8 @@ interface Params {
    * put the message next to the control that failed instead.
    */
   onFailure?: (failure: EmailUpdateFailure) => void;
+  /** Which surface started the change — Email & Accounts vs a member profile form. */
+  source?: EmailUpdateSource;
 }
 
 const sameEmailMessage = 'That’s already your email address. Enter the one you want to switch to.';
@@ -57,19 +59,19 @@ const rejectedMessage = (newEmail: string, reason?: string) =>
  * Callers own presentation only: how the address is displayed, what the change affordance looks
  * like, and — through `onFailure` — where an error message goes.
  */
-export function useUpdateEmail({ uid, email, userInfo, onFailure }: Params) {
+export function useUpdateEmail({ uid, email, userInfo, onFailure, source }: Params) {
   const analytics = useAuthAnalytics();
 
   // `auth:update-email` arrives long after the caller rendered, from a modal outside it. Refs
   // keep the handler on the current values without resubscribing on every render (neither
   // `useAuthAnalytics()` nor `userInfo` is referentially stable).
-  const latest = useRef({ email, userInfo, analytics, onFailure });
-  latest.current = { email, userInfo, analytics, onFailure };
+  const latest = useRef({ email, userInfo, analytics, onFailure, source });
+  latest.current = { email, userInfo, analytics, onFailure, source };
 
   const requestEmailChange = useCallback(() => {
-    const { userInfo: currentUserInfo, analytics: currentAnalytics } = latest.current;
+    const { userInfo: currentUserInfo, analytics: currentAnalytics, source: currentSource } = latest.current;
 
-    currentAnalytics.onUpdateEmailClicked(getAnalyticsUserInfo(currentUserInfo));
+    currentAnalytics.onUpdateEmailClicked(getAnalyticsUserInfo(currentUserInfo), currentSource);
 
     // No session, no flow to start: completing it would change a real Privy email.
     if (!Cookies.get('authToken')) {
@@ -81,7 +83,12 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure }: Params) {
 
   useEffect(() => {
     async function updateUserEmail({ newEmail }: { newEmail: string }) {
-      const { email: currentEmail, analytics: currentAnalytics, onFailure: currentOnFailure } = latest.current;
+      const {
+        email: currentEmail,
+        analytics: currentAnalytics,
+        onFailure: currentOnFailure,
+        source: currentSource,
+      } = latest.current;
       const oldAccessToken = Cookies.get('authToken');
 
       if (!oldAccessToken) {
@@ -100,7 +107,7 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure }: Params) {
       };
 
       if (newEmail === currentEmail) {
-        currentAnalytics.onUpdateSameEmailProvided({ newEmail, oldEmail: currentEmail });
+        currentAnalytics.onUpdateSameEmailProvided({ newEmail, oldEmail: currentEmail }, currentSource);
         fail('same-email', sameEmailMessage);
         return;
       }
@@ -116,7 +123,7 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure }: Params) {
         // A refusal answers without tokens, so this covers both the flagged error and any
         // response too incomplete to reissue a session from.
         if (isError || !refreshToken || !accessToken) {
-          currentAnalytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail });
+          currentAnalytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail }, currentSource);
           fail('rejected', rejectedMessage(newEmail, message));
           return;
         }
@@ -137,12 +144,12 @@ export function useUpdateEmail({ uid, email, userInfo, onFailure }: Params) {
           domain: process.env.COOKIE_DOMAIN || '',
         });
 
-        currentAnalytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail });
+        currentAnalytics.onUpdateEmailSuccess({ newEmail, oldEmail: currentEmail }, currentSource);
         toast.success('Email Updated Successfully');
         // Reload rather than refresh: the whole app reads identity from these cookies.
         window.location.reload();
       } catch {
-        currentAnalytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail });
+        currentAnalytics.onUpdateEmailFailure({ newEmail, oldEmail: currentEmail }, currentSource);
         fail('unexpected', rejectedMessage(newEmail));
       }
     }

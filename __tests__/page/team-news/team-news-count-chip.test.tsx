@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 const mockCount = jest.fn<number | undefined, []>(() => undefined);
 const mockOnChipClicked = jest.fn();
+const mockOnChipShown = jest.fn();
 
 // Mocked at the hook boundary, and that is not optional here: jest.setup.js
 // stubs useQuery globally with a version that takes no arguments and therefore
@@ -17,6 +18,7 @@ jest.mock('@/services/team-news/hooks/useTeamNewsCounts', () => ({
 jest.mock('@/analytics/team-news.analytics', () => ({
   useTeamNewsAnalytics: () => ({
     onTeamNewsCountChipClicked: (...a: unknown[]) => mockOnChipClicked(...a),
+    onTeamNewsCountChipShown: (...a: unknown[]) => mockOnChipShown(...a),
   }),
 }));
 
@@ -55,6 +57,21 @@ describe('TeamNewsCountChip', () => {
     mockCount.mockReturnValue(3);
     renderChip();
     expect(screen.getByRole('button')).toHaveTextContent('3 new posts');
+  });
+
+  it('reports being shown once the count is a real offer', () => {
+    mockCount.mockReturnValue(3);
+    renderChip();
+    expect(mockOnChipShown).toHaveBeenCalledWith('team-1', 'Acme Labs', 3, 'teams-grid');
+  });
+
+  it('does not report being shown while the count is unknown or zero', () => {
+    renderChip();
+    expect(mockOnChipShown).not.toHaveBeenCalled();
+
+    mockCount.mockReturnValue(0);
+    renderChip();
+    expect(mockOnChipShown).not.toHaveBeenCalled();
   });
 
   it('leads its accessible name with the visible text (WCAG 2.5.3)', () => {

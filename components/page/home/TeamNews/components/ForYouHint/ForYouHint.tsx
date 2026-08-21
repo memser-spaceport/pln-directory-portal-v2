@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { PAGE_ROUTES } from '@/utils/constants';
 
 import s from './ForYouHint.module.scss';
@@ -9,6 +10,8 @@ interface ForYouHintProps {
 }
 
 export function ForYouHint({ memberUid }: ForYouHintProps) {
+  const { onTeamNewsForYouUpdateProfileClicked } = useTeamNewsAnalytics();
+
   return (
     <p className={s.root}>
       Your feed is based on your focus areas, skills, and teams.
@@ -20,6 +23,7 @@ export function ForYouHint({ memberUid }: ForYouHintProps) {
             className={s.link}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => onTeamNewsForYouUpdateProfileClicked(memberUid)}
           >
             Update profile
             <ArrowRight />

@@ -110,8 +110,21 @@ export const exchangeToken = async (
 
       // Don't retry on client errors (4xx) - only on server errors (5xx) or network issues
       if (response.status >= 400 && response.status < 500) {
-        const data = response.ok ? await response.json() : null;
-        return { ok: response.ok, data, status: response.status };
+        let error: string | undefined;
+
+        try {
+          const body = await response.json();
+          error = body?.message || body?.error;
+        } catch {
+          // Response body can be empty or non-JSON
+        }
+
+        return {
+          ok: false,
+          data: null,
+          status: response.status,
+          error,
+        };
       }
 
       if (response.ok) {

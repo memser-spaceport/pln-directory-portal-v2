@@ -61,7 +61,7 @@ export const MODAL_WHATS_NEW_SECTIONS: { version: string; items: string[] }[] = 
     items: [
       'Every new app now automatically reports basic usage (opened, errors, roughly how long it was used) to help the PL team understand how AI Apps are used — nothing to configure',
       'Ask your agent to track something more specific too (e.g. a particular button); this part stays optional and is never required for a deploy to succeed',
-      'There’s no usage dashboard for your own app yet — this data goes to the PL team, not back to you',
+      'There’s no usage dashboard for your own app yet — this data goes to the data warehouse and can be accessed via the usual channel',
     ],
   },
   {

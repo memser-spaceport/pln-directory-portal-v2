@@ -1,9 +1,9 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import clsx from 'clsx';
 
-import { ChevronDownIcon, SpinnerIcon } from '@/components/icons';
+import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
 import { formatFileSize } from '@/utils/file.utils';
 // The host section's own empty row and its connect-button slot. Production keeps
 // `.connectButton` nested inside `.emptyData` in four of these stylesheets
@@ -48,11 +48,10 @@ import p from './ExperienceImportPanel.module.scss';
  * picture getting: someone who has never exported LinkedIn as a PDF does not
  * learn from that sentence that they could.
  *
- * So the fact is now a **disclosure under the box** — see `LINKEDIN_HINT`. It
- * is not the second door coming back: it opens no picker, offers no second drop
- * area, and ends by pointing at the box already on screen. What it reveals is a
- * sentence, not a control, which is the line between progressive disclosure and
- * a button that reveals a button.
+ * So the fact is now a **standing note under the box** — see `LINKEDIN_HINT`.
+ * It is not the second door coming back: it is prose rather than a control, it
+ * opens no picker, offers no second drop area, and ends by pointing at the box
+ * already on screen.
  *
  * **What the panel does not do.** It never writes. It hands a `ParsedProfile`
  * up and the review — a separate card, with Cancel and Save — is where anything
@@ -136,28 +135,29 @@ const DROPZONE_COPY = {
 };
 
 /**
- * The way in for someone who has no CV file.
+ * The way in for someone who has no CV file: one standing note under the box.
  *
- * **Why a disclosure and not a line of helper text.** A quiet sentence under the
- * box would make the fact visible and stop there — and visibility was only half
- * the problem. The other half is that "a LinkedIn PDF export works" is useless
- * to anyone who does not know LinkedIn can produce one, so the fact is worth
- * nothing without the two clicks that make it true. Preaching those to everyone
- * is what the removed door's three-step block did; asking for them is a press.
+ * **It was a disclosure, and the toggle has been removed.** "No CV? Your
+ * LinkedIn profile works too" sat above this sentence and revealed it on a
+ * press. The argument for that was that the fact is useless without the two
+ * clicks that make it true, so the clicks should be *asked for* rather than
+ * preached. But the whole thing is one line long — and a press that reveals a
+ * single sentence is a door in front of a door, charging a click for something
+ * that could simply have been said. The instruction *is* the fact here; there is
+ * no shorter honest version of it to show first.
  *
- * **Why not a tooltip on "where do I get this?".** A tooltip is for a gloss you
- * read and release. This is an instruction you carry into another tab, and it
- * has to survive the trip — a hover that vanishes, and does not exist at all on
- * a phone, is the wrong container for something you follow.
+ * **Why not a tooltip.** A tooltip is for a gloss you read and release. This is
+ * an instruction you carry into another tab, and it has to survive the trip — a
+ * hover that vanishes, and does not exist at all on a phone, is the wrong
+ * container for something you follow.
  *
- * **What keeps it from becoming the second door again.** The label is a fact,
- * not a verb, so there is nothing to choose between it and Upload; the press
- * reveals prose rather than a control; and the last sentence sends the person
- * back to the box that is already open. One sentence, not three steps, because
- * the two clicks are one menu.
+ * **What keeps it from becoming the second door again.** It is prose, not a
+ * control: nothing here is pressable, so there is nothing to choose between it
+ * and Upload, and the last sentence sends the person back to the box that is
+ * already open. One sentence, not three steps, because the two clicks are one
+ * menu.
  */
 const LINKEDIN_HINT = {
-  toggle: 'No CV? Your LinkedIn profile works too',
   /* Split so the menu path can carry a little weight — it is the part someone
      scans back to while looking at LinkedIn rather than at this page. */
   before: 'On LinkedIn, open your profile and choose ',
@@ -185,10 +185,6 @@ export function ExperienceImportPanel({
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>(canvasStatus ?? 'idle');
   const [scenario, setScenario] = useState<ParseScenario>('three-roles');
-  /* Asked-for, and it stays asked-for: nothing resets this, so someone who
-     opened the how-to, went back and came in again is not made to ask twice. */
-  const [linkedInHelpOpen, setLinkedInHelpOpen] = useState(false);
-  const linkedInHelpId = useId();
   const cancelRef = useRef<(() => void) | null>(null);
 
   const reset = () => {
@@ -354,41 +350,31 @@ export function ExperienceImportPanel({
           {/* Under the box rather than beside the formats, and closer to the box
               than to the note below it — this is a way *into* the drop area, and
               `.panel`'s uniform 12px gap would otherwise assert it belongs to
-              neither. See `.linkedinHint` for the four pixels that fixes.
+              neither. See `.linkedinSteps` for the four pixels that fixes.
 
-              The two asides here are deliberately two tones and no more: this
-              one is secondary, because it is something to press, and the privacy
-              note is tertiary, because it is something to read. */}
-          <div className={p.linkedinHint}>
-            <button
-              type="button"
-              className={p.linkedinToggle}
-              onClick={() => setLinkedInHelpOpen((was) => !was)}
-              aria-expanded={linkedInHelpOpen}
-              /* Only while the paragraph exists — a control pointing at an id that
-                 isn't in the document is a promise the DOM can't keep. */
-              aria-controls={linkedInHelpOpen ? linkedInHelpId : undefined}
-            >
-              {LINKEDIN_HINT.toggle}
-              {/* The prototypes' settled disclosure glyph, rotating to carry the
-                  open/closed state — the same mark and the same 150ms as
-                  `UpcomingChip` and the DS menus it cites. */}
-              <ChevronDownIcon
-                width={12}
-                height={12}
-                className={clsx(p.linkedinCaret, { [p.linkedinCaretOpen]: linkedInHelpOpen })}
-                aria-hidden
-              />
-            </button>
+              The two asides here are still two tones and no more: this one is
+              secondary and marked with the info glyph, because it is something
+              to act on; the privacy note is tertiary and unmarked, because it is
+              something to read once. */}
+          <p className={p.linkedinSteps}>
+            {/* The DS's own mark for a quiet inline note, not a new one:
+                `DataIncomplete` — production's 12px/500 note row — reaches for
+                this exact glyph beside this exact size of text, at a 4px gap.
+                The *outlined* one, which is the half of that pair that means
+                "here is a fact"; the filled `InfoCircleIcon` carries banners and
+                tooltip triggers (`AiGeneratedTeamProfileBanner`,
+                `FollowControl`), which are louder things than this.
 
-            {linkedInHelpOpen && (
-              <p id={linkedInHelpId} className={p.linkedinSteps}>
-                {LINKEDIN_HINT.before}
-                <span className={p.linkedinPath}>{LINKEDIN_HINT.path}</span>
-                {LINKEDIN_HINT.after}
-              </p>
-            )}
-          </div>
+                Rendered at 14px rather than its native 18: see the note on
+                `.linkedinStepsIcon` for why it shrank once the line got a
+                ground of its own to sit on. */}
+            <InfoCircleIconOutlined width={14} height={14} className={p.linkedinStepsIcon} aria-hidden />
+            <span>
+              {LINKEDIN_HINT.before}
+              <span className={p.linkedinPath}>{LINKEDIN_HINT.path}</span>
+              {LINKEDIN_HINT.after}
+            </span>
+          </p>
 
           {/* The one thing a person is entitled to know before handing over a
               document, in the place they hand it over — a promise nobody states

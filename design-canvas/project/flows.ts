@@ -288,7 +288,7 @@ export const CANVAS: CanvasDeclaration = {
             "prototypes/entries/job-board/JobProfileDrawer.tsx",
             "prototypes/entries/profile-shared/ExperienceImport/ExperienceImportPanel.tsx",
           ],
-          expect: ["Actively looking", "Drag & drop your CV", "No CV? Your LinkedIn profile works too"],
+          expect: ["Actively looking", "Drag & drop your CV", "On LinkedIn, open your profile and choose"],
           /* The stepper belongs to the waiting state next door, and these two drawers are otherwise close
              enough to photograph alike. */
           expectMissing: ["Await approval confirmation"],

@@ -274,43 +274,31 @@ export const CANVAS: CanvasDeclaration = {
         {
           id: "drawer-empty",
           label: "The Empty Profile Drawer",
-          /* THIS FRAME IS ALSO THE IMPORT'S FIRST. The two doors stand inline in the empty Experience
-             section — white card, no Cancel — so they are already in this picture, and a second frame of
-             them would be the same screen twice. */
-          note: "Every card at its empty design, and the import doors in the empty Experience section.",
+          /* THIS FRAME IS ALSO THE IMPORT'S FIRST. On a blank profile the importer mounts `direct` in the
+             card at the top of the drawer — drop area already open, no pill to press — so it is already in
+             this picture, and a second frame of it would be the same screen twice.
+
+             It said "two doors" until the LinkedIn one was removed: a second entry point landing in the
+             same parser was a choice with no consequence. The drop area now carries the LinkedIn fact as
+             a disclosure under the box, which is copy rather than a frame. */
+          note: "Every card at its empty design, and the CV drop area on the card a blank profile opens with.",
           route: `${BOARD}?viewer=profile-incomplete&profile=1`,
           kind: "The profile drawer",
           source: [
             "prototypes/entries/job-board/JobProfileDrawer.tsx",
             "prototypes/entries/profile-shared/ExperienceImport/ExperienceImportPanel.tsx",
           ],
-          expect: ["Actively looking", "Upload a resume", "Import from LinkedIn"],
+          expect: ["Actively looking", "Drag & drop your CV", "No CV? Your LinkedIn profile works too"],
           /* The stepper belongs to the waiting state next door, and these two drawers are otherwise close
              enough to photograph alike. */
           expectMissing: ["Await approval confirmation"],
         },
-        {
-          id: "import-resume",
-          label: "The Resume Drop Area",
-          note: "The general door, which takes the three formats a resume usually arrives in.",
-          route: `${BOARD}?canvas=import-resume`,
-          kind: "Importing a history",
-          source: ["prototypes/entries/profile-shared/ExperienceImport/ResumeDropzone.tsx"],
-          expect: ["Drag & drop your resume", "PDF, DOC or DOCX, up to 5MB."],
-          expectMissing: ["Drag & drop your LinkedIn PDF"],
-        },
-        {
-          id: "import-linkedin",
-          label: "The LinkedIn Drop Area",
-          /* The honest half of this design. LinkedIn's OAuth returns identity claims and no positions, so
-             the door asks for their own Save to PDF and says why. */
-          note: "The same reader, asking for the export, because LinkedIn will not give us positions.",
-          route: `${BOARD}?canvas=import-linkedin`,
-          kind: "Importing a history",
-          source: ["prototypes/entries/profile-shared/ExperienceImport/ExperienceImportPanel.tsx"],
-          expect: ["Drag & drop your LinkedIn PDF"],
-          expectMissing: ["Drag & drop your resume"],
-        },
+        /* `import-resume` and `import-linkedin` used to be two frames here, one per door, and both are
+           gone with the doors themselves — their `?canvas=` states were deleted from
+           prototypes/entries/job-board/canvasStates.ts, so the routes photographed an unpinned board while
+           the oracle went on asserting "Import from LinkedIn" and "Drag & drop your resume". There is one
+           drop area, it is already in `drawer-empty`, and the LinkedIn way in is a disclosure under it
+           rather than a screen of its own. */
         {
           id: "import-reading",
           label: "Reading the Document",
@@ -352,10 +340,7 @@ export const CANVAS: CanvasDeclaration = {
       ],
       edges: [
         { from: "board-incomplete", to: "drawer-empty", label: "Presses Apply on a role" },
-        { from: "drawer-empty", to: "import-resume", label: "Presses Upload a resume" },
-        { from: "drawer-empty", to: "import-linkedin", label: "Opens the LinkedIn door" },
-        { from: "import-resume", to: "import-reading", label: "Adds a document" },
-        { from: "import-linkedin", to: "import-reading", label: "Adds the export" },
+        { from: "drawer-empty", to: "import-reading", label: "Adds a CV or a LinkedIn export" },
         { from: "import-reading", to: "import-review", label: "When roles are found" },
         { from: "import-reading", to: "import-review-missing-date", label: "When a date is absent" },
         { from: "import-reading", to: "import-nothing-found", label: "When nothing is found" },

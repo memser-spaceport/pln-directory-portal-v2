@@ -1,13 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { Checkbox } from '@/components/common/Checkbox';
+import { EditIcon } from '@/components/icons';
 import { FormField } from '@/components/form/FormField';
+import { FormSwitch } from '@/components/form/FormSwitch';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 import { EditOfficeHoursFormControls } from '@/components/page/member-details/OfficeHoursDetails/components/EditOfficeHoursFormControls';
+// Production's own dates group — the wrapper `EditExperienceForm` puts its two
+// month/year selects and the `Present` switch in. Imported for the same reason
+// the row and the field panel are: the corrected dates should sit exactly as
+// they sit in the form that will own them afterwards.
+import di from '@/components/page/member-details/ExperienceDetails/components/ExperienceDatesInput/ExperienceDatesInput.module.scss';
 // The white field panel and its row measure — the same sheet the profile card's
 // own editor wears, so this card sits in the stack as one more edited section
 // rather than as a dialog that wandered in.
@@ -37,14 +44,32 @@ import r from './ExperienceImportReview.module.scss';
  * the top, the same white field panel underneath. A modal would be a second way
  * to do the same thing, one card apart.
  *
- * **Why so little of it is editable here.** Only two things can be corrected in
- * this card: a start date, because the record requires one and a missing one is
- * the single thing that can block Save; and the details the profile is still
- * missing, because one of them gates applying. Everything else — a mangled
- * title, a company the parser split in two — is edited by the pencil on the row
- * afterwards, which opens the real `ExperienceForm` with all seven fields. That
- * form already exists and is one press away, so a second inline editor here
- * would be a copy of it that can drift from it.
+ * **What can be corrected here, and what changed.** This card used to take
+ * exactly one correction — a missing start date — and the note here argued that
+ * everything else should wait for the pencil on the saved row, because a second
+ * inline editor would be a copy of `ExperienceForm` that can drift from it. The
+ * ask that overturned it: *"edit one experience item if something is just
+ * slightly wrong."* A parser that splits a company name in two produces a row
+ * you can see is wrong at the moment you are looking at it, and sending someone
+ * to Save-then-find-the-row-then-press-the-pencil to fix a typo is three moves
+ * for a two-character edit. So a row now opens in place (`ExperienceRowFields`).
+ *
+ * The drift worry was real and is answered rather than ignored:
+ *
+ *  - the editor is production's own field components, with `EditExperienceForm`'s
+ *    labels and placeholders verbatim, so there is nothing hand-rolled to drift;
+ *  - it edits **only the facts the row displays** — role, company, location and
+ *    the dates. The description is not shown anywhere in this card, and offering
+ *    to edit an invisible field is how a review turns into a form;
+ *  - `ExperienceForm` itself is *not* mounted here, and can't be: it brings its
+ *    own `<form>` element, and this card is already inside one. Nested forms are
+ *    invalid HTML and the inner Save bubbles out — `profile-settings` has the
+ *    receipt for exactly that bug.
+ *
+ * The card's remaining fields follow the same rule they always did: it asks only
+ * for what the profile is still missing (`askName` / `askEmail` / `askRole` /
+ * `askLocation`), because an import must never offer to overwrite an answer
+ * someone gave by hand.
  *
  * **Why nothing is pre-merged.** Skills shows only what the document added, not
  * the union with what you already had: a card that lists skills you typed last
@@ -58,6 +83,22 @@ import r from './ExperienceImportReview.module.scss';
    than sitting unused waiting for someone to re-derive a use for it. */
 interface ExperienceImportReviewProps {
   parsed: ParsedProfile;
+  /**
+   * The account's own two facts, as the host knows them right now.
+   *
+   * Same contract as `currentRole` below — empty means the card offers to fill
+   * it, set means it is not asked about at all. Required rather than optional
+   * *because* of that contract: an omitted prop would default to empty, which
+   * means "ask", so a host that simply forgot would start offering someone the
+   * email they signed up with. Passing a value is the host saying it looked.
+   *
+   * This is the whole reason the rule lives in props instead of in the card: the
+   * job board is signed in and has both, onboarding has a name from sign-up and
+   * no email yet, settings has both on screen two sections up. Three different
+   * answers, one rule, no `if (host === …)` anywhere in here.
+   */
+  currentName: string;
+  currentEmail: string;
   /** On the profile now. Empty means the card offers to fill it; set means it
    *  isn't asked about at all — an import shouldn't offer to overwrite an answer
    *  the person gave by hand. */
@@ -88,7 +129,23 @@ interface ExperienceImportReviewProps {
 
 type Row = ParsedExperience & { include: boolean; duplicate: boolean };
 
-type ReviewFormData = { role: string; location: string; skills: string[] };
+type ReviewFormData = { name: string; email: string; role: string; location: string; skills: string[] };
+
+/**
+ * The row editor's fields, and only the ones the row shows.
+ *
+ * `ExperienceFormData` in `JobProfilePane` is this plus `description`. The
+ * difference is the point — see the note on `ExperienceRowFields`.
+ */
+type RowFormData = {
+  title: string;
+  company: string;
+  location: string;
+  /** ISO while in the form — see `dateBridge`. */
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+};
 
 /**
  * WHEN TWO ROWS ARE THE SAME JOB: role, company and start date.
@@ -109,6 +166,8 @@ export const experienceKey = (entry: { title: string; company: string; startDate
 export function ExperienceImportReview(props: ExperienceImportReviewProps) {
   const {
     parsed,
+    currentName,
+    currentEmail,
     currentRole,
     currentLocation,
     currentSkills,
@@ -136,10 +195,19 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
      person's mistake, and marking it red before they have done anything reads as
      an accusation. */
   const [showDateErrors, setShowDateErrors] = useState(false);
+  /* One row open at a time, and the card's only piece of mode.
 
+     Not a set, and not `rows.map(r => r.editing)`: the drawer's grammar is that
+     one editor is open at a time, and a single nullable key is the only shape
+     that cannot express two. The pencils on the other rows are not rendered
+     while it holds — see the note where they are drawn. */
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+
+  const askName = currentName.trim() === '';
+  const askEmail = currentEmail.trim() === '';
   const askRole = currentRole.trim() === '';
   const askLocation = currentLocation.trim() === '';
-  const asksDetails = askRole || askLocation;
+  const asksDetails = askName || askEmail || askRole || askLocation;
 
   /* Only what the document added. See the note above. */
   const newSkills = useMemo(() => {
@@ -150,6 +218,12 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
   const methods = useForm<ReviewFormData>({
     mode: 'onSubmit',
     defaultValues: {
+      /* Seeded either way, asked about only when blank. The unasked half never
+         renders a field, but it still has to be in the form: `ImportSelection`
+         promises a value for every one of them, and reading it back off the same
+         object the fields write to is one source instead of two. */
+      name: askName ? (parsed.name ?? '') : currentName,
+      email: askEmail ? (parsed.email ?? '') : currentEmail,
       role: askRole ? parsed.role : currentRole,
       location: askLocation ? parsed.location : currentLocation,
       skills: newSkills,
@@ -168,8 +242,10 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
       return;
     }
     onSubmit({
-      experiences: included.map(({ include, ...entry }) => entry),
+      experiences: included.map(({ include, duplicate, ...entry }) => entry),
       skills: data.skills ?? [],
+      name: (data.name ?? '').trim(),
+      email: (data.email ?? '').trim(),
       role: (data.role ?? '').trim(),
       location: (data.location ?? '').trim(),
     });
@@ -201,11 +277,51 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           {/* 1. The details the profile is still missing. First, because the
                  current role is what the board requires before you can apply,
                  and the drawer's rule is that required things are asked for
-                 first rather than three groups down. Unheaded: two labelled
-                 fields are their own heading, and "Experience (N found)" below
-                 is a count rather than a label, which is why that one stays. */}
+                 first rather than three groups down. Unheaded: labelled fields
+                 are their own heading, and "Experience (N found)" below is a
+                 count rather than a label, which is why that one stays.
+
+                 **Why the contact details join this group instead of getting
+                 their own.** Name and email are the same kind of thing as role
+                 and location here: a scalar the document had at the top of the
+                 page, offered only where the profile is blank. This group is
+                 already the one that owns that question — it *is* "the blanks a
+                 document can fill" — so a second headed group beside it would be
+                 two boxes for one idea, and would force a heading onto the four
+                 fields that are perfectly legible as four labelled fields. The
+                 group also never shows all four at once in practice: the job
+                 board shows none of them, onboarding shows an email and maybe a
+                 location. A "Contact details" heading over one email field is
+                 chrome charging rent on a single input.
+
+                 **Why name and email come first.** Production's onboarding
+                 `ProfileStep` is exactly these two fields in exactly this order,
+                 and it is the one place the product already pairs them; the
+                 profile header card then reads name, role, location down the
+                 page. Identity, then how to reach you, then what you do and
+                 where — which is also the order a CV's header block prints in,
+                 so the fields land in the order the person is reading them off
+                 their own document. Role staying above location is unchanged,
+                 and the requirement argument above was always about the *group*
+                 being first, not about which field opens it. */}
           {asksDetails && (
             <section className={r.group}>
+              {askName && (
+                <div className={f.row}>
+                  {/* Label and placeholder are the settings page's, which is the
+                      other surface in these prototypes that edits these two
+                      fields. Production's own onboarding placeholders are "User
+                      Name" / "User@mail.com"; the label is what matters and it
+                      agrees, and one voice across the two surfaces beats
+                      transcribing a placeholder nobody defends. */}
+                  <FormField name="name" label="Name" placeholder="Your full name" />
+                </div>
+              )}
+              {askEmail && (
+                <div className={f.row}>
+                  <FormField name="email" label="Email" placeholder="you@example.com" />
+                </div>
+              )}
               {askRole && (
                 <div className={f.row}>
                   <FormField name="role" label="Current role" placeholder="e.g. Senior Protocol Engineer" />
@@ -229,62 +345,132 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
               {rows.map((row) => {
                 const needsDate = row.startDate === '';
                 const dateError = showDateErrors && row.include && needsDate;
+                const editing = editingKey === row.key;
 
                 return (
                   <li key={row.key} className={clsx(e.expItem, r.rowItem, { [r.rowOff]: !row.include })}>
+                    {/* Outside the editor on purpose. Opening a row to fix a
+                        typo must not change whether it is being added — and the
+                        surest way to guarantee that is for the tick to be the
+                        same control in both states, sitting in the same place,
+                        untouched by the fields beside it. It also means a row
+                        can still be dropped without closing the editor first. */}
                     <div className={r.rowCheck}>
                       <Checkbox checked={row.include} onChange={(next) => setRow(row.key, { include: next })} />
                     </div>
                     <div className={clsx(e.details, r.rowDetails)}>
-                      <div className={e.row}>
-                        <div className={e.primaryLabel}>{row.title}</div>
-                        {row.company && (
-                          <>
-                            <span className={e.Separator} />
-                            <div className={e.primaryLabel}>{row.company}</div>
-                          </>
-                        )}
-                        {row.location && (
-                          <>
-                            <span className={e.Separator} />
-                            <div className={e.primaryLabel}>{row.location}</div>
-                          </>
-                        )}
-                      </div>
-                      <div className={e.row}>
-                        <div className={e.secondaryLabel}>
-                          {needsDate ? 'No dates in the document' : formatDates(row)}
-                        </div>
-                        {/* Says why this one row arrived switched off. Without
-                            it an unticked row in a card whose other rows are
-                            ticked reads as the parser being unsure about it,
-                            which is a different and more worrying claim. On the
-                            secondary line rather than beside the title: it is a
-                            fact about the row's *state*, not part of the job. */}
-                        {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
-                      </div>
+                      {editing ? (
+                        <ExperienceRowFields row={row} onChange={(patch) => setRow(row.key, patch)} />
+                      ) : (
+                        <>
+                          <div className={e.row}>
+                            <div className={e.primaryLabel}>{row.title}</div>
+                            {row.company && (
+                              <>
+                                <span className={e.Separator} />
+                                <div className={e.primaryLabel}>{row.company}</div>
+                              </>
+                            )}
+                            {row.location && (
+                              <>
+                                <span className={e.Separator} />
+                                <div className={e.primaryLabel}>{row.location}</div>
+                              </>
+                            )}
+                          </div>
+                          <div className={e.row}>
+                            <div className={e.secondaryLabel}>
+                              {needsDate ? 'No dates in the document' : formatDates(row)}
+                            </div>
+                            {/* Says why this one row arrived switched off.
+                                Without it an unticked row in a card whose other
+                                rows are ticked reads as the parser being unsure
+                                about it, which is a different and more worrying
+                                claim. On the secondary line rather than beside
+                                the title: it is a fact about the row's *state*,
+                                not part of the job.
 
-                      {/* The one correction this card takes. A start date is
-                          required by the record, and "2021 – present" with no
-                          month is the commonest thing a parser hands back — so
-                          it is asked for here rather than discovered as a
-                          failure after Save. Only while the row is included:
-                          a row on its way to being dropped owes nothing. */}
-                      {needsDate && row.include && (
-                        <div className={r.rowDate}>
-                          <MonthYearSelect
-                            label="Start Date"
-                            isRequired
-                            error={dateError ? 'Start date is required' : undefined}
-                            value={ymToIso(row.startDate || null)}
-                            onChange={(value) => {
-                              if (value === null) return;
-                              setRow(row.key, { startDate: isoToYm(value) ?? '' });
-                            }}
-                          />
-                        </div>
+                                It survives an edit, and deliberately is not
+                                recomputed from the corrected fields. `duplicate`
+                                is a fact about what the document said, matched
+                                against what was already saved; re-running the
+                                match after someone fixes a mangled company name
+                                would decide the row is a different job, tick it
+                                back on, and append the position a second time —
+                                which is the exact bug the flag exists to
+                                prevent. */}
+                            {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
+                          </div>
+
+                          {/* The correction this card has always taken, and the
+                              one it still offers without opening the editor. A
+                              start date is required by the record, and "2021 –
+                              present" with no month is the commonest thing a
+                              parser hands back — so it is asked for here rather
+                              than discovered as a failure after Save. Only while
+                              the row is included: a row on its way to being
+                              dropped owes nothing.
+
+                              Still its own control rather than folded into the
+                              editor: this one is a *demand*, raised by the card
+                              because Save is blocked on it, and it has to be
+                              visible without anyone going looking. The editor is
+                              an offer. */}
+                          {needsDate && row.include && (
+                            <div className={r.rowDate}>
+                              <MonthYearSelect
+                                label="Start Date"
+                                isRequired
+                                error={dateError ? 'Start date is required' : undefined}
+                                value={ymToIso(row.startDate || null)}
+                                onChange={(value) => {
+                                  if (value === null) return;
+                                  setRow(row.key, { startDate: isoToYm(value) ?? '' });
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
+
+                    {/* The row's own control, in `ExperiencesList`'s own slot —
+                        `.expItem` reserves 32px on the right for exactly this,
+                        and the saved row this one is about to become carries the
+                        same pencil in the same place. One gesture, learned once.
+
+                        **Why the other pencils disappear while one row is open.**
+                        The drawer's rule is one editor at a time, and it gets it
+                        for free by replacing the whole list with the form. Here
+                        the editor opens in place, so the other rows are still on
+                        screen and their pencils would be a second door into a
+                        second editor. Hiding them says "finish this one" without
+                        a disabled state, and without the alternative — swapping
+                        editors on click — quietly dropping whatever was typed.
+
+                        `Done` rather than `Save`: nothing is saved by it. The
+                        fields write straight through to the row, exactly as the
+                        start-date correction above always has, so this only
+                        folds the row back up. The card's Save in the header is
+                        the only Save on this surface, and it stays live the
+                        whole time — two Saves with different scopes on one
+                        screen is a question nobody should have to answer. */}
+                    {editing ? (
+                      <button type="button" className={r.rowDone} onClick={() => setEditingKey(null)}>
+                        Done
+                      </button>
+                    ) : (
+                      editingKey === null && (
+                        <button
+                          type="button"
+                          className={clsx(e.editBtn, r.rowEdit)}
+                          onClick={() => setEditingKey(row.key)}
+                          aria-label={`Edit ${row.title || 'this position'}`}
+                        >
+                          <EditIcon />
+                        </button>
+                      )
+                    )}
                   </li>
                 );
               })}
@@ -308,6 +494,138 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
           <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
         </div>
       </form>
+    </FormProvider>
+  );
+}
+
+/* ------------------------------------------------------- one row, corrected --- */
+
+/**
+ * The fields for one parsed position, in place of the row that showed it.
+ *
+ * **What it is made of.** `FormField`, `MonthYearSelect` and `FormSwitch`, with
+ * `EditExperienceForm`'s labels and placeholders word for word, inside
+ * production's own `ExperienceDatesInput` wrapper. Nothing here is hand-rolled;
+ * it is the form the pencil on a saved row opens, minus two of its parts.
+ *
+ * **The two it drops, and why.**
+ *
+ *  - *Impact or Work Description.* The review never shows a description — not on
+ *    the row, not anywhere in the card — so an editor for it would be the only
+ *    field on screen whose current value is invisible. It also means mounting a
+ *    rich-text editor inside a 12px grey list row, which is a card inside a row.
+ *    The parsed description rides along untouched and the footnote already
+ *    points at where to write one.
+ *  - *Delete Experience.* The checkbox two columns to the left already means
+ *    "don't add this", non-destructively and reversibly. A red Delete beside it
+ *    would be a second control for the same decision, and the louder of the two
+ *    would be the one that can't be undone.
+ *
+ * **Why it writes through instead of having its own Save.** The card already had
+ * one inline correction — the missing start date — and it has never had a commit
+ * step: `onChange` writes to the row and that is the whole interaction. Doing
+ * anything else here would put a second Save on a card that has one in its
+ * header, with a narrower scope, three inches apart. So every field writes to
+ * `rows` as it changes, `Done` only folds the row back up, and the card's Save
+ * can be pressed at any moment without losing a keystroke.
+ *
+ * A nested `FormProvider`, not a nested `<form>`: the fields need RHF context
+ * and the card is already inside a form element. One is context, the other is
+ * invalid HTML that swallows submits.
+ *
+ * The validation `ExperienceForm` runs (role, company and start date required,
+ * end date unless Present) is deliberately *not* re-registered here. There is
+ * nothing to validate against — no submit of its own — and the one rule that
+ * actually blocks Save, the missing start date, is already enforced by the card
+ * for every row whether or not anyone opened it.
+ */
+function ExperienceRowFields({ row, onChange }: { row: Row; onChange: (patch: Partial<Row>) => void }) {
+  const methods = useForm<RowFormData>({
+    mode: 'onSubmit',
+    defaultValues: {
+      title: row.title,
+      company: row.company,
+      location: row.location,
+      startDate: ymToIso(row.startDate || null),
+      endDate: ymToIso(row.endDate),
+      isCurrent: row.isCurrent,
+    },
+  });
+  const { control, setValue } = methods;
+
+  /* `useWatch`, which is what the rest of these prototypes use, rather than
+     `useForm().watch` — the subscription form of that one is flagged by the
+     React Compiler lint as unmemoizable, and this is the codebase's own idiom
+     anyway (`JobProfilePane` watches its dates the same way). */
+  const title = useWatch({ control, name: 'title' });
+  const company = useWatch({ control, name: 'company' });
+  const location = useWatch({ control, name: 'location' });
+  const startDate = useWatch({ control, name: 'startDate' });
+  const endDate = useWatch({ control, name: 'endDate' });
+  const isCurrent = useWatch({ control, name: 'isCurrent' });
+
+  /* Held in a ref so the write-through below depends on the *values* only. The
+     parent hands down a fresh `onChange` every render — and this write-through is
+     what causes those renders — so listing it as a dependency would be a loop
+     with an extra step in it. */
+  const commit = useRef(onChange);
+  useEffect(() => {
+    commit.current = onChange;
+  });
+
+  useEffect(() => {
+    commit.current({
+      title: title ?? '',
+      company: company ?? '',
+      location: location ?? '',
+      /* Same 'YYYY-MM' the row arrived in, and the same emptiness: a cleared
+         start date leaves the row blocked exactly as the parser leaving it blank
+         did, rather than inventing a month. */
+      startDate: isoToYm(startDate ?? null) ?? '',
+      endDate: isCurrent ? null : isoToYm(endDate ?? null),
+      isCurrent: !!isCurrent,
+    });
+  }, [title, company, location, startDate, endDate, isCurrent]);
+
+  return (
+    <FormProvider {...methods}>
+      <div className={r.rowFields}>
+        <FormField name="title" label="Role" placeholder="Enter role" />
+        <FormField name="company" label="Team or Organization" placeholder="Enter team or organization" />
+        {/* Production's dates group, forced to a column by `.rowDates`. The
+            drawer spreads these across a row because it has 582px to do it in;
+            a list row inside a card does not, and two selects per line beats
+            four across one. */}
+        <div className={di.root}>
+          <div className={clsx(di.body, r.rowDates)}>
+            <MonthYearSelect
+              label="Start Date"
+              isRequired
+              value={startDate ?? null}
+              onChange={(value) => {
+                if (value === null) return;
+                setValue('startDate', value, { shouldDirty: true });
+              }}
+            />
+            <MonthYearSelect
+              label="End Date"
+              isRequired={!isCurrent}
+              disabled={!!isCurrent}
+              value={endDate ?? null}
+              onChange={(value) => {
+                if (value === null) return;
+                setValue('endDate', value, { shouldDirty: true });
+              }}
+            />
+            {/* Production disables the end date rather than hiding it while
+                `Present` is on — hiding a field is a change you can't see you
+                made — and keeps the switch on that field's own line, because it
+                is the control that removes it. */}
+            <FormSwitch name="isCurrent" label="Present" />
+          </div>
+        </div>
+        <FormField name="location" label="Location" placeholder="Enter location" />
+      </div>
     </FormProvider>
   );
 }

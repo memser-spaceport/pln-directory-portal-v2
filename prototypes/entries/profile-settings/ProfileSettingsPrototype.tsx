@@ -16,9 +16,9 @@ import { FormSwitch } from '@/components/form/FormSwitch';
 // The Experience list and its editor, and the CV importer. All four come from
 // somewhere else on purpose: this page and the job board's apply drawer are two
 // windows onto one record, so they share the components that read and write it.
-// `ExperienceList`/`ExperienceForm` still live in `JobProfileDrawer` and should
+// `ExperienceList`/`ExperienceForm` still live in `JobProfilePane` and should
 // move to `profile-shared/` — see the note on their export.
-import { ExperienceForm, ExperienceList } from '../job-board/JobProfileDrawer';
+import { ExperienceForm, ExperienceList } from '../job-board/JobProfilePane';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
@@ -46,6 +46,13 @@ export default function ProfileSettingsPrototype() {
      overwrite: the role and skills already on the form. */
   const watchedRole = useWatch({ control, name: 'role' });
   const watchedSkills = useWatch({ control, name: 'skills' });
+  /* The two Basic information fields, watched for the same reason: the review
+     card asks for a contact detail only where the profile is blank, and on this
+     page Name and Email are two sections up the same form. Watching them rather
+     than reading `DEFAULT_VALUES` means clearing the field on screen is enough
+     to make the import offer to fill it — one answer, in one place. */
+  const watchedName = useWatch({ control, name: 'name' });
+  const watchedEmail = useWatch({ control, name: 'email' });
 
   /* The Experience list lives outside RHF. The form here carries scalars, and a
      list needs add / edit / delete rather than `register` — so it is component
@@ -89,6 +96,16 @@ export default function ProfileSettingsPrototype() {
      hand. Role fills only a blank; skills union; positions append — and the
      review has already unticked the ones that are duplicates. */
   const applyImport = (selection: ImportSelection) => {
+    /* Name and email fill a blank exactly as role does. They are on this page,
+       so unlike the drawer there is somewhere to put them — and unlike
+       onboarding they are normally already answered, so this normally does
+       nothing. That is the rule working, not the rule missing. */
+    if ((watchedName ?? '').trim() === '' && selection.name.trim() !== '') {
+      setValue('name', selection.name.trim(), { shouldDirty: true });
+    }
+    if ((watchedEmail ?? '').trim() === '' && selection.email.trim() !== '') {
+      setValue('email', selection.email.trim(), { shouldDirty: true });
+    }
     if ((watchedRole ?? '').trim() === '' && selection.role.trim() !== '') {
       setValue('role', selection.role.trim(), { shouldDirty: true });
     }
@@ -200,7 +217,7 @@ export default function ProfileSettingsPrototype() {
                   simplification of the record and became a different one.
 
                   **Why the drawer's components.** `ExperienceList` and
-                  `ExperienceForm` are imported from `JobProfileDrawer` rather
+                  `ExperienceForm` are imported from `JobProfilePane` rather
                   than re-typed. Two editors for one record is how two surfaces
                   start disagreeing about what a valid entry is — the thing
                   `profile-shared/` exists to prevent. (They belong in
@@ -217,6 +234,13 @@ export default function ProfileSettingsPrototype() {
                   parsed ? (
                     <ExperienceImportReview
                       parsed={parsed}
+                      /* Both filled, and both visible on this same page two
+                         sections up — so the review shows neither. A card that
+                         offered to overwrite the Name field the person can see
+                         above it would be the clearest possible version of the
+                         thing the ask-only-for-blanks rule exists to prevent. */
+                      currentName={watchedName ?? ''}
+                      currentEmail={watchedEmail ?? ''}
                       currentRole={watchedRole ?? ''}
                       currentLocation=""
                       currentSkills={watchedSkills ?? []}

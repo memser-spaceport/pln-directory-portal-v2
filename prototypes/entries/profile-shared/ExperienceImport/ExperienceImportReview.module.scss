@@ -61,11 +61,132 @@
   list-style: none;
 }
 
-// `.expItem` reserves 32px on the right for the edit pencil. There is no pencil
-// on a row that isn't an entry yet, and the reserved gutter left the text
-// looking off-centre in its own row.
+// This used to be `padding-right: 16px`, cancelling the 32px gutter `.expItem`
+// reserves for the edit pencil — correct while a found position had no pencil to
+// put there. It has one now, so the gutter is doing its job again and the
+// override is gone. What is left is the wrapping the row needs once it can hold
+// a field stack: `.expItem` is a three-column flex row, and without this the
+// selects inside the middle column push the whole row wider than the card.
 .rowItem {
-  padding-right: 16px;
+  min-width: 0;
+
+  > * {
+    min-width: 0;
+  }
+}
+
+// ONE SLOT, TWO CONTROLS — so the row measures the same open or closed.
+//
+// The row's third column holds the pencil while the row is read and `Done` while
+// it is open, and those are different shapes: a 14px `EditIcon` inside
+// `.editBtn`'s `padding: 8px 4px` measures 22px, the word measures about 30.
+// `.rowDetails` is `flex: 1 1 auto`, so it absorbed the difference — opening a
+// row narrowed the content column by ~8px and every field landed left of the
+// facts it replaced, the row twitching sideways under the cursor that opened it.
+//
+// So both controls take one fixed slot, sized to the wider of the two, and each
+// keeps its content flush to that slot's right edge — the pencil doesn't move
+// when `Done` takes its place. `width`, not `min-width`: `min-width` still lets a
+// longer word grow the column, and a column that can grow is the bug again.
+$row-action: 36px;
+
+// The pencil, in `ExperiencesList`'s own `.editBtn` slot.
+//
+// `EditIcon` from `@/components/icons` takes `currentColor` and `.editBtn` sets
+// no colour, so without this the glyph inherits its way to black — the loudest
+// mark in a row whose own labels are slate. `ExperiencesList` draws its private
+// copy of the same path at `#64748b`; this is production's own token/fallback
+// pair for that exact grey, so the pencil here and the pencil on the saved row
+// render identically.
+.rowEdit {
+  color: var(--Neutral-Slate-500, #64748b);
+
+  // `.editBtn` sets no `display`, so the glyph is an inline box inside it.
+  // Flex + `flex-end` holds it against the right edge the 4px padding gave it,
+  // rather than letting the widened slot push it left.
+  display: flex;
+  justify-content: flex-end;
+  width: $row-action;
+  flex-shrink: 0;
+}
+
+// `Done` stands where the pencil stood, so the control that opened the editor is
+// the control that closes it.
+//
+// The prototypes' settled quiet text action is 14px/500 secondary darkening to
+// primary on hover (`headerCancel`, `headerAction`, `sectionAction`). Same face,
+// re-ranked to 12px: those live in section headers, this one lives inside a list
+// row whose own secondary line is 12px, and a 14px control inside it would
+// outrank the facts it belongs to.
+.rowDone {
+  align-self: flex-start;
+  margin-left: auto;
+  // The other half of the shared slot — see `$row-action` above. Right-aligned
+  // rather than centred, so `Done` ends exactly where the pencil ended.
+  width: $row-action;
+  flex-shrink: 0;
+  text-align: right;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// The field stack that replaces the row's two lines of facts.
+//
+// `.details` (production's) is a 2px-gap column, which is the measure between a
+// title and its dates — far too tight for labelled inputs. `EditExperienceForm`
+// stacks its fields at 24px; 16px here, because these five sit inside a list row
+// inside a card rather than on a full-width form panel, and the row has to stay
+// legible as one item in a list.
+.rowFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+
+  // Production's dates group goes side-by-side from tablet-landscape up, sized
+  // for the 582px form panel. A list row has nothing like that to spend, so it
+  // stays a column at every width and the selects share the row's own measure —
+  // the same 300px cap `.rowDate` puts on the standalone start-date correction,
+  // so the two ways of fixing a date measure the same.
+  //
+  // Nested rather than written flat: `ExperienceDatesInput.body` sets
+  // `flex-direction: row` inside a `tablet-landscape` media query, and a bare
+  // `.rowDates` would tie it on specificity and be decided by whichever module
+  // the bundler emitted last. `.rowFields .rowDates` wins outright, and
+  // `.rowDates` never appears anywhere else.
+  .rowDates {
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+
+    > * {
+      width: 100%;
+      min-width: 0;
+      max-width: 300px;
+    }
+  }
+}
+
+// The middle column of the row: the facts, or the fields that correct them.
+// Claims the free width so a field stack fills the row instead of sizing itself
+// to the longest label, and `min-width: 0` so a 288px pair of selects narrows
+// with the card rather than spilling out of it.
+.rowDetails {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 // Excluded, not disabled. The checkbox keeps its full contrast — it is the
@@ -83,8 +204,10 @@
   flex-shrink: 0;
 }
 
-// The one correctable field, inset under the facts it belongs to rather than
-// beside them: it is an answer about this row, not a fourth column of it.
+// The demanded start date, inset under the facts it belongs to rather than
+// beside them: it is an answer about this row, not a fourth column of it. Sits
+// under the *read* row — the row editor below owns the dates once it is open, so
+// the two never show at once.
 .rowDate {
   margin-top: 8px;
   max-width: 300px;

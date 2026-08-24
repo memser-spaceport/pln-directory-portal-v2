@@ -92,7 +92,10 @@
 
 // `.howto`, `.howtoLead` and `.howtoSteps` used to live here — the brand-soft
 // panel behind the LinkedIn door's three-step "open LinkedIn → More → Save to
-// PDF". Both the door and the block are gone, so the rules went with them.
+// PDF". Both the door and the block are gone. What replaced them is `.linkedinHint`
+// below: no panel, no tint, no numbered steps — a pressable line and one sentence
+// it reveals. A tinted box with an icon is the chrome of an *announcement*, and
+// this is an answer to a question, which is a plainer thing.
 
 // --- Reading ------------------------------------------------------------------
 
@@ -208,6 +211,75 @@
     width: auto;
     min-width: 160px;
   }
+}
+
+// --- The way in, for someone with no CV ---------------------------------------
+
+// Pulled 4px up out of `.panel`'s 12px gap. Equidistant from the drop area above
+// and the privacy note below would say this belongs to neither; it belongs to the
+// box, because it is how you get something to put in it. 8px above, 12px below —
+// asymmetry rather than a smaller number, so nothing else in the column moves.
+.linkedinHint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+// The pressable tone the panel already uses for its quiet controls (`.backLink`,
+// `.quietButton`): neutral secondary at rest, brand on hover. 12px, because this
+// is an aside about the box and not a verb standing in a control row.
+.linkedinToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+// `currentColor`, so the glyph follows the label into brand on hover rather than
+// being a second colour to keep in step.
+.linkedinCaret {
+  flex-shrink: 0;
+  color: currentColor;
+  transition: transform 150ms ease;
+}
+
+.linkedinCaretOpen {
+  transform: rotate(180deg);
+}
+
+// The answer, at the same tone as the question — one block, one weight of
+// attention. Deliberately NOT a third grey: the count under this box is two,
+// secondary for the thing you press and read, tertiary for the note below.
+.linkedinSteps {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// The menu path, weighted rather than coloured — it is a label to find on another
+// site, and a colour here would be a third tone for no extra meaning. `nowrap` so
+// "More → Save to PDF" never breaks across the arrow.
+.linkedinPath {
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 // --- The honesty line ---------------------------------------------------------

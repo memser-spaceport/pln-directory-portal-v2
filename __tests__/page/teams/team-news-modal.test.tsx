@@ -59,7 +59,11 @@ const mockCurrentUser = jest.fn<{ uid: string } | null, []>(() => null);
 // rows this box reports as read, not about batching (its own suite covers that).
 const mockRecordVisible = jest.fn();
 jest.mock('@/services/team-news/hooks/useTeamNewsImpressions', () => ({
-  useTeamNewsImpressions: () => ({ recordVisible: mockRecordVisible }),
+  // `viewedUids` is what the hook reports back for the optimistic +1. This box
+  // doesn't merge it (its rows come from their own query), but the mock has to
+  // supply it — a jest factory is untyped, so an omission surfaces as a runtime
+  // crash in whatever renders next rather than as a type error here.
+  useTeamNewsImpressions: () => ({ recordVisible: mockRecordVisible, viewedUids: new Set<string>() }),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({

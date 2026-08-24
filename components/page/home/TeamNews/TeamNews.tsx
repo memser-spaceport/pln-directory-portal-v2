@@ -19,6 +19,7 @@ import { useIsBelowDesktop } from '@/hooks/useIsBelowDesktop';
 import { useFollowTeam } from '@/services/follow/hooks/useFollowTeam';
 import { useFeedForumTopicLike } from '@/services/feed/hooks/useFeedComments';
 import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
+import { applyViewOverlay } from '@/services/team-news/applyViewOverlay';
 import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
@@ -133,7 +134,11 @@ export const TeamNews = ({
   // One instance for the whole page: holds every rendered card's dedup/queue
   // state, regardless of tab/category remounts below it (see the hook's own
   // unmount-vs-page-load-scoped comments).
-  const { recordVisible } = useTeamNewsImpressions();
+  // `viewedUids` is what this page load actually reported as read. Merged into
+  // the item lists below so a card shows the view it just caused, instead of the
+  // number the page arrived with — the server count moved the moment the card
+  // was seen, and until now only a reload revealed it.
+  const { recordVisible, viewedUids } = useTeamNewsImpressions();
 
   // `groups` is an SSR prop, not a React Query cache — there's nothing here for a
   // useArticleLike-style setQueryData patch to act on. Upvote state is tracked the
@@ -154,11 +159,14 @@ export const TeamNews = ({
 
   const allItems = useMemo(
     () =>
-      applyUpvoteOverlay(
-        sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems])),
-        upvoteOverlay,
+      applyViewOverlay(
+        applyUpvoteOverlay(
+          sortAllTabItemsByEventDate(dedupeByUid([...groups.flatMap((g) => g.items), ...allTabExtraItems])),
+          upvoteOverlay,
+        ),
+        viewedUids,
       ),
-    [groups, allTabExtraItems, upvoteOverlay],
+    [groups, allTabExtraItems, upvoteOverlay, viewedUids],
   );
 
   // Derived from `groups` (not allItems) so its identity never churns with the
@@ -214,8 +222,8 @@ export const TeamNews = ({
   const itemsForActiveTab = useMemo(() => {
     if (activeTab === ALL_TAB) return allItems;
     const group = groups.find((g) => g.focusArea.title === activeTab);
-    return applyUpvoteOverlay(group?.items ?? [], upvoteOverlay);
-  }, [activeTab, allItems, groups, upvoteOverlay]);
+    return applyViewOverlay(applyUpvoteOverlay(group?.items ?? [], upvoteOverlay), viewedUids);
+  }, [activeTab, allItems, groups, upvoteOverlay, viewedUids]);
 
   const forYouItemsForActiveTab = useMemo(
     () => selectForYouItems(itemsForActiveTab, initialForYouTeamUids),

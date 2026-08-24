@@ -572,4 +572,17 @@ describe('TeamNewsModal opened without rail-owned state', () => {
 
     expect(mockRecordVisible).not.toHaveBeenCalled();
   });
+
+  it('defers to the caller’s recorder, rather than counting into a second set', () => {
+    const recordVisible = jest.fn();
+    renderStandalone({ recordVisible });
+
+    scrollCardsIntoView();
+
+    expect(recordVisible.mock.calls.map(([uid]) => uid)).toEqual(['news-1', 'news-2', 'news-3']);
+    // Its own instance stays silent. Both firing is how a story read in the
+    // team-profile rail and again in here would count twice for one sitting —
+    // the dedup set lives per instance, so two instances cannot agree.
+    expect(mockRecordVisible).not.toHaveBeenCalled();
+  });
 });

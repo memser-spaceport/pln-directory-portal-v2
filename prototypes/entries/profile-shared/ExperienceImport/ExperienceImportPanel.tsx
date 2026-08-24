@@ -69,6 +69,23 @@ interface ExperienceImportPanelProps {
    * your CV" would otherwise be a button that reveals a button.
    */
   entry?: 'door' | 'direct';
+  /** A file the host already collected — see `ResumeDropzone.externalFile`. */
+  initialFile?: File | null;
+  /**
+   * What the person is told before handing over a document.
+   *
+   * A prop because the honest sentence is not the same on every surface. The
+   * default states the general fact — read, not kept — which is true wherever
+   * this panel mounts. The job board overrides it with the sharper promise its
+   * own reader is actually wondering about ("it isn't sent with your
+   * applications"), because there the file could plausibly be forwarded to a
+   * hiring team and nowhere else can it.
+   *
+   * This was hardcoded to the job board's wording until the panel reached a
+   * third surface, at which point two of the three were promising something
+   * about applications that do not exist there.
+   */
+  privacyNote?: string;
   /**
    * DELETE WITH: the `design-canvas/` folder.
    *
@@ -108,6 +125,8 @@ export function ExperienceImportPanel({
   onParsed,
   onAddManually,
   entry = 'door',
+  initialFile,
+  privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
   canvasOpen,
   canvasStatus,
   canvasFileName,
@@ -273,18 +292,15 @@ export function ExperienceImportPanel({
             supportedFormats={DROPZONE_COPY.formats}
             maxFileSize={MAX_FILE_SIZE_MB}
             file={file}
+            externalFile={initialFile}
             onSelect={startReading}
             onRemove={() => setFile(null)}
           />
 
           {/* The one thing a person is entitled to know before handing over a
-              document, in the place they hand it over. The board's whole promise
-              is that an application carries your profile rather than a file, so
-              the file is read and not kept — and a promise nobody states is a
-              promise nobody believes. */}
-          <p className={p.privacyNote}>
-            We read the file to fill in your experience. It isn&apos;t sent with your applications.
-          </p>
+              document, in the place they hand it over — a promise nobody states
+              is a promise nobody believes. Wording is the host's; see the prop. */}
+          <p className={p.privacyNote}>{privacyNote}</p>
         </>
       )}
     </div>

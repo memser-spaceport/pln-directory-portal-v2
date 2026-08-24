@@ -1,0 +1,165 @@
+// Local extras only. Every card on this page wears production's own stylesheet,
+// imported by the component — the header card and its amber placeholders, the
+// investor prompt banner and its three add-pills, the empty list rows, the
+// section chrome. What is left here is the page around them, which
+// `app/members/[id]/page.tsx` owns in production through `MemberDetail.module.scss`
+// (a page-level sheet full of grid, sidebar and breakpoint rules this single
+// column has no use for).
+//
+// Every custom property is written `var(--name, #fallback)`: this app does not
+// load the DS token sheet, so a bare token resolves to nothing.
+@use 'styles/media';
+
+// The ground the member page sits on.
+.page {
+  min-height: 100vh;
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  padding: 20px 16px 64px;
+
+  @include media.tablet-landscape {
+    padding: 24px 24px 80px;
+  }
+}
+
+// Production's content column is 656px between the back button and the rail.
+// Single column here: the rail holds team news, the Affinity relationship card
+// and Book-with-other, none of which a profile created ten seconds ago has
+// anything to put in.
+.column {
+  width: 100%;
+  max-width: 656px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// `DetailsSection` supplies its own padding, which is right when the card is
+// only content. These cards lead with a full-bleed prompt strip instead, so the
+// padding moves inside — production does the same pairing in `ContactDetails`
+// (`.contentRoot`) and `PitchDeckView` (`.root`).
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+// `DataIncomplete` is built to be a card's first child and cap its top edge, and
+// `DetailsSection` carries 16px of padding it would otherwise sit inset within.
+// The negative margins cancel that on the three sides that should be flush; the
+// section body below supplies its own.
+.promptStrip.promptStrip {
+  margin: -16px -16px 0;
+  width: auto;
+  border-radius: 8px 8px 0 0;
+}
+
+// The one line under the CV card's title. 12px rather than 14 for the same
+// reason it is 12 in the apply drawer: the section title above it is 14px/500 in
+// grey, so a 14px secondary sentence would be the same size as its own heading
+// and darker than it — the label meant to lead the card ending up the quietest
+// thing in it.
+.cvFirstNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// --- Office Hours --------------------------------------------------------------
+
+// Sentence left, action right — production's own arrangement in the Office Hours
+// empty state, which is the one card on this page whose call to action is a
+// filled button rather than a placeholder.
+.officeHoursRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--Neutral-Slate-50, #f8fafc);
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.officeHoursText {
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+}
+
+// The only filled control on the page. Values are the DS brand button's, which
+// is what production renders here.
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--action-background-brand-normal, #156ff7);
+  color: var(--Neutral-White, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+
+  &:hover {
+    filter: brightness(108%);
+  }
+}
+
+// --- The Experience header pair ------------------------------------------------
+
+// Same 16px as the drawer's `.headerActions` and the settings page's: one pair of
+// controls doing one job across three surfaces, measured the same on each.
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// The quiet half of that pair — Update from CV, and Cancel while the importer is
+// open — so `AddButton`'s brand blue stays the only loud control in the row.
+.headerAction {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// Production's `FileUploader.hiddenInput`. Clipped rather than `display: none`,
+// which is the point — a hidden input still has to be clickable from the button
+// that labels it.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

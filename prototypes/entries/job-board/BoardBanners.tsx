@@ -21,10 +21,9 @@ import s from './SignInBanner.module.scss';
  * The signed-in asks, in `SignInBanner`'s slot.
  *
  * **Why not more props on `SignInBanner`.** That component is about the two
- * doors — it owns the Sign up / Sign in pair, the criteria read-back and the
- * pinned condensed state, none of which apply once there is an account. Folding
- * three unrelated states into it would have left every branch reading around the
- * other two.
+ * doors — it owns them, plus the criteria read-back and the pinned condensed
+ * state, none of which apply once there is an account. Folding three unrelated
+ * states into it would have left every branch reading around the other two.
  */
 
 /**
@@ -39,20 +38,28 @@ import s from './SignInBanner.module.scss';
  * for the same thing in two different ways — and a member who read the case for
  * a profile while logged out, signed in, and then met a different case for the
  * same profile has been given two reasons where there is one. `ApplyValueBullets`
- * is that one reason, shared. Only the first bullet changes, and it changes
- * because the door behind it has: signing in is done.
+ * is that one reason, shared. It takes no `doors` here: the signed-out banner
+ * puts Sign up / Sign in inside its first bullet, and a member reading this one
+ * is already through both.
  *
  * One button, not two: there is nothing to choose between here. The action is
  * the same one every Apply button on the page performs, so it opens the same
  * drawer rather than going anywhere new.
+ *
+ * **Same card, same scale as the logged-out banner** — blue surface,
+ * `s.bannerTitle` and `s.bannerSub`, 20/14. These states ran a step quieter for
+ * a while, on the argument that a note to someone already inside does not need a
+ * cold offer's voice. True of the copy, wrong for the type: one slot reading at
+ * two sizes looks like it swapped component when the reader's situation changed.
+ * They differ in what they say, not in how loudly.
  */
 export function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () => void }) {
   return (
     <div className={s.slot}>
-      <section className={welcome.welcome}>
+      <section className={clsx(welcome.welcome, s.brandSurface)}>
         <div className={welcome.text}>
-          <p className={welcome.title}>Update your profile to apply</p>
-          <ApplyValueBullets />
+          <p className={clsx(welcome.title, s.bannerTitle)}>Update your profile to apply</p>
+          <ApplyValueBullets className={s.bannerSub} />
         </div>
         <div className={s.ctaGroup}>
           <button type="button" className={welcome.cta} onClick={onUpdateProfile}>
@@ -109,16 +116,26 @@ export function PendingApprovalBanner({
   if (!profileComplete) {
     return (
       <div className={s.slot}>
-        <section className={welcome.welcome}>
+        <section className={clsx(welcome.welcome, s.brandSurface)}>
           <div className={welcome.text}>
-            <p className={welcome.title}>Profile under review</p>
-            {/* Names the wait, then hands back the one move that is theirs. "so
-                you can apply the moment it's approved" is the whole reason to do
-                it now rather than later — without it, filling in a profile
-                during a wait reads as busywork the product invented. */}
-            <p className={welcome.sub}>
-              We&apos;ll notify you once approved. Complete your profile in the meantime, so you can apply the moment it
-              is.
+            <p className={clsx(welcome.title, s.bannerTitle)}>Profile under review</p>
+            {/* Two sentences, two lines — and two different kinds of thing, which
+                is why they are separate `<p>`s rather than one broken with a
+                `<br />`. The first is a status: the review is running, we will
+                tell you. The second is the one move that is theirs, and it is
+                what the button beside it does. Run together they read as one
+                paragraph about waiting, and the instruction gets lost in the
+                middle of it.
+
+                No new CSS: `welcome.text` is already a 4px-gap column, so a
+                second `<p>` lands on the next line at the card's own rhythm.
+
+                "so you can apply the moment it is" is the whole reason to do it
+                now rather than later — without it, filling in a profile during a
+                wait reads as busywork the product invented. */}
+            <p className={clsx(welcome.sub, s.bannerSub)}>We&apos;ll notify you once approved.</p>
+            <p className={clsx(welcome.sub, s.bannerSub)}>
+              Complete your profile in the meantime, so you can apply the moment it is.
             </p>
           </div>
           <div className={s.ctaGroup}>
@@ -142,7 +159,7 @@ export function PendingApprovalBanner({
 
   return (
     <div className={clsx(s.slot, s.pendingSlot)}>
-      <div className={a.alert}>
+      <div className={clsx(a.alert, s.alertBrand)}>
         <div className={a.alertContent}>
           <div className={a.alertIcon}>
             <InfoIcon />

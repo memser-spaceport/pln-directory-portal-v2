@@ -121,17 +121,15 @@ export const CANVAS_STATES: Record<string, CanvasStateSpec> = {
      the importer is only offered while the Experience section is empty — an
      import offer over a history someone has already written is nagging, and the
      drawer hides it once there are entries. */
-  /* There is no `import-doors` state, deliberately. The door lives inline in the
-     empty Experience section, so a state that showed it would render exactly
-     what `?viewer=profile-incomplete&profile=1` already renders — two frames of
-     one screen, which the oracle fails and a reader cannot tell apart. The door
-     is the `drawer-empty` frame, and the import flow starts there.
+  /* There is no state for the offer itself, deliberately. It stands in a card at
+     the top of the drawer with its drop area already open, so a state that
+     showed it would render exactly what `?viewer=profile-incomplete&profile=1`
+     already renders — two frames of one screen, which a reader cannot tell
+     apart. The offer is the `drawer-empty` frame, and the import starts there.
 
-     `import-linkedin` used to sit beside `import-resume` here. The LinkedIn door
-     is gone — it landed in this same drop area, so it was a second frame of one
-     mechanism — and its declaration in `design-canvas/project/flows.ts` (the
-     frame and the two edges naming it) needs removing with it. */
-  'import-resume': { viewer: 'profile-incomplete', drawer: true, import: { open: true } },
+     Two states used to sit here and both are gone with what they photographed:
+     `import-resume`, from when the offer was a pill you had to press, and
+     `import-linkedin`, from when a second door led to this same drop area. */
   'import-reading': {
     viewer: 'profile-incomplete',
     drawer: true,

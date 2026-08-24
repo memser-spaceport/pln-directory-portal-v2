@@ -135,10 +135,18 @@ export const prototypeRegistry: PrototypeEntry[] = [
     load: () => import('./entries/follow-team/FollowTeamPrototype'),
   },
   {
+    key: 'onboarding',
+    title: 'New member profile — first fill',
+    description:
+      'A brand-new member profile at /members/uid, transcribed from app/members/[id]/page.tsx in the order it renders and wearing its real stylesheets — the header card with the amber “+ Your Role” and “+ Your Location” pair and the “+ Add skills” / “+ Add bio” pills, the investor prompt banner over Investment Details with its three add pills, Office Hours and Contact Details behind their own prompts, then Experience, Project Contributions and Repositories. This is where a profile actually gets written: the onboarding modal collects five contact fields and then lands you here, on a page where every field a hiring team reads is still empty. The one addition sits at the very top, above the copy — “Start with your CV”, open on its drop area, because a document fills the role and location on the header card and the skills row as well as the work history, and offering it inside the Experience section described it as smaller than it is. It is the same importer the apply drawer and the settings page mount, so three surfaces share one implementation. The card disappears the moment anything is filled in, and the Experience header then carries “Update from CV” for the next document — one entry point on screen, never two.',
+    category: 'Members',
+    load: () => import('./entries/onboarding/OnboardingPrototype'),
+  },
+  {
     key: 'profile-settings',
     title: 'Profile settings',
     description:
-      'Mocked recreation of the production settings shell (back bar, left preferences/admin menu, content) with a Profile edit form — basic info, team & skills, contact, and availability — plus a sticky save bar.',
+      'Mocked recreation of the production settings shell (back bar, left preferences/admin menu, content) with a Profile edit form — basic info, team & skills, experience, contact, and availability — plus a sticky save bar. Experience is a list here rather than a single entry, and carries the same CV importer as the apply drawer on the job board: an “Upload your CV” pill in the empty state, “Update from CV” beside the heading once there are entries (opening the file dialog on the press), and the same review card — positions to tick or drop, already-present ones labelled and unticked, skills as editable tags. It shares ExperienceList and ExperienceForm with the drawer rather than re-typing them, because the two pages are two windows onto one record. While the review is open the sticky Save on this page stands down, the way the drawer footer does.',
     category: 'Ideation',
     load: () => import('./entries/profile-settings/ProfileSettingsPrototype'),
   },

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { CloseIcon } from '@/components/icons';
@@ -10,6 +10,9 @@ import { formatFileSize } from '@/utils/file.utils';
 // the Upload button's inset shadow, the file row and the error strip. Only the ✕
 // changes.
 import s from '@/components/ui/FileUploader/FileUploader.module.scss';
+// The mobile layout only — see the note in the file. Production stacks the disc,
+// the text and the button; in this drawer the first two sit on one row.
+import m from './ResumeDropzone.module.scss';
 
 /**
  * `FileUploader`, transcribed, with one deliberate substitution: the file row's
@@ -37,13 +40,34 @@ interface ResumeDropzoneProps {
   maxFileSize: number;
   /** The file already chosen, if any. Owned by the parent — see the panel. */
   file: File | null;
+  /**
+   * A file chosen somewhere else — the "Update from CV" control in the section
+   * header, which owns its own input so the OS picker opens on the click itself
+   * rather than one render later.
+   *
+   * It is handed *here* rather than straight to the parser so that a file picked
+   * from the header meets the same size and extension rules, and fails into the
+   * same inline error, as one dropped on this box. Two entry points may share a
+   * validator or they will eventually disagree about what a valid CV is.
+   */
+  externalFile?: File | null;
   onSelect: (file: File) => void;
   onRemove: () => void;
   disabled?: boolean;
 }
 
 export function ResumeDropzone(props: ResumeDropzoneProps) {
-  const { title, description, supportedFormats, maxFileSize, file, onSelect, onRemove, disabled = false } = props;
+  const {
+    title,
+    description,
+    supportedFormats,
+    maxFileSize,
+    file,
+    externalFile,
+    onSelect,
+    onRemove,
+    disabled = false,
+  } = props;
 
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +100,20 @@ export function ResumeDropzone(props: ResumeDropzoneProps) {
     onSelect(candidate);
   };
 
+  /* Keyed on the File's identity, not its name: picking the same file twice in a
+     row makes a new File object (the input's value is cleared after each read),
+     so a second attempt at the same document still runs. */
+  useEffect(() => {
+    if (externalFile) handleFile(externalFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalFile]);
+
   const acceptedTypes = supportedFormats.map((format) => `.${format.toLowerCase()}`).join(',');
 
   return (
     <div>
       <div
-        className={clsx(s.container, { [s.dragOver]: dragOver })}
+        className={clsx(s.container, m.container, { [s.dragOver]: dragOver })}
         onDragOver={(ev) => {
           ev.preventDefault();
           if (!disabled) setDragOver(true);
@@ -101,14 +133,14 @@ export function ResumeDropzone(props: ResumeDropzoneProps) {
           <UploadIcon className={s.icon} />
         </div>
 
-        <div className={s.content}>
+        <div className={clsx(s.content, m.content)}>
           <h3 className={s.title}>{title}</h3>
           <p className={s.description}>{description}</p>
         </div>
 
         <button
           type="button"
-          className={s.uploadButton}
+          className={clsx(s.uploadButton, m.uploadButton)}
           onClick={() => {
             if (!disabled) inputRef.current?.click();
           }}

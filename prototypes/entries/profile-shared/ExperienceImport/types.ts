@@ -39,6 +39,17 @@ export interface ParsedExperience {
 }
 
 export interface ParsedProfile {
+  /**
+   * Optional because only one surface asks for them.
+   *
+   * A real CV parser returns the name and email off the top of the document —
+   * Mercor collects exactly those two alongside the resume in step 1 of its
+   * wizard. The job board never reads them (it already has an account by the
+   * time the importer runs); onboarding does, because there the CV arrives
+   * *before* the name-and-email step and can fill it in.
+   */
+  name?: string;
+  email?: string;
   /** The headline the document leads with. Feeds the profile's required Role. */
   role: string;
   location: string;

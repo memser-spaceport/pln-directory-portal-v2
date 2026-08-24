@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -273,6 +273,22 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
      thing typed in a session that was abandoned. */
   const [draft, setDraft] = useState<MemberProfile>(profile);
   const [editing, setEditing] = useState<EditTarget>(null);
+  /**
+   * The file the header's "Update from CV" collected, on its way to the panel.
+   *
+   * **Why the drawer owns an input at all.** Opening the OS file dialog needs a
+   * user gesture, and a gesture only survives synchronous JS — so a button that
+   * sets state and hopes the freshly-mounted panel can open the picker in an
+   * effect is relying on a browser detail that Safari in particular does not
+   * promise. The input lives next to the button and the button clicks it
+   * directly, which is the version that cannot break.
+   *
+   * The file is then handed to the panel and validated *there*, by the same
+   * dropzone that validates a drop — so the two routes cannot end up disagreeing
+   * about what a valid CV is.
+   */
+  const [pickedFile, setPickedFile] = useState<File | null>(null);
+  const headerFileInput = useRef<HTMLInputElement>(null);
   /* What a document said, held between the panel reading it and the review
      agreeing to it. Null the rest of the time — a parse is never state the
      profile carries, only a proposal in flight.
@@ -409,6 +425,9 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
   };
 
   const closeImport = () => {
+    /* So reopening the importer by any route starts empty rather than replaying
+       the last file the header collected. */
+    setPickedFile(null);
     setParsed(null);
     setEditing(null);
   };
@@ -573,11 +592,11 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     visible buttons already promise — the second time that exact
                     reassurance has been cut from this flow. */}
                 <p className={d.cvFirstNote}>
-                  We&apos;ll fill in your role, skills and experience from it — so you don&apos;t have to type it all
-                  in.
+                  We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
                 </p>
                 <ExperienceImportPanel
                   entry="direct"
+                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
                   onParsed={openImportReview}
                   onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                   // DELETE WITH: the `design-canvas/` folder.
@@ -717,6 +736,8 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     was built to avoid, left behind on the other route. */}
                 <ExperienceImportPanel
                   entry="direct"
+                  initialFile={pickedFile}
+                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
                   onParsed={openImportReview}
                   onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                   // DELETE WITH: the `design-canvas/` folder.
@@ -765,9 +786,31 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     already exists, and the verb is the difference. */}
                 <div className={d.headerActions}>
                   {canEdit && draft.experiences.length > 0 && (
-                    <button type="button" className={d.headerImport} onClick={() => setEditing({ kind: 'import' })}>
-                      Update from CV
-                    </button>
+                    <>
+                      {/* Straight to the file dialog. Pressing a control that
+                          says "Update from CV" and landing on a card asking you
+                          to choose a file is the press not being taken at its
+                          word — the card behind it still appears, so a cancelled
+                          dialog leaves you on the drop area rather than nowhere. */}
+                      <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
+                        Update from CV
+                      </button>
+                      <input
+                        ref={headerFileInput}
+                        type="file"
+                        className={d.visuallyHidden}
+                        accept=".pdf,.doc,.docx"
+                        onChange={(ev) => {
+                          const chosen = ev.target.files?.[0] ?? null;
+                          /* Cleared so picking the same file twice still fires a
+                             change event. */
+                          ev.target.value = '';
+                          if (!chosen) return;
+                          setPickedFile(chosen);
+                          setEditing({ kind: 'import' });
+                        }}
+                      />
+                    </>
                   )}
                   {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
                 </div>
@@ -782,6 +825,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                 <div className={e.root}>
                   <ExperienceImportPanel
                     emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                    privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
                     onParsed={openImportReview}
                     onAddManually={() => setEditing({ kind: 'experience', uid: null })}
                     /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
@@ -903,7 +947,14 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
               button says `Save profile` rather than `Continue to apply` even when
               a role is pending, because naming a destination this press cannot
               reach would be the button lying about where it goes. */}
-          <Button variant="primary" style="fill" size="m" disabled={!complete || !!editing} onClick={submit}>
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={d.footerAction}
+            disabled={!complete || !!editing}
+            onClick={submit}
+          >
             {pendingRoleTitle && !pendingApproval ? 'Continue to apply' : 'Save profile'}
           </Button>
         </div>
@@ -1167,7 +1218,7 @@ function ProfileDetailsForm({
  * `.Separator` rather than base-ui's `Separator`; the class is the whole visual
  * and a decorative rule needs no role.
  */
-function ExperienceList({ entries, onEdit }: { entries: ExperienceEntry[]; onEdit?: (uid: string) => void }) {
+export function ExperienceList({ entries, onEdit }: { entries: ExperienceEntry[]; onEdit?: (uid: string) => void }) {
   return (
     <div className={e.root}>
       {entries.length > 0 && (
@@ -1195,14 +1246,22 @@ function ExperienceList({ entries, onEdit }: { entries: ExperienceEntry[]; onEdi
                   <div className={e.secondaryLabel}>{formatExperienceDates(item)}</div>
                 </div>
               </div>
-              <button
-                type="button"
-                className={e.editBtn}
-                onClick={() => onEdit?.(item.uid)}
-                aria-label="Edit experience"
-              >
-                <PencilIcon />
-              </button>
+              {/* Only when there is somewhere for it to go. This rendered
+                  unconditionally and called `onEdit?.()` — a pencil that did
+                  nothing whenever the list was read-only, which the onboarding
+                  entry's finished-profile step made visible the moment it
+                  mounted the list without a handler. `ContributionsList`, in
+                  this same file, has always guarded it this way. */}
+              {onEdit && (
+                <button
+                  type="button"
+                  className={e.editBtn}
+                  onClick={() => onEdit(item.uid)}
+                  aria-label="Edit experience"
+                >
+                  <PencilIcon />
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -1260,7 +1319,14 @@ type ExperienceFormData = {
  * a field whether or not an input ref ever attaches to it, and the control
  * renders whatever `error` it is handed.
  */
-function ExperienceForm({
+/* Exported for `profile-settings`, which is the second surface that edits this
+   record and must not grow a second editor for it.
+
+   It should live in `profile-shared/` rather than in a drawer — the same debt
+   `SkillsTagsInput` carries in the other direction, and recorded here for the
+   same reason. Left in place for now because moving ~200 lines and four
+   stylesheet imports out of a verified flow is a bigger risk than the debt. */
+export function ExperienceForm({
   initial,
   onClose,
   onSubmit,

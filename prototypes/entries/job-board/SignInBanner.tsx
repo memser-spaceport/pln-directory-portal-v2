@@ -11,6 +11,13 @@ import welcome from '@/components/page/home/Welcome/Welcome.module.scss';
 import { hasCriteria, summariseCriteria, type RoleCriteria } from './viewerState';
 import s from './SignInBanner.module.scss';
 
+/** The two doors, when the banner is the one offering them. Absent on the
+ *  signed-in banners, where there is nothing to sign into. */
+interface Doors {
+  onSignIn: () => void;
+  onSignUp: () => void;
+}
+
 interface SignInBannerProps {
   /** What the rail is narrowed to — the intent the visitor has already expressed. */
   criteria: RoleCriteria;
@@ -18,7 +25,7 @@ interface SignInBannerProps {
    *  screen, so narrowing the rail narrows the number rather than making it a lie. */
   roleCount: number;
   /** How many teams those roles are spread across — the second half of the
-   *  headline's claim, filtered for the same reason `roleCount` is. */
+   *  headline, filtered for the same reason `roleCount` is. */
   teamCount: number;
   onSignIn: () => void;
   /** The other door, and a genuinely different one: it opens `JobSignUpModal`,
@@ -34,17 +41,32 @@ interface SignInBannerProps {
  * prototype is about. Everything visual comes from `Welcome.module.scss`; only
  * the click target and the copy are local.
  *
- * **The headline is the inventory; the case for signing in is the two bullets
- * under it.** It used to be the other way round — "Sign in to apply for 34 open
- * roles with one click" — which spent the loudest line on an ask the two buttons
- * in the same row already make, in the product's own auth vocabulary. What the
- * line says now is what the board holds and how far it spreads: "Browse 34 open
- * roles across 6 PL network teams", the role count in `welcome.titleHighlight`
- * (a colour swap to the brand blue, nothing more) because it is the number worth
- * reading first. Under it, `ApplyValueBullets` makes the argument for a profile
- * in two claims — one profile applies everywhere, and founders come to you — and
- * that component is shared with the signed-in nudge banner so the two states
- * cannot end up making different promises.
+ * **The headline is the inventory; the offer is the first bullet.** "Browse 34
+ * open roles across 6 PL network teams", the role count in
+ * `welcome.titleHighlight` (a colour swap to the brand blue, nothing more).
+ *
+ * The two swapped jobs for a while — headline as the offer, bullets as support —
+ * and swapped back when the reviewer set the bullet copy: *"Sign in or sign up
+ * and apply to hundreds of open roles with a single profile."* A headline
+ * reading "Apply to 34 open roles with one profile" over that is the same
+ * sentence twice, forty pixels apart, at two different counts. Only one of them
+ * can be the offer, and the bullet is the one that names the doors.
+ *
+ * Worth knowing, since it is the standing tension in this card: the headline
+ * counts what is *on screen* while the bullet claims *hundreds*, and the list
+ * header forty pixels lower repeats the headline's two numbers as "Job Board (34
+ * roles across 6 teams)". Both were raised and both are the reviewer's call —
+ * the bullet's "hundreds" is a claim about the network rather than about this
+ * filtered list.
+ *
+ * `ApplyValueBullets` carries the two claims, and — since the CTA pair went —
+ * the two doors as well, as text buttons inside the first bullet. It is shared
+ * with the signed-in `ProfileNudgeBanner` so the two states cannot end up
+ * promising different things; only the doors differ, because a member who is
+ * already signed in has none.
+ *
+ * **20 over 14, not `Welcome`'s 24/16.** See `s.bannerTitle` — one scale across
+ * all four states of this slot.
  *
  * **"Welcome to LabOS" is gone, deliberately.** A greeting is not an offer, and
  * this strip is the board's one standing sign-in ask; spending its loudest line
@@ -65,8 +87,8 @@ interface SignInBannerProps {
  * them instead of opening with a generic pitch.
  *
  * The pinned state used to drop the title and run on the sub alone. It can't any
- * more: the count lives in the title, so the title is what survives, the bullets
- * give way to the one-line read-back, and `s.oneLine` rides on both lines — a
+ * more: the count lives in the title, so the title is what survives, the value
+ * line gives way to the read-back, and `s.oneLine` rides on both lines — a
  * wrapped headline, or a long selection
  * ("Engineering · Senior · Lead · Remote · Berlin"), would grow a strip that is
  * pinned over the list it's supposed to ride along with. The switch happens on
@@ -82,31 +104,54 @@ interface SignInBannerProps {
  * decides, which is the whole argument for a standing ask.
  */
 /**
- * The two things a profile buys you, in the reviewer's own words — one line each.
+ * What a profile buys you.
  *
- * Two banners now say this: the logged-out one (below) and `ProfileNudgeBanner`,
- * which asks a signed-in member with an empty profile for the same thing. It is
- * the same argument in both places — the account is not the point, the profile
- * is — so it is one component rather than two sentences that will drift. The
- * only difference is the door: signed out, the first bullet names signing in,
- * because that is the step in front of them.
+ * Two banners say it: the logged-out one below, and `ProfileNudgeBanner`, which
+ * asks a signed-in member with an empty profile for the same thing. Same
+ * argument in both places — the account is not the point, the profile is — so it
+ * is one component rather than two sentences that will drift. Only the doors
+ * differ: a member reading the signed-in one is already through both.
  *
- * A real `<ul>`, not two sentences with a `<br />` between them. They are two
- * independent claims of equal weight, and prose runs them together — which is
- * exactly what the earlier one-paragraph version did, and why it read as a
- * single long sentence about nothing in particular.
+ * The first bullet is the reviewer's copy, verbatim. Note the door order — sign
+ * in, then sign up — which is the reverse of the navbar's pair and deliberate
+ * here: this reads as a sentence rather than as a control cluster, and the
+ * sentence names the commoner case first.
  */
-export function ApplyValueBullets({ signedOut = false }: { signedOut?: boolean }) {
+export function ApplyValueBullets({ className, doors }: { className?: string; doors?: Doors }) {
   return (
-    <ul className={`${welcome.sub} ${s.valueBullets}`}>
+    <ul className={clsx(welcome.sub, s.valueBullets, className)}>
       <li>
-        {signedOut ? 'Sign in and apply' : 'Apply'} to hundreds of startup teams across the network with a single
-        profile.
+        {doors ? (
+          <>
+            {/* Both doors, still — the pair moved out of the CTA slot, not out
+                of the banner. "Sign in" alone would tell the likeliest reader of
+                a sign-in banner, someone with no account, that the offer isn't
+                for them. */}
+            <button type="button" className={s.inlineDoor} onClick={doors.onSignIn}>
+              Sign in
+            </button>{' '}
+            or{' '}
+            <button type="button" className={s.inlineDoor} onClick={doors.onSignUp}>
+              sign up
+            </button>{' '}
+            and apply to hundreds of open roles with a single profile.
+          </>
+        ) : (
+          /* The same claim with the doors taken out — a member reading this one
+             is already signed in, so the sentence starts at what the profile
+             does rather than at how to get one. */
+          'Apply to hundreds of open roles with a single profile.'
+        )}
       </li>
       {/* The half a job board can't show you: the profile is not only how you
-          apply, it's how you're found. Stated second because it's the payoff you
-          get without doing anything else. */}
-      <li>Founders reach out when your profile matches the roles they&apos;re hiring for.</li>
+          apply, it's how you're found. Second because it is the payoff you get
+          without doing anything else.
+
+          "when they're hiring for what you do", not "when your profile matches
+          the roles they're hiring for". Matching was removed from this board
+          outright; leaving its vocabulary in the banner promises a mechanism
+          that is gone. */}
+      <li>Founders reach out when they&apos;re hiring for what you do.</li>
     </ul>
   );
 }
@@ -116,20 +161,22 @@ export function SignInBanner({ criteria, roleCount, teamCount, onSignIn, onSignU
 
   return (
     <div className={clsx(s.slot, filtersApplied && s.pinned)}>
-      <section className={clsx(welcome.welcome, filtersApplied && s.condensed)}>
+      <section className={clsx(welcome.welcome, s.brandSurface, filtersApplied && s.condensed)}>
         <div className={welcome.text}>
-          {/* The headline is what the board *is*, counted: how much there is and
-              how far it spreads. It used to be the offer ("Sign in to apply for
-              13 open roles with one click"), which put the ask in the loudest
-              line and the inventory nowhere — but the two buttons to the right
-              already are the ask, in the product's own auth vocabulary, so the
-              headline was spending itself on something the row states anyway.
-              The case for signing in moves down one line, where it is two
-              bullets that can each be read on their own.
+          {/* The headline is the inventory; the offer is the bullet under it.
+
+              It was briefly the offer instead — "Apply to 13 open roles with one
+              profile" — which stopped working the moment the first bullet became
+              "…and apply to hundreds of open roles with a single profile". Those
+              are the same sentence twice, forty pixels apart, at two different
+              counts. One of them had to stop being the offer, and the headline is
+              the one that can orient instead.
 
               Both numbers are the *filtered* ones, so narrowing the rail narrows
-              the claim rather than making it a lie. */}
-          <p className={clsx(welcome.title, filtersApplied && s.oneLine)}>
+              the claim rather than making it a lie. The bullet's "hundreds" is a
+              claim about the network rather than about this list — deliberate,
+              and the reviewer's own copy. */}
+          <p className={clsx(welcome.title, s.bannerTitle, filtersApplied && s.oneLine)}>
             {roleCount > 0 ? (
               <>
                 Browse{' '}
@@ -139,16 +186,16 @@ export function SignInBanner({ criteria, roleCount, teamCount, onSignIn, onSignU
                 across {teamCount} PL network {teamCount === 1 ? 'team' : 'teams'}
               </>
             ) : (
-              /* Zero is a filter result, not a smaller board: "browse 0 open
+              /* Zero is a filter result, not a smaller board — "browse 0 open
                  roles" is an invitation to do nothing, and the empty state
-                 directly below already says there's nothing there. The counts
-                 drop out and the standing claim stays, so it's already in place
-                 when the person widens the rail again. */
+                 directly below already says there is nothing there. The counts
+                 drop out and the standing claim remains, so it is already in
+                 place when the person widens the rail again. */
               <>Browse every open role across the PL network</>
             )}
           </p>
           {filtersApplied || roleCount === 0 ? (
-            <p className={clsx(welcome.sub, filtersApplied && s.oneLine)}>
+            <p className={clsx(welcome.sub, s.bannerSub, filtersApplied && s.oneLine)}>
               {roleCount === 0 ? (
                 /* No selection read-back at zero. Repeating a narrowing that
                    returned nothing back at the person is rubbing it in, and the
@@ -165,49 +212,25 @@ export function SignInBanner({ criteria, roleCount, teamCount, onSignIn, onSignU
               )}
             </p>
           ) : (
-            /* Unfiltered, the strip is at full height and can carry the two
-               claims as a list. Filtered it is pinned and clamped to one line
-               each, so the read-back above stands in — a two-item list truncated
-               to one line is a list with something missing. */
-            <ApplyValueBullets signedOut />
+            /* Unfiltered, the standing claim. Filtered, the read-back above
+               replaces it: pinned, both lines are clamped to one, and the
+               selection the person just made is the more specific thing to say
+               back to them. */
+            <ApplyValueBullets className={s.bannerSub} doors={{ onSignIn, onSignUp }} />
           )}
         </div>
-        {/* Both doors, in the navbar's order and with the navbar's ranking: Sign
-            up quiet and bordered, Sign in filled. The header two rows above shows
-            exactly this pair, so an auth cluster reads the same wherever it turns
-            up — and a person who reached the board without an account is not
-            asked to work out that "Sign in" was meant to include them.
+        {/* No CTA slot. The banner used to end in a Sign up / Sign in pair
+            wearing `welcome.cta` — a boxed auth cluster, which made this an
+            *offer* card in the same viewport as two other copies of the same
+            offer: the navbar's own pair one row above, and the sign-up form that
+            Apply opens for a logged-out visitor at the moment of intent. Three
+            asks for one account, and this was the one nobody arrived for.
 
-            The shape is the banner's, not the header's. The navbar pair are 40px
-            pills; `welcome.cta` is an 8px-radius rectangle, and two radii in one
-            cluster reads as two unrelated controls. So geometry comes from the
-            CTA it stands beside and only the tone — neutral text, slate border,
-            white fill — is taken from `Signup.module.scss`. See `.ctaSecondary`.
-
-            `LoginBtn` renders a bare `<button className={className}>`, so a plain
-            button wearing the same class is pixel-identical to production's. */}
-        <div className={s.ctaGroup}>
-          <button type="button" className={s.ctaSecondary} onClick={onSignUp}>
-            Sign up
-          </button>
-          {/* Sentence case, per the auth-copy standard the rest of these prototypes
-              hold to (production's Welcome still says "Sign In"; `LoginBtn`'s own
-              default already says "Sign in"). */}
-          <button type="button" className={welcome.cta} onClick={onSignIn}>
-            Sign in
-            {/* The arrow stays on Sign in alone. It marks the action the headline
-                names, and on both buttons it would mark neither. */}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M5 12h14M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
+            What is left is a note: it says what the board is worth to you and
+            names the two doors inline, in the sentence, as text buttons. That is
+            the treatment for an aside that carries an action — a boxed control
+            inside a sentence reads as a second object. The doors did not
+            disappear, they stopped being furniture. */}
       </section>
     </div>
   );

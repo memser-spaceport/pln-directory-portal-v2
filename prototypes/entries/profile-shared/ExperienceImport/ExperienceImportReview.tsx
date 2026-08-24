@@ -90,6 +90,22 @@ type Row = ParsedExperience & { include: boolean; duplicate: boolean };
 
 type ReviewFormData = { role: string; location: string; skills: string[] };
 
+/**
+ * WHEN TWO ROWS ARE THE SAME JOB: role, company and start date.
+ *
+ * Not the description, which a parser rewords between runs, and not the end
+ * date, which is the field most likely to have legitimately changed since the
+ * last import — matching on it would call a finished job a different job. Case-
+ * and space-insensitive, because the two sides came out of two different reads
+ * of the same document.
+ *
+ * Exported because the design canvas seeds a profile that has already been
+ * through one import and then imports over it, and a second copy of this rule
+ * would drift from this one silently.
+ */
+export const experienceKey = (entry: { title: string; company: string; startDate: string }) =>
+  [entry.title, entry.company, entry.startDate].map((value) => value.trim().toLowerCase()).join('|');
+
 export function ExperienceImportReview(props: ExperienceImportReviewProps) {
   const {
     parsed,
@@ -103,19 +119,9 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
     onSubmit,
   } = props;
 
-  /* Role + company + start date. Not the description, which a parser rewords
-     between runs, and not the end date, which is the field most likely to have
-     legitimately changed since the last import — matching on it would call a
-     finished job a different job. Case- and space-insensitive because the two
-     sides came out of two different reads of the same document. */
-  const alreadyHave = useMemo(() => {
-    const key = (x: { title: string; company: string; startDate: string }) =>
-      [x.title, x.company, x.startDate].map((v) => v.trim().toLowerCase()).join('|');
-    return new Set(currentExperiences.map(key));
-  }, [currentExperiences]);
+  const alreadyHave = useMemo(() => new Set(currentExperiences.map(experienceKey)), [currentExperiences]);
 
-  const isDuplicate = (item: ParsedExperience) =>
-    alreadyHave.has([item.title, item.company, item.startDate].map((v) => v.trim().toLowerCase()).join('|'));
+  const isDuplicate = (item: ParsedExperience) => alreadyHave.has(experienceKey(item));
 
   const [rows, setRows] = useState<Row[]>(() =>
     parsed.experiences.map((item) => {

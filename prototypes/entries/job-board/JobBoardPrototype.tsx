@@ -132,7 +132,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { getJobDate } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
-import type { IJobRole, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 
 // Reuse the production content shell styling 1:1 (root / toolbar / title / list).
 import contentCss from '@/app/jobs/(jobs-page)/@content/JobsContent.module.scss';
@@ -155,6 +155,7 @@ import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
 import { JobProfileDrawer } from './JobProfileDrawer';
 import { JobApplyModal } from './JobApplyModal';
+import { JobDetailDrawer } from './JobDetailDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
 // DELETE WITH: the `design-canvas/` folder.
 import { parseResultFor } from '../profile-shared/ExperienceImport/parseMocks';
@@ -493,6 +494,14 @@ export default function JobBoardPrototype() {
   const [applyTarget, setApplyTarget] = useState<ApplyTarget | null>(null);
   const [pendingApply, setPendingApply] = useState<ApplyTarget | null>(null);
 
+  /* The role whose description is open, with the team that posted it — the
+     drawer names the team and links to its profile, so it needs the record and
+     not just the name.
+
+     Like `applyTarget`, the object doubles as the open flag: there is no such
+     thing as this drawer without a role. */
+  const [viewJob, setViewJob] = useState<{ role: IJobRole; team: IJobTeam } | null>(null);
+
   /* The cover letter, held only while the apply modal is *not* on screen.
    *
    * Pressing "Edit profile" mid-letter closes the modal and opens the drawer, so
@@ -646,8 +655,23 @@ export default function JobBoardPrototype() {
   /** Which team posted a role. The card hands the row only the role, so the team
    *  is recovered here rather than threaded through two components that have no
    *  other use for it. */
-  const teamNameForRole = (role: IJobRole): string =>
-    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team.name ?? '';
+  const teamForRole = (role: IJobRole): IJobTeam | null =>
+    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team ?? null;
+
+  const teamNameForRole = (role: IJobRole): string => teamForRole(role)?.name ?? '';
+
+  /**
+   * Pressing **View job**, or the role title.
+   *
+   * Ungated on purpose, in every viewer state. Reading a posting is browsing,
+   * and nothing on this board has ever been hidden from a logged-out visitor —
+   * the gate sits on the moment something is sent on someone's behalf, which is
+   * the Apply inside this drawer, not the door to it.
+   */
+  const onViewJob = (role: IJobRole) => {
+    const team = teamForRole(role);
+    if (team) setViewJob({ role, team });
+  };
 
   /**
    * Pressing Apply. One entry point, three outcomes, and the role is carried
@@ -815,6 +839,7 @@ export default function JobBoardPrototype() {
     setDrawerOpen(false);
     setApplyTarget(null);
     setPendingApply(null);
+    setViewJob(null);
     setApplications(next === 'applied' ? seededApplications() : new Map());
   };
 
@@ -1019,6 +1044,7 @@ export default function JobBoardPrototype() {
               canRefer={isLoggedIn}
               onReferBlocked={onSignIn}
               onApply={onApply}
+              onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
             />
@@ -1068,6 +1094,23 @@ export default function JobBoardPrototype() {
       {nav}
       {reviewControls}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+
+      {/* The reading step, and the board's first stop now. It carries Apply at
+          the bottom of the description rather than in the row — see the note on
+          the row's button — and hands the press back to `onApply`, so all four
+          viewer states branch in exactly one place. */}
+      <JobDetailDrawer
+        open={!!viewJob}
+        onClose={() => setViewJob(null)}
+        role={viewJob?.role ?? null}
+        team={viewJob?.team ?? null}
+        onApply={onApply}
+        applied={viewJob ? appliedRoleUids.has(viewJob.role.uid) : false}
+        appliedAt={viewJob ? appliedAtByRole.get(viewJob.role.uid) : undefined}
+        pendingApproval={isPendingApproval}
+        loggedIn={isLoggedIn}
+      />
+
       {/* The profile step. `pendingRoleTitle` is what makes the drawer explain
           itself: opened on the way to an application it names the role it's
           holding up, and opened from the title line it doesn't, because there is

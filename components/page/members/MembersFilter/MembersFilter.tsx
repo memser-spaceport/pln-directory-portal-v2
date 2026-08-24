@@ -30,6 +30,7 @@ import { GenericFilterToggle } from '@/components/common/filters/GenericFilterTo
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 
 import s from './MembersFilter.module.scss';
+import { useCurrentUserStore } from '@/services/auth/store';
 
 export interface IMembersFilter {
   filterValues: any | undefined;
@@ -42,7 +43,8 @@ export interface IMembersFilter {
 export const MembersFilter = (props: IMembersFilter) => {
   const { userInfo, onClose } = props;
 
-  const canSearch = userInfo.rbac?.effectivePermissions.some((p) => p.code === 'member.search.read');
+  const { currentUser } = useCurrentUserStore();
+  const canSearch = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'member.search.read');
   const { hasAccess: hasAffinityAccess } = useAffinityAccess();
 
   const { setParam, clearParams, params } = useFilterStore();

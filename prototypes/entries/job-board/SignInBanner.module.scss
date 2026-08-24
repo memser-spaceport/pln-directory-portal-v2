@@ -22,9 +22,72 @@
   font-weight: 600;
 }
 
-/* The two claims a profile is worth making, as a list rather than a paragraph.
-   Type comes from `welcome.sub`, which the element also wears; this adds only
-   what a `<ul>` needs and the browser's own margins take away.
+/* --- the banner surface, shared by all four states -------------------------
+
+   The four class names below are doubled. Each overrides one property of a
+   production class it is worn alongside — `welcome.welcome`, `welcome.title`,
+   `welcome.sub`, `a.alert` — and a single class ties those on specificity, which
+   hands the decision to whichever stylesheet the bundler happens to emit last.
+   Three of the four win that coin-toss today; doubling makes all four win on
+   purpose. `.condensed` below already does this, for the same reason.
+
+   Production's `Welcome` card is plain white on a white-ish page, which is the
+   right call at `/home` where it is the only thing above the fold. In this slot
+   it sits directly above a column of white team cards, so a white banner reads
+   as the first card in the list rather than as an aside about the list. The
+   brand-soft pair is the product's existing "this is a message, not content"
+   surface — `DetailsSection.missingData` and `JobAlertShell` both wear it — and
+   it is the one tint the palette has for an offer.
+
+   A real `border`, not an inset shadow: `app/globals.scss` sets
+   `* { box-sizing: border-box }`, so the 1px costs no width and the card stays
+   flush with the list under it. */
+.brandSurface.brandSurface {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+}
+
+/* --- the banner type scale, shared by all four states -----------------------
+
+   20 over 14, against `Welcome`'s own 24/16.
+
+   These four states used to run at two sizes — the logged-out one at 24/16
+   because it argues for an account from nothing, the signed-in ones a step
+   quieter at 20/12. One slot reading at two scales is a slot that looks like it
+   changed component when the reader's situation changed, and the reader has no
+   way to know the difference is meant. One scale for all of them, and the states
+   differ in what they *say* rather than in how loudly.
+
+   Both values are on the PL scale, and both are exactly what `Welcome` itself
+   drops to on mobile (20/27 and 14/22) — so this is the banner reading at its
+   phone size everywhere, not a size invented for it. That is also why there is
+   no `mobile-only` block here: production's own mobile rules land on the same
+   numbers, so there is nothing left to step down to. */
+.bannerTitle.bannerTitle {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.bannerSub.bannerSub {
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+/* The approved-and-waiting state is Demo Day's `Alert`, not a `Welcome` card —
+   it is the one state with nothing to press. It takes the same tint as its
+   siblings so the slot doesn't change colour with the reader's situation. Its
+   own paragraph is already 14/20, which is the banner sub size, so only the
+   surface is set here. */
+.alertBrand.alertBrand {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-color: var(--border-brand-subtle, #aebfff);
+}
+
+/* The two claims, as a list rather than a paragraph. Type comes from
+   `welcome.sub`, which the element also wears; this adds only what a `<ul>`
+   needs and the browser's own margins take away.
 
    Discs, not the icon-and-row treatment a feature list usually gets in this
    product: two lines of the banner's own sub-copy is not a feature grid, and
@@ -41,15 +104,17 @@
   }
 }
 
-/* The two doors. `Welcome`'s CTA slot held one button and needs no wrapper; a pair
-   does, or the flex row that `.welcome` is would space them like two unrelated
-   children of the banner rather than one control group.
+/* The CTA slot, now only the signed-in banners'. The logged-out one dropped its
+   Sign up / Sign in pair; `ProfileNudgeBanner` and the incomplete-profile
+   `PendingApprovalBanner` still end in one real button each, and a bare
+   `welcome.cta` in `.welcome`'s flex row needs this wrapper for the same reason
+   it always did — to be one child of the row rather than to be spaced like a
+   sibling of the text block.
 
-   8px, the same gap the navbar leaves between its own Sign up / Sign in pills —
-   close enough to read as one cluster, far enough not to look like a split
-   button. `flex-shrink: 0` because `welcome.cta` sets it on itself and the group
-   now stands where that button used to: without it the pair gets compressed by a
-   long headline instead of the headline wrapping. */
+   `.ctaSecondary` went with the pair. It existed only to give Sign up a bordered
+   twin of `welcome.cta`; nothing wears it now, and a stylesheet that keeps the
+   costume for a part that was cut is where the next person finds a dead class
+   and re-derives the design that was deleted. */
 .ctaGroup {
   display: flex;
   align-items: center;
@@ -57,18 +122,16 @@
   flex-shrink: 0;
 
   /* Bottom-aligned, against `Welcome`'s centred row. Centring is right when the
-     text block is one or two lines and the pair reads as the row's other half;
-     at three lines the buttons float against the middle of a paragraph and
-     belong to neither the headline above nor the sentence beside them. Sitting
-     on the text block's last baseline, they read as what you do once you've
-     finished reading. `align-self` on the item, not `align-items` on `.welcome`,
-     because the text block is production's and should keep stretching. */
+     text block is one or two lines and the button reads as the row's other half;
+     at three lines it floats against the middle of a paragraph and belongs to
+     neither the headline above nor the sentence beside it. Sitting on the text
+     block's last baseline, it reads as what you do once you've finished reading.
+     `align-self` on the item, not `align-items` on `.welcome`, because the text
+     block is production's and should keep stretching. */
   align-self: flex-end;
 
-  /* `.welcome` goes column + stretch on mobile, so the group inherits full width
-     and the two buttons split it evenly. `welcome.cta` already sets `width: 100%`
-     at this breakpoint, which would push its sibling out — `flex: 1` on both, and
-     `min-width: 0` so a button can be narrower than its own label box. */
+  /* `.welcome` goes column + stretch on mobile, so the group inherits full width.
+     `welcome.cta` already sets `width: 100%` at this breakpoint. */
   @include media.mobile-only {
     width: 100%;
 
@@ -80,46 +143,29 @@
   }
 }
 
-/* Sign up: the quiet half of the pair.
+/* The doors, inside the sentence.
 
-   Geometry is `welcome.cta`'s, copied literally (10px/16px padding, 8px radius,
-   14/20 at 500, nowrap) so the two buttons are the same object in two tones
-   rather than two different buttons. Only the colour layer comes from the design
-   system's own signup control — `components/core/navbar/components/Signup` —
-   whose neutral text, slate border and white fill are what "secondary auth
-   action" already looks like in this product.
+   They used to be a Sign up / Sign in pair in a CTA slot — boxed, `welcome.cta`
+   and a bordered twin. A boxed control inside what is now a note reads as a
+   second object beside the text rather than as part of it, so both became text
+   buttons: brand colour, underline on hover, no box.
 
-   What is deliberately NOT copied from there: the 40px pill radius and the 24px
-   padding. Those belong to a header sitting on its own row; here the button has
-   to match the one beside it. */
-.ctaSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: 8px;
-
-  font-size: 14px;
+   `font: inherit` matters more than usual here. The bullet is 16px on desktop
+   and 14px on mobile and 12px in the signed-in banners, and a door that kept its
+   own size would break the line it sits in at two of those three. */
+.inlineDoor {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  white-space: nowrap;
-  text-decoration: none;
+  color: var(--foreground-brand-primary, #1b4dff);
   cursor: pointer;
-  flex-shrink: 0;
-
-  color: var(--action-foreground-neutral-normal, #455468);
-  background: var(--Neutral-White, #fff);
-  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
-  box-shadow: 0 1px 1px 0 rgba(15, 23, 42, 0.08);
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease;
 
   &:hover {
-    background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
-    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+    text-decoration: underline;
   }
 }
 

@@ -22,6 +22,8 @@ interface TeamNewsCardProps {
   /** Opens the story over the page instead of leaving for the source, and adds
    *  the Share/Comments half of the action row. See NewsCard's own prop. */
   onOpenDetail?: (item: ITeamNewsItem, via: 'row' | 'comments') => void;
+  /** Count this card as read once it's on screen. See NewsCard's own prop. */
+  onVisible?: (uid: string) => void;
 }
 
 export function TeamNewsCard({
@@ -34,6 +36,7 @@ export function TeamNewsCard({
   onShowMore,
   fullSummary,
   onOpenDetail,
+  onVisible,
 }: TeamNewsCardProps) {
   return (
     <NewsCard
@@ -50,6 +53,7 @@ export function TeamNewsCard({
       onShowMore={onShowMore}
       fullSummary={fullSummary}
       onOpenDetail={onOpenDetail}
+      onVisible={onVisible}
     />
   );
 }

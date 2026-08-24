@@ -51,6 +51,9 @@ interface JobTeamGroupCardProps {
   onReferBlocked?: () => void;
   /** Handed straight to the row: applying happens in-app, so the board owns the press. */
   onApply?: (role: IJobRole) => void;
+  /** Same, for the reading step: the description opens in a drawer the board
+   *  owns, over the whole list rather than inside one card. */
+  onViewJob?: (role: IJobRole) => void;
   /** Uids of roles already applied to. */
   appliedRoleUids?: Set<string>;
   /** Role uid → when the application went, so an applied row can report its own
@@ -69,6 +72,7 @@ export function JobTeamGroupCard({
   canRefer = true,
   onReferBlocked,
   onApply,
+  onViewJob,
   appliedRoleUids,
   appliedAtByRole,
 }: JobTeamGroupCardProps) {
@@ -187,6 +191,7 @@ export function JobTeamGroupCard({
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}
               onApply={onApply}
+              onViewJob={onViewJob}
               applied={appliedRoleUids?.has(role.uid) ?? false}
               appliedAt={appliedAtByRole?.get(role.uid)}
               teamId={team.uid}

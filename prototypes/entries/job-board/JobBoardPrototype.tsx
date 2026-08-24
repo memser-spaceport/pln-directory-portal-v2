@@ -132,7 +132,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { getJobDate } from '@/utils/jobs.utils';
 import { URL_QUERY_VALUE_SEPARATOR } from '@/utils/constants';
 import { FILTER_VALUE_SEPARATOR, FILTER_VALUE_SEPARATOR_ENCODED } from '@/constants/filters';
-import type { IJobRole, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam, IJobTeamGroup, JobsSortKey } from '@/types/jobs.types';
 
 // Reuse the production content shell styling 1:1 (root / toolbar / title / list).
 import contentCss from '@/app/jobs/(jobs-page)/@content/JobsContent.module.scss';
@@ -155,7 +155,11 @@ import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
 import { JobProfileDrawer } from './JobProfileDrawer';
 import { JobApplyModal } from './JobApplyModal';
+import { JobDetailDrawer } from './JobDetailDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
+// DELETE WITH: the `design-canvas/` folder.
+import { parseResultFor } from '../profile-shared/ExperienceImport/parseMocks';
+import { readCanvasState, type CanvasStateSpec } from './canvasStates';
 import { ApplicationEmailPreview } from './email/ApplicationEmailPreview';
 import type { ApplicationEmailInput } from './email/applicationEmail';
 import {
@@ -372,6 +376,56 @@ export default function JobBoardPrototype() {
          product: it renders an artifact that leaves the product entirely, and a
          button for it would put a reviewer's tool in an applicant's flow. */
       if (q.get('email') === '1') setEmailPreviewOpen(true);
+
+      /* DELETE WITH: the `design-canvas/` folder.
+         Seed the filter rail from the URL.
+
+         `useMockJobsFilterStore` is a module-level store that starts as an EMPTY
+         URLSearchParams and never reads the address bar, so until now the rail,
+         the search box, the sort and the scope tab were reachable only by
+         clicking. That made four states impossible to link to — narrowed,
+         searched, narrowed to nothing, and the Applied tab — which is four
+         frames the canvas could not hold.
+
+         Production's own board IS URL-synced (`JobsContent` reads the filter
+         state out of the query), so this makes the mock behave like the thing it
+         mocks rather than inventing a behaviour. The sessionStorage replay below
+         still wins when it has something, because that is the sign-in round trip
+         putting back what the person had already chosen. */
+      const seeded = new URLSearchParams();
+      for (const key of ['q', 'sort', SCOPE_PARAM, ...CRITERIA_KEYS]) {
+        const value = q.get(key);
+        if (value) seeded.set(key, value);
+      }
+      if (Array.from(seeded.keys()).length) setAllParams(seeded);
+
+      /* DELETE WITH: the `design-canvas/` folder.
+         The design canvas photographs real routes, so the overlays it holds
+         frames of have to be reachable at a URL — see `canvasStates.ts` for why
+         this is separate from the parameters above. Applied last and on top of
+         whatever `?viewer=` seeded, so a state says only what it changes. */
+      const pinned = readCanvasState(window.location.search);
+      if (pinned) {
+        setCanvasPin(pinned);
+        if (pinned.viewer) {
+          setViewer(pinned.viewer);
+          setIsLoggedIn(pinned.viewer !== 'logged-out');
+          setProfile(pinned.viewer === 'profile-ready' || pinned.viewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
+          if (pinned.viewer === 'applied') setApplications(seededApplications());
+        }
+        /* One role for every pinned overlay, so the apply modal, the sign-up
+           modal and the drawer all name the same job — three frames of one
+           application rather than three unrelated ones. */
+        const target: ApplyTarget = {
+          role: SAMPLE_ROLE_GROUP.roles[0],
+          teamName: SAMPLE_ROLE_GROUP.team.name,
+        };
+        if (pinned.signUp) setSignUp({ target: pinned.signUp === 'role' ? target : null });
+        if (pinned.coverLetter) setCoverLetterDraft(pinned.coverLetter);
+        if (pinned.apply && pinned.drawer) setPendingApply(target);
+        else if (pinned.apply) setApplyTarget(target);
+        if (pinned.drawer) setDrawerOpen(true);
+      }
     } catch {
       /* no search params to read — the board just opens in its default state */
     }
@@ -429,10 +483,24 @@ export default function JobBoardPrototype() {
    * One state rather than a boolean beside a target, because those two can
    * disagree — open with a stale role, or a role with the modal shut — and every
    * such pair eventually does. */
+  /* DELETE WITH: the `design-canvas/` folder. Held rather than applied and
+     dropped, because two of its fields describe how the sign-up form should
+     render (filled in, or refused) rather than what to open — and the form is
+     mounted below, not here. */
+  const [canvasPin, setCanvasPin] = useState<CanvasStateSpec | null>(null);
+
   const [signUp, setSignUp] = useState<{ target: ApplyTarget | null } | null>(null);
   const signUpTarget = signUp?.target ?? null;
   const [applyTarget, setApplyTarget] = useState<ApplyTarget | null>(null);
   const [pendingApply, setPendingApply] = useState<ApplyTarget | null>(null);
+
+  /* The role whose description is open, with the team that posted it — the
+     drawer names the team and links to its profile, so it needs the record and
+     not just the name.
+
+     Like `applyTarget`, the object doubles as the open flag: there is no such
+     thing as this drawer without a role. */
+  const [viewJob, setViewJob] = useState<{ role: IJobRole; team: IJobTeam } | null>(null);
 
   /* The cover letter, held only while the apply modal is *not* on screen.
    *
@@ -593,8 +661,23 @@ export default function JobBoardPrototype() {
   /** Which team posted a role. The card hands the row only the role, so the team
    *  is recovered here rather than threaded through two components that have no
    *  other use for it. */
-  const teamNameForRole = (role: IJobRole): string =>
-    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team.name ?? '';
+  const teamForRole = (role: IJobRole): IJobTeam | null =>
+    MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team ?? null;
+
+  const teamNameForRole = (role: IJobRole): string => teamForRole(role)?.name ?? '';
+
+  /**
+   * Pressing **View job**, or the role title.
+   *
+   * Ungated on purpose, in every viewer state. Reading a posting is browsing,
+   * and nothing on this board has ever been hidden from a logged-out visitor —
+   * the gate sits on the moment something is sent on someone's behalf, which is
+   * the Apply inside this drawer, not the door to it.
+   */
+  const onViewJob = (role: IJobRole) => {
+    const team = teamForRole(role);
+    if (team) setViewJob({ role, team });
+  };
 
   /**
    * Pressing Apply. One entry point, three outcomes, and the role is carried
@@ -649,7 +732,11 @@ export default function JobBoardPrototype() {
   const onSignUpSubmit = (details: JobSignUpDetails) => {
     setViewer('pending-approval');
     setIsLoggedIn(true);
-    setProfile({ ...EMPTY_PROFILE, role: details.role });
+    /* `linkedin` comes along now. The modal has always asked for it and the
+       answer was dropped here — seeding only `role` meant the one optional
+       field on that form spent someone's attention and returned nothing. It is
+       a profile link, not an import source; see the note on `MemberProfile`. */
+    setProfile({ ...EMPTY_PROFILE, role: details.role, linkedin: details.linkedin.trim() });
     setPendingApply(signUpTarget);
     setSignUp(null);
     setDrawerOpen(true);
@@ -758,6 +845,7 @@ export default function JobBoardPrototype() {
     setDrawerOpen(false);
     setApplyTarget(null);
     setPendingApply(null);
+    setViewJob(null);
     setApplications(next === 'applied' ? seededApplications() : new Map());
   };
 
@@ -962,6 +1050,7 @@ export default function JobBoardPrototype() {
               canRefer={isLoggedIn}
               onReferBlocked={onSignIn}
               onApply={onApply}
+              onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
             />
@@ -1011,6 +1100,23 @@ export default function JobBoardPrototype() {
       {nav}
       {reviewControls}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
+
+      {/* The reading step, and the board's first stop now. It carries Apply at
+          the bottom of the description rather than in the row — see the note on
+          the row's button — and hands the press back to `onApply`, so all four
+          viewer states branch in exactly one place. */}
+      <JobDetailDrawer
+        open={!!viewJob}
+        onClose={() => setViewJob(null)}
+        role={viewJob?.role ?? null}
+        team={viewJob?.team ?? null}
+        onApply={onApply}
+        applied={viewJob ? appliedRoleUids.has(viewJob.role.uid) : false}
+        appliedAt={viewJob ? appliedAtByRole.get(viewJob.role.uid) : undefined}
+        pendingApproval={isPendingApproval}
+        loggedIn={isLoggedIn}
+      />
+
       {/* The profile step. `pendingRoleTitle` is what makes the drawer explain
           itself: opened on the way to an application it names the role it's
           holding up, and opened from the title line it doesn't, because there is
@@ -1022,6 +1128,22 @@ export default function JobBoardPrototype() {
         pendingRoleTitle={pendingApply?.role.roleTitle ?? null}
         pendingApproval={isPendingApproval}
         onSave={onSaveProfile}
+        /* DELETE WITH: the `design-canvas/` folder. The importer's beats live in
+           component state; see `canvasStates.ts`. A `scenario` is turned into the
+           parse it names here, so the drawer receives the same record the real
+           reader would have resolved to. */
+        canvasImport={
+          canvasPin?.import
+            ? {
+                parsed: canvasPin.import.scenario ? parseResultFor(canvasPin.import.scenario) : undefined,
+                panel: {
+                  open: canvasPin.import.open,
+                  status: canvasPin.import.status,
+                  fileName: canvasPin.import.fileName,
+                },
+              }
+            : undefined
+        }
       />
 
       {/* The account form, reached two ways: pressing Apply while logged out
@@ -1039,6 +1161,9 @@ export default function JobBoardPrototype() {
         teamName={signUpTarget?.teamName ?? ''}
         onSignUp={onSignUpSubmit}
         onSignIn={onSignUpModalSignIn}
+        // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
+        canvasFilled={canvasPin?.signUpFilled}
+        canvasRefused={canvasPin?.signUpRefused}
       />
 
       {/* The per-role step. <applyTarget> is the open/closed state as well as the

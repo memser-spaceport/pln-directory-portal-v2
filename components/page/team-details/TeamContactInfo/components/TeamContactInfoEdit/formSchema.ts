@@ -1,12 +1,14 @@
 import * as yup from 'yup';
 
+import { socialFieldSchema } from '@/utils/profile/socialFieldSchema';
+
 export const teamContactInfoSchema = yup.object({
-  blog: yup.string().nullable().defined(),
-  twitter: yup.string().nullable().defined(),
-  website: yup.string().required('Website is required'),
-  linkedin: yup.string().nullable().defined(),
-  telegram: yup.string().nullable().defined(),
-  bluesky: yup.string().nullable().defined(),
-  crunchbase: yup.string().nullable().defined(),
+  blog: socialFieldSchema('blog'),
+  twitter: socialFieldSchema('twitter'),
+  website: socialFieldSchema('website').required('Website is required'),
+  linkedin: socialFieldSchema('linkedin'),
+  telegram: socialFieldSchema('telegram'),
+  bluesky: socialFieldSchema('bluesky'),
+  crunchbase: socialFieldSchema('crunchbase'),
   contactMethod: yup.string().required('Contact method is required'),
 });

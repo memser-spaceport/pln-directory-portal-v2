@@ -1,0 +1,60 @@
+@use 'styles/media';
+
+/* The mobile layout only. Everything else about this box — the 16px row, the
+   hover and drag borders, the 40px disc, the button's inset shadow — is
+   production's `FileUploader.module.scss`, imported verbatim by the component.
+
+   Production stacks all three children on mobile: disc, then the text, then the
+   button, each on its own line. That is the right default for an uploader
+   dropped into a page with room to spare. In this drawer it is not: the CV box
+   is the first thing an empty profile meets, and stacked it runs ~200px tall
+   before the person has seen what else the Experience section holds — a 40px
+   disc gets a whole line to itself, and the heading it labels sits below it
+   where the eye has to travel down to connect the two.
+
+   Side by side, the disc reads as the mark on the heading rather than as a
+   fourth element, and the box loses a line without losing anything else. The
+   button keeps its own row: full width is what a primary action wants on a
+   phone, and putting it beside the text would squeeze both.
+
+   Every selector here is doubled. Each one overrides a production rule of the
+   same specificity, declared inside its own `mobile-only` block, so a single
+   class would tie and let bundle order decide which layout ships. */
+
+/* `wrap`, not two nested rows: the icon and the text are one line, the button
+   is pushed to the next by its own `flex-basis` below. One container, no extra
+   markup, and the row collapses back to production's exact desktop layout above
+   the breakpoint because nothing here applies there. */
+.container.container {
+  @include media.mobile-only {
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* Centred, which is what the desktop row already does — and what keeps a
+       40px disc from sitting oddly high against a description that wraps to
+       three lines at this width. */
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+/* `flex: 1` alone leaves `min-width: auto` in charge, and a flex item refuses to
+   shrink below its longest word — "DOCX," is short enough to be safe, but the
+   title is a caller-supplied string and one long word would push the disc off
+   the row. Production sets `min-width: 0` already; this restates it because the
+   basis is what changes here. */
+.content.content {
+  @include media.mobile-only {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* `flex-basis: 100%` is what moves the button to its own line — it cannot fit
+   beside the text, so it wraps, and then fills the line it lands on. `flex-grow`
+   is 1 for the fill; `flex-shrink` 0 so it never gets pulled back up beside the
+   text on a wider phone. */
+.uploadButton.uploadButton {
+  @include media.mobile-only {
+    flex: 1 0 100%;
+  }
+}

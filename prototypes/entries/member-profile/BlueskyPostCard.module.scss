@@ -1,0 +1,284 @@
+/* Bluesky post card.
+   Anatomy is Bluesky's; every colour and type value is a token/fallback pair
+   copied from the neighbouring member-detail modules (PostCard, ForumStats,
+   MemberProfile), so the card measures like the forum row it sits beside. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  /* PostCard.module.scss .card — same shell, so the Bluesky tab and the Posts
+     tab don't render two different surfaces one click apart. */
+  background: var(--background-neutral-soft-surface, #f9fafb);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: var(--background-neutral-hover, #f1f5f9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+  }
+}
+
+/* The per-post author line lived here while a wide variant existed. The rail
+   card's header names the account once instead, so the whole block went with
+   that variant rather than staying as styles nothing selects. */
+
+/* ---- Body ----
+   Primary, not the forum excerpt's grey: there the text is a teaser under a
+   title, here it is the whole post. */
+.body {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* Rail only: a 280-character post is eight lines in a 300px column. */
+.bodyClamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.inlineLink {
+  color: var(--foreground-brand-primary, #1b4dff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---- Media ---- */
+.media {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+/* The aspect ratio sets the height and `max-height` clamps it: at 892px a 16:9
+   image is 500px tall, and two of those is a thousand pixels of photograph in a
+   section that is one of eleven on this page. Cropping costs a strip of the
+   image; not cropping costs the reader the rest of the profile. */
+.mediaImg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 260px;
+  object-fit: cover;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.mediaGrid .mediaImg {
+  aspect-ratio: 1 / 1;
+  max-height: 200px;
+}
+
+/* ---- Unfurled link card ---- */
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--Neutral-White, #fff);
+  transition: border-color 0.12s ease;
+
+  &:hover {
+    border-color: var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
+  }
+}
+
+/* Clamped harder than post media: this image is a thumbnail for a headline, so
+   it must not outweigh the three lines of text underneath it. */
+.linkThumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 170px;
+  object-fit: cover;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+}
+
+.linkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 12px;
+  min-width: 0;
+}
+
+.linkTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.linkDesc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* The domain is the one thing that says where this goes — it stays legible, and
+   it stays last, because it answers the question the title just raised. */
+.linkDomain {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+/* ---- Quoted post ---- */
+.quote {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  background: var(--Neutral-White, #fff);
+}
+
+.quoteAuthor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quoteAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.quoteName {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+}
+
+.quoteHandle {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.quoteText {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+/* ---- Reply / repost / like row ----
+   Sized and toned to ForumStats' meta line (12/18, tertiary) so the Bluesky
+   card's footer sits on the same rung as the forum card's. */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* Rail only: the time has no author line to sit in, so it leads the meta row —
+   the same place MemberTeamUpdates puts it. */
+.railTime {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+  margin-right: auto;
+}
+
+/* ---- Rail variant ---- */
+.rail {
+  gap: 8px;
+  padding: 12px;
+
+  .stats {
+    gap: 12px;
+  }
+
+  .linkBody {
+    padding: 8px 10px 10px;
+  }
+
+  .linkDesc {
+    -webkit-line-clamp: 1;
+  }
+
+  /* A 300px column: 16:9 is 150px, which is already a fifth of the card. */
+  .mediaImg {
+    max-height: 150px;
+  }
+
+  .linkThumb {
+    max-height: 110px;
+  }
+}

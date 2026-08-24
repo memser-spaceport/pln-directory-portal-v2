@@ -1,8 +1,10 @@
 'use client';
 
 import clsx from 'clsx';
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatTimeAgo } from '@/utils/formatTimeAgo';
+import { useCardVisibilityTracking } from '@/hooks/useCardVisibilityTracking';
 import { useCurrentUserStore } from '@/services/auth/store';
 import type { TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
 import type { ITeamNewsItem } from '@/types/team-news.types';
@@ -58,6 +60,16 @@ interface NewsCardProps {
    * so only the comment path is the caller's to record.
    */
   onOpenDetail?: (item: ITeamNewsItem, via: 'row' | 'comments') => void;
+  /**
+   * Report this card as read once it has been half on screen — the same
+   * impression the feed's own rows record, which is what the Views count on
+   * this very card is counting. Omit it and the card displays a number it
+   * never contributes to.
+   *
+   * The queue and its dedup live in the caller's useTeamNewsImpressions
+   * instance, so a story listed twice on one surface is still one view.
+   */
+  onVisible?: (uid: string) => void;
 }
 
 export const NewsCard = ({
@@ -78,9 +90,20 @@ export const NewsCard = ({
   onShowMore,
   fullSummary = false,
   onOpenDetail,
+  onVisible,
 }: NewsCardProps) => {
   const router = useRouter();
   const { currentUser, isHydrated } = useCurrentUserStore();
+
+  // Memoized so the observer isn't torn down and rebuilt on every unrelated
+  // re-render (an upvote overlay merge re-creates every item in the list).
+  const handleVisible = useCallback(() => onVisible?.(item.uid), [onVisible, item.uid]);
+  const cardRef = useCardVisibilityTracking<HTMLDivElement>({
+    onVisible: handleVisible,
+    threshold: 0.5,
+    trackOnce: true,
+    enabled: Boolean(onVisible),
+  });
 
   const handleFollowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,6 +145,7 @@ export const NewsCard = ({
 
   return (
     <div
+      ref={cardRef}
       // Opens a dialog here, still leaves the page without `onOpenDetail` — the
       // role has to say which, or the announcement promises the wrong thing.
       // role="button" is also what NewsDetailModal's focus restore looks for

@@ -36,6 +36,31 @@ export enum JobsQueryKey {
  */
 export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BOARD_APPLY === 'true';
 
+/**
+ * "Fill my Experience section from a CV" inside the profile drawer: the drop
+ * area in the section's empty state, the "Update from CV" header control, and
+ * the review card that follows a parse.
+ *
+ * Separate from `SHOW_JOB_BOARD_APPLY` and nested inside it — the drawer only
+ * opens when that one is on, so this gates a feature *within* an already-gated
+ * flow. Two flags because the two cut over on different days: apply waits on the
+ * applications contract, the importer waits on `/cv-import/parse` and
+ * `/cv-import/apply`, which are a different team's work and do not exist yet.
+ * Until they do, an environment with this on would offer a door that 404s.
+ *
+ * **It lives in `services/jobs/` because there is exactly one host today.** The
+ * components it gates are `member-details/`, not job-board, and are written to
+ * be mounted by the member profile page and onboarding as well. The day a second
+ * host wants them, this constant moves somewhere neutral and the drawer's
+ * `enableCvImport` prop stays exactly as it is — the prop, not the flag, is what
+ * keeps the section flag-free.
+ *
+ * Read only by `JobProfileDrawer`, literal-first in `&&`, so the bundler folds
+ * the branch. Same BUILD-time caveat as above: a dashboard change needs a
+ * redeploy.
+ */
+export const SHOW_CV_IMPORT: boolean = process.env.NEXT_PUBLIC_SHOW_CV_IMPORT === 'true';
+
 export const JOBS_SORT_OPTIONS = [
   { value: 'company_az', label: 'A-Z (Ascending)' },
   { value: 'company_za', label: 'Z-A (Descending)' },

@@ -17,6 +17,7 @@ import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { SHOW_CV_IMPORT } from '@/services/jobs/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
@@ -89,7 +90,14 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
   const { data: member, isLoading } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, memberUid, isLoggedIn, userInfo?.uid],
     queryFn: () =>
-      getMember(memberUid, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, userInfo, !isAdmin && !isOwner, true),
+      getMember(
+        memberUid,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        isLoggedIn,
+        userInfo,
+        !isAdmin && !isOwner,
+        true,
+      ),
     enabled: open && !!memberUid,
     select: (data) => data?.data?.formattedData,
   });
@@ -178,8 +186,28 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             </DetailsSection>
 
             {/* 3–5. Optional sections — what a hiring team actually reads.
-                   Real components: they edit in place and save themselves. */}
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+                   Real components: they edit in place and save themselves.
+
+                   Experience is the one section with a shortcut: drop a CV and
+                   it fills itself, including the required current role. The flag
+                   is read here rather than inside the section because the
+                   section is shared with `/members/[id]`, which does not offer
+                   this.
+
+                   Note this gates the OFFER, not the bytes: a prop is not an
+                   `&&` guard, so the importer's components are imported by
+                   `ExperienceDetails` either way and ship in this drawer's
+                   chunk. That is the intended trade — the drawer is already a
+                   `ssr:false` dynamic import behind `SHOW_JOB_BOARD_APPLY`, so
+                   nothing loads until someone presses Apply, and buying true
+                   dead-code elimination would cost a second dynamic boundary
+                   inside the section for a feature that is about to be on. */}
+            <ExperienceDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              enableCvImport={SHOW_CV_IMPORT}
+            />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>

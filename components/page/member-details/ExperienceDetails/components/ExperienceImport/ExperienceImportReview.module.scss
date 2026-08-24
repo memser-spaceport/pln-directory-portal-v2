@@ -1,0 +1,117 @@
+// Local extras only. The white field panel and its rows are `EditProfileForm`'s,
+// the found-position rows are `ExperiencesList`'s, the header controls and the
+// tags input are production's own. What's left here is how the groups sit inside
+// that panel.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+
+// `EditProfileForm.body` is a column with its own gap, sized for a stack of
+// fields. This card stacks *groups*, each of which is already a small stack, so
+// the outer rhythm has to be wider than the inner one or the two read as one
+// undifferentiated list.
+.body {
+  gap: 20px;
+}
+
+// `.lede` and `.groupHint` used to live here — the "nothing is added until you
+// press Save" line and the "missing from your profile, edit anything the
+// document got wrong" caption. Both were removed from the card; the rules went
+// with them rather than sitting unused for the next person to wire back up.
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// A rank below the card's own title, which `EditOfficeHoursFormControls` sets at
+// 14px/500. Same 12px as the section's other quiet labels, weighted up so it
+// still reads as a heading rather than as one more line of prose.
+.groupTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// The mark on a row that is already on the profile, and therefore arrives
+// unticked. Tertiary and unboxed: it explains a state, it is not a status badge
+// competing with the role and company on the line above. Sits after the dates on
+// the same secondary line, separated by its own margin rather than a bullet —
+// one is a period, the other is a note about it, and a separator would imply
+// they are two facts of the same kind.
+.rowAlready {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// `.expItem` reserves 32px on the right for the edit pencil. There is no pencil
+// on a row that isn't an entry yet, and the reserved gutter left the text
+// looking off-centre in its own row.
+.rowItem {
+  padding-right: 16px;
+}
+
+// Excluded, not disabled. The checkbox keeps its full contrast — it is the
+// control that undoes this — and only the facts it governs fade, so a row on its
+// way out still reads as a row you can bring back.
+.rowOff .rowDetails {
+  opacity: 0.5;
+}
+
+.rowCheck {
+  display: flex;
+  align-items: center;
+  // The 20px box against a 20px first line of 14px/20px text.
+  height: 20px;
+  flex-shrink: 0;
+}
+
+// The one correctable field, inset under the facts it belongs to rather than
+// beside them: it is an answer about this row, not a fourth column of it.
+.rowDate {
+  margin-top: 8px;
+  max-width: 300px;
+}
+
+.footnote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// A Save that didn't take. Same 12px rank as the footnote it sits above — this
+// is a sentence about what happened, not an alarm — but in the error tone and
+// on a tinted strip, because the one thing it has to do is not be mistaken for
+// the reassuring line underneath it.
+.submitError {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--corner-radius-md, 8px);
+  border: 1px solid var(--border-error-subtle, rgba(217, 45, 32, 0.24));
+  background: var(--background-error-soft-surface, #fef3f2);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-error-primary, #b42318);
+}

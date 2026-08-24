@@ -216,6 +216,17 @@ job board prototype.
 | Slug | URL | Covers |
 | --- | --- | --- |
 | `job-board` | `/design-canvas/job-board` | The job board prototype's apply flow. See the gaps at the top of `project/flows.ts`. |
+| `cv-upload` | `/design-canvas/cv-upload` | The CV importer, across all three surfaces that mount it. See the note above `CV_UPLOAD`. |
+
+**`cv-upload` is hosted almost entirely on `/prototypes/onboarding`.** The `parseMocks` fixtures are Polina
+Bublii's CV and that page is Polina Bublii's profile, so the whole journey — blank profile, one document, a
+newer document a year later — photographs as one story. The apply drawer and the settings page appear only in
+the grouped set, where they say something the profile page cannot.
+
+Its scaffolding is two files, `prototypes/entries/onboarding/canvasStates.ts` and
+`prototypes/entries/profile-settings/canvasStates.ts`, both reading `?canvas=` exactly as the job board's does.
+Both hosts gate their render on a mount flag, and that gate is **not optional**: `ExperienceImportPanel` seeds
+its own `useState` from the props it mounts with, so a state applied one paint later never reaches it.
 
 ### Ports and commands
 
@@ -344,3 +355,13 @@ inside react-hook-form, which no URL read by the parent can reach.
   A defect to report upstream rather than fix here.
 - **The impeccable PostToolUse hook writes `core/.impeccable/hook.cache.json`**, which breaks the core's
   byte-for-byte check. Delete that folder before running `check-install.mjs`.
+
+- **`check-canvas.mjs` reports `0 edges declared` on every canvas here, and always has.** Its second-opinion
+  scrape of `project/flows.ts` matches `from: "…", to: "…"` with **double** quotes, and this repo's prettier is
+  `singleQuote: true`, so it finds nothing and then fails on the mismatch with what the page drew. Writing the
+  edges in double quotes would not survive `npm run prettier:all`, and the script may not be edited.
+
+  **What this actually costs is the edge-label rule**, which is the half of the check that is not also done on
+  the rendered page: the geometry checks read the canvas itself and still pass ("7 edges drawn, 7 attached", "no
+  edge crosses a frame it does not belong to"). Every label here was held to 12-24 characters and to the verb
+  list by hand. A defect to report upstream rather than fix here.

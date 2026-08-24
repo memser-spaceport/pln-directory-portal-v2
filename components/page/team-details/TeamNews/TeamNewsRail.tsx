@@ -6,17 +6,17 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useTeamNewsAnalytics, type TeamNewsAnalyticsSource } from '@/analytics/team-news.analytics';
+import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
-import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsUpvoteToggle';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { TeamNewsModal } from './TeamNewsModal';
 import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
+import { useTeamNewsUpvoteOverlay } from './useTeamNewsUpvoteOverlay';
 
 import s from './TeamNewsRail.module.scss';
 
@@ -43,14 +43,7 @@ type NewsModalState = { kind: 'none' } | { kind: 'archive'; focusUid: string | n
 export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailProps) {
   const [modalState, setModalState] = useState<NewsModalState>({ kind: 'none' });
   const isMobile = useIsMobile();
-  const {
-    onTeamNewsCardClicked,
-    onTeamNewsViewAllClicked,
-    onTeamNewsShowMoreClicked,
-    onTeamNewsUpvoteToggled,
-    onTeamNewsUpvoteFailed,
-  } = useTeamNewsAnalytics();
-  const { mutate: upvoteMutate } = useTeamNewsUpvoteToggle();
+  const { onTeamNewsCardClicked, onTeamNewsViewAllClicked, onTeamNewsShowMoreClicked } = useTeamNewsAnalytics();
 
   const searchParams = useSearchParams();
   const highlightSection = searchParams.get('highlight') === 'news';
@@ -58,54 +51,9 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
   // The rail reads server-provided `initialData` and the modal has its own
   // infinite query — two data sources for the same stories. Like the homepage
   // feed (TeamNews.tsx), a single local overlay merged over both keeps the
-  // viewer's vote consistent everywhere it renders. Auth check + login
-  // redirect happens inside NewsCard; this handler assumes a signed-in caller.
-  const [upvoteOverlay, setUpvoteOverlay] = useState<TeamNewsUpvoteOverlay>(() => new Map());
-
-  const handleUpvoteToggle = useCallback(
-    (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => {
-      const wasUpvoted = Boolean(item.viewerHasUpvoted);
-      const nextUpvoted = !wasUpvoted;
-      const prevCount = item.upvoteCount ?? 0;
-      const nextCount = wasUpvoted ? Math.max(0, prevCount - 1) : prevCount + 1;
-
-      setUpvoteOverlay((prev) => {
-        const next = new Map(prev);
-        next.set(item.uid, { viewerHasUpvoted: nextUpvoted, upvoteCount: nextCount });
-        return next;
-      });
-
-      upvoteMutate(
-        { uid: item.uid, isUpvoted: nextUpvoted },
-        {
-          onError: () => {
-            setUpvoteOverlay((prev) => {
-              const next = new Map(prev);
-              next.set(item.uid, { viewerHasUpvoted: wasUpvoted, upvoteCount: prevCount });
-              return next;
-            });
-            // The other half of the funnel. Wiring only /home's copy of this
-            // handler would have made the failure rate read 0% for every
-            // team-profile surface, while the success event covers them all.
-            onTeamNewsUpvoteFailed(item, position, nextUpvoted, source);
-          },
-          onSuccess: (status) => {
-            // Reconcile with the server's authoritative count/state (e.g.
-            // concurrent votes from others), when available.
-            if (status) {
-              setUpvoteOverlay((prev) => {
-                const next = new Map(prev);
-                next.set(item.uid, { viewerHasUpvoted: status.viewerHasUpvoted, upvoteCount: status.upvoteCount });
-                return next;
-              });
-            }
-            onTeamNewsUpvoteToggled(item, position, nextUpvoted, source);
-          },
-        },
-      );
-    },
-    [onTeamNewsUpvoteToggled, onTeamNewsUpvoteFailed, upvoteMutate],
-  );
+  // viewer's vote consistent everywhere it renders, which is why this is held
+  // here and handed down rather than left to the modal's own instance.
+  const { upvoteOverlay, handleUpvoteToggle } = useTeamNewsUpvoteOverlay();
 
   const total = initialData.total;
   const previewItems = useMemo(

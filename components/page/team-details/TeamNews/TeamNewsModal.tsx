@@ -14,12 +14,14 @@ import {
 import { NewsDetailBody, NEWS_DETAIL_TITLE_ID } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
 import { useTeamNewsByTeamInfinite } from '@/services/team-news/hooks/useTeamNewsByTeam';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
 import type { ITeamNewsItem } from '@/types/team-news.types';
 
 import { TeamNewsCard } from './TeamNewsCard';
 import { TeamNewsFeedLink } from './TeamNewsFeedLink';
 import { mergeUpvoteOverlay, type TeamNewsUpvoteOverlay } from './teamNewsUpvoteOverlay';
 import { useNewsReveal } from './useNewsReveal';
+import { useTeamNewsUpvoteOverlay } from './useTeamNewsUpvoteOverlay';
 import s from './TeamNewsRail.module.scss';
 
 interface TeamNewsModalProps {
@@ -54,7 +56,14 @@ interface TeamNewsModalProps {
    * catch.
    */
   source?: TeamNewsFeedLinkSource;
-  /** Owned by TeamNewsRail so votes stay in sync between the rail and this view. */
+  /**
+   * Owned by TeamNewsRail so votes stay in sync between the rail and this view.
+   *
+   * Optional as a pair: the listings that open this box (the teams grid, the job
+   * board) have no second view of the same story to keep in sync, so this box
+   * holds its own overlay for them. Liking a story is part of reading it —
+   * omitting these must not silently take the Like button away.
+   */
   upvoteOverlay?: TeamNewsUpvoteOverlay;
   onUpvoteToggle?: (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => void;
 }
@@ -100,6 +109,19 @@ export function TeamNewsModal({
   const reveal = useNewsReveal();
   const { onTeamNewsCardClicked, onTeamNewsLoadMoreClicked } = useTeamNewsAnalytics();
 
+  // Votes: the rail's if it handed one over, otherwise this box's own. Called
+  // unconditionally (hooks rules) — an unused instance costs a Map and a
+  // mutation object, and never fires a request.
+  const ownUpvotes = useTeamNewsUpvoteOverlay();
+  const effectiveOverlay = upvoteOverlay ?? ownUpvotes.upvoteOverlay;
+  const handleUpvoteToggle = onUpvoteToggle ?? ownUpvotes.handleUpvoteToggle;
+
+  // Views: rows read here count the same as rows read in the feed. One instance
+  // per mount holds the dedup/queue, so a story scrolled past twice in one
+  // sitting is one view — and reopening the box records afresh, same as a
+  // revisit to /home.
+  const { recordVisible } = useTeamNewsImpressions();
+
   const {
     items: fetchedItems,
     total: fetchedTotal,
@@ -140,10 +162,7 @@ export function TeamNewsModal({
   }
   const displayTotal = total ?? latchedTotal ?? 0;
 
-  const items = useMemo(
-    () => (upvoteOverlay ? mergeUpvoteOverlay(fetchedItems, upvoteOverlay) : fetchedItems),
-    [fetchedItems, upvoteOverlay],
-  );
+  const items = useMemo(() => mergeUpvoteOverlay(fetchedItems, effectiveOverlay), [fetchedItems, effectiveOverlay]);
 
   // Counts for whatever the archive has loaded. The list grows a page at a time
   // and the shared entry is filled incrementally, so each page costs one request
@@ -283,7 +302,8 @@ export function TeamNewsModal({
             fullSummary
             analyticsSource={source}
             onClick={(clicked) => handleCardClick(clicked, index)}
-            onUpvoteToggle={onUpvoteToggle ? (toggled) => onUpvoteToggle(toggled, index, source) : undefined}
+            onUpvoteToggle={(toggled) => handleUpvoteToggle(toggled, index, source)}
+            onVisible={recordVisible}
             onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
           />
         ))}
@@ -306,7 +326,7 @@ export function TeamNewsModal({
       onClose={handleClose}
       onBack={handleBack}
       onUpvoteToggle={(item) =>
-        onUpvoteToggle?.(
+        handleUpvoteToggle(
           item,
           items.findIndex((listItem) => listItem.uid === item.uid),
           source,

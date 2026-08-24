@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { flyPin } from '@/components/page/gantry/shared/flyPin';
 import { PinBalanceExhaustedError } from '@/services/gantry/gantry.service';
-import { GantryQueryKeys } from '@/services/gantry/constants';
+import { GantryQueryKeys, GANTRY_FROZEN_STAGES } from '@/services/gantry/constants';
 import type {
   GantryImpactValue,
   GantryItem,
   GantryItemListResponse,
   GantryObjectiveImpacts,
   GantryPinStatus,
-  GantryStage,
 } from '@/services/gantry/types';
 import type { BoostImpactRating } from '@/components/page/gantry/shared/BoostImpactPopover';
 import type { useGantryAnalytics } from '@/analytics/gantry.analytics';
@@ -21,8 +20,6 @@ type PinMutation = ReturnType<typeof useGantryPin>;
 type PinUpdateMutation = ReturnType<typeof useGantryPinUpdate>;
 
 type Pos = { top: number; left: number };
-
-const FROZEN_STAGES: readonly GantryStage[] = ['IN_PROGRESS', 'SHIPPED', 'DECLINED'];
 
 /**
  * The rate-first boost flow is one state machine — rating popover and swap picker are steps
@@ -153,7 +150,7 @@ export function useRoadmapPinActions(
     // The popover may have sat open while the item changed underneath (refetch, other tab):
     // a frozen or already-boosted item must not be optimistically pinned only to snap back.
     const item = findItemInCache(uid);
-    if (item && (FROZEN_STAGES.includes(item.stage) || item.viewerHasPinned)) {
+    if (item && (GANTRY_FROZEN_STAGES.includes(item.stage) || item.viewerHasPinned)) {
       setBoostFlow(null);
       return;
     }

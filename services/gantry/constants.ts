@@ -1,5 +1,5 @@
 import type { Option } from '@/components/form/FormSelect/types';
-import type { GantryImpactValue, GantryItem } from './types';
+import type { GantryImpactValue, GantryItem, GantryStage } from './types';
 
 export enum GantryQueryKeys {
   ITEMS = 'gantry-items',
@@ -38,6 +38,9 @@ export const GANTRY_IMPACT_REASONING_MAX_LENGTH = 1000;
 export const GANTRY_STAGE_VALUES = ['IDEA', 'BACKLOG', 'PLANNED', 'IN_PROGRESS', 'SHIPPED', 'DECLINED'] as const;
 
 export const GANTRY_PRE_ROADMAP_STAGES = ['IDEA', 'BACKLOG'] as const;
+
+/** Stages where boost signals are frozen for everyone: no new boosts, no unboost, no rating edits. */
+export const GANTRY_FROZEN_STAGES: readonly GantryStage[] = ['IN_PROGRESS', 'SHIPPED', 'DECLINED'];
 
 export const GANTRY_STAGE_LABELS: Record<(typeof GANTRY_STAGE_VALUES)[number], string> = {
   IDEA: 'Submitted',

@@ -17,7 +17,8 @@ import { useGantryTransition } from '@/services/gantry/hooks/useGantryTransition
 import { useGantryPin } from '@/services/gantry/hooks/useGantryPin';
 import { useGantryPinUpdate } from '@/services/gantry/hooks/useGantryPinUpdate';
 import { useGantryPinStatus } from '@/services/gantry/hooks/useGantryPinStatus';
-import { isPreRoadmapStage } from '@/services/gantry/constants';
+import { isPreRoadmapStage, GANTRY_FROZEN_STAGES } from '@/services/gantry/constants';
+import { boostReadonlyReason } from '@/services/gantry/boost';
 import type { GantryStage } from '@/services/gantry/types';
 import { useGantryAnalytics } from '@/analytics/gantry.analytics';
 import { useRoadmapPinActions } from '../roadmap/hooks/useRoadmapPinActions';
@@ -220,7 +221,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
             <BoostButton
               count={item.pinCount}
               hasPinned={item.viewerHasPinned}
-              readonly={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+              readonly={boostReadonlyReason(item, currentUser?.uid)}
               disabled={!currentUser || pin.isPending}
               onToggle={(next, el) => handlePinToggle(item.uid, next, el)}
             />
@@ -301,7 +302,7 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
               canCurate={access.canCurate}
               isAuthor={!!currentUser?.uid && item.createdByUid === currentUser.uid}
               viewerUid={currentUser?.uid}
-              frozen={item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED'}
+              frozen={GANTRY_FROZEN_STAGES.includes(item.stage)}
             />
             {!hasImpactData(item) && access.canCurate && item.pinCount > 0 && (
               <div className={s.boostAreaInContent}>
@@ -324,7 +325,6 @@ export function GantryItemDetailContent({ uid, variant, onDismiss, headerStart }
           key={ratePopover.uid}
           pos={{ top: ratePopover.top, left: ratePopover.left }}
           objectives={item.objectives}
-          initialImpact={item.viewerImpact ?? (item.createdByUid === currentUser?.uid ? item.authorImpact : null)}
           isSaving={isBoostCommitting}
           onSave={handleBoostRateSave}
           onCancel={handleBoostCancel}

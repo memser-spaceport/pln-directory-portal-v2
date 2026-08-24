@@ -226,6 +226,17 @@
     padding: revert;
   }
 
+  // Authors' blank lines reach us as empty <p></p>. globals.scss zeroes every
+  // margin, so without a height they collapse to nothing and the post reads as
+  // one block. Mirrors Quill (.ql-editor p { margin: 0 }): spacing comes from
+  // paragraphs the author left empty, never from margins. min-height is a no-op
+  // on a paragraph that already has a line, so <p><br></p> stays at one blank
+  // line rather than doubling.
+  p {
+    margin: 0;
+    min-height: 1lh;
+  }
+
   img {
     max-width: 100%;
   }

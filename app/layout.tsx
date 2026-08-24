@@ -18,6 +18,8 @@ import { SiteHeader } from '@/components/core/navbar/components/SiteHeader';
 import { LoginFlowTrigger } from '@/components/page/onboarding/components/LoginFlowTrigger';
 import { UserInfoChecker, UserInfoValidator } from '@/components/core/login';
 import { MobileBottomNav } from '@/components/core/MobileBottomNav';
+// DELETE WITH: the `design-canvas/` folder.
+import { AppChromeGate } from './design-canvas/AppChromeGate';
 import { DemoDayStats } from '@/components/core/DemoDayStats';
 import { ContactSupport } from '@/components/ContactSupport/ContactSupport';
 import { ContactSupportUrlSync } from '@/components/ContactSupport/ContactSupportUrlSync';
@@ -75,12 +77,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <StoreInitializer userInfo={userInfo} />
                 <PostHogIdentifier />
                 <ContactSupportUrlSync />
-                <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                {/* DELETE WITH: the `design-canvas/` folder — unwrap both, keep the components. */}
+                <AppChromeGate>
+                  <SiteHeader userInfo={userInfo} isLoggedIn={isLoggedIn} authToken={authToken} />
+                </AppChromeGate>
                 <AuthBox isLoggedIn={isLoggedIn} />
                 <ContactSupport userInfo={userInfo} />
                 <DemoDayStats />
                 <main className="layout__main">{children}</main>
-                <MobileBottomNav />
+                <AppChromeGate>
+                  <MobileBottomNav />
+                </AppChromeGate>
                 <Loader />
                 <ToastContainer />
                 <BroadCastChannel />

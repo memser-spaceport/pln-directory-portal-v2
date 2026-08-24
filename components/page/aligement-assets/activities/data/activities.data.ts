@@ -172,7 +172,7 @@ export const activitiesData: ActivitiesData = {
       cta: 'confirm',
       popupContent: {
         title: 'Complete a PLAA Survey',
-        overview: 'Complete a PLAA Survey. You can find surveys in the emails we send mid-month and on an ad hoc basis.',
+        overview: 'Complete a PLAA Survey. You can find surveys in emails we send on an ad hoc basis.',
         networkBenefits: 'Gives PLAA a reliable feedback signal for improving the program, products, and participant experience.',
         rules: [
           `Surveys must be completed before the end of the month in which they're sent`,

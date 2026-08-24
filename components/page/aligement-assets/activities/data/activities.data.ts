@@ -80,6 +80,28 @@ export const activitiesData: ActivitiesData = {
       }
     },
     {
+      id: 'comment-on-network-news',
+      category: 'Knowledge Sharing',
+      activity: 'Comment on News from the Network',
+      networkValue: 'Upvote useful network news',
+      points: '100',
+      frequency: 'Repeatable',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Comment on News from the Network',
+        overview: 'Comment on useful, timely, or relevant news on the LabOS homepage to share your perspective and contribute to the network conversation.',
+        networkBenefits: 'Introduces members to a LabOS feature while encouraging thoughtful discussion, knowledge sharing, and additional context around news that matters to the network.',
+        rules: [
+          'Comment on an existing news post on the LabOS homepage',
+          'The comment must add relevant context, perspective, insight, or a thoughtful response to the news post',
+          'The comment must remain visible when completion is checked',
+          'Each post may qualify only once per participant',
+          'Participants may earn points once per month for completing this activity'
+        ]
+      }
+    },
+    {
       id: 'network-introduction',
       category: 'Programs',
       activity: 'Make a Network Introduction',
@@ -513,6 +535,30 @@ export const activitiesData: ActivitiesData = {
         rules: [
           'Must be reviewed and approved by AAWG before launch',
           'Include a project description, target audience, success criteria, timeline, point budget, distribution method, point validity period, and program manager'
+        ]
+      }
+    },
+    {
+      id: 'subscribe-pl-newsletter',
+      category: 'Brand',
+      activity: 'Subscribe to PL Newsletter',
+      networkValue: 'Subscribe to receive PL Network updates',
+      points: '50',
+      frequency: 'One-Time',
+      verificationType: 'Auto',
+      cta: 'confirm',
+      popupContent: {
+        title: 'Subscribe to PL Newsletter',
+        overview: 'Subscribe to the PL Newsletter to receive network news, opportunities, events, and other important updates directly in your inbox.',
+        networkBenefits: 'Keeps more members informed and connected to opportunities across the PL Network.',
+        rules: [
+          'Turn on the Subscribe to PL Newsletter toggle in Directory via https://directory.plnetwork.io/settings/email',
+          'The toggle must remain enabled when the subscription is verified',
+          'Points are awarded after Marketing confirms the subscription',
+          'This activity may only be completed once'
+        ],
+        links: [
+          { text: 'https://directory.plnetwork.io/settings/email', url: 'https://directory.plnetwork.io/settings/email' }
         ]
       }
     }

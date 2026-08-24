@@ -497,6 +497,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  const screenId = body.screenId;
+  const region = body.region;
+  const note = body.note;
   /* Minted and appended INSIDE the queue: two saves landing together used to read the same list and both
      take the same next number, so one of them was written over. */
   let failure: string | null = null;
@@ -511,13 +514,13 @@ export async function POST(request: Request) {
     const comment: CanvasComment = {
       id,
       flowId: body.flowId ?? "",
-      screenId: body.screenId,
-      label: body.label ?? body.screenId,
+      screenId,
+      label: body.label ?? screenId,
       route: body.route ?? "",
       state: body.state ?? null,
-      region: body.region,
+      region,
       image,
-      note: body.note,
+      note,
       createdAt: new Date().toISOString(),
       consumedAt: null,
       shotHash: body.shotHash,

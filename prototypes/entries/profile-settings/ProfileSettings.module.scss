@@ -138,6 +138,82 @@
   }
 }
 
+// --- The Experience section's header row -------------------------------------
+
+// This section is the only one on the page with controls beside its title — the
+// CV route and Add — so the heading needs a row rather than standing alone.
+// Everything else here keeps its bare `<h2>`, because inventing a header row for
+// sections that have nothing to put in it would be adding a pattern to look
+// consistent with one instance of itself.
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+// 16px, matching the drawer's `.headerActions` — the same pair of controls doing
+// the same job on the other surface, so they measure the same.
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// The quiet half of the pair: Update from CV, and Cancel while the importer is
+// open. Secondary, darkening on hover, so the brand-blue Add stays the only loud
+// control in the row.
+.sectionAction {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// Production's `AddButton` face, transcribed rather than imported: that
+// component renders a `+ Add` in brand blue and this page has no other reason to
+// pull in `member-details`. Same size and weight as its neighbour so the two read
+// as one row, with only the colour separating them.
+.sectionAddAction {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Production's `FileUploader.hiddenInput`. Clipped rather than `display: none`,
+// which is the point — a hidden input still has to be clickable from the button
+// that labels it.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .sectionTitle {
   margin: 0;
   font-size: 16px;

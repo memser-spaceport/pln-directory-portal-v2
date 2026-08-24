@@ -91,6 +91,19 @@
   }
 }
 
+/* Paragraph rhythm, matched to /forum's .postContent so one post reads the same
+   in both places. The news modal's `.content p { margin: 0 0 12px }` was written
+   for AI summaries, not for authored posts: it spaces every paragraph uniformly
+   and ignores the blank lines the author actually inserted (empty <p></p>).
+   Doubling the class outranks it — `.postBody p` and `.content p` tie at
+   (0,1,1) on the same element, so plain source order would decide this. */
+.postBody.postBody {
+  p {
+    margin: 0;
+    min-height: 1lh;
+  }
+}
+
 .footerSplit.footerSplit {
   justify-content: space-between;
 }

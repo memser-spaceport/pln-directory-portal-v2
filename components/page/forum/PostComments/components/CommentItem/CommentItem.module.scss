@@ -135,6 +135,13 @@
     padding: revert;
   }
 
+  // Same as the post body: blank lines arrive as empty <p></p> and would
+  // collapse under globals.scss's margin reset. See Post.module.scss.
+  p {
+    margin: 0;
+    min-height: 1lh;
+  }
+
   img {
     max-width: 100%;
   }

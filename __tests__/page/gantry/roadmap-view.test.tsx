@@ -95,6 +95,34 @@ jest.mock('@/hooks/useIsNarrow', () => ({
   useIsNarrow: () => mockUseIsNarrow(),
 }));
 
+/** Minimal board item — the mocked `currentUser` is `member-1`, so `createdByUid` decides authorship. */
+const boardItem = (overrides: Record<string, unknown> = {}) => ({
+  uid: 'item-1',
+  title: 'Ship new onboarding',
+  description: 'desc',
+  acceptanceCriteria: null,
+  stage: 'PLANNED',
+  focusArea: null,
+  createdByUid: 'member-2',
+  createdBy: { uid: 'member-2', name: 'Bea', imageUrl: null },
+  promotedAt: null,
+  promotedByUid: null,
+  declinedReason: null,
+  externalTrackerUrl: null,
+  tags: null,
+  type: null,
+  order: null,
+  upvoteCount: 1,
+  viewerHasUpvoted: false,
+  pinCount: 3,
+  viewerHasPinned: false,
+  objectives: [],
+  deletedAt: null,
+  createdAt: '',
+  updatedAt: '',
+  ...overrides,
+});
+
 describe('RoadmapView', () => {
   afterEach(() => {
     jest.resetAllMocks();
@@ -144,6 +172,51 @@ describe('RoadmapView', () => {
     expect(screen.getAllByText('In Progress').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Shipped').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Ship new onboarding' })).toBeInTheDocument();
+  });
+
+  it('shows a static boost count instead of a Boost button on the viewer’s own item', () => {
+    mockUseIsNarrow.mockReturnValue(false);
+    mockUseGantryItems.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        items: [boardItem({ uid: 'mine', title: 'My own need', createdByUid: 'member-1' })],
+      },
+    });
+
+    render(<RoadmapView />);
+
+    expect(screen.queryByRole('button', { name: /^Boost \(/ })).not.toBeInTheDocument();
+    expect(screen.getByTitle("Boosts — you can't boost your own item")).toHaveTextContent('3');
+  });
+
+  it('leaves the Boost button on items the viewer did not author', () => {
+    mockUseIsNarrow.mockReturnValue(false);
+    mockUseGantryItems.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { items: [boardItem()] },
+    });
+
+    render(<RoadmapView />);
+
+    expect(screen.getByRole('button', { name: 'Boost (3)' })).toBeInTheDocument();
+    expect(screen.queryByTitle("Boosts — you can't boost your own item")).not.toBeInTheDocument();
+  });
+
+  it('still offers unboost to an author who already self-boosted, so the legacy pin can be released', () => {
+    mockUseIsNarrow.mockReturnValue(false);
+    mockUseGantryItems.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        items: [boardItem({ uid: 'mine', createdByUid: 'member-1', viewerHasPinned: true })],
+      },
+    });
+
+    render(<RoadmapView />);
+
+    expect(screen.getByRole('button', { name: 'Remove boost (3)' })).toBeInTheDocument();
   });
 
   it('moves the active tab indicator when a swiped-to column becomes visible on mobile', () => {

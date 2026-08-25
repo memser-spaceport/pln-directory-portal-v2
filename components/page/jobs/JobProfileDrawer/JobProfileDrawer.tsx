@@ -66,7 +66,13 @@ interface JobProfileDrawerProps {
   pendingApproval: boolean;
   /** rbac PENDING (identity unverified) — the stepper nudges verification. */
   needsIdentityVerification?: boolean;
-  /** True when saving can resume into the apply modal (role held + approved). */
+  /**
+   * True when saving resumes straight into the apply modal — a role is held and
+   * the account may apply.
+   *
+   * No longer decides the button's WORDS, only whether the press lands on an
+   * application or on the board. See the footer.
+   */
   resumeIntoApply: boolean;
   /** The footer press. Completeness is reported from the drawer's own (freshest) read. */
   onFooterAction: (args: { profileComplete: boolean }) => void;
@@ -283,9 +289,27 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 
       {/* The drawer's own action — always on screen, disabled until usable. The
           sections' own Saves commit one card each; this one says what happens
-          NEXT: "Continue to apply" when a role is held and the account may
-          apply, "Save profile" otherwise (naming a destination the press cannot
-          reach would be the button lying about where it goes). */}
+          NEXT.
+
+          **"Continue to apply" whenever the account may apply — not only when a
+          role is held.** It used to read "Save profile" on the banner route,
+          because that route carries no `pendingApply` and there is no specific
+          application to land on. Two things were wrong with that. The hint
+          beside it already ends "…to continue", so the button and the sentence
+          next to it disagreed about what the press was for. And the drawer only
+          exists to unblock applying: framing the same completion as a filing
+          exercise on one route and as progress on the other made the ask look
+          like two different asks depending on which door you came through.
+
+          It is not a promise it can't keep. With a role held the press resumes
+          straight into the apply modal; without one it saves and closes to the
+          board, where every row's Apply is now live. Both are "continue to
+          apply" — the second just doesn't pick the role for you.
+
+          `pendingApproval` keeps its carve-out, and it is the only one. There
+          the press genuinely cannot lead to an application at any point, which
+          the hint beside it says outright; "Continue to apply" over that
+          sentence would be the button contradicting its own caption. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
           <p className={d.footerHint}>
@@ -302,7 +326,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             disabled={!complete}
             onClick={() => onFooterAction({ profileComplete: complete })}
           >
-            {resumeIntoApply && !pendingApproval ? 'Continue to apply' : 'Save profile'}
+            {pendingApproval ? 'Save profile' : 'Continue to apply'}
           </Button>
         </div>
       </div>

@@ -37,6 +37,7 @@ import type {
 } from '@/components/page/member-details/ExperienceDetails/components/ExperienceImport';
 
 const parsed: ParsedProfile = {
+  importUid: 'import-1',
   role: 'Senior Protocol Engineer',
   location: 'Berlin, Germany',
   skills: ['Rust', 'libp2p'],

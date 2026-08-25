@@ -35,6 +35,19 @@ jest.mock('@/services/members/hooks/useParseCv', () => ({
 }));
 
 const mockApply = jest.fn();
+
+/* Shaped like `ApplyMemberCvImportResponseSchema` — the endpoint reports what it
+   ACTUALLY did (skills unioned against the catalogue, a field filled only if the
+   member's own was blank), and that is what the funnel records rather than what
+   was asked for. Re-armed per test because `clearAllMocks` in the suites below
+   drops the implementation along with the call log. */
+const APPLY_RESULT = {
+  uid: 'member-1',
+  role: 'Senior Protocol Engineer',
+  locationApplied: false,
+  skillsAdded: ['Rust'],
+  experiencesAdded: 1,
+};
 jest.mock('@/services/members/hooks/useApplyCvImport', () => ({
   useApplyCvImport: () => ({ mutateAsync: mockApply }),
 }));
@@ -169,9 +182,15 @@ describe('CV import inside the Experience section', () => {
 });
 
 describe('the whole way through: drop a file, review it, save it', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockApply.mockResolvedValue(APPLY_RESULT);
+  });
 
   const parsedProfile = {
+    /* Every parse result carries the row it came from — `applyCvImport` keys the
+       write on it. */
+    importUid: 'import-1',
     role: 'Senior Protocol Engineer',
     location: 'Berlin, Germany',
     skills: ['Rust'],
@@ -199,7 +218,6 @@ describe('the whole way through: drop a file, review it, save it', () => {
 
   it('posts a payload with no React keys on it, and reports the save', async () => {
     mockParse.mockResolvedValue(parsedProfile);
-    mockApply.mockResolvedValue(undefined);
     renderSection({ enableCvImport: true, entries: [] });
 
     dropCv();
@@ -219,8 +237,14 @@ describe('the whole way through: drop a file, review it, save it', () => {
     expect(payload.experiences[0]).not.toHaveProperty('key');
     expect(payload.experiences[0].title).toBe('Senior Protocol Engineer');
     expect(payload.role).toBe('Senior Protocol Engineer');
-    // Nothing was picked in the stubbed place control.
-    expect(payload.location).toBeNull();
+    /* Which parse is being agreed to. The endpoint keys the whole write on this
+       and answers 409 if it is not the member's current row, so a review left
+       open while a newer CV was uploaded fails instead of writing unseen rows. */
+    expect(payload.importUid).toBe('import-1');
+    /* Nothing was picked in the stubbed place control. `''` rather than `null`:
+       the wire takes a place as TEXT and geocodes it server-side, and empty is
+       how "leave the member's location alone" is said. */
+    expect(payload.location).toBe('');
 
     expect(mockAnalytics.onCvImportSaved).toHaveBeenCalledWith(
       expect.objectContaining({ experiences_selected: 1, experiences_offered: 1, filled_role: true }),

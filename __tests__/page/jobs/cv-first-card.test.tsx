@@ -66,6 +66,7 @@ const member = {
 } as unknown as IMember;
 
 const parsed = {
+  importUid: 'import-1',
   role: 'Protocol Engineer',
   location: 'Berlin, Germany',
   skills: ['Rust'],

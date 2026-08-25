@@ -77,7 +77,8 @@ export function ExperienceDetailsView(props: Props) {
                   ref={headerFileInput}
                   type="file"
                   className={s.visuallyHidden}
-                  accept=".pdf,.doc,.docx"
+                  /* PDF only — the upload endpoint checks the magic bytes. */
+                  accept=".pdf"
                   onChange={(ev) => {
                     const chosen = ev.target.files?.[0] ?? null;
                     /* Cleared so picking the same file twice still fires a

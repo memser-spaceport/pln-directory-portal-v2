@@ -43,10 +43,16 @@ export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BO
  *
  * Separate from `SHOW_JOB_BOARD_APPLY` and nested inside it — the drawer only
  * opens when that one is on, so this gates a feature *within* an already-gated
- * flow. Two flags because the two cut over on different days: apply waits on the
- * applications contract, the importer waits on `/cv-import/parse` and
- * `/cv-import/apply`, which are a different team's work and do not exist yet.
- * Until they do, an environment with this on would offer a door that 404s.
+ * flow. Two flags because the two cut over on different days.
+ *
+ * **The endpoints exist now.** `POST /v1/members/:uid/cv-imports` (202),
+ * `GET .../cv-imports/latest` and `POST .../cv-imports/apply` shipped in the
+ * backend's `member-cv-imports` module, and `cv-import.service.ts` is written
+ * against them rather than against the handoff spec. What remains before this
+ * flips in a deployed environment is confirming the module is actually deployed
+ * there and that its AI provider is configured — the parse runs an LLM call, so
+ * an environment with the routes but no model answers `PARSE_FAILED` for every
+ * document.
  *
  * **It lives in `services/jobs/` because there is exactly one host today.** The
  * components it gates are `member-details/`, not job-board, and are written to

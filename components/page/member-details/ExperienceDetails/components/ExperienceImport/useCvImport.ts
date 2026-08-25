@@ -3,7 +3,12 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { CvParseError, type CvImportApplyPayload } from '@/services/members/cv-import.service';
+import {
+  CvParseError,
+  type CvImportApplyPayload,
+  type CvImportApplyResult,
+} from '@/services/members/cv-import.service';
+import type { ResolvedLocation } from '@/services/location.service';
 import { useApplyCvImport } from '@/services/members/hooks/useApplyCvImport';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useParseCv } from '@/services/members/hooks/useParseCv';
@@ -137,9 +142,21 @@ export function useCvImport(member: IMember) {
    */
   const submitImport = useCallback(
     async (selection: ImportSelection) => {
+      if (!parsed) {
+        /* Unreachable through the UI — the review only renders on a parse — but
+           the endpoint keys the whole write on this uid, so an empty string
+           would be a 409 dressed up as a bug report. */
+        throw new Error('Cannot apply a CV import without a parse');
+      }
+
       const payload: CvImportApplyPayload = {
+        importUid: parsed.importUid,
         role: selection.role,
-        location: selection.location,
+        /* The wire takes a PLACE AS TEXT and geocodes it server-side; the review
+           card resolves one only so the person picks a real place rather than
+           typing a guess. So the structure is flattened back to a string here,
+           and `''` keeps its meaning of "don't touch". */
+        location: formatSelectedLocation(selection.location),
         skills: selection.skills,
         /* `key` is a React key and was never a record field. */
         experiences: selection.experiences.map(({ key, ...entry }) => entry),
@@ -154,26 +171,39 @@ export function useCvImport(member: IMember) {
         alreadyHave.has(experienceKey(entry)),
       ).length;
 
+      let result: CvImportApplyResult | undefined;
       try {
         /* Awaited, and the rejection is re-thrown: it has to reach the review
            card, which is the only place that can report it without throwing away
            the selection. */
-        await applyImport.mutateAsync(payload);
+        result = await applyImport.mutateAsync(payload);
       } catch (error) {
         onCvImportSaveFailed({ experiences_selected: selection.experiences.length });
         throw error;
       }
 
+      /* Read defensively, and the reason is not paranoia about the schema — the
+         response is zod-validated server-side. It is that everything below this
+         line runs AFTER a write that already succeeded. A `.length` on an
+         unexpected shape would throw here, the review card would report a
+         failure the person could only respond to by saving again, and the
+         second save would 409 on a now-stale import. Losing an analytics field
+         is the cheaper failure by a wide margin. */
       onCvImportSaved({
         experiences_selected: selection.experiences.length,
-        experiences_offered: parsed?.experiences.length ?? 0,
+        experiences_offered: parsed.experiences.length,
         duplicates_overridden: duplicatesOverridden,
-        skills_saved: selection.skills.length,
-        filled_role: selection.role !== '',
-        filled_location: selection.location !== null,
+        /* What the server ACTUALLY did, not what was asked. It unions skills
+           against the catalogue and fills a field only when the member's own is
+           blank, so the request is a proposal here too — reporting the request
+           would quietly inflate every one of these. `locationApplied` is the
+           sharpest case: a place it cannot geocode is skipped silently. */
+        skills_saved: Array.isArray(result?.skillsAdded) ? result.skillsAdded.length : 0,
+        filled_role: Boolean(result?.role?.trim()) && currentRole === '',
+        filled_location: result?.locationApplied === true,
       });
     },
-    [applyImport, currentExperiences, parsed, onCvImportSaved, onCvImportSaveFailed],
+    [applyImport, currentExperiences, currentRole, parsed, onCvImportSaved, onCvImportSaveFailed],
   );
 
   return {
@@ -188,4 +218,23 @@ export function useCvImport(member: IMember) {
     hasLocation,
     currentSkills,
   };
+}
+
+/**
+ * A picked place, as the text the apply endpoint geocodes.
+ *
+ * Most specific first, because that is what a geocoder disambiguates on and it
+ * is also how the profile card writes a location out. `metroArea` sits between
+ * city and country rather than replacing either: for the places that have one
+ * it is the part that makes "Cambridge" unambiguous.
+ *
+ * `null` in, `''` out — the review card's "nothing picked", which the server
+ * reads as "leave the member's location alone".
+ */
+function formatSelectedLocation(location: ResolvedLocation | null): string {
+  if (!location) return '';
+  return [location.city, location.metroArea, location.country]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(', ');
 }

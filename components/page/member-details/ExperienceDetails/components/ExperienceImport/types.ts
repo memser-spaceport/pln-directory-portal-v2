@@ -35,6 +35,18 @@ export interface ParsedExperience {
 
 export interface ParsedProfile {
   /**
+   * Which stored parse this proposal came from.
+   *
+   * The apply endpoint takes it and rejects a uid that is not the member's
+   * current row with a 409 — so a review left open while a newer CV was
+   * uploaded in another tab fails loudly instead of writing rows nobody saw.
+   *
+   * Carried on the proposal rather than held beside it because the two must not
+   * be able to drift: the selection under review and the import it is a review
+   * *of* are one thing.
+   */
+  importUid: string;
+  /**
    * Optional because this host never reads them.
    *
    * A CV parser returns the name and email off the top of the document, and a

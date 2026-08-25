@@ -110,10 +110,15 @@ type Status = 'idle' | 'reading' | 'nothing-found' | 'failed';
  * else — which is exactly why a second door would be redundant. The copy stays
  * about the file rather than about where the file came from.
  */
+/* PDF only, and that is the server's rule rather than a preference: the upload
+   endpoint checks the mime type AND that the bytes start with `%PDF`
+   (`assertPdfFile`), then extracts text with `pdf-parse`. A DOCX offered here
+   would be accepted by the dropzone and refused by the endpoint — a rejection
+   the person could have been spared by the sentence above the box. */
 const DROPZONE_COPY = {
   title: 'Drag & drop your CV',
-  description: 'PDF, DOC or DOCX, up to 5MB. A LinkedIn PDF export works too.',
-  formats: ['PDF', 'DOC', 'DOCX'],
+  description: 'PDF, up to 5MB. A LinkedIn PDF export works too.',
+  formats: ['PDF'],
 };
 
 const MAX_FILE_SIZE_MB = 5;

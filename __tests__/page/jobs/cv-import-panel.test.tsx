@@ -11,6 +11,7 @@ import type { ParsedProfile } from '@/components/page/member-details/ExperienceD
  */
 
 const parsedWith = (count: number): ParsedProfile => ({
+  importUid: 'import-1',
   role: 'Senior Protocol Engineer',
   location: 'Berlin, Germany',
   skills: ['Rust'],
@@ -62,13 +63,19 @@ describe('ExperienceImportPanel', () => {
     expect(onParse).not.toHaveBeenCalled();
   });
 
-  it('rejects an unsupported extension without making a request', async () => {
+  /**
+   * PDF only, and the dropzone has to say so before the request rather than
+   * after: the upload endpoint checks the mime type and that the bytes begin
+   * `%PDF`, so a DOCX would be accepted here and refused there — a round trip
+   * spent to deliver a rejection the sentence above the box could have avoided.
+   */
+  it.each([['notes.txt'], ['cv.docx'], ['cv.doc']])('rejects %s without making a request', async (name) => {
     const onParse = jest.fn();
     renderPanel({ onParse });
 
-    drop(file('notes.txt'));
+    drop(file(name));
 
-    expect(await screen.findByText(/file format must be one of: PDF, DOC, DOCX/i)).toBeInTheDocument();
+    expect(await screen.findByText(/file format must be one of: PDF/i)).toBeInTheDocument();
     expect(onParse).not.toHaveBeenCalled();
   });
 

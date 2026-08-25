@@ -54,14 +54,21 @@ async function mutationV2(params: SignupV2Params) {
     ...(params.signUpCampaign && { signUpCampaign: params.signUpCampaign }),
   };
 
-  const response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request/member`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(payload),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${process.env.DIRECTORY_API_URL}/v1/participants-request/member`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    const message = 'Network error. Please check your connection and try again.';
+    toast.error(message);
+    return { success: false, message };
+  }
 
   if (response?.ok) {
     const data = await response.json();

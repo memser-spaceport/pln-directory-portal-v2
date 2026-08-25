@@ -137,18 +137,12 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
      card the next time they open this. */
   const [handedOff, setHandedOff] = React.useState(false);
 
-  /* `hasLocation` reads the record's own fields rather than
-     `parseMemberLocation`, which returns 'Unknown' for an empty location and
-     would therefore say every member already has one.
-
-     One call, two props: the host is picked once and both the card below and the
+  /* One call, two props: the host is picked once and both the card below and the
      section's `enableCvImport` read the same answer, so "never both doors" is
      structural rather than a rule two expressions have to keep agreeing on. */
   const cvImportHost = pickCvImportHost({
     enabled: SHOW_CV_IMPORT,
     hasRole,
-    hasLocation: Boolean(member?.location?.city || member?.location?.country || member?.location?.metroArea),
-    skillCount: (member?.skills ?? []).length,
     experienceCount,
     experiencesLoading,
     handedOff,

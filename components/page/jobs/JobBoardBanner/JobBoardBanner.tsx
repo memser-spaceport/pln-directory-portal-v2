@@ -246,8 +246,8 @@ function PendingApprovalBanner({
           <div className={welcome.text}>
             <p className={clsx(welcome.title, s.bannerTitle)}>Profile under review</p>
             <p className={clsx(welcome.sub, s.bannerSub)}>
-              We&apos;ll notify you once approved. Complete your profile in the meantime, so you can apply the moment it
-              is.
+              We&apos;ll notify you once approved. <br /> Complete your profile in the meantime, so you can apply the
+              moment it is.
             </p>
           </div>
           <div className={s.ctaGroup}>

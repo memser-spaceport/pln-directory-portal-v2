@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import clsx from 'clsx';
 
-import { SpinnerIcon } from '@/components/icons';
+import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
 import { formatFileSize } from '@/utils/file.utils';
 // The host section's own empty row and its connect-button slot. Production keeps
 // `.connectButton` nested inside `.emptyData` in four of these stylesheets
@@ -38,6 +38,20 @@ import p from './ExperienceImportPanel.module.scss';
  * explaining why the door they had just chosen could not do the thing its label
  * implied. Whatever file you have — a CV, a LinkedIn export — this one door
  * takes it.
+ *
+ * **The recognition still has to happen somewhere**, and for a while it was a
+ * clause at the end of the formats line: "PDF, DOC or DOCX, up to 5MB. A
+ * LinkedIn PDF export works too." Two things were wrong with that. It sat in
+ * the one line on this box that is read as small print — the line you check to
+ * see whether your file is allowed, not the line you read to find out what else
+ * you could bring. And it named an artifact most people do not have and cannot
+ * picture getting: someone who has never exported LinkedIn as a PDF does not
+ * learn from that sentence that they could.
+ *
+ * So the fact is now a **standing note under the box** — see `LINKEDIN_HINT`.
+ * It is not the second door coming back: it is prose rather than a control, it
+ * opens no picker, offers no second drop area, and ends by pointing at the box
+ * already on screen.
  *
  * **What the panel does not do.** It never writes. It hands a `ParsedProfile`
  * up and the review — a separate card, with Cancel and Save — is where anything
@@ -108,14 +122,47 @@ type Status = 'idle' | 'reading' | 'nothing-found';
 /**
  * The formats the drop area takes, and what it says about them.
  *
- * A LinkedIn "Save to PDF" export is a PDF, so it lands here with everything
- * else — which is exactly why the second door was redundant. The copy stays
- * about the file rather than about where the file came from.
+ * Back to being only that. The LinkedIn clause that used to end the description
+ * moved out to `LINKEDIN_HINT`, because this line answers "is my file allowed"
+ * and that is a different question from "what could I bring". Leaving it in both
+ * places would be one fact stated twice on one box, and the copy a person skips
+ * would still be the copy carrying it.
  */
 const DROPZONE_COPY = {
   title: 'Drag & drop your CV',
-  description: 'PDF, DOC or DOCX, up to 5MB. A LinkedIn PDF export works too.',
+  description: 'PDF, DOC or DOCX, up to 5MB.',
   formats: ['PDF', 'DOC', 'DOCX'],
+};
+
+/**
+ * The way in for someone who has no CV file: one standing note under the box.
+ *
+ * **It was a disclosure, and the toggle has been removed.** "No CV? Your
+ * LinkedIn profile works too" sat above this sentence and revealed it on a
+ * press. The argument for that was that the fact is useless without the two
+ * clicks that make it true, so the clicks should be *asked for* rather than
+ * preached. But the whole thing is one line long — and a press that reveals a
+ * single sentence is a door in front of a door, charging a click for something
+ * that could simply have been said. The instruction *is* the fact here; there is
+ * no shorter honest version of it to show first.
+ *
+ * **Why not a tooltip.** A tooltip is for a gloss you read and release. This is
+ * an instruction you carry into another tab, and it has to survive the trip — a
+ * hover that vanishes, and does not exist at all on a phone, is the wrong
+ * container for something you follow.
+ *
+ * **What keeps it from becoming the second door again.** It is prose, not a
+ * control: nothing here is pressable, so there is nothing to choose between it
+ * and Upload, and the last sentence sends the person back to the box that is
+ * already open. One sentence, not three steps, because the two clicks are one
+ * menu.
+ */
+const LINKEDIN_HINT = {
+  /* Split so the menu path can carry a little weight — it is the part someone
+     scans back to while looking at LinkedIn rather than at this page. */
+  before: 'On LinkedIn, open your profile and choose ',
+  path: 'More → Save to PDF',
+  after: '. Drop that file here.',
 };
 
 const MAX_FILE_SIZE_MB = 5;
@@ -224,9 +271,12 @@ export function ExperienceImportPanel({
       )}
 
       {/* A three-step "open LinkedIn → More → Save to PDF" block used to sit
-          here, shown only behind the LinkedIn door. It went with the door: it
-          existed to explain why the thing the label promised wasn't what the
-          door did, which is a sentence no door should need. */}
+          here, above the box and shown to everyone who took the LinkedIn door.
+          It went with the door — it existed to explain why the thing the label
+          promised wasn't what the door did, which is a sentence no door should
+          need. The same facts now live *under* the box, in one sentence, behind
+          a press: see `LINKEDIN_HINT` and the disclosure below. Requested, not
+          preached, is the whole difference. */}
 
       {status === 'reading' ? (
         <div className={p.reading}>
@@ -296,6 +346,35 @@ export function ExperienceImportPanel({
             onSelect={startReading}
             onRemove={() => setFile(null)}
           />
+
+          {/* Under the box rather than beside the formats, and closer to the box
+              than to the note below it — this is a way *into* the drop area, and
+              `.panel`'s uniform 12px gap would otherwise assert it belongs to
+              neither. See `.linkedinSteps` for the four pixels that fixes.
+
+              The two asides here are still two tones and no more: this one is
+              secondary and marked with the info glyph, because it is something
+              to act on; the privacy note is tertiary and unmarked, because it is
+              something to read once. */}
+          <p className={p.linkedinSteps}>
+            {/* The DS's own mark for a quiet inline note, not a new one:
+                `DataIncomplete` — production's 12px/500 note row — reaches for
+                this exact glyph beside this exact size of text, at a 4px gap.
+                The *outlined* one, which is the half of that pair that means
+                "here is a fact"; the filled `InfoCircleIcon` carries banners and
+                tooltip triggers (`AiGeneratedTeamProfileBanner`,
+                `FollowControl`), which are louder things than this.
+
+                Rendered at 14px rather than its native 18: see the note on
+                `.linkedinStepsIcon` for why it shrank once the line got a
+                ground of its own to sit on. */}
+            <InfoCircleIconOutlined width={14} height={14} className={p.linkedinStepsIcon} aria-hidden />
+            <span>
+              {LINKEDIN_HINT.before}
+              <span className={p.linkedinPath}>{LINKEDIN_HINT.path}</span>
+              {LINKEDIN_HINT.after}
+            </span>
+          </p>
 
           {/* The one thing a person is entitled to know before handing over a
               document, in the place they hand it over — a promise nobody states

@@ -121,6 +121,19 @@
   }
 }
 
+// The action, which must not wrap.
+//
+// The row is `space-between` with a hint that runs to two lines in its longest
+// state, and "Continue to apply" is wide enough that flex will break it across
+// two lines before it shrinks the paragraph beside it. A two-line label in a
+// pill reads as a layout accident. The hint is the flexible half — it already
+// wraps by design — so the button keeps its intrinsic width and the sentence
+// gives way.
+.footerAction {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 // One sentence, and it changes: before the requirement is met it says what is
 // missing, after it says what is optional. A disabled button with no reason
 // next to it is a door with no sign.

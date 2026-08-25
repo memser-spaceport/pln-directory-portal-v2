@@ -291,25 +291,29 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
           sections' own Saves commit one card each; this one says what happens
           NEXT.
 
-          **"Continue to apply" whenever the account may apply — not only when a
-          role is held.** It used to read "Save profile" on the banner route,
-          because that route carries no `pendingApply` and there is no specific
-          application to land on. Two things were wrong with that. The hint
-          beside it already ends "…to continue", so the button and the sentence
-          next to it disagreed about what the press was for. And the drawer only
-          exists to unblock applying: framing the same completion as a filing
-          exercise on one route and as progress on the other made the ask look
-          like two different asks depending on which door you came through.
+          **One label, always.** It used to branch twice — on whether a role was
+          held (the banner route carries none) and on whether the account was
+          approved. Both branches said "Save profile", and both were wrong for
+          the same reason: this drawer exists only to unblock applying, so
+          framing the same two required answers as a filing exercise in some
+          states and as progress in others made one ask look like several,
+          depending on distinctions the reader never sees. The hint beside the
+          button has always ended "…to continue"; the button now agrees with it.
 
-          It is not a promise it can't keep. With a role held the press resumes
-          straight into the apply modal; without one it saves and closes to the
-          board, where every row's Apply is now live. Both are "continue to
-          apply" — the second just doesn't pick the role for you.
+          Where the press lands still varies, and `resumeIntoApply` is what
+          decides it: with a role held and an approved account it resumes
+          straight into the apply modal, otherwise it saves and closes to the
+          board.
 
-          `pendingApproval` keeps its carve-out, and it is the only one. There
-          the press genuinely cannot lead to an application at any point, which
-          the hint beside it says outright; "Continue to apply" over that
-          sentence would be the button contradicting its own caption. */}
+          **The pending case is a deliberate, product-owner call.** For an
+          account still awaiting PL-team approval the press cannot reach an
+          application at all, and the hint beside it says exactly that —
+          "applying unlocks once the PL team approves your account". So the
+          label runs slightly ahead of what that person can do today. It was
+          raised and the answer was one consistent label; the hint is what
+          carries the truth. If that ever reads as the button over-promising,
+          the fix is to disable it while `pendingApproval` rather than to
+          reintroduce a second word for the same act. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
           <p className={d.footerHint}>
@@ -323,10 +327,11 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             variant="primary"
             style="fill"
             size="m"
+            className={d.footerAction}
             disabled={!complete}
             onClick={() => onFooterAction({ profileComplete: complete })}
           >
-            {pendingApproval ? 'Save profile' : 'Continue to apply'}
+            Continue to apply
           </Button>
         </div>
       </div>

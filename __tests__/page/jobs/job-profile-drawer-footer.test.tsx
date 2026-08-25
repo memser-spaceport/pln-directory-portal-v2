@@ -4,11 +4,12 @@ import '@testing-library/jest-dom';
 /**
  * The drawer's own action — what it says, and when it can be pressed.
  *
- * The label used to depend on how the drawer was *opened*: a role held (row →
- * Apply) got "Continue to apply", the banner's "Complete profile" got "Save
- * profile". Same drawer, same required fields, two different accounts of what
- * filling them in was for — and on the banner route the button disagreed with
- * the hint beside it, which has always ended "…to continue".
+ * The label used to branch twice: on whether a role was held (the banner route
+ * carries none) and on whether the account was approved. Both branches read
+ * "Save profile", which made the same two required answers look like a filing
+ * exercise in some states and like progress in others — distinctions the reader
+ * never sees. One label now, and the hint beside it, which has always ended
+ * "…to continue", finally agrees with the button.
  */
 
 jest.mock('@/components/common/Drawer', () => ({
@@ -68,6 +69,9 @@ const renderDrawer = (member: unknown, props: Partial<React.ComponentProps<typeo
   );
 };
 
+/* Matches either wording on purpose: a regression that reintroduces "Save
+   profile" should fail on the assertion about what the button SAYS, not by
+   throwing "no such element" from the query that finds it. */
 const footerButton = () => screen.getByRole('button', { name: /Continue to apply|Save profile/ });
 
 describe('the profile drawer footer', () => {
@@ -87,27 +91,28 @@ describe('the profile drawer footer', () => {
   });
 
   /**
-   * The one carve-out, and the reason it is the only one: a pending member
-   * cannot reach an application by any route, and the hint beside the button
-   * says so. "Continue to apply" over that sentence would be the button
-   * contradicting its own caption.
+   * No carve-out left, including the one that used to exist here.
+   *
+   * A pending account cannot reach an application at all, and the hint beside
+   * the button says so outright — so this label runs ahead of what that person
+   * can do today. That is a deliberate product decision in favour of one
+   * consistent word for one act; the hint is what carries the truth. Asserted
+   * together so the pairing stays visible: if the sentence ever goes, this
+   * label is over-promising on its own.
    */
-  it('says "Save profile" while the account is waiting on approval', () => {
-    /* COMPLETE deliberately: the approval hint only replaces the "what's still
-       missing" line once the required answers are in, and it is that sentence
-       the label has to agree with. */
+  it('says "Continue to apply" even while the account waits on approval', () => {
     renderDrawer(COMPLETE, { pendingApproval: true, resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' });
 
-    expect(footerButton()).toHaveTextContent('Save profile');
+    expect(footerButton()).toHaveTextContent('Continue to apply');
     expect(screen.getByText(/applying unlocks once the PL team approves/i)).toBeInTheDocument();
   });
 
-  /** Still "Save profile" before the required answers are in — the carve-out is
-   *  about the account, not about how much of the profile is filled. */
-  it('keeps "Save profile" for a pending account with an unfinished profile', () => {
+  /** And before the required answers are in, where the missing-fields hint is
+   *  the one showing — still one label, still disabled. */
+  it('says it for a pending account with an unfinished profile too', () => {
     renderDrawer(INCOMPLETE, { pendingApproval: true });
 
-    expect(footerButton()).toHaveTextContent('Save profile');
+    expect(footerButton()).toHaveTextContent('Continue to apply');
     expect(footerButton()).toBeDisabled();
   });
 

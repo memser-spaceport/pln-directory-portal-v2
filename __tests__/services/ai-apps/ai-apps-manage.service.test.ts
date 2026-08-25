@@ -1,5 +1,13 @@
 import { customFetch } from '@/utils/fetch-wrapper';
-import { deleteAiApp, fetchAiApp, hasPrd, updateAiApp, updateAiAppFile } from '@/services/ai-apps/ai-apps.service';
+import {
+  deleteAiApp,
+  deployAiApp,
+  fetchAiApp,
+  fetchAiApps,
+  hasPrd,
+  updateAiApp,
+  updateAiAppFile,
+} from '@/services/ai-apps/ai-apps.service';
 
 jest.mock('@/utils/fetch-wrapper', () => ({
   customFetch: jest.fn(),
@@ -33,6 +41,11 @@ describe('fetchAiApp', () => {
 
   it('treats a missing response (logout/network path) as a network error', async () => {
     mockCustomFetch.mockResolvedValue(undefined as unknown as Response);
+    await expect(fetchAiApp('a1')).resolves.toEqual({ app: null, errorKind: 'network' });
+  });
+
+  it('treats a rejected request (Failed to fetch) as a network error', async () => {
+    mockCustomFetch.mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(fetchAiApp('a1')).resolves.toEqual({ app: null, errorKind: 'network' });
   });
 
@@ -134,6 +147,56 @@ describe('deleteAiApp', () => {
   it('surfaces backend errors on other failures', async () => {
     mockCustomFetch.mockResolvedValue(jsonResponse(403, { message: 'Not allowed' }));
     await expect(deleteAiApp('a1')).resolves.toEqual({ ok: false, error: 'Not allowed' });
+  });
+});
+
+describe('deployAiApp', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('returns the deployed app on success', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, { uid: 'a1', status: 'DEPLOYING' }));
+    await expect(deployAiApp('a1', {})).resolves.toEqual({
+      app: { uid: 'a1', status: 'DEPLOYING' },
+      error: null,
+    });
+  });
+
+  it('surfaces the backend message on a 400', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(400, { message: 'Missing required secret' }));
+    await expect(deployAiApp('a1', {})).resolves.toEqual({ app: null, error: 'Missing required secret' });
+  });
+
+  it('returns a generic error when the request never went out', async () => {
+    mockCustomFetch.mockResolvedValue(undefined as unknown as Response);
+    const result = await deployAiApp('a1', {});
+    expect(result.app).toBeNull();
+    expect(result.error).toBeTruthy();
+  });
+
+  it('returns a generic error when the request rejects (Failed to fetch)', async () => {
+    mockCustomFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const result = await deployAiApp('a1', {});
+    expect(result.app).toBeNull();
+    expect(result.error).toBeTruthy();
+  });
+});
+
+describe('fetchAiApps', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('returns the apps on success', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(200, [{ uid: 'a1' }]));
+    await expect(fetchAiApps()).resolves.toEqual([{ uid: 'a1' }]);
+  });
+
+  it('returns an empty list on a failed response', async () => {
+    mockCustomFetch.mockResolvedValue(jsonResponse(500));
+    await expect(fetchAiApps()).resolves.toEqual([]);
+  });
+
+  it('returns an empty list when the request rejects (Failed to fetch)', async () => {
+    mockCustomFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(fetchAiApps()).resolves.toEqual([]);
   });
 });
 

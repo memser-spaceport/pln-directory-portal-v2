@@ -102,15 +102,22 @@ export interface DeployAiAppResult {
  * its message so the page can show it.
  */
 export async function deployAiApp(uid: string, secrets: Record<string, string>): Promise<DeployAiAppResult> {
-  const response = await customFetch(
-    `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.keys(secrets).length ? { secrets } : {}),
-    },
-    true,
-  );
+  let response: Response | undefined;
+  try {
+    response = await customFetch(
+      `${AI_APPS_API_URL}/${encodeURIComponent(uid)}/deploy`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.keys(secrets).length ? { secrets } : {}),
+      },
+      true,
+    );
+  } catch {
+    // A dropped or blocked request rejects with a TypeError; report it like the
+    // no-response case so the page can show an error and re-enable retry.
+    return { app: null, error: 'Deploy failed. Please try again.' };
+  }
 
   if (!response) {
     return { app: null, error: 'Deploy failed. Please try again.' };
@@ -151,7 +158,13 @@ export async function checkAiAppLive(uid: string): Promise<boolean> {
 }
 
 export async function fetchAiApps(): Promise<AiApp[]> {
-  const response = await customFetch(AI_APPS_API_URL, { method: 'GET' }, true);
+  let response: Response | undefined;
+  try {
+    response = await customFetch(AI_APPS_API_URL, { method: 'GET' }, true);
+  } catch {
+    // A dropped or blocked request rejects with a TypeError — treat it as "no apps".
+    return [];
+  }
 
   if (!response || !response.ok) {
     return [];
@@ -173,7 +186,13 @@ export interface FetchAiAppResult {
 }
 
 export async function fetchAiApp(uid: string): Promise<FetchAiAppResult> {
-  const response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'GET' }, true);
+  let response: Response | undefined;
+  try {
+    response = await customFetch(`${AI_APPS_API_URL}/${encodeURIComponent(uid)}`, { method: 'GET' }, true);
+  } catch {
+    // A dropped or blocked request rejects with a TypeError — treat it like the no-response path.
+    return { app: null, errorKind: 'network' };
+  }
 
   if (!response) {
     return { app: null, errorKind: 'network' };

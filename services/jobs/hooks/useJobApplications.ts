@@ -57,6 +57,31 @@ export function useIsRoleApplied(roleUid: string, { memberUid, enabled }: Member
   return data === true;
 }
 
+/**
+ * The same per-row subscription, narrowed to the application itself rather than
+ * a boolean — for the surfaces that also need to say *when*.
+ *
+ * Both the row's clock ("Applied 3d ago" instead of the posting's age) and the
+ * detail drawer's footer read the date, and deriving it from a second source
+ * would let the two disagree about the same application. Shares the map's key,
+ * so this is another observer on one fetch rather than another request.
+ */
+export function useRoleApplication(roleUid: string, { memberUid, enabled }: MemberScopedOptions) {
+  const { data } = useQuery({
+    queryKey: jobApplicationsQueryKey(memberUid ?? ''),
+    queryFn: fetchJobApplications,
+    enabled: enabled && !!memberUid,
+    staleTime: Infinity,
+    select: (applications: JobApplication[]) =>
+      applications.find((application) => application.jobUid === roleUid) ?? null,
+  });
+
+  /* Same guard as `useIsRoleApplied`, same reason: the repo's global `useQuery`
+     mock ignores `select` and hands back its own object, so a shape test — not
+     a truthiness test — is what keeps tests on production's code path. */
+  return data && typeof data === 'object' && 'jobUid' in data ? (data as JobApplication) : null;
+}
+
 export function useSubmitJobApplication(memberUid: string | undefined) {
   const queryClient = useQueryClient();
 

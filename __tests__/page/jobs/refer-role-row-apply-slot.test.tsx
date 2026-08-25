@@ -12,12 +12,16 @@ jest.mock('@/prototypes/entries/job-board/components/ReferModal/ReferModal', () 
   ReferModal: () => null,
 }));
 
-// The applied map rides a per-row query subscription; the row's contract with
-// it is a boolean, which is what these tests steer.
-const mockUseIsRoleApplied = jest.fn().mockReturnValue(false);
+// The applied map rides a per-row query subscription. The row's contract with
+// it is the application record (or null) — it needs the date as well as the
+// fact, because once applied the row's clock reports the application instead of
+// the posting's age.
+const mockUseRoleApplication = jest.fn().mockReturnValue(null);
 jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
-  useIsRoleApplied: (...args: unknown[]) => mockUseIsRoleApplied(...args),
+  useRoleApplication: (...args: unknown[]) => mockUseRoleApplication(...args),
 }));
+
+const APPLICATION = { uid: 'app-1', jobUid: 'role-1', appliedAt: '2026-05-01T00:00:00.000Z' };
 
 import { ReferRoleRow, type RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
 import type { IJobRole } from '@/types/jobs.types';
@@ -48,7 +52,7 @@ const renderRow = (applyUrl: string | null, apply?: RowApplyProps) =>
   );
 
 beforeEach(() => {
-  mockUseIsRoleApplied.mockReturnValue(false);
+  mockUseRoleApplication.mockReturnValue(null);
 });
 
 describe('ReferRoleRow with in-app apply props', () => {
@@ -61,7 +65,11 @@ describe('ReferRoleRow with in-app apply props', () => {
     renderRow('https://example.com/apply', apply);
 
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-    expect(onApply).toHaveBeenCalledWith({ role: role('https://example.com/apply'), teamId: 'team-1', teamName: 'Acme' });
+    expect(onApply).toHaveBeenCalledWith({
+      role: role('https://example.com/apply'),
+      teamId: 'team-1',
+      teamName: 'Acme',
+    });
   });
 
   it('makes link-less roles appliable — in-app Apply never needed the posting URL', () => {
@@ -82,7 +90,7 @@ describe('ReferRoleRow with in-app apply props', () => {
   });
 
   it('reports Applied in the same slot instead of offering again', () => {
-    mockUseIsRoleApplied.mockReturnValue(true);
+    mockUseRoleApplication.mockReturnValue(APPLICATION);
     renderRow('https://example.com/apply', apply);
 
     const appliedButton = screen.getByRole('button', { name: /Applied/ });
@@ -94,7 +102,7 @@ describe('ReferRoleRow with in-app apply props', () => {
 
   it('subscribes the applied lookup per row, scoped by member and gated on the props', () => {
     renderRow(null, apply);
-    expect(mockUseIsRoleApplied).toHaveBeenCalledWith('role-1', { memberUid: 'm1', enabled: true });
+    expect(mockUseRoleApplication).toHaveBeenCalledWith('role-1', { memberUid: 'm1', enabled: true });
   });
 });
 
@@ -110,6 +118,119 @@ describe('ReferRoleRow without apply props (flag off / rejected viewer)', () => 
 
   it('keeps the applied subscription inert — zero fetch work at flag-off', () => {
     renderRow(null);
-    expect(mockUseIsRoleApplied).toHaveBeenCalledWith('role-1', { memberUid: undefined, enabled: false });
+    expect(mockUseRoleApplication).toHaveBeenCalledWith('role-1', { memberUid: undefined, enabled: false });
+  });
+});
+
+/**
+ * The row once the in-app description exists.
+ *
+ * Apply leaves the row entirely: a row carries a title, a seniority and a
+ * location, which is not enough to decide with, so pressing Apply from it was
+ * pressing send on a job you had not read. What replaces it is the reading step.
+ */
+describe('ReferRoleRow with the in-app description on', () => {
+  const onApply = jest.fn();
+  const onViewJob = jest.fn();
+  const team = {
+    uid: 'team-1',
+    name: 'Acme',
+    logoUrl: null,
+    focusAreas: [],
+    subFocusAreas: [],
+  };
+
+  const renderDetailRow = (applyUrl: string | null = 'https://example.com/apply') =>
+    render(
+      <ReferRoleRow
+        role={role(applyUrl)}
+        teamId="team-1"
+        teamName="Acme"
+        team={team}
+        currentUser={null}
+        source="job-board"
+        apply={{ onApply, memberUid: 'm1', onViewJob }}
+      />,
+    );
+
+  beforeEach(() => {
+    onApply.mockClear();
+    onViewJob.mockClear();
+  });
+
+  it('offers the reading step instead of Apply', () => {
+    renderDetailRow();
+
+    expect(screen.getByRole('button', { name: 'View job' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+  });
+
+  /** The team travels too — the drawer's masthead needs the logo and focus
+   *  areas that an id and a name cannot carry. */
+  it('hands the team to the drawer along with the role', () => {
+    renderDetailRow();
+
+    fireEvent.click(screen.getByRole('button', { name: 'View job' }));
+
+    expect(onViewJob).toHaveBeenCalledWith({
+      role: role('https://example.com/apply'),
+      teamId: 'team-1',
+      teamName: 'Acme',
+      team,
+    });
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  /** One door, two handles. A title going somewhere other than the button
+   *  beside it is the confusion this avoids. */
+  it('opens the same drawer from the role title', () => {
+    renderDetailRow();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Community Manager' }));
+
+    expect(onViewJob).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * One button in both states. The applied fact is already in this row — the
+   * clock reports it — so a second report of it in the slot that used to hold
+   * the offer would only be filling the space the offer left. And having applied
+   * is no reason to stop being able to reread the job.
+   */
+  it('keeps View job after applying, and moves the fact to the clock', () => {
+    mockUseRoleApplication.mockReturnValue(APPLICATION);
+    renderDetailRow();
+
+    expect(screen.getByRole('button', { name: 'View job' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Applied$/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/^Applied /)).toBeInTheDocument();
+  });
+
+  /**
+   * Without the team there is no masthead to render, so the row must not offer
+   * the drawer at all — the flag reaching the row is not sufficient on its own.
+   */
+  it('falls back to Apply when the surface has no team record to show', () => {
+    render(
+      <ReferRoleRow
+        role={role('https://example.com/apply')}
+        teamId="team-1"
+        teamName="Acme"
+        currentUser={null}
+        source="job-board"
+        apply={{ onApply, memberUid: 'm1', onViewJob }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'View job' })).not.toBeInTheDocument();
+  });
+
+  /** Reading our panel and reading the team's own ad are different acts, so the
+   *  arrow out survives the swap. */
+  it('keeps the link out to the original posting', () => {
+    renderDetailRow();
+
+    expect(screen.getByRole('link', { name: /Open the Community Manager posting/i })).toBeInTheDocument();
   });
 });

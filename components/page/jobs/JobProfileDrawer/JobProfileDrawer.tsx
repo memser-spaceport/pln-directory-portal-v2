@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button';
+import { toast } from '@/components/core/ToastContainer';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
@@ -15,13 +16,17 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { SHOW_CV_IMPORT } from '@/services/jobs/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
 import { PendingApprovalSteps } from './PendingApprovalSteps';
+import { CvFirstCard } from './CvFirstCard';
+import { pickCvImportHost } from './cvImportHost';
 
 // Demo Day's profile-completion chrome: the sticky 64px header with its "Back"
 // affordance, and the 720px-max centred content column.
@@ -61,7 +66,13 @@ interface JobProfileDrawerProps {
   pendingApproval: boolean;
   /** rbac PENDING (identity unverified) — the stepper nudges verification. */
   needsIdentityVerification?: boolean;
-  /** True when saving can resume into the apply modal (role held + approved). */
+  /**
+   * True when saving resumes straight into the apply modal — a role is held and
+   * the account may apply.
+   *
+   * No longer decides the button's WORDS, only whether the press lands on an
+   * application or on the board. See the footer.
+   */
   resumeIntoApply: boolean;
   /** The footer press. Completeness is reported from the drawer's own (freshest) read. */
   onFooterAction: (args: { profileComplete: boolean }) => void;
@@ -89,7 +100,14 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
   const { data: member, isLoading } = useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER, memberUid, isLoggedIn, userInfo?.uid],
     queryFn: () =>
-      getMember(memberUid, { with: 'image,skills,location,teamMemberRoles.team' }, isLoggedIn, userInfo, !isAdmin && !isOwner, true),
+      getMember(
+        memberUid,
+        { with: 'image,skills,location,teamMemberRoles.team' },
+        isLoggedIn,
+        userInfo,
+        !isAdmin && !isOwner,
+        true,
+      ),
     enabled: open && !!memberUid,
     select: (data) => data?.data?.formattedData,
   });
@@ -109,6 +127,33 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
   const hasRole = Boolean(((member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim()).length);
   const hasStatus = jobSearchStatus !== null;
   const complete = hasRole && hasStatus;
+
+  /* The row count the blank test needs. A cache read in practice — the
+     Experience section below issues the same key — but the drawer asks first, so
+     it carries the `enabled` that keeps a closed drawer off the network. */
+  const { data: experienceRows, isLoading: experiencesLoading } = useMemberExperience(memberUid, {
+    enabled: open && !!memberUid,
+  });
+  /* `Array.isArray` rather than `?? []`: the repo's global `useQuery` mock
+     resolves every query to an object, and `.length` on one is `undefined`. */
+  const experienceCount = Array.isArray(experienceRows) ? experienceRows.length : 0;
+
+  /* Set when someone hits a parse dead end in the top card and presses "Add
+     manually" — see `CvImportHostInput.handedOff`. Deliberately not reset on
+     close: someone who said they would type it in should not be met by the same
+     card the next time they open this. */
+  const [handedOff, setHandedOff] = React.useState(false);
+
+  /* One call, two props: the host is picked once and both the card below and the
+     section's `enableCvImport` read the same answer, so "never both doors" is
+     structural rather than a rule two expressions have to keep agreeing on. */
+  const cvImportHost = pickCvImportHost({
+    enabled: SHOW_CV_IMPORT,
+    hasRole,
+    experienceCount,
+    experiencesLoading,
+    handedOff,
+  });
 
   return (
     <Drawer isOpen={open} onClose={onClose}>
@@ -138,6 +183,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 
         {member && (
           <>
+            {/* 0. Start with a document, while there is nothing to start from.
+                   Above the header card because a CV answers the required role
+                   sitting in it — a control that answers the question below it
+                   belongs above it. Disappears the moment the profile has
+                   anything in it, handing the offer to the Experience section. */}
+            {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+
             {/* 1. The header card — the first required answer (current role)
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
@@ -169,17 +221,66 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                 <DetailsSectionHeader title="Job search status">
                   <PlTeamOnlyPill />
                 </DetailsSectionHeader>
+                {/* Not disabled while saving, deliberately. The write is
+                    optimistic now, so the dot has already moved and the only
+                    thing a lock would buy is stopping someone changing their
+                    mind during a window they can no longer see. Two clicks in
+                    that window race, and the later PATCH's invalidation settles
+                    last — which is the answer they picked last, so the race has
+                    the right winner. */}
                 <JobSearchStatusInput
                   value={jobSearchStatus}
-                  disabled={updateMember.isPending}
-                  onChange={(value) => updateMember.mutate({ uid: memberUid, payload: { jobSearchStatus: value } })}
+                  onChange={(value) =>
+                    updateMember.mutate(
+                      { uid: memberUid, payload: { jobSearchStatus: value } },
+                      {
+                        /* Here rather than in the hook's own `onError`: the bio
+                           and profile forms already show their own message, and
+                           a blanket toast would double up on both. The hook
+                           owns the rollback; each caller owns what it says.
+
+                           And it has to say something. Before this the dot never
+                           moved, so a failed save claimed nothing; optimistically
+                           it moves and then un-moves on its own, which turns a
+                           silent failure into a misleading one. */
+                        onError: () => toast.error("Couldn't save your job search status. Please try again."),
+                      },
+                    )
+                  }
                 />
               </div>
             </DetailsSection>
 
             {/* 3–5. Optional sections — what a hiring team actually reads.
-                   Real components: they edit in place and save themselves. */}
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+                   Real components: they edit in place and save themselves.
+
+                   Experience is the one section with a shortcut: drop a CV and
+                   it fills itself, including the required current role. The flag
+                   is read here rather than inside the section because the
+                   section is shared with `/members/[id]`, which does not offer
+                   this.
+
+                   This is the other half of the one-host rule: while the card at
+                   the top is making the offer, this section must not make it a
+                   second time. Passing `false` withholds the whole bundle
+                   (`CvImportControls` is optional precisely so "off" is the
+                   absence of it), so the empty row goes back to being
+                   production's plain empty row.
+
+                   Note this gates the OFFER, not the bytes: a prop is not an
+                   `&&` guard, so the importer's components are imported by
+                   `ExperienceDetails` either way and ship in this drawer's
+                   chunk. That is the intended trade — the drawer is already a
+                   `ssr:false` dynamic import behind `SHOW_JOB_BOARD_APPLY`, so
+                   nothing loads until someone presses Apply, and buying true
+                   dead-code elimination would cost a second dynamic boundary
+                   inside the section for a feature that is about to be on. */}
+            <ExperienceDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              enableCvImport={cvImportHost === 'experience-section'}
+            />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
@@ -188,9 +289,31 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 
       {/* The drawer's own action — always on screen, disabled until usable. The
           sections' own Saves commit one card each; this one says what happens
-          NEXT: "Continue to apply" when a role is held and the account may
-          apply, "Save profile" otherwise (naming a destination the press cannot
-          reach would be the button lying about where it goes). */}
+          NEXT.
+
+          **One label, always.** It used to branch twice — on whether a role was
+          held (the banner route carries none) and on whether the account was
+          approved. Both branches said "Save profile", and both were wrong for
+          the same reason: this drawer exists only to unblock applying, so
+          framing the same two required answers as a filing exercise in some
+          states and as progress in others made one ask look like several,
+          depending on distinctions the reader never sees. The hint beside the
+          button has always ended "…to continue"; the button now agrees with it.
+
+          Where the press lands still varies, and `resumeIntoApply` is what
+          decides it: with a role held and an approved account it resumes
+          straight into the apply modal, otherwise it saves and closes to the
+          board.
+
+          **The pending case is a deliberate, product-owner call.** For an
+          account still awaiting PL-team approval the press cannot reach an
+          application at all, and the hint beside it says exactly that —
+          "applying unlocks once the PL team approves your account". So the
+          label runs slightly ahead of what that person can do today. It was
+          raised and the answer was one consistent label; the hint is what
+          carries the truth. If that ever reads as the button over-promising,
+          the fix is to disable it while `pendingApproval` rather than to
+          reintroduce a second word for the same act. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
           <p className={d.footerHint}>
@@ -204,10 +327,11 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             variant="primary"
             style="fill"
             size="m"
+            className={d.footerAction}
             disabled={!complete}
             onClick={() => onFooterAction({ profileComplete: complete })}
           >
-            {resumeIntoApply && !pendingApproval ? 'Continue to apply' : 'Save profile'}
+            Continue to apply
           </Button>
         </div>
       </div>
@@ -224,13 +348,13 @@ function missingHint(hasRole: boolean, hasStatus: boolean): string {
 
 const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
+/* No `disabled` prop any more: the only thing that ever set it was "a save is in
+   flight", and an optimistic save has nothing to wait for. */
 function JobSearchStatusInput({
   value,
-  disabled,
   onChange,
 }: {
   value: JobSearchStatus | null;
-  disabled?: boolean;
   onChange: (next: JobSearchStatus) => void;
 }) {
   return (
@@ -247,7 +371,6 @@ function JobSearchStatusInput({
               className={d.statusInput}
               value={option.value}
               checked={value === option.value}
-              disabled={disabled}
               onChange={() => onChange(option.value)}
             />
             <span className={d.statusIndicator} aria-hidden="true" />
@@ -264,7 +387,7 @@ function JobSearchStatusInput({
 
 // EditInvestorProfileDrawer's own glyph, copied so the Back control it sits in
 // is the same control, not a lookalike.
-const BackIcon = () => (
+export const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M17.5 9.99998C17.5 10.1657 17.4342 10.3247 17.3169 10.4419C17.1997 10.5591 17.0408 10.625 16.875 10.625H4.6336L9.19219 15.1828C9.25026 15.2409 9.29632 15.3098 9.32775 15.3857C9.35918 15.4615 9.37535 15.5429 9.37535 15.625C9.37535 15.7071 9.35918 15.7884 9.32775 15.8643C9.29632 15.9402 9.25026 16.0091 9.19219 16.0672C9.13412 16.1252 9.06518 16.1713 8.98931 16.2027C8.91344 16.2342 8.83213 16.2503 8.75 16.2503C8.66788 16.2503 8.58656 16.2342 8.51069 16.2027C8.43482 16.1713 8.36588 16.1252 8.30782 16.0672L2.68282 10.4422C2.62471 10.3841 2.57861 10.3152 2.54715 10.2393C2.5157 10.1634 2.49951 10.0821 2.49951 9.99998C2.49951 9.91785 2.5157 9.83652 2.54715 9.76064C2.57861 9.68477 2.62471 9.61584 2.68282 9.55779L8.30782 3.93279C8.42509 3.81552 8.58415 3.74963 8.75 3.74963C8.91586 3.74963 9.07492 3.81552 9.19219 3.93279C9.30947 4.05007 9.37535 4.20913 9.37535 4.37498C9.37535 4.54083 9.30947 4.69989 9.19219 4.81717L4.6336 9.37498H16.875C17.0408 9.37498 17.1997 9.44083 17.3169 9.55804C17.4342 9.67525 17.5 9.83422 17.5 9.99998Z"

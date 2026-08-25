@@ -15,7 +15,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
-import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY, SHOW_JOB_DETAIL } from '@/services/jobs/constants';
 import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -96,9 +96,17 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const applyProps: RowApplyProps | undefined = useMemo(
     () =>
       SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
-        ? { onApply: applyFlow.onApply, memberUid: boardViewer.memberUid }
+        ? {
+            onApply: applyFlow.onApply,
+            memberUid: boardViewer.memberUid,
+            /* Literal-first, so the bundler folds the branch: flag off and the
+               rows keep their direct Apply, with `onViewJob` absent rather than
+               present-and-ignored. Nested inside the apply flag because the
+               drawer's whole footer is the apply hand-off. */
+            ...(SHOW_JOB_DETAIL ? { onViewJob: applyFlow.onViewJob } : {}),
+          }
         : undefined,
-    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply],
+    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply, applyFlow.onViewJob],
   );
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned

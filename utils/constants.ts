@@ -90,6 +90,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
   ON_JOB_APPLY_DRAWER_OPENED: 'job-apply-drawer-opened',
+  ON_JOB_DETAIL_OPENED: 'job-detail-opened',
   ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
   ON_JOB_APPLY_SUBMITTED: 'job-apply-submitted',
   ON_JOB_APPLY_FAILED: 'job-apply-failed',
@@ -516,6 +517,20 @@ export const MEMBER_ANALYTICS_EVENTS = {
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_SAVE_CLICKED: 'inline-profile-editor-experience-details-save-clicked',
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_DELETE_CLICKED: 'inline-profile-editor-experience-details-delete-clicked',
   INLINE_PROFILE_EDITOR_EXPERIENCE_DETAILS_EDIT_CLICKED: 'inline-profile-editor-experience-details-edit-clicked',
+
+  /* Filling the Experience section from a CV.
+     One funnel, so the names read as one: opened → parsed (or empty / failed) →
+     saved or cancelled. The two ways a read can come back with nothing are
+     separate events on purpose — "the document had no jobs in it" and "the
+     request didn't come back" are different problems with different fixes, and
+     a single failure event would average them into neither. */
+  CV_IMPORT_OPENED: 'cv-import-opened',
+  CV_IMPORT_PARSE_SUCCEEDED: 'cv-import-parse-succeeded',
+  CV_IMPORT_PARSE_EMPTY: 'cv-import-parse-empty',
+  CV_IMPORT_PARSE_FAILED: 'cv-import-parse-failed',
+  CV_IMPORT_SAVED: 'cv-import-saved',
+  CV_IMPORT_SAVE_FAILED: 'cv-import-save-failed',
+  CV_IMPORT_CANCELLED: 'cv-import-cancelled',
 
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_ADD_CLICKED: 'inline-profile-editor-contribution-details-add-clicked',
   INLINE_PROFILE_EDITOR_CONTRIBUTION_DETAILS_EDIT_CLICKED: 'inline-profile-editor-contribution-details-edit-clicked',

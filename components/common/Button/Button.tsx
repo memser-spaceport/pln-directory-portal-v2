@@ -6,7 +6,7 @@ import s from './Button.module.scss';
 // Full design system for button can be found here
 // https://www.figma.com/design/ajJidFJgQCsS9nzXbq6upe/Design-System-%7C-Protocol-Labs?node-id=13053-5792&m=dev
 
-interface Props extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
+export interface ButtonProps extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
   style?: 'fill' | 'border' | 'link';
   variant?: 'primary' | 'secondary' | 'neutral' | 'error' | 'success' | 'warning' | 'light';
   size?: 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl';
@@ -15,7 +15,7 @@ interface Props extends Omit<HTMLAttributes<HTMLButtonElement>, 'style'> {
   type?: 'button' | 'submit' | 'reset';
 }
 
-export function Button(props: Props) {
+export function Button(props: ButtonProps) {
   const {
     size = 'm',
     style = 'fill',

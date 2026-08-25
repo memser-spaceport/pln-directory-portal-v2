@@ -166,48 +166,25 @@
 }
 
 // Visitor "App Details" action on the footer row; sits above the stretched
-// link like the author link does.
+// link like the author link does. Colors/typography come from the shared
+// Button (border / neutral / xxs).
 .detailsButton {
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
-    border-radius: 26px;
   }
-}
-
-// DS grey pill (TeamCard "stage" tag look) with a leading doc icon and hover.
-.detailsBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: fit-content;
-  padding: 3px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  white-space: nowrap;
-  transition: background 0.15s;
 
   svg {
     flex-shrink: 0;
   }
-}
-
-.detailsButton:hover .detailsBadge {
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }
 
 .nameRow {

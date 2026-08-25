@@ -321,44 +321,21 @@
   flex-shrink: 0;
 }
 
-// Matches AiAppCard's "App Details" button/badge (AiAppCard.module.scss),
-// minus the absolute-positioning bits that only make sense floating over a
-// stretched card link.
-.detailsButton {
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
+// "App Details" action; mirrors AiAppCard's (AiAppCard.module.scss) so the two
+// entry points read the same. Colors/typography come from the shared Button
+// (border / neutral / xxs).
+.topBarBtn {
+  gap: 4px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
 
   &:focus-visible {
     outline: 2px solid var(--foreground-brand-primary, #1b4dff);
     outline-offset: 2px;
-    border-radius: 26px;
   }
-}
-
-.detailsBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: fit-content;
-  padding: 3px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border-neutral-muted, rgba(27, 56, 96, 0.24));
-  background: var(--transparent-dark-2, rgba(14, 15, 17, 0.02));
-  color: var(--foreground-neutral-secondary, #455468);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  white-space: nowrap;
-  transition: background 0.15s;
 
   svg {
     flex-shrink: 0;
   }
-}
-
-.detailsButton:hover .detailsBadge {
-  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
 }

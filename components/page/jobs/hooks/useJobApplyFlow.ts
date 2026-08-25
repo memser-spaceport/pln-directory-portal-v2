@@ -4,7 +4,7 @@ import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 /**
  * A role plus the team that posted it — what the apply flow carries between
@@ -15,6 +15,20 @@ export interface ApplyTarget {
   role: IJobRole;
   teamId: string;
   teamName: string;
+}
+
+/**
+ * What the detail drawer needs on top of an apply target: the team record
+ * itself, for the masthead's logo and focus tags.
+ *
+ * A superset rather than a widening of `ApplyTarget`, so the team is REQUIRED
+ * exactly where it is used and absent everywhere else. Apply never needed it —
+ * the id and the name are all the application carries — and making it optional
+ * on the shared type would let a caller open a drawer with no masthead and find
+ * out at runtime.
+ */
+export interface JobDetailTarget extends ApplyTarget {
+  team: IJobTeam;
 }
 
 /**
@@ -40,7 +54,17 @@ export type ApplyFlowState =
    * ambushing them with the modal later would be the gate refusing to take no.
    */
   | { step: 'drawer'; pendingApply: ApplyTarget | null; coverLetterDraft: string; returnToApply: boolean }
-  | { step: 'apply'; target: ApplyTarget; coverLetterDraft: string };
+  | { step: 'apply'; target: ApplyTarget; coverLetterDraft: string }
+  /**
+   * Reading the job, before deciding anything.
+   *
+   * Carries no draft and no `returnToApply`: this step is upstream of the whole
+   * apply flow rather than a detour inside it, so there is never anything half
+   * written to preserve. Closing it goes back to the board, and pressing Apply
+   * inside it goes wherever `onApply` decides — which is why no transition
+   * returns *to* here.
+   */
+  | { step: 'detail'; target: JobDetailTarget };
 
 type ApplyFlowAction =
   | { type: 'OPEN_SIGN_UP'; target: ApplyTarget | null }
@@ -51,6 +75,8 @@ type ApplyFlowAction =
   | { type: 'CLOSE_DRAWER' }
   | { type: 'OPEN_APPLY'; target: ApplyTarget }
   | { type: 'CLOSE_APPLY' }
+  | { type: 'OPEN_DETAIL'; target: JobDetailTarget }
+  | { type: 'CLOSE_DETAIL' }
   | { type: 'SUBMITTED' };
 
 const IDLE: ApplyFlowState = { step: 'idle' };
@@ -85,6 +111,14 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
       return IDLE;
     case 'OPEN_APPLY':
       return { step: 'apply', target: action.target, coverLetterDraft: '' };
+    case 'OPEN_DETAIL':
+      return { step: 'detail', target: action.target };
+    case 'CLOSE_DETAIL':
+      /* Only from `detail`. Pressing Apply inside the drawer dispatches one of
+         the OPEN_* cases, which replace this step wholesale — so a stray close
+         arriving after that must not knock the sign-up form or the profile
+         drawer back to idle. */
+      return state.step === 'detail' ? IDLE : state;
     case 'CLOSE_APPLY':
     case 'SUBMITTED':
       // Cancelled outright or sent — either way the letter has nothing left to wait for.
@@ -177,6 +211,25 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
     [analytics, applyBase, profileComplete, refreshVerdict, viewer],
   );
 
+  /**
+   * Pressing **View job**, or the role title.
+   *
+   * Deliberately gate-free. Reading a posting is not an act anyone needs an
+   * account for, so this asks nothing and checks nothing — the whole point of
+   * moving Apply behind it is that the decision happens *after* the reading,
+   * and every gate `onApply` runs still runs when Apply is pressed at the
+   * bottom of the panel.
+   */
+  const onViewJob = useCallback(
+    (target: JobDetailTarget) => {
+      analytics.onJobDetailOpened(applyBase(target));
+      dispatch({ type: 'OPEN_DETAIL', target });
+    },
+    [analytics, applyBase],
+  );
+
+  const closeDetail = useCallback(() => dispatch({ type: 'CLOSE_DETAIL' }), []);
+
   /** Sign up from the banner or header — no role, the form goes generic. */
   const onSignUp = useCallback(
     (trigger: Exclude<JobApplyTrigger, 'row'>) => {
@@ -215,6 +268,8 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
   return {
     state,
     onApply,
+    onViewJob,
+    closeDetail,
     onSignUp,
     onUpdateProfile,
     closeSignUp,

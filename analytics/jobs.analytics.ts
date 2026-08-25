@@ -34,7 +34,8 @@ export type JobReferBaseParams = {
  * Privy round trip rather than anything the person pressed. Kept distinct so
  * apply-click counts stay a count of actual clicks.
  */
-export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume';
+/** `detail` is the drawer's own footer — the press that used to live on the row. */
+export type JobApplyTrigger = 'row' | 'banner' | 'header' | 'resume' | 'detail';
 
 /**
  * Apply-funnel payloads carry ONLY what's listed here: uids, viewer state,
@@ -251,6 +252,16 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_FAILED, { ...args });
   };
 
+  /**
+   * The reading step opened — the top of the funnel now that Apply sits behind
+   * it. Against `ON_JOB_APPLY_CLICKED` this is the number that says whether the
+   * extra press is earning its place: opens that never reach an apply are
+   * people the row used to send straight into the flow.
+   */
+  const onJobDetailOpened = (args: JobApplyBaseParams) => {
+    captureEvent(JOBS_ANALYTICS.ON_JOB_DETAIL_OPENED, { ...args });
+  };
+
   const onJobApplyDrawerOpened = (args: JobApplyBaseParams) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_DRAWER_OPENED, { ...args });
   };
@@ -297,6 +308,7 @@ export const useJobsAnalytics = () => {
     onJobApplyClicked,
     onJobApplySignUpSubmitted,
     onJobApplySignUpFailed,
+    onJobDetailOpened,
     onJobApplyDrawerOpened,
     onJobApplyDrawerSaved,
     onJobApplySubmitted,

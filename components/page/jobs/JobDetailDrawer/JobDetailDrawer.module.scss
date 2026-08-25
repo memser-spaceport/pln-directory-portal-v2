@@ -1,0 +1,177 @@
+/* Local layer on top of the reused chrome. Everything structural — the drawer,
+   its header, its 720px column, the white section cards and their grey section
+   titles, the sticky footer — is imported from components that already exist;
+   what is written here is the prose layout production has no component for,
+   because production has never had a job description to lay out.
+
+   Promoted from prototypes/entries/job-board/JobDetailDrawer.module.scss, minus
+   the rules for content that does not exist yet (`.list`, `.subLabel`,
+   `.facts`). Those come back with the ingest that carries them — see
+   `SHOW_JOB_DETAIL`. */
+
+/* --- masthead --------------------------------------------------------------
+   `DetailsSection` is a flex column with no gap (production comments its own
+   `gap: 24px` out and lets each caller space its own contents). The masthead has
+   four stacked parts with three different relationships, so they are spaced
+   individually rather than by one uniform gap — a single number here would say
+   the team, the title, the facts and the stamps are equally related, which is
+   exactly what they are not.
+   -------------------------------------------------------------------------- */
+.masthead {
+  gap: 0;
+}
+
+.teamRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  /* The team is the label above the title, not a peer of it. */
+  margin-bottom: 12px;
+}
+
+/* The board's avatar at 64px is sized for a card header where the team IS the
+   subject. Here the role is, so the mark comes down to 40 and keeps everything
+   else — radius ratio, fill, border — from the imported class. */
+.teamAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.teamInitials {
+  font-size: 12px;
+}
+
+.teamMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* NOT the card's `.teamName` (24px/600). On the board that size is correct —
+   the card is about the team. In this panel the role title is the subject, so
+   the team drops to the same 14px the section titles use; borrowing the card's
+   size would put two 24px headings on one screen. */
+.teamName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 30px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The facts line belongs to the title, so it sits close to it — and further from
+   the stamp row below, which is a different kind of thing (when, and where else
+   to read it). */
+.meta {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+.stampRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* Production's `.relative` is Tailwind slate-400. Same correction the row's
+   stylesheet makes and for the same reason: ambient metadata is the tertiary
+   token, and one grey boundary in a cluster should mean something. Doubled to
+   outrank `.relative`, which is the same specificity. */
+.stampTone.stampTone {
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  svg {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+  }
+}
+
+/* The way out to the team's own ad. A text link, not a button: the panel already
+   has one action and this is the alternative reading, not a second offer.
+
+   While there is no in-app description this is the ONLY way to read the job, so
+   it carries more weight here than the prototype gave it — see the component,
+   which promotes it into the empty state rather than leaving it as a stamp. */
+.postingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+  text-decoration: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: var(--foreground-brand-primary, #1b4dff);
+  }
+}
+
+/* --- prose ---------------------------------------------------------------- */
+
+/* 16px rather than the drawer's 14: this is the only long-form reading surface
+   in the flow, and the rest of the 14px around it is label and field text, read
+   in glances rather than in paragraphs.
+
+   `white-space: pre-line` because `summary` is ingested free text — whatever
+   line breaks the source had are the only structure it carries, and collapsing
+   them would run a bulleted ad into one paragraph. */
+.para {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  white-space: pre-line;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* --- no description ------------------------------------------------------- */
+
+/* What this panel says when the job has no body — which, until the ingest
+   carries one, is every job.
+   It does not apologise and it does not pretend: it names the one place the
+   description does live and sends them there, then leaves Apply in the footer
+   where it was. */
+.emptyBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.emptyLead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

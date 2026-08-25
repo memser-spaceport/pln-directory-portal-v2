@@ -90,6 +90,7 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_SIGNUP_SUBMITTED: 'job-apply-signup-submitted',
   ON_JOB_APPLY_SIGNUP_FAILED: 'job-apply-signup-failed',
   ON_JOB_APPLY_DRAWER_OPENED: 'job-apply-drawer-opened',
+  ON_JOB_DETAIL_OPENED: 'job-detail-opened',
   ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
   ON_JOB_APPLY_SUBMITTED: 'job-apply-submitted',
   ON_JOB_APPLY_FAILED: 'job-apply-failed',

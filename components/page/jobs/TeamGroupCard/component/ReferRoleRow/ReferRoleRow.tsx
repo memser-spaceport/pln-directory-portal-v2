@@ -8,9 +8,9 @@ import { useToggle } from 'react-use';
 import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
-import { useIsRoleApplied } from '@/services/jobs/hooks/useJobApplications';
+import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { jobApplyQueryParams } from './constants';
@@ -36,6 +36,20 @@ export interface RowApplyProps {
   onApply: (target: { role: IJobRole; teamId: string; teamName: string }) => void;
   /** Scopes the applied-map subscription; undefined while logged out. */
   memberUid: string | undefined;
+  /**
+   * Read the job in the app first.
+   *
+   * Presence swaps the row's one button from **Apply** to **View job** and
+   * moves Apply to the bottom of the description it applies to — a row carries
+   * a title, a seniority and a location, which is not enough to decide with, so
+   * pressing Apply from it was pressing send on a job you had not read.
+   *
+   * Optional for the same reason `apply` is: `JobsContent` passes it only when
+   * `SHOW_JOB_DETAIL` is on, so flag-off byte-identity is structural rather
+   * than test-enforced. Absent everywhere without an in-app description — the
+   * team profile keeps its direct Apply.
+   */
+  onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
 
 interface ReferRoleRowProps {
@@ -45,6 +59,15 @@ interface ReferRoleRowProps {
   currentUser: IUserInfo | null;
   /** Which surface this row is rendered on — drives analytics and the outbound utm_medium. */
   source: JobSurface;
+  /**
+   * The full team record, for surfaces that can open the in-app description —
+   * its masthead needs the logo and focus areas that `teamId`/`teamName` cannot
+   * carry. Only the board passes it; the team profile has no detail drawer.
+   *
+   * View job is offered only when this AND `apply.onViewJob` are present, so a
+   * drawer can never be opened without the masthead it renders.
+   */
+  team?: IJobTeam;
   onClick?: () => void;
   apply?: RowApplyProps;
 }
@@ -62,7 +85,7 @@ interface ReferRoleRowProps {
  * same geometry instead of offering again.
  */
 export function ReferRoleRow(props: ReferRoleRowProps) {
-  const { role, teamId, teamName, currentUser, source, onClick, apply } = props;
+  const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
 
   const router = useRouter();
   const analytics = useJobsAnalytics();
@@ -71,7 +94,11 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const inAppApply = Boolean(apply);
   // Per-row subscription to the shared applied map: one application re-renders
   // exactly this row, never the list. Inert (enabled: false) without apply props.
-  const applied = useIsRoleApplied(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
+  const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
+  const applied = Boolean(application);
+  const onViewJob = apply?.onViewJob;
+  /* Both, or neither — see the `team` prop. */
+  const viewJob = onViewJob && team ? () => onViewJob({ role, teamId, teamName, team }) : null;
 
   const { location, seniority, roleTitle, applyUrl, roleCategory } = role;
 
@@ -120,7 +147,17 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     <div className={`${s.root} ${s.row}`}>
       <div className={s.body}>
         <div className={s.titleRow}>
-          {hasApplyUrl ? (
+          {/* The title opens whatever this surface's canonical reading of the
+              job is. With the in-app description on, that is the drawer — so the
+              title and the View job button are one door with two handles. The
+              alternative was a title going somewhere other than the button
+              beside it. Everywhere without an in-app description the title is
+              still the link out, unchanged. */}
+          {viewJob ? (
+            <button type="button" className={`${s.title} ${s.titleLink} ${ap.titleButton}`} onClick={viewJob}>
+              {roleTitle}
+            </button>
+          ) : hasApplyUrl ? (
             <a className={`${s.title} ${s.titleLink}`} {...linkProps}>
               {roleTitle}
             </a>
@@ -135,10 +172,13 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
 
       <div className={`${s.right} ${s.actions}`}>
         {showNew && <span className={`${s.newBadge} ${s.newBadgeDesktop}`}>● New</span>}
-        {relative && (
+        {/* Once applied, the clock reports the application rather than the
+            posting's age — which is what makes a second "Applied" chip in the
+            action slot unnecessary below. */}
+        {(relative || application) && (
           <span className={clsx(s.relative, inAppApply && ap.relativeTone)}>
             <ClockIcon />
-            {relative}
+            {application ? `Applied ${formatRelativeDays(application.appliedAt)}` : relative}
           </span>
         )}
 
@@ -158,11 +198,15 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
           <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
           {hasApplyUrl &&
-            (inAppApply ? (
+            (inAppApply || viewJob ? (
               /* The arrow's job changes when Apply moves in-app: it stays as the
                  link out to the posting — reading the ad and applying are
                  different acts — and survives the applied state. */
-              <a className={`${s.applyArrow} ${ap.arrowTone}`} aria-label={`Open the ${roleTitle} posting`} {...linkProps}>
+              <a
+                className={`${s.applyArrow} ${ap.arrowTone}`}
+                aria-label={`Open the ${roleTitle} posting`}
+                {...linkProps}
+              >
                 <ArrowIcon />
               </a>
             ) : (
@@ -171,7 +215,23 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               </a>
             ))}
 
-          {inAppApply &&
+          {/* The board's one action, once the description moved in-app. Apply is
+              no longer here: the row's job is now the reading step, and Apply
+              sits at the bottom of what it applies to.
+
+              One button in both states, because the applied fact is already in
+              this row — the clock to the left reads "Applied 3d ago" instead of
+              the posting's age. A second report of the same fact, in the slot
+              that used to hold the offer, would only be filling the space the
+              offer left. And having applied is no reason to stop being able to
+              reread the job. The drawer's own footer carries the Applied
+              control, where the offer it replaces is. */}
+          {viewJob ? (
+            <Button size="s" style="fill" variant="primary" className={ap.applyButton} onClick={viewJob}>
+              View job
+            </Button>
+          ) : (
+            inAppApply &&
             (applied ? (
               /* Same slot, same geometry: a row you've applied to must not
                  resize the list around it. `disabled` is the honest semantics —
@@ -197,7 +257,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
               >
                 Apply
               </Button>
-            ))}
+            ))
+          )}
         </div>
       </div>
 

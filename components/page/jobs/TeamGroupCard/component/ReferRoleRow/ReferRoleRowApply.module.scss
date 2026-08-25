@@ -68,3 +68,20 @@
     color: var(--foreground-brand-primary, #1b4dff);
   }
 }
+
+/* The role title as a <button>, once the in-app description makes the drawer the
+   canonical reading of the job.
+   It must be indistinguishable from the <a> it replaces — same text, same slot,
+   same hover — so everything here is undoing the browser's button chrome rather
+   than styling anything. `text-align: left` matters: a button centres its label
+   by default, which would centre a wrapped two-line role title. */
+.titleButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}

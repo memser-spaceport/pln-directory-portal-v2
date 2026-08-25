@@ -10,6 +10,11 @@ jest.mock('@/services/plaa/hooks/useCurrentSnapshotStatus', () => ({
   useCurrentSnapshotStatus: () => mockUseCurrentSnapshotStatus(),
 }));
 
+const mockUseProfileBalance = jest.fn();
+jest.mock('@/services/plaa/hooks/useProfileBalance', () => ({
+  useProfileBalance: () => mockUseProfileBalance(),
+}));
+
 import { useProfileData as useProfileDataDefault } from '@/services/plaa/hooks/useProfileData';
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
@@ -30,6 +35,7 @@ describe('useProfileData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCurrentSnapshotStatus.mockReturnValue({ pointsCollected: 420 });
+    mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: false });
   });
 
   afterEach(() => {
@@ -75,24 +81,55 @@ describe('useProfileData', () => {
     expect(result.current.pointsThisSnapshot).toBe(777);
   });
 
-  it('keeps the PLAA balance and contribution history internally consistent', () => {
+  it('keeps the mocked contribution history internally consistent', () => {
     mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
     const { result } = renderHook(() => useProfileDataDefault());
-    const { balance, contributionHistory, snapshotHistory } = result.current;
+    const { contributionHistory, snapshotHistory } = result.current;
 
-    // balance = sum(activityPlaa) + sum(infra) - sum(redeemed), matching the design's
-    // "PLAA balance = collected - redeemed".
-    const activitiesTotal = snapshotHistory.reduce((sum, e) => sum + e.activityPlaa, 0);
-    const infraTotal = snapshotHistory.reduce((sum, e) => sum + e.infra, 0);
-    expect(balance.activities).toBe(activitiesTotal);
-    expect(balance.infraRewards).toBe(infraTotal);
-    expect(balance.plaaBalance).toBe(activitiesTotal + infraTotal - balance.redeemed);
-
-    // The running balance's final entry must equal the hero's PLAA balance.
-    const lastCum = contributionHistory[contributionHistory.length - 1]?.cum;
-    expect(lastCum).toBe(balance.plaaBalance);
+    // Running balance accumulates activityPlaa + infra - redeemed forward, oldest first.
+    const oldestFirst = [...snapshotHistory].reverse();
+    let expectedCum = 0;
+    oldestFirst.forEach((entry, i) => {
+      expectedCum += entry.activityPlaa + entry.infra - contributionHistory[i].redeemed;
+      expect(contributionHistory[i].cum).toBe(expectedCum);
+    });
 
     // Contribution history is oldest-first, the reverse of snapshot history (newest-first).
     expect(contributionHistory.map((c) => c.period)).toEqual([...snapshotHistory.map((s) => s.period)].reverse());
+  });
+
+  it('wires balance from useProfileBalance and reports balanceStatus "ready", independent of the mocked history', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+    mockUseProfileBalance.mockReturnValue({
+      data: { plaaBalance: 4854, activities: 2297, infraRewards: 2557, redeemed: 0 },
+      isLoading: false,
+    });
+    const { result } = renderHook(() => useProfileDataDefault());
+
+    expect(result.current.balance).toEqual({
+      plaaBalance: 4854,
+      activities: 2297,
+      infraRewards: 2557,
+      redeemed: 0,
+    });
+    expect(result.current.balanceStatus).toBe('ready');
+  });
+
+  it('reports balanceStatus "loading" (not "ready" with a fabricated zero) while the query is in flight', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+    mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: true });
+    const { result } = renderHook(() => useProfileDataDefault());
+
+    expect(result.current.balanceStatus).toBe('loading');
+    expect(result.current.balance).toEqual({ plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 });
+  });
+
+  it('reports balanceStatus "unavailable" (not "ready") once settled with no data — signed out, no synced row, or a failed request', () => {
+    mockUseCurrentUserStore.mockReturnValue({ currentUser: { name: 'Alex Rivera' } });
+    mockUseProfileBalance.mockReturnValue({ data: undefined, isLoading: false });
+    const { result } = renderHook(() => useProfileDataDefault());
+
+    expect(result.current.balanceStatus).toBe('unavailable');
+    expect(result.current.balance).toEqual({ plaaBalance: 0, activities: 0, infraRewards: 0, redeemed: 0 });
   });
 });

@@ -48,7 +48,12 @@ const Profile = () => {
 
   return (
     <div>
-      <ProfileHero identity={data.identity} balance={data.balance} pointsThisSnapshot={data.pointsThisSnapshot} />
+      <ProfileHero
+        identity={data.identity}
+        balance={data.balance}
+        balanceStatus={data.balanceStatus}
+        pointsThisSnapshot={data.pointsThisSnapshot}
+      />
 
       <div className={styles.tabs} role="tablist">
         {PROFILE_TABS.map((tab) => (
@@ -65,7 +70,12 @@ const Profile = () => {
       </div>
 
       {activeTab === 'snapshots' && <SnapshotHistoryTab entries={data.snapshotHistory} />}
-      {activeTab === 'contribution' && <ContributionProfileTab entries={data.contributionHistory} />}
+      {activeTab === 'contribution' && (
+        <ContributionProfileTab
+          entries={data.contributionHistory}
+          currentBalance={data.balanceStatus === 'ready' ? data.balance.plaaBalance : null}
+        />
+      )}
     </div>
   );
 };

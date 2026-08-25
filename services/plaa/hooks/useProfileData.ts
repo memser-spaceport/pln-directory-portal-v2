@@ -1,5 +1,6 @@
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useCurrentSnapshotStatus } from '@/services/plaa/hooks/useCurrentSnapshotStatus';
+import { useProfileBalance } from '@/services/plaa/hooks/useProfileBalance';
 
 export interface ProfileActivityItem {
   category: string;
@@ -49,9 +50,20 @@ export interface ProfileBalance {
   redeemed: number;
 }
 
+/**
+ * 'loading': the balance query is in flight, nothing confirmed yet.
+ * 'ready': a real row was found — `balance` reflects it, safe to show as confirmed.
+ * 'unavailable': settled with no data — signed out, no synced row for this
+ * member yet, or the request failed. Distinct from 'ready' on purpose: a
+ * consumer must not render `balance`'s (zeroed) fields as a confirmed
+ * balance in this state.
+ */
+export type ProfileBalanceStatus = 'loading' | 'ready' | 'unavailable';
+
 export interface ProfileData {
   identity: ProfileIdentity;
   balance: ProfileBalance;
+  balanceStatus: ProfileBalanceStatus;
   /** Points collected so far in the current (open) snapshot — same source as PlaaSnapshotBar. */
   pointsThisSnapshot: number;
   snapshotHistory: SnapshotHistoryEntry[];
@@ -69,8 +81,8 @@ function initialsFrom(name: string): string {
 }
 
 /**
- * TODO(backend): the entire snapshot/contribution history and PLAA balance breakdown
- * below is mocked — there's no per-user history endpoint yet. Real, wireable pieces:
+ * TODO(backend): snapshotHistory/contributionHistory below are still mocked —
+ * there's no per-user history endpoint yet (PLAA-59). Real, wireable pieces:
  *   - identity.name / identity.avatarUrl: already available from `useCurrentUserStore()`
  *     (`currentUser.name` / `currentUser.profileImageUrl`), wired below.
  *   - identity.isOnboarded: proxy for "has a LabOS session" — wired to `currentUser` below;
@@ -79,6 +91,9 @@ function initialsFrom(name: string): string {
  *     override never applies in a production build.
  *   - pointsThisSnapshot: already real via useCurrentSnapshotStatus(), which itself has
  *     its own TODO for connecting to useSnapshotPoints().
+ *   - balance: real via useProfileBalance() (plaa-service's profile_current_balances,
+ *     synced from Airtable's "Profile Page - Current Balances"). Defaults to all-zero
+ *     while loading or signed out.
  *   - identity.isInfraMember: reuse `currentUser.rbac.policies` checked for
  *     `code === 'pl_infra_team_pl_internal'` — the same PL Infra team check
  *     `detectUserGroup()` already does in
@@ -86,9 +101,9 @@ function initialsFrom(name: string): string {
  *     membership, not a PLAA-specific "infra rewards eligible" flag, so confirm
  *     with backend/design that the two are meant to be the same thing before
  *     wiring it — there's no dedicated field for the latter today.
- * Everything else (member-since date, PLAA balance breakdown, snapshotHistory,
- * contributionHistory) needs new backend endpoints — there's no existing
- * per-user PLAA ledger to derive them from.
+ * Everything else (member-since date, snapshotHistory, contributionHistory)
+ * needs new backend endpoints — there's no existing per-user PLAA ledger to
+ * derive them from.
  */
 const MOCK_SNAPSHOT_HISTORY: SnapshotHistoryEntry[] = [
   {
@@ -162,14 +177,12 @@ function buildContributionHistory(snapshotHistory: SnapshotHistoryEntry[]): Cont
 export function useProfileData(): ProfileData {
   const currentUser = useCurrentUserStore((s) => s.currentUser);
   const { pointsCollected } = useCurrentSnapshotStatus();
+  const { data: balanceData, isLoading: isBalanceLoading } = useProfileBalance();
+  const balanceStatus: ProfileBalanceStatus = isBalanceLoading ? 'loading' : balanceData ? 'ready' : 'unavailable';
 
   const name = currentUser?.name || 'Member';
   const snapshotHistory = MOCK_SNAPSHOT_HISTORY;
   const contributionHistory = buildContributionHistory(snapshotHistory);
-
-  const activitiesTotal = contributionHistory.reduce((sum, p) => sum + p.plaa, 0);
-  const infraTotal = contributionHistory.reduce((sum, p) => sum + p.infra, 0);
-  const redeemedTotal = contributionHistory.reduce((sum, p) => sum + p.redeemed, 0);
 
   return {
     identity: {
@@ -185,11 +198,12 @@ export function useProfileData(): ProfileData {
       // instead of this hardcoded mock. Do not introduce a separate PLAA-specific infra flag.
       isInfraMember: true,
     },
+    balanceStatus,
     balance: {
-      plaaBalance: activitiesTotal + infraTotal - redeemedTotal,
-      activities: activitiesTotal,
-      infraRewards: infraTotal,
-      redeemed: redeemedTotal,
+      plaaBalance: balanceData?.plaaBalance ?? 0,
+      activities: balanceData?.activities ?? 0,
+      infraRewards: balanceData?.infraRewards ?? 0,
+      redeemed: balanceData?.redeemed ?? 0,
     },
     pointsThisSnapshot: pointsCollected,
     snapshotHistory,

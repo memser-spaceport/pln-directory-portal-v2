@@ -8,6 +8,14 @@ import styles from './contribution-profile-tab.module.css';
 
 interface ContributionProfileTabProps {
   entries: ContributionHistoryEntry[];
+  /**
+   * The real, confirmed current PLAA balance (same source as the hero
+   * card's balance) — null while not yet confirmed. Deliberately NOT
+   * derived from `entries[entries.length - 1]?.cum`: that's still mocked
+   * history (PLAA-59) and would silently contradict the hero's real number
+   * once the hero was wired to real data.
+   */
+  currentBalance: number | null;
 }
 
 const CHART_WIDTH = 720;
@@ -56,7 +64,7 @@ function buildChart(entries: ContributionHistoryEntry[]) {
   return { grid, bars, dots, line, labels, leftAxisTicks, rightAxisTicks, hoverZones };
 }
 
-export default function ContributionProfileTab({ entries }: ContributionProfileTabProps) {
+export default function ContributionProfileTab({ entries, currentBalance }: ContributionProfileTabProps) {
   const chart = buildChart(entries);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -64,7 +72,6 @@ export default function ContributionProfileTab({ entries }: ContributionProfileT
   const totalPlaa = entries.reduce((sum, p) => sum + p.plaa, 0);
   const totalInfra = entries.reduce((sum, p) => sum + p.infra, 0);
   const totalRedeemed = entries.reduce((sum, p) => sum + p.redeemed, 0);
-  const balanceTotal = entries[entries.length - 1]?.cum ?? 0;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
@@ -223,7 +230,7 @@ export default function ContributionProfileTab({ entries }: ContributionProfileT
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalPlaa.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.secondary}`}>{totalInfra.toLocaleString()}</span>
             <span className={`${styles.footerValue} ${styles.tertiary}`}>{totalRedeemed.toLocaleString()}</span>
-            <span className={styles.balanceChip}>{balanceTotal.toLocaleString()}</span>
+            <span className={styles.balanceChip}>{currentBalance === null ? '—' : currentBalance.toLocaleString()}</span>
           </div>
         </div>
       </div>

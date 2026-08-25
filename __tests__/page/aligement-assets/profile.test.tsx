@@ -31,6 +31,7 @@ import Profile from '@/components/page/aligement-assets/profile/profile';
 const NOT_ONBOARDED_DATA = {
   identity: { isOnboarded: false },
   balance: {},
+  balanceStatus: 'unavailable',
   pointsThisSnapshot: 0,
   snapshotHistory: [],
   contributionHistory: [],
@@ -39,6 +40,7 @@ const NOT_ONBOARDED_DATA = {
 const ONBOARDED_DATA = {
   identity: { isOnboarded: true },
   balance: { plaaBalance: 112, activities: 102, infraRewards: 60, redeemed: 50 },
+  balanceStatus: 'ready',
   pointsThisSnapshot: 420,
   snapshotHistory: [],
   contributionHistory: [],

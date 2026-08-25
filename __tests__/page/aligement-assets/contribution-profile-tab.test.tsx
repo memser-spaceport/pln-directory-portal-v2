@@ -12,7 +12,7 @@ const entries: ContributionHistoryEntry[] = [
 
 describe('ContributionProfileTab', () => {
   it('renders the chart axis labels and every period', () => {
-    render(<ContributionProfileTab entries={entries} />);
+    render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
     expect(screen.getByText('Points and PLAA balance over time')).toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
@@ -21,13 +21,13 @@ describe('ContributionProfileTab', () => {
     expect(screen.getAllByText('Jul 2026')).toHaveLength(2);
   });
 
-  it('renders the contribution history table with a Total to date row summing every column', () => {
-    render(<ContributionProfileTab entries={entries} />);
+  it('renders the contribution history table with a Total to date row summing every mocked column', () => {
+    render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
     expect(screen.getByText('Contribution History')).toBeInTheDocument();
     const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
 
-    // Totals: points 1020, plaa 102, infra 60, redeemed 50, balance = last cum 112.
+    // Points/plaa/infra/redeemed are still mocked history sums (PLAA-59).
     // Scoped to the footer row so chart axis-tick text (which can repeat these same
     // numbers) can't produce false matches.
     expect(within(totalRow).getByText('1,020')).toBeInTheDocument();
@@ -37,8 +37,25 @@ describe('ContributionProfileTab', () => {
     expect(within(totalRow).getByText('112')).toBeInTheDocument();
   });
 
+  it('renders the footer balance from the real currentBalance prop, not the mocked history\'s last cum — the two can legitimately differ until PLAA-59 wires real history', () => {
+    render(<ContributionProfileTab entries={entries} currentBalance={4854} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).getByText('4,854')).toBeInTheDocument();
+    // The mocked history's own last cum (112) must not appear as if it were the balance.
+    expect(within(totalRow).queryByText('112')).not.toBeInTheDocument();
+  });
+
+  it('renders a placeholder, not a fabricated balance, when currentBalance is null (not yet confirmed)', () => {
+    render(<ContributionProfileTab entries={entries} currentBalance={null} />);
+
+    const totalRow = screen.getByText('Total to date').closest('div') as HTMLElement;
+    expect(within(totalRow).queryByText('112')).not.toBeInTheDocument();
+    expect(within(totalRow).queryByText('0')).not.toBeInTheDocument();
+  });
+
   it('renders each bar\'s points value and a numeric scale on both Y axes', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} />);
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
     // Each period's points value renders twice: once as a bar label in the chart,
     // once in its table row — assert the SVG bar label specifically.
@@ -56,7 +73,7 @@ describe('ContributionProfileTab', () => {
   });
 
   it('shows the corresponding PLAA balance when hovering a snapshot bar, hidden otherwise', () => {
-    const { container } = render(<ContributionProfileTab entries={entries} />);
+    const { container } = render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
     const hoverZones = Array.from(container.querySelectorAll('rect[fill="transparent"]'));
     expect(hoverZones).toHaveLength(3);

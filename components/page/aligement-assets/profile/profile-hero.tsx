@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import type { ProfileIdentity, ProfileBalance } from '@/services/plaa/hooks/useProfileData';
+import type { ProfileIdentity, ProfileBalance, ProfileBalanceStatus } from '@/services/plaa/hooks/useProfileData';
 import ChevronIcon from './chevron-icon';
 
 import styles from './profile-hero.module.css';
@@ -14,12 +14,19 @@ const SLIDE_TRANSITION = { duration: 0.2, ease: 'easeOut' } as const;
 interface ProfileHeroProps {
   identity: ProfileIdentity;
   balance: ProfileBalance;
+  balanceStatus: ProfileBalanceStatus;
   pointsThisSnapshot: number;
 }
 
 const balanceSourcesLabel = (expanded: boolean) => (expanded ? 'Hide PLAA balance breakdown' : 'Show PLAA balance breakdown');
 
-export default function ProfileHero({ identity, balance, pointsThisSnapshot }: ProfileHeroProps) {
+/** Never render a number (real or a fabricated 0) under an unconfirmed status — an "unknown" balance must look unknown, not zero. */
+function displayBalanceValue(status: ProfileBalanceStatus, value: number): string {
+  if (status === 'ready') return value.toLocaleString();
+  return status === 'loading' ? '···' : '—';
+}
+
+export default function ProfileHero({ identity, balance, balanceStatus, pointsThisSnapshot }: ProfileHeroProps) {
   const [expanded, setExpanded] = useState(false);
   const [hovering, setHovering] = useState(false);
 
@@ -97,14 +104,18 @@ export default function ProfileHero({ identity, balance, pointsThisSnapshot }: P
           aria-label={balanceSourcesLabel(expanded)}
         >
           <div className={styles.statBlock}>
-            <div className={styles.statValue}>{balance.plaaBalance.toLocaleString()}</div>
+            <div className={styles.statValue}>{displayBalanceValue(balanceStatus, balance.plaaBalance)}</div>
             <div className={styles.statLabel}>PLAA balance</div>
-            <div className={styles.confirmed}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.6-4.4-4.4 1.4-1.4 3 3 6-6 1.4 1.4-7.4 7.4Z" />
-              </svg>
-              Confirmed by Surus
-            </div>
+            {balanceStatus === 'ready' ? (
+              <div className={styles.confirmed}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.6-4.4-4.4 1.4-1.4 3 3 6-6 1.4 1.4-7.4 7.4Z" />
+                </svg>
+                Confirmed by Surus
+              </div>
+            ) : (
+              <div className={styles.confirmed}>{balanceStatus === 'loading' ? 'Loading…' : 'Not yet available'}</div>
+            )}
           </div>
           <span className={`${styles.caret} ${expanded ? styles.caretExpanded : ''}`}>
             {hovering && <span className={styles.tipBubble}>{balanceSourcesLabel(expanded)}</span>}
@@ -123,15 +134,17 @@ export default function ProfileHero({ identity, balance, pointsThisSnapshot }: P
               transition={SLIDE_TRANSITION}
             >
               <span className={styles.breakdownLabel}>Activities</span>
-              <span className={styles.breakdownValue}>{balance.activities.toLocaleString()}</span>
+              <span className={styles.breakdownValue}>{displayBalanceValue(balanceStatus, balance.activities)}</span>
               {identity.isInfraMember && (
                 <>
                   <span className={styles.breakdownLabel}>Infra rewards</span>
-                  <span className={styles.breakdownValue}>{balance.infraRewards.toLocaleString()}</span>
+                  <span className={styles.breakdownValue}>{displayBalanceValue(balanceStatus, balance.infraRewards)}</span>
                 </>
               )}
               <span className={styles.breakdownLabel}>Redeemed</span>
-              <span className={styles.breakdownValue}>&minus;{balance.redeemed.toLocaleString()}</span>
+              <span className={styles.breakdownValue}>
+                {balanceStatus === 'ready' ? `−${balance.redeemed.toLocaleString()}` : displayBalanceValue(balanceStatus, balance.redeemed)}
+              </span>
             </motion.div>
           )}
         </AnimatePresence>

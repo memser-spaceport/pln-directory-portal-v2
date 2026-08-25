@@ -94,11 +94,11 @@ interface CvImportLatest {
  * otherwise leave that spinning forever with only a Cancel that reads as their
  * fault.
  *
- * 1.5s between polls: the work is an S3 write plus a PDF extraction plus an LLM
- * call, so the useful range is seconds not milliseconds, and a tighter loop
- * would spend requests to learn nothing.
+ * 2s between polls, the interval the contract handoff names: the work is an S3
+ * write plus a PDF extraction plus an LLM call, so the useful range is seconds
+ * not milliseconds, and a tighter loop would spend requests to learn nothing.
  */
-const POLL_INTERVAL_MS = 1_500;
+const POLL_INTERVAL_MS = 2_000;
 const PARSE_TIMEOUT_MS = 60_000;
 
 const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>

@@ -60,7 +60,7 @@ beforeEach(() => {
 });
 afterEach(() => jest.useRealTimers());
 
-/** Drains the poll loop's `setTimeout` waits without spending real seconds. */
+/** Drains the poll loop's 2s `setTimeout` waits without spending real seconds. */
 const settle = async (promise: Promise<unknown>) => {
   const result = promise.then(
     (value) => ({ ok: true as const, value }),
@@ -68,7 +68,7 @@ const settle = async (promise: Promise<unknown>) => {
   );
   for (let i = 0; i < 60; i += 1) {
     await Promise.resolve();
-    jest.advanceTimersByTime(1_500);
+    jest.advanceTimersByTime(2_000);
   }
   return result;
 };
@@ -181,7 +181,7 @@ describe('parseCv', () => {
     await Promise.resolve();
     await Promise.resolve();
     controller.abort();
-    jest.advanceTimersByTime(1_500);
+    jest.advanceTimersByTime(2_000);
 
     const outcome = (await settled) as { ok: false; error: CvParseError };
     expect(outcome.error.category).toBe('aborted');

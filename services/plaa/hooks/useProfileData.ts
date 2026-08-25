@@ -9,12 +9,10 @@ export interface ProfileActivityItem {
 }
 
 export interface SnapshotHistoryEntry {
-  /** e.g. "Jul 2026" */
   period: string;
   activities: number;
   categories: number;
   points: number;
-  /** PLAA the period's points converted to at close. */
   activityPlaa: number;
   hasInfra: boolean;
   infra: number;
@@ -26,11 +24,11 @@ export interface SnapshotHistoryEntry {
 export interface ContributionHistoryEntry {
   period: string;
   points: number;
-  /** Activity-derived PLAA for this period alone (matches the same period's SnapshotHistoryEntry.activityPlaa). */
+  /** Matches this period's SnapshotHistoryEntry.activityPlaa. */
   plaa: number;
   infra: number;
   redeemed: number;
-  /** Running PLAA balance after this period. */
+  /** Running balance after this period. */
   cum: number;
 }
 
@@ -50,21 +48,14 @@ export interface ProfileBalance {
   redeemed: number;
 }
 
-/**
- * 'loading': the balance query is in flight, nothing confirmed yet.
- * 'ready': a real row was found — `balance` reflects it, safe to show as confirmed.
- * 'unavailable': settled with no data — signed out, no synced row for this
- * member yet, or the request failed. Distinct from 'ready' on purpose: a
- * consumer must not render `balance`'s (zeroed) fields as a confirmed
- * balance in this state.
- */
+/** 'unavailable' covers signed-out, no synced row yet, or a failed request — kept
+ * distinct from 'ready' so a consumer never renders balance's zeroed fields as confirmed. */
 export type ProfileBalanceStatus = 'loading' | 'ready' | 'unavailable';
 
 export interface ProfileData {
   identity: ProfileIdentity;
   balance: ProfileBalance;
   balanceStatus: ProfileBalanceStatus;
-  /** Points collected so far in the current (open) snapshot — same source as PlaaSnapshotBar. */
   pointsThisSnapshot: number;
   snapshotHistory: SnapshotHistoryEntry[];
   contributionHistory: ContributionHistoryEntry[];
@@ -81,29 +72,12 @@ function initialsFrom(name: string): string {
 }
 
 /**
- * TODO(backend): snapshotHistory/contributionHistory below are still mocked —
- * there's no per-user history endpoint yet (PLAA-59). Real, wireable pieces:
- *   - identity.name / identity.avatarUrl: already available from `useCurrentUserStore()`
- *     (`currentUser.name` / `currentUser.profileImageUrl`), wired below.
- *   - identity.isOnboarded: proxy for "has a LabOS session" — wired to `currentUser` below;
- *     replace with a real PLAA-onboarding flag once one exists. Locally/in preview builds
- *     it's also forced true (IS_DEV) so the page is demoable without logging in — that
- *     override never applies in a production build.
- *   - pointsThisSnapshot: already real via useCurrentSnapshotStatus(), which itself has
- *     its own TODO for connecting to useSnapshotPoints().
- *   - balance: real via useProfileBalance() (plaa-service's profile_current_balances,
- *     synced from Airtable's "Profile Page - Current Balances"). Defaults to all-zero
- *     while loading or signed out.
- *   - identity.isInfraMember: reuse `currentUser.rbac.policies` checked for
- *     `code === 'pl_infra_team_pl_internal'` — the same PL Infra team check
- *     `detectUserGroup()` already does in
- *     `components/page/home/QuickActions/utils/detectUserGroup.ts`. That's team
- *     membership, not a PLAA-specific "infra rewards eligible" flag, so confirm
- *     with backend/design that the two are meant to be the same thing before
- *     wiring it — there's no dedicated field for the latter today.
- * Everything else (member-since date, snapshotHistory, contributionHistory)
- * needs new backend endpoints — there's no existing per-user PLAA ledger to
- * derive them from.
+ * TODO(backend): snapshotHistory/contributionHistory are still mocked — no per-user
+ * history endpoint yet (PLAA-59). identity.isInfraMember is also mocked (true); wire it
+ * to currentUser.rbac.policies checked for code === 'pl_infra_team_pl_internal', the
+ * same check detectUserGroup() does in
+ * components/page/home/QuickActions/utils/detectUserGroup.ts — confirm with
+ * backend/design that team membership is meant to gate infra rewards before wiring it.
  */
 const MOCK_SNAPSHOT_HISTORY: SnapshotHistoryEntry[] = [
   {
@@ -153,11 +127,9 @@ const MOCK_SNAPSHOT_HISTORY: SnapshotHistoryEntry[] = [
   },
 ];
 
-/** Redemptions aren't tied to a specific snapshot's activities, so they're mocked per-period here. */
 const MOCK_REDEMPTIONS_BY_PERIOD: Record<string, number> = { 'Jul 2026': 50 };
 
 function buildContributionHistory(snapshotHistory: SnapshotHistoryEntry[]): ContributionHistoryEntry[] {
-  // Oldest first, so the running balance accumulates forward.
   const oldestFirst = [...snapshotHistory].reverse();
   let cum = 0;
   return oldestFirst.map((entry) => {
@@ -190,13 +162,9 @@ export function useProfileData(): ProfileData {
       initials: initialsFrom(name),
       avatarUrl: currentUser?.profileImageUrl,
       memberSince: 'January 2025',
-      // DEMO: shows the full onboarded profile locally without requiring login.
-      // IS_DEV is always false in a production build, so this never applies there.
+      // IS_DEV-only override, never true in a production build.
       isOnboarded: Boolean(currentUser) || IS_DEV,
-      // TODO(backend): reuse currentUser.rbac.policies (code === 'pl_infra_team_pl_internal'),
-      // the same PL Infra team check detectUserGroup() does — see module doc comment above —
-      // instead of this hardcoded mock. Do not introduce a separate PLAA-specific infra flag.
-      isInfraMember: true,
+      isInfraMember: true, // TODO(backend): mocked, see module doc above.
     },
     balanceStatus,
     balance: {

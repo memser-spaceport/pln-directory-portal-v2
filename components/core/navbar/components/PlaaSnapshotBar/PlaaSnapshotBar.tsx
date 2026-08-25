@@ -9,15 +9,6 @@ import { PlaaSnapshotSummaryModal } from './PlaaSnapshotSummaryModal';
 
 import styles from './PlaaSnapshotBar.module.scss';
 
-/**
- * Persistent "current snapshot" status bar for the PLAA section — period label,
- * days left to contribute, progress through the period, and points collected
- * so far this snapshot. Ported from the Profile.dc.html design's snapshot bar.
- *
- * Purely presentational: all data comes from useCurrentSnapshotStatus(). That
- * hook currently mocks pointsCollected — see its file for how a backend dev
- * wires in the real per-user total.
- */
 export function PlaaSnapshotBar() {
   const pathname = usePathname();
   const [summaryOpen, setSummaryOpen] = useState(false);

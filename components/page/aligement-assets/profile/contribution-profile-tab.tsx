@@ -8,13 +8,8 @@ import styles from './contribution-profile-tab.module.css';
 
 interface ContributionProfileTabProps {
   entries: ContributionHistoryEntry[];
-  /**
-   * The real, confirmed current PLAA balance (same source as the hero
-   * card's balance) — null while not yet confirmed. Deliberately NOT
-   * derived from `entries[entries.length - 1]?.cum`: that's still mocked
-   * history (PLAA-59) and would silently contradict the hero's real number
-   * once the hero was wired to real data.
-   */
+  /** Real balance from the hero card, null while unconfirmed. Not derived from
+   * entries[last].cum, which is still mocked history and would disagree. */
   currentBalance: number | null;
 }
 

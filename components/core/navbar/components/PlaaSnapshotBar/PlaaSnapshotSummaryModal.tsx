@@ -12,18 +12,6 @@ interface PlaaSnapshotSummaryModalProps {
   onClose: () => void;
 }
 
-/**
- * "Snapshot summary · preview" — a preview of how this snapshot is tracking,
- * opened from PlaaSnapshotBar's "Snapshot summary" button. Ported from
- * Profile.dc.html's snapshot-close modal.
- *
- * Deliberately shows no PLAA figure: per that design, an open snapshot only ever
- * shows points collected so far — PLAA is issued at close, at whatever conversion
- * rate is in effect then.
- *
- * All figures come from useCurrentSnapshotStatus(); see that hook for which
- * ones are mocked pending backend integration.
- */
 export function PlaaSnapshotSummaryModal({ isOpen, onClose }: PlaaSnapshotSummaryModalProps) {
   const router = useRouter();
   const { periodLabel, daysLeft, pointsCollected, activitiesCount, categoriesCount, activities } =

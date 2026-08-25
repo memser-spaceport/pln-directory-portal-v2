@@ -13,19 +13,10 @@ interface SnapshotProgressSectionProps {
   tipContent: TipContent;
 }
 
-/**
- * Check if a URL is internal (starts with /)
- */
 function isInternalUrl(url: string): boolean {
   return url.startsWith('/');
 }
 
-/**
- * SnapshotProgressSection - Displays snapshot period progress and tip content
- * @param startDate - Snapshot period start date
- * @param endDate - Snapshot period end date
- * @param tipContent - Tip section content from master JSON
- */
 export default function SnapshotProgressSection({ startDate, endDate, tipContent }: SnapshotProgressSectionProps) {
   const { onSnapshotTipLinkClicked } = useAlignmentAssetsAnalytics();
 
@@ -44,13 +35,11 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
     <>
       <section className="snapshot-section">
         <div className="snapshot-section__container">
-          {/* Header */}
           <div className="snapshot-section__header">
             <h2 className="snapshot-section__title">Total Alignment Asset Points &amp; Tokens Collected by Category</h2>
             <p className="snapshot-section__subtitle">Current Snapshot Period - {dateRangeLabel}</p>
           </div>
 
-          {/* Progress Bar Container */}
           <div className="snapshot-section__progress-container">
             <h3 className="snapshot-section__progress-title">Current Snapshot Period - {dateRangeLabel}</h3>
             
@@ -64,7 +53,6 @@ export default function SnapshotProgressSection({ startDate, endDate, tipContent
             <p className="snapshot-section__progress-text">{timeRemaining}</p>
           </div>
 
-          {/* Tip Info Section */}
           <div className="snapshot-section__tip">
             <div className="snapshot-section__tip-icon">
               <Image src="/icons/rounds/idea.svg" alt="" width={18} height={18} />

@@ -16,8 +16,7 @@ async function fetchCurrentRoundStats(): Promise<RoundStatsResponse | null> {
   }
 }
 
-/** Public, no-auth — the same current-round stats the round pages read, via a
- * server proxy (rounds.service.ts's PLAA_API_URL isn't reachable client-side). */
+/** Goes through /api/plaa/round-stats since PLAA_API_URL isn't reachable client-side. */
 export function useCurrentRoundStats() {
   return useQuery<RoundStatsResponse | null>({
     queryKey: [RoundStatsQueryKeys.CURRENT],

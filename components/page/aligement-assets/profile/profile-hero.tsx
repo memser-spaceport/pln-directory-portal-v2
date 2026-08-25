@@ -20,7 +20,7 @@ interface ProfileHeroProps {
 
 const balanceSourcesLabel = (expanded: boolean) => (expanded ? 'Hide PLAA balance breakdown' : 'Show PLAA balance breakdown');
 
-/** Never render a number (real or a fabricated 0) under an unconfirmed status — an "unknown" balance must look unknown, not zero. */
+/** An unconfirmed balance must look unknown, never a fabricated 0. */
 function displayBalanceValue(status: ProfileBalanceStatus, value: number): string {
   if (status === 'ready') return value.toLocaleString();
   return status === 'loading' ? '···' : '—';

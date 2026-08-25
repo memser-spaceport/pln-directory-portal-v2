@@ -35,7 +35,6 @@ async function fetchProfileBalance(): Promise<ProfileBalanceResponse | null> {
   }
 }
 
-/** Fetches the signed-in user's PLAA balance breakdown for the Profile page hero card. */
 export function useProfileBalance() {
   return useQuery<ProfileBalanceResponse | null>({
     queryKey: [ProfileBalanceQueryKeys.BALANCE],

@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { IMember } from '@/types/members.types';
 import { IUserInfo } from '@/types/shared.types';
 
-import { FormattedMemberExperience, useMemberExperience } from '@/services/members/hooks/useMemberExperience';
+import { FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { EditExperienceForm } from '@/components/page/member-details/ExperienceDetails/components/EditExperienceForm';
 
 import { useMemberContactsAccess } from '@/services/access-control/hooks/useMemberContactsAccess';
@@ -14,19 +14,14 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { useMemberAnalytics } from '@/analytics/members.analytics';
-import { useParseCv } from '@/services/members/hooks/useParseCv';
-import { useApplyCvImport } from '@/services/members/hooks/useApplyCvImport';
-import { CvParseError, type CvImportApplyPayload } from '@/services/members/cv-import.service';
 
 import { ExperienceDetailsView } from './components/ExperienceDetailsView';
 import {
-  experienceKey,
   ExperienceImportPanel,
   ExperienceImportReview,
   formatParsedDates,
+  useCvImport,
   type CvImportControls,
-  type ImportSelection,
-  type ParsedProfile,
 } from './components/ExperienceImport';
 
 import { ViewType } from '@/types/ui';
@@ -45,13 +40,21 @@ interface Props {
   isLoggedIn: boolean;
   userInfo: IUserInfo | null;
   /**
-   * Offer "fill this section from a CV".
+   * Offer "fill this section from a CV" — i.e. **this section is the host**.
    *
    * Off by default, and the member profile page leaves it off: the flag behind
    * this lives in `services/jobs/constants.ts` and the only host that reads it
    * is `JobProfileDrawer`. A prop rather than a flag read in here keeps this
    * section — which is shared with `/members/[id]` — free of a feature gate it
    * doesn't own.
+   *
+   * It is not only the flag. The drawer turns this **off while it is making the
+   * offer itself**, from its own "Start with your CV" card above the header: a
+   * CV fills the required role as well as the history, so on a blank profile the
+   * offer belongs above the questions it answers. One mechanism, two possible
+   * hosts, never both at once — two doors to the same place on one screen is a
+   * choice with no consequence. See `pickCvImportHost`, which answers that once
+   * so this prop and the card above cannot disagree.
    */
   enableCvImport?: boolean;
 }
@@ -60,9 +63,6 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
   const [view, setView] = useState<ExperienceView>('view');
   const [selectedItem, setSelectedItem] = useState<null | FormattedMemberExperience>(null);
 
-  /** What the document said. Held here, not in the panel: this component owns
-   *  which card is open, and the review is a different card from the drop area. */
-  const [parsed, setParsed] = useState<ParsedProfile | null>(null);
   /** A file the header control collected, handed to the panel so it meets the
    *  same size and extension rules as one dropped on the box. */
   const [pickedFile, setPickedFile] = useState<File | null>(null);
@@ -70,19 +70,21 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
   const isOwner = userInfo?.uid === member.id;
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
-  const {
-    onCvImportOpened,
-    onCvImportParseSucceeded,
-    onCvImportParseEmpty,
-    onCvImportParseFailed,
-    onCvImportSaved,
-    onCvImportSaveFailed,
-    onCvImportCancelled,
-  } = useMemberAnalytics();
+  const { onCvImportOpened, onCvImportCancelled } = useMemberAnalytics();
 
-  const { parse, abort } = useParseCv(member.id);
-  const applyImport = useApplyCvImport(member.id);
-  const { data: experiences } = useMemberExperience(member.id);
+  /* The mechanism; this component owns only which card is showing. Shared with
+     the drawer's "Start with your CV" card — see `useCvImport`. */
+  const {
+    parsed,
+    setParsed,
+    parseAndReport,
+    abort,
+    submitImport,
+    currentExperiences,
+    currentRole,
+    hasLocation,
+    currentSkills,
+  } = useCvImport(member);
 
   useMobileNavVisibility(view !== 'view');
 
@@ -91,7 +93,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
     setParsed(null);
     setPickedFile(null);
     setView('view');
-  }, [abort]);
+  }, [abort, setParsed]);
 
   const openAddForm = useCallback(() => {
     abort();
@@ -99,43 +101,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
     setPickedFile(null);
     setSelectedItem(null);
     setView('add');
-  }, [abort]);
-
-  /**
-   * The parse, with the funnel's three outcomes reported around it.
-   *
-   * Wrapping here rather than firing from inside the panel: the promise already
-   * distinguishes all three — resolved with rows, resolved empty, rejected — so
-   * the host can report them without the panel knowing what analytics is, and
-   * without a second copy of "what counts as empty" living in a component.
-   */
-  const parseAndReport = useCallback(
-    async (file: File) => {
-      try {
-        const result = await parse(file);
-        if (result.experiences.length === 0) {
-          onCvImportParseEmpty();
-        } else {
-          onCvImportParseSucceeded({
-            experiences_found: result.experiences.length,
-            skills_found: result.skills?.length ?? 0,
-            has_role: Boolean(result.role?.trim()),
-            has_location: Boolean(result.location?.trim()),
-          });
-        }
-        return result;
-      } catch (error) {
-        /* A cancel is not a failure and has its own event. Everything else is
-           reported by category, so "our parser fell over" and "that file was
-           rejected" stay separable in the funnel. */
-        if (error instanceof CvParseError && error.category !== 'aborted') {
-          onCvImportParseFailed(error.category);
-        }
-        throw error;
-      }
-    },
-    [parse, onCvImportParseEmpty, onCvImportParseSucceeded, onCvImportParseFailed],
-  );
+  }, [abort, setParsed]);
 
   const cvImport: CvImportControls | undefined = useMemo(
     () =>
@@ -156,82 +122,8 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
             onCancelRead: () => onCvImportCancelled('reading'),
           }
         : undefined,
-    [enableCvImport, parseAndReport, abort, openAddForm, onCvImportOpened, onCvImportCancelled],
+    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportOpened, onCvImportCancelled],
   );
-
-  /**
-   * What is already here, in the shape the duplicate rule reads.
-   *
-   * Sliced to 'YYYY-MM' because `experienceKey` compares the two sides
-   * literally, and these are full ISO timestamps while a parse result is a
-   * month. Without the slice nothing would ever match and a re-uploaded CV would
-   * append its whole history a second time — which is the failure the rule
-   * exists to prevent, so it would fail silently and look like it worked.
-   */
-  const currentExperiences = useMemo(
-    () =>
-      /* `Array.isArray`, not `?? []`: this is the only place in the section that
-         calls `.map` on the query's data — the rest read `.length` — so it is
-         the only place a non-array would throw and take the whole section down
-         with it. Which is not hypothetical: the repo's global `useQuery` mock
-         resolves every query to an object. */
-      (Array.isArray(experiences) ? experiences : []).map((item) => ({
-        title: item.title ?? '',
-        company: item.company ?? '',
-        startDate: (item.startDate ?? '').slice(0, 7),
-      })),
-    [experiences],
-  );
-
-  /* The drawer's own gate expression, so "does this profile have a role" gets
-     the same answer here as it does in the footer that blocks applying. */
-  const currentRole = ((member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim()).trim();
-
-  /* Read off the record, never off `parseMemberLocation` — that returns
-     'Unknown' for an empty location, so a string test would say every member
-     already has one. */
-  const hasLocation = Boolean(member.location?.city || member.location?.country || member.location?.metroArea);
-
-  const currentSkills = useMemo(() => (member.skills ?? []).map((skill) => skill.title), [member.skills]);
-
-  const submitImport = async (selection: ImportSelection) => {
-    const payload: CvImportApplyPayload = {
-      role: selection.role,
-      location: selection.location,
-      skills: selection.skills,
-      /* `key` is a React key and was never a record field. This is the one place
-         a proposal becomes something the server stores. */
-      experiences: selection.experiences.map(({ key, ...entry }) => entry),
-    };
-
-    /* Rows the person re-ticked after being told they already had them. A high
-       number here means the duplicate rule is matching things that are not the
-       same job — which is only visible from this side, because the review card
-       never learns whether its labelling was right. */
-    const alreadyHave = new Set(currentExperiences.map(experienceKey));
-    const duplicatesOverridden = selection.experiences.filter((entry) => alreadyHave.has(experienceKey(entry))).length;
-
-    try {
-      /* Awaited, and the rejection is re-thrown: it has to reach the review
-         card, which is the only place that can report it without throwing away
-         the selection. */
-      await applyImport.mutateAsync(payload);
-    } catch (error) {
-      onCvImportSaveFailed({ experiences_selected: selection.experiences.length });
-      throw error;
-    }
-
-    onCvImportSaved({
-      experiences_selected: selection.experiences.length,
-      experiences_offered: parsed?.experiences.length ?? 0,
-      duplicates_overridden: duplicatesOverridden,
-      skills_saved: selection.skills.length,
-      filled_role: selection.role !== '',
-      filled_location: selection.location !== null,
-    });
-
-    closeImport();
-  };
 
   if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {
     return null;
@@ -266,7 +158,13 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
               onCvImportCancelled('review');
               closeImport();
             }}
-            onSubmit={submitImport}
+            /* Closing on the line *after* the await, not inside `submitImport`:
+               a rejected save has to leave this card open with the selection
+               intact so the review can report it. */
+            onSubmit={async (selection) => {
+              await submitImport(selection);
+              closeImport();
+            }}
           />
         ) : (
           <>

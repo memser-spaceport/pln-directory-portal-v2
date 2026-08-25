@@ -15,6 +15,7 @@ import { ContributionsDetails } from '@/components/page/member-details/Contribut
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
+import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
 import { SHOW_CV_IMPORT } from '@/services/jobs/constants';
@@ -23,6 +24,8 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
 import { PendingApprovalSteps } from './PendingApprovalSteps';
+import { CvFirstCard } from './CvFirstCard';
+import { pickCvImportHost } from './cvImportHost';
 
 // Demo Day's profile-completion chrome: the sticky 64px header with its "Back"
 // affordance, and the 720px-max centred content column.
@@ -118,6 +121,39 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
   const hasStatus = jobSearchStatus !== null;
   const complete = hasRole && hasStatus;
 
+  /* The row count the blank test needs. A cache read in practice — the
+     Experience section below issues the same key — but the drawer asks first, so
+     it carries the `enabled` that keeps a closed drawer off the network. */
+  const { data: experienceRows, isLoading: experiencesLoading } = useMemberExperience(memberUid, {
+    enabled: open && !!memberUid,
+  });
+  /* `Array.isArray` rather than `?? []`: the repo's global `useQuery` mock
+     resolves every query to an object, and `.length` on one is `undefined`. */
+  const experienceCount = Array.isArray(experienceRows) ? experienceRows.length : 0;
+
+  /* Set when someone hits a parse dead end in the top card and presses "Add
+     manually" — see `CvImportHostInput.handedOff`. Deliberately not reset on
+     close: someone who said they would type it in should not be met by the same
+     card the next time they open this. */
+  const [handedOff, setHandedOff] = React.useState(false);
+
+  /* `hasLocation` reads the record's own fields rather than
+     `parseMemberLocation`, which returns 'Unknown' for an empty location and
+     would therefore say every member already has one.
+
+     One call, two props: the host is picked once and both the card below and the
+     section's `enableCvImport` read the same answer, so "never both doors" is
+     structural rather than a rule two expressions have to keep agreeing on. */
+  const cvImportHost = pickCvImportHost({
+    enabled: SHOW_CV_IMPORT,
+    hasRole,
+    hasLocation: Boolean(member?.location?.city || member?.location?.country || member?.location?.metroArea),
+    skillCount: (member?.skills ?? []).length,
+    experienceCount,
+    experiencesLoading,
+    handedOff,
+  });
+
   return (
     <Drawer isOpen={open} onClose={onClose}>
       <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
@@ -146,6 +182,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 
         {member && (
           <>
+            {/* 0. Start with a document, while there is nothing to start from.
+                   Above the header card because a CV answers the required role
+                   sitting in it — a control that answers the question below it
+                   belongs above it. Disappears the moment the profile has
+                   anything in it, handing the offer to the Experience section. */}
+            {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+
             {/* 1. The header card — the first required answer (current role)
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
@@ -194,6 +237,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                    section is shared with `/members/[id]`, which does not offer
                    this.
 
+                   This is the other half of the one-host rule: while the card at
+                   the top is making the offer, this section must not make it a
+                   second time. Passing `false` withholds the whole bundle
+                   (`CvImportControls` is optional precisely so "off" is the
+                   absence of it), so the empty row goes back to being
+                   production's plain empty row.
+
                    Note this gates the OFFER, not the bytes: a prop is not an
                    `&&` guard, so the importer's components are imported by
                    `ExperienceDetails` either way and ship in this drawer's
@@ -206,7 +256,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
               userInfo={userInfo}
               member={member}
               isLoggedIn={isLoggedIn}
-              enableCvImport={SHOW_CV_IMPORT}
+              enableCvImport={cvImportHost === 'experience-section'}
             />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
             <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />

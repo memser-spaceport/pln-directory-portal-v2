@@ -6,9 +6,10 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 import { triggerLoader, getParsedValue } from '@/utils/common.utils';
+import { useAuthAnalytics } from '@/analytics/auth.analytics';
 import { useDemoDayAnalytics } from '@/analytics/demoday.analytics';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
-import { DEMO_DAY_ANALYTICS } from '@/utils/constants';
+import { DEMO_DAY_ANALYTICS, PAGE_ROUTES } from '@/utils/constants';
 import { IUserInfo } from '@/types/shared.types';
 import { authEvents, AuthErrorCode, isDemoDayScopePage } from '../../../utils/authEvents';
 import { ModalBase } from '@/components/common/ModalBase';
@@ -83,6 +84,7 @@ export function AuthInvalidUser() {
   const { data: demoDayState } = useGetDemoDayState();
   const [open, toggleOpen] = useToggle(false);
   const { openModal } = useContactSupportStore((s) => s.actions);
+  const analytics = useAuthAnalytics();
 
   const { onAccessDeniedModalShown, onAccessDeniedUserNotWhitelistedModalShown } = useDemoDayAnalytics();
   const reportAnalytics = useReportAnalyticsEvent();
@@ -179,6 +181,33 @@ export function AuthInvalidUser() {
           });
 
           trackDemoDayAccess(userInfo);
+        } else if (errorType === 'email_not_found') {
+          setContent({
+            ...ERROR_CONTENT.email_not_found,
+            submit: {
+              label: 'Sign up',
+              onClick: () => {
+                analytics.onSignUpBtnClicked();
+                handleModalClose();
+                const currentPath = window.location.pathname + window.location.search;
+                const returnTo = encodeURIComponent(currentPath);
+                router.replace(`${PAGE_ROUTES.SIGNUP}?returnTo=${returnTo}`);
+              },
+            },
+            footer: (
+              <div style={{ textAlign: 'center' }}>
+                <Button
+                  style="link"
+                  onClick={() => {
+                    handleModalClose();
+                    openModal({ reason: 'email_not_found' });
+                  }}
+                >
+                  Contact Support
+                </Button>
+              </div>
+            ),
+          });
         } else if (ERROR_CONTENT[errorType]) {
           setContent(ERROR_CONTENT[errorType]);
         }
@@ -201,6 +230,7 @@ export function AuthInvalidUser() {
     handleModalOpen,
     openModal,
     trackDemoDayAccess,
+    analytics,
   ]);
 
   return (

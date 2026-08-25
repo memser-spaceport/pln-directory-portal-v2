@@ -6,7 +6,7 @@
  * **Why this file exists.** The canvas photographs real routes — it never draws a
  * stand-in for a screen — so every state it holds a frame of has to be reachable
  * at a URL. Most of this board's states already are: `?viewer=` picks the entry
- * state, `?profile=1` opens the drawer, `?email=1` opens the email artifact, and
+ * state, `?profile=1` opens the profile editor, `?email=1` opens the email artifact, and
  * the whole filter rail is URL-backed through `useMockJobsFilterStore`. What is
  * NOT reachable is the overlays, because they are parent-held state opened by a
  * press: the sign-up modal, the apply modal, and the beats inside them.
@@ -41,11 +41,14 @@ export interface CanvasStateSpec {
   /** Seeds the entry state first, exactly as the Preview-as switch does. */
   viewer?: BoardViewer;
   /**
-   * Opens the account form. `'generic'` is the header/banner door and carries no
-   * role; `'role'` is Apply-while-logged-out, which names the role in its header
-   * and resumes on it. The two render different copy, so they are two frames.
+   * Opens the account form — the header/banner `Sign up` door.
+   *
+   * A boolean where it was `'generic' | 'role'`. The `'role'` variant pinned
+   * Apply-while-logged-out, which opened this same modal with the job named in
+   * its header; that door is the apply flow's `flow: 'profile'` details step
+   * now, and it is pinned as such. One door, one frame.
    */
-  signUp?: 'generic' | 'role';
+  signUp?: boolean;
   /** Fills the account form, so the frame shows a form with answers in it rather than placeholders. */
   signUpFilled?: boolean;
   /**
@@ -54,12 +57,17 @@ export interface CanvasStateSpec {
    * beat that cannot be faked from outside the form — see `JobSignUpModal`.
    */
   signUpRefused?: boolean;
-  /** Opens the apply modal on a role, which is the profile read-back plus the letter. */
-  apply?: boolean;
+  /**
+   * Opens the apply flow on a role, at the named step.
+   *
+   * One field where there were three (`apply`, `drawer`, and the two together
+   * meaning "the drawer with a role pending"). That combination existed because
+   * the flow was three components and a state had to say which of them was
+   * mounted; there is one now, and a step is the whole answer.
+   */
+  flow?: 'review' | 'profile' | 'application';
   /** Seeds the cover letter, for the difference between an empty letter and a written one. */
   coverLetter?: string;
-  /** Opens the profile drawer. Also reachable as `?profile=1`; here so a state can combine it. */
-  drawer?: boolean;
   /**
    * Opens the Experience card's importer, and pins which beat of it to show.
    *
@@ -100,22 +108,40 @@ const SAMPLE_COVER_LETTER =
  * second way for the two to disagree.
  */
 export const CANVAS_STATES: Record<string, CanvasStateSpec> = {
-  /* The account form, both doors. */
-  'signup-generic': { viewer: 'logged-out', signUp: 'generic' },
-  'signup-on-role': { viewer: 'logged-out', signUp: 'role' },
-  'signup-filled': { viewer: 'logged-out', signUp: 'role', signUpFilled: true },
-  'signup-refused': { viewer: 'logged-out', signUp: 'role', signUpRefused: true },
+  /* The account form's one remaining door: `Sign up`, pressed without a job in
+     hand. (`signup-on-role` is gone — Apply while logged out is a step of the
+     flow now, pinned as `flow-details-*` below.) */
+  'signup-generic': { viewer: 'logged-out', signUp: true },
+  'signup-filled': { viewer: 'logged-out', signUp: true, signUpFilled: true },
+  'signup-refused': { viewer: 'logged-out', signUp: true, signUpRefused: true },
 
-  /* The apply modal. `profile-ready` because a finished profile is what sends
-     Apply straight to the letter — on an empty one the press opens the drawer
-     instead, which is a different frame and already reachable. */
-  'apply-letter-empty': { viewer: 'profile-ready', apply: true },
-  'apply-letter-filled': { viewer: 'profile-ready', apply: true, coverLetter: SAMPLE_COVER_LETTER },
+  /* The flow's first step: the job, read in the app, with Apply under it. The
+     rail above it is the frame's whole point — it is where a reader can see that
+     applying is three named places, and that one of them is already ticked. Two
+     viewers, because the rail and the footer both differ: a finished profile
+     shows step 2 checked and promises one press, an empty one shows it waiting. */
+  'flow-review-ready': { viewer: 'profile-ready', flow: 'review' },
+  'flow-review-incomplete': { viewer: 'profile-incomplete', flow: 'review' },
+  /* And the same first step for someone with no account at all — the frame that
+     shows the rail reading `Review job · Your details · Application`, which is
+     the whole point of folding sign-up into the flow. */
+  'flow-review-logged-out': { viewer: 'logged-out', flow: 'review' },
 
-  /* The drawer, on the way to an application rather than opened from the title
-     line — so it names the role it is holding up, which `?profile=1` alone does
-     not. */
-  'drawer-pending-apply': { viewer: 'profile-incomplete', apply: true, drawer: true },
+  /* Step 2 for a visitor with no account: the details that open one. Two
+     viewers' worth of one position, so the canvas can hold this beside
+     `drawer-pending-apply` and show that the rail keeps its shape either way. */
+  'flow-details-empty': { viewer: 'logged-out', flow: 'profile' },
+
+  /* The last step. `profile-ready` because a finished profile is what sends
+     Apply straight here — on an empty one the press lands on the profile step
+     instead, which is a different frame and pinned below. */
+  'apply-letter-empty': { viewer: 'profile-ready', flow: 'application' },
+  'apply-letter-filled': { viewer: 'profile-ready', flow: 'application', coverLetter: SAMPLE_COVER_LETTER },
+
+  /* The middle step, reached on the way to an application rather than from a
+     banner — so it names the role it is holding up, which `?profile=1` alone
+     does not. */
+  'drawer-pending-apply': { viewer: 'profile-incomplete', flow: 'profile' },
 
   /* Filling the profile from a document. `profile-incomplete` throughout, because
      the importer is only offered while the Experience section is empty — an
@@ -132,22 +158,22 @@ export const CANVAS_STATES: Record<string, CanvasStateSpec> = {
      `import-linkedin`, from when a second door led to this same drop area. */
   'import-reading': {
     viewer: 'profile-incomplete',
-    drawer: true,
+    flow: 'profile',
     import: { open: true, status: 'reading', fileName: 'polina-bublii-cv.pdf' },
   },
   'import-nothing-found': {
     viewer: 'profile-incomplete',
-    drawer: true,
+    flow: 'profile',
     import: { open: true, status: 'nothing-found' },
   },
-  'import-review': { viewer: 'profile-incomplete', drawer: true, import: { scenario: 'three-roles' } },
+  'import-review': { viewer: 'profile-incomplete', flow: 'profile', import: { scenario: 'three-roles' } },
   /* The one parse that cannot be saved as it stands: the record requires a start
      date and this document did not give one. It is a frame rather than an edge
      case because it is the common failure — plenty of CVs write "2021 – present"
      with no month. */
   'import-review-missing-date': {
     viewer: 'profile-incomplete',
-    drawer: true,
+    flow: 'profile',
     import: { scenario: 'missing-date' },
   },
 };

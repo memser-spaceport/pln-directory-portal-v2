@@ -49,10 +49,10 @@ interface JobTeamGroupCardProps {
   newsVariant?: JobCardNewsVariant;
   canRefer?: boolean;
   onReferBlocked?: () => void;
-  /** Handed straight to the row: applying happens in-app, so the board owns the press. */
-  onApply?: (role: IJobRole) => void;
-  /** Same, for the reading step: the description opens in a drawer the board
-   *  owns, over the whole list rather than inside one card. */
+  /** Handed straight to the row: opening a role starts the apply flow, which
+   *  the board owns — one drawer over the whole list rather than one per card.
+   *  (`onApply` used to sit beside this, from when a row could apply directly.
+   *  The row has no such button any more; the flow footer has it.) */
   onViewJob?: (role: IJobRole) => void;
   /** Uids of roles already applied to. */
   appliedRoleUids?: Set<string>;
@@ -71,7 +71,6 @@ export function JobTeamGroupCard({
   newsVariant = 'full',
   canRefer = true,
   onReferBlocked,
-  onApply,
   onViewJob,
   appliedRoleUids,
   appliedAtByRole,
@@ -190,7 +189,6 @@ export function JobTeamGroupCard({
               source="job-board"
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}
-              onApply={onApply}
               onViewJob={onViewJob}
               applied={appliedRoleUids?.has(role.uid) ?? false}
               appliedAt={appliedAtByRole?.get(role.uid)}

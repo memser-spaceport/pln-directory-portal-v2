@@ -260,3 +260,61 @@ export const MOCK_LOCATION_FACETS: IJobsFacetItem[] = [
   { value: 'Lisbon, Portugal', count: 1 },
   { value: 'London, UK', count: 1 },
 ];
+
+/**
+ * Who reads an application, per hiring team.
+ *
+ * **Why this is mocked rather than looked up.** It used to be neither: the apply
+ * flow's facepile and the referral modal's prefill both came from
+ * `useTeamMembers`, which makes two *real* calls to the directory API
+ * (`searchTeamsByName` → `getMembersForProjectForm`). That broke the folder's
+ * first rule — mocked data only, no `services/`, no react-query — and it broke
+ * it in the way that costs the most: `DIRECTORY_API_URL` is inlined at build
+ * time, and the `pln-prototypes` deployment doesn't set it, so on the shared
+ * link every one of those calls resolved to `/prototypes/undefined/v1/teams…`
+ * and 404'd. The facepile renders nothing when the lookup is empty — by design,
+ * because a name that isn't there yet is worse than no name — so the reviewers
+ * the link exists for were the only people who never saw it.
+ *
+ * Names are invented, like every other name on this board (`Lattice Compute`,
+ * `Meridian Labs`). The live lookup returned real directory members, which is
+ * fine for a signed-in member reading their own network and wrong for a mock
+ * anyone can open.
+ *
+ * No `image`: `MemberAvatar` falls back to `getDefaultAvatar(name)`, production's
+ * DiceBear helper, which returns a deterministic data-URI. So these render as
+ * distinct avatars with nothing fetched.
+ *
+ * Two or three each, because that is what a facepile is for — the apply pane caps
+ * at three and counts the rest, and a team of thirty reads as a directory rather
+ * than as the people who will read your letter.
+ */
+export const MOCK_HIRING_TEAMS: Record<string, Array<{ uid: string; name: string; title: string }>> = {
+  'Protocol Labs': [
+    { uid: 'pl-lead-1', name: 'Anneke Roos', title: 'Head of Engineering' },
+    { uid: 'pl-lead-2', name: 'Tomas Ferreira', title: 'Engineering Manager' },
+    { uid: 'pl-lead-3', name: 'Priya Raghavan', title: 'Talent Lead' },
+    { uid: 'pl-lead-4', name: 'Sam Okonkwo', title: 'Principal Engineer' },
+  ],
+  'Filecoin Foundation': [
+    { uid: 'ff-lead-1', name: 'Clara Nystrom', title: 'Ecosystem Director' },
+    { uid: 'ff-lead-2', name: 'Hunter Delacroix', title: 'Head of Programs' },
+    { uid: 'ff-lead-3', name: 'Marta Bellini', title: 'Operations Lead' },
+  ],
+  libp2p: [
+    { uid: 'lp-lead-1', name: 'Jonas Wexler', title: 'Maintainer' },
+    { uid: 'lp-lead-2', name: 'Ines Cardoso', title: 'Core Developer' },
+  ],
+  'IPFS Collective': [
+    { uid: 'ipfs-lead-1', name: 'Dara Osei', title: 'Project Lead' },
+    { uid: 'ipfs-lead-2', name: 'Nils Ahlberg', title: 'Community Lead' },
+  ],
+  drand: [
+    { uid: 'dr-lead-1', name: 'Yuki Tanabe', title: 'Research Lead' },
+    { uid: 'dr-lead-2', name: 'Emil Vasquez', title: 'Protocol Engineer' },
+  ],
+  Bacalhau: [
+    { uid: 'bac-lead-1', name: 'Rosa Lindqvist', title: 'Founding Engineer' },
+    { uid: 'bac-lead-2', name: 'Amir Haddad', title: 'Head of Product' },
+  ],
+};

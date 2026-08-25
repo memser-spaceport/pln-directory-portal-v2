@@ -311,11 +311,14 @@ export const CANVAS: CanvasDeclaration = {
         {
           id: "import-nothing-found",
           label: "Nothing Found in It",
+          /* Narrower than it looks. This is the file that yielded *nothing* — not the far commoner one
+             whose positions defeated the parser but whose skills and headline did not, which now goes
+             to the review instead of here. See `isEmptyParse`. */
           note: "The dead end, which has to offer the way out it took away.",
           route: `${BOARD}?canvas=import-nothing-found`,
           kind: "Importing a history",
           source: ["prototypes/entries/profile-shared/ExperienceImport/ExperienceImportPanel.tsx"],
-          expect: ["find any roles in that file"],
+          expect: ["read details from that file"],
         },
         {
           id: "import-review",

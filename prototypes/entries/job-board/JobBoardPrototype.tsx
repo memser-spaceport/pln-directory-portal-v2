@@ -59,33 +59,84 @@
  *                                            than making it a lie. Once the rail IS narrowed the
  *                                            banner condenses to one line and pins under the header
  *                                            (desktop): the standing offer, still in view.
- *  - JobProfileDrawer     (new)             the profile step, as a right-hand drawer — the same
- *                                            pattern Demo Day uses for investor and founder profile
- *                                            completion (`EditInvestorProfileDrawer`), whose header
- *                                            and content chrome it imports verbatim. Profile
- *                                            completion looks the same everywhere in the product
- *                                            rather than being a job-board invention. **Your current
- *                                            role and the private job-search status are the whole
+ *  - JobApplyFlowDrawer   (new)             **the whole application, in one drawer with a step rail.**
+ *                                            Review job → Your profile → Application, and the last
+ *                                            step's footer button is Apply. This replaced three
+ *                                            surfaces — a description drawer, a profile drawer and a
+ *                                            centred apply modal — that the board handed to each
+ *                                            other through four pieces of state, one of which existed
+ *                                            only to carry a half-written cover letter across the
+ *                                            seams. None of that was visible to the person, which was
+ *                                            the problem: Apply opened an unknown number of dialogs
+ *                                            in an unknown order, and no screen said how many were
+ *                                            left. On mobile it is a page (`fullScreen` + `noBlur`
+ *                                            under 768), which also fixes the 640–767 band where a
+ *                                            720px drawer overflowed the viewport.
+ *                                            **The profile step is skipped, not hidden**: a finished
+ *                                            profile sends Apply straight to the letter, and step 2
+ *                                            carries a check from the first frame — that mark is the
+ *                                            evidence for "nothing to refill", and it gives
+ *                                            `Edit profile` somewhere on screen to go.
+ *                                            **And the visitor with no account walks the same rail.**
+ *                                            Step 2 becomes "Your details" — `JobAccountPane`, the
+ *                                            form that opens the account — and the final Apply opens
+ *                                            it and files the application in one press. Nothing is
+ *                                            created before that press, so abandoning at the letter
+ *                                            costs nothing; the old shape registered you at the end
+ *                                            of a sign-up modal and left an orphan account behind
+ *                                            anyone who changed their mind. Three positions for
+ *                                            everyone, one label that moves.
+ *  - ApplyFlowSteps       (new)             the rail, transcribed from `pl-design-system/components/
+ *                                            Steps` — the DS's own horizontal stepper, which had no
+ *                                            consumer anywhere and cannot be imported because
+ *                                            tsconfig excludes that package. Values 1:1, colour layer
+ *                                            translated to token/fallback pairs. NOT the repo's
+ *                                            dominant vertical dot-and-rail stepper: that one reports
+ *                                            a process running on someone else's clock, this one is a
+ *                                            position in a sequence you are walking.
+ *  - JobDetailPane        (was a drawer)    step 1: the job, read in the app. Description mocked —
+ *                                            production's job records carry no body, which is why the
+ *                                            board has always linked out. That link survives here and
+ *                                            on the row.
+ *  - JobProfilePane       (was a drawer)    step 2: the member profile itself, card for card, on
+ *                                            production's `DetailsSection` chrome. **Your current role
+ *                                            and the private job-search status are the whole
  *                                            requirement**, so they are the first two cards and each
  *                                            marks itself while it is unanswered; experience, project
  *                                            contributions, skills, bio and location refine a read
  *                                            that is already possible without them. Teams was cut —
  *                                            it duplicates an Experience entry's "Team or
- *                                            Organization" field.
- *  - JobApplyModal        (new)             the per-role step: who on the hiring team receives it
- *                                            (an overlapping facepile of the leads, each name linking
- *                                            to their profile), your profile read back so you can see
- *                                            what is being sent — name, the current-role line, its
- *                                            dates and your skills, not the whole history and never
- *                                            the private status — an Edit escape that opens the
- *                                            drawer in place and carries the half-written letter
- *                                            through it, and a required cover letter. The letter is
- *                                            required because without it "one-click apply" would send
- *                                            thirteen identical applications and mean nothing to
- *                                            anyone reading them.
- * GATED: Apply, and only Apply. Not to harvest a login — a one-click application sends the team
- *  your *profile* instead of a form, so there has to be a profile. Nothing on the board is hidden
- *  from a logged-out visitor: every role, every detail, and the posting itself all stay open.
+ *                                            Organization" field. `PendingApprovalSteps`, the vertical
+ *                                            account stepper, has been **deleted**: first it stopped
+ *                                            being rendered (two steppers answering two different
+ *                                            "where am I" questions in one column is worse than one),
+ *                                            then approval stopped gating applying, which left it
+ *                                            describing a wait that holds nothing up. The board still
+ *                                            shows the account story in `PendingApprovalBanner`.
+ *  - JobApplicationPane   (was a modal)     step 3: who on the hiring team receives it (an overlapping
+ *                                            facepile of the leads, each name linking to their
+ *                                            profile), your profile read back so you can see what is
+ *                                            being sent — name, the current-role line, its dates and
+ *                                            your skills, not the whole history and never the private
+ *                                            status — an `Edit profile` escape that is now a step
+ *                                            change rather than a teardown, and a required cover
+ *                                            letter. The letter is required because without it
+ *                                            "one-click apply" would send thirteen identical
+ *                                            applications and mean nothing to anyone reading them.
+ *                                            There is no fourth step confirming the send: the board
+ *                                            behind it flips the row to "Applied".
+ * GATED: nothing, in the sense the word used to mean here. Applying no longer requires an account
+ *  *first* — opening one is step 2 — and it no longer waits on PL approval, which now runs alongside
+ *  and governs the rest of the network rather than this board. What survives is the one rule that
+ *  was always the real one: an application has to carry a complete profile (a current role and an
+ *  answered job search status), because a one-click application sends the team your profile instead
+ *  of a form. A stranger satisfies it in one pane, a member in a card stack, and nobody is refused —
+ *  they are only ever not finished yet. Nothing on the board was ever hidden from a logged-out
+ *  visitor and still isn't: every role, every detail and the posting itself stay open.
+ *  NOTE: this reverses an earlier, carefully-argued rule that a new account must wait for approval
+ *  before applying — three pieces of copy said so. Removing the wait was a product decision, not a
+ *  layout one; if it ever comes back, the copy in `BoardBanners`, `JobSignUpModal`, the flow footer
+ *  and `VIEWER_NOTE` all have to come back with it.
  * SHARED (prototypes/entries/nav-shared/, no registry entry — like follow-shared/):
  *  - PrototypeNavBar + PrototypeMobileNav   copies of the production navbar / bottom bar carrying the
  *                                            proposed **Home** item with an unread dot — first in the
@@ -153,9 +204,7 @@ import { JobTeamGroupCard, type JobCardNewsVariant } from './JobTeamGroupCard';
 import { JobBoardScopeTabs, SCOPE_APPLIED, SCOPE_PARAM } from './JobBoardScopeTabs';
 import { SignInBanner } from './SignInBanner';
 import { ProfileNudgeBanner, PendingApprovalBanner } from './BoardBanners';
-import { JobProfileDrawer } from './JobProfileDrawer';
-import { JobApplyModal } from './JobApplyModal';
-import { JobDetailDrawer } from './JobDetailDrawer';
+import { JobApplyFlowDrawer, type ApplyFlowStepId } from './JobApplyFlowDrawer';
 import { JobSignUpModal, type JobSignUpDetails } from './JobSignUpModal';
 // DELETE WITH: the `design-canvas/` folder.
 import { parseResultFor } from '../profile-shared/ExperienceImport/parseMocks';
@@ -237,9 +286,10 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
 ];
 
 const VIEWER_NOTE: Record<BoardViewer, string> = {
-  'logged-out': 'No account. The banner is the standing offer, and Apply is the ask at the moment of intent.',
+  'logged-out':
+    'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account — with the final Apply creating it and sending the application together.',
   'pending-approval':
-    'Signed up, waiting on the PL team. Browsing is untouched and the profile is editable and saveable — finishing it is the one useful thing the wait allows — but applying is off until the account is approved.',
+    'Signed up, waiting on the PL team. The review is real and the banner says so, but it no longer gates anything here: browsing, the profile and applying all work exactly as they do for an approved member.',
   'profile-incomplete':
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
@@ -369,7 +419,7 @@ export default function JobBoardPrototype() {
         // the tab shows rather than on an empty version of it.
         if (asViewer === 'applied') setApplications(seededApplications());
       }
-      if (q.get('profile') === '1') setDrawerOpen(true);
+      if (q.get('profile') === '1') openProfileEditor();
       /* `?email=1` opens the review surface for the email the hiring team gets
          when someone applies — see `email/ApplicationEmailPreview`. A parameter
          rather than a control on the board, because it is not part of the
@@ -413,18 +463,15 @@ export default function JobBoardPrototype() {
           setProfile(pinned.viewer === 'profile-ready' || pinned.viewer === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
           if (pinned.viewer === 'applied') setApplications(seededApplications());
         }
-        /* One role for every pinned overlay, so the apply modal, the sign-up
-           modal and the drawer all name the same job — three frames of one
-           application rather than three unrelated ones. */
-        const target: ApplyTarget = {
-          role: SAMPLE_ROLE_GROUP.roles[0],
-          teamName: SAMPLE_ROLE_GROUP.team.name,
-        };
-        if (pinned.signUp) setSignUp({ target: pinned.signUp === 'role' ? target : null });
-        if (pinned.coverLetter) setCoverLetterDraft(pinned.coverLetter);
-        if (pinned.apply && pinned.drawer) setPendingApply(target);
-        else if (pinned.apply) setApplyTarget(target);
-        if (pinned.drawer) setDrawerOpen(true);
+        /* One role for every pinned frame, so the sign-up form and every step
+           of the flow name the same job — frames of one application rather than
+           unrelated ones. */
+        const job = { role: SAMPLE_ROLE_GROUP.roles[0], team: SAMPLE_ROLE_GROUP.team };
+        if (pinned.signUp) setSignUp(true);
+        if (pinned.flow) {
+          setFlow({ job });
+          setFlowStep(pinned.flow);
+        }
       }
     } catch {
       /* no search params to read — the board just opens in its default state */
@@ -458,64 +505,52 @@ export default function JobBoardPrototype() {
   const [viewer, setViewer] = useState<BoardViewer>('logged-out');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profile, setProfile] = useState<MemberProfile>(EMPTY_PROFILE);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   /** Signed up, waiting on the PL team. Browsing is fine; applying is not. */
   const isPendingApproval = viewer === 'pending-approval';
 
-  /* The apply flow's two halves.
-   *
-   * `applyTarget` is the role whose modal is open. `pendingApply` is the role
-   * someone pressed Apply on *before* they could — logged out, or signed in with
-   * an incomplete profile — held across the sign-in and the drawer so the flow
-   * resumes where it was interrupted instead of dropping the person back on the
-   * board to find their place again. Losing it is the difference between a gate
-   * and a dead end. */
-  /* The sign-up modal's state, and the role it is carrying if any.
-   *
-   * `null` = closed. `{ target: null }` = open with no role, which is what a
-   * plain **Sign up** press produces — from the header or the banner, where the
-   * person is asking for an account rather than for one particular job.
-   * `{ target }` = open on a role, which is Apply-while-logged-out: filling the
-   * form in IS the sign-up, the same shape Demo Day uses for its investor
-   * application, and the role rides along so the flow can resume on it.
-   *
-   * One state rather than a boolean beside a target, because those two can
-   * disagree — open with a stale role, or a role with the modal shut — and every
-   * such pair eventually does. */
   /* DELETE WITH: the `design-canvas/` folder. Held rather than applied and
      dropped, because two of its fields describe how the sign-up form should
      render (filled in, or refused) rather than what to open — and the form is
      mounted below, not here. */
   const [canvasPin, setCanvasPin] = useState<CanvasStateSpec | null>(null);
 
-  const [signUp, setSignUp] = useState<{ target: ApplyTarget | null } | null>(null);
-  const signUpTarget = signUp?.target ?? null;
-  const [applyTarget, setApplyTarget] = useState<ApplyTarget | null>(null);
-  const [pendingApply, setPendingApply] = useState<ApplyTarget | null>(null);
-
-  /* The role whose description is open, with the team that posted it — the
-     drawer names the team and links to its profile, so it needs the record and
-     not just the name.
-
-     Like `applyTarget`, the object doubles as the open flag: there is no such
-     thing as this drawer without a role. */
-  const [viewJob, setViewJob] = useState<{ role: IJobRole; team: IJobTeam } | null>(null);
-
-  /* The cover letter, held only while the apply modal is *not* on screen.
+  /* A plain boolean now.
    *
-   * Pressing "Edit profile" mid-letter closes the modal and opens the drawer, so
-   * without this the letter would be gone by the time the drawer saved and the
-   * modal came back — and losing someone's writing to a detour they took at our
-   * suggestion is the kind of thing that stops people trusting a form. It lives
-   * here rather than in the modal because the modal unmounts its form state on
-   * close; the parent is what survives the round trip.
+   * It used to be `{ target: ApplyTarget | null } | null`, because this modal had
+   * two doors and the role-carrying one had to name the job it came from. That
+   * door is the apply flow's details step now, so every press that reaches this
+   * modal is the role-less one — and a nullable object whose only field is always
+   * null is just a boolean with a place for a bug to live. */
+  const [signUp, setSignUp] = useState(false);
+
+  /* The apply flow: which job, and where in it.
    *
-   * Cleared whenever the trip ends for any reason other than coming back:
-   * submitting, cancelling the modal, or abandoning the drawer. A letter is
-   * written for one role, so it must never turn up pre-filled under a different
-   * one. */
-  const [coverLetterDraft, setCoverLetterDraft] = useState('');
+   * **This is what four pieces of state collapsed into.** There used to be
+   * `viewJob` (the description drawer), `pendingApply` (a role someone pressed
+   * Apply on before they could), `applyTarget` (the modal's role) and
+   * `coverLetterDraft` — a string the board held purely so it could survive the
+   * modal being torn down and rebuilt around a drawer. Three of those existed
+   * because the flow was three surfaces; the fourth existed because moving
+   * between them destroyed component state. One drawer with a step needs neither:
+   * the role is the flow, the step is where you are, and the letter lives inside
+   * the drawer that never closes.
+   *
+   * The object doubles as the open flag — there is no such thing as this flow
+   * `null` is closed. `job: null` is the one case that isn't an application at
+   * all: the banners' "Update profile", which edits the record with no role in
+   * mind. It opens the same drawer on the same profile step and simply draws no
+   * rail — a position indicator for a journey nobody is on would be inventing a
+   * flow to justify a component. */
+  const [flow, setFlow] = useState<{ job: { role: IJobRole; team: IJobTeam } | null } | null>(null);
+  const [flowStep, setFlowStep] = useState<ApplyFlowStepId>('review');
+  const flowJob = flow?.job ?? null;
+
+  /** Opens the profile on its own, with nothing pending — the banners' route. */
+  const openProfileEditor = () => {
+    setFlow({ job: null });
+    setFlowStep('profile');
+  };
 
   /** Review surface for the application email — opened by `?email=1`, never by
    *  anything on the board. See the mount effect. */
@@ -628,10 +663,13 @@ export default function JobBoardPrototype() {
       /* sessionStorage unavailable — the replay is a nicety, not a requirement */
     }
     setIsLoggedIn(true);
-    /* Straight into the drawer when the sign-in was asked for by something that
+    /* Straight into the profile when the sign-in was asked for by something that
        promised one-click applying — the profile is what makes that promise true,
-       so stopping at a signed-in board would leave the sentence unfinished. */
-    if (openProfile && !isProfileComplete(profile)) setDrawerOpen(true);
+       so stopping at a signed-in board would leave the sentence unfinished.
+
+       If a flow is already open this leaves it alone: the flow knows which job
+       it is about and where in itself it is, and this doesn't. */
+    if (openProfile && !isProfileComplete(profile) && !flow) openProfileEditor();
   };
 
   /* Passed to onClick handlers, so it takes no arguments — a bare `signIn` would
@@ -647,16 +685,16 @@ export default function JobBoardPrototype() {
    * It used to be an alias for `signIn`, on the argument that a brand-new
    * account and this prototype's empty signed-in viewer both land on the same
    * empty drawer, so splitting them would invent a difference the mock can't
-   * have. That was true only while sign-up had nothing of its own to show. It
-   * does now: `JobSignUpModal` is the form that creates the account, and it is
-   * already what Apply opens for a logged-out visitor. Sending the header and
-   * banner buttons somewhere else meant the board had two answers to "how do I
-   * get an account", one of which quietly skipped the form.
+   * have. That was true only while sign-up had nothing of its own to show.
+   * `JobSignUpModal` is that form.
    *
-   * No role — see the state's own note. The modal goes generic, and because
-   * submitting it lands the person in pending-approval, the sign-up door now
-   * shows the real consequence of signing up rather than a shortcut past it. */
-  const onSignUp = () => setSignUp({ target: null });
+   * **The only door left into this modal.** Applying from a role used to open it
+   * too; that case is the apply flow's own details step now, which is why the
+   * state below is a plain boolean and the modal no longer takes a role. What
+   * remains is the person who wants an account before they have picked a job —
+   * the header and banner `Sign up` presses — and for them the generic form is
+   * exactly right. */
+  const onSignUp = () => setSignUp(true);
 
   /** Which team posted a role. The card hands the row only the role, so the team
    *  is recovered here rather than threaded through two components that have no
@@ -664,67 +702,64 @@ export default function JobBoardPrototype() {
   const teamForRole = (role: IJobRole): IJobTeam | null =>
     MOCK_JOB_GROUPS.find((g) => g.roles.some((r) => r.uid === role.uid))?.team ?? null;
 
-  const teamNameForRole = (role: IJobRole): string => teamForRole(role)?.name ?? '';
-
   /**
-   * Pressing **View job**, or the role title.
+   * Pressing **View job**, or the role title — which is now the board's only
+   * door into the apply flow, and opens it on its first step.
    *
    * Ungated on purpose, in every viewer state. Reading a posting is browsing,
    * and nothing on this board has ever been hidden from a logged-out visitor —
    * the gate sits on the moment something is sent on someone's behalf, which is
-   * the Apply inside this drawer, not the door to it.
+   * the Apply in the flow's footer, not the door to it.
    */
   const onViewJob = (role: IJobRole) => {
     const team = teamForRole(role);
-    if (team) setViewJob({ role, team });
+    if (!team) return;
+    setFlow({ job: { role, team } });
+    setFlowStep('review');
   };
 
   /**
-   * Pressing Apply. One entry point, three outcomes, and the role is carried
-   * through all of them — whatever is missing gets asked for, and then the
-   * application resumes. The person never has to find their way back to the row.
+   * Apply pressed by someone with no account.
+   *
+   * Not a sign-in prompt. Demo Day answers this exact moment with an application
+   * form whose submission creates the account, and defers real authentication to
+   * a later step — so the ask is for the details we need anyway, not for a
+   * password before anything has been offered.
+   *
+   * The flow stays open underneath (`Modal` is z-index 9999 against `Drawer`'s
+   * 10). The old flow closed the drawer on the way through, because the next
+   * surface was another drawer and two would have stacked; there is only one
+   * now, and leaving it up is what makes **Cancel** cheap — the person lands
+   * back on the job they were reading, on the step they pressed from, instead of
+   * somewhere up the board hunting for their place.
+   *
+   * Not, note, so they can *see* the job behind the form: `Modal`'s overlay
+   * carries `backdrop-filter: blur(15px)` and the drawer behind it is a smear.
+   * The value is where Cancel returns you, which is true whatever the backdrop
+   * does.
+   *
+   * **The branching that used to live here is gone.** `onApply` was the board's
+   * one entry point with three outcomes — sign up, profile, letter — because
+   * three separate surfaces had to be chosen between. The flow's footer makes
+   * that choice now, next to the button that triggers it, and this is the single
+   * outcome the board still owns: the one that opens something outside the
+   * drawer.
    */
-  const onApply = (role: IJobRole) => {
-    const target: ApplyTarget = { role, teamName: teamNameForRole(role) };
+  /* (`onRequireAccount` lived here — Apply pressed with no account, which opened
+     `JobSignUpModal` over the flow drawer. There is no such moment any more: the
+     account is step 2 of the flow, so pressing Apply logged out advances the
+     rail like it does for everyone else. The modal survives only for the
+     role-less `Sign up` door in the header and the banner.) */
 
-    if (!isLoggedIn) {
-      /* Not a sign-in prompt. Demo Day answers this exact moment with an
-         application form whose submission creates the account, and defers real
-         authentication to a later step — so the ask is for the details we need
-         anyway, not for a password before anything has been offered. */
-      setSignUp({ target });
-      return;
-    }
+  /* Filling in the form is the sign-up, for the one door that still opens this
+     modal: **Sign up** with no role in hand. The account exists from here on and
+     lands where a brand-new account lands — waiting on the PL team — which is
+     now a fact about the account rather than a hold on the board.
 
-    /* A finished profile goes straight to the letter.
-
-       For a while every Apply press went through the drawer first, including
-       this case, on the argument that the drawer is the last place an
-       application is legible before it's sent. It isn't — the apply modal is,
-       and it reads the same profile back. So the stack was being shown twice:
-       once as a full-height drawer nobody needed to touch, and then again, one
-       press of `Continue to apply` later, as the panel at the top of the modal.
-       A confirmation step whose only content is repeated by the next screen is a
-       press charged for nothing. The modal's read-back plus its `Edit profile`
-       link cover the "glance before sending" case at a fraction of the cost.
-
-       Pending members still land in the drawer, because for them the drawer is
-       the explanation — the stepper says where they are, the footer says what is
-       waiting, and answering an Apply press with a silent no-op would leave the
-       button looking broken. */
-    if (isProfileComplete(profile) && !isPendingApproval) {
-      setApplyTarget(target);
-      return;
-    }
-
-    setPendingApply(target);
-    setDrawerOpen(true);
-  };
-
-  /* Filling in the form is the sign-up. The account exists from here on, and it
-     lands where a brand-new account actually lands: waiting on the PL team. The
-     role they pressed is kept, so the moment approval lands they resume on it
-     rather than having to find it again.
+     No flow to resume. This door is pressed by someone who has not picked a job,
+     so there is nothing to advance to; they land on the signed-in board and the
+     pending banner picks up from there. The role-carrying door used to end here
+     too, and it is the apply flow's own details step now.
 
      Nothing is persisted beyond the session — this is a mock — but the details
      do seed the profile, because a sign-up that asked for a role and then showed
@@ -737,23 +772,29 @@ export default function JobBoardPrototype() {
        field on that form spent someone's attention and returned nothing. It is
        a profile link, not an import source; see the note on `MemberProfile`. */
     setProfile({ ...EMPTY_PROFILE, role: details.role, linkedin: details.linkedin.trim() });
-    setPendingApply(signUpTarget);
-    setSignUp(null);
-    setDrawerOpen(true);
-    toast.success(`Account created for ${details.email}. The PL team reviews new accounts before you can apply.`);
+    setSignUp(false);
+    /* Says what happened and what is still running, without the clause that used
+       to follow it ("before you can apply"), which described a gate the board no
+       longer has. */
+    toast.success(`Account created for ${details.email}. The PL team reviews new accounts in the background.`);
   };
 
   /* The escape for people who already have an account. Straight to the signed-in
-     board with the profile step still ahead of them — they are not a new account,
-     so nothing is pending. */
+     board — they are not a new account, so nothing is pending. */
   const onSignUpModalSignIn = () => {
-    const target = signUpTarget;
-    setSignUp(null);
+    setSignUp(false);
     setViewer('profile-incomplete');
-    setPendingApply(target);
-    signIn(true);
+    signIn(false);
   };
 
+  /**
+   * The profile step's work, committed.
+   *
+   * **No longer "persist and resume".** It used to close the drawer and, when a
+   * role was pending, open the apply modal on it — because saving was the only
+   * moment the board could hand someone from one surface to the next. The flow
+   * moves itself now, so this does exactly what its name says and nothing else.
+   */
   const onSaveProfile = (next: MemberProfile) => {
     /* The stash has done its job. Left behind it would replay on the next load
        and re-narrow the rail for someone who had finished with it — a filter
@@ -764,69 +805,91 @@ export default function JobBoardPrototype() {
       /* nothing to clean up if storage is unavailable */
     }
     setProfile(next);
-    setDrawerOpen(false);
 
-    /* Resume. The drawer was a detour, so its exit is the thing the person was
-       doing when they were interrupted — not a "profile saved" dead end with the
-       role they wanted somewhere back up the page. */
-    if (pendingApply) {
-      setApplyTarget(pendingApply);
-      setPendingApply(null);
-      return;
-    }
-
-    /* No pending role: this was an edit, so a toast is the whole report. It says
-       what the profile now reads rather than "Saved", because what changed is
-       what hiring teams will see — production's `toast`, mounted app-wide, same
-       shell as every other confirmation in the product.
-
-       Unless there's nothing to read back: experience is optional now, so a
-       profile can be saved with only a job search status in it, and quoting an
-       empty summary would produce "Applications will read .". */
+    /* A receipt, but only where there is nothing else to serve as one.
+     *
+     * Inside an application the step change IS the receipt — the rail ticks the
+     * profile and the letter appears — so a toast on top of that would be a
+     * third report of one event. Opened from a banner there is no next step: the
+     * flow just closes, and without this the press would look like it did
+     * nothing. It says what the profile now *reads* rather than "Saved", because
+     * what changed is what hiring teams will see.
+     *
+     * Unless there is nothing to read back: experience is optional, so a profile
+     * can be saved with only a role and a status in it, and quoting an empty
+     * summary would produce "Applications will read .". */
+    if (flowJob) return;
     const summary = summariseProfile(next);
     toast.success(summary ? `Profile saved. Applications will read ${summary}.` : 'Profile saved.');
   };
 
-  /* The drawer closed without saving. Whatever was pending is dropped — a person
-     who backed out of the profile step has not applied, and holding the role to
-     ambush them with the modal later would be the gate refusing to take no. */
-  const onCloseDrawer = () => {
-    setDrawerOpen(false);
-    setPendingApply(null);
-    /* The application is over, so the letter goes with it. Keeping it would mean
-       a draft written for one role sitting in wait for the next Apply press. */
-    setCoverLetterDraft('');
+  /**
+   * The flow closed — from the first step's Back, from the ✕, from Escape or the
+   * overlay.
+   *
+   * Nothing is held for later. A person who backed out has not applied, and
+   * keeping the role to ambush them with the application later would be the gate
+   * refusing to take no. The letter goes with it, inside the drawer that held it:
+   * a draft written for one role must never turn up pre-filled under another.
+   */
+  const onCloseFlow = () => {
+    setFlow(null);
+    setFlowStep('review');
   };
 
   /**
-   * "Edit profile", pressed from inside the apply modal.
+   * The last press of the flow, and for a visitor with no account it is two acts
+   * in one: the account opens and the application goes, together.
    *
-   * Closes the modal, opens the drawer on this page, and keeps the role pending
-   * so `onSaveProfile` brings the modal straight back. The letter comes along as
-   * an argument rather than being read out of the modal afterwards — by the time
-   * this runs the modal is on its way to unmounting, and its form state with it.
+   * **Why they are not two presses.** The old shape registered you at the end of
+   * the sign-up modal and then asked you to apply afterwards — which meant
+   * abandoning at the letter left an account behind with nothing attached to it,
+   * and a pending review standing between the person and the role they had come
+   * for. Doing both here means the flow either completes or costs nothing.
+   * `ApplyForDemoDayModal` files an investor application the same way: one call
+   * that returns `{ memberUid, isNewMember }`.
+   *
+   * The application is sent, not held. PL review no longer gates applying — it
+   * runs alongside, and governs the rest of the network rather than this board.
    */
-  const onEditProfileFromApply = (coverLetter: string) => {
-    setCoverLetterDraft(coverLetter);
-    setPendingApply(applyTarget);
-    setApplyTarget(null);
-    setDrawerOpen(true);
-  };
+  const onSubmitApplication = (
+    coverLetter: string,
+    newAccount?: { details: JobSignUpDetails; profile: MemberProfile },
+  ) => {
+    if (!flowJob) return;
+    const { role, team } = flowJob;
 
-  const onSubmitApplication = (coverLetter: string) => {
-    if (!applyTarget) return;
-    const { role, teamName } = applyTarget;
+    if (newAccount) {
+      /* The account, from the details step. `pending-approval` because that is
+         genuinely where a brand-new account lands — the review is real — but it
+         no longer stops anything on this board, so the application below goes
+         out regardless.
+
+         The profile is the flow's own draft, seeded rather than rebuilt: it
+         already holds the role and LinkedIn from the form *and* the job search
+         status, which is a profile answer the account form has no field for. */
+      setViewer('pending-approval');
+      setIsLoggedIn(true);
+      setProfile(newAccount.profile);
+    }
 
     setApplications((prev) => new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString() }));
-    setApplyTarget(null);
-    /* Sent, so there is nothing left to preserve. */
-    setCoverLetterDraft('');
+    onCloseFlow();
 
-    /* The board behind the modal already flips this role's button to "Applied",
+    /* The board behind the flow already flips this role's button to "Applied",
        so the toast doesn't repeat that. What it adds is the part the board can't
        show: who has it now, and that the profile went with the note rather than
-       the note alone — which is the promise the whole flow was built on. */
-    toast.success(`Applied to ${role.roleTitle} at ${teamName}. Your profile went with your note.`);
+       the note alone — which is the promise the whole flow was built on.
+
+       For a new account it leads with the account instead, because that is the
+       fact the person cannot see anywhere on the board behind it — the row they
+       can. Still one sentence: two toasts for one press would report a single
+       act as two events. */
+    toast.success(
+      newAccount
+        ? `Account created for ${newAccount.details.email}, and your application is with ${team.name}.`
+        : `Applied to ${role.roleTitle} at ${team.name}. Your profile went with your note.`,
+    );
   };
 
   /* PL Infra is a signed-in-only slot, so choosing that viewer has to sign the
@@ -842,10 +905,7 @@ export default function JobBoardPrototype() {
     /* `applied` is `profile-ready` plus a history: same finished profile, because
        you cannot have applied without one. */
     setProfile(next === 'profile-ready' || next === 'applied' ? FILLED_PROFILE : EMPTY_PROFILE);
-    setDrawerOpen(false);
-    setApplyTarget(null);
-    setPendingApply(null);
-    setViewJob(null);
+    onCloseFlow();
     setApplications(next === 'applied' ? seededApplications() : new Map());
   };
 
@@ -972,22 +1032,24 @@ export default function JobBoardPrototype() {
       )}
 
       {/* Signed in, nothing filled in. Same slot, same card, one word of the ask
-          changed: the account exists, so what stands between them and applying is
-          the profile. Not shown to a pending member — telling someone to finish a
-          profile so they can apply, while approval is the thing actually blocking
-          them, would be pointing at the wrong obstacle. */}
+          changed: the account exists, so what is left to do is the profile.
+
+          Still not shown to a pending member, but for a different reason than it
+          used to be. The old one was that approval was the real obstacle, so
+          naming the profile would point at the wrong thing; approval blocks
+          nothing now. The reason that survives is simpler — `PendingApprovalBanner`
+          already makes exactly this ask, with the same button, for exactly this
+          person. Two banners in one slot saying "finish your profile" is one ask
+          rendered twice. */}
       {isLoggedIn && !isPendingApproval && !isProfileComplete(profile) && (
-        <ProfileNudgeBanner onUpdateProfile={() => setDrawerOpen(true)} />
+        <ProfileNudgeBanner onUpdateProfile={openProfileEditor} />
       )}
 
       {/* Signed up, waiting. The board is untouched underneath; this says where
           they are and — while there's still profile left to fill in — hands back
           the one move that is theirs. */}
       {isPendingApproval && (
-        <PendingApprovalBanner
-          profileComplete={isProfileComplete(profile)}
-          onUpdateProfile={() => setDrawerOpen(true)}
-        />
+        <PendingApprovalBanner profileComplete={isProfileComplete(profile)} onUpdateProfile={openProfileEditor} />
       )}
 
       {/* Mobile (< 1024): title + the "⊕ Filters" / sort trigger (desktop toolbar is hidden here). */}
@@ -1049,7 +1111,6 @@ export default function JobBoardPrototype() {
               newsVariant={NEWS_VARIANT}
               canRefer={isLoggedIn}
               onReferBlocked={onSignIn}
-              onApply={onApply}
               onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}
@@ -1101,37 +1162,29 @@ export default function JobBoardPrototype() {
       {reviewControls}
       <DashboardPagesLayout filters={<JobBoardFilterView />} content={content} />
 
-      {/* The reading step, and the board's first stop now. It carries Apply at
-          the bottom of the description rather than in the row — see the note on
-          the row's button — and hands the press back to `onApply`, so all four
-          viewer states branch in exactly one place. */}
-      <JobDetailDrawer
-        open={!!viewJob}
-        onClose={() => setViewJob(null)}
-        role={viewJob?.role ?? null}
-        team={viewJob?.team ?? null}
-        onApply={onApply}
-        applied={viewJob ? appliedRoleUids.has(viewJob.role.uid) : false}
-        appliedAt={viewJob ? appliedAtByRole.get(viewJob.role.uid) : undefined}
-        pendingApproval={isPendingApproval}
-        loggedIn={isLoggedIn}
-      />
-
-      {/* The profile step. `pendingRoleTitle` is what makes the drawer explain
-          itself: opened on the way to an application it names the role it's
-          holding up, and opened from the title line it doesn't, because there is
-          nothing waiting. */}
-      <JobProfileDrawer
-        open={drawerOpen}
-        onClose={onCloseDrawer}
+      {/* The whole application, in one drawer: read the job, fill in what it
+          needs, write the note, apply. Three components used to stand here — a
+          detail drawer, a profile drawer and a centred apply modal — each with
+          its own header and footer, handed to each other by four pieces of board
+          state. See the note at the top of `JobApplyFlowDrawer`. */}
+      <JobApplyFlowDrawer
+        open={!!flow}
+        onClose={onCloseFlow}
+        role={flowJob?.role ?? null}
+        team={flowJob?.team ?? null}
+        step={flowStep}
+        onStepChange={setFlowStep}
         profile={profile}
-        pendingRoleTitle={pendingApply?.role.roleTitle ?? null}
+        onSaveProfile={onSaveProfile}
+        onSubmitApplication={onSubmitApplication}
+        loggedIn={isLoggedIn}
         pendingApproval={isPendingApproval}
-        onSave={onSaveProfile}
+        applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
+        appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}
         /* DELETE WITH: the `design-canvas/` folder. The importer's beats live in
            component state; see `canvasStates.ts`. A `scenario` is turned into the
-           parse it names here, so the drawer receives the same record the real
-           reader would have resolved to. */
+           parse it names here, so the profile step receives the same record the
+           real reader would have resolved to. */
         canvasImport={
           canvasPin?.import
             ? {
@@ -1144,46 +1197,26 @@ export default function JobBoardPrototype() {
               }
             : undefined
         }
+        // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
+        canvasCoverLetter={canvasPin?.coverLetter}
       />
 
-      {/* The account form, reached two ways: pressing Apply while logged out
-          (which carries the role, so the modal names it and the flow resumes on
-          it), and pressing Sign up in the header or the banner (which carries
-          nothing, and gets the generic header).
+      {/* The account form, now reached exactly one way: pressing **Sign up** in
+          the header or the banner, which names no role.
 
-          Unlike <applyTarget> below, the role can't double as the open flag —
-          this modal legitimately exists without one — so `signUp` is its own
-          nullable object and the role hangs off it. */}
+          It used to have a second door — Apply while logged out — and that door
+          is the one the flow drawer took over. Applying from a role now walks
+          the rail's own details step, so this modal is left holding the case it
+          was always the right shape for: someone who wants an account before
+          they have picked a job. */}
       <JobSignUpModal
-        open={!!signUp}
-        onClose={() => setSignUp(null)}
-        role={signUpTarget?.role ?? null}
-        teamName={signUpTarget?.teamName ?? ''}
+        open={signUp}
+        onClose={() => setSignUp(false)}
         onSignUp={onSignUpSubmit}
         onSignIn={onSignUpModalSignIn}
         // DELETE WITH: the `design-canvas/` folder. See `canvasStates.ts`.
         canvasFilled={canvasPin?.signUpFilled}
         canvasRefused={canvasPin?.signUpRefused}
-      />
-
-      {/* The per-role step. <applyTarget> is the open/closed state as well as the
-          data — there is no such thing as this modal without a role, so a
-          separate boolean would only be something to keep in sync. Editing from
-          here closes it and opens the drawer with the role still pending, so
-          saving lands straight back on this modal. */}
-      <JobApplyModal
-        open={!!applyTarget}
-        onClose={() => {
-          setApplyTarget(null);
-          /* Cancelled outright — not a detour, so the letter is not kept. */
-          setCoverLetterDraft('');
-        }}
-        role={applyTarget?.role ?? null}
-        teamName={applyTarget?.teamName ?? ''}
-        profile={profile}
-        initialCoverLetter={coverLetterDraft}
-        onEditProfile={onEditProfileFromApply}
-        onSubmit={onSubmitApplication}
       />
     </>
   );

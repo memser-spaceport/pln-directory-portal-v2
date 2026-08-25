@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { uniq } from 'lodash';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
-import { Drawer } from '@/components/common/Drawer/Drawer';
-import { Button } from '@/components/common/Button';
+// (`Drawer` and `Button` are gone: this file used to BE the drawer and used to
+//  own the footer that ended it. `JobApplyFlowDrawer` renders both now — one
+//  drawer and one footer for all three steps of the flow.)
 import { TagsList } from '@/components/common/profile/TagsList';
 import { EditButton } from '@/components/common/profile/EditButton';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
@@ -30,9 +31,10 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { MonthYearSelect } from '@/components/form/MonthYearSelect';
 
-// Demo Day's profile-completion chrome: the sticky 64px header with its "Back"
-// affordance, and the 720px-max centred content column.
-import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer.module.scss';
+// (Demo Day's `EditInvestorProfileDrawer.module.scss` — the sticky 64px header
+//  and the 720px-max centred column — is imported by `JobApplyFlowDrawer` now.
+//  A pane that reached for the header and the column it sits inside would be
+//  three steps all claiming to own the same box.)
 // The white rounded panel the fields sit in, and its `.row` measure. Two
 // stylesheets, not one, because production keeps two: the profile card edits
 // through `EditProfileForm`'s and an experience entry edits through
@@ -77,7 +79,24 @@ import r from '@/components/page/member-details/RepositoriesDetails/components/R
 import pc from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput/ProfileCollaborateInput.module.scss';
 
 import { SkillsTagsInput } from './SkillsTagsInput';
-import { PendingApprovalSteps } from './PendingApprovalSteps';
+/* (`PendingApprovalSteps` — the vertical "signed up → complete your profile →
+    await approval" rail — is gone from this entry entirely. It stopped being
+    rendered here first, for the reason below; then approval stopped gating
+    applying at all, which left it describing a wait that no longer holds
+    anything up, and the file was deleted. Production still ships its own copy at
+    components/page/jobs/JobProfileDrawer/PendingApprovalSteps.tsx.
+
+    It was the drawer's answer to *where am I*, and it was the only one, so it
+    earned its 150px at the top of the column. The flow rail above now answers
+    that question for the flow, and stacking a second stepper 12px under it put
+    two position indicators on one screen answering two different questions in
+    the same visual language — a reader has to work out which is which before
+    either is useful.
+
+    What the vertical one said that the rail cannot — that the review is running,
+    and that an email lands when it finishes — is one sentence, and it is in the
+    lede below. The full three-stage account story still exists for anyone who
+    has not opened the flow: it is `PendingApprovalBanner`, on the board. */
 import { VIEWER_EMAIL, VIEWER_NAME } from './profile/viewerIdentity';
 import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 
@@ -86,6 +105,7 @@ import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 // the PL team can see; the member-profile entry renders the same component on
 // its internal Relationship card.
 import { PlTeamOnlyPill } from '../profile-shared/PlTeamOnlyPill';
+import { OptionalMark } from '../profile-shared/OptionalMark';
 // Bringing a document instead of typing seven fields per position. Shared for
 // the same reason `PlTeamOnlyPill` is: the settings prototype's Experience
 // section is the second surface that wants it, and one importer that both
@@ -99,13 +119,17 @@ import {
   EMPTY_PROFILE,
   JOB_SEARCH_STATUS_OPTIONS,
   formatExperienceDates,
-  isProfileComplete,
   type ContributionEntry,
   type ExperienceEntry,
   type JobSearchStatus,
   type MemberProfile,
 } from './viewerState';
-import d from './JobProfileDrawer.module.scss';
+import d from './JobProfilePane.module.scss';
+// The flow's shared chrome, for the one class this pane reaches into: `.lede`,
+// the sentence each step opens with. Imported rather than restated so the
+// profile step and the application step sound like one screen — see the note in
+// that stylesheet.
+import fd from './JobApplyFlowDrawer.module.scss';
 
 /**
  * "Complete your profile" — the one thing standing between a signed-in visitor
@@ -180,51 +204,59 @@ import d from './JobProfileDrawer.module.scss';
  *
  * **Where Save lives, and why it isn't per section.** Production's profile page
  * saves per section, and each section here does too — its own Cancel/Save,
- * committing into the drawer's draft, the card visibly filling in as the
- * receipt. But the drawer needs a second, different action, because the parent's
- * `onSave` is not "persist": it is *persist and resume* — it closes the drawer
- * and, when a role is pending, opens the apply modal on it. Wiring a section's
- * Save to that would end the whole flow the instant the first section was
- * filled, which is the flow deciding on the person's behalf that they were
- * finished. Two verbs, so two controls with two labels: each card's Save is
- * production's and is local; the drawer's own is a persistent footer that says
- * what it does next — "Continue to apply" when a role is pending, "Save profile"
- * when it isn't. It is disabled until `isProfileComplete`, with the one sentence
- * beside it that says why.
+ * committing into the flow's draft, the card visibly filling in as the receipt.
+ * But the flow needs a second, different action, because leaving this step is
+ * not "persist": it is *persist and continue* — it commits the draft and moves
+ * to the application. Wiring a section's Save to that would end the step the
+ * instant the first section was filled, which is the flow deciding on the
+ * person's behalf that they were finished. Two verbs, so two controls with two
+ * labels: each card's Save is production's and is local; the flow's own is the
+ * drawer's persistent footer, which says what it does next.
  *
  * That footer stays on screen at all times, including while a card is open, and
  * it is live for a pending member too: their profile saves like anyone else's,
- * and only the *apply* half of the flow waits, so the button drops back to
- * "Save profile" and the hint beside it says what is still pending. A drawer
- * that greyed out its own Save while telling someone to complete their profile
- * would be asking for work it then refused to keep.
+ * and only the *apply* half of the flow waits. A flow that greyed out its own
+ * Save while telling someone to complete their profile would be asking for work
+ * it then refused to keep.
  *
  * **Why the gate is on Apply, not on browsing.** Nothing on this board is hidden
- * behind the form. Asking before someone has found a role they want is charging
+ * behind the form — the flow's own first step is the whole job description, open
+ * to anyone. Asking before someone has found a role they want is charging
  * admission for a thing they haven't decided they want; asking at Apply is the
  * first moment the request is obviously in their own interest, and the moment
  * they can be told exactly where the answers are going — which is why
  * `pendingRoleTitle` names the role at the top of the column.
- *
- * The drawer is escapable — Escape and the overlay both close it, unlike
- * `EditInvestorProfileDrawer`, which pins `onClose` shut. Someone who pressed
- * Apply and then changed their mind about the role is not someone to hold.
  */
 
-interface JobProfileDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  /** What's already saved, if anything. Seeds the draft on open. */
-  profile: MemberProfile;
-  /** Set when the drawer was opened by pressing Apply on a role — names the role
-   *  the person is on their way to applying for, so the drawer can say why it's
-   *  asking and what happens next. Null when opened to edit. */
+interface JobProfilePaneProps {
+  /**
+   * The flow's working copy, and the setter that writes it.
+   *
+   * **Held by the drawer, not by this pane.** Every section's Save commits into
+   * it, and the drawer's footer is what finally hands it to the board — so the
+   * draft has to outlive this component, which unmounts every time someone steps
+   * to the application and back. The setter keeps `useState`'s exact signature,
+   * so each of the section handlers below reads the same as it did when this
+   * file owned the state.
+   */
+  draft: MemberProfile;
+  setDraft: Dispatch<SetStateAction<MemberProfile>>;
+  /**
+   * Which card, if any, has swapped itself for its editor — lifted for the same
+   * reason as the draft, plus one the draft doesn't have: the drawer's footer
+   * and its step rail both refuse to move while a card is open, and they can
+   * only refuse if they can see it.
+   */
+  editing: EditTarget;
+  setEditing: Dispatch<SetStateAction<EditTarget>>;
+  /** The role the flow is applying for — this step always has one, because the
+   *  only way to reach it is through the job. Names the role in the lede, so the
+   *  ask says why it is being made and what happens next. */
   pendingRoleTitle?: string | null;
   /** Signed up but not yet approved by the PL team. The stack stays editable —
    *  production never locks a pending member's form — but applying is off, and
-   *  the stepper at the top of the drawer says where they are. */
+   *  the lede and the flow's footer say so. */
   pendingApproval?: boolean;
-  onSave: (next: MemberProfile) => void;
   /**
    * DELETE WITH: the `design-canvas/` folder.
    *
@@ -251,7 +283,7 @@ interface JobProfileDrawerProps {
  * `uid: null` on a list section means "a new entry"; a uid means that row.
  * `github` carries no uid because the section edits one field, not a list.
  */
-type EditTarget =
+export type EditTarget =
   | { kind: 'profile' }
   | { kind: 'experience'; uid: string | null }
   | { kind: 'contribution'; uid: string | null }
@@ -263,16 +295,9 @@ type EditTarget =
   | { kind: 'import' }
   | null;
 
-export function JobProfileDrawer(props: JobProfileDrawerProps) {
-  const { open, onClose, profile, pendingRoleTitle, pendingApproval = false, onSave, canvasImport } = props;
+export function JobProfilePane(props: JobProfilePaneProps) {
+  const { draft, setDraft, editing, setEditing, pendingRoleTitle, pendingApproval = false, canvasImport } = props;
 
-  /* The drawer's working copy. Section Saves write here; only the footer hands
-     it to the parent. Seeded every time the drawer opens rather than once on
-     mount: the same instance serves "complete before applying" and "edit what I
-     saved", and the second has to show the saved answers rather than the last
-     thing typed in a session that was abandoned. */
-  const [draft, setDraft] = useState<MemberProfile>(profile);
-  const [editing, setEditing] = useState<EditTarget>(null);
   /**
    * The file the header's "Update from CV" collected, on its way to the panel.
    *
@@ -296,27 +321,34 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
      that any more, so it isn't kept. */
   const [parsed, setParsed] = useState<ParsedProfile | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    setDraft(profile);
-    setParsed(null);
-    /* Always on the stack, never in a form.
+  /* Runs once per mount, and this pane mounts exactly when its step becomes
+     current — so "on open" and "on mount" are now the same moment. Seeding the
+     draft is no longer here: the draft outlives this component (the flow drawer
+     holds it, and this pane unmounts every time someone steps to the application
+     and back), so re-seeding it on mount would overwrite everything typed the
+     moment someone stepped back to check their letter.
 
-       This used to open straight into the Experience form when the profile was
-       empty, on the argument that Experience was the one thing standing between
-       the person and applying, so the form *was* the visit. It isn't any more:
-       the requirement is the job search status, which is three radios on the
-       first card and needs no form to answer. Opening on a form for an optional
-       section would now be putting the least urgent work in front of the most
-       urgent, and hiding the required question behind it. */
-    setEditing(null);
+     `parsed` is the opposite case and stays local: a document read but not yet
+     agreed to is a proposal in flight, and a proposal does not survive leaving
+     the step it was made on.
+
+     Always on the stack, never in a form. This step used to open straight into
+     the Experience form when the profile was empty, on the argument that
+     Experience was the one thing standing between the person and applying, so
+     the form *was* the visit. It isn't any more: the requirement is the job
+     search status, which is three radios on the first card and needs no form to
+     answer. Opening on a form for an optional section would be putting the least
+     urgent work in front of the most urgent, and hiding the required question
+     behind it. */
+  useEffect(() => {
+    setParsed(null);
 
     /* DELETE WITH: the `design-canvas/` folder.
        The canvas photographs the import beats, and all of them live behind the
        Experience card's own controls: opening the importer is a press, and the
        review only exists once a document has been read. Seeded here, after the
        reset above, so a pinned frame is not undone by the effect that clears the
-       drawer on every open. */
+       step on every arrival. */
     if (canvasImport) {
       /* ONLY the review needs the editing card. The panel has two hosts and they
          are not interchangeable: the doors and the drop areas normally sit inline
@@ -331,9 +363,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const complete = isProfileComplete(draft);
+  }, []);
 
   /* The two halves of that rule, named so each card can mark *itself* rather
      than every incomplete card lighting up whenever anything is missing. Read
@@ -444,6 +474,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
    * Uids are minted here, not by the review: the review deals in a proposal and
    * this is the moment it becomes a record.
    */
+  /* `selection.name` and `selection.email` are read and deliberately dropped.
+     The drawer hands the review `VIEWER_NAME` / `VIEWER_EMAIL`, so it never asks
+     for either and both come back exactly as they went out — there is nothing to
+     merge, and `MemberProfile` has nowhere to put them anyway: the account owns
+     those two, which is why they live in `viewerIdentity` and not on the record
+     this form edits. Naming them here rather than letting them vanish into the
+     rest parameter, so the next reader can see the drop is a decision. */
   const applyImport = (selection: ImportSelection) => {
     setDraft((prev) => ({
       ...prev,
@@ -492,49 +529,30 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
     setEditing(null);
   };
 
-  /* The boundary, borrowed rather than restated. The footer's disabled state is
-     what a person sees; this is what holds regardless of it. Deliberately no
-     onClose() — the parent owns what happens next, because what happens next
-     differs: closing after an edit, continuing into the apply modal when there's
-     a pending role. Closing here would race that. */
-  const submit = () => {
-    if (!isProfileComplete(draft)) return;
-    onSave(draft);
-  };
+  /* (`submit` — the boundary check that used to guard this drawer's own Save —
+      has moved with the footer to `JobApplyFlowDrawer`. The rule it enforced is
+      unchanged and still `isProfileComplete`, read from the one place that
+      defines it.) */
 
   return (
-    <Drawer isOpen={open} onClose={onClose}>
-      {/* `d.drawerHeaderLift` is the one thing this header adds to production's:
-          a stacking order that survives the pending stepper's positioned step
-          indicators scrolling past it. See the note in the stylesheet. */}
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-        <div className={s.breadcrumbs}>
-          <button type="button" className={s.backButton} onClick={onClose}>
-            <BackIcon />
-            <span>Back</span>
-          </button>
-        </div>
-      </div>
+    <>
+      {/* Naming the destination is the whole reason the ask lands here rather
+          than at sign-in: the person is mid-decision about one specific role, and
+          the sentence tells them what their profile is for and that there is no
+          second form behind this one.
 
-      <div className={s.drawerContent}>
-        {/* Naming the destination is the whole reason the ask lands here rather
-            than at sign-in: the person is mid-decision about one specific role,
-            and the sentence tells them what their profile is for and that there
-            is no second form behind this one. */}
-        {/* Where a pending member is in the process. Above the lede because it
-            answers "can I even do this" — and the lede's promise about sending a
-            profile is not yet true for them. */}
-        {pendingApproval && <PendingApprovalSteps />}
-
-        <p className={d.lede}>
-          {pendingRoleTitle
-            ? pendingApproval
-              ? `You'll be able to apply to ${pendingRoleTitle} once your account is approved.`
-              : `We send your profile with your application to ${pendingRoleTitle}.`
+          The pending variant carries the sentence the vertical account stepper
+          used to carry, which was the one thing in it the flow rail above can't
+          say: that the review is running, and that an email is what ends it. */}
+      <p className={fd.lede}>
+        {pendingApproval
+          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application${pendingRoleTitle ? ` to ${pendingRoleTitle}` : ''}, which goes as soon as you send it.`
+          : pendingRoleTitle
+            ? `We send your profile with your application to ${pendingRoleTitle}.`
             : 'This is what hiring teams see when you apply.'}
-        </p>
+      </p>
 
-        {/* 0. Start with a document, when there is nothing to start from.
+      {/* 0. Start with a document, when there is nothing to start from.
                **Why this is above the required cards.** The drawer's rule is that
                required things are asked for first, and an earlier pass used that
                rule to keep the importer *out* of this position — a third thing
@@ -549,39 +567,52 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                the amber "your current role is required" strip on the card
                underneath has to stay the loudest thing here. This is an offer,
                and the requirement is a requirement. */}
-        {importAtTop && (
-          <DetailsSection
-            editView={editingImport}
-            classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
-          >
-            {editingImport && parsed ? (
-              <ExperienceImportReview
-                parsed={parsed}
-                currentName={VIEWER_NAME}
-                currentEmail={VIEWER_EMAIL}
-                currentRole={draft.role}
-                currentLocation={draft.location}
-                currentSkills={draft.skills}
-                currentExperiences={draft.experiences}
-                formatDates={formatExperienceDates}
-                bodyClassName={d.formBody}
-                onClose={closeImport}
-                onSubmit={applyImport}
-              />
-            ) : (
-              <>
-                <DetailsSectionHeader title="Start with your CV">
-                  {/* Only while the importer is a *section being edited* — i.e.
+      {importAtTop && (
+        <DetailsSection
+          editView={editingImport}
+          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+        >
+          {editingImport && parsed ? (
+            <ExperienceImportReview
+              parsed={parsed}
+              /* Both known — this drawer only opens for someone signed in — so
+                   the review never puts a Name or Email field on screen. The
+                   card's contact group is for the surface that *doesn't* have
+                   them yet. */
+              currentName={VIEWER_NAME}
+              currentEmail={VIEWER_EMAIL}
+              currentRole={draft.role}
+              currentLocation={draft.location}
+              currentSkills={draft.skills}
+              currentExperiences={draft.experiences}
+              formatDates={formatExperienceDates}
+              bodyClassName={d.formBody}
+              onClose={closeImport}
+              onSubmit={applyImport}
+            />
+          ) : (
+            <>
+              {/* Same offer, same mark, same words as the other two surfaces
+                  that make it — see `OptionalMark`. */}
+              <DetailsSectionHeader
+                title={
+                  <>
+                    You can upload your CV
+                    <OptionalMark />
+                  </>
+                }
+              >
+                {/* Only while the importer is a *section being edited* — i.e.
                       reached from the Add form. In its resting state this card
                       is not an editor and there is nothing to cancel; the
                       drawer's own footer is live and the stack is right below. */}
-                  {editingImport && (
-                    <button type="button" className={d.headerCancel} onClick={closeImport}>
-                      Cancel
-                    </button>
-                  )}
-                </DetailsSectionHeader>
-                {/* Names the work avoided, not just the work done.
+                {editingImport && (
+                  <button type="button" className={d.headerCancel} onClick={closeImport}>
+                    Cancel
+                  </button>
+                )}
+              </DetailsSectionHeader>
+              {/* Names the work avoided, not just the work done.
                     Mobbin's clearest example of this is Upwork's profile fork,
                     where the persuasive element is not the upload button but the
                     third option reading "Fill out manually (15 min)" — the cost
@@ -593,24 +624,24 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     Cancel and Save, so the sentence was promising something two
                     visible buttons already promise — the second time that exact
                     reassurance has been cut from this flow. */}
-                <p className={d.cvFirstNote}>
-                  We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
-                </p>
-                <ExperienceImportPanel
-                  entry="direct"
-                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                  onParsed={openImportReview}
-                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                  // DELETE WITH: the `design-canvas/` folder.
-                  canvasStatus={canvasImport?.panel?.status}
-                  canvasFileName={canvasImport?.panel?.fileName}
-                />
-              </>
-            )}
-          </DetailsSection>
-        )}
+              <p className={d.cvFirstNote}>
+                We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
+              </p>
+              <ExperienceImportPanel
+                entry="direct"
+                privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                onParsed={openImportReview}
+                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                // DELETE WITH: the `design-canvas/` folder.
+                canvasStatus={canvasImport?.panel?.status}
+                canvasFileName={canvasImport?.panel?.fileName}
+              />
+            </>
+          )}
+        </DetailsSection>
+      )}
 
-        {/* 1. The header card, and the first of the two required answers: your
+      {/* 1. The header card, and the first of the two required answers: your
                current role. `ProfileDetails` is a plain div that swaps itself for
                `EditProfileForm` in place, so this is a plain div too, and every
                placeholder in it opens that one editor — the amber role and
@@ -623,35 +654,32 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                *absent*, not *required*, and every other placeholder on the card
                looks exactly the same while being optional. The strip is what
                distinguishes the one that stops you from the four that don't. */}
-        <div
-          className={clsx(p.root, {
-            [p.editView]: editingProfile,
-            [d.editCard]: editingProfile,
-            [d.missingCard]: !editingProfile && !hasRole,
-          })}
-        >
-          {editingProfile ? (
-            <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
-          ) : (
-            <>
-              {!hasRole && (
-                <DataIncomplete className={d.incompleteStrip}>
-                  {pendingRoleTitle
-                    ? `Your current role is required to apply to ${pendingRoleTitle}.`
-                    : 'Your current role is required to apply.'}
-                </DataIncomplete>
-              )}
-              <div className={clsx({ [d.missingBody]: !hasRole })}>
-                <ProfileHeaderCard
-                  profile={draft}
-                  onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined}
-                />
-              </div>
-            </>
-          )}
-        </div>
+      <div
+        className={clsx(p.root, {
+          [p.editView]: editingProfile,
+          [d.editCard]: editingProfile,
+          [d.missingCard]: !editingProfile && !hasRole,
+        })}
+      >
+        {editingProfile ? (
+          <ProfileDetailsForm profile={draft} onClose={() => setEditing(null)} onSubmit={saveProfileDetails} />
+        ) : (
+          <>
+            {!hasRole && (
+              <DataIncomplete className={d.incompleteStrip}>
+                {pendingRoleTitle
+                  ? `Your current role is required to apply to ${pendingRoleTitle}.`
+                  : 'Your current role is required to apply.'}
+              </DataIncomplete>
+            )}
+            <div className={clsx({ [d.missingBody]: !hasRole })}>
+              <ProfileHeaderCard profile={draft} onEdit={canEdit ? () => setEditing({ kind: 'profile' }) : undefined} />
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* 2. Job search status — the required section, so it comes first and,
+      {/* 2. Job search status — the required section, so it comes first and,
                while it is unanswered, wears `missingData` and carries the strip
                naming the consequence rather than a generic "incomplete".
 
@@ -664,111 +692,113 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                every other section puts its qualifier (Add, Edit, the Github
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
-        <DetailsSection missingData={!hasStatus}>
-          {!hasStatus && (
-            <DataIncomplete className={d.incompleteStrip}>
-              {pendingRoleTitle
-                ? `An answer here is required to apply to ${pendingRoleTitle}.`
-                : 'An answer here is required to apply.'}
-            </DataIncomplete>
-          )}
-          <div className={clsx({ [d.missingBody]: !hasStatus })}>
-            <DetailsSectionHeader title="Job search status">
-              <PlTeamOnlyPill />
-            </DetailsSectionHeader>
-            <JobSearchStatusInput
-              value={draft.jobSearchStatus}
-              onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
-            />
-          </div>
-        </DetailsSection>
+      <DetailsSection missingData={!hasStatus}>
+        {!hasStatus && (
+          <DataIncomplete className={d.incompleteStrip}>
+            {pendingRoleTitle
+              ? `An answer here is required to apply to ${pendingRoleTitle}.`
+              : 'An answer here is required to apply.'}
+          </DataIncomplete>
+        )}
+        <div className={clsx({ [d.missingBody]: !hasStatus })}>
+          <DetailsSectionHeader title="Job search status">
+            <PlTeamOnlyPill />
+          </DetailsSectionHeader>
+          <JobSearchStatusInput
+            value={draft.jobSearchStatus}
+            onChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
+          />
+        </div>
+      </DetailsSection>
 
-        {/* 3. Experience — optional now, and no longer the gate. It stays because
+      {/* 3. Experience — optional now, and no longer the gate. It stays because
                it is what a hiring team actually reads on an application, and the
                apply modal quotes its first entry; it just isn't held over
                anyone's head. */}
-        <DetailsSection
-          editView={editingExperience || editingImport}
-          classes={
-            editingExperience || editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined
-          }
-        >
-          {editingImport && !importAtTop ? (
-            /* The import owns the card the same way an editor does. Which half
+      <DetailsSection
+        editView={editingExperience || editingImport}
+        classes={
+          editingExperience || editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined
+        }
+      >
+        {editingImport && !importAtTop ? (
+          /* The import owns the card the same way an editor does. Which half
                shows depends on whether anything has been read yet — the panel
                is the doors and the drop area, the review is what came back.
                Reached two ways: from the Add form's "fill from a document" line
                (nothing read, so the panel), and from the inline doors below
                (something read, so the review). */
-            parsed ? (
-              <ExperienceImportReview
-                parsed={parsed}
-                currentName={VIEWER_NAME}
-                currentEmail={VIEWER_EMAIL}
-                currentRole={draft.role}
-                currentLocation={draft.location}
-                currentSkills={draft.skills}
-                /* So a second import of the same CV doesn't append the same
+          parsed ? (
+            <ExperienceImportReview
+              parsed={parsed}
+              /* See the note on the card at the top of the drawer: signed in,
+                   so neither is asked for. */
+              currentName={VIEWER_NAME}
+              currentEmail={VIEWER_EMAIL}
+              currentRole={draft.role}
+              currentLocation={draft.location}
+              currentSkills={draft.skills}
+              /* So a second import of the same CV doesn't append the same
                    history twice — the rows already here arrive unticked and
                    say why. */
-                currentExperiences={draft.experiences}
-                /* The list's own formatter, so a found row reads exactly the way
+              currentExperiences={draft.experiences}
+              /* The list's own formatter, so a found row reads exactly the way
                    the rows it is about to join read. */
-                formatDates={formatExperienceDates}
-                bodyClassName={d.formBody}
-                onClose={closeImport}
-                onSubmit={applyImport}
-              />
-            ) : (
-              <>
-                {/* Leaving the importer is the *card's* action, so it goes in
+              formatDates={formatExperienceDates}
+              bodyClassName={d.formBody}
+              onClose={closeImport}
+              onSubmit={applyImport}
+            />
+          ) : (
+            <>
+              {/* Leaving the importer is the *card's* action, so it goes in
                     the header's right-hand slot — where Add, Edit and the Github
                     link go on every other section — rather than under the title
                     as a stray line. Without it this route was a dead end: the
                     panel's own "← Back" only steps back to the doors, and the
                     drawer's footer is disabled while any section is open, so the
                     only way out was closing the whole drawer. */}
-                <DetailsSectionHeader title="Add experience from a document">
-                  <button type="button" className={d.headerCancel} onClick={closeImport}>
-                    Cancel
-                  </button>
-                </DetailsSectionHeader>
-                {/* `direct`, like the card at the top. This route is reached by
+              <DetailsSectionHeader title="Add experience from a document">
+                <button type="button" className={d.headerCancel} onClick={closeImport}>
+                  Cancel
+                </button>
+              </DetailsSectionHeader>
+              {/* `direct`, like the card at the top. This route is reached by
                     pressing a control that already says "Update from CV", so a
                     landing screen offering an "Upload your CV" button was a
                     button revealing a button — the same redundancy the top card
                     was built to avoid, left behind on the other route. */}
-                <ExperienceImportPanel
-                  entry="direct"
-                  initialFile={pickedFile}
-                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                  onParsed={openImportReview}
-                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                  // DELETE WITH: the `design-canvas/` folder.
-                  canvasOpen={canvasImport?.panel?.open}
-                  canvasStatus={canvasImport?.panel?.status}
-                  canvasFileName={canvasImport?.panel?.fileName}
-                />
-              </>
-            )
-          ) : editingExperience ? (
-            <ExperienceForm
-              initial={experienceBeingEdited}
-              onClose={() => setEditing(null)}
-              onSubmit={saveExperience}
-              onDelete={deleteExperience}
-            />
-          ) : (
-            <>
-              {/* No `missingBody` here any more. It was left behind from when
+              <ExperienceImportPanel
+                entry="direct"
+                initialFile={pickedFile}
+                privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                onParsed={openImportReview}
+                onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                // DELETE WITH: the `design-canvas/` folder.
+                canvasOpen={canvasImport?.panel?.open}
+                canvasStatus={canvasImport?.panel?.status}
+                canvasFileName={canvasImport?.panel?.fileName}
+              />
+            </>
+          )
+        ) : editingExperience ? (
+          <ExperienceForm
+            initial={experienceBeingEdited}
+            onClose={() => setEditing(null)}
+            onSubmit={saveExperience}
+            onDelete={deleteExperience}
+          />
+        ) : (
+          <>
+            {/* No `missingBody` here any more. It was left behind from when
                   Experience was the gate, and it tinted this card whenever
                   *anything* on the profile was missing — so an unanswered job
                   search status made the Experience card look like the thing
                   standing in the way. A card marks itself, or it misdirects. */}
-              <DetailsSectionHeader
-                title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
-              >
-                {/* Two controls in the header slot, which `Repositories` below
+            <DetailsSectionHeader
+              title={`Experience ${draft.experiences.length ? `(${draft.experiences.length})` : ''}`}
+            >
+              {/* Two controls in the header slot, which `Repositories` below
                     already does — so the pattern is the section's, not an
                     invention. Its wrapper was called `repoHeaderActions` when
                     Repositories was the only section that needed one; it is
@@ -788,69 +818,69 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                     "Update from CV", not "Upload your CV". The empty state's
                     pill is a first move; this is a refresh of something that
                     already exists, and the verb is the difference. */}
-                <div className={d.headerActions}>
-                  {canEdit && draft.experiences.length > 0 && (
-                    <>
-                      {/* Straight to the file dialog. Pressing a control that
+              <div className={d.headerActions}>
+                {canEdit && draft.experiences.length > 0 && (
+                  <>
+                    {/* Straight to the file dialog. Pressing a control that
                           says "Update from CV" and landing on a card asking you
                           to choose a file is the press not being taken at its
                           word — the card behind it still appears, so a cancelled
                           dialog leaves you on the drop area rather than nowhere. */}
-                      <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
-                        Update from CV
-                      </button>
-                      <input
-                        ref={headerFileInput}
-                        type="file"
-                        className={d.visuallyHidden}
-                        accept=".pdf,.doc,.docx"
-                        onChange={(ev) => {
-                          const chosen = ev.target.files?.[0] ?? null;
-                          /* Cleared so picking the same file twice still fires a
+                    <button type="button" className={d.headerImport} onClick={() => headerFileInput.current?.click()}>
+                      Update from CV
+                    </button>
+                    <input
+                      ref={headerFileInput}
+                      type="file"
+                      className={d.visuallyHidden}
+                      accept=".pdf,.doc,.docx"
+                      onChange={(ev) => {
+                        const chosen = ev.target.files?.[0] ?? null;
+                        /* Cleared so picking the same file twice still fires a
                              change event. */
-                          ev.target.value = '';
-                          if (!chosen) return;
-                          setPickedFile(chosen);
-                          setEditing({ kind: 'import' });
-                        }}
-                      />
-                    </>
-                  )}
-                  {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
-                </div>
-              </DetailsSectionHeader>
-              {draft.experiences.length === 0 && canEdit && !importAtTop ? (
-                /* The offer, standing in the empty row rather than above it.
+                        ev.target.value = '';
+                        if (!chosen) return;
+                        setPickedFile(chosen);
+                        setEditing({ kind: 'import' });
+                      }}
+                    />
+                  </>
+                )}
+                {canEdit && <AddButton onClick={() => setEditing({ kind: 'experience', uid: null })} />}
+              </div>
+            </DetailsSectionHeader>
+            {draft.experiences.length === 0 && canEdit && !importAtTop ? (
+              /* The offer, standing in the empty row rather than above it.
                    Production drew a `.connectButton` slot inside `.emptyData`
                    for exactly this and never wired one up; this is that slot.
                    It shows only while the section is empty — an import offer
                    over a history someone has already written is nagging, and
                    the same doors stay reachable from the Add form. */
-                <div className={e.root}>
-                  <ExperienceImportPanel
-                    emptyLabel="Share your work history and skills. This shows what you know and what you can do."
-                    privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
-                    onParsed={openImportReview}
-                    onAddManually={() => setEditing({ kind: 'experience', uid: null })}
-                    /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
+              <div className={e.root}>
+                <ExperienceImportPanel
+                  emptyLabel="Share your work history and skills. This shows what you know and what you can do."
+                  privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+                  onParsed={openImportReview}
+                  onAddManually={() => setEditing({ kind: 'experience', uid: null })}
+                  /* DELETE WITH: the `design-canvas/` folder. The canvas pins the
                        panel's beats HERE, in the inline host, because this is the
                        one a person reaches from an empty Experience section. */
-                    canvasOpen={canvasImport?.panel?.open}
-                    canvasStatus={canvasImport?.panel?.status}
-                    canvasFileName={canvasImport?.panel?.fileName}
-                  />
-                </div>
-              ) : (
-                <ExperienceList
-                  entries={draft.experiences}
-                  onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
+                  canvasOpen={canvasImport?.panel?.open}
+                  canvasStatus={canvasImport?.panel?.status}
+                  canvasFileName={canvasImport?.panel?.fileName}
                 />
-              )}
-            </>
-          )}
-        </DetailsSection>
+              </div>
+            ) : (
+              <ExperienceList
+                entries={draft.experiences}
+                onEdit={canEdit ? (uid) => setEditing({ kind: 'experience', uid }) : undefined}
+              />
+            )}
+          </>
+        )}
+      </DetailsSection>
 
-        {/* 4. Project Contributions. Optional — nothing here touches
+      {/* 4. Project Contributions. Optional — nothing here touches
                `isProfileComplete` — and kept, unlike Teams, because it answers a
                different question from Experience: where you worked versus what
                you built. For this network in particular that's often the more
@@ -860,129 +890,62 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                Its empty copy is production's, word for word, because it is a
                true instruction in both places — the button that makes it true is
                right above it. */}
-        <DetailsSection
-          editView={editingContribution}
-          classes={editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
-        >
-          {editingContribution ? (
-            <ContributionForm
-              initial={contributionBeingEdited}
-              onClose={() => setEditing(null)}
-              onSubmit={saveContribution}
-              onDelete={deleteContribution}
+      <DetailsSection
+        editView={editingContribution}
+        classes={editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+      >
+        {editingContribution ? (
+          <ContributionForm
+            initial={contributionBeingEdited}
+            onClose={() => setEditing(null)}
+            onSubmit={saveContribution}
+            onDelete={deleteContribution}
+          />
+        ) : (
+          <>
+            <DetailsSectionHeader
+              title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
+            >
+              {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
+            </DetailsSectionHeader>
+            <ContributionsList
+              entries={draft.contributions}
+              onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
             />
-          ) : (
-            <>
-              <DetailsSectionHeader
-                title={`Project Contributions ${draft.contributions.length ? `(${draft.contributions.length})` : ''}`}
-              >
-                {canEdit && <AddButton onClick={() => setEditing({ kind: 'contribution', uid: null })} />}
-              </DetailsSectionHeader>
-              <ContributionsList
-                entries={draft.contributions}
-                onEdit={canEdit ? (uid) => setEditing({ kind: 'contribution', uid }) : undefined}
-              />
-            </>
-          )}
-        </DetailsSection>
+          </>
+        )}
+      </DetailsSection>
 
-        {/* 5. Repositories. Optional too.
+      {/* 5. Repositories. Optional too.
 
                Teams used to sit above this one and is gone: the card asked for
                the primary team that an Experience entry's "Team or Organization"
                field already collects, so a member filling both in answered the
                same question twice. */}
-        <DetailsSection
-          editView={editingGithub}
-          classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
-        >
-          {editingGithub ? (
-            <GithubHandleForm
-              handle={draft.githubHandle}
-              onClose={() => setEditing(null)}
-              onSubmit={saveGithubHandle}
-            />
-          ) : (
-            <RepositoriesSection
-              handle={draft.githubHandle}
-              onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
-            />
-          )}
-        </DetailsSection>
-      </div>
+      <DetailsSection
+        editView={editingGithub}
+        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+      >
+        {editingGithub ? (
+          <GithubHandleForm handle={draft.githubHandle} onClose={() => setEditing(null)} onSubmit={saveGithubHandle} />
+        ) : (
+          <RepositoriesSection
+            handle={draft.githubHandle}
+            onEdit={canEdit ? () => setEditing({ kind: 'github' }) : undefined}
+          />
+        )}
+      </DetailsSection>
 
-      {/* The drawer's own action — always on screen, disabled until it can be
-          used.
-
-          It used to hide itself while a card was open, so that a card's Save was
-          the only Save visible. That was defensible when the drawer opened on the
-          stack; it stopped being defensible when the drawer started opening
-          straight into the Experience form, because then the footer was hidden on
-          exactly the visit where someone most needs to know where this ends. A
-          disabled button with a reason beside it answers "what am I filling this
-          in for" from the first second; an absent one leaves the question open
-          and then makes the answer appear from nowhere.
-
-          The two Saves don't collide because they say different things. The
-          card's says `Save` and commits one section; this one says `Continue to
-          apply`, and its hint says which section is still missing. */}
-      <div className={d.footer}>
-        <div className={d.footerInner}>
-          {/* Names what is actually outstanding, rather than "complete your
-              profile". Two required answers means three ways to be incomplete,
-              and a hint that says "add your current role" to someone who has
-              already added it is the fastest way to make the footer look
-              broken. */}
-          <p className={d.footerHint}>
-            {!complete
-              ? editing
-                ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
-                : `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
-              : pendingApproval
-                ? 'Your profile saves now; applying unlocks once the PL team approves your account.'
-                : 'Experience, skills and bio are optional — you can add them any time.'}
-          </p>
-          {/* Disabled while a card is open as well as while the profile is
-              incomplete: mid-edit there is unsaved work in front of the person,
-              and letting them leave past it would silently drop it.
-
-              Pending members are no longer disabled here. Saving a profile is
-              something they can genuinely do — it is applying that waits — so the
-              button says `Save profile` rather than `Continue to apply` even when
-              a role is pending, because naming a destination this press cannot
-              reach would be the button lying about where it goes. */}
-          <Button
-            variant="primary"
-            style="fill"
-            size="m"
-            className={d.footerAction}
-            disabled={!complete || !!editing}
-            onClick={submit}
-          >
-            {pendingRoleTitle && !pendingApproval ? 'Continue to apply' : 'Save profile'}
-          </Button>
-        </div>
-      </div>
-    </Drawer>
+      {/* (The footer that used to close this file — the persistent
+          `Continue to apply` / `Save profile` bar with its "what is still
+          missing" hint — is `JobApplyFlowDrawer`'s now, along with `missingHint`
+          and `sentenceCase`, the two helpers that wrote that sentence. It says
+          the same things for the same reasons; it just says them for all three
+          steps instead of only this one, which is what stops the flow ending in
+          three differently-worded buttons.) */}
+    </>
   );
 }
-
-/**
- * What's still owed, as a verb phrase the footer can drop into either of its two
- * sentences. Lower-case and un-punctuated so it composes; `sentenceCase` lifts
- * it when it starts the sentence.
- *
- * Both missing gets one clause, not two — "add your current role and choose a
- * job search status" is a single instruction to fill in the first two cards,
- * and splitting it into two sentences would imply an order that doesn't exist.
- */
-function missingHint(hasRole: boolean, hasStatus: boolean): string {
-  if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
-  if (!hasRole) return 'add your current role';
-  return 'choose a job search status';
-}
-
-const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /* ------------------------------------------------------------------ header --- */
 
@@ -1984,7 +1947,11 @@ function GithubHandleForm({
  * depends on it costing nothing to say no, and it still costs nothing — what
  * changed is only that the question can't be walked past.
  */
-function JobSearchStatusInput({
+/** Exported for `JobAccountPane`, the apply flow's step 2 for a visitor with no
+ *  account. That pane asks the same required question this one does — the status
+ *  is half of `isProfileComplete` — and a second radio group with its own hints
+ *  would be two versions of one field, drifting the moment either is edited. */
+export function JobSearchStatusInput({
   value,
   onChange,
 }: {

@@ -112,7 +112,7 @@
 // The page's own header: a sticky 64px bar with `← Back`.
 //
 // Production chrome, not a new one — `EditInvestorProfileDrawer.module.scss`'s
-// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfileDrawer`
+// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfilePane`
 // already renders two steps later in this same flow. A person who signs up on a
 // phone and then completes their profile meets the same bar twice.
 //
@@ -218,6 +218,26 @@
 }
 
 .form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// The shared account group's own vertical rhythm — `AccountFields` wraps itself
+// in this, so the four fields are spaced by the component rather than by
+// whatever happens to contain it.
+//
+// They used to be bare siblings relying on `.form`'s gap above, which was fine
+// while this modal was the only host. It isn't: the apply flow's details step
+// mounts the same group inside a `DetailsSection`, and that ships with its own
+// `gap: 24px` **commented out** so every caller spaces its own contents. So the
+// fields landed with no gap at all and each field's error or hint sat closer to
+// the *next* field's label than to the input it belonged to — the message
+// pointing at the wrong control.
+//
+// Same 24px, so this modal renders identically: `.form` now has two children
+// (this stack and `.bottomText`) with 24 between them, and 24 inside.
+.fieldStack {
   display: flex;
   flex-direction: column;
   gap: 24px;

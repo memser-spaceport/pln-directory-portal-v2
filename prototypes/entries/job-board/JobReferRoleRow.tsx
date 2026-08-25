@@ -33,14 +33,15 @@ interface JobReferRoleRowProps {
   /** Referring needs a signed-in referrer; logged out, the button nudges instead. */
   canRefer?: boolean;
   onReferBlocked?: () => void;
-  /** Job board: apply happens in-app (sign-in gate → profile → cover letter), so
-   *  the parent handles the press. Omitted on the team profile, where Apply is
-   *  still a plain link out to the posting. */
-  onApply?: (role: IJobRole) => void;
-  /** Job board: opens the role's description in a drawer over the list. When it
-   *  is present the row's button becomes **View job** and Apply moves inside
-   *  that drawer — see the note above the actions. Omitted on the team profile,
-   *  which has no in-app description to open. */
+  /* (`onApply` — an in-app Apply button in this row — is gone. It was the board's
+      slot back when pressing Apply from a row was possible; the row's button
+      became **View job** when the description moved in-app, which left the
+      branch reachable from no caller at all. The team profile never had it: its
+      Apply is the plain link out below.) */
+  /** Job board: opens the role in the apply flow, on its reading step. When it is
+   *  present the row's button becomes **View job** and Apply sits in that flow's
+   *  footer — see the note above the actions. Omitted on the team profile, which
+   *  has no in-app description to open. */
   onViewJob?: (role: IJobRole) => void;
   /** Already applied from this session — the row reports it instead of offering again. */
   applied?: boolean;
@@ -72,9 +73,10 @@ interface JobReferRoleRowProps {
  * the act of applying, never on browsing: the moment something is *sent on your
  * behalf* is the only moment identity is actually needed.
  *
- * The Apply slot therefore has three states — `applied`, in-app apply
- * (`onApply`), and the plain link out — and all three wear the same button
- * geometry, so a list of roles doesn't jitter as rows change state.
+ * The row's action slot therefore has three states — **View job** where an
+ * in-app description exists, `applied`, and the plain link out where it doesn't
+ * — and all three wear the same button geometry, so a list of roles doesn't
+ * jitter as rows change state.
  *
  * **The board keeps production's arrow**, now beside Apply rather than instead of
  * it. It was the apply link before Apply moved in-app; it stays as the link out
@@ -91,7 +93,6 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     onClick,
     canRefer = true,
     onReferBlocked,
-    onApply,
     onViewJob,
     applied = false,
     appliedAt,
@@ -199,12 +200,12 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 the authority. The drawer repeats the link at the top of the
                 panel for whoever gets that far.
 
-                Board only. On the team profile there is no `onApply`, so Apply
-                *is* the link out, and a second control to the same URL in the
-                same row would be the same door twice. It also survives the
+                Board only. On the team profile there is no in-app description, so
+                Apply *is* the link out, and a second control to the same URL in
+                the same row would be the same door twice. It also survives the
                 applied state — having applied is no reason to stop being able to
                 read the ad. */}
-            {(onApply || onViewJob) && applyUrl && (
+            {onViewJob && applyUrl && (
               <a
                 className={`${s.applyArrow} ${js.arrowTone}`}
                 aria-label={`Open the ${roleTitle} posting`}
@@ -259,13 +260,6 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 <CheckIcon width={12} height={12} aria-hidden="true" />
                 Applied
               </button>
-            ) : onApply ? (
-              /* A real <button>, not the anchor: the press no longer leaves the
-                 page. It hands off to the parent, which runs the sign-in gate,
-                 the profile check and the cover letter in place. */
-              <Button size="s" style="fill" variant="primary" className={js.applyButton} onClick={() => onApply(role)}>
-                Apply
-              </Button>
             ) : (
               /* An anchor wearing Button's classes rather than a <Button>: this
                  opens an external posting, so it has to stay a real link (new

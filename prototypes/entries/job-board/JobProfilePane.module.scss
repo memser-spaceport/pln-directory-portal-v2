@@ -7,8 +7,16 @@
 // EditExperienceForm), the label+hint pair (ProfileCollaborateInput) and the
 // privacy card (Demo Day's Alert) — is imported by the component. What's left
 // here is what none of those stylesheets has an opinion about: one positioning
-// fix the drawer forces, the drawer's own footer, the radio that the design system doesn't have, and two lines of
-// prose.
+// fix the drawer forces, the radio the design system doesn't have, and a handful
+// of lines of prose.
+//
+// The drawer chrome that used to live at the bottom of this file — `.lede`,
+// `.drawerHeaderLift`, `.footer`, `.footerInner`, `.footerAction`,
+// `.footerHint` — has moved to `JobApplyFlowDrawer.module.scss`. This is a pane
+// now, one of three inside one drawer, and none of those rules were ever about
+// the profile: they described a header, a footer and a column that all three
+// steps share. Leaving them here would have made the profile step the owner of
+// chrome the other two also render.
 //
 // Every custom property is written `var(--name, #fallback)`: this app doesn't
 // load the DS token sheet, so a bare token resolves to nothing.
@@ -79,18 +87,6 @@
     overflow: visible;
     padding-bottom: 16px;
   }
-}
-
-// The sentence at the top of the column, naming the role the drawer is holding
-// up. `.drawerContent` centres its children, so prose has to claim the measure.
-.lede {
-  width: 100%;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
 }
 
 // --- The header card ---------------------------------------------------------
@@ -194,7 +190,7 @@
   width: auto;
 }
 
-// --- Start with your CV ------------------------------------------------------
+// --- You can upload your CV ------------------------------------------------------
 
 // The one line under that card's title, saying what the document will fill in.
 //
@@ -211,111 +207,6 @@
   line-height: 18px;
   letter-spacing: 0.12px;
   color: var(--foreground-neutral-secondary, #455468);
-}
-
-// --- The drawer's own action ------------------------------------------------
-
-// Sticky to the bottom of the drawer's scroll container (`Drawer`'s `.container`
-// is `overflow-y: auto`, and this is a direct child of it, so `bottom: 0` pins
-// it above the column without leaving the flow).
-// The sticky Back header, lifted above the scrolling column.
-//
-// `EditInvestorProfileDrawer`'s own header is `position: sticky; z-index: 1`,
-// which is enough for the content production puts under it — plain cards, none
-// of them positioned. This drawer's pending state adds `PendingApprovalSteps`,
-// whose step indicators are `position: relative` so the connector rail can be
-// drawn between them, and those rings scrolled *over* the header instead of
-// under it: at the wrong scroll offset a blue ring sat exactly where the back
-// arrow is and swallowed it, which is how the drawer looked broken while
-// nothing about its scrolling actually was.
-//
-// The rule the fix follows is the one the footer below already states: the
-// drawer's chrome outranks the column that scrolls beneath it. The footer says
-// so with a local `z-index: 2`; the header was the half that had never said it,
-// because until the stepper arrived nothing tested it. 3 rather than 2 only so
-// the two chrome pieces are ordered against each other as well — they never
-// meet, but a reader shouldn't have to check that.
-//
-// Doubled selector to beat production's single-class rule regardless of bundle
-// order.
-.drawerHeaderLift.drawerHeaderLift {
-  z-index: 3;
-}
-
-.footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  width: 100%;
-  flex-shrink: 0;
-  background: var(--Neutral-White, #fff);
-  box-shadow: 0 -1px 4px 0 var(--transparent-dark-6, rgba(14, 15, 17, 0.06));
-}
-
-.footerInner {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 12px;
-
-  @include media.tablet-landscape {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 12px 20px;
-  }
-}
-
-/* The footer's button, in every drawer that ends in this bar.
-
-   `justify-content: space-between` does not stop a flex item shrinking, and a
-   Button's `min-width` is a floor for a *bare* label — so "Continue to apply"
-   was being squeezed against a sentence that takes as much width as it is
-   given, wrapping to two lines and doubling the bar's height. The hint is the
-   part that should reflow; the control is a fixed object.
-
-   `nowrap` is unconditional, and not because the column layout needs it today —
-   there the button is full width and the label has room to spare. It is
-   unconditional because "a button's label may break onto a second line" is
-   never the right answer at any width: a control is an object you press, and an
-   object that changes height with its wording is a paragraph. Left to the row
-   layout alone, this rule would be one long label away from coming back.
-
-   `flex-shrink` is the row's half, and stays scoped to it — below
-   tablet-landscape the bar is a stretched column with nothing to shrink
-   against. */
-.footerAction {
-  white-space: nowrap;
-
-  @include media.tablet-landscape {
-    flex-shrink: 0;
-  }
-}
-
-// One sentence, and it changes: before the requirement is met it says what is
-// missing, after it says what is optional. A disabled button with no reason next
-// to it is a door with no sign.
-.footerHint {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  /* Takes what is left, rather than what it wants. `min-width: 0` because a
-     flex item's default `min-width: auto` refuses to shrink below its longest
-     word — which is how a long sentence shoves a nowrap button off the end of
-     the row instead of wrapping itself. */
-  @include media.tablet-landscape {
-    flex: 1;
-    min-width: 0;
-  }
 }
 
 // --- Job search status ------------------------------------------------------

@@ -29,6 +29,7 @@ import rl from '@/components/page/member-details/RepositoriesDetails/components/
 import cd from '@/components/page/member-details/contact-details/ContactDetails.module.scss';
 
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
+import { OptionalMark } from '../profile-shared/OptionalMark';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
 import { ExperienceList } from '../job-board/JobProfileDrawer';
@@ -228,7 +229,16 @@ export default function OnboardingPrototype() {
               />
             ) : (
               <>
-                <DetailsSectionHeader title="Start with your CV" />
+                {/* Same offer, same mark, same words as the two job-board
+                    surfaces that make it — see `OptionalMark`. */}
+                <DetailsSectionHeader
+                  title={
+                    <>
+                      You can upload your CV
+                      <OptionalMark />
+                    </>
+                  }
+                />
                 {/* Word for word the apply drawer's line. One sentence for one
                     offer across every surface that makes it — a cross-surface
                     promise that reads differently per page is drift. */}

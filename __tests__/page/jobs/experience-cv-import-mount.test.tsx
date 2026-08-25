@@ -130,6 +130,34 @@ describe('CV import inside the Experience section', () => {
     expect(screen.getByText('Protocol Engineer')).toBeInTheDocument();
   });
 
+  /**
+   * The pair, and which of the two is the loud one.
+   *
+   * `HeaderActionBtn` is brand blue by default, which is right when it is alone
+   * in the slot and wrong beside `AddButton`: two blue text controls read as
+   * peers, and Add is what the section is for while this is a shortcut to it.
+   * Asserted on the class rather than a computed colour because jsdom does not
+   * load the stylesheet — what is being guarded is that the override is still
+   * being applied, not what it resolves to.
+   */
+  it('keeps the CV shortcut quieter than Add', () => {
+    renderSection({ enableCvImport: true, entries: [entry] });
+
+    const update = screen.getByRole('button', { name: /update from cv/i });
+    expect(update.className).toMatch(/quietHeaderAction/);
+  });
+
+  /**
+   * The review card reads a found row back as "March 2021 — Present"; the same
+   * row a moment later in this list used to say "March 2021 - Present". One
+   * range, two punctuations, depending only on whether it had been saved yet.
+   */
+  it('punctuates a saved date range the way the review card did', () => {
+    renderSection({ enableCvImport: true, entries: [entry] });
+
+    expect(screen.getByText(/March 2021 — January 2024/)).toBeInTheDocument();
+  });
+
   it('keeps Add reachable in both states', () => {
     const { unmount } = renderSection({ enableCvImport: true, entries: [] });
     expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();

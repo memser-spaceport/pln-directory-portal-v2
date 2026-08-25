@@ -62,6 +62,7 @@ export function ExperienceDetailsView(props: Props) {
                     the card behind it still appears, so a cancelled dialog
                     leaves you on the drop area rather than nowhere. */}
                 <HeaderActionBtn
+                  className={s.quietHeaderAction}
                   onClick={() => {
                     /* On the press, not on the file landing: the OS picker is
                        outside the page and a dialog someone opens and closes is

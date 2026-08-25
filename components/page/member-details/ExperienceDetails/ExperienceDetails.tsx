@@ -16,6 +16,11 @@ import { HeaderActionBtn } from '@/components/common/profile/DetailsSection/comp
 import { useMemberAnalytics } from '@/analytics/members.analytics';
 
 import { ExperienceDetailsView } from './components/ExperienceDetailsView';
+/* The view's header-control tone, worn by the import card's Cancel for the same
+   reason the header's "Update from CV" wears it: a quiet text control in a slot
+   that belongs to `AddButton`'s blue. Same slot, same grammar, so the same
+   class rather than a second copy of two colour rules. */
+import v from './components/ExperienceDetailsView/ExperienceDetailsView.module.scss';
 import {
   ExperienceImportPanel,
   ExperienceImportReview,
@@ -175,6 +180,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
                 `direct` mode, so the only way out would be closing the drawer. */}
             <DetailsSectionHeader title="Add experience from a document">
               <HeaderActionBtn
+                className={v.quietHeaderAction}
                 onClick={() => {
                   onCvImportCancelled('panel');
                   closeImport();

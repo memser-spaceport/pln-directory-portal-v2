@@ -48,8 +48,13 @@ export const ExperiencesList = (props: Props) => {
                   )}
                 </div>
                 <div className={s.row}>
+                  {/* Em dash, matching `formatParsedDates` — the review card
+                      reads a found row back as "March 2021 — Present", and the
+                      same row a moment later in this list said "March 2021 -
+                      Present". One range, two punctuations, depending on whether
+                      it had been saved yet. */}
                   <div className={s.secondaryLabel}>
-                    {format(new Date(item.startDate), 'MMMM yyyy')} -{' '}
+                    {format(new Date(item.startDate), 'MMMM yyyy')} —{' '}
                     {item.isCurrent ? 'Present' : format(new Date(item.endDate), 'MMMM yyyy')}
                   </div>
                 </div>

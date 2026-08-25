@@ -31,7 +31,7 @@
  *   different job from applying, and mixing the two would make the flows read as one journey.
  *
  *   THE PROFILE DRAWER'S OTHER CARDS. The drawer is declared at two states, empty and waiting, plus the
- *   five frames of the Experience card's importer. The remaining cards — skills, bio, contributions,
+ *   seven frames of the Experience card's importer. The remaining cards — skills, bio, contributions,
  *   repositories — each have an empty and a filled design and are not covered.
  *
  *   TOASTS. Three of the flows end in one, and a toast dismisses itself, so a frame of the board behind it
@@ -66,7 +66,7 @@ export const CANVAS: CanvasDeclaration = {
     { id: "Sending the application", whatBelongs: "The apply modal, its letter, and the email it produces" },
     { id: "The list, narrowed", whatBelongs: "The board with the rail, the search or the scope cutting it" },
     { id: "The profile drawer", whatBelongs: "The profile step, at the states the apply flow opens it in" },
-    { id: "Importing a history", whatBelongs: "The door, the drop area, and what a read document comes back with" },
+    { id: "Importing a history", whatBelongs: "The two doors, the drop areas, and what a read document comes back with" },
   ],
   flows: [
     {
@@ -274,27 +274,31 @@ export const CANVAS: CanvasDeclaration = {
         {
           id: "drawer-empty",
           label: "The Empty Profile Drawer",
-          /* THIS FRAME IS ALSO THE IMPORT'S FIRST. The door stands inline in the empty Experience
-             section — white card, no Cancel — so it is already in this picture, and a second frame of
-             it would be the same screen twice. */
-          note: "Every card at its empty design, and the import door in the empty Experience section.",
+          /* THIS FRAME IS ALSO THE IMPORT'S FIRST. On a blank profile the importer mounts `direct` in the
+             card at the top of the drawer — drop area already open, no pill to press — so it is already in
+             this picture, and a second frame of it would be the same screen twice.
+
+             It said "two doors" until the LinkedIn one was removed: a second entry point landing in the
+             same parser was a choice with no consequence. The drop area now carries the LinkedIn fact as
+             a disclosure under the box, which is copy rather than a frame. */
+          note: "Every card at its empty design, and the CV drop area on the card a blank profile opens with.",
           route: `${BOARD}?viewer=profile-incomplete&profile=1`,
           kind: "The profile drawer",
           source: [
             "prototypes/entries/job-board/JobProfileDrawer.tsx",
             "prototypes/entries/profile-shared/ExperienceImport/ExperienceImportPanel.tsx",
           ],
-          expect: ["Actively looking", "Upload your CV"],
+          expect: ["Actively looking", "Drag & drop your CV", "On LinkedIn, open your profile and choose"],
           /* The stepper belongs to the waiting state next door, and these two drawers are otherwise close
              enough to photograph alike. */
           expectMissing: ["Await approval confirmation"],
         },
-        /* `import-resume` and `import-linkedin` used to stand here: one frame per door, back when the pill
-           had to be pressed to reveal a drop area and a second door promised LinkedIn. Both went when the
-           design collapsed to one door — LinkedIn's OAuth returns identity claims and not one employer, so
-           the second door led to this same drop area and asked people to make a choice with no consequence.
-           Their `canvasStates` entries went at the same time; these two frames outlived them, pointing at
-           routes that no longer resolve. */
+        /* `import-resume` and `import-linkedin` used to be two frames here, one per door, and both are
+           gone with the doors themselves — their `?canvas=` states were deleted from
+           prototypes/entries/job-board/canvasStates.ts, so the routes photographed an unpinned board while
+           the oracle went on asserting "Import from LinkedIn" and "Drag & drop your resume". There is one
+           drop area, it is already in `drawer-empty`, and the LinkedIn way in is a disclosure under it
+           rather than a screen of its own. */
         {
           id: "import-reading",
           label: "Reading the Document",
@@ -336,7 +340,7 @@ export const CANVAS: CanvasDeclaration = {
       ],
       edges: [
         { from: "board-incomplete", to: "drawer-empty", label: "Presses Apply on a role" },
-        { from: "drawer-empty", to: "import-reading", label: "Drops a CV on the empty Experience section" },
+        { from: "drawer-empty", to: "import-reading", label: "Adds a CV or a LinkedIn export" },
         { from: "import-reading", to: "import-review", label: "When roles are found" },
         { from: "import-reading", to: "import-review-missing-date", label: "When a date is absent" },
         { from: "import-reading", to: "import-nothing-found", label: "When nothing is found" },

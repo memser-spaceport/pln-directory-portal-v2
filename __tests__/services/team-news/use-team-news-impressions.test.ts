@@ -133,4 +133,68 @@ describe('useTeamNewsImpressions', () => {
     unmount();
     expect(beaconMock).not.toHaveBeenCalled();
   });
+
+  describe('viewedUids — what the surface shows back', () => {
+    it('starts empty and reports each uid it records', () => {
+      const { result } = renderHook(() => useTeamNewsImpressions());
+
+      expect(result.current.viewedUids.size).toBe(0);
+
+      act(() => {
+        result.current.recordVisible('n-1');
+        result.current.recordVisible('n-2');
+      });
+
+      expect([...result.current.viewedUids]).toEqual(['n-1', 'n-2']);
+    });
+
+    it('reports exactly what was queued — the same uid twice is one view', () => {
+      const { result } = renderHook(() => useTeamNewsImpressions());
+
+      act(() => {
+        result.current.recordVisible('n-1');
+        result.current.recordVisible('n-1');
+      });
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // The mirror and the POST have to agree, or the count on screen claims
+      // something the server was never told.
+      expect([...result.current.viewedUids]).toEqual(['n-1']);
+      expect(recordMock).toHaveBeenCalledWith(['n-1']);
+    });
+
+    it('keeps recordVisible identity stable while recording', () => {
+      const { result } = renderHook(() => useTeamNewsImpressions());
+      const before = result.current.recordVisible;
+
+      act(() => {
+        result.current.recordVisible('n-1');
+      });
+
+      // Load-bearing. `useCardVisibilityTracking` lists this callback in its
+      // effect deps, so a new identity here would tear down and rebuild EVERY
+      // card's observer every time ANY card was seen — which is what would
+      // happen if the dedup set became state that recordVisible had to read.
+      expect(result.current.recordVisible).toBe(before);
+    });
+
+    it('hands back a new set only when something was actually recorded', () => {
+      const { result } = renderHook(() => useTeamNewsImpressions());
+
+      act(() => {
+        result.current.recordVisible('n-1');
+      });
+      const afterFirst = result.current.viewedUids;
+
+      act(() => {
+        result.current.recordVisible('n-1'); // already seen
+      });
+
+      // Identity preserved on a no-op, so the feed's useMemo chain doesn't
+      // recompute for a repeat sighting that changes nothing.
+      expect(result.current.viewedUids).toBe(afterFirst);
+    });
+  });
 });

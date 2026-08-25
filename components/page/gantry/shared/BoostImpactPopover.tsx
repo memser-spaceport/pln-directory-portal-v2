@@ -25,8 +25,6 @@ interface Props {
   readonly pos: { top: number; left: number };
   /** The item's assigned objectives — rated individually when the per-objective switch is on. */
   readonly objectives?: { uid: string; order: number; title: string }[];
-  /** Pre-fill for a viewer who already has a rating on this item (e.g. the item's author). */
-  readonly initialImpact?: GantryImpactValue | null;
   /** Single-flight: while the pin mutation is committing, Save is disabled and dismissal is a no-op. */
   readonly isSaving?: boolean;
   /** Boost commits here; impact rating is optional. */
@@ -35,8 +33,10 @@ interface Props {
   readonly onCancel: () => void;
 }
 
-export function BoostImpactPopover({ pos, objectives, initialImpact, isSaving, onSave, onCancel }: Props) {
-  const [impact, setImpact] = useState<GantryImpactValue | null>(initialImpact ?? null);
+export function BoostImpactPopover({ pos, objectives, isSaving, onSave, onCancel }: Props) {
+  // Always starts empty: the popover only opens on a boost, which requires no active pin, so
+  // there is never a prior rating of the viewer's to carry in.
+  const [impact, setImpact] = useState<GantryImpactValue | null>(null);
   const [objectiveImpacts, setObjectiveImpacts] = useState<GantryObjectiveImpacts>({});
   const [note, setNote] = useState('');
   const ratedObjectives = GANTRY_IMPACT_PER_OBJECTIVE_ENABLED ? (objectives ?? []) : [];

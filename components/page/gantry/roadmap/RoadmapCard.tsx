@@ -9,7 +9,9 @@ import { clsx } from 'clsx';
 import type { GantryItem } from '@/services/gantry/types';
 import { truncateText } from '@/utils/forum';
 import { hasImpactData } from '@/services/gantry/impact';
+import { boostReadonlyReason } from '@/services/gantry/boost';
 import { GANTRY_IMPACT_MAX } from '@/services/gantry/constants';
+import { useCurrentUserStore } from '@/services/auth/store';
 import { BoostersSection } from '../shared/BoostersSection';
 import { ImpactSummaryStrip } from '../shared/ImpactSummaryStrip';
 import { GantryItemAuthor } from '../shared/GantryItemAuthor';
@@ -67,7 +69,10 @@ function RoadmapCardContent({
   isTransitionPending,
 }: CardContentProps) {
   const descriptionPreview = truncateText(toPlainText(item.description ?? ''), CARD_DESCRIPTION_MAX_LENGTH);
-  const interactionLocked = item.stage === 'IN_PROGRESS' || item.stage === 'SHIPPED' || item.stage === 'DECLINED';
+  // Read the viewer here rather than threading `isAuthor` down: this one call covers the board
+  // card, the mobile card and both drag overlays, which render items the parent doesn't map over.
+  const { currentUser } = useCurrentUserStore();
+  const boostReadonly = boostReadonlyReason(item, currentUser?.uid);
   const showInlineImpact = hasImpactData(item);
   return (
     <>
@@ -133,7 +138,7 @@ function RoadmapCardContent({
                 <BoostButton
                   count={item.pinCount}
                   hasPinned={item.viewerHasPinned}
-                  readonly={interactionLocked}
+                  readonly={boostReadonly}
                   disabled={isPinDisabled}
                   onToggle={(next, el) => onPinToggle(item.uid, next, el)}
                 />

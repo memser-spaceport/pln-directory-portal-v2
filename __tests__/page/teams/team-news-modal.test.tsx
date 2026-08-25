@@ -59,7 +59,11 @@ const mockCurrentUser = jest.fn<{ uid: string } | null, []>(() => null);
 // rows this box reports as read, not about batching (its own suite covers that).
 const mockRecordVisible = jest.fn();
 jest.mock('@/services/team-news/hooks/useTeamNewsImpressions', () => ({
-  useTeamNewsImpressions: () => ({ recordVisible: mockRecordVisible }),
+  // `viewedUids` is what the hook reports back for the optimistic +1. This box
+  // doesn't merge it (its rows come from their own query), but the mock has to
+  // supply it — a jest factory is untyped, so an omission surfaces as a runtime
+  // crash in whatever renders next rather than as a type error here.
+  useTeamNewsImpressions: () => ({ recordVisible: mockRecordVisible, viewedUids: new Set<string>() }),
 }));
 
 jest.mock('@/utils/formatTimeAgo', () => ({
@@ -570,6 +574,19 @@ describe('TeamNewsModal opened without rail-owned state', () => {
   it('reports nothing for rows nobody scrolled to', () => {
     renderStandalone();
 
+    expect(mockRecordVisible).not.toHaveBeenCalled();
+  });
+
+  it('defers to the caller’s recorder, rather than counting into a second set', () => {
+    const recordVisible = jest.fn();
+    renderStandalone({ recordVisible });
+
+    scrollCardsIntoView();
+
+    expect(recordVisible.mock.calls.map(([uid]) => uid)).toEqual(['news-1', 'news-2', 'news-3']);
+    // Its own instance stays silent. Both firing is how a story read in the
+    // team-profile rail and again in here would count twice for one sitting —
+    // the dedup set lives per instance, so two instances cannot agree.
     expect(mockRecordVisible).not.toHaveBeenCalled();
   });
 });

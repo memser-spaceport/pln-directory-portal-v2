@@ -28,6 +28,25 @@ if (typeof window !== 'undefined') {
     }));
 }
 
+// jsdom doesn't implement IntersectionObserver either, and `new IntersectionObserver()`
+// throws rather than no-opping — so a component that starts observing takes down
+// every suite that renders it, including suites with no interest in visibility.
+//
+// This is the inert default: it observes nothing and never fires, which is the
+// truthful answer in an environment with no layout. Suites that need to *drive*
+// visibility (the team-news and gantry ones) replace it in their own beforeAll,
+// which runs after this and still wins.
+if (typeof global.IntersectionObserver === 'undefined') {
+  global.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  };
+}
+
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn(),
   revalidateTag: jest.fn(),

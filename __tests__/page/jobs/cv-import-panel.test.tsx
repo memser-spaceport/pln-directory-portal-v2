@@ -43,7 +43,6 @@ const drop = (f: File) => {
 const renderPanel = (props: Partial<React.ComponentProps<typeof ExperienceImportPanel>> = {}) =>
   render(
     <ExperienceImportPanel
-      entry="direct"
       onParse={jest.fn().mockResolvedValue(parsedWith(2))}
       onAbort={jest.fn()}
       onParsed={jest.fn()}
@@ -148,15 +147,17 @@ describe('ExperienceImportPanel', () => {
     expect(onAbort).toHaveBeenCalled();
   });
 
-  it('in door mode, stays shut until the pill is pressed', () => {
-    const onOpened = jest.fn();
-    renderPanel({ entry: 'door', emptyLabel: 'Share your work history.', onOpened });
-
-    expect(screen.queryByText('Drag & drop your CV')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /upload your cv/i }));
+  /**
+   * The drop area used to sit behind an "Upload your CV" pill, with a "← Back"
+   * above it to undo the reveal. Both are gone: a button that reveals a button,
+   * and a stray control belonging to no card. The panel opens on the thing it is
+   * for, wherever it mounts.
+   */
+  it('shows the drop area immediately, with nothing to press first and nothing to go back to', () => {
+    renderPanel({});
 
     expect(screen.getByText('Drag & drop your CV')).toBeInTheDocument();
-    expect(onOpened).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /upload your cv/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
   });
 });

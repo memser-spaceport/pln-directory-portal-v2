@@ -82,13 +82,11 @@ export const ExperiencesList = (props: Props) => {
              history someone has already written is nagging, and the header's
              "Update from CV" covers that case. */
           <ExperienceImportPanel
-            emptyLabel="Share your work history and skills. This shows what you know and what you can do."
             privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
             onParse={cvImport.onParse}
             onAbort={cvImport.onAbort}
             onParsed={cvImport.onParsed}
             onAddManually={cvImport.onAddManually}
-            onOpened={cvImport.onDoorOpened}
             onCancelRead={cvImport.onCancelRead}
           />
         ) : (

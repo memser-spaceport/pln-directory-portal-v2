@@ -75,7 +75,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
   const isOwner = userInfo?.uid === member.id;
   const { hasAccess: v2HasMemberContacts } = useMemberContactsAccess();
 
-  const { onCvImportOpened, onCvImportCancelled } = useMemberAnalytics();
+  const { onCvImportCancelled } = useMemberAnalytics();
 
   /* The mechanism; this component owns only which card is showing. Shared with
      the drawer's "Start with your CV" card — see `useCvImport`. */
@@ -123,11 +123,10 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
               setPickedFile(file);
               setView('import');
             },
-            onDoorOpened: () => onCvImportOpened('empty-state'),
             onCancelRead: () => onCvImportCancelled('reading'),
           }
         : undefined,
-    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportOpened, onCvImportCancelled],
+    [enableCvImport, parseAndReport, abort, openAddForm, setParsed, onCvImportCancelled],
   );
 
   if (!isLoggedIn || (!v2HasMemberContacts && !isOwner)) {
@@ -189,11 +188,7 @@ export const ExperienceDetails = ({ isLoggedIn, userInfo, member, enableCvImport
                 Cancel
               </HeaderActionBtn>
             </DetailsSectionHeader>
-            {/* `direct`: this route is reached by pressing something that already
-                says "Update from CV", so a landing screen offering an "Upload
-                your CV" button would be a button revealing a button. */}
             <ExperienceImportPanel
-              entry="direct"
               initialFile={pickedFile}
               privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
               onParse={cvImport.onParse}

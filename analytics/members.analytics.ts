@@ -535,11 +535,15 @@ export const useMemberAnalytics = () => {
   /* ---------------------------------------------- filling Experience from a CV --- */
 
   /**
-   * Which door, because the two answer different questions: the empty-row pill
-   * is "did offering this at all help someone with a blank profile", the header
-   * button is "do people come back with a newer CV".
+   * Someone came back with a newer CV.
+   *
+   * One value, because there is one press. The empty-row pill that used to sit
+   * beside it is gone — the drop area stands open there now, so there is no
+   * door to record and an impression is not an intent. The header button is the
+   * only place a person still declares "I want to do this again", which is why
+   * it is the only place this fires.
    */
-  function onCvImportOpened(entry: 'empty-state' | 'header-button') {
+  function onCvImportOpened(entry: 'header-button') {
     captureEvent(MEMBER_ANALYTICS_EVENTS.CV_IMPORT_OPENED, { entry });
   }
 

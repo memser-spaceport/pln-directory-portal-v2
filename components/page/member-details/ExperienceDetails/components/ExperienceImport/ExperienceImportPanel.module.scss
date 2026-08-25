@@ -9,7 +9,7 @@
 // load the DS token sheet, so a bare token resolves to nothing.
 @use 'styles/media';
 
-// --- The two doors ----------------------------------------------------------
+// --- The empty row ----------------------------------------------------------
 
 // Production's `.emptyData` is `space-between`: a sentence on the left, one
 // `.connectButton` on the right. That was written for exactly one button, and
@@ -30,26 +30,10 @@
   gap: 16px;
 }
 
-// One button now, so this is a row of one — kept rather than flattened because
-// the dead end below puts two controls in the same shape, and the width override
-// belongs to both.
-.doorRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  // `.connectButton` is a fixed 188px, sized for production's shelved
-  // "Connect LinkedIn". A label clipped by its own button is worse than a button
-  // a few px wider, so 188 becomes a floor rather than a width.
-  > button {
-    width: auto;
-    min-width: 188px;
-  }
-}
-
 // `.connectButton` sets no type at all in production — it was never rendered, so
-// nothing ever inherited into it. This is `FileUploader`'s `.uploadButton` face,
-// which is the button standing directly under this one once the door is open.
+// nothing ever inherited into it. This is `FileUploader`'s `.uploadButton` face.
+// Only the dead ends use it now ("Try again" / "Try another file"); the pill it
+// was written for is gone.
 .doorLabel {
   white-space: nowrap;
   color: var(--action-foreground-neutral-normal, #455468);
@@ -59,34 +43,13 @@
   letter-spacing: -0.2px;
 }
 
-// --- The panel behind a door -------------------------------------------------
+// --- The panel ---------------------------------------------------------------
 
 .panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
-}
-
-.panelHead {
-  display: flex;
-  align-items: center;
-}
-
-.backLink {
-  padding: 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  letter-spacing: 0.12px;
-  color: var(--foreground-neutral-secondary, #455468);
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
 }
 
 // `.howto`, `.howtoLead` and `.howtoSteps` used to live here — the brand-soft

@@ -27,7 +27,7 @@ import d from './JobProfileDrawer.module.scss';
  * through every card below it. Offering it inside the Experience section
  * described it as smaller than it is and buried it four cards down.
  *
- * **Never on at the same time as the section's own door.** `JobProfileDrawer`
+ * **Never on at the same time as the section's own offer.** `JobProfileDrawer`
  * picks exactly one host (`importAtTop`) and turns the other off; two entry
  * points to one mechanism on one screen is a choice the person cannot get right
  * or wrong.
@@ -123,10 +123,6 @@ export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
             We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
           </p>
           <ExperienceImportPanel
-            /* `direct`: this card's title already says what it is, so a landing
-               screen offering an "Upload your CV" button would be a button
-               revealing a button. */
-            entry="direct"
             privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
             onParse={parseAndReport}
             onAbort={abort}
@@ -142,8 +138,9 @@ export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
              * cards below and not reachable from here. So this stands down
              * instead: the drawer stops treating the profile as blank, which
              * hands the importer back to the Experience section — where the Add
-             * button and the section's own door both are. A real destination,
-             * and it keeps the one-host rule true on the way there.
+             * button and the section's own drop area both are. A real
+             * destination, and it keeps the one-host rule true on the way
+             * there.
              */
             onAddManually={onHandOff}
             onCancelRead={() => onCvImportCancelled('reading')}

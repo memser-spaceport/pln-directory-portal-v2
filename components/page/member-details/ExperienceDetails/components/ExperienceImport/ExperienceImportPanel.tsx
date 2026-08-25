@@ -17,7 +17,16 @@ import type { ParsedProfile } from './types';
 import p from './ExperienceImportPanel.module.scss';
 
 /**
- * One door: bring a CV, and the Experience section fills itself in.
+ * Bring a CV, and the Experience section fills itself in.
+ *
+ * **The drop area is the whole thing.** It used to sit behind a pill in the
+ * section's empty row, with a "← Back" above it to undo the reveal — a button
+ * that revealed a button, and a stray control that belonged to no card. Both are
+ * gone. Wherever this mounts it shows the drop area straight away, which is what
+ * every host was already doing deliberately by passing `entry="direct"`.
+ *
+ * Leaving the importer is still available, and still where the section grammar
+ * puts it: the card's own header slot, rendered by the host.
  *
  * There is deliberately no second door labelled "Import from LinkedIn". It would
  * not be a second mechanism — `useLinkedInVerification` returns identity claims
@@ -38,10 +47,6 @@ import p from './ExperienceImportPanel.module.scss';
  */
 
 interface ExperienceImportPanelProps {
-  /** The section's own empty-state sentence, so the door sits under the words
-   *  the profile already uses rather than under a second copy of them. Unused in
-   *  `direct` mode, which has no empty row. */
-  emptyLabel?: string;
   /**
    * Reads the document. Rejecting is a failure; resolving with no experiences is
    * a document that carried none. The two get different dead ends — see below.
@@ -57,15 +62,6 @@ interface ExperienceImportPanelProps {
   /** The way out of a dead end: the section's own Add form. */
   onAddManually: () => void;
   /**
-   * The empty-row pill was pressed and the drop area is now showing.
-   *
-   * Analytics, kept out here rather than fired inside: the panel has no reason
-   * to know what PostHog is, and the host already owns every other event in this
-   * funnel. Absent in `direct` mode, where the drop area was never behind a
-   * door.
-   */
-  onOpened?: () => void;
-  /**
    * Cancel was pressed *while reading*.
    *
    * Distinct from `onAbort`, which also fires on unmount, on a superseding file
@@ -73,19 +69,6 @@ interface ExperienceImportPanelProps {
    * up waiting", which is the number that says whether the parse is too slow.
    */
   onCancelRead?: () => void;
-  /**
-   * How the panel is entered.
-   *
-   * `door` — the section's empty row with an "Upload your CV" pill, which opens
-   * the drop area. Right when the panel is one option inside a section that has
-   * other things in it.
-   *
-   * `direct` — the drop area straight away, with no pill and no "← Back". Right
-   * when the panel IS the card: a host reached by pressing something that
-   * already says "Update from CV" would otherwise be a button revealing a
-   * button.
-   */
-  entry?: 'door' | 'direct';
   /** A file the host already collected — see `ResumeDropzone.externalFile`. */
   initialFile?: File | null;
   /**
@@ -124,18 +107,14 @@ const DROPZONE_COPY = {
 const MAX_FILE_SIZE_MB = 5;
 
 export function ExperienceImportPanel({
-  emptyLabel = '',
   onParse,
   onAbort,
   onParsed,
   onAddManually,
-  onOpened,
   onCancelRead,
-  entry = 'door',
   initialFile,
   privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
 }: ExperienceImportPanelProps) {
-  const [open, setOpen] = useState<boolean>(entry === 'direct');
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>('idle');
 
@@ -177,11 +156,6 @@ export function ExperienceImportPanel({
     setStatus('idle');
   };
 
-  const closeDoor = () => {
-    reset();
-    setOpen(false);
-  };
-
   const startReading = async (picked: File) => {
     readToken.current += 1;
     const token = readToken.current;
@@ -212,56 +186,10 @@ export function ExperienceImportPanel({
     }
   };
 
-  /* ----------------------------------------------------------- the one door --- */
-
-  if (!open) {
-    return (
-      <div className={p.panel}>
-        {/* `.emptyData` is `space-between` — a sentence on the left and one
-            `.connectButton` on the right — and with a single door that layout
-            would fit again. It stays a column because the vertical gap between
-            the sentence and the button was tuned deliberately; restoring the row
-            would silently undo that. */}
-        <div className={clsx(e.emptyData, p.emptyStack)}>
-          <span className={e.label}>{emptyLabel}</span>
-          <div className={p.doorRow}>
-            <button
-              type="button"
-              className={e.connectButton}
-              onClick={() => {
-                setOpen(true);
-                onOpened?.();
-              }}
-            >
-              <UploadSimpleIcon />
-              <span className={p.doorLabel}>Upload your CV</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   /* ------------------------------------------------------------- the panel --- */
 
   return (
     <div className={p.panel}>
-      {/* One step back, to the empty state. Not a Cancel: leaving the importer
-          altogether is the *card's* action, so it lives in the section header
-          where every other section in this stack puts its control, and the host
-          renders it. Two exits at two distances, each where its scope belongs.
-
-          Absent in `direct` mode, where there is no empty state behind the drop
-          area to go back to — a Back that returns you to where you already are
-          is a control that does nothing. */}
-      {entry === 'door' && (
-        <div className={p.panelHead}>
-          <button type="button" className={p.backLink} onClick={closeDoor}>
-            ← Back
-          </button>
-        </div>
-      )}
-
       {status === 'reading' ? (
         <div className={p.reading}>
           <SpinnerIcon className={p.spinner} />

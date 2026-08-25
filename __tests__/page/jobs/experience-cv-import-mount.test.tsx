@@ -117,18 +117,18 @@ describe('CV import inside the Experience section', () => {
   it('offers nothing when the host has not asked for it — the member profile page case', () => {
     renderSection({ entries: [] });
 
-    expect(screen.queryByRole('button', { name: /upload your cv/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('Drag & drop your CV')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /update from cv/i })).not.toBeInTheDocument();
     // The section's own empty sentence is still there — turning the importer off
     // must not take the empty state with it.
     expect(screen.getByText(/share your work history and skills/i)).toBeInTheDocument();
   });
 
-  it('puts the door in the empty row, under the sentence that was already there', () => {
+  it('puts the drop area itself in the empty row, with no pill to press first', () => {
     renderSection({ enableCvImport: true, entries: [] });
 
-    expect(screen.getByRole('button', { name: /upload your cv/i })).toBeInTheDocument();
-    expect(screen.getByText(/share your work history and skills/i)).toBeInTheDocument();
+    expect(screen.getByText('Drag & drop your CV')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /upload your cv/i })).not.toBeInTheDocument();
     // Nothing to update yet.
     expect(screen.queryByRole('button', { name: /update from cv/i })).not.toBeInTheDocument();
   });
@@ -208,8 +208,8 @@ describe('the whole way through: drop a file, review it, save it', () => {
     ],
   };
 
+  /* No pill to press first — the empty row IS the drop area now. */
   const dropCv = () => {
-    fireEvent.click(screen.getByRole('button', { name: /upload your cv/i }));
     const cv = new File(['x'], 'cv.pdf', { type: 'application/pdf' });
     Object.defineProperty(cv, 'size', { value: 1024 });
     const box = screen.getByText('Drag & drop your CV').closest('div')!.parentElement!;

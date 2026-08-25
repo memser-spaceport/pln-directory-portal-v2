@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { Drawer } from '@/components/common/Drawer';
 import { Button } from '@/components/common/Button';
+import { toast } from '@/components/core/ToastContainer';
 import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
@@ -214,10 +215,32 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                 <DetailsSectionHeader title="Job search status">
                   <PlTeamOnlyPill />
                 </DetailsSectionHeader>
+                {/* Not disabled while saving, deliberately. The write is
+                    optimistic now, so the dot has already moved and the only
+                    thing a lock would buy is stopping someone changing their
+                    mind during a window they can no longer see. Two clicks in
+                    that window race, and the later PATCH's invalidation settles
+                    last — which is the answer they picked last, so the race has
+                    the right winner. */}
                 <JobSearchStatusInput
                   value={jobSearchStatus}
-                  disabled={updateMember.isPending}
-                  onChange={(value) => updateMember.mutate({ uid: memberUid, payload: { jobSearchStatus: value } })}
+                  onChange={(value) =>
+                    updateMember.mutate(
+                      { uid: memberUid, payload: { jobSearchStatus: value } },
+                      {
+                        /* Here rather than in the hook's own `onError`: the bio
+                           and profile forms already show their own message, and
+                           a blanket toast would double up on both. The hook
+                           owns the rollback; each caller owns what it says.
+
+                           And it has to say something. Before this the dot never
+                           moved, so a failed save claimed nothing; optimistically
+                           it moves and then un-moves on its own, which turns a
+                           silent failure into a misleading one. */
+                        onError: () => toast.error("Couldn't save your job search status. Please try again."),
+                      },
+                    )
+                  }
                 />
               </div>
             </DetailsSection>
@@ -296,13 +319,13 @@ function missingHint(hasRole: boolean, hasStatus: boolean): string {
 
 const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
+/* No `disabled` prop any more: the only thing that ever set it was "a save is in
+   flight", and an optimistic save has nothing to wait for. */
 function JobSearchStatusInput({
   value,
-  disabled,
   onChange,
 }: {
   value: JobSearchStatus | null;
-  disabled?: boolean;
   onChange: (next: JobSearchStatus) => void;
 }) {
   return (
@@ -319,7 +342,6 @@ function JobSearchStatusInput({
               className={d.statusInput}
               value={option.value}
               checked={value === option.value}
-              disabled={disabled}
               onChange={() => onChange(option.value)}
             />
             <span className={d.statusIndicator} aria-hidden="true" />

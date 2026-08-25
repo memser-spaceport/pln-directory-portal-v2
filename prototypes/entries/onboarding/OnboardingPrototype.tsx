@@ -31,7 +31,7 @@ import cd from '@/components/page/member-details/contact-details/ContactDetails.
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
-import { ExperienceList } from '../job-board/JobProfilePane';
+import { ExperienceList } from '../job-board/JobProfileDrawer';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
 
 import { MOCK_USER } from './mocks';

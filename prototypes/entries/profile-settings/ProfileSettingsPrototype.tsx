@@ -16,9 +16,9 @@ import { FormSwitch } from '@/components/form/FormSwitch';
 // The Experience list and its editor, and the CV importer. All four come from
 // somewhere else on purpose: this page and the job board's apply drawer are two
 // windows onto one record, so they share the components that read and write it.
-// `ExperienceList`/`ExperienceForm` still live in `JobProfilePane` and should
+// `ExperienceList`/`ExperienceForm` still live in `JobProfileDrawer` and should
 // move to `profile-shared/` — see the note on their export.
-import { ExperienceForm, ExperienceList } from '../job-board/JobProfilePane';
+import { ExperienceForm, ExperienceList } from '../job-board/JobProfileDrawer';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
 import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/ExperienceImportPanel';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
@@ -217,7 +217,7 @@ export default function ProfileSettingsPrototype() {
                   simplification of the record and became a different one.
 
                   **Why the drawer's components.** `ExperienceList` and
-                  `ExperienceForm` are imported from `JobProfilePane` rather
+                  `ExperienceForm` are imported from `JobProfileDrawer` rather
                   than re-typed. Two editors for one record is how two surfaces
                   start disagreeing about what a valid entry is — the thing
                   `profile-shared/` exists to prevent. (They belong in

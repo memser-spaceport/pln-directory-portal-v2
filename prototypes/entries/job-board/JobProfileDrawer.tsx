@@ -78,7 +78,7 @@ import pc from '@/components/page/member-details/ProfileDetails/components/Profi
 
 import { SkillsTagsInput } from './SkillsTagsInput';
 import { PendingApprovalSteps } from './PendingApprovalSteps';
-import { VIEWER_NAME } from './profile/viewerIdentity';
+import { VIEWER_EMAIL, VIEWER_NAME } from './profile/viewerIdentity';
 import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 
 // SHARED (prototypes/entries/profile-shared/, no registry entry — like
@@ -557,6 +557,8 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             {editingImport && parsed ? (
               <ExperienceImportReview
                 parsed={parsed}
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
                 currentRole={draft.role}
                 currentLocation={draft.location}
                 currentSkills={draft.skills}
@@ -701,6 +703,8 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             parsed ? (
               <ExperienceImportReview
                 parsed={parsed}
+                currentName={VIEWER_NAME}
+                currentEmail={VIEWER_EMAIL}
                 currentRole={draft.role}
                 currentLocation={draft.location}
                 currentSkills={draft.skills}

@@ -83,6 +83,10 @@ const CANVAS_FILLED_FORM: AccountFormData = {
      literals of one address is two chances for the applicant to become two
      people. */
   email: VIEWER_EMAIL,
+  /* Left empty on purpose. The filled frame is there to show a form someone has
+     answered, and this is the one field they are not required to answer — a
+     fixture that fills it would make an optional field look expected. */
+  teamEmail: '',
   name: VIEWER_NAME,
   linkedin: 'polina-bublii',
   role: 'Senior Protocol Engineer',

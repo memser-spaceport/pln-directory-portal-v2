@@ -60,8 +60,13 @@
 // grey, so a 14px secondary sentence would be the same size as its own heading
 // and darker than it — the label meant to lead the card ending up the quietest
 // thing in it.
+//
+// The 16px below it for the same reason the apply drawer's copy of this class
+// carries it: `DetailsSection` has no gap of its own and `DetailsSectionHeader`
+// brings only its own 8px, so without this the sentence and the drop box under
+// it measured 0px apart.
 .cvFirstNote {
-  margin: 0;
+  margin: 0 0 16px;
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;

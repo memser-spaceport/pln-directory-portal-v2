@@ -11,7 +11,7 @@ import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/
 import { Button } from '@/components/common/Button';
 import { CheckIcon } from '@/components/icons';
 import { ReferMenu } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/ReferMenu';
-import { ArrowIcon, ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
+import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
 import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 
 // Reuse the production ReferRoleRow styling 1:1, with local extras for the button.
@@ -79,11 +79,12 @@ interface JobReferRoleRowProps {
  * — and all three wear the same button geometry, so a list of roles doesn't
  * jitter as rows change state.
  *
- * **The board keeps production's arrow**, now beside Apply rather than instead of
- * it. It was the apply link before Apply moved in-app; it stays as the link out
- * to the posting, because that route is not something the new button replaced —
- * it's something the new button displaced. Board only: where Apply is still the
- * link (the team profile), an arrow would be the same door drawn twice.
+ * **The board no longer carries production's `↗`.** It was the apply link before
+ * Apply moved in-app, then stood for a while beside Apply as the link out to the
+ * posting. The route is what mattered and the route survives one level in — the
+ * drawer's step 1 opens with a labelled `Original posting` link. See the note
+ * where the arrow was rendered. On the team profile, where there is no in-app
+ * description, Apply *is* still the link out and nothing changed.
  */
 export function JobReferRoleRow(props: JobReferRoleRowProps) {
   const {
@@ -135,9 +136,8 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 job is. On the board that is now the in-app description, so the
                 title and the **View job** button are one door with two handles —
                 the alternative was a title that went somewhere else than the
-                button beside it, which is the confusion the arrow already sits
-                close to. Everywhere without an in-app description (the team
-                profile) the title is still the link out, unchanged. */}
+                button beside it. Everywhere without an in-app description (the
+                team profile) the title is still the link out, unchanged. */}
             {onViewJob ? (
               <button
                 type="button"
@@ -186,37 +186,21 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
-            {/* The arrow out to the posting — production's own `.applyArrow`, kept
-                on the board.
+            {/* (The `↗` out to the external posting stood here, on the board
+                only. It was removed, and the route it carried was not: the
+                drawer's step 1 opens with **Original posting** in its masthead
+                (`JobDetailPane`'s `.postingLink`), a labelled link to the same
+                URL — so the ad is still one press from the row, via the control
+                that already opens the job.
 
-                It used to BE Apply here: the board's action row ended in a bare
-                arrow linking to the external ad. Turning Apply into an in-app
-                button took that link with it and left the row with no visible
-                way to go read the job description. So the arrow came back with
-                the job it actually always did: open the posting. Only the label
-                changed, because "Apply to X" is no longer what pressing it does.
-
-                It matters more now, not less. With an in-app description the
-                title opens *that*, so this is the row's only route to the team's
-                own ad — two different readings of one job, and the second one is
-                the authority. The drawer repeats the link at the top of the
-                panel for whoever gets that far.
-
-                Board only. On the team profile there is no in-app description, so
-                Apply *is* the link out, and a second control to the same URL in
-                the same row would be the same door twice. It also survives the
-                applied state — having applied is no reason to stop being able to
-                read the ad. */}
-            {onViewJob && applyUrl && (
-              <a
-                className={`${s.applyArrow} ${js.arrowTone}`}
-                aria-label={`Open the ${roleTitle} posting`}
-                {...linkProps}
-              >
-                <ArrowIcon />
-              </a>
-            )}
-
+                Worth recording that this glyph was restored once before, after
+                being deleted along with the old arrow-as-Apply. That restore was
+                right at the time: the row had no other way to reach the ad. It
+                does now, and the version that survived is the better one — a
+                bare arrow at the end of an action row is a destination nobody
+                can name until they press it, where "Original posting" says which
+                of the two readings of this job it is. It also takes a fourth
+                grey out of a 200px cluster that had no business holding four. */}
             {onViewJob ? (
               /* The board's button, once the description moved in-app.
 

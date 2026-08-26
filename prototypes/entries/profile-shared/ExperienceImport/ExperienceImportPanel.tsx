@@ -19,6 +19,21 @@ import type { ParsedProfile } from './types';
 import p from './ExperienceImportPanel.module.scss';
 
 /**
+ * TEMPORARY — flip back to `true` to get the scenario picker back.
+ *
+ * The "Prototype — result to return" row above the drop box. It is review
+ * scaffolding, not design (see where it renders), and it is the loudest thing in
+ * a card whose point is the sentence above it, so it is off while the card is
+ * being looked at.
+ *
+ * Hiding it costs the two states nobody reaches by accident: a parse missing a
+ * start date, and a parse that finds nothing. Every drop returns the default
+ * `three-roles` while this is `false`; the `?canvas=` states still pin the
+ * others (`canvasStates.ts`), so they remain reachable by URL.
+ */
+const SHOW_SCENARIO_PICKER = false;
+
+/**
  * One door: bring a CV, and the Experience section fills itself in.
  *
  * **There was a second one, labelled "Import from LinkedIn", and it is gone.**
@@ -362,20 +377,25 @@ export function ExperienceImportPanel({
               back is the reviewer's choice — otherwise the two states that matter
               most (a missing start date, and finding nothing) are states nobody
               ever sees. Delete this row the day extraction is real; it is not part
-              of the design. */}
-          <div className={p.mockRow}>
-            <span className={p.mockLabel}>Prototype — result to return:</span>
-            {PARSE_SCENARIOS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={clsx(p.mockOption, { [p.mockOptionOn]: scenario === option.value })}
-                onClick={() => setScenario(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+              of the design.
+
+              Currently hidden — see `SHOW_SCENARIO_PICKER` at the top of the
+              file for how to get it back and what is unreachable while it's off. */}
+          {SHOW_SCENARIO_PICKER && (
+            <div className={p.mockRow}>
+              <span className={p.mockLabel}>Prototype — result to return:</span>
+              {PARSE_SCENARIOS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={clsx(p.mockOption, { [p.mockOptionOn]: scenario === option.value })}
+                  onClick={() => setScenario(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <ResumeDropzone
             title={DROPZONE_COPY.title}

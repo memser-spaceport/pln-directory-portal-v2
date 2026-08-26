@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-export const Loader = dynamic(() => import('../components/core/loader'), { ssr: false });
+export const Loader = dynamic(() => import('../components/core/Loader'), { ssr: false });
 export const AuthBox = dynamic(
   () => import('@/components/core/login/components/AuthBox').then((m) => m.AuthBox),
   { ssr: false },

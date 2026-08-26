@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { useQuery } from '@tanstack/react-query';
 
 import { toast } from '@/components/core/ToastContainer';
@@ -61,7 +61,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   const { flow, viewer, isLoggedIn, userInfo, source } = props;
   const { state } = flow;
 
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useJobsAnalytics();
   const signUpMutation = useMutation({ mutationFn: signUpToJobBoard });
 
@@ -109,7 +109,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     // The role rides the same channel, so signing in lands them back on the
     // application instead of on a board they have to re-navigate.
     const qs = withPendingApply(search.toString(), opts?.pendingRoleUid);
-    router.push(`${window.location.pathname}${qs}#login`);
+    goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
   /**

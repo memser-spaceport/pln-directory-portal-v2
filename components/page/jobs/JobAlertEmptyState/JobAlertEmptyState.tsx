@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
@@ -12,6 +11,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import type { IJobAlertFilterState } from '@/types/job-alerts.types';
 import { hasActiveFilters } from '@/utils/job-alerts.utils';
 import s from './JobAlertEmptyState.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface JobAlertEmptyStateProps {
   filterState: IJobAlertFilterState;
@@ -19,7 +19,7 @@ interface JobAlertEmptyStateProps {
 }
 
 export default function JobAlertEmptyState({ filterState, isLoggedIn }: JobAlertEmptyStateProps) {
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
   const updateMutation = useUpdateJobAlert();
@@ -107,7 +107,7 @@ export default function JobAlertEmptyState({ filterState, isLoggedIn }: JobAlert
       } catch {
         // sessionStorage unavailable — fall through
       }
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
       return;
     }
 

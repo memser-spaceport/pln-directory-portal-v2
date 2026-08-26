@@ -9,7 +9,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { useReportAnalyticsEvent, TrackEventDto } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { useCurrentUserStore } from '@/services/auth/store';
 
-import { isDemoDayScopePage } from '../../../login/utils';
+import { isDemoDayScopePage, useLoginRedirect } from '../../../login/utils';
 
 import s from './LoginButton.module.scss';
 
@@ -25,6 +25,7 @@ export const LoginBtn = (props: PropsWithChildren<Props>) => {
   const reportAnalytics = useReportAnalyticsEvent();
   const router = useRouter();
   const pathname = usePathname();
+  const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
@@ -58,11 +59,7 @@ export const LoginBtn = (props: PropsWithChildren<Props>) => {
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

@@ -8,6 +8,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useContactSupportStore } from '@/services/contact-support/store';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 const items = new Array(5).fill(0).map((_, i) => (
   <li className={s.listItem} key={i}>
@@ -30,6 +31,7 @@ export type ForumLoggedOutReason = 'base' | 'investor' | 'no-access';
 
 export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => {
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const { openModal } = useContactSupportStore((s) => s.actions);
 
   const onLoginClickHandler = () => {
@@ -38,11 +40,7 @@ export const LoggedOutView = ({ reason }: { reason?: ForumLoggedOutReason }) => 
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

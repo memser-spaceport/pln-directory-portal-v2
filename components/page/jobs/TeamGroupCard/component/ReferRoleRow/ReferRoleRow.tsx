@@ -24,7 +24,7 @@ import s from './ReferRoleRow.module.scss';
 import btn from '@/components/common/Button/Button.module.scss';
 import ap from './ReferRoleRowApply.module.scss';
 import { IUserInfo } from '@/types/shared.types';
-import { useRouter } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 /**
  * In-app Apply, switched on by prop PRESENCE — the row imports no feature flag.
@@ -87,7 +87,7 @@ interface ReferRoleRowProps {
 export function ReferRoleRow(props: ReferRoleRowProps) {
   const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
 
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useJobsAnalytics();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
@@ -139,7 +139,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     if (currentUser) {
       toggleReferOpen();
     } else {
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   }
 

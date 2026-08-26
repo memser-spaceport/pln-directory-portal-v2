@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { toast } from '@/components/core/ToastContainer';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { clsx } from 'clsx';
 
 import s from './MemberDetailsLoginStrip.module.scss';
@@ -17,6 +18,7 @@ interface IMemberProfileLoginStrip {
 export const MemberProfileLoginStrip = ({ member, variant = 'primary' }: IMemberProfileLoginStrip) => {
   const router = useRouter();
   const authAnalytics = useAuthAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
     const userInfo = useCurrentUserStore.getState().currentUser;
@@ -25,7 +27,7 @@ export const MemberProfileLoginStrip = ({ member, variant = 'primary' }: IMember
       router.refresh();
     } else {
       authAnalytics.onLoginBtnClicked();
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   };
 

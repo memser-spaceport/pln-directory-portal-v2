@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics } from '@/analytics/jobs.analytics';
@@ -14,6 +13,7 @@ import { Button } from '@/components/common/Button';
 import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 import { JobAlertShell } from '../JobAlertShell';
 import s from './JobAlertBanner.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface JobAlertBannerProps {
   filterState: IJobAlertFilterState;
@@ -22,7 +22,7 @@ interface JobAlertBannerProps {
 }
 
 export function JobAlertBanner({ filterState, resultCount, isLoggedIn }: JobAlertBannerProps) {
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
   const updateMutation = useUpdateJobAlert();
@@ -104,7 +104,7 @@ export function JobAlertBanner({ filterState, resultCount, isLoggedIn }: JobAler
       } catch {
         // sessionStorage unavailable — fall through
       }
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
       return;
     }
 

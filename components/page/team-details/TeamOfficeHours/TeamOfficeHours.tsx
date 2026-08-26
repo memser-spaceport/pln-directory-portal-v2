@@ -17,6 +17,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { Tooltip } from '@/components/core/tooltip/tooltip';
 
 import s from './TeamOfficeHours.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 interface Props {
   team: ITeam;
@@ -32,6 +33,7 @@ export function TeamOfficeHours(props: Props) {
   const officeHours = team?.officeHours;
   const teamAnalytics = useTeamAnalytics();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
     const userInfo = useCurrentUserStore.getState().currentUser;
@@ -40,7 +42,7 @@ export function TeamOfficeHours(props: Props) {
       router.refresh();
     } else {
       teamAnalytics.onTeamDetailOfficeHoursLoginClicked(getAnalyticsTeamInfo(team));
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   };
 

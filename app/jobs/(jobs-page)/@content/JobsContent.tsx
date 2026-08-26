@@ -37,6 +37,7 @@ import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts'
 import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import s from './JobsContent.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 // Flip to true to simulate a logged-in user with a saved alert during local dev
 const DEV_MOCK_ALERT = false;
@@ -62,6 +63,7 @@ interface JobsContentProps {
 export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const { setParam } = useJobsParamsUpdater();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
@@ -113,8 +115,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
      sign-up is dropped here rather than inherited through the round trip. */
   const pushLogin = useCallback(() => {
     const search = withPendingApply(window.location.search, undefined);
-    router.push(`${window.location.pathname}${search}#login`);
-  }, [router]);
+    goToLogin({ returnTo: `${window.location.pathname}${search}` });
+  }, [goToLogin]);
 
   /* Coming back from the Privy round trip: pick the application back up where
      it was interrupted. The role uid travels in the URL (see

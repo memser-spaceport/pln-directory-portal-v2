@@ -17,5 +17,6 @@ export function toRecipientOption(member: DirectoryMember, options?: { omitTeam?
     value: member.uid,
     description: options?.omitTeam ? member.title || undefined : getMemberMeta(member),
     image: member.image,
+    isTeamLead: member.isTeamLead,
   };
 }

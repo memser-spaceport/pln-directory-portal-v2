@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { useTeamNewsAnalytics } from '@/analytics/team-news.analytics';
 import { NewsDetailModal } from '@/components/page/home/TeamNews/components/NewsDetailModal';
 import { useFeedCommentCounts } from '@/services/feed/hooks/useFeedCommentCounts';
+import { useTeamNewsImpressions } from '@/services/team-news/hooks/useTeamNewsImpressions';
 import { TEAM_NEWS_PREVIEW_LIMIT } from '@/services/team-news/constants';
 import type { ITeamNewsByTeamResponse, ITeamNewsItem } from '@/types/team-news.types';
 
@@ -54,6 +55,18 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
   // viewer's vote consistent everywhere it renders, which is why this is held
   // here and handed down rather than left to the modal's own instance.
   const { upvoteOverlay, handleUpvoteToggle } = useTeamNewsUpvoteOverlay();
+
+  // Views, held here for the same reason the overlay above is: one instance for
+  // the whole team-profile surface, handed to the archive rather than letting it
+  // mount a second. Each useTeamNewsImpressions owns its dedup set, so two of
+  // them would count a story read in the rail and again in the archive twice in
+  // one sitting — while /home, which mounts one for Top Stories and the stream
+  // together, counts it once.
+  //
+  // Until this existed the rail passed no `onVisible` at all, and NewsCard skips
+  // the observer entirely without one: the cards showed a Views number they never
+  // contributed to.
+  const { recordVisible } = useTeamNewsImpressions();
 
   const total = initialData.total;
   const previewItems = useMemo(
@@ -124,6 +137,13 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
                 onUpvoteToggle={(toggled: ITeamNewsItem) => handleUpvoteToggle(toggled, index, 'team-profile-rail')}
                 onShowMore={(clicked) => handleShowMore(clicked, index)}
                 onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
+                /* By reference, not wrapped — unlike every other callback on
+                   this card. `useCardVisibilityTracking` lists its callback in
+                   the effect's deps, so a new identity each render rebuilds the
+                   observer every render. `trackOnce` keeps that from
+                   double-recording, which is exactly why the churn would never
+                   be noticed. */
+                onVisible={recordVisible}
               />
             ))}
           </div>
@@ -158,6 +178,9 @@ export function TeamNewsRail({ teamUid, teamName, initialData }: TeamNewsRailPro
         fullscreen={isMobile}
         upvoteOverlay={upvoteOverlay}
         onUpvoteToggle={handleUpvoteToggle}
+        /* The same recorder the rail's own cards use, so a story seen in both
+           is one view. See the hook call above. */
+        recordVisible={recordVisible}
       />
 
       {/* Conditional mount, no isOpen half-state: the item prop is always the

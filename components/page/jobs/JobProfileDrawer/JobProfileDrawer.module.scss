@@ -18,6 +18,19 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// The "Start with your CV" card's one line of prose, between its header and the
+// drop area. Secondary 12px — the offer is the drop area; this only says what it
+// saves you. Deliberately quieter than `.lede`, so the card cannot out-shout the
+// amber "your current role is required" strip on the card below it.
+.cvFirstNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // The sticky Back header, lifted above the scrolling column: the pending
 // stepper's step indicators are positioned (the connector rail needs it) and
 // would otherwise scroll OVER the header and swallow the back arrow. Doubled
@@ -106,6 +119,19 @@
     gap: 16px;
     padding: 12px 20px;
   }
+}
+
+// The action, which must not wrap.
+//
+// The row is `space-between` with a hint that runs to two lines in its longest
+// state, and "Continue to apply" is wide enough that flex will break it across
+// two lines before it shrinks the paragraph beside it. A two-line label in a
+// pill reads as a layout accident. The hint is the flexible half — it already
+// wraps by design — so the button keeps its intrinsic width and the sentence
+// gives way.
+.footerAction {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 // One sentence, and it changes: before the requirement is met it says what is

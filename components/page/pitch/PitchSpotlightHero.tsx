@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { EditInvestorProfileDrawer } from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfileDrawer/EditInvestorProfileDrawer';
 import { Alert } from '@/components/page/demo-day/shared/Alert';
 import { InvestorProfileInlineLink } from '@/components/page/pitch/InvestorProfileInlineLink';
@@ -16,6 +16,7 @@ import { buildEngagementTrackEvent } from '@/analytics/team-pitch-engagement';
 import { useReportAnalyticsEvent } from '@/services/demo-day/hooks/useReportAnalyticsEvent';
 import { TEAM_PITCH_ANALYTICS } from '@/utils/constants';
 import s from './PitchSpotlightHero.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 export type PitchSpotlightHeroVariant =
   | 'notLoggedIn'
@@ -48,7 +49,7 @@ export const PitchSpotlightHero = ({
   teamName,
   teamUid,
 }: Props) => {
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { openModal } = useContactSupportStore((state) => state.actions);
@@ -127,8 +128,12 @@ export const PitchSpotlightHero = ({
     trackPitchEvent(TEAM_PITCH_ANALYTICS.ON_LOGIN_CLICKED, () =>
       teamPitchAnalytics.onLoginClicked({ pitchSlug, variant }),
     );
-    const email = prefillEmail || '';
-    router.replace(`${getTeamSpotlightPath(pitchSlug)}?prefillEmail=${encodeURIComponent(email)}#login`);
+    // Encoding is the helper's job — encoding here too would double-escape it.
+    goToLogin({
+      returnTo: getTeamSpotlightPath(pitchSlug),
+      params: { prefillEmail: prefillEmail || '' },
+      replace: true,
+    });
   };
 
   const profileSetupPhrase = isProfileComplete

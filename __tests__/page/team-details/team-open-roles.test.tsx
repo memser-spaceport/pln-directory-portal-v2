@@ -49,7 +49,14 @@ const role = (uid: string, postedDate: string): IJobRole => ({
 });
 
 const groupOf = (roles: IJobRole[]): IJobTeamGroup => ({
-  team: { uid: 'team-1', name: 'Acme', logoUrl: null, focusAreas: ['AI & Robotics'], subFocusAreas: [] },
+  team: {
+    uid: 'team-1',
+    name: 'Acme',
+    logoUrl: null,
+    focusAreas: ['AI & Robotics'],
+    subFocusAreas: [],
+    jobReferEmail: null,
+  },
   totalRoles: roles.length,
   roles,
 });

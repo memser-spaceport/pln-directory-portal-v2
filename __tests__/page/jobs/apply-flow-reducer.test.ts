@@ -1,4 +1,9 @@
-import { applyFlowReducer, type ApplyFlowState, type ApplyTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import {
+  applyFlowReducer,
+  type ApplyFlowState,
+  type ApplyTarget,
+  type JobDetailTarget,
+} from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { IJobRole } from '@/types/jobs.types';
 
 const role = (uid: string): IJobRole => ({
@@ -15,6 +20,16 @@ const role = (uid: string): IJobRole => ({
 });
 
 const target = (uid = 'r1'): ApplyTarget => ({ role: role(uid), teamId: 't1', teamName: 'Acme' });
+
+const team = {
+  uid: 't1',
+  name: 'Acme',
+  logoUrl: null,
+  focusAreas: [],
+  subFocusAreas: [],
+  jobReferEmail: null,
+};
+const detailTarget = (uid = 'r1'): JobDetailTarget => ({ ...target(uid), team });
 
 const IDLE: ApplyFlowState = { step: 'idle' };
 
@@ -96,5 +111,43 @@ describe('applyFlowReducer', () => {
     expect(applyFlowReducer(IDLE, { type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft: 'x' })).toEqual(IDLE);
     expect(applyFlowReducer(IDLE, { type: 'DRAWER_SAVED', canResume: true })).toEqual(IDLE);
     expect(applyFlowReducer(IDLE, { type: 'CLOSE_DRAWER' })).toEqual(IDLE);
+  });
+
+  /**
+   * Reading the job, which now sits in front of the whole flow rather than
+   * inside it.
+   */
+  describe('the detail step', () => {
+    it('opens on the target it was given, carrying the team the masthead needs', () => {
+      expect(applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() })).toEqual({
+        step: 'detail',
+        target: detailTarget(),
+      });
+    });
+
+    it('closes back to the board — it is upstream of the flow, not a detour inside it', () => {
+      const detail = applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() });
+      expect(applyFlowReducer(detail, { type: 'CLOSE_DETAIL' })).toEqual(IDLE);
+    });
+
+    /**
+     * Apply inside the drawer dispatches one of the OPEN_* cases, which replace
+     * this step wholesale. The drawer therefore fires no close of its own — and
+     * if a stray one arrives anyway it must not knock the step that replaced it
+     * back to idle, which would close the sign-up form or the profile drawer the
+     * press just opened.
+     */
+    it.each([
+      ['sign-up', { type: 'OPEN_SIGN_UP', target: target() } as const],
+      ['drawer', { type: 'OPEN_DRAWER', pendingApply: target() } as const],
+      ['apply', { type: 'OPEN_APPLY', target: target() } as const],
+    ])('is replaced wholesale when Apply routes to %s', (step, action) => {
+      const detail = applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() });
+      const next = applyFlowReducer(detail, action);
+
+      expect(next.step).toBe(step);
+      // And a late close cannot undo it.
+      expect(applyFlowReducer(next, { type: 'CLOSE_DETAIL' })).toEqual(next);
+    });
   });
 });

@@ -6,6 +6,21 @@ export interface IJobRole {
   location: string[];
   workMode: string | null;
   applyUrl: string | null;
+  /**
+   * The posting's own words, if the ingest carried any.
+   *
+   * **Optional because nothing sends it yet.** The column exists
+   * (`JobOpening.summary`, written straight from the ingest payload) but the
+   * board's query service does not select it, so today this is always
+   * `undefined`. It is modelled here so the detail drawer can render it the day
+   * it starts arriving without a type change — and so that the absence is a
+   * documented gap rather than a field nobody thought of.
+   *
+   * Free text, one block. It is NOT the structured body the job-board prototype
+   * draws (responsibilities, requirements, compensation, hiring process) — none
+   * of that exists anywhere in this system. See `SHOW_JOB_DETAIL`.
+   */
+  summary?: string | null;
   lastUpdated: string;
   postedDate: string | null;
   detectionDate: string | null;
@@ -17,6 +32,8 @@ export interface IJobTeam {
   logoUrl: string | null;
   focusAreas: string[];
   subFocusAreas: string[];
+  /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
+  jobReferEmail: string | null;
 }
 
 export interface IJobTeamGroup {

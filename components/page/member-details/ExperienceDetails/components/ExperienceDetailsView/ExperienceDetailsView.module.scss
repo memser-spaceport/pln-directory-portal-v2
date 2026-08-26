@@ -1,0 +1,47 @@
+// Two controls in the header's right-hand slot instead of one.
+//
+// `DetailsSectionHeader.root` is `space-between` with a single child on the
+// right, so a second button would have pushed the title around. This wraps them
+// into one child and keeps the header's own layout untouched.
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// The quiet half of the header pair.
+//
+// `HeaderActionBtn` is `Button variant="primary" style="link"`, i.e. brand blue —
+// correct when it is the only control in the slot, wrong beside `AddButton`.
+// Two brand-blue text controls side by side read as peers, and these are not:
+// Add is what the section is for, "Update from CV" is the shortcut to it. The
+// blue should stay the loud one of the pair, and there should only be one.
+//
+// PL tokens rather than `variant="secondary"`, which resolves to `#6b7280` /
+// `#374151` — Tailwind grays that are not in this palette.
+//
+// Tripled to outrank `.link.primary` (0,2,0) whatever order the two stylesheets
+// land in. Doubling would only tie, and a tie is decided by bundle order, which
+// is not something this file controls.
+.quietHeaderAction.quietHeaderAction.quietHeaderAction {
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover:not(:disabled) {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// The file input behind "Update from CV". Not `display: none`: a hidden input
+// still has to be clickable via its ref, and some browsers refuse to open the
+// picker for an input that isn't rendered at all.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

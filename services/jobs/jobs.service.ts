@@ -69,7 +69,7 @@ export async function fetchJobReferralDraft(jobUid: string, referredMemberUid: s
  */
 export async function createJobReferral(
   jobUid: string,
-  payload: { referredMemberUid: string; recipients: IJobReferralRecipient[]; note: string },
+  payload: { referredMemberUid: string; recipients?: IJobReferralRecipient[]; note: string },
 ): Promise<IJobReferralResult> {
   const response = await customFetch(
     `${jobOpeningsAPI}/${jobUid}/referrals`,

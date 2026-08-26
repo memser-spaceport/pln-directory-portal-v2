@@ -46,4 +46,8 @@ export const socialSchema = z.object({
     .trim()
     .min(1)
     .max(1000),
+  jobReferEmail: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().trim().email({ message: 'Please add a valid job referral email' }).optional(),
+  ),
 });

@@ -6,6 +6,8 @@ import { FormattedMemberExperience, useMemberExperience } from '@/services/membe
 import { Separator } from '@base-ui-components/react/separator';
 import { format } from 'date-fns-tz';
 
+import { ExperienceImportPanel, type CvImportControls } from '../../../ExperienceImport';
+
 import s from './ExperiencesList.module.scss';
 
 interface Props {
@@ -15,10 +17,12 @@ interface Props {
   onEdit: (item: FormattedMemberExperience) => void;
   member: IMember;
   userInfo: IUserInfo;
+  /** Absent when the CV importer is off — see `CvImportControls`. */
+  cvImport?: CvImportControls;
 }
 
 export const ExperiencesList = (props: Props) => {
-  const { data, isEditable, onEdit, isLoading } = props;
+  const { data, isEditable, onEdit, isLoading, cvImport } = props;
 
   return (
     <div className={s.root}>
@@ -44,8 +48,13 @@ export const ExperiencesList = (props: Props) => {
                   )}
                 </div>
                 <div className={s.row}>
+                  {/* Em dash, matching `formatParsedDates` — the review card
+                      reads a found row back as "March 2021 — Present", and the
+                      same row a moment later in this list said "March 2021 -
+                      Present". One range, two punctuations, depending on whether
+                      it had been saved yet. */}
                   <div className={s.secondaryLabel}>
-                    {format(new Date(item.startDate), 'MMMM yyyy')} -{' '}
+                    {format(new Date(item.startDate), 'MMMM yyyy')} —{' '}
                     {item.isCurrent ? 'Present' : format(new Date(item.endDate), 'MMMM yyyy')}
                   </div>
                 </div>
@@ -59,19 +68,36 @@ export const ExperiencesList = (props: Props) => {
           ))}
         </ul>
       )}
-      {!isLoading && !data?.length && (
-        <div className={s.emptyData}>
-          <span className={s.label}>
-            {isEditable
-              ? 'Share your work history and skills. This shows what you know and what you can do.'
-              : 'Not provided'}
-          </span>
-          {/*<button className={s.connectButton}>*/}
-          {/*  <Image src="/icons/contact/linkedIn-contact-logo.svg" alt="Linkedin" height={24} width={24} />*/}
-          {/*  Connect LinkedIn*/}
-          {/*</button>*/}
-        </div>
-      )}
+      {!isLoading &&
+        !data?.length &&
+        (cvImport && isEditable ? (
+          /* The offer, standing in the empty row rather than above it.
+             `.connectButton` was drawn inside `.emptyData` in this stylesheet
+             for exactly this — "connect a source and this section fills itself"
+             — and commented out in the markup, because the source it named was
+             LinkedIn and LinkedIn's OAuth returns no employers. This is that
+             slot, finally used, by the one mechanism that works.
+
+             Only while the section is empty: an import offer standing over a
+             history someone has already written is nagging, and the header's
+             "Update from CV" covers that case. */
+          <ExperienceImportPanel
+            privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
+            onParse={cvImport.onParse}
+            onAbort={cvImport.onAbort}
+            onParsed={cvImport.onParsed}
+            onAddManually={cvImport.onAddManually}
+            onCancelRead={cvImport.onCancelRead}
+          />
+        ) : (
+          <div className={s.emptyData}>
+            <span className={s.label}>
+              {isEditable
+                ? 'Share your work history and skills. This shows what you know and what you can do.'
+                : 'Not provided'}
+            </span>
+          </div>
+        ))}
     </div>
   );
 };

@@ -1,0 +1,77 @@
+$brand: var(--action-foreground-brand-normal, #1b4dff);
+
+.bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  // Above the sticky app header (globals.scss, z-index 5) and above the legacy
+  // dialog-loader's 10000, but below the AuthInfo overlay at 99999.
+  // Note: nothing can out-stack a native <dialog>.showModal(), which renders in the
+  // browser top layer. Dialog-scoped feedback belongs on the dialog's own button.
+  z-index: 10002;
+  pointer-events: none;
+  overflow: hidden;
+  // Faint track, so the bar is legible even at the moment the sweeping segment is
+  // off-screen (animation start) or when animations are suppressed entirely.
+  background: rgba(27, 77, 255, 0.16);
+  animation: bar-fade-in 150ms ease-out;
+}
+
+.bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg, rgba(27, 77, 255, 0) 0%, #{$brand} 55%, rgba(27, 77, 255, 0) 100%);
+  animation: bar-sweep 1.1s ease-in-out infinite;
+}
+
+@keyframes bar-sweep {
+  0% {
+    // right edge of the segment sits on the left edge of the viewport
+    transform: translateX(-100%);
+  }
+  100% {
+    // left edge of the segment sits on the right edge of the viewport (100 / 40)
+    transform: translateX(250%);
+  }
+}
+
+@keyframes bar-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+
+  .bar::before {
+    animation: none;
+    width: 100%;
+    background: $brand;
+    opacity: 0.65;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

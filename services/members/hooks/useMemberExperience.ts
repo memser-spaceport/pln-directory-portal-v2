@@ -38,9 +38,18 @@ async function fetcher(id: string) {
   return formatExperience(experiences);
 }
 
-export function useMemberExperience(id: string) {
+/**
+ * @param options.enabled Hold the request back until the caller says it matters.
+ *   Defaults to on, which is what every section-level caller wants — they only
+ *   mount once their card is on screen. `JobProfileDrawer` is the exception: it
+ *   is mounted (closed) beside the job board and needs the row count for its own
+ *   layout decision, so without this it would fetch every member's experience
+ *   for a drawer nobody opened.
+ */
+export function useMemberExperience(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [MembersQueryKeys.GET_MEMBER_EXPERIENCE, id],
     queryFn: () => fetcher(id),
+    enabled: options?.enabled ?? true,
   });
 }

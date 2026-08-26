@@ -45,6 +45,23 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
         </div>
         <div className="teamSocialInfo__form__item">
           <TextField
+            defaultValue={initialValues?.jobReferEmail ?? ''}
+            maxLength={200}
+            id="register-team-jobReferEmail"
+            label="Job referral email"
+            name="jobReferEmail"
+            type="email"
+            placeholder="jobs@team.com"
+          />
+          <p className="info">
+            <img src="/icons/info.svg" alt="job refer email info" width="16" height="16px" />{' '}
+            <span className="info__text">
+              When set, job referrals go only to this address instead of selected team members.
+            </span>
+          </p>
+        </div>
+        <div className="teamSocialInfo__form__item">
+          <TextField
             isMandatory
             maxLength={1000}
             id="register-team-website"

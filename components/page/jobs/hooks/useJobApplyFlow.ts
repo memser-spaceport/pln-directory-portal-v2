@@ -3,8 +3,9 @@
 import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
+import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 /**
  * A role plus the team that posted it — what the apply flow carries between
@@ -15,6 +16,20 @@ export interface ApplyTarget {
   role: IJobRole;
   teamId: string;
   teamName: string;
+}
+
+/**
+ * What the detail drawer needs on top of an apply target: the team record
+ * itself, for the masthead's logo and focus tags.
+ *
+ * A superset rather than a widening of `ApplyTarget`, so the team is REQUIRED
+ * exactly where it is used and absent everywhere else. Apply never needed it —
+ * the id and the name are all the application carries — and making it optional
+ * on the shared type would let a caller open a drawer with no masthead and find
+ * out at runtime.
+ */
+export interface JobDetailTarget extends ApplyTarget {
+  team: IJobTeam;
 }
 
 /**
@@ -40,7 +55,17 @@ export type ApplyFlowState =
    * ambushing them with the modal later would be the gate refusing to take no.
    */
   | { step: 'drawer'; pendingApply: ApplyTarget | null; coverLetterDraft: string; returnToApply: boolean }
-  | { step: 'apply'; target: ApplyTarget; coverLetterDraft: string };
+  | { step: 'apply'; target: ApplyTarget; coverLetterDraft: string }
+  /**
+   * Reading the job, before deciding anything.
+   *
+   * Carries no draft and no `returnToApply`: this step is upstream of the whole
+   * apply flow rather than a detour inside it, so there is never anything half
+   * written to preserve. Closing it goes back to the board, and pressing Apply
+   * inside it goes wherever `onApply` decides — which is why no transition
+   * returns *to* here.
+   */
+  | { step: 'detail'; target: JobDetailTarget };
 
 type ApplyFlowAction =
   | { type: 'OPEN_SIGN_UP'; target: ApplyTarget | null }
@@ -51,6 +76,8 @@ type ApplyFlowAction =
   | { type: 'CLOSE_DRAWER' }
   | { type: 'OPEN_APPLY'; target: ApplyTarget }
   | { type: 'CLOSE_APPLY' }
+  | { type: 'OPEN_DETAIL'; target: JobDetailTarget }
+  | { type: 'CLOSE_DETAIL' }
   | { type: 'SUBMITTED' };
 
 const IDLE: ApplyFlowState = { step: 'idle' };
@@ -85,6 +112,14 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
       return IDLE;
     case 'OPEN_APPLY':
       return { step: 'apply', target: action.target, coverLetterDraft: '' };
+    case 'OPEN_DETAIL':
+      return { step: 'detail', target: action.target };
+    case 'CLOSE_DETAIL':
+      /* Only from `detail`. Pressing Apply inside the drawer dispatches one of
+         the OPEN_* cases, which replace this step wholesale — so a stray close
+         arriving after that must not knock the sign-up form or the profile
+         drawer back to idle. */
+      return state.step === 'detail' ? IDLE : state;
     case 'CLOSE_APPLY':
     case 'SUBMITTED':
       // Cancelled outright or sent — either way the letter has nothing left to wait for.
@@ -94,6 +129,7 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
 
 export interface JobApplyFlowArgs {
   viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
   profileComplete: boolean;
   refreshVerdict: () => Promise<JobsAccessVerdict>;
   source: JobSurface;
@@ -107,7 +143,7 @@ export interface JobApplyFlowArgs {
  * The dispatch handlers are also the analytics choke point — every funnel edge
  * is exactly one handler, so instrumentation cannot drift from behavior.
  */
-export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
+export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
   const [state, dispatch] = useReducer(applyFlowReducer, IDLE);
   const analytics = useJobsAnalytics();
   const applyPressInFlight = useRef(false);
@@ -145,37 +181,62 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
 
       // A rejected account has no apply path. The row doesn't render the button
       // for them, but `resumeAfterLogin` calls this directly — without the
-      // guard a rejected member with a complete profile would fall through the
-      // ternary below as `approved` and be handed the apply modal.
-      if (viewer === 'rejected') return;
+      // guard a rejected member with a complete profile would fall through as
+      // `approved` and be handed the apply modal.
+      if (viewer === 'rejected' || verdict === 'rejected') return;
 
-      let verdict: JobsAccessVerdict = viewer === 'pending-approval' ? 'pending' : 'approved';
-      if (viewer === 'pending-approval') {
-        // The one moment the pending copy could lie: an approval that landed
-        // mid-session. Recheck before explaining a wait that may be over.
+      let access = verdict;
+      if (access !== 'approved') {
+        // Recheck before sending an unapproved member outbound: an approval
+        // that landed mid-session should get in-app Apply, not the posting.
         if (applyPressInFlight.current) return;
         applyPressInFlight.current = true;
         try {
-          verdict = await refreshVerdict();
+          access = await refreshVerdict();
         } finally {
           applyPressInFlight.current = false;
         }
       }
 
-      if (verdict === 'approved' && profileComplete) {
+      if (access === 'approved' && profileComplete) {
         dispatch({ type: 'OPEN_APPLY', target });
         return;
       }
 
-      // Pending members land in the drawer because for them the drawer is the
-      // explanation (the stepper says where they are); incomplete profiles land
-      // in it because it collects the two required answers. Either way the role
-      // stays pending so saving resumes the application.
-      dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
-      analytics.onJobApplyDrawerOpened(applyBase(target));
+      if (access === 'approved') {
+        dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
+        analytics.onJobApplyDrawerOpened(applyBase(target));
+        return;
+      }
+
+      // Unapproved: the existing external posting, not the in-app letter.
+      // Left-click is intercepted so this is the one open; middle-click uses
+      // the `<a href>` natively. Resume has no link to click, so it opens here.
+      if (access === 'pending') {
+        openExternalApply(target.role.applyUrl, source);
+      }
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, viewer],
+    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
   );
+
+  /**
+   * Pressing **View job**, or the role title.
+   *
+   * Deliberately gate-free. Reading a posting is not an act anyone needs an
+   * account for, so this asks nothing and checks nothing — the whole point of
+   * moving Apply behind it is that the decision happens *after* the reading,
+   * and every gate `onApply` runs still runs when Apply is pressed at the
+   * bottom of the panel.
+   */
+  const onViewJob = useCallback(
+    (target: JobDetailTarget) => {
+      analytics.onJobDetailOpened(applyBase(target));
+      dispatch({ type: 'OPEN_DETAIL', target });
+    },
+    [analytics, applyBase],
+  );
+
+  const closeDetail = useCallback(() => dispatch({ type: 'CLOSE_DETAIL' }), []);
 
   /** Sign up from the banner or header — no role, the form goes generic. */
   const onSignUp = useCallback(
@@ -215,6 +276,8 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
   return {
     state,
     onApply,
+    onViewJob,
+    closeDetail,
     onSignUp,
     onUpdateProfile,
     closeSignUp,

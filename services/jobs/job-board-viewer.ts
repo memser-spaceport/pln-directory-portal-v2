@@ -46,7 +46,10 @@ const ACCESS_LEVEL_VERDICTS: Record<AccessLevel, JobsAccessVerdict> = {
  * `useV2` is injectable so tests can exercise both branches — the env const is
  * baked at module load and can't be varied per test case.
  */
-export function getJobsAccessVerdict(userInfo: IUserInfo | null, useV2: boolean = USE_ACCESS_CONTROL_V2): JobsAccessVerdict {
+export function getJobsAccessVerdict(
+  userInfo: IUserInfo | null,
+  useV2: boolean = USE_ACCESS_CONTROL_V2,
+): JobsAccessVerdict {
   if (!userInfo) return 'pending';
   if (useV2) {
     const status = userInfo.rbac?.status;
@@ -58,6 +61,17 @@ export function getJobsAccessVerdict(userInfo: IUserInfo | null, useV2: boolean 
 
 export const canApplyToJobs = (userInfo: IUserInfo | null, useV2?: boolean): boolean =>
   getJobsAccessVerdict(userInfo, useV2) === 'approved';
+
+/** Marker assigned on Job Board sign-up, including unapproved members. */
+export const JOB_ASPIRANT_POLICY_CODE = 'job_aspirant';
+
+/** `signUpSource` written by Job Board sign-up. The login cookie carries this
+ *  even when `rbac.policies` is missing (auth's userInfo omits policies). */
+export const JOB_BOARD_SIGN_UP_SOURCE = 'job-board';
+
+export const isJobAspirant = (userInfo: IUserInfo | null): boolean =>
+  userInfo?.rbac?.policies?.some((policy) => policy.code === JOB_ASPIRANT_POLICY_CODE) ||
+  userInfo?.signUpSource === JOB_BOARD_SIGN_UP_SOURCE;
 
 /**
  * Where someone is in their search.
@@ -110,7 +124,10 @@ export interface JobProfileFields {
  * `??` alone would not fall back past an empty-string `mainTeam.role`, and
  * empty-string roles exist in this data model.
  */
-export function isJobProfileComplete(member: JobProfileFields | null, jobSearchStatus: JobSearchStatus | null): boolean {
+export function isJobProfileComplete(
+  member: JobProfileFields | null,
+  jobSearchStatus: JobSearchStatus | null,
+): boolean {
   const role = (member?.mainTeam?.role ?? '').trim() || (member?.role ?? '').trim();
   return role !== '' && jobSearchStatus !== null;
 }
@@ -153,6 +170,12 @@ export function deriveBoardViewer(input: {
     case 'rejected':
       return 'rejected';
     case 'pending':
+      // Job Aspirants may stay unapproved; the pending-approval banner promises
+      // a review they are not in. They get the same banner split as approved
+      // members. Access itself stays pending — Apply still goes external.
+      if (isJobAspirant(input.userInfo)) {
+        return input.profileComplete ? 'profile-ready' : 'profile-incomplete';
+      }
       return 'pending-approval';
     case 'approved':
       return input.profileComplete ? 'profile-ready' : 'profile-incomplete';

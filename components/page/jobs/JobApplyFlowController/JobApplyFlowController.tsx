@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { useQuery } from '@tanstack/react-query';
 
 import { toast } from '@/components/core/ToastContainer';
@@ -12,6 +12,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import { withPendingApply } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
@@ -35,6 +36,10 @@ const JobApplyModal = dynamic(
   () => import('@/components/page/jobs/JobApplyModal/JobApplyModal').then((m) => m.JobApplyModal),
   { ssr: false },
 );
+const JobDetailDrawer = dynamic(
+  () => import('@/components/page/jobs/JobDetailDrawer/JobDetailDrawer').then((m) => m.JobDetailDrawer),
+  { ssr: false },
+);
 
 interface JobApplyFlowControllerProps {
   flow: ReturnType<typeof useJobApplyFlow>;
@@ -56,7 +61,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   const { flow, viewer, isLoggedIn, userInfo, source } = props;
   const { state } = flow;
 
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const analytics = useJobsAnalytics();
   const signUpMutation = useMutation({ mutationFn: signUpToJobBoard });
 
@@ -104,7 +109,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     // The role rides the same channel, so signing in lands them back on the
     // application instead of on a board they have to re-navigate.
     const qs = withPendingApply(search.toString(), opts?.pendingRoleUid);
-    router.push(`${window.location.pathname}${qs}#login`);
+    goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
   /**
@@ -175,8 +180,36 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
     }
   };
 
+  /* The detail drawer's footer reports the application the row's clock reports —
+     same query, same entry, so the two cannot disagree about one application.
+     Scoped to the open role; inert (`enabled: false`) the rest of the time. */
+  const detailRole = state.step === 'detail' ? state.target.role : null;
+  const detailApplication = useRoleApplication(detailRole?.uid ?? '', {
+    memberUid: viewer.memberUid,
+    enabled: state.step === 'detail' && !!viewer.memberUid,
+  });
+
   return (
     <>
+      {state.step === 'detail' && (
+        <JobDetailDrawer
+          open
+          onClose={flow.closeDetail}
+          role={state.target.role}
+          team={state.target.team}
+          /* Straight through to the one gate. `onApply` replaces this step with
+             whichever outcome it picks, so the drawer needs no close of its
+             own — and must not fire one, or a stray CLOSE_DETAIL would land on
+             the step that just replaced it. */
+          onApply={() => flow.onApply({ ...state.target }, 'detail')}
+          applied={!!detailApplication}
+          appliedAt={detailApplication?.appliedAt ?? null}
+          externalApply={isLoggedIn && viewer.viewer !== 'resolving' && viewer.verdict === 'pending'}
+          loggedIn={isLoggedIn}
+          source={source}
+        />
+      )}
+
       {state.step === 'sign-up' && (
         <JobSignUpModal
           open

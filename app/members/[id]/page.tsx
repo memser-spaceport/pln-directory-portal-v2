@@ -24,7 +24,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { getCookiesFromClient } from '@/utils/third-party.helper';
 import { useQuery } from '@tanstack/react-query';
 import { IMember } from '@/types/members.types';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AccountCreatedView } from '@/components/page/member-details/AccountCreatedView';
 
 import MemberPageLoader from './loading';
@@ -39,6 +39,7 @@ import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useAffinityAccess } from '@/services/access-control/hooks/useAffinityAccess';
 import { useAffinityMember } from '@/services/affinity/hooks/useAffinityMember';
 import { RelationshipDetails } from '@/components/page/member-details/RelationshipDetails';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 const shouldShowInvestorProfileForThirdParty = (
   member: IMember,
@@ -61,7 +62,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   const params = use(props.params);
   const memberId = params?.id;
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -131,7 +132,7 @@ const MemberDetails = (props: { params: Promise<any> }) => {
   // Handle login click from AccountCreatedView
   const handleLoginClick = () => {
     // Stay on the same page and add #login hash
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   // Show AccountCreatedView if user is not logged in and has prefillEmail and returnTo params

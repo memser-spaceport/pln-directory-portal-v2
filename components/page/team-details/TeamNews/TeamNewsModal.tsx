@@ -66,6 +66,21 @@ interface TeamNewsModalProps {
    */
   upvoteOverlay?: TeamNewsUpvoteOverlay;
   onUpvoteToggle?: (item: ITeamNewsItem, position: number, source: TeamNewsAnalyticsSource) => void;
+  /**
+   * Owned by TeamNewsRail so a story read in the rail and again in here counts
+   * once, not twice — each `useTeamNewsImpressions` holds its own dedup set, so
+   * two instances over one surface mean two views for one sitting. /home mounts
+   * a single instance for Top Stories and the stream together; this is that.
+   *
+   * Optional for the same reason the overlay above is: the listings that open
+   * this box (the member profile, the teams grid, the job board) have no second
+   * view of the same story, so it keeps its own recorder for them. Omitting it
+   * degrades to double-counting, never to silence.
+   *
+   * Named for what it does rather than `onVisible`, which on a *modal* reads as
+   * "the modal became visible". This is a recorder handed down.
+   */
+  recordVisible?: (uid: string) => void;
 }
 
 export function TeamNewsModal({
@@ -79,6 +94,7 @@ export function TeamNewsModal({
   source = 'team-profile-modal',
   upvoteOverlay,
   onUpvoteToggle,
+  recordVisible,
 }: TeamNewsModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   // The story this box has drilled into, if any. DRILLS, never stacks: clicking
@@ -116,11 +132,18 @@ export function TeamNewsModal({
   const effectiveOverlay = upvoteOverlay ?? ownUpvotes.upvoteOverlay;
   const handleUpvoteToggle = onUpvoteToggle ?? ownUpvotes.handleUpvoteToggle;
 
-  // Views: rows read here count the same as rows read in the feed. One instance
-  // per mount holds the dedup/queue, so a story scrolled past twice in one
-  // sitting is one view — and reopening the box records afresh, same as a
+  // Views: rows read here count the same as rows read in the feed. The rail's
+  // instance if it handed one over, otherwise this box's own — so a story seen
+  // in the rail and again in here is one view, while the listings that open this
+  // box with no rail behind them still record. Called unconditionally (hooks
+  // rules); the unused instance never receives a uid, so its queue stays empty
+  // and its flush is a no-op.
+  //
+  // One instance per mount holds the dedup/queue, so a story scrolled past twice
+  // in one sitting is one view — and reopening the box records afresh, same as a
   // revisit to /home.
-  const { recordVisible } = useTeamNewsImpressions();
+  const ownImpressions = useTeamNewsImpressions();
+  const record = recordVisible ?? ownImpressions.recordVisible;
 
   const {
     items: fetchedItems,
@@ -303,7 +326,7 @@ export function TeamNewsModal({
             analyticsSource={source}
             onClick={(clicked) => handleCardClick(clicked, index)}
             onUpvoteToggle={(toggled) => handleUpvoteToggle(toggled, index, source)}
-            onVisible={recordVisible}
+            onVisible={record}
             onOpenDetail={(clicked, via) => handleOpenDetail(clicked, index, via)}
           />
         ))}

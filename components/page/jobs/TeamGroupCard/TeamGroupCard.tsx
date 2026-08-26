@@ -93,6 +93,7 @@ function TeamGroupCardImpl({ group, groupIndex = 0, onRoleClick, onOpenTeamNews,
             currentUser={currentUser}
             teamId={team.uid}
             teamName={team.name}
+            team={team}
             key={role.uid}
             role={role}
             source="job-board"

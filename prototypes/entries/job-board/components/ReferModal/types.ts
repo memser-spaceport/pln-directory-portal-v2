@@ -29,6 +29,8 @@ export interface RecipientOption {
   image?: string | null;
   /** True for an address typed into the field rather than picked from the network. */
   isEmail?: boolean;
+  /** Leads the hiring team. Prefills the picker; shown as a chip mark. */
+  isTeamLead?: boolean;
   /** Set by react-select's Creatable on the "Add ‹address›" row, before it's chosen. */
   __isNew__?: boolean;
 }

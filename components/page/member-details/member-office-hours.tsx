@@ -8,6 +8,7 @@ import { EVENTS, LEARN_MORE_URL, OFFICE_HOURS_MSG, TOAST_MESSAGES } from '@/util
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from '@/components/core/ToastContainer';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 const MemberOfficeHours = (props: any) => {
   const member = props?.member;
@@ -19,10 +20,11 @@ const MemberOfficeHours = (props: any) => {
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   const onAddOH = () => {

@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { HighlightsBar } from '@/components/core/navbar/components/HighlightsBar';
+import { isJobAspirant } from '@/services/jobs/job-board-viewer';
 import { isDemodaySignUpSource } from '@/utils/member.utils';
 
 import s from './CompleteYourProfile.module.scss';
@@ -18,7 +19,7 @@ export const CompleteYourProfile = () => {
   const status = currentUser?.rbac?.status;
   const isAdvancedAccess = status === 'APPROVED';
 
-  if (!currentUser || isAdvancedAccess) {
+  if (!currentUser || isAdvancedAccess || isJobAspirant(currentUser)) {
     return null;
   }
 

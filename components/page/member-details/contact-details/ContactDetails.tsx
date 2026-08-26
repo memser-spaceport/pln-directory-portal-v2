@@ -12,6 +12,7 @@ import { toast } from '@/components/core/ToastContainer';
 import { TOAST_MESSAGES } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 import React, { Fragment } from 'react';
 import { clsx } from 'clsx';
@@ -54,6 +55,7 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
   const hasMissingRequiredData = !member?.linkedinHandle;
   const authAnalytics = useAuthAnalytics();
   const memberAnalytics = useMemberAnalytics();
+  const goToLogin = useLoginRedirect();
   const isDrawer = variant === 'drawer';
   const showIncomplete = hasMissingRequiredData && isOwner;
   const canViewContacts = currentUser?.rbac?.status === 'APPROVED';
@@ -64,7 +66,7 @@ export const ContactDetails = ({ member, isLoggedIn, onEdit, variant = 'default'
       router.refresh();
     } else {
       authAnalytics.onLoginBtnClicked();
-      router.push(`${window.location.pathname}${window.location.search}#login`);
+      goToLogin();
     }
   };
 

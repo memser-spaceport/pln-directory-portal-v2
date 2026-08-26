@@ -120,7 +120,7 @@ export function RoadmapCardContent({
             <BoostButton
               count={item.pinCount}
               hasPinned={item.viewerHasPinned}
-              readonly={interactionLocked}
+              readonly={interactionLocked ? 'frozen' : false}
               disabled={isPinDisabled}
               onToggle={(next, el) => onPinToggle(item.uid, next, el)}
             />

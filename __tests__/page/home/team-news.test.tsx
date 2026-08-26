@@ -236,20 +236,55 @@ const groups: ITeamNewsGroup[] = [
   { focusArea: FA_DHR, total: dhrItems.length, items: dhrItems },
 ];
 
+interface ObservedSet {
+  callback: (entries: { target: Element; isIntersecting: boolean }[]) => void;
+  elements: Element[];
+}
+
+const observed: ObservedSet[] = [];
+
+/**
+ * Every observed card reports itself as half on screen.
+ *
+ * Nothing fires on its own — jsdom has no layout — so visibility is played back
+ * by hand, and only for the tests that ask. Every other test in this file sees
+ * the same inert observer it always did.
+ */
+function scrollCardsIntoView() {
+  observed.forEach(({ callback, elements }) => {
+    const cards = elements.filter((el) => el.hasAttribute('data-story-uid'));
+    if (cards.length > 0) callback(cards.map((target) => ({ target, isIntersecting: true })));
+  });
+}
+
 describe('TeamNews', () => {
   beforeAll(() => {
     // No global mock exists in jest.setup.js — feed/band rows now call
-    // useCardVisibilityTracking (view-impression recording).
+    // useCardVisibilityTracking (view-impression recording). This one also
+    // remembers what it was handed, so the view-count tests below can drive it.
     class IO {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
+      private readonly entry: ObservedSet;
+
+      constructor(callback: ObservedSet['callback']) {
+        this.entry = { callback, elements: [] };
+        observed.push(this.entry);
+      }
+      observe(element: Element) {
+        this.entry.elements.push(element);
+      }
+      unobserve(element: Element) {
+        this.entry.elements = this.entry.elements.filter((el) => el !== element);
+      }
+      disconnect() {
+        this.entry.elements = [];
+      }
     }
     (global as unknown as { IntersectionObserver: unknown }).IntersectionObserver = IO;
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    observed.length = 0;
     mockUseSuggestedTeamsToFollow.mockReturnValue({ suggestions: [], isLoading: false });
     // clearAllMocks clears calls, NOT return values — without this, a describe
     // that supplies forum posts leaks them into every later test's feed.
@@ -1619,7 +1654,14 @@ describe('TeamNews', () => {
 
     const hiringGroup = (uid: string, overrides: Partial<IJobTeamGroup> = {}): IJobTeamGroup =>
       ({
-        team: { uid, name: `Hiring ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [] },
+        team: {
+          uid,
+          name: `Hiring ${uid}`,
+          logoUrl: null,
+          focusAreas: [],
+          subFocusAreas: [],
+          jobReferEmail: null,
+        },
         totalRoles: 5,
         roles: [jobRole(`${uid}-r1`), jobRole(`${uid}-r2`)],
         ...overrides,
@@ -2173,6 +2215,61 @@ describe('TeamNews', () => {
       expect(screen.getByText('Headline mem-dhr')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
+    });
+  });
+  describe('the Views count, without a reload', () => {
+    // A card reaching 50% visibility POSTs an impression and the server count
+    // goes up at once — but `groups` is an SSR prop that never refetches, so
+    // until the optimistic overlay the reader saw the pre-increment number
+    // until they reloaded. This is the only test that covers the whole chain:
+    // observer → recorder → viewedUids → merge → rendered number.
+    const seenItems: ITeamNewsItem[] = [
+      { ...makeItem('v-1', 'LAUNCH', ['AI & Robotics']), viewCount: 7 },
+      { ...makeItem('v-2', 'FUNDING', ['AI & Robotics']), viewCount: 41 },
+    ];
+    const seenGroups: ITeamNewsGroup[] = [{ focusArea: FA_AI, total: seenItems.length, items: seenItems }];
+
+    it('ticks up the moment a card is seen', () => {
+      renderTeamNews(<TeamNews groups={seenGroups} />);
+
+      expect(screen.getByText('7 Views')).toBeInTheDocument();
+      expect(screen.getByText('41 Views')).toBeInTheDocument();
+
+      act(() => {
+        scrollCardsIntoView();
+      });
+
+      expect(screen.getByText('8 Views')).toBeInTheDocument();
+      expect(screen.getByText('42 Views')).toBeInTheDocument();
+      expect(screen.queryByText('7 Views')).not.toBeInTheDocument();
+    });
+
+    it('counts one view per card, however many times it crosses the line', () => {
+      renderTeamNews(<TeamNews groups={seenGroups} />);
+
+      act(() => {
+        scrollCardsIntoView();
+        scrollCardsIntoView();
+      });
+
+      expect(screen.getByText('8 Views')).toBeInTheDocument();
+      expect(screen.queryByText('9 Views')).not.toBeInTheDocument();
+    });
+
+    it('leaves a story with no count alone rather than inventing one', () => {
+      // `viewCount` absent and ViewCount's `count ?? 0` already render the same
+      // "0 Views" — bumping it to 1 would assert a total the server never sent.
+      const unknownGroups: ITeamNewsGroup[] = [
+        { focusArea: FA_AI, total: 1, items: [makeItem('u-1', 'LAUNCH', ['AI & Robotics'])] },
+      ];
+      renderTeamNews(<TeamNews groups={unknownGroups} />);
+
+      act(() => {
+        scrollCardsIntoView();
+      });
+
+      expect(screen.getByText('0 Views')).toBeInTheDocument();
+      expect(screen.queryByText('1 Views')).not.toBeInTheDocument();
     });
   });
 });

@@ -15,7 +15,7 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
-import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
+import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY, SHOW_JOB_DETAIL } from '@/services/jobs/constants';
 import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -37,6 +37,7 @@ import { useTeamNewsCounts } from '@/services/team-news/hooks/useTeamNewsCounts'
 import { SHOW_TEAM_NEWS_COUNT_CHIP } from '@/services/team-news/constants';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import s from './JobsContent.module.scss';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 // Flip to true to simulate a logged-in user with a saved alert during local dev
 const DEV_MOCK_ALERT = false;
@@ -62,6 +63,7 @@ interface JobsContentProps {
 export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
   const { setParam } = useJobsParamsUpdater();
   const analytics = useJobsAnalytics();
   const createMutation = useCreateJobAlert();
@@ -89,6 +91,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const boardViewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled: SHOW_JOB_BOARD_APPLY });
   const applyFlow = useJobApplyFlow({
     viewer: boardViewer.viewer,
+    verdict: boardViewer.verdict,
     profileComplete: boardViewer.profileComplete,
     refreshVerdict: boardViewer.refreshVerdict,
     source: 'job-board',
@@ -96,17 +99,33 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const applyProps: RowApplyProps | undefined = useMemo(
     () =>
       SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
-        ? { onApply: applyFlow.onApply, memberUid: boardViewer.memberUid }
+        ? {
+            onApply: applyFlow.onApply,
+            memberUid: boardViewer.memberUid,
+            externalApply: isLoggedIn && boardViewer.viewer !== 'resolving' && boardViewer.verdict === 'pending',
+            /* Literal-first, so the bundler folds the branch: flag off and the
+               rows keep their direct Apply, with `onViewJob` absent rather than
+               present-and-ignored. Nested inside the apply flag because the
+               drawer's whole footer is the apply hand-off. */
+            ...(SHOW_JOB_DETAIL ? { onViewJob: applyFlow.onViewJob } : {}),
+          }
         : undefined,
-    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply],
+    [
+      isLoggedIn,
+      boardViewer.viewer,
+      boardViewer.verdict,
+      boardViewer.memberUid,
+      applyFlow.onApply,
+      applyFlow.onViewJob,
+    ],
   );
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned
      sign-up is dropped here rather than inherited through the round trip. */
   const pushLogin = useCallback(() => {
     const search = withPendingApply(window.location.search, undefined);
-    router.push(`${window.location.pathname}${search}#login`);
-  }, [router]);
+    goToLogin({ returnTo: `${window.location.pathname}${search}` });
+  }, [goToLogin]);
 
   /* Coming back from the Privy round trip: pick the application back up where
      it was interrupted. The role uid travels in the URL (see

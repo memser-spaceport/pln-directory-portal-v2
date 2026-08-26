@@ -65,7 +65,12 @@ export function useJobBoardViewer(args: {
      the live memberState); the cookie-derived userInfo is the fallback while it
      loads or errors. */
   const effectiveUserInfo: IUserInfo | null = member
-    ? { ...userInfo, accessLevel: member.accessLevel ?? userInfo?.accessLevel, rbac: member.rbac ?? userInfo?.rbac }
+    ? {
+        ...userInfo,
+        signUpSource: member.signUpSource ?? userInfo?.signUpSource,
+        accessLevel: member.accessLevel ?? userInfo?.accessLevel,
+        rbac: member.rbac ?? userInfo?.rbac,
+      }
     : (userInfo ?? null);
 
   // One query settles the whole viewer now: the job search status rides on the
@@ -88,13 +93,14 @@ export function useJobBoardViewer(args: {
       // read the cache — an explicit refetch bypasses any staleTime politeness.
       await queryClient.refetchQueries({ queryKey: [MembersQueryKeys.GET_MEMBER, memberUid] });
     }
-    const data = queryClient.getQueryData<{ memberInfo?: { accessLevel?: IUserInfo['accessLevel']; rbac?: IUserInfo['rbac'] } }>([
-      MembersQueryKeys.GET_MEMBER,
-      memberUid,
-    ]);
+    const data = queryClient.getQueryData<{
+      memberInfo?: { accessLevel?: IUserInfo['accessLevel']; rbac?: IUserInfo['rbac'] };
+    }>([MembersQueryKeys.GET_MEMBER, memberUid]);
     const fresh = data?.memberInfo;
     return getJobsAccessVerdict(
-      fresh ? { ...userInfo, accessLevel: fresh.accessLevel ?? userInfo?.accessLevel, rbac: fresh.rbac ?? userInfo?.rbac } : (userInfo ?? null),
+      fresh
+        ? { ...userInfo, accessLevel: fresh.accessLevel ?? userInfo?.accessLevel, rbac: fresh.rbac ?? userInfo?.rbac }
+        : (userInfo ?? null),
     );
   }, [memberUid, queryClient, userInfo]);
 

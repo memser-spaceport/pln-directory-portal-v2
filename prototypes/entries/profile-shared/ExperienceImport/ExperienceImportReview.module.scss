@@ -14,6 +14,14 @@
 // undifferentiated list.
 .body {
   gap: 20px;
+
+  // Production's `.body` is `align-items: flex-start`, which is invisible there
+  // because every child it was written for sets `width: 100%` itself (`.row`,
+  // `.infoBlock`). This card's children are `<section>`s, so flex-start shrank
+  // each group to its own content width — the contact grid ended a field's worth
+  // short of the card while the position rows beside it ran to the edge. Stretch
+  // once here rather than hanging `width: 100%` on every group below.
+  align-items: stretch;
 }
 
 // `.lede` and `.groupHint` used to live here — the "nothing is added until you

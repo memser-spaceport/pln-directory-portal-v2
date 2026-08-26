@@ -30,6 +30,14 @@ import type { ImportSelection, ParsedProfile } from '../profile-shared/Experienc
 import { AccountFields, type AccountFormData } from './accountFields';
 import { JobSearchStatusInput } from './JobProfilePane';
 import { formatExperienceDates, type JobSearchStatus, type MemberProfile } from './viewerState';
+// The sign-up modal's `.signInLink` — the board's other door has carried this
+// exact escape since it existed, and the two should not disagree about what a
+// sign-in link looks like. Only its *placement* differs here; see `.stepIntro`.
+import su from './JobSignUpModal.module.scss';
+// This pane's own three classes: the CV card's title and note, and the `or` rule
+// under it. Everything else it wears is borrowed from the profile step or the
+// flow's chrome.
+import v from './JobAccountPane.module.scss';
 // The profile step's stylesheet, for the two classes this pane shares with it:
 // the amber incomplete strip and the dimmed body under it. Imported rather than
 // restated so the one required question looks identical in both steps.
@@ -46,6 +54,10 @@ interface JobAccountPaneProps {
    *  owns, not to the account record. */
   jobSearchStatus: JobSearchStatus | '';
   onJobSearchStatusChange: (next: JobSearchStatus) => void;
+  /** The escape at the top of the pane, for someone who already has an account.
+   *  The board signs them in and leaves the flow standing on the same job and
+   *  the same step — which then renders `JobProfilePane` instead of this. */
+  onSignIn: () => void;
   /** The flow's profile draft. The CV fills more than the account form has
    *  fields for — skills, a location and a work history — and those belong here,
    *  travelling with the application like a member's would. */
@@ -100,6 +112,7 @@ export function JobAccountPane({
   roleTitle,
   jobSearchStatus,
   onJobSearchStatusChange,
+  onSignIn,
   draft,
   setDraft,
 }: JobAccountPaneProps) {
@@ -192,7 +205,34 @@ export function JobAccountPane({
           statements of one fact in one pane is how a lede stops being read. This
           one takes the half the footer can't carry — that the details are not
           paperwork, they are the profile a hiring team reads. */}
-      <p className={fd.lede}>These details become your profile, and go to {roleTitle} with your note.</p>
+      <div className={fd.stepIntro}>
+        <p className={fd.lede}>These details become your profile, and go to {roleTitle} with your note.</p>
+
+        {/* **The escape, and why it is at the top here.**
+            This pane only ever renders for a visitor the board believes is
+            logged out — so it is also what a *returning member* meets if their
+            session has lapsed, and for them every field under it is a second
+            copy of an account they already have.
+
+            `JobSignUpModal` carries the same sentence below its actions and
+            argues for it: someone who has no account should meet the first
+            input, not a fork. That holds there, where the whole form is four
+            fields and the escape is in the same glance as Submit. It does not
+            hold here. This step is a CV drop, five fields and a radio group deep
+            inside a drawer whose footer button says `Continue to apply`, so
+            "under the form" is past all of the work the escape exists to save —
+            findable only by someone who no longer needs it.
+
+            Still a link and not a button: it is the rarer path, and a second
+            control at the top of a step would price itself against the step
+            (lesson: an exception must not read as a peer of the main action). */}
+        <p className={fd.lede}>
+          Already a member?{' '}
+          <button type="button" className={su.signInLink} onClick={onSignIn}>
+            Sign in
+          </button>
+        </p>
+      </div>
 
       {/* **Bring a document instead of typing.** Above the fields it fills, for
           the reason the profile step puts it above its required cards: a control
@@ -239,19 +279,26 @@ export function JobAccountPane({
                   instruction. It read "Start with your CV", which presumed both
                   that you have one and that it is where you begin — on a step
                   whose other two cards are genuinely required, that made a
-                  shortcut look like a gate. */}
-              <DetailsSectionHeader
-                title={
-                  <>
-                    You can upload your CV
-                    <OptionalMark />
-                  </>
-                }
-              />
+                  shortcut look like a gate.
+
+                  **A local title rather than `DetailsSectionHeader`**, which is
+                  the drawer's section rank: 14px/500 in secondary grey. Correct
+                  for "Your account", wrong for the one card that offers to fill
+                  the other two in — that card was the quietest thing on the
+                  step. Same words, same mark, one rank up. See `.heroTitle`. */}
+              <h3 className={v.heroTitle}>
+                You can upload your CV
+                <OptionalMark />
+              </h3>
               {/* Names the work avoided, not the work done — the same line the
                   profile step uses, with the two fields that are only missing
-                  here added to the list. */}
-              <p className={d.cvFirstNote}>
+                  here added to the list.
+
+                  At reading size rather than the 12px caption the profile step
+                  gives it: it is the sentence that makes the card worth
+                  pressing, so it is the one line here to be read rather than
+                  skimmed. */}
+              <p className={v.heroNote}>
                 We&apos;ll fill in your name, email, role and experience from it, so you don&apos;t have to type it all
                 in.
               </p>
@@ -271,6 +318,16 @@ export function JobAccountPane({
         </DetailsSection>
       )}
 
+      {/* **The alternative, written down.**
+          The document and the form are a fast path and its fallback, and the
+          step never said so — three cards of equal weight read as three chores.
+          A rule with `or` on it is how Runway, Laravel Cloud, Framer and Adaline
+          all state that same relationship on a sign-up.
+
+          Only while the offer above it stands: once a CV has been used, or while
+          its result is being reviewed, there is no "or" left to name. */}
+      {showCvOffer && !parsed && <div className={v.orRule}>or fill it in yourself</div>}
+
       <DetailsSection>
         {/* "Your account", not "Your details" — which is what the rail directly
             above already says, and a card header repeating its own step label
@@ -281,8 +338,13 @@ export function JobAccountPane({
         <DetailsSectionHeader title="Your account" />
         {/* Email → name → LinkedIn → role @ company, from `accountFields`. The
             same group, the same schema and the same order the sign-up modal
-            shows on the board's other door. */}
-        <AccountFields />
+            shows on the board's other door.
+
+            `grid` pairs the two short ones onto one line. Same fields, same
+            order, a layout prop rather than a second copy of the group — this
+            pane is three cards tall and the modal is a 440px dialog with no
+            height to save, which is the whole of the difference. */}
+        <AccountFields layout="grid" />
       </DetailsSection>
 
       {/* The second required answer, wearing the exact treatment the profile
@@ -299,9 +361,22 @@ export function JobAccountPane({
           <DetailsSectionHeader title="Job search status">
             <PlTeamOnlyPill />
           </DetailsSectionHeader>
+          {/* The row group, kept after a tile row was tried beside it. Three
+              titled tiles across are shorter and read as a decision, and that is
+              not enough: a radio down a column is unambiguously *choose one*,
+              where a bordered tile has to earn that reading from its neighbours
+              — and this is the answer the step cannot proceed without. The two
+              cards above already carry the variant's height savings. */}
           <JobSearchStatusInput value={jobSearchStatus} onChange={onJobSearchStatusChange} />
         </div>
       </DetailsSection>
     </>
   );
 }
+
+/* (`JobSearchStatusTiles` lived here — the same three options as a row of titled
+    tiles, tried against the radio rows behind a `Details step` switch in the
+    review band. The rows won; the tiles, the switch and the `variant` prop that
+    selected between them are all gone rather than parked behind a control, which
+    is how a settled decision gets re-litigated every time someone opens the
+    page. The reason the rows won is recorded where the rows are rendered.) */

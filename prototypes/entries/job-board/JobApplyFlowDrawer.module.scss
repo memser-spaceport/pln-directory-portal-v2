@@ -150,6 +150,22 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// The lede plus, on the logged-out details step, the "Already a member? Sign in"
+// escape under it.
+//
+// **Why a wrapper and not two siblings.** `.drawerContent` has a uniform 16px
+// gap, so an escape dropped in beside the lede would sit equally far from the
+// sentence above it and the card below — equidistant reads as belonging to
+// neither. It belongs to the lede: the lede says what these answers are for, the
+// escape names the one person they are not for. 8px makes them one block, and
+// the block keeps the step's 16px off the first card.
+.stepIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
 // --- The drawer's own action -------------------------------------------------
 
 // Sticky to the bottom of the drawer's scroll container (`Drawer`'s `.container`

@@ -1,0 +1,82 @@
+// The details step's own three classes. Everything else this pane wears is
+// borrowed — the profile step's stylesheet for the amber strip and the status
+// group, the flow drawer's for the lede, the sign-up modal's for the form group
+// and the sign-in link — so what is left here is only the part no other surface
+// has: the CV card's rank, and the rule that names it as a shortcut.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+//
+// **Where these came from.** Both were tried behind a `Details step` switch in
+// the review band against the version that shipped, and kept. Two other changes
+// went through the same comparison: `AccountFields layout="grid"` (kept, and it
+// lives with the form group it belongs to) and a row of titled tiles for the job
+// search status (dropped — see the note where that group is rendered).
+//
+//  1. The CV block leads. Wellfound's "Upload a recent resume or CV" and
+//     Remote's "Upload your resume" both give the document a real headline and a
+//     supporting sentence, because it is the control that saves the most work on
+//     the screen. Here it was a 14px/500 *grey* section title over a 12px note —
+//     the quietest thing on a pane whose other two cards are plain typing.
+//  2. An `or` rule between the document and the form. Runway, Laravel Cloud,
+//     Framer and Adaline all put one between the fast path and the manual one.
+//     This step has exactly that relationship and never said so, which is why
+//     the three cards read as three chores rather than as a shortcut and its
+//     fallback.
+
+// --- 1. The document, given the rank it earns --------------------------------
+
+// A local title rather than `DetailsSectionHeader`, which is the drawer's
+// section rank: 14px/500 in secondary grey, correct for "Your account" and wrong
+// for the one card that offers to fill the other two in. 16/600 primary is the
+// next rank up in this product, not a new size.
+.heroTitle {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+// The promise under it, at reading size instead of the 12px caption the profile
+// step gives the same sentence. It is the line that makes the card worth
+// pressing, so it is the one here that should be read rather than skimmed.
+.heroNote {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// --- 2. or ------------------------------------------------------------------
+
+// A rule with the alternative written into it. The label sits *on* the line
+// rather than above it so the two cards either side stay one gap apart — a
+// stacked caption would have added a third object between them.
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  // Cancels part of `.drawerContent`'s 16px gap on both sides: a divider is not
+  // a peer of the cards it separates, and at a uniform gap it read as one.
+  margin: -4px 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}

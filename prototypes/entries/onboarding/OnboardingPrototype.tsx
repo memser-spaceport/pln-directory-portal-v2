@@ -32,7 +32,7 @@ import { ExperienceImportPanel } from '../profile-shared/ExperienceImport/Experi
 import { OptionalMark } from '../profile-shared/OptionalMark';
 import { ExperienceImportReview } from '../profile-shared/ExperienceImport/ExperienceImportReview';
 import type { ImportSelection, ParsedProfile } from '../profile-shared/ExperienceImport/types';
-import { ExperienceList } from '../job-board/JobProfileDrawer';
+import { ExperienceList } from '../job-board/JobProfilePane';
 import { formatExperienceDates, type ExperienceEntry } from '../job-board/viewerState';
 
 import { MOCK_USER } from './mocks';

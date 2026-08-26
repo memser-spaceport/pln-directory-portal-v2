@@ -153,6 +153,19 @@ interface JobApplyFlowDrawerProps {
    */
   onSubmitApplication: (coverLetter: string, newAccount?: { details: AccountDetails; profile: MemberProfile }) => void;
   loggedIn: boolean;
+  /**
+   * The details step's escape, for a visitor who turns out to have an account
+   * already. Signs in and leaves the flow exactly where it stands: same job,
+   * same step — which then renders the member's profile instead of the account
+   * form, and the rail's middle label changes from "Your details" to "Your
+   * profile" under them. Nothing about the run is reset, so the person lands on
+   * the role they came for rather than back on the board hunting for it.
+   *
+   * The rail keeps its shape across the change: `skipProfile` is decided when
+   * the flow opens and left alone (see below), so signing in mid-run can't drop
+   * a step out from under someone standing on it.
+   */
+  onSignIn: () => void;
   /** Signed up, waiting on the PL team. Says so, but no longer stops anything —
    *  see the note on `canApply`. */
   pendingApproval: boolean;
@@ -240,6 +253,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     onSaveProfile,
     onSubmitApplication,
     loggedIn,
+    onSignIn,
     pendingApproval,
     applied,
     appliedAt,
@@ -675,6 +689,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                 roleTitle={role?.roleTitle ?? 'this role'}
                 jobSearchStatus={draft.jobSearchStatus}
                 onJobSearchStatusChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
+                onSignIn={onSignIn}
                 draft={draft}
                 setDraft={setDraft}
               />

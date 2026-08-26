@@ -147,10 +147,18 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
   // screen — and only ever once per open, so it can't wipe an edit made in the
   // meantime. Teams the directory has no members for seed nothing, which is the
   // "type an email address" case.
+  //
+  // `omitTeam` on the mapping: every one of these is a member of the team the modal
+  // is already titled for. The field shows them as rows carrying a role, and the
+  // role is what makes the prefill checkable — a "· Protocol Labs" tail on each of
+  // them would spend that line on a word the card has already said twice.
   useEffect(() => {
     if (!open || recipientsSeeded || isTeamLoading) return;
     if (defaultRecipients.length) {
-      setValue('recipients', defaultRecipients.map(toRecipientOption));
+      setValue(
+        'recipients',
+        defaultRecipients.map((member) => toRecipientOption(member, { omitTeam: true })),
+      );
     }
     setRecipientsSeeded(true);
   }, [open, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
@@ -280,6 +288,13 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
     );
   };
 
+  // Is any of the prefilled hiring team still in the field? Drives the caption
+  // under "Send to", which explains rows that are there — not an event that happened.
+  const prefillVisible = useMemo(
+    () => recipients.some((option) => defaultRecipients.some((member) => member.uid === option.value)),
+    [recipients, defaultRecipients],
+  );
+
   const canSend = !!selectedMember && recipients.length > 0 && !!message?.trim() && !isSending;
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
   const sentTo = getRecipientSummary(recipients);
@@ -348,6 +363,16 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
                     excludeUids={referee?.value ? [referee.value] : undefined}
                     value={recipients}
                     onChange={handleRecipientsChange}
+                    /* Where the rows came from — the one thing the field itself
+                       can't show. It lists four names and their roles; it cannot
+                       say that nobody typed them, or why these four.
+                       Conditioned on the prefill still being *in* the field
+                       rather than on it having happened: a team the directory has
+                       no roster for opens empty, and someone who clears the list
+                       and types an address is no longer looking at anything this
+                       sentence explains. Both cases leave the modal's other
+                       caption ("Add at least one recipient…") to speak. */
+                    description={prefillVisible ? `Prefilled with the ${teamName} hiring team.` : undefined}
                     menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                   />
                 </div>

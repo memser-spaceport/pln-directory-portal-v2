@@ -787,6 +787,24 @@ export default function JobBoardPrototype() {
     signIn(false);
   };
 
+  /* The same escape, from the apply flow's details step.
+   *
+   * Deliberately does *not* touch the flow. `signIn` already leaves an open flow
+   * alone, so the drawer stays on the job and the step it was on — step 2 simply
+   * stops being an account form and becomes the member's profile. The alternative
+   * (close, sign in, reopen) would take the role away from someone whose last act
+   * was telling us they have an account, which is the opposite of what the escape
+   * is for.
+   *
+   * `profile-incomplete` rather than `profile-ready`: a returning member is being
+   * mocked, and the honest mock is the one that still has something to do on the
+   * step they are standing on — landing on a finished profile would show a step
+   * that skips itself, which is the *other* viewer's frame. */
+  const onFlowSignIn = () => {
+    setViewer('profile-incomplete');
+    signIn(false);
+  };
+
   /**
    * The profile step's work, committed.
    *
@@ -1152,6 +1170,12 @@ export default function JobBoardPrototype() {
           </div>
           <span className={v0.switchNote}>{VIEWER_NOTE[viewer]}</span>
         </div>
+
+        {/* (A `Details step` switch stood here while two drawings of the
+            logged-out step 2 were being compared. It is gone with the losing
+            one: a review switch left up after the decision invites the decision
+            to be re-litigated every time someone opens the page. The viewer
+            switch above is the only scaffolding on this board again.) */}
       </div>
     </div>
   );
@@ -1178,6 +1202,7 @@ export default function JobBoardPrototype() {
         onSaveProfile={onSaveProfile}
         onSubmitApplication={onSubmitApplication}
         loggedIn={isLoggedIn}
+        onSignIn={onFlowSignIn}
         pendingApproval={isPendingApproval}
         applied={flowJob ? appliedRoleUids.has(flowJob.role.uid) : false}
         appliedAt={flowJob ? appliedAtByRole.get(flowJob.role.uid) : undefined}

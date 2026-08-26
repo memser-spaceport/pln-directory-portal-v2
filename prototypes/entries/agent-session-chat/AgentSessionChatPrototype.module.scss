@@ -116,6 +116,15 @@
   }
 }
 
+// Motion in this file is state feedback only — the composer changing skin when the
+// run blocks. Honour the system setting anyway; the colour change carries the whole
+// message and the fade is only there to stop it snapping.
+@media (prefers-reduced-motion: reduce) {
+  .composer.composer {
+    transition: none;
+  }
+}
+
 // The Overview and Progress cards used to be a fragment directly inside
 // `.content`, so they inherited its 16px gap. Wrapping them in a `tabpanel`
 // swallowed that; the wrapper carries it instead.
@@ -161,9 +170,11 @@
 // Measured failures against WCAG AA, all of them replaced with values already in
 // this feature's palette rather than new ones.
 
-// The UA default placeholder rendered at 2.18:1 on white. This copy is the only
-// place the "vague instructions cost a full agent run" warning appears, so it
-// has to be legible. #64748b is production's own `.composerHint` colour.
+// The UA default placeholder rendered at 2.18:1 on white — under half the AA
+// floor, on the only prompt an empty composer gives you. #64748b is production's
+// own `.composerHint` colour, so the two lines of guidance under and inside the
+// field now read at the same weight. (The warning this placeholder used to carry
+// moved to the hint, which does not vanish when you start typing.)
 .textarea.textarea::placeholder {
   color: #64748b;
   opacity: 1; // Firefox dims placeholders by default; undo it or the fix is lost.
@@ -213,7 +224,9 @@
 }
 
 .composer.composer {
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 // The waiting skin. Amber, border and text are the exact values production used
@@ -228,6 +241,196 @@
 // loud part; a bold hint on top of it is the same alarm sounded twice.
 .composerHintWaiting.composerHintWaiting {
   color: #78350f;
+}
+
+// One link blue on the page, and it clears AA.
+//
+// #156ff7 measures 4.48:1 on white — a hair under the 4.5 body-text floor, and it
+// was the link colour in three unrelated places: `.externalLink` in the meta grid,
+// `a` inside an agent's markdown, and the run's exits. #0f5ed1 measures 5.82:1 and
+// is already this stylesheet's AA-clearing blue (`.tabActive`, `.sendButton:hover`).
+// Counting first is the point: three near-identical blues nobody chose is the same
+// drift as three different greys.
+.externalLink.externalLink {
+  color: #0f5ed1;
+}
+
+// ── The question alarm ───────────────────────────────────────────────────────
+// Amber on this page means "a person is needed" — the `waiting_for_input` badge,
+// the composer, the live question bubble. An answered question is a decision that
+// was already taken, so its tag drops to the neutral badge pair
+// (#e2e8f0 / #334155, from `.toneNeutral`) and keeps only its job as a landmark.
+.questionTagAnswered.questionTagAnswered {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+// ── Run outcome ──────────────────────────────────────────────────────────────
+// The closing row of the transcript. A rule rather than a card: it is the end of
+// the conversation, not a separate object sitting after it.
+.outcome.outcome {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.outcomeHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.outcomeTime {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.outcomeExits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+
+.outcomeExit {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f5ed1;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Secondary controls ───────────────────────────────────────────────────────
+// Retry is a real action but not this surface's primary — the docked Send button
+// is, and it is one thumb below. Values are `.secondaryButton` from
+// AgentSessions.module.scss verbatim, so the page keeps one secondary shape;
+// only the 40px height moves, to clear the 44px touch minimum.
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0a0c11;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+// Backing out of a confirmation. Text-only on purpose: the row already holds one
+// bordered destructive button, and a second boxed control would make the escape
+// look like the second half of a choice rather than the way out of one.
+.quietButton {
+  min-height: 44px;
+  padding: 0 8px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground-neutral-secondary, #455468);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// ── Inline destructive confirmation ──────────────────────────────────────────
+// Replaces `window.confirm`. Takes the whole row so the question is not read as a
+// caption on the button beside it.
+.confirmRow {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+// `flex: 0 1 auto`, not `1 1 auto`: a growing sentence would push the two buttons
+// to the far edge of an 1100px column, and a question whose answer is 700px away
+// from it is two elements rather than one control.
+.confirmText {
+  flex: 0 1 auto;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  strong {
+    font-weight: 600;
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// ── Blocked run, on the tab with no composer ─────────────────────────────────
+// Amber, border and text are production's retired `.waitingBanner` values
+// (#fef3c7 / #fde68a / #78350f); the radius matches `.panel` so it sits in the
+// same column as the cards under it. The action is the page's own
+// `.primaryButton` — a blocked run is the one thing worth a filled button here,
+// and inventing an amber one would put a second primary vocabulary on the page.
+.waitingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fef3c7;
+
+  @include media.mobile-only {
+    align-items: stretch;
+  }
+}
+
+.waitingText {
+  margin: 0;
+  flex: 1 1 260px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #78350f;
+}
+
+.waitingAction {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+// ── Progress steps ───────────────────────────────────────────────────────────
+// The phase reads as a qualifier of the step, not as a second title — so it keeps
+// the row's size and drops a weight and a tone. Colour is reinforcement here, never
+// the only channel: the word is always printed.
+.stepPhase {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.stepPhaseActive {
+  color: #0f5ed1;
+}
+
+.stepPhaseFailed {
+  color: #b42318;
+}
+
+// #94a3b8 measured 2.85:1 on the white panel — a timestamp nobody could read, and
+// the fourth grey in a list that only needs two. #64748b is the meta grey the
+// composer hint and the bubble clocks already use.
+.stepMeta.stepMeta {
+  color: #64748b;
 }
 
 // ── Failure diagnostics ──────────────────────────────────────────────────────
@@ -335,6 +538,11 @@
 // `.table` in AgentSessions.module.scss; it scrolls in its own box because a wide
 // table must not widen the bubble.
 .markdownBody {
+  // Same AA-clearing blue as every other link on the page — see `.externalLink`.
+  a {
+    color: #0f5ed1;
+  }
+
   table {
     display: block;
     width: 100%;

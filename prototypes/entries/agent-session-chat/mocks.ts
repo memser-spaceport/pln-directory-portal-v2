@@ -108,7 +108,7 @@ function progressSteps(reachedUpTo: number, options: { failedAt?: number } = {})
     ['tests_run', 'tests.completed', 'testing', 'npm run test — 412 passed, 0 failed', T.tests],
     ['branch_pushed', 'branch.pushed', 'pushing', `Pushed ${WORKING_BRANCH}`, T.pushed],
     ['pr_created', 'pull_request.created', 'pr_created', 'Opened PR #2791', T.pr],
-    ['feature_job_created', 'feature_job.created', 'deploying', 'Feature environment build dispatched', T.featureJob],
+    ['feature_job_created', 'feature_job.created', 'deploying', 'Build job queued for pr-2791', T.featureJob],
     ['feature_ready', 'feature_env.ready', 'ready', 'Feature environment is live', T.featureReady],
   ];
 
@@ -273,7 +273,7 @@ export const scenarios: Scenario[] = [
   {
     key: 'pr_created',
     label: 'PR created · env ready',
-    note: 'The finished run: PR link, a live feature environment, and the deploy / delete controls unlocked.',
+    note: 'The finished run. The thread closes on an outcome row carrying the two things the run produced — the PR and the live environment — so the payoff is not an Overview round trip. Deploy / delete are unlocked there.',
     session: baseSession({
       status: 'pr_created',
       commit_sha: 'c41f8ab',
@@ -291,7 +291,7 @@ export const scenarios: Scenario[] = [
   {
     key: 'failed',
     label: 'Failed',
-    note: 'The run ended without a closing agent message on some paths — the outcome badge under the thread is the only thing that says so.',
+    note: 'A run that stopped on a build error. The diagnostics an admin needs to chase it — error code, namespace, job name — are on the session and were rendered nowhere; Retry re-runs the same prompt on the same branch.',
     session: baseSession({
       status: 'failed',
       error_code: 'BUILD_FAILED',

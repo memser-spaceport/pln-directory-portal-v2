@@ -305,7 +305,10 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
                  and the requirement argument above was always about the *group*
                  being first, not about which field opens it. */}
           {asksDetails && (
-            <section className={r.group}>
+            /* Two across rather than a stack — see `.detailsGrid`. Not
+               `r.group`: these four are one-line answers where every other group
+               in the card is full-width by nature. */
+            <section className={r.detailsGrid}>
               {askName && (
                 <div className={f.row}>
                   {/* Label and placeholder are the settings page's, which is the
@@ -335,54 +338,62 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
             </section>
           )}
 
-          {/* 2. The positions. */}
-          <section className={r.group}>
-            {/* Counts what the document held, not what is ticked — the number
+          {/* 2. The positions — when the document carried any.
+                 A parse now reaches this card as long as it found *something*
+                 (see `isEmptyParse` in the panel), so a two-column CV whose
+                 skills and headline read cleanly but whose job history did not
+                 arrives here with an empty list. Hidden rather than shown as
+                 "Experience (0 found)": that heading is a report on the file,
+                 and reporting a zero to someone who can see the empty space
+                 under it is the card being pleased with itself. */}
+          {rows.length > 0 && (
+            <section className={r.group}>
+              {/* Counts what the document held, not what is ticked — the number
                 is a fact about the file, and a count that dropped as you
                 unticked rows would be reporting your edits back to you. */}
-            <h3 className={r.groupTitle}>Experience ({rows.length} found)</h3>
-            <ul className={r.rows}>
-              {rows.map((row) => {
-                const needsDate = row.startDate === '';
-                const dateError = showDateErrors && row.include && needsDate;
-                const editing = editingKey === row.key;
+              <h3 className={r.groupTitle}>Experience ({rows.length} found)</h3>
+              <ul className={r.rows}>
+                {rows.map((row) => {
+                  const needsDate = row.startDate === '';
+                  const dateError = showDateErrors && row.include && needsDate;
+                  const editing = editingKey === row.key;
 
-                return (
-                  <li key={row.key} className={clsx(e.expItem, r.rowItem, { [r.rowOff]: !row.include })}>
-                    {/* Outside the editor on purpose. Opening a row to fix a
+                  return (
+                    <li key={row.key} className={clsx(e.expItem, r.rowItem, { [r.rowOff]: !row.include })}>
+                      {/* Outside the editor on purpose. Opening a row to fix a
                         typo must not change whether it is being added — and the
                         surest way to guarantee that is for the tick to be the
                         same control in both states, sitting in the same place,
                         untouched by the fields beside it. It also means a row
                         can still be dropped without closing the editor first. */}
-                    <div className={r.rowCheck}>
-                      <Checkbox checked={row.include} onChange={(next) => setRow(row.key, { include: next })} />
-                    </div>
-                    <div className={clsx(e.details, r.rowDetails)}>
-                      {editing ? (
-                        <ExperienceRowFields row={row} onChange={(patch) => setRow(row.key, patch)} />
-                      ) : (
-                        <>
-                          <div className={e.row}>
-                            <div className={e.primaryLabel}>{row.title}</div>
-                            {row.company && (
-                              <>
-                                <span className={e.Separator} />
-                                <div className={e.primaryLabel}>{row.company}</div>
-                              </>
-                            )}
-                            {row.location && (
-                              <>
-                                <span className={e.Separator} />
-                                <div className={e.primaryLabel}>{row.location}</div>
-                              </>
-                            )}
-                          </div>
-                          <div className={e.row}>
-                            <div className={e.secondaryLabel}>
-                              {needsDate ? 'No dates in the document' : formatDates(row)}
+                      <div className={r.rowCheck}>
+                        <Checkbox checked={row.include} onChange={(next) => setRow(row.key, { include: next })} />
+                      </div>
+                      <div className={clsx(e.details, r.rowDetails)}>
+                        {editing ? (
+                          <ExperienceRowFields row={row} onChange={(patch) => setRow(row.key, patch)} />
+                        ) : (
+                          <>
+                            <div className={e.row}>
+                              <div className={e.primaryLabel}>{row.title}</div>
+                              {row.company && (
+                                <>
+                                  <span className={e.Separator} />
+                                  <div className={e.primaryLabel}>{row.company}</div>
+                                </>
+                              )}
+                              {row.location && (
+                                <>
+                                  <span className={e.Separator} />
+                                  <div className={e.primaryLabel}>{row.location}</div>
+                                </>
+                              )}
                             </div>
-                            {/* Says why this one row arrived switched off.
+                            <div className={e.row}>
+                              <div className={e.secondaryLabel}>
+                                {needsDate ? 'No dates in the document' : formatDates(row)}
+                              </div>
+                              {/* Says why this one row arrived switched off.
                                 Without it an unticked row in a card whose other
                                 rows are ticked reads as the parser being unsure
                                 about it, which is a different and more worrying
@@ -399,10 +410,10 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
                                 back on, and append the position a second time —
                                 which is the exact bug the flag exists to
                                 prevent. */}
-                            {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
-                          </div>
+                              {row.duplicate && <span className={r.rowAlready}>Already on your profile</span>}
+                            </div>
 
-                          {/* The correction this card has always taken, and the
+                            {/* The correction this card has always taken, and the
                               one it still offers without opening the editor. A
                               start date is required by the record, and "2021 –
                               present" with no month is the commonest thing a
@@ -416,25 +427,25 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
                               because Save is blocked on it, and it has to be
                               visible without anyone going looking. The editor is
                               an offer. */}
-                          {needsDate && row.include && (
-                            <div className={r.rowDate}>
-                              <MonthYearSelect
-                                label="Start Date"
-                                isRequired
-                                error={dateError ? 'Start date is required' : undefined}
-                                value={ymToIso(row.startDate || null)}
-                                onChange={(value) => {
-                                  if (value === null) return;
-                                  setRow(row.key, { startDate: isoToYm(value) ?? '' });
-                                }}
-                              />
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                            {needsDate && row.include && (
+                              <div className={r.rowDate}>
+                                <MonthYearSelect
+                                  label="Start Date"
+                                  isRequired
+                                  error={dateError ? 'Start date is required' : undefined}
+                                  value={ymToIso(row.startDate || null)}
+                                  onChange={(value) => {
+                                    if (value === null) return;
+                                    setRow(row.key, { startDate: isoToYm(value) ?? '' });
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
 
-                    {/* The row's own control, in `ExperiencesList`'s own slot —
+                      {/* The row's own control, in `ExperiencesList`'s own slot —
                         `.expItem` reserves 32px on the right for exactly this,
                         and the saved row this one is about to become carries the
                         same pencil in the same place. One gesture, learned once.
@@ -455,27 +466,42 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
                         the only Save on this surface, and it stays live the
                         whole time — two Saves with different scopes on one
                         screen is a question nobody should have to answer. */}
-                    {editing ? (
-                      <button type="button" className={r.rowDone} onClick={() => setEditingKey(null)}>
-                        Done
-                      </button>
-                    ) : (
-                      editingKey === null && (
-                        <button
-                          type="button"
-                          className={clsx(e.editBtn, r.rowEdit)}
-                          onClick={() => setEditingKey(row.key)}
-                          aria-label={`Edit ${row.title || 'this position'}`}
-                        >
-                          <EditIcon />
-                        </button>
-                      )
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+                      {/* The slot is always here, even when it holds nothing.
+
+                        That is the whole fix for a row that changed width as you
+                        used it. `$row-action` was already sized to the wider of
+                        the two controls so `Done` and the pencil couldn't shift
+                        the content column between them — but the third state,
+                        *no control at all*, was rendering `false` and releasing
+                        the slot entirely. So the moment one row opened, every
+                        other row silently grew by 52px (36 slot + 16 gap) while
+                        the open one kept its 36 — the editing fields ending up
+                        visibly short of the read rows above them. A reserved
+                        slot has to be reserved in all three states, not two. */}
+                      <div className={r.rowAction}>
+                        {editing ? (
+                          <button type="button" className={r.rowDone} onClick={() => setEditingKey(null)}>
+                            Done
+                          </button>
+                        ) : (
+                          editingKey === null && (
+                            <button
+                              type="button"
+                              className={clsx(e.editBtn, r.rowEdit)}
+                              onClick={() => setEditingKey(row.key)}
+                              aria-label={`Edit ${row.title || 'this position'}`}
+                            >
+                              <EditIcon />
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
 
           {/* 3. Skills. Editable rather than a checklist: the tags input is the
                  control this profile already uses for skills, and it lets
@@ -491,7 +517,13 @@ export function ExperienceImportReview(props: ExperienceImportReviewProps) {
             </section>
           )}
 
-          <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
+          {/* Only where it is true. It points at the Experience card, so with no
+              positions to add there is nothing there to go and edit — and a
+              reassurance about a card you were never given anything for is the
+              kind of leftover line that makes the rest of them less believed. */}
+          {rows.length > 0 && (
+            <p className={r.footnote}>You can edit or delete any of these afterwards from the Experience card.</p>
+          )}
         </div>
       </form>
     </FormProvider>

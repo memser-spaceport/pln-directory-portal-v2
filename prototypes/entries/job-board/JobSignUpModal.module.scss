@@ -112,7 +112,7 @@
 // The page's own header: a sticky 64px bar with `← Back`.
 //
 // Production chrome, not a new one — `EditInvestorProfileDrawer.module.scss`'s
-// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfileDrawer`
+// `.drawerHeader` / `.breadcrumbs` / `.backButton`, which `JobProfilePane`
 // already renders two steps later in this same flow. A person who signs up on a
 // phone and then completes their profile meets the same bar twice.
 //
@@ -221,6 +221,53 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+// The shared account group's own vertical rhythm — `AccountFields` wraps itself
+// in this, so the four fields are spaced by the component rather than by
+// whatever happens to contain it.
+//
+// They used to be bare siblings relying on `.form`'s gap above, which was fine
+// while this modal was the only host. It isn't: the apply flow's details step
+// mounts the same group inside a `DetailsSection`, and that ships with its own
+// `gap: 24px` **commented out** so every caller spaces its own contents. So the
+// fields landed with no gap at all and each field's error or hint sat closer to
+// the *next* field's label than to the input it belonged to — the message
+// pointing at the wrong control.
+//
+// Same 24px, so this modal renders identically: `.form` now has two children
+// (this stack and `.bottomText`) with 24 between them, and 24 inside.
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// `AccountFields layout="grid"` — email and full name on one line.
+//
+// **Only the apply flow's details step asks for this**, and only because that
+// pane is three cards tall; the modal keeps the stack, where four fields in a
+// 440px dialog have no height to save. Lives here rather than in the pane's own
+// sheet for the reason the header of `accountFields.tsx` gives: the group's
+// layout belongs to the group, and a caller reaching in to re-space fields it
+// doesn't own is how the two hosts start disagreeing about what this form is.
+//
+// One column below `tablet-landscape` — same line the import review card draws,
+// and for the same reason: two fields sharing the drawer's mobile width would
+// each be narrower than the placeholder inside them.
+//
+// 16px across against the stack's 24 down: the horizontal gap is the one people
+// read as "these two go together", and matching it to the vertical rhythm would
+// flatten the pair back into four equal boxes.
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 }
 
 .column {
@@ -388,10 +435,26 @@
 
 // Landing.module.scss's `.link`, stripped back to a button element: a link, not
 // a second button, so it can't compete with Submit four pixels above it.
+//
+// **One deliberate deviation from that source: 500, not 400.** The colour, the
+// size, the underline and its 0.3em offset are transcribed; the weight is not,
+// and the reason is that 400 was never a decision anyone made about a *control*.
+// `Landing.link` is 14/400 and production's own `JobSignUpModal.signInLink` is a
+// copy of it, but neither is the design system — the DS's actual link control is
+// `Button` with `style="link"`, and `Button.root` sets `font-weight: 500` for
+// every style it has. Every other text button on these surfaces agrees with the
+// DS and not with `Landing`: `.headerCancel` 14/500, `.inlineDoor` 500,
+// `ExperienceImportPanel`'s `.doorLabel` 14/500, `.backLink` 12/500,
+// `.quietButton` 14/500. At 400 this was the only pressable text in the drawer
+// drawn lighter than the sentence it sits in, which is what reads as thin.
+//
+// It stays a link rather than becoming a button: brand colour and an underline
+// against the secondary grey around it are what rank it below the primary
+// action, and weight was never carrying that job.
 .signInLink {
   color: var(--action-foreground-brand-inverted_normal, #1b4dff);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
 

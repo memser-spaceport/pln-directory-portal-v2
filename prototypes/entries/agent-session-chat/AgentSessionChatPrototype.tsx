@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import { deriveProgressSteps, type DerivedStepPhase } from '@/services/agent-sessions/deriveProgressSteps';
 import { canDeleteFeatureEnv, canDeployFeatureEnv } from '@/services/agent-sessions/featureEnvActions';
+import { WAITING_FOR_INPUT_STATUS } from '@/services/agent-sessions/constants';
 import type { AgentSession, AgentSessionMessage } from '@/services/agent-sessions/agent-sessions.service';
 import { formatDate, humanizeStatus, SessionStatusBadge } from '@/components/page/agent-sessions/shared/sessionStatus';
 import s from '@/components/page/agent-sessions/shared/AgentSessions.module.scss';
@@ -56,6 +58,61 @@ const STEP_DOT_CLASS: Record<DerivedStepPhase, string> = {
   skipped: s.stepDotSkipped,
 };
 
+/**
+ * The progress list used to print `humanizeStatus(step.key)`, which turns
+ * `pr_created` into "Pr created" — two rows under a badge saying "PR created", on
+ * the same page, about the same event. `humanizeStatus` is a *fallback* for
+ * vocabulary nobody has seen yet; step keys are a closed set the orchestrator
+ * defines, so they get written out. Anything new still degrades through
+ * `humanizeStatus` rather than disappearing.
+ *
+ * Named for the milestone the orchestrator actually emits, so the row for
+ * `pr_created` and the badge for `pr_created` are the same three words.
+ */
+const STEP_LABELS: Record<string, string> = {
+  session_created: 'Session created',
+  repo_cloned: 'Repository cloned',
+  code_change_started: 'Code change started',
+  tests_run: 'Tests run',
+  branch_pushed: 'Branch pushed',
+  pr_created: 'PR created',
+  feature_job_created: 'Feature environment dispatched',
+  feature_ready: 'Feature environment ready',
+};
+
+/**
+ * The phase, in words, so the coloured dot is not the only thing carrying it
+ * (WCAG 1.4.1). It replaces `step.displayStatus`, which printed the raw task status
+ * at event time — lowercase wire values like `completed` and `pushing` sitting next
+ * to properly-written labels.
+ */
+const PHASE_LABELS: Record<DerivedStepPhase, string> = {
+  pending: 'Pending',
+  active: 'In progress',
+  completed: 'Completed',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+  skipped: 'Skipped',
+};
+
+/** `https://pr-2791.dev.plnetwork.io` -> `pr-2791.dev.plnetwork.io`. */
+function hostOf(url: string) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
+}
+
+const PHASE_TEXT_CLASS: Record<DerivedStepPhase, string> = {
+  pending: '',
+  active: proto.stepPhaseActive,
+  completed: '',
+  failed: proto.stepPhaseFailed,
+  cancelled: proto.stepPhaseFailed,
+  skipped: '',
+};
+
 export default function AgentSessionChatPrototype() {
   const [scenarioKey, setScenarioKey] = useState<ScenarioKey>('waiting_for_input');
   const [canAdmin, setCanAdmin] = useState(true);
@@ -67,6 +124,11 @@ export default function AgentSessionChatPrototype() {
   const [isSending, setIsSending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Deleting a feature environment asks first — in the page, not in a `confirm()`.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Announced, not shown: the deploy / delete result is already visible in the meta
+  // grid, so this exists only for the reader who can't see it change.
+  const [envAnnouncement, setEnvAnnouncement] = useState('');
 
   // Lives here, not in the composer: switching to Overview unmounts the chat pane,
   // and the whole point is that a half-written reply survives that. Backed by
@@ -74,6 +136,8 @@ export default function AgentSessionChatPrototype() {
   const { draft, setDraft, clearDraft, draftRestored } = useComposerDraft(MOCK_SESSION_ID);
 
   const tabRefs = useRef<Partial<Record<DetailTab, HTMLButtonElement | null>>>({});
+  const confirmDeleteRef = useRef<HTMLButtonElement | null>(null);
+  const envStatusRef = useRef<HTMLParagraphElement | null>(null);
 
   // `formatDate` renders through `toLocaleString`, whose output depends on the
   // runtime locale and timezone — server and browser disagree. Prototype routes are
@@ -101,6 +165,8 @@ export default function AgentSessionChatPrototype() {
     setIsSending(false);
     setBusy(false);
     setActionError(null);
+    setConfirmingDelete(false);
+    setEnvAnnouncement('');
   };
 
   const derivedSteps = useMemo(
@@ -177,6 +243,7 @@ export default function AgentSessionChatPrototype() {
 
   const handleDeploy = () => {
     setActionError(null);
+    setEnvAnnouncement('');
     setBusy(true);
     setSession((current) => ({ ...current, feature_environment_status: 'dispatched' }));
     later(() => {
@@ -187,16 +254,30 @@ export default function AgentSessionChatPrototype() {
         feature_environment_name: 'pr-2791',
         feature_environment_url: 'https://pr-2791.dev.plnetwork.io',
       }));
+      setEnvAnnouncement('Feature environment deployed and live.');
     }, 1600);
   };
 
+  /**
+   * Runs after the inline confirmation, which replaces `window.confirm`. A native
+   * dialog is the one piece of chrome in this page nobody designed: it wears the
+   * browser's font, ignores the focus ring the rest of the page just fixed, and its
+   * two buttons are "OK" and "Cancel" — neither of which names the destructive one.
+   *
+   * The confirmation is inline rather than a dialog because there is exactly one
+   * question and the row it replaces is already on screen; a modal for a yes/no on a
+   * visible control is the heavier answer to a lighter problem.
+   */
   const handleDelete = () => {
-    if (!window.confirm('Delete this feature environment? The PR and branch will be kept.')) {
-      return;
-    }
+    setConfirmingDelete(false);
     setActionError(null);
+    setEnvAnnouncement('');
     setBusy(true);
     setSession((current) => ({ ...current, feature_environment_status: 'deleting' }));
+    // Both buttons in this row unmount while the delete is in flight — `deleting`
+    // is neither deployable nor a state you can delete again — so focus has to be
+    // handed somewhere real before that happens, or it falls to `<body>`.
+    envStatusRef.current?.focus({ preventScroll: true });
     later(() => {
       setBusy(false);
       setSession((current) => ({
@@ -204,6 +285,7 @@ export default function AgentSessionChatPrototype() {
         feature_environment_status: 'deleted',
         feature_environment_url: null,
       }));
+      setEnvAnnouncement('Feature environment deleted. The pull request and branch are kept.');
     }, 1200);
   };
 
@@ -212,11 +294,31 @@ export default function AgentSessionChatPrototype() {
     // A viewer has no tab bar at all, so a viewer left on the chat tab would be
     // stranded on a pane with no way back.
     if (!admin) setActiveTab('overview');
+    setConfirmingDelete(false);
+  };
+
+  const showChat = canAdmin && activeTab === 'chat';
+
+  // The question is the whole point of the confirmation, so the answer is where
+  // focus goes — a keyboard user should not have to hunt for the button that just
+  // appeared under their cursor.
+  useEffect(() => {
+    if (confirmingDelete) confirmDeleteRef.current?.focus();
+  }, [confirmingDelete]);
+
+  /**
+   * "Answer the agent" lives on Overview; the composer lives on Chat. Switching
+   * tabs unmounts one pane and mounts the other, so the textarea does not exist
+   * yet when the click handler runs. `flushSync` commits the tab change before the
+   * next line instead of parking the intent in state and chasing it in an effect —
+   * one press, one action, and the caret is in the field it just opened.
+   */
+  const answerInChat = () => {
+    flushSync(() => setActiveTab('chat'));
+    document.getElementById('agent-session-message')?.focus();
   };
 
   if (!mounted) return <div className={s.pageFrame} />;
-
-  const showChat = canAdmin && activeTab === 'chat';
 
   return (
     // `focusRing` is scoped here because the app ships a global
@@ -335,6 +437,25 @@ export default function AgentSessionChatPrototype() {
             aria-labelledby={canAdmin ? 'session-tab-overview' : undefined}
             className={proto.overviewPanel}
           >
+            {/* The composer lives on the Chat tab, so on this one a blocked run has
+                a badge saying it is blocked and no way to unblock it. This is the
+                route, and it is the only thing on the pane that can act.
+
+                The tint, border and text are the exact values production spent on
+                `.waitingBanner` — the banner the chat pane retired (deviation 2),
+                because there the composer sits three inches below it wearing the
+                same amber. Here there is no composer to defer to. */}
+            {canAdmin && session.status === WAITING_FOR_INPUT_STATUS ? (
+              <div className={proto.waitingRow}>
+                <p className={proto.waitingText}>
+                  The run is stopped until you reply — the agent will not continue on its own.
+                </p>
+                <button type="button" className={`${s.primaryButton} ${proto.waitingAction}`} onClick={answerInChat}>
+                  Answer in Chat
+                </button>
+              </div>
+            ) : null}
+
             <div className={s.panel}>
               <h2 className={s.sectionTitle}>Overview</h2>
               <div className={s.metaGrid}>
@@ -362,12 +483,24 @@ export default function AgentSessionChatPrototype() {
                   <span className={s.metaLabel}>Updated</span>
                   <span className={s.metaValue}>{formatDate(session.updated_at)}</span>
                 </div>
+                {/* Both of these printed their raw href. In a two-column grid a
+                    62-character GitHub URL wraps to three lines and buries the one
+                    part anybody reads it for — and the number was already on the
+                    session as `pull_request_number`, rendered nowhere. The full URL
+                    stays on hover, and in the browser's status bar, which is where
+                    a link's address belongs. */}
                 <div className={s.metaItem}>
                   <span className={s.metaLabel}>Pull request</span>
                   <span className={s.metaValue}>
                     {session.pull_request_url ? (
-                      <a className={s.externalLink} href={session.pull_request_url} target="_blank" rel="noreferrer">
-                        {session.pull_request_url}
+                      <a
+                        className={`${s.externalLink} ${proto.externalLink}`}
+                        href={session.pull_request_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={session.pull_request_url}
+                      >
+                        {session.pull_request_number ? `#${session.pull_request_number}` : 'Open pull request'}
                       </a>
                     ) : (
                       '—'
@@ -378,8 +511,14 @@ export default function AgentSessionChatPrototype() {
                   <span className={s.metaLabel}>Feature environment</span>
                   <span className={s.metaValue}>
                     {featureEnvUrl ? (
-                      <a className={s.externalLink} href={featureEnvUrl} target="_blank" rel="noreferrer">
-                        {featureEnvUrl}
+                      <a
+                        className={`${s.externalLink} ${proto.externalLink}`}
+                        href={featureEnvUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={featureEnvUrl}
+                      >
+                        {hostOf(featureEnvUrl)}
                       </a>
                     ) : session.feature_environment_status ? (
                       // Same vocabulary as the session status, so it gets the same
@@ -394,24 +533,76 @@ export default function AgentSessionChatPrototype() {
 
               {canAdmin ? (
                 <div className={s.featureEnvActions}>
-                  {canDeployFeatureEnv(session) ? (
-                    <button type="button" className={s.primaryButton} disabled={busy} onClick={handleDeploy}>
-                      {busy && session.feature_environment_status === 'dispatched'
-                        ? 'Deploying…'
-                        : session.feature_environment_status === 'ready'
-                          ? 'Redeploy feature env'
-                          : 'Deploy feature env'}
-                    </button>
-                  ) : null}
-                  {canDeleteFeatureEnv(session) ? (
-                    <button type="button" className={s.dangerButton} disabled={busy} onClick={handleDelete}>
-                      {busy && session.feature_environment_status === 'deleting' ? 'Deleting…' : 'Delete feature env'}
-                    </button>
-                  ) : null}
-                  {!session.pull_request_url ? (
-                    <span className={s.muted}>Feature env actions unlock after the PR is created.</span>
-                  ) : null}
+                  {confirmingDelete ? (
+                    // The question replaces the row it was asked from, rather than
+                    // covering the page with a dialog: one yes/no about a control
+                    // that is already on screen. Escape backs out, the same as a
+                    // dialog would.
+                    <div
+                      className={proto.confirmRow}
+                      role="group"
+                      aria-label="Confirm deleting the feature environment"
+                      onKeyDown={(event) => {
+                        if (event.key === 'Escape') setConfirmingDelete(false);
+                      }}
+                    >
+                      <span className={proto.confirmText}>
+                        Delete <strong>{session.feature_environment_name || 'this feature environment'}</strong>? The
+                        pull request and branch are kept.
+                      </span>
+                      <button
+                        type="button"
+                        ref={confirmDeleteRef}
+                        className={s.dangerButton}
+                        disabled={busy}
+                        onClick={handleDelete}
+                      >
+                        Delete
+                      </button>
+                      <button type="button" className={proto.quietButton} onClick={() => setConfirmingDelete(false)}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {canDeployFeatureEnv(session) ? (
+                        <button type="button" className={s.primaryButton} disabled={busy} onClick={handleDeploy}>
+                          {busy && session.feature_environment_status === 'dispatched'
+                            ? 'Deploying…'
+                            : session.feature_environment_status === 'ready'
+                              ? 'Redeploy feature env'
+                              : 'Deploy feature env'}
+                        </button>
+                      ) : null}
+                      {canDeleteFeatureEnv(session) ? (
+                        <button
+                          type="button"
+                          className={s.dangerButton}
+                          disabled={busy}
+                          onClick={() => setConfirmingDelete(true)}
+                        >
+                          {busy && session.feature_environment_status === 'deleting'
+                            ? 'Deleting…'
+                            : 'Delete feature env'}
+                        </button>
+                      ) : null}
+                      {!session.pull_request_url ? (
+                        <span className={s.muted}>Feature env actions unlock after the PR is created.</span>
+                      ) : null}
+                    </>
+                  )}
                 </div>
+              ) : null}
+
+              {/* Screen-reader only, and deliberately so: the deploy / delete result
+                  is already visible three rows up, in the meta grid. What was
+                  missing is that a change nobody triggered a page load for was
+                  announced to nobody. It doubles as somewhere for focus to land
+                  when the button that was pressed unmounts. */}
+              {canAdmin ? (
+                <p className={proto.srOnly} role="status" tabIndex={-1} ref={envStatusRef}>
+                  {envAnnouncement}
+                </p>
               ) : null}
 
               {actionError ? <p className={`${s.state} ${s.error}`}>{actionError}</p> : null}
@@ -429,15 +620,21 @@ export default function AgentSessionChatPrototype() {
                     <li key={step.key} className={s.step}>
                       <span className={`${s.stepDot} ${STEP_DOT_CLASS[step.phase]}`} aria-hidden />
                       <div className={s.stepBody}>
-                        {/* `humanizeStatus`, not `replace(/_/g, ' ')`. The badge
-                            vocabulary in sessionStatus.tsx deliberately stopped
-                            printing raw API values; the progress list still did,
-                            so the two disagreed on the same page. */}
+                        {/* Written labels and a written phase. The old line was
+                            `humanizeStatus(step.key) · step.displayStatus`, which
+                            printed "Pr created · completed" two rows under a badge
+                            reading "PR created" — one page, one event, two
+                            vocabularies. See STEP_LABELS / PHASE_LABELS. */}
                         <span className={s.stepKey}>
-                          {humanizeStatus(step.key)} · {step.displayStatus}
+                          {STEP_LABELS[step.key] ?? humanizeStatus(step.key)}{' '}
+                          <span className={`${proto.stepPhase} ${PHASE_TEXT_CLASS[step.phase]}`}>
+                            · {PHASE_LABELS[step.phase]}
+                          </span>
                         </span>
                         {step.message ? <span className={s.stepMessage}>{step.message}</span> : null}
-                        {step.createdAt ? <span className={s.stepMeta}>{formatDate(step.createdAt)}</span> : null}
+                        {step.createdAt ? (
+                          <span className={`${s.stepMeta} ${proto.stepMeta}`}>{formatDate(step.createdAt)}</span>
+                        ) : null}
                       </div>
                     </li>
                   ))}

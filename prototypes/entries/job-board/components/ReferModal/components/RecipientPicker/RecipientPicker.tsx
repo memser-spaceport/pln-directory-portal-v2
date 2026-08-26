@@ -10,10 +10,8 @@ import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { CloseIcon } from '@/components/icons';
 
 // Field wrapper + label come from the production multi-select, so this reads as the
-// same field as the ones above and below it; the clear-all control borrows
-// FormSelect's `.clearIndicator` so it matches the referee field directly above.
+// same field as the ones above and below it.
 import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
-import selectCss from '@/components/form/FormSelect/FormSelect.module.scss';
 
 import { DirectoryMember, RecipientOption } from '../../types';
 
@@ -24,7 +22,7 @@ import { useMemberSearch } from '../../hooks/useMemberSearch';
 
 import { MailIcon } from '../../../../icons';
 
-import { AutosizeInput } from './components/AutosizeInput';
+import { RecipientInput } from './components/RecipientInput';
 
 import { selectStyles } from './selectStyles';
 import s from './RecipientPicker.module.scss';
@@ -56,6 +54,13 @@ interface RecipientPickerProps {
  * first), renders one line per option (no role), and never exposes what was typed
  * (so it can't offer "Add ‹address›"). The chrome is transcribed from it rather than
  * reinvented — see `selectStyles`.
+ *
+ * **The value is a list of rows, not a wrap of chips**, because this field arrives
+ * pre-filled: the modal seeds it with the hiring team, so the referrer's first job
+ * here is to check a set someone else assembled. A name-only chip can't answer
+ * "should Priya be on this?" — the role can, and it was already on the menu row
+ * they picked from. `selectStyles.valueContainer` / `.multiValue` carry the layout;
+ * `.row*` in the SCSS carries the contents.
  */
 export function RecipientPicker(props: RecipientPickerProps) {
   const { label, teamMembers, isTeamLoading, teamName, excludeUids, value, onChange, menuPortalTarget, description } =
@@ -77,10 +82,18 @@ export function RecipientPicker(props: RecipientPickerProps) {
 
     const result: GroupBase<RecipientOption>[] = [];
     if (team.length) {
-      result.push({ label: `${teamName} team`, options: team.map(toRecipientOption) });
+      // `omitTeam` inside this group: the heading above the rows already says
+      // "Protocol Labs team", and the modal's own title says it again — a "· Protocol
+      // Labs" tail on each of four rows is the same word four more times, in the
+      // space the role needs.
+      result.push({
+        label: `${teamName} team`,
+        options: team.map((member) => toRecipientOption(member, { omitTeam: true })),
+      });
     }
     if (network.length) {
-      result.push({ label: 'PL network', options: network.map(toRecipientOption) });
+      // Wrapped, not point-free: `.map` would hand the index in as the options arg.
+      result.push({ label: 'PL network', options: network.map((member) => toRecipientOption(member)) });
     }
     return result;
   }, [teamMembers, teamUids, teamName, results, hasQuery, excludeUids, value]);
@@ -97,6 +110,12 @@ export function RecipientPicker(props: RecipientPickerProps) {
         value={value}
         onChange={(next) => onChange([...(next ?? [])])}
         placeholder="Type a name or email address"
+        /* No clear-all. Every row already ends in its own ✕ on the field's right
+           edge, and react-select's clear control lands in the indicators column
+           ~20px further along the same edge — two marks side by side, one meaning
+           "drop Anneke" and the other "drop everyone", on a field that cannot be
+           sent empty anyway. */
+        isClearable={false}
         inputValue={query}
         // Mirrors whatever react-select reports, typing or not: it clears the input
         // after every pick, and holding on to the old text would keep the menu showing
@@ -144,9 +163,11 @@ export function RecipientPicker(props: RecipientPickerProps) {
         // real class alongside the emotion styles above.
         classNames={{ valueContainer: () => s.valueContainer }}
         components={{
-          // Flexbox auto-width input (mirror span + absolute overlay) in place of
-          // react-select's own CSS-Grid-based one.
-          Input: AutosizeInput,
+          // The list's last line: an **Add someone else** button at rest, the typing
+          // line once pressed — in place of react-select's CSS-Grid auto-sizing
+          // input. Must stay a stable reference (never an inline arrow like the
+          // overrides below), or the <input> remounts mid-edit. See `RecipientInput`.
+          Input: RecipientInput,
           // Production's no-results treatment, not react-select's centred default:
           // FormSelect and FormMultiSelect both render `.notFound` — a left-aligned
           // column whose spans are 12px/400 in --Neutral-Slate-600 — with the second
@@ -195,20 +216,24 @@ export function RecipientPicker(props: RecipientPickerProps) {
             </components.Option>
           ),
           // Every ✕ in this field is the DS `CloseIcon` — react-select ships its own
-          // bundled CrossIcon for both of these slots, and MemberMultiSelect's chips
-          // use a one-off close-gray.svg asset. CloseIcon is the shared component
+          // bundled CrossIcon for this slot, and MemberMultiSelect's chips use a
+          // one-off close-gray.svg asset. CloseIcon is the shared component
           // (67 files, incl. FormSelect's clear and every modal header), and it takes
           // its colour from `currentColor`, so size and tone are set in CSS.
+          //
+          // 16px, not the chip's old 14: it is the row's only control now, and it is
+          // no longer tucked against a name — it sits alone on the right edge.
           MultiValueRemove: (removeProps) => {
-            const { innerProps } = removeProps;
+            const { innerProps, data } = removeProps;
 
             return (
               <components.MultiValueRemove
                 {...removeProps}
                 innerProps={{
                   ...innerProps,
-                  // Member chips are wrapped in a profile link.
-                  // Without this, removing the chip also fires that navigation.
+                  'aria-label': `Remove ${data.label}`,
+                  // Member rows are wrapped in a profile link.
+                  // Without this, removing the row also fires that navigation.
                   onClick: (event) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -216,17 +241,12 @@ export function RecipientPicker(props: RecipientPickerProps) {
                   },
                 }}
               >
-                <span className={s.chipRemove}>
-                  <CloseIcon width={14} height={14} />
+                <span className={s.rowRemove}>
+                  <CloseIcon width={16} height={16} />
                 </span>
               </components.MultiValueRemove>
             );
           },
-          ClearIndicator: (clearProps) => (
-            <components.ClearIndicator {...clearProps} className={selectCss.clearIndicator}>
-              <CloseIcon />
-            </components.ClearIndicator>
-          ),
           MultiValue: (multiProps) => {
             const { data, innerProps } = multiProps;
 
@@ -235,7 +255,7 @@ export function RecipientPicker(props: RecipientPickerProps) {
                 {...multiProps}
                 innerProps={{
                   ...innerProps,
-                  // Сlicking a chip to follow its profile link or hit
+                  // Сlicking a row to follow its profile link or hit
                   // remove reopens the picker's menu underneath it.
                   onMouseDown: (event) => {
                     event.preventDefault();
@@ -243,16 +263,21 @@ export function RecipientPicker(props: RecipientPickerProps) {
                   },
                 }}
               >
-                <span className={s.chip}>
+                <span className={s.row}>
                   {data.isEmail ? (
-                    <span className={s.chipMail}>
+                    <span className={s.rowMail}>
                       <MailIcon />
                     </span>
                   ) : (
-                    <img src={data.image || getDefaultAvatar(data.label)} alt="" className={s.chipAvatar} />
+                    <img src={data.image || getDefaultAvatar(data.label)} alt="" className={s.rowAvatar} />
                   )}
-                  {data.label}
-                  {data.isTeamLead && <span className={s.chipLead}>Team Lead</span>}
+                  <span className={s.rowText}>
+                    <span className={s.rowName}>{data.label}</span>
+                    {/* The role — the half a name-only chip left out, and the whole
+                        reason anyone can tell whether this row belongs here. Absent
+                        for typed addresses, which have nothing but themselves. */}
+                    {data.description && <span className={s.rowRole}>{data.description}</span>}
+                  </span>
                 </span>
               </components.MultiValue>
             );

@@ -157,7 +157,7 @@ describe('ReferModal', () => {
     renderModal(null);
 
     expect(screen.getByText('Send to')).toBeInTheDocument();
-    expect(screen.getByText('Team leads are preselected. You can add other members or an email.')).toBeInTheDocument();
+    expect(screen.getByText('Prefilled with the Acme hiring team.')).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', true);
     await waitFor(() => expect(screen.getByTestId('recipient-count')).toHaveTextContent('1'));
   });

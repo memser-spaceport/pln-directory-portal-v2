@@ -15,11 +15,15 @@ import type { ParsedProfile } from './types';
  * nobody reviews, which is how "we found nothing" ships unread.
  */
 
-export type ParseScenario = 'three-roles' | 'missing-date' | 'nothing-found' | 'newer-cv';
+export type ParseScenario = 'three-roles' | 'missing-date' | 'no-positions' | 'nothing-found' | 'newer-cv';
 
 export const PARSE_SCENARIOS: Array<{ value: ParseScenario; label: string }> = [
   { value: 'three-roles', label: 'Three roles' },
   { value: 'missing-date', label: 'Missing a start date' },
+  /* The half-read document, which is the case the dead end used to swallow.
+     Worth a switch of its own precisely because it looks like a failure and
+     isn't: the review has to open on it. */
+  { value: 'no-positions', label: 'No positions, but other details' },
   { value: 'nothing-found', label: 'Nothing found' },
   /* The re-upload case. Only says anything over a history that is already
      saved, which is the state "Update from CV" is offered in. */
@@ -178,6 +182,28 @@ const MISSING_DATE: ParsedProfile = {
 };
 
 /**
+ * THE HALF-READ DOCUMENT — a real and common outcome, not an edge case.
+ *
+ * Positions are the hardest thing on a CV to extract: they are a layout, not a
+ * list, and a two-column template, a table, or dates in a right-hand gutter all
+ * defeat the pass that reads them. The headline, the location and the skills row
+ * are comparatively easy, because they sit in running text.
+ *
+ * So this is a file that gave up everything except the work history. It used to
+ * hit the dead end and be discarded whole — six usable facts thrown away, with
+ * "we couldn't find any roles in that file" as the explanation. It now reaches
+ * the review, which simply doesn't draw an Experience group.
+ */
+const NO_POSITIONS: ParsedProfile = {
+  name: 'Polina Bublii',
+  email: 'polina@latticecompute.xyz',
+  role: 'Senior Protocol Engineer',
+  location: 'Berlin, Germany',
+  skills: ['Distributed Systems', 'Rust', 'libp2p', 'QUIC', 'Go'],
+  experiences: [],
+};
+
+/**
  * DELETE WITH: the `design-canvas/` folder.
  *
  * The same fixtures, without the delay. The design canvas photographs a settled
@@ -191,6 +217,7 @@ export const parseResultFor = (scenario: ParseScenario): ParsedProfile => RESULT
 const RESULTS: Record<ParseScenario, ParsedProfile> = {
   'three-roles': THREE_ROLES,
   'missing-date': MISSING_DATE,
+  'no-positions': NO_POSITIONS,
   'nothing-found': EMPTY_RESULT,
   'newer-cv': NEWER_CV,
 };
@@ -203,9 +230,14 @@ export const PARSE_CANCELLED = Symbol('parse-cancelled');
 
 /**
  * Resolves to what the document said, after a beat. A file that can't be read
- * resolves *empty* rather than throwing — "we couldn't find any roles in that
- * file" is the same sentence either way, and the person can do the same thing
- * about it.
+ * resolves *empty* rather than throwing — "we couldn't read details from
+ * that file" is the same sentence either way, and the person can do the same
+ * thing about it.
+ *
+ * Note that resolving with *some* fields filled and no `experiences` is a normal
+ * result, not a failure: see `NO_POSITIONS`. Only a wholly empty record raises
+ * the dead end, which is the panel's call to make (`isEmptyParse`), not this
+ * function's.
  *
  * Returns a `cancel` alongside the promise, so the reading state can be backed
  * out of: someone who dropped the wrong file shouldn't have to wait for it.

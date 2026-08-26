@@ -90,7 +90,7 @@ export function ProfileNudgeBanner({ onUpdateProfile }: { onUpdateProfile: () =>
  * and the one thing the person can usefully do meanwhile is finish the profile
  * that the application will carry. That is the only CTA this state has, and it
  * is a real one — the drawer saves while approval is pending; only *applying*
- * waits (see `JobProfileDrawer`, where the footer says so).
+ * waits (see `JobProfilePane`, where the footer says so).
  *
  * Once the profile is done there genuinely is nothing to press, and a card whose
  * shape is "a claim next to a button" would then have an empty action slot,
@@ -130,12 +130,15 @@ export function PendingApprovalBanner({
                 No new CSS: `welcome.text` is already a 4px-gap column, so a
                 second `<p>` lands on the next line at the card's own rhythm.
 
-                "so you can apply the moment it is" is the whole reason to do it
-                now rather than later — without it, filling in a profile during a
-                wait reads as busywork the product invented. */}
+                The second line used to end "so you can apply the moment it is",
+                which was the reason to finish a profile while approval was the
+                thing standing in the way. It no longer is — applying works now —
+                so the reason had to change with it: a profile is what the
+                application carries, and that is true whether or not anyone is
+                reviewing the account. */}
             <p className={clsx(welcome.sub, s.bannerSub)}>We&apos;ll notify you once approved.</p>
             <p className={clsx(welcome.sub, s.bannerSub)}>
-              Complete your profile in the meantime, so you can apply the moment it is.
+              You can apply meanwhile — finish your profile so it goes with a full picture of you.
             </p>
           </div>
           <div className={s.ctaGroup}>
@@ -167,12 +170,19 @@ export function PendingApprovalBanner({
           <div className={a.alertText}>
             {/* The second sentence names what is and isn't available, because
                 "under review" alone leaves someone guessing whether the board
-                itself is half-working. Browsing is untouched and the profile is
-                done, so applying is the only thing left waiting — and saying so
-                is what makes the wait finite. */}
+                itself is half-working.
+
+                It used to end "applying unlocks as soon as your account is
+                approved" — the truth while approval gated applying. It doesn't
+                any more, and this is the state where getting that wrong would
+                cost the most: a finished profile with nothing left to do, being
+                told to wait for something that isn't holding them up. Now the
+                sentence says the board is entirely open and leaves the review as
+                what it is — a fact about the account, running in the
+                background. */}
             <p>
-              Profile under review — we&apos;ll notify you once approved. Your profile is ready and every role is open
-              to browse; applying unlocks as soon as your account is approved.
+              Profile under review — we&apos;ll notify you once approved. Nothing here is waiting on it: browse and
+              apply as normal.
             </p>
           </div>
         </div>

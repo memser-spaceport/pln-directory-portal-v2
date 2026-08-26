@@ -167,6 +167,30 @@ const LINKEDIN_HINT = {
 
 const MAX_FILE_SIZE_MB = 5;
 
+/**
+ * WHEN A DOCUMENT GAVE US NOTHING.
+ *
+ * This used to be `parsed.experiences.length === 0`, and the dead end it raised
+ * said "we couldn't find any roles in that file". Both were too narrow, in a way
+ * that cost real data: this importer fills a role, a location, a skills row and
+ * the contact details as well as a work history, so a CV whose positions are
+ * laid out in a way the extractor can't follow — a two-column PDF, a table — but
+ * whose skills list and headline read perfectly well was thrown away whole, and
+ * told the person their file was unreadable while holding six things from it.
+ *
+ * So the question is now "did anything at all come back", and everything else
+ * goes to the review, which shows the person exactly which parts landed. The
+ * only case that reaches the dead end is a document that yielded nothing to
+ * offer — which is the only case where "we couldn't read details" is true.
+ */
+const isEmptyParse = (parsed: ParsedProfile) =>
+  parsed.experiences.length === 0 &&
+  parsed.skills.length === 0 &&
+  parsed.role.trim() === '' &&
+  parsed.location.trim() === '' &&
+  (parsed.name ?? '').trim() === '' &&
+  (parsed.email ?? '').trim() === '';
+
 export function ExperienceImportPanel({
   emptyLabel = '',
   onParsed,
@@ -209,7 +233,7 @@ export function ExperienceImportPanel({
     result
       .then((parsed) => {
         cancelRef.current = null;
-        if (parsed.experiences.length === 0) {
+        if (isEmptyParse(parsed)) {
           setStatus('nothing-found');
           return;
         }
@@ -292,10 +316,16 @@ export function ExperienceImportPanel({
           </button>
         </div>
       ) : status === 'nothing-found' ? (
-        /* An empty state that earns its place: a document really can carry no
-           parseable positions — a one-page portfolio, a scan, a CV in a layout
-           the extractor can't follow. Both ways out are offered, because "try
+        /* An empty state that earns its place: a document really can carry
+           nothing this importer can use — a scan, a photograph of a page, a file
+           whose text layer is empty. Both ways out are offered, because "try
            again" is useless advice to someone whose file will never work.
+
+           It is reached only when the parse came back *entirely* empty — see
+           `isEmptyParse`. A file that gave up skills or a headline but no
+           positions goes to the review instead, which can show what it got; this
+           screen is for the file that gave up nothing, and its copy says so
+           rather than naming one field.
 
            Wearing production's `.emptyData` rather than a lookalike, for two
            reasons. It *is* an empty state — the same grey 12px panel this
@@ -304,7 +334,18 @@ export function ExperienceImportPanel({
            gets its pill by being in one. A local copy of that rule would have
            rendered identically today and drifted from it later. */
         <div className={clsx(e.emptyData, p.emptyStack, p.deadEnd)}>
-          <div className={p.deadEndTitle}>We couldn&apos;t find any roles in that file.</div>
+          {/* "Any details", not "any roles". The title names what the whole
+              import was for, because that is what failed — the file gave up no
+              positions AND no headline, skills or contact details. Naming only
+              roles told someone whose skills list had been read perfectly well
+              that their document was unreadable.
+
+              The body still says "experience", and that is deliberate rather
+              than an oversight: it is describing where the button below actually
+              goes, which is the section's own Add form. A body promising to fill
+              in a profile by hand next to a button that opens one five-field
+              form would be the more general sentence and the less true one. */}
+          <div className={p.deadEndTitle}>We couldn&apos;t read details from that file.</div>
           <p className={p.deadEndBody}>Try a different file, or add your experience by hand — it&apos;s five fields.</p>
           <div className={p.deadEndActions}>
             <button type="button" className={e.connectButton} onClick={reset}>

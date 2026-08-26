@@ -6,6 +6,8 @@ export interface IJobRole {
   location: string[];
   workMode: string | null;
   applyUrl: string | null;
+  /** Sanitized posting HTML from ingest. Null when the source had none. */
+  descriptionHtml?: string | null;
   /**
    * The posting's own words, if the ingest carried any.
    *

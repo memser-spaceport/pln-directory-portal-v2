@@ -57,7 +57,6 @@ const renderDrawer = (props: Partial<React.ComponentProps<typeof JobDetailDrawer
       team={team}
       onApply={onApply}
       applied={false}
-      pendingApproval={false}
       loggedIn
       source="job-board"
       {...props}
@@ -161,11 +160,38 @@ describe('the job detail drawer', () => {
     it.each([
       [{ loggedIn: false }, /you will set one up in the next step/i],
       [{ loggedIn: true }, /One press sends your PL profile/i],
-      [{ pendingApproval: true }, /waiting on PL team approval/i],
+      [{ externalApply: true }, /You'll apply on their site/i],
     ])('matches the viewer %s', (props, expected) => {
       renderDrawer(props);
 
       expect(screen.getByText(expected)).toBeInTheDocument();
+    });
+  });
+
+  describe('external Apply for an unapproved member', () => {
+    it('is the outbound posting, not an in-app button', () => {
+      renderDrawer({ externalApply: true });
+
+      const apply = screen.getByRole('link', { name: 'Apply' });
+      expect(apply).toHaveAttribute('href', expect.stringContaining('https://example.com/apply'));
+      expect(apply).toHaveAttribute('target', '_blank');
+      expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/waiting on PL team approval/i)).not.toBeInTheDocument();
+    });
+
+    it('still hands a left-click to the flow', () => {
+      renderDrawer({ externalApply: true });
+
+      fireEvent.click(screen.getByRole('link', { name: 'Apply' }));
+      expect(onApply).toHaveBeenCalledTimes(1);
+    });
+
+    it('omits Apply when there is no posting to send them to', () => {
+      renderDrawer({ externalApply: true, role: role({ applyUrl: null }) });
+
+      expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Applying still sends them your profile/i)).not.toBeInTheDocument();
     });
   });
 

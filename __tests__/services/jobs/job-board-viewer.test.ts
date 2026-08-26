@@ -3,17 +3,31 @@ import {
   canApplyToJobs,
   deriveBoardViewer,
   getJobsAccessVerdict,
+  isJobAspirant,
   isJobProfileComplete,
   isJobSearchStatus,
+  JOB_ASPIRANT_POLICY_CODE,
   JOB_SEARCH_STATUS_OPTIONS,
   jobSearchStatusDisplayLabel,
 } from '@/services/jobs/job-board-viewer';
 import { IUserInfo } from '@/types/shared.types';
 
-const rbacUser = (status: NonNullable<IUserInfo['rbac']>['status']): IUserInfo => ({
+const rbacUser = (
+  status: NonNullable<IUserInfo['rbac']>['status'],
+  policies: NonNullable<IUserInfo['rbac']>['policies'] = [],
+): IUserInfo => ({
   uid: 'm1',
-  rbac: { status, policies: [], effectivePermissions: [], roles: [] },
+  rbac: { status, policies, effectivePermissions: [], roles: [] },
 });
+
+const JOB_ASPIRANT_POLICY = {
+  uid: 'policy_job_aspirant',
+  code: JOB_ASPIRANT_POLICY_CODE,
+  name: 'Job Aspirant / Job Board',
+  description: null,
+  role: 'Job Aspirant',
+  group: 'Job Board',
+};
 
 const legacyUser = (accessLevel: IUserInfo['accessLevel']): IUserInfo => ({ uid: 'm1', accessLevel });
 
@@ -78,6 +92,26 @@ describe('canApplyToJobs', () => {
   });
 });
 
+describe('isJobAspirant', () => {
+  it('is true when rbac.policies carries the Job Aspirant code', () => {
+    expect(isJobAspirant(rbacUser('PENDING', [JOB_ASPIRANT_POLICY]))).toBe(true);
+    expect(isJobAspirant(rbacUser('PENDING'))).toBe(false);
+    expect(isJobAspirant(null)).toBe(false);
+  });
+
+  it('is true from Job Board signUpSource when the cookie has no policies', () => {
+    expect(
+      isJobAspirant({
+        uid: 'm1',
+        signUpSource: 'job-board',
+        rbac: { status: 'VERIFIED', policies: [], effectivePermissions: [], roles: [] },
+      }),
+    ).toBe(true);
+    expect(isJobAspirant({ uid: 'm1', signUpSource: 'job-board' })).toBe(true);
+    expect(isJobAspirant({ uid: 'm1', signUpSource: 'website' })).toBe(false);
+  });
+});
+
 describe('JobSearchStatus', () => {
   it('guard accepts exactly the option values', () => {
     for (const option of JOB_SEARCH_STATUS_OPTIONS) {
@@ -125,7 +159,13 @@ describe('deriveBoardViewer', () => {
 
   it('is resolving while logged-in sub-state queries are in flight', () => {
     expect(
-      deriveBoardViewer({ isLoggedIn: true, userInfo: approved, isResolved: false, profileComplete: true, useV2: true }),
+      deriveBoardViewer({
+        isLoggedIn: true,
+        userInfo: approved,
+        isResolved: false,
+        profileComplete: true,
+        useV2: true,
+      }),
     ).toBe('resolving');
   });
 
@@ -147,6 +187,48 @@ describe('deriveBoardViewer', () => {
 
   it('approved splits on profile completeness', () => {
     const base = { isLoggedIn: true, userInfo: approved, isResolved: true, useV2: true };
+    expect(deriveBoardViewer({ ...base, profileComplete: true })).toBe('profile-ready');
+    expect(deriveBoardViewer({ ...base, profileComplete: false })).toBe('profile-incomplete');
+  });
+
+  it.each(['PENDING', 'VERIFIED'] as const)(
+    'a %s Job Aspirant skips the pending-approval banner and splits like approved',
+    (status) => {
+      const aspirant = rbacUser(status, [JOB_ASPIRANT_POLICY]);
+      const base = { isLoggedIn: true, userInfo: aspirant, isResolved: true, useV2: true };
+      expect(deriveBoardViewer({ ...base, profileComplete: true })).toBe('profile-ready');
+      expect(deriveBoardViewer({ ...base, profileComplete: false })).toBe('profile-incomplete');
+    },
+  );
+
+  it('a pending member without the Job Aspirant policy still waits', () => {
+    expect(
+      deriveBoardViewer({
+        isLoggedIn: true,
+        userInfo: rbacUser('PENDING'),
+        isResolved: true,
+        profileComplete: true,
+        useV2: true,
+      }),
+    ).toBe('pending-approval');
+  });
+
+  it('a pending Job Board signUpSource skips the banner even without the policy on the cookie', () => {
+    const fromCookie: IUserInfo = { ...rbacUser('VERIFIED'), signUpSource: 'job-board' };
+    expect(
+      deriveBoardViewer({
+        isLoggedIn: true,
+        userInfo: fromCookie,
+        isResolved: true,
+        profileComplete: true,
+        useV2: true,
+      }),
+    ).toBe('profile-ready');
+  });
+
+  it('an approved Job Aspirant still splits on profile completeness', () => {
+    const aspirant = rbacUser('APPROVED', [JOB_ASPIRANT_POLICY]);
+    const base = { isLoggedIn: true, userInfo: aspirant, isResolved: true, useV2: true };
     expect(deriveBoardViewer({ ...base, profileComplete: true })).toBe('profile-ready');
     expect(deriveBoardViewer({ ...base, profileComplete: false })).toBe('profile-incomplete');
   });

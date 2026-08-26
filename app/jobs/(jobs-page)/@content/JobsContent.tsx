@@ -91,6 +91,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
   const boardViewer = useJobBoardViewer({ isLoggedIn, userInfo, enabled: SHOW_JOB_BOARD_APPLY });
   const applyFlow = useJobApplyFlow({
     viewer: boardViewer.viewer,
+    verdict: boardViewer.verdict,
     profileComplete: boardViewer.profileComplete,
     refreshVerdict: boardViewer.refreshVerdict,
     source: 'job-board',
@@ -101,6 +102,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         ? {
             onApply: applyFlow.onApply,
             memberUid: boardViewer.memberUid,
+            externalApply: isLoggedIn && boardViewer.viewer !== 'resolving' && boardViewer.verdict === 'pending',
             /* Literal-first, so the bundler folds the branch: flag off and the
                rows keep their direct Apply, with `onViewJob` absent rather than
                present-and-ignored. Nested inside the apply flag because the
@@ -108,7 +110,14 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
             ...(SHOW_JOB_DETAIL ? { onViewJob: applyFlow.onViewJob } : {}),
           }
         : undefined,
-    [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply, applyFlow.onViewJob],
+    [
+      isLoggedIn,
+      boardViewer.viewer,
+      boardViewer.verdict,
+      boardViewer.memberUid,
+      applyFlow.onApply,
+      applyFlow.onViewJob,
+    ],
   );
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned

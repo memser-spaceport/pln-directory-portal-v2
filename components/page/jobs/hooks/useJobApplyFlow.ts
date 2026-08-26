@@ -3,6 +3,7 @@
 import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
+import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
@@ -128,6 +129,7 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
 
 export interface JobApplyFlowArgs {
   viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
   profileComplete: boolean;
   refreshVerdict: () => Promise<JobsAccessVerdict>;
   source: JobSurface;
@@ -141,7 +143,7 @@ export interface JobApplyFlowArgs {
  * The dispatch handlers are also the analytics choke point — every funnel edge
  * is exactly one handler, so instrumentation cannot drift from behavior.
  */
-export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
+export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdict, source }: JobApplyFlowArgs) {
   const [state, dispatch] = useReducer(applyFlowReducer, IDLE);
   const analytics = useJobsAnalytics();
   const applyPressInFlight = useRef(false);
@@ -179,36 +181,42 @@ export function useJobApplyFlow({ viewer, profileComplete, refreshVerdict, sourc
 
       // A rejected account has no apply path. The row doesn't render the button
       // for them, but `resumeAfterLogin` calls this directly — without the
-      // guard a rejected member with a complete profile would fall through the
-      // ternary below as `approved` and be handed the apply modal.
-      if (viewer === 'rejected') return;
+      // guard a rejected member with a complete profile would fall through as
+      // `approved` and be handed the apply modal.
+      if (viewer === 'rejected' || verdict === 'rejected') return;
 
-      let verdict: JobsAccessVerdict = viewer === 'pending-approval' ? 'pending' : 'approved';
-      if (viewer === 'pending-approval') {
-        // The one moment the pending copy could lie: an approval that landed
-        // mid-session. Recheck before explaining a wait that may be over.
+      let access = verdict;
+      if (access !== 'approved') {
+        // Recheck before sending an unapproved member outbound: an approval
+        // that landed mid-session should get in-app Apply, not the posting.
         if (applyPressInFlight.current) return;
         applyPressInFlight.current = true;
         try {
-          verdict = await refreshVerdict();
+          access = await refreshVerdict();
         } finally {
           applyPressInFlight.current = false;
         }
       }
 
-      if (verdict === 'approved' && profileComplete) {
+      if (access === 'approved' && profileComplete) {
         dispatch({ type: 'OPEN_APPLY', target });
         return;
       }
 
-      // Pending members land in the drawer because for them the drawer is the
-      // explanation (the stepper says where they are); incomplete profiles land
-      // in it because it collects the two required answers. Either way the role
-      // stays pending so saving resumes the application.
-      dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
-      analytics.onJobApplyDrawerOpened(applyBase(target));
+      if (access === 'approved') {
+        dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
+        analytics.onJobApplyDrawerOpened(applyBase(target));
+        return;
+      }
+
+      // Unapproved: the existing external posting, not the in-app letter.
+      // Left-click is intercepted so this is the one open; middle-click uses
+      // the `<a href>` natively. Resume has no link to click, so it opens here.
+      if (access === 'pending') {
+        openExternalApply(target.role.applyUrl, source);
+      }
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, viewer],
+    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
   );
 
   /**

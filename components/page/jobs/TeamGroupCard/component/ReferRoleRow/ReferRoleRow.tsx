@@ -13,7 +13,7 @@ import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
-import { jobApplyQueryParams } from './constants';
+import { jobApplyQueryParams, interceptPrimaryApplyClick, jobApplyHref } from './constants';
 
 import { ReferMenu } from './components/ReferMenu';
 import { ArrowIcon, ClockIcon } from './components/Icons';
@@ -36,6 +36,12 @@ export interface RowApplyProps {
   onApply: (target: { role: IJobRole; teamId: string; teamName: string }) => void;
   /** Scopes the applied-map subscription; undefined while logged out. */
   memberUid: string | undefined;
+  /**
+   * Unapproved members apply on the company's site, not in-app. The row's Apply
+   * control becomes the existing outbound `<a>` (hidden when there is no URL).
+   * View-job mode is unchanged: Apply lives in the detail drawer.
+   */
+  externalApply?: boolean;
   /**
    * Read the job in the app first.
    *
@@ -92,6 +98,8 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const [referOpen, toggleReferOpen] = useToggle(false);
 
   const inAppApply = Boolean(apply);
+  const externalApply = Boolean(apply?.externalApply);
+  const applyHref = jobApplyHref(role.applyUrl, source);
   // Per-row subscription to the shared applied map: one application re-renders
   // exactly this row, never the list. Inert (enabled: false) without apply props.
   const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
@@ -244,6 +252,22 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                 <CheckIcon width={12} height={12} aria-hidden="true" />
                 Applied
               </button>
+            ) : externalApply ? (
+              applyHref && (
+                /* Unapproved: the existing outbound apply, as a real link so
+                   middle-click and copy-link match the pre-in-app row. */
+                <a
+                  className={clsx(btn.root, btn.small, btn.fill, btn.primary, ap.applyButton)}
+                  href={applyHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(event) =>
+                    interceptPrimaryApplyClick(event, () => apply!.onApply({ role, teamId, teamName }))
+                  }
+                >
+                  Apply
+                </a>
+              )
             ) : (
               /* A real <button>, not the anchor: the press no longer leaves the
                  page. It hands off to the flow, which runs the sign-in gate, the

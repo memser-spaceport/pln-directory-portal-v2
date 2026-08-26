@@ -106,6 +106,40 @@ describe('ReferRoleRow with in-app apply props', () => {
   });
 });
 
+describe('ReferRoleRow with external Apply (unapproved member)', () => {
+  const onApply = jest.fn();
+  const apply: RowApplyProps = { onApply, memberUid: 'm1', externalApply: true };
+
+  beforeEach(() => onApply.mockClear());
+
+  it('renders Apply as the outbound posting link', () => {
+    renderRow('https://example.com/apply', apply);
+
+    const applyLink = screen.getByRole('link', { name: 'Apply' });
+    expect(applyLink).toHaveAttribute('href', 'https://example.com/apply?utm_source=os.pl.xyz&utm_medium=job_board');
+    expect(applyLink).toHaveAttribute('target', '_blank');
+    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+  });
+
+  it('still hands a left-click to the flow — analytics and the access recheck live there', () => {
+    renderRow('https://example.com/apply', apply);
+
+    fireEvent.click(screen.getByRole('link', { name: 'Apply' }));
+    expect(onApply).toHaveBeenCalledWith({
+      role: role('https://example.com/apply'),
+      teamId: 'team-1',
+      teamName: 'Acme',
+    });
+  });
+
+  it('hides Apply when there is no posting URL', () => {
+    renderRow(null, apply);
+
+    expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+  });
+});
+
 describe('ReferRoleRow without apply props (flag off / rejected viewer)', () => {
   it('renders no in-app Apply slot at all — prop absence is the gate', () => {
     renderRow('https://example.com/apply');

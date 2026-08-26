@@ -175,3 +175,9 @@
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+.applyLink {
+  text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
+}

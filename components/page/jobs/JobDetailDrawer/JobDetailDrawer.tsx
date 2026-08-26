@@ -22,7 +22,10 @@ import { DetailsSection } from '@/components/common/profile/DetailsSection/Detai
 import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
 import { CheckIcon, ArrowUpRightIcon } from '@/components/icons';
 import { ClockIcon } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/components/Icons';
-import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import {
+  interceptPrimaryApplyClick,
+  jobApplyHref,
+} from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import { useGetFocusTags } from '@/components/page/jobs/TeamGroupCard/hooks/useGetFocusTags';
 import type { JobSurface } from '@/analytics/jobs.analytics';
 
@@ -62,9 +65,12 @@ interface JobDetailDrawerProps {
   /** Already sent, and when. */
   applied: boolean;
   appliedAt?: string | null;
-  /** Signed up and waiting on the PL team: the footer says so rather than
-   *  promising a press it cannot honour. */
-  pendingApproval: boolean;
+  /**
+   * Unapproved: Apply is the outbound posting, not the in-app letter. The
+   * locked-apply copy would be a lie once the control actually sends them
+   * there.
+   */
+  externalApply?: boolean;
   loggedIn: boolean;
   /** Drives the outbound `utm_medium` on the original-posting link. */
   source: JobSurface;
@@ -83,9 +89,9 @@ interface JobDetailDrawerProps {
  * in this flow is an *act* — send an application, send a referral, create an
  * account — and this is the place you work in.
  *
- * **What Apply does here.** Nothing new. It calls the board's `onApply`, the one
- * entry point that already branches on logged-out / incomplete profile /
- * pending / ready.
+ * **What Apply does here.** For approved members it calls the board's `onApply`,
+ * the one entry point that already branches on logged-out / incomplete /
+ * ready. For unapproved members the footer is the outbound posting link.
  *
  * **The description is the open question, not the layout.** `IJobRole` carries
  * no body: the board's rows are scraped listing headers and the description has
@@ -95,12 +101,12 @@ interface JobDetailDrawerProps {
  * empty state, which is exactly why `SHOW_JOB_DETAIL` is dark. See the flag.
  */
 export function JobDetailDrawer(props: JobDetailDrawerProps) {
-  const { open, onClose, role, team, onApply, applied, appliedAt, pendingApproval, loggedIn, source } = props;
+  const { open, onClose, role, team, onApply, applied, appliedAt, externalApply = false, loggedIn, source } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
   const date = role ? getJobDate(role) : null;
-  const postingHref = role?.applyUrl ? `${role.applyUrl}?${jobApplyQueryParams(source)}` : null;
+  const postingHref = jobApplyHref(role?.applyUrl, source);
 
   const meta = role
     ? [
@@ -120,8 +126,10 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
     ? appliedAt
       ? `Applied ${formatRelativeDays(appliedAt)}. Your profile went with your note.`
       : 'Your profile went with your note.'
-    : pendingApproval
-      ? 'Your account is waiting on PL team approval. Applying unlocks once it lands.'
+    : externalApply
+      ? postingHref
+        ? "You'll apply on their site — the original posting opens in a new tab."
+        : null
       : loggedIn
         ? 'One press sends your PL profile with a short note. Nothing to refill.'
         : 'Applying sends your PL profile — you will set one up in the next step.';
@@ -206,7 +214,9 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
                   <p className={d.emptyLead}>
                     {postingHref
                       ? `${team.name} hasn't shared a description here yet. The full posting is on their own site.`
-                      : `${team.name} hasn't shared a description for this role, and there's no posting to link to. Applying still sends them your profile.`}
+                      : externalApply
+                        ? `${team.name} hasn't shared a description for this role, and there's no posting to link to.`
+                        : `${team.name} hasn't shared a description for this role, and there's no posting to link to. Applying still sends them your profile.`}
                   </p>
                   {postingHref && (
                     <a className={d.postingLink} href={postingHref} target="_blank" rel="noopener noreferrer">
@@ -224,24 +234,36 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
       {/* The same bar the profile drawer ends in. Sticky, because a description
           is long enough that an action at the end of it is an action most people
           never reach. */}
-      <div className={pd.footer}>
-        <div className={pd.footerInner}>
-          <p className={pd.footerHint}>{hint}</p>
-          {applied ? (
-            /* The row's applied control, in the row's shell — a report, not an
-               offer, and `disabled` is the honest semantics: there is nothing
-               left to press. */
-            <button type="button" disabled className={clsx(btn.root, btn.medium, btn.border, btn.neutral)}>
-              <CheckIcon width={14} height={14} aria-hidden="true" />
-              Applied
-            </button>
-          ) : (
-            <Button variant="primary" style="fill" size="m" onClick={onApply}>
-              Apply
-            </Button>
-          )}
+      {(applied || !externalApply || postingHref) && (
+        <div className={pd.footer}>
+          <div className={pd.footerInner}>
+            {hint && <p className={pd.footerHint}>{hint}</p>}
+            {applied ? (
+              /* The row's applied control, in the row's shell — a report, not an
+                 offer, and `disabled` is the honest semantics: there is nothing
+                 left to press. */
+              <button type="button" disabled className={clsx(btn.root, btn.medium, btn.border, btn.neutral)}>
+                <CheckIcon width={14} height={14} aria-hidden="true" />
+                Applied
+              </button>
+            ) : externalApply && postingHref ? (
+              <a
+                className={clsx(btn.root, btn.medium, btn.fill, btn.primary, d.applyLink)}
+                href={postingHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => interceptPrimaryApplyClick(event, onApply)}
+              >
+                Apply
+              </a>
+            ) : (
+              <Button variant="primary" style="fill" size="m" onClick={onApply}>
+                Apply
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </Drawer>
   );
 }

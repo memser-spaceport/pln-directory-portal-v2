@@ -204,7 +204,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           onApply={() => flow.onApply({ ...state.target }, 'detail')}
           applied={!!detailApplication}
           appliedAt={detailApplication?.appliedAt ?? null}
-          pendingApproval={viewer.viewer === 'pending-approval'}
+          externalApply={isLoggedIn && viewer.viewer !== 'resolving' && viewer.verdict === 'pending'}
           loggedIn={isLoggedIn}
           source={source}
         />

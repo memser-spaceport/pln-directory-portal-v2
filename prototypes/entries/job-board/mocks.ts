@@ -30,6 +30,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Infrastructure', 'Networking', 'Storage'],
       subFocusAreas: ['Networking'],
+      jobReferEmail: 'jobs@protocol.ai',
     },
     roles: [
       {
@@ -81,6 +82,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Storage', 'Governance'],
       subFocusAreas: [],
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -112,6 +114,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Infrastructure', 'Networking'],
       subFocusAreas: ['Networking'],
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -143,6 +146,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Infrastructure', 'Storage'],
       subFocusAreas: [],
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -174,6 +178,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Cryptography', 'Infrastructure'],
       subFocusAreas: [],
+      jobReferEmail: null,
     },
     roles: [
       {
@@ -195,6 +200,7 @@ const MOCK_GROUPS: MockGroup[] = [
       logoUrl: null,
       focusAreas: ['Compute', 'Infrastructure'],
       subFocusAreas: [],
+      jobReferEmail: null,
     },
     roles: [
       {

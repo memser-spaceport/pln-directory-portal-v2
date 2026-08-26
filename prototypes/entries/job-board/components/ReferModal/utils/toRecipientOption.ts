@@ -10,5 +10,6 @@ export function toRecipientOption(member: DirectoryMember): RecipientOption {
     value: member.uid,
     description: getMemberMeta(member),
     image: member.image,
+    isTeamLead: member.isTeamLead,
   };
 }

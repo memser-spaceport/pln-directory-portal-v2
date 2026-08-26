@@ -31,7 +31,9 @@ export function getTeamsOptionsFromQuery(queryParams: ITeamsSearchParams) {
     ...(officeHoursOnly ? { officeHours__not: 'null' } : {}),
     ...(technology ? { 'technologies.title__with': stringifyQueryValues(technology) } : {}),
     ...(membershipSources ? { 'membershipSources.title__with': stringifyQueryValues(membershipSources) } : {}),
-    ...(communityAffiliations ? { 'communityAffiliations.title__with': stringifyQueryValues(communityAffiliations) } : {}),
+    ...(communityAffiliations
+      ? { 'communityAffiliations.title__with': stringifyQueryValues(communityAffiliations) }
+      : {}),
     ...(fundingStage ? { 'fundingStage.title__with': stringifyQueryValues(fundingStage) } : {}),
     ...(tags ? { 'industryTags.title__with': stringifyQueryValues(tags) } : {}),
     ...(includeFriends ? {} : { plnFriend: false }),
@@ -179,8 +181,10 @@ export function getPrioritiesFromValues(
   allValues: { priority?: string; tier?: string; count: number }[],
   queryValues: string | string[] = [],
 ) {
-  const queryValuesArr = Array.isArray(queryValues) ? queryValues : (queryValues ?? '').split(URL_QUERY_VALUE_SEPARATOR);
-  const toPriority = (v: string | undefined) => (v === '-1' ? '99' : v ?? '');
+  const queryValuesArr = Array.isArray(queryValues)
+    ? queryValues
+    : (queryValues ?? '').split(URL_QUERY_VALUE_SEPARATOR);
+  const toPriority = (v: string | undefined) => (v === '-1' ? '99' : (v ?? ''));
   const normalized = (allValues ?? [])
     .map((v) => ({ value: toPriority(v.priority ?? v.tier), count: v.count }))
     .filter((v): v is { value: string; count: number } => v.value !== '');
@@ -409,6 +413,7 @@ export const getTeamInitialValue = (selectedTeam: any, membersDetail: any) => {
     },
     socialInfo: {
       contactMethod: selectedTeam?.contactMethod ?? '',
+      jobReferEmail: selectedTeam?.jobReferEmail ?? '',
       website: selectedTeam?.website ?? '',
       linkedinHandler: selectedTeam?.linkedinHandler ?? '',
       twitterHandler: selectedTeam?.twitterHandler ?? '',
@@ -438,6 +443,7 @@ export const teamRegisterDefault = {
   },
   socialInfo: {
     contactMethod: '',
+    jobReferEmail: '',
     website: '',
     linkedinHandler: '',
     twitterHandler: '',

@@ -4,7 +4,7 @@ import { HTMLProps, useState } from 'react';
 import clsx from 'clsx';
 import isEmpty from 'lodash/isEmpty';
 
-import type { IJobRole } from '@/types/jobs.types';
+import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import type { JobSurface } from '@/analytics/jobs.analytics';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
@@ -27,6 +27,7 @@ interface JobReferRoleRowProps {
   role: IJobRole;
   teamId: string;
   teamName: string;
+  team?: IJobTeam;
   /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
   source?: JobSurface;
   onClick?: () => void;
@@ -87,6 +88,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     role,
     teamId,
     teamName,
+    team,
     source = 'job-board',
     onClick,
     canRefer = true,
@@ -290,6 +292,7 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
         teamId={teamId}
         teamName={teamName}
         source={source}
+        jobReferEmail={team?.jobReferEmail}
       />
     </>
   );

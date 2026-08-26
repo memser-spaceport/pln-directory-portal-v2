@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
-import type { IJobReferralRecipient, IJobRole } from '@/types/jobs.types';
+import type { IJobRole } from '@/types/jobs.types';
 
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
@@ -42,6 +42,8 @@ interface ReferModalProps {
   teamName: string;
   /** Surface the referral was started from, carried onto every event in the funnel. */
   source: JobSurface;
+  /** Team-configured inbox. When set, the member picker is hidden and the send skips recipients. */
+  jobReferEmail?: string | null;
 }
 
 type ReferFormData = {
@@ -58,9 +60,10 @@ type ReferFormData = {
  * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
  * `GET /job-openings/:uid/referral-draft` composes the note from both members'
  * directory records and the role's apply link — no wording lives in this file, the
- * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it,
- * making the first recipient the To and CCing the rest, plus the referrer and the
- * referred member.
+ * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it.
+ * When the hiring team has a job-refer email the picker is hidden and recipients
+ * are omitted; otherwise the first picked member is To and the rest are CCed,
+ * plus the referrer and the referred member.
  *
  * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
  * this, and the backend resolves the referrer from the authenticated email. Both calls
@@ -78,12 +81,13 @@ type ReferFormData = {
  * directory as you type, which no production select can drive — see
  * `MemberSearchSelect` and `RecipientPicker`.
  */
-export function ReferModal({ open, onClose, role, teamId, teamName, source }: ReferModalProps) {
+export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
   const [sent, setSent] = useState(false);
   const [messageEdited, setMessageEdited] = useState(false);
   const [recipientsSeeded, setRecipientsSeeded] = useState(false);
   const noteEditedTracked = useRef(false);
   const analytics = useJobsAnalytics();
+  const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
 
   const methods = useForm<ReferFormData>({
     defaultValues: { referee: null, recipients: [], message: '' },
@@ -105,10 +109,16 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
     role_category: role.roleCategory,
     seniority: role.seniority,
     source,
+    uses_team_refer_email: usesTeamReferEmail,
   };
 
   // Only fetched while the modal is open — a job board page holds one of these per role.
-  const { members: hiringTeam, defaultRecipients, isLoading: isTeamLoading } = useTeamMembers(teamName, open);
+  // A team-configured inbox skips the hiring-team lookup: nobody is being picked.
+  const {
+    members: hiringTeam,
+    defaultRecipients,
+    isLoading: isTeamLoading,
+  } = useTeamMembers(teamName, open && !usesTeamReferEmail);
 
   const {
     data: draft,
@@ -148,12 +158,12 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
   // meantime. Teams the directory has no members for seed nothing, which is the
   // "type an email address" case.
   useEffect(() => {
-    if (!open || recipientsSeeded || isTeamLoading) return;
+    if (!open || usesTeamReferEmail || recipientsSeeded || isTeamLoading) return;
     if (defaultRecipients.length) {
       setValue('recipients', defaultRecipients.map(toRecipientOption));
     }
     setRecipientsSeeded(true);
-  }, [open, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
+  }, [open, usesTeamReferEmail, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
 
   // Picking someone as the candidate drops them from the recipient list.
   useEffect(() => {
@@ -211,7 +221,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
 
   const handleRecipientsChange = (next: RecipientOption[]) => {
     setValue('recipients', next, { shouldDirty: true });
-    if (!recipientsSeeded) return;
+    if (!recipientsSeeded || usesTeamReferEmail) return;
     analytics.onJobReferRecipientsChanged({
       ...referBase,
       recipient_count: next.length,
@@ -243,13 +253,14 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
   };
 
   const onSubmit = () => {
-    if (!selectedMember || !recipients.length || !message?.trim()) return;
+    if (!selectedMember || !message?.trim()) return;
+    if (!usesTeamReferEmail && !recipients.length) return;
 
     const submitParams = {
       ...referBase,
       referred_member_uid: selectedMember.uid,
-      recipient_count: recipients.length,
-      has_external_email: hasExternalEmail(recipients),
+      recipient_count: usesTeamReferEmail ? 0 : recipients.length,
+      has_external_email: usesTeamReferEmail ? false : hasExternalEmail(recipients),
       note_was_edited: messageEdited,
     };
 
@@ -258,8 +269,8 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
     sendReferral(
       {
         referredMemberUid: selectedMember.uid,
-        recipients: recipients.map(toReferralRecipient),
         note: message.trim(),
+        ...(usesTeamReferEmail ? {} : { recipients: recipients.map(toReferralRecipient) }),
       },
       {
         onSuccess: (result) => {
@@ -280,9 +291,22 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
     );
   };
 
-  const canSend = !!selectedMember && recipients.length > 0 && !!message?.trim() && !isSending;
+  const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
-  const sentTo = getRecipientSummary(recipients);
+  const sentTo = usesTeamReferEmail ? teamName : getRecipientSummary(recipients);
+
+  const composingDesc = usesTeamReferEmail
+    ? `This referral will be sent to the email ${teamName} set up for job referrals. You'll be copied.`
+    : 'Referral email will be sent to everyone listed including you.';
+
+  const privacyNote = isDraftError
+    ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
+    : usesTeamReferEmail
+      ? `${teamName} sees your name alongside the referral.` + (selectedMember ? ` ${firstName} is notified too.` : '')
+      : recipients.length === 0
+        ? 'Add at least one recipient — a network member or an email address.'
+        : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
+          (selectedMember ? ` ${firstName} is notified too.` : '');
 
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
@@ -313,7 +337,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
         <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
           {sent
             ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
-            : 'Referral email will be sent to everyone listed including you.'}
+            : composingDesc}
         </p>
 
         {sent ? (
@@ -339,18 +363,21 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
 
-                <div>
-                  <RecipientPicker
-                    label="Send to"
-                    teamMembers={teamMembers}
-                    isTeamLoading={isTeamLoading}
-                    teamName={teamName}
-                    excludeUids={referee?.value ? [referee.value] : undefined}
-                    value={recipients}
-                    onChange={handleRecipientsChange}
-                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                  />
-                </div>
+                {!usesTeamReferEmail && (
+                  <div>
+                    <RecipientPicker
+                      label="Send to"
+                      teamMembers={teamMembers}
+                      isTeamLoading={isTeamLoading}
+                      teamName={teamName}
+                      excludeUids={referee?.value ? [referee.value] : undefined}
+                      value={recipients}
+                      onChange={handleRecipientsChange}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                      description="Team leads are preselected. You can add other members or an email."
+                    />
+                  </div>
+                )}
 
                 <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
                   <div className={s.templateLabelRow}>
@@ -380,14 +407,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source }: Re
                 </div>
               </div>
 
-              <p className={s.privacyNote}>
-                {isDraftError
-                  ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
-                  : recipients.length === 0
-                    ? 'Add at least one recipient — a network member or an email address.'
-                    : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-                      (selectedMember ? ` ${firstName} is notified too.` : '')}
-              </p>
+              <p className={s.privacyNote}>{privacyNote}</p>
 
               <div className={s.actions}>
                 <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>

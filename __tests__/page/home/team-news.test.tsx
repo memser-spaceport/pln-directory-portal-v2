@@ -1654,7 +1654,14 @@ describe('TeamNews', () => {
 
     const hiringGroup = (uid: string, overrides: Partial<IJobTeamGroup> = {}): IJobTeamGroup =>
       ({
-        team: { uid, name: `Hiring ${uid}`, logoUrl: null, focusAreas: [], subFocusAreas: [] },
+        team: {
+          uid,
+          name: `Hiring ${uid}`,
+          logoUrl: null,
+          focusAreas: [],
+          subFocusAreas: [],
+          jobReferEmail: null,
+        },
         totalRoles: 5,
         roles: [jobRole(`${uid}-r1`), jobRole(`${uid}-r2`)],
         ...overrides,

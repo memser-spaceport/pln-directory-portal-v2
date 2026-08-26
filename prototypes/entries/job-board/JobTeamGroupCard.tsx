@@ -187,6 +187,7 @@ export function JobTeamGroupCard({
             <JobReferRoleRow
               role={role}
               teamName={team.name}
+              team={team}
               source="job-board"
               canRefer={canRefer}
               onReferBlocked={onReferBlocked}

@@ -29,6 +29,7 @@ const team: IJobTeam = {
   logoUrl: null,
   focusAreas: [],
   subFocusAreas: [],
+  jobReferEmail: null,
 };
 
 const role = (overrides: Partial<IJobRole> = {}): IJobRole => ({

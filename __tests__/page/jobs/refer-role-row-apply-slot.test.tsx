@@ -172,6 +172,7 @@ describe('ReferRoleRow with the in-app description on', () => {
     logoUrl: null,
     focusAreas: [],
     subFocusAreas: [],
+    jobReferEmail: null,
   };
 
   const renderDetailRow = (applyUrl: string | null = 'https://example.com/apply') =>

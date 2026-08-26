@@ -252,6 +252,7 @@ export function RecipientPicker(props: RecipientPickerProps) {
                     <img src={data.image || getDefaultAvatar(data.label)} alt="" className={s.chipAvatar} />
                   )}
                   {data.label}
+                  {data.isTeamLead && <span className={s.chipLead}>Team Lead</span>}
                 </span>
               </components.MultiValue>
             );

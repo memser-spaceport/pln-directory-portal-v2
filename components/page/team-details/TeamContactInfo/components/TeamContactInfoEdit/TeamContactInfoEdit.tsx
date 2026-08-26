@@ -38,6 +38,7 @@ export function TeamContactInfoEdit(props: Props) {
       linkedin: team?.linkedinHandle,
       telegram: toSocialFieldInputValue('telegram', team?.telegramHandler),
       contactMethod: team?.contactMethod ?? '',
+      jobReferEmail: team?.jobReferEmail ?? '',
       bluesky: toSocialFieldInputValue('bluesky', team?.blueskyHandler),
       crunchbase: team?.crunchbaseHandler,
     },
@@ -51,6 +52,7 @@ export function TeamContactInfoEdit(props: Props) {
     await commonOnSubmit({
       website: formData.website,
       contactMethod: formData.contactMethod,
+      jobReferEmail: formData.jobReferEmail?.trim() ?? '',
       linkedinHandler: formData.linkedin,
       twitterHandler: formData.twitter,
       telegramHandler: formData.telegram,
@@ -83,6 +85,13 @@ export function TeamContactInfoEdit(props: Props) {
             label="Preferred method of contact"
             placeholder="Enter contact method"
             description="What is the best way for people to connect with your team? (e.g., team Slack channel, team email address, team Discord server/channel, etc.)"
+          />
+
+          <FormField
+            name="jobReferEmail"
+            label="Job referral email"
+            placeholder="jobs@team.com"
+            description="When set, job referrals go only to this address instead of selected team members."
           />
 
           <FormField name="linkedin" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/company_name" />

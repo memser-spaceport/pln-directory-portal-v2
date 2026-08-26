@@ -56,7 +56,14 @@ export function TeamOpenRolesView({ group }: TeamOpenRolesViewProps) {
       <DetailsSectionHeader title={`Open roles (${totalRoles})`} />
       <div className={l.list}>
         {visible.map((role) => (
-          <JobReferRoleRow key={role.uid} role={role} teamId={team.uid} teamName={team.name} source="team-profile" />
+          <JobReferRoleRow
+            key={role.uid}
+            role={role}
+            teamId={team.uid}
+            teamName={team.name}
+            team={team}
+            source="team-profile"
+          />
         ))}
       </div>
       {roles.length > ROLES_SHOWN && (

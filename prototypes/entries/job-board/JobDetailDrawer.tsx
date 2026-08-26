@@ -42,7 +42,14 @@ import d from './JobDetailDrawer.module.scss';
 
 /** A team object for the closed drawer, so `useGetFocusTags` is called
  *  unconditionally. Never rendered — the drawer's body is gated on `role`. */
-const NO_TEAM: IJobTeam = { uid: '', name: '', logoUrl: null, focusAreas: [], subFocusAreas: [] };
+const NO_TEAM: IJobTeam = {
+  uid: '',
+  name: '',
+  logoUrl: null,
+  focusAreas: [],
+  subFocusAreas: [],
+  jobReferEmail: null,
+};
 
 interface JobDetailDrawerProps {
   open: boolean;

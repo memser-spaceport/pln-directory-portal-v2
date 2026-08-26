@@ -67,6 +67,7 @@ export interface ITeamResponse {
   website?: string | null;
   twitter?: string | null;
   contactMethod?: string | null;
+  jobReferEmail?: string | null;
   fundingStage: { title: string };
   membershipSources: ITag[];
   industryTags: ITag[];
@@ -124,6 +125,7 @@ export interface ITeam {
   website?: string | null;
   twitter?: string | null;
   contactMethod?: string | null;
+  jobReferEmail?: string | null;
   fundingStage?: { title: string };
   membershipSources?: ITag[];
   communityAffiliations?: ITag[];

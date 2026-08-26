@@ -38,7 +38,7 @@ export function useJobReferralDraft(input: UseJobReferralDraftInput) {
 
 export function useCreateJobReferral(jobUid: string) {
   return useMutation({
-    mutationFn: (payload: { referredMemberUid: string; recipients: IJobReferralRecipient[]; note: string }) =>
+    mutationFn: (payload: { referredMemberUid: string; recipients?: IJobReferralRecipient[]; note: string }) =>
       createJobReferral(jobUid, payload),
   });
 }

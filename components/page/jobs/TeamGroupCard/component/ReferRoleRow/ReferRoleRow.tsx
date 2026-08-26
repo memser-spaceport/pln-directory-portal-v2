@@ -138,6 +138,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
     role_category: roleCategory,
     seniority,
     source,
+    uses_team_refer_email: Boolean(team?.jobReferEmail?.trim()),
   };
 
   function onRefer() {
@@ -293,6 +294,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         teamId={teamId}
         teamName={teamName}
         source={source}
+        jobReferEmail={team?.jobReferEmail}
       />
     </div>
   );

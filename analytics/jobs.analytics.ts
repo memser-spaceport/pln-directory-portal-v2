@@ -26,6 +26,7 @@ export type JobReferBaseParams = {
   role_category: string | null;
   seniority: string | null;
   source: JobSurface;
+  uses_team_refer_email?: boolean;
 };
 
 /**

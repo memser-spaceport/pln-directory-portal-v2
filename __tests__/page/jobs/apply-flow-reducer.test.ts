@@ -21,7 +21,14 @@ const role = (uid: string): IJobRole => ({
 
 const target = (uid = 'r1'): ApplyTarget => ({ role: role(uid), teamId: 't1', teamName: 'Acme' });
 
-const team = { uid: 't1', name: 'Acme', logoUrl: null, focusAreas: [], subFocusAreas: [] };
+const team = {
+  uid: 't1',
+  name: 'Acme',
+  logoUrl: null,
+  focusAreas: [],
+  subFocusAreas: [],
+  jobReferEmail: null,
+};
 const detailTarget = (uid = 'r1'): JobDetailTarget => ({ ...target(uid), team });
 
 const IDLE: ApplyFlowState = { step: 'idle' };

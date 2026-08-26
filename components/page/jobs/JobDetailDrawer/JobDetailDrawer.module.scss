@@ -134,22 +134,95 @@
 
 /* --- prose ---------------------------------------------------------------- */
 
-/* 16px rather than the drawer's 14: this is the only long-form reading surface
+/* The posting's own words, as the team's careers site wrote them.
+
+   16px rather than the drawer's 14: this is the only long-form reading surface
    in the flow, and the rest of the 14px around it is label and field text, read
    in glances rather than in paragraphs.
 
-   `white-space: pre-line` because `summary` is ingested free text — whatever
-   line breaks the source had are the only structure it carries, and collapsing
-   them would run a bulleted ad into one paragraph. */
-.para {
-  margin: 0 0 12px;
+   EVERY element needs an explicit rule here. `app/globals.scss` applies a
+   universal `* { padding: 0; margin: 0 }`, so an unstyled tag has no spacing at
+   all — miss one and that part of the body renders as an undifferentiated wall.
+
+   This is deliberately NOT the mirror-Quill model the forum surfaces use
+   (`ForumPostModal.module.scss`), where paragraphs carry no margin because an
+   empty <p></p> IS the author's blank line. Nothing here was written in a
+   composer: the markup is scraped, its spacing is whatever the source site's
+   own stylesheet used to supply, and if this file does not put it back it does
+   not exist.
+
+   No specificity games needed, unlike `.postBody.postBody` on the feed: the
+   chrome this drawer imports (EditInvestorProfileDrawer, JobProfileDrawer,
+   DetailsSection) declares no prose rules, so there is nothing to outrank. */
+.body {
   font-size: 16px;
   font-weight: 400;
   line-height: 24px;
-  white-space: pre-line;
   color: var(--foreground-neutral-primary, #0a0c11);
+  /* Scraped bodies carry long unbroken URLs and tokens; without this they push
+     the drawer's 720px column sideways. */
+  overflow-wrap: anywhere;
 
-  &:last-child {
+  p {
+    margin: 0 0 12px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 12px;
+    padding-left: 20px;
+  }
+
+  li {
+    margin: 0 0 4px;
+  }
+
+  /* One size for every level, on purpose. The corpus mixes h2, h3 and h4 with
+     no consistent hierarchy between postings, and "About the role" above is
+     already an <h2> — restyling these into a ladder would invent a structure
+     the source does not have.
+
+     16px, i.e. NOT smaller than the body it heads. ForumPostModal sets every
+     heading to 15px against a 16px body; that is a bug, not a precedent. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 20px 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  blockquote {
+    margin: 0 0 12px;
+    padding-left: 12px;
+    border-left: 3px solid #e2e8f0;
+  }
+
+  hr {
+    margin: 16px 0;
+    border: 0;
+    border-top: 1px solid var(--border-neutral-subtle, #e2e8f0);
+  }
+
+  a {
+    color: var(--foreground-brand-primary, #156ff7);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* The section card supplies the padding below; a trailing margin here would
+     double it. */
+  > :last-child {
     margin-bottom: 0;
   }
 }

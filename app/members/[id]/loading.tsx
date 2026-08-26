@@ -2,7 +2,7 @@ import styles from './loading.module.css';
 const Loading = () => {
   return (
     <div className={styles?.mbrLoading}>
-      <div className={styles?.mbrLoading__breadcrumb}></div>
+      {/*<div className={styles?.mbrLoading__breadcrumb}></div>*/}
       <div className={styles?.mbrLoading__container}>
         <div className={styles?.mbrLoading__container__header}>
           <div className={styles?.mbrLoading__container__header__profile}>

@@ -29,6 +29,7 @@ export const useTeamFilterStore = createFilterStore({
     'isSponsor', // Sponsor contribution filter
     'isFund', // Fund filter
     'followingOnly', // Only show teams the current user follows
+    'status', // Team status (Directory Admin only; ACTIVE/INACTIVE/ALL)
 
     // Multi-select filters
     'tags', // Team tags

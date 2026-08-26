@@ -220,6 +220,19 @@
     }
   }
 
+  /* Scraped bodies are full of anchors pointing at their own site — in-page
+     jumps, relative paths — and the sanitizer drops those hrefs while keeping
+     the element, because the text inside is real content. What is left is an
+     <a> that goes nowhere, and painting it link-blue would promise a click that
+     does nothing. One posting in the corpus opens with two of them. */
+  a:not([href]) {
+    color: inherit;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
   /* The section card supplies the padding below; a trailing margin here would
      double it. */
   > :last-child {

@@ -126,30 +126,71 @@ describe('the job detail drawer', () => {
   });
 
   describe('with a description', () => {
-    const withSummary = role({ summary: 'We are hiring a protocol engineer.\nYou will own the transport layer.' });
+    /* The shape a Gem-scraped posting actually arrives in: <br />-separated
+       spans, a <strong> acting as a heading, and a list. */
+    const withBody = role({
+      descriptionHtml:
+        '<strong>About Us:</strong><br /><span>We are hiring a protocol engineer.</span>' +
+        '<h3>Responsibilities</h3><ul><li>Own the transport layer</li></ul>',
+    });
 
-    it('renders the summary the ingest carried', () => {
-      renderDrawer({ role: withSummary });
+    it('renders the posting body the ingest carried', () => {
+      renderDrawer({ role: withBody });
 
       expect(screen.getByText(/We are hiring a protocol engineer/)).toBeInTheDocument();
       expect(screen.queryByText(/hasn't shared a description/i)).not.toBeInTheDocument();
     });
 
+    /** As markup, not as flattened text — the whole point of taking HTML. */
+    it("keeps the posting's own structure", () => {
+      renderDrawer({ role: withBody });
+
+      expect(screen.getByRole('heading', { name: 'Responsibilities' })).toBeInTheDocument();
+      expect(screen.getByRole('listitem')).toHaveTextContent('Own the transport layer');
+    });
+
     /** With something to read in the panel, the outbound link goes back to being
      *  a stamp in the metadata row rather than the empty state's main event. */
     it('demotes the posting link to a stamp', () => {
-      renderDrawer({ role: withSummary });
+      renderDrawer({ role: withBody });
 
       expect(screen.getByRole('link', { name: /^Original posting$/i })).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /Read the original posting/i })).not.toBeInTheDocument();
     });
 
-    /** A whitespace-only summary is not a description. */
-    it('treats a blank summary as none at all', () => {
-      renderDrawer({ role: role({ summary: '   ' }) });
+    /** The body is third-party markup and the app ships no CSP, so the drawer
+     *  must not be the place a scraped script gets to run. */
+    it('renders it sanitized', () => {
+      const { container } = renderDrawer({
+        role: role({
+          descriptionHtml:
+            '<p onclick="alert(1)">Real copy</p><script>alert(1)</script>' +
+            '<a href="https://jobs.example.com/x">Apply on our site</a>',
+        }),
+      });
 
-      expect(screen.getByText(/hasn't shared a description here yet/i)).toBeInTheDocument();
+      expect(container.querySelector('script')).toBeNull();
+      expect(container.querySelector('[onclick]')).toBeNull();
+      // A link it can honour still opens away from the drawer.
+      const link = screen.getByRole('link', { name: 'Apply on our site' });
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
+
+    /**
+     * A body that sanitizes down to nothing is not a description. Both of these
+     * are truthy strings — the check has to run on the sanitized output, or the
+     * panel shows an empty section under a heading instead of saying where the
+     * posting is.
+     */
+    it.each([['   '], ['<a></a>'], ['<img src="https://cdn.test/x.png" />']])(
+      'treats %s as no description at all',
+      (descriptionHtml) => {
+        renderDrawer({ role: role({ descriptionHtml }) });
+
+        expect(screen.getByText(/hasn't shared a description here yet/i)).toBeInTheDocument();
+      },
+    );
   });
 
   /**

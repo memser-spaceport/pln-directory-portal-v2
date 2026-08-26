@@ -4,11 +4,18 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { isBrowserExtensionException } from '@/utils/analytics-extension-filter';
 
 if (typeof window !== 'undefined' && process.env.POSTHOG_KEY) {
   posthog.init(process.env.POSTHOG_KEY as string, {
     api_host: process.env.POSTHOG_HOST,
     person_profiles: 'always',
+    before_send: (event) => {
+      if (event?.event === '$exception' && isBrowserExtensionException(event.properties)) {
+        return null;
+      }
+      return event;
+    },
     // Enable debug mode in development
     loaded: (posthog) => {
       if (process.env.NODE_ENV === 'development') posthog.debug();

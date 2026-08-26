@@ -132,9 +132,15 @@ describe('ReferModal', () => {
   it('hides the member picker and skips the hiring-team fetch when a job-refer email is set', () => {
     renderModal('jobs@acme.com');
 
-    expect(screen.queryByText('Send to')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('recipient-count')).not.toBeInTheDocument();
+    expect(screen.getByText('Send to')).toBeInTheDocument();
     expect(
-      screen.getByText("This referral will be sent to the email Acme set up for job referrals. You'll be copied."),
+      screen.getByText(
+        'This referral will be sent to the email this team set up for job referrals. You can’t choose individual members.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Referral email will be sent to the address this team set up, and you’ll be copied.'),
     ).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', false);
   });
@@ -147,10 +153,12 @@ describe('ReferModal', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Send referral' })).toBeEnabled());
     await user.click(screen.getByRole('button', { name: 'Send referral' }));
 
-    expect(mockSend).toHaveBeenCalledWith({ referredMemberUid: 'm1', note: 'Here is a draft.' }, expect.any(Object));
-    expect(mockSend.mock.calls[0][0]).not.toHaveProperty('recipients');
+    expect(mockSend).toHaveBeenCalledWith(
+      { referredMemberUid: 'm1', note: 'Here is a draft.', recipients: [] },
+      expect.any(Object),
+    );
     expect(await screen.findByText('Referral sent')).toBeInTheDocument();
-    expect(screen.getByText(/Your note is on its way to Acme/)).toBeInTheDocument();
+    expect(screen.getByText(/Your note is on its way to the team/)).toBeInTheDocument();
   });
 
   it('keeps member selection and prefills leads when the team has no job-refer email', async () => {

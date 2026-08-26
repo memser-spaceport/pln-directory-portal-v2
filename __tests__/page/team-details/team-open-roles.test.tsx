@@ -20,10 +20,10 @@ jest.mock('@/services/auth/store', () => ({
 // The real row drags in the refer modal, a member search and the whole jobs analytics
 // stack. Stubbing it keeps this about the section's own job — which roles it shows, in
 // what order, and what it tells the row about the surface.
-const rowProps: { role: { uid: string }; source: string }[] = [];
+const rowProps: { role: { uid: string }; source: string; team?: { uid: string } }[] = [];
 jest.mock('@/components/page/jobs/TeamGroupCard/component/ReferRoleRow', () => ({
-  ReferRoleRow: (props: { role: { uid: string }; source: string; onClick?: () => void }) => {
-    rowProps.push({ role: props.role, source: props.source });
+  ReferRoleRow: (props: { role: { uid: string }; source: string; team?: { uid: string }; onClick?: () => void }) => {
+    rowProps.push({ role: props.role, source: props.source, team: props.team });
     return (
       <div data-testid="role-row" data-uid={props.role.uid} onClick={props.onClick}>
         {props.role.uid}
@@ -150,6 +150,7 @@ describe('TeamOpenRoles', () => {
 
     expect(rowProps).not.toHaveLength(0);
     expect(rowProps.every((p) => p.source === 'team-profile')).toBe(true);
+    expect(rowProps.every((p) => p.team?.uid === 'team-1')).toBe(true);
   });
 
   it('attributes a role click to the team profile without a filter state', async () => {

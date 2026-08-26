@@ -76,12 +76,31 @@
   min-width: 0;
 }
 
+.optionNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .optionName {
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.2px;
   color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+.leadBadge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
+  color: var(--foreground-neutral-secondary, #455468);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.2px;
 }
 
 .optionDescription {

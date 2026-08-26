@@ -33,7 +33,7 @@ export interface IJobTeam {
   focusAreas: string[];
   subFocusAreas: string[];
   /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
-  jobReferEmail: string | null;
+  jobReferEmail?: string | null;
 }
 
 export interface IJobTeamGroup {

@@ -200,6 +200,15 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+.teamReferDestination {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // --- People picker rows -------------------------------------------------------
 //
 // The candidate field's menu row and selected value moved to

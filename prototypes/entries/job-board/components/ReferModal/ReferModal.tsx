@@ -12,6 +12,7 @@ import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import type { Option } from '@/components/form/FormSelect/types';
 import { toast } from '@/components/core/ToastContainer';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
 
 import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
 
@@ -278,7 +279,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
       {
         referredMemberUid: selectedMember.uid,
         note: message.trim(),
-        ...(usesTeamReferEmail ? {} : { recipients: recipients.map(toReferralRecipient) }),
+        recipients: usesTeamReferEmail ? [] : recipients.map(toReferralRecipient),
       },
       {
         onSuccess: (result) => {
@@ -308,10 +309,10 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
 
   const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
   const firstName = selectedMember?.name.split(' ')[0] ?? '';
-  const sentTo = usesTeamReferEmail ? teamName : getRecipientSummary(recipients);
+  const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
 
   const composingDesc = usesTeamReferEmail
-    ? `This referral will be sent to the email ${teamName} set up for job referrals. You'll be copied.`
+    ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
     : 'Referral email will be sent to everyone listed including you.';
 
   const privacyNote = isDraftError
@@ -378,7 +379,15 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
 
-                {!usesTeamReferEmail && (
+                {usesTeamReferEmail ? (
+                  <div className={fieldCss.field}>
+                    <span className={fieldCss.label}>Send to</span>
+                    <p className={s.teamReferDestination}>
+                      This referral will be sent to the email this team set up for job referrals. You can’t choose
+                      individual members.
+                    </p>
+                  </div>
+                ) : (
                   <div>
                     <RecipientPicker
                       label="Send to"

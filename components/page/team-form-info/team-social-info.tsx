@@ -56,7 +56,8 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
           <p className="info">
             <img src="/icons/info.svg" alt="job refer email info" width="16" height="16px" />{' '}
             <span className="info__text">
-              When set, job referrals go only to this address instead of selected team members.
+              When set, job referrals go here instead of to selected members. Leave blank to send referrals to team
+              leads.
             </span>
           </p>
         </div>

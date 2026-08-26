@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { PAGE_ROUTES } from '@/utils/constants';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -10,6 +11,7 @@ const EmptyResult = (props: any) => {
   const isLoggedIn = props?.isLoggedIn;
   const isProjectPage = pathname === PAGE_ROUTES.PROJECTS;
   const authAnalytics = useAuthAnalytics();
+  const goToLogin = useLoginRedirect();
 
   const onClearAllClickHandler = () => {
     if (props?.onClearAll) {
@@ -21,7 +23,7 @@ const EmptyResult = (props: any) => {
 
   const onLoginClickHandler = () => {
     authAnalytics.onLoginBtnClicked();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   return (

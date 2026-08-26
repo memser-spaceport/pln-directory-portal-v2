@@ -1,9 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { ModalBase } from '@/components/common/ModalBase';
 import { WarningCircleIcon } from '@/components/icons';
 import { useAuthAnalytics } from '@/analytics/auth.analytics';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { useEffect } from 'react';
 
 interface SessionExpiredModalProps {
@@ -19,8 +19,8 @@ interface SessionExpiredModalProps {
  * and they need to log in again. Preserves the current URL for redirect after login.
  */
 export function SessionExpiredModal({ open, onClose, onLogin }: SessionExpiredModalProps) {
-  const router = useRouter();
   const analytics = useAuthAnalytics();
+  const goToLogin = useLoginRedirect();
 
   useEffect(() => {
     if (open) {
@@ -29,9 +29,12 @@ export function SessionExpiredModal({ open, onClose, onLogin }: SessionExpiredMo
   }, [open, analytics]);
 
   const handleLogin = () => {
-    const returnTo = encodeURIComponent(window.location.pathname.slice(1).replaceAll('/', '-'));
+    // Encoding is left to the helper's URLSearchParams — encoding here too would
+    // double-escape the value.
+    const returnTo = window.location.pathname.slice(1).replaceAll('/', '-');
     onLogin();
-    router.replace(`${window.location.origin}/members?returnTo=${returnTo}#login`);
+    // replace, not push — Back must not restore the expired-session modal.
+    goToLogin({ returnTo: '/members', params: { returnTo }, replace: true });
   };
 
   return (

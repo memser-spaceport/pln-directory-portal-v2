@@ -3,6 +3,7 @@ import { PAGE_ROUTES, TOAST_MESSAGES } from '@/utils/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/core/ToastContainer';
+import { useLoginRedirect } from '@/components/core/login/utils';
 
 type HuskyLimitStrip = {
   type: 'warn' | 'info' | 'close' | 'finalRequest';
@@ -15,6 +16,7 @@ type HuskyLimitStrip = {
 const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitStrip) => {
   const analytics = useHuskyAnalytics();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const handleSignUpClick = () => {
     analytics.trackSignupFromHuskyChat(from);
@@ -31,11 +33,7 @@ const HuskyLimitStrip = ({ type, count, onDialogClose, mode, from }: HuskyLimitS
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

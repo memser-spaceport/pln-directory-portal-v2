@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import s from './UpdatesPanel.module.scss';
 
 interface NotLoggedInStateProps {
@@ -10,10 +11,11 @@ interface NotLoggedInStateProps {
 
 export function NotLoggedInState({ onClose }: NotLoggedInStateProps) {
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   const handleSignIn = () => {
     onClose?.();
-    router.push(`${window.location.pathname}${window.location.search}#login`);
+    goToLogin();
   };
 
   const handleSignUp = () => {

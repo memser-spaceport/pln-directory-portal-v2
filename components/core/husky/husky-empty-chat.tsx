@@ -9,6 +9,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { toast } from '@/components/core/ToastContainer';
 import { useRouter } from 'next/navigation';
 import { useCurrentUserStore } from '@/services/auth/store';
+import { useLoginRedirect } from '@/components/core/login/utils';
 import { triggerLoader } from '@/utils/common.utils';
 
 interface HuskyEmptyChatProps {
@@ -34,6 +35,7 @@ function HuskyEmptyChat({
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const analytics = useHuskyAnalytics();
   const router = useRouter();
+  const goToLogin = useLoginRedirect();
 
   // Function to check if the user is on a mobile device
   const isMobileDevice = () => {
@@ -112,11 +114,7 @@ function HuskyEmptyChat({
       toast.info(TOAST_MESSAGES.LOGGED_IN_MSG);
       router.refresh();
     } else {
-      if (window.location.pathname === '/sign-up') {
-        router.push(`/#login`);
-      } else {
-        router.push(`${window.location.pathname}${window.location.search}#login`);
-      }
+      goToLogin();
     }
   };
 

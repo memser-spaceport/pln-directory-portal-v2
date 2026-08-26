@@ -185,7 +185,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       // `approved` and be handed the apply modal.
       if (viewer === 'rejected' || verdict === 'rejected') return;
 
-      let access = verdict;
+      let access: JobsAccessVerdict = verdict;
       if (access !== 'approved') {
         // Recheck before sending an unapproved member outbound: an approval
         // that landed mid-session should get in-app Apply, not the posting.
@@ -197,6 +197,8 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
           applyPressInFlight.current = false;
         }
       }
+
+      if (access === 'rejected') return;
 
       if (access === 'approved' && profileComplete) {
         dispatch({ type: 'OPEN_APPLY', target });

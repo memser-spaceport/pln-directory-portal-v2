@@ -27,7 +27,7 @@ import d from './JobDetailPane.module.scss';
 
 /** A team object for the closed pane, so `useGetFocusTags` is called
  *  unconditionally. Never rendered — the body is gated on `role`. */
-const NO_TEAM: IJobTeam = { uid: '', name: '', logoUrl: null, focusAreas: [], subFocusAreas: [] };
+const NO_TEAM: IJobTeam = { uid: '', name: '', logoUrl: null, focusAreas: [], subFocusAreas: [], jobReferEmail: null };
 
 interface JobDetailPaneProps {
   role: IJobRole | null;

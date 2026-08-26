@@ -206,7 +206,10 @@ export function RecipientPicker(props: RecipientPickerProps) {
                     className={s.optionAvatar}
                   />
                   <span className={s.optionText}>
-                    <span className={s.optionName}>{optionProps.data.label}</span>
+                    <span className={s.optionNameRow}>
+                      <span className={s.optionName}>{optionProps.data.label}</span>
+                      {optionProps.data.isTeamLead && <span className={s.leadBadge}>Lead</span>}
+                    </span>
                     {optionProps.data.description && (
                       <span className={s.optionDescription}>{optionProps.data.description}</span>
                     )}
@@ -273,6 +276,7 @@ export function RecipientPicker(props: RecipientPickerProps) {
                   )}
                   <span className={s.rowText}>
                     <span className={s.rowName}>{data.label}</span>
+                    {data.isTeamLead && <span className={s.leadBadge}>Lead</span>}
                     {/* The role — the half a name-only chip left out, and the whole
                         reason anyone can tell whether this row belongs here. Absent
                         for typed addresses, which have nothing but themselves. */}

@@ -5,7 +5,7 @@
 export interface DirectoryMember {
   uid: string;
   name: string;
-  /** Role on their main team. Empty when the directory has none on record. */
+  /** Role on the hiring team when known, otherwise their main-team role. Empty when the directory has none on record. */
   title: string;
   /** Main team's name. Empty for members with no team. */
   team: string;

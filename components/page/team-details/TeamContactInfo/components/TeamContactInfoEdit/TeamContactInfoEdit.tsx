@@ -91,7 +91,7 @@ export function TeamContactInfoEdit(props: Props) {
             name="jobReferEmail"
             label="Job referral email"
             placeholder="jobs@team.com"
-            description="When set, job referrals go only to this address instead of selected team members."
+            description="Referrals for this team’s open roles go here instead of to selected members. Leave blank to send referrals to team leads."
           />
 
           <FormField name="linkedin" label="LinkedIn" placeholder="eg.,https://linkedin.com/in/company_name" />

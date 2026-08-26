@@ -200,8 +200,16 @@
 // the quietest thing in it. This is `.footerHint`'s voice instead, which is the
 // drawer's settled treatment for exactly this job: one sentence explaining the
 // control beside it.
+//
+// **The 16px below it is the card's only gap and it has to live here.**
+// `DetailsSection` is a flex column that ships its `gap` commented out, and
+// `DetailsSectionHeader` carries its own 8px — so the header is spaced and this
+// note is not. Measured on all three hosts of this card (the apply flow's two
+// steps and the onboarding page), the sentence sat at exactly 0px from the drop
+// box under it: two boxes touching, which is what reads as airless. 16 is what
+// the drawer column puts between cards, so the box reads as its own object.
 .cvFirstNote {
-  margin: 0;
+  margin: 0 0 16px;
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;

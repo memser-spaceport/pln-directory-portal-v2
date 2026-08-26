@@ -6,6 +6,14 @@ import * as yup from 'yup';
 
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
+// `FormField`'s own label pair, for the two labels this group has to place by
+// hand because they carry a mark and the `label` prop only takes a string.
+import ff from '@/components/form/FormField/FormField.module.scss';
+
+// The product's `(Optional)`, transcribed from `SignupWizard` — see the
+// component. This form is where that mark's original lives, not a borrowing:
+// its source is a field label too.
+import { OptionalMark } from '../profile-shared/OptionalMark';
 
 import { MOCK_JOB_GROUPS } from './mocks';
 import s from './JobSignUpModal.module.scss';
@@ -36,6 +44,26 @@ import s from './JobSignUpModal.module.scss';
  *  flattened to its label by `toAccountDetails` on the way out. */
 export type AccountFormData = {
   email: string;
+  /**
+   * The address at the team named below — optional, and deliberately NOT a
+   * second identity.
+   *
+   * **Why it exists.** The form already asked for a work address, in prose:
+   * `PERSONAL_EMAIL_NOTE` appears under `email` the moment a personal domain is
+   * finished, and says a work address is what shows the PL team you are at the
+   * company you name. That was a preference with no way to comply — the only
+   * email field on the form is the one the account is created on, and the people
+   * the note is aimed at have a good reason for the address they typed there.
+   * This is the field that sentence was always pointing at.
+   *
+   * **Why it can't be the login.** A member has exactly one email in this
+   * product and it is their identity: Privy signs them in on it, and
+   * `EmailIdentityRow` in Settings presents it as a verified address you
+   * *change*, never one of several you add. The only place the product carries
+   * more than one is `additional_emails` on the **investor** record, which is a
+   * CRM field about a person rather than a way for them to log in.
+   */
+  teamEmail: string;
   name: string;
   linkedin: string;
   role: string;
@@ -46,6 +74,7 @@ export type AccountFormData = {
 export interface AccountDetails {
   name: string;
   email: string;
+  teamEmail: string;
   linkedin: string;
   role: string;
   company: string;
@@ -53,6 +82,7 @@ export interface AccountDetails {
 
 export const EMPTY_ACCOUNT_FORM: AccountFormData = {
   email: '',
+  teamEmail: '',
   name: '',
   linkedin: '',
   role: '',
@@ -75,6 +105,24 @@ export const accountSchema = yup.object({
       return emailParts[1].includes('.');
     })
     .required('Email is required'),
+  /* The same shape test as `email`, minus `required()` — an optional field must
+     validate what it is given and stay silent when it is given nothing. Written
+     out rather than factored into a shared rule with `email`: yup schemas are
+     objects, not compositions, and the one thing that differs between these two
+     is the thing a reader most needs to see side by side. */
+  teamEmail: yup
+    .string()
+    .defined()
+    .test('team-email-shape', 'Must be a valid email', (value) => {
+      if (!value || value.trim() === '') return true;
+      return yup.string().email().isValidSync(value.trim());
+    })
+    .test('team-email-domain-has-dot', 'Email domain must contain a dot (e.g., example.com)', (value) => {
+      if (!value || value.trim() === '') return true;
+      const parts = value.trim().split('@');
+      if (parts.length !== 2) return false;
+      return parts[1].includes('.');
+    }),
   name: yup.string().required('Name is required'),
   linkedin: yup
     .string()
@@ -101,6 +149,7 @@ export const accountSchema = yup.object({
 export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   name: data.name.trim(),
   email: data.email.trim(),
+  teamEmail: (data.teamEmail ?? '').trim(),
   linkedin: (data.linkedin ?? '').trim(),
   role: data.role.trim(),
   company: data.company?.label ?? '',
@@ -197,11 +246,18 @@ const isPersonalEmailDomain = (email: string): boolean => {
  * is by definition not one of them. The ask is made where everyone actually meets
  * it — the placeholder — and the sentence is kept for the one moment it is news.
  *
- * It names the company field as "below", which it is in both hosts: this group
- * renders as one block, email first and `role @ company` last, in the modal and
- * in the flow's account step alike.
+ * **What changed when `teamEmail` arrived.** This sentence used to end "…at the
+ * company you name below", which described a preference the form gave nobody a
+ * way to act on: the only email field was the one the account is created on, and
+ * someone who typed a personal address there had a reason for it. There is a
+ * field for the work address now, so the note points at that instead of asking
+ * for a different answer in the box it sits under. Same job — telling the person
+ * how to make the PL team's review answerable — but now it names a control they
+ * can go and fill in rather than second-guessing the one they just used.
+ *
+ * It still only appears on a personal domain, and still validates nothing.
  */
-const PERSONAL_EMAIL_NOTE = 'A work email shows the PL team you’re at the company you name below.';
+const PERSONAL_EMAIL_NOTE = 'Add your team email below and the PL team can see you’re at the company you name.';
 
 /**
  * The four fields, in production's order. Must be rendered inside a
@@ -283,12 +339,25 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           instruction for a control nobody will find. What is left is the whole
           truth about this field: it is a link on your profile, not a way to fill
           anything in. */}
-      <FormField
-        name="linkedin"
-        label="LinkedIn profile"
-        placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
-        description="Shown on your profile, alongside your other links."
-      />
+      {/* Marked too, and it has to be. Adding `(Optional)` to Team email gave
+          this form a *system* — required carries `*`, optional carries the mark
+          — and a system with one member is just an exception. LinkedIn is the
+          only other field here that can be left blank, so leaving it unmarked
+          would have made it the one input whose state you work out by noticing
+          an absent asterisk. Same hand-rolled label, same reason as below. */}
+      <div className={s.column}>
+        <div className={ff.labelWrapper}>
+          <label className={ff.label} htmlFor="linkedin">
+            LinkedIn profile
+            <OptionalMark />
+          </label>
+        </div>
+        <FormField
+          name="linkedin"
+          placeholder="eg., johndoe or https://linkedin.com/in/johndoe"
+          description="Shown on your profile, alongside your other links."
+        />
+      </div>
 
       <div className={s.column}>
         <div className={s.inputsLabel}>Current role &amp; company</div>
@@ -304,6 +373,57 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
               this prototype doesn't carry. */}
           <FormSelect name="company" placeholder="Select a company" isClearable options={companyOptions} />
         </div>
+      </div>
+
+      {/* **The label is hand-rolled, and that is production's own pattern.**
+          `FormField` types `label` as a `string`, so a styled `(Optional)` can't
+          go through it — and `SignupWizard`, the one place in the product that
+          marks a field optional at all, does exactly this: a label row holding
+          the text and the mark as two spans, with the control below carrying no
+          label of its own. `OptionalMark` is that span, already factored out.
+
+          One improvement on the source, deliberately. `SignupWizard` uses a
+          `<div>`, so its label is decoration — clicking it focuses nothing.
+          `FormField` renders its input with `id={name}`, so a real `<label
+          htmlFor>` associates properly, which is what `Field.Label` would have
+          done for us if the prop had taken a node.
+
+          The classes are production's `FormField.module.scss` — the same
+          `.labelWrapper` / `.label` pair the component would have rendered — so
+          this label is not a lookalike, it is the real one placed by hand. */}
+      <div className={s.column}>
+        <div className={ff.labelWrapper}>
+          <label className={ff.label} htmlFor="teamEmail">
+            Team email
+            <OptionalMark />
+          </label>
+        </div>
+
+        {/* **Last, and directly under the company — not beside `Email address`.**
+          It is not a second inbox and it is certainly not a second login: it is
+          *evidence for the answer above it*, which is why it sits with that
+          answer rather than with the address the account is created on. Putting
+          the two email fields side by side would have made them look like a
+          choice, and the person would have had to work out which one signs them
+          in.
+
+          **The description no longer opens with "Optional."** — the mark on the
+          label says that now, and a field that announced its own optionality
+          twice in two lines was spending the description's first word on
+          something already visible. What is left is the payoff, which is the
+          part that actually earns the field: an optional field with no stated
+          reason is one people skip, and this one's reason is the whole point of
+          it. `PERSONAL_EMAIL_NOTE` points down here when it fires.
+
+          Nothing is verified. This prototype sends no code and checks no domain
+          against the selected team — a real one would have to decide whether an
+          unverified claim is worth anything, and that is a question about the
+          review process, not about the field. */}
+        <FormField
+          name="teamEmail"
+          placeholder="you@yourteam.xyz"
+          description="Your address at the company above, so the PL team can see where you work."
+        />
       </div>
     </div>
   );

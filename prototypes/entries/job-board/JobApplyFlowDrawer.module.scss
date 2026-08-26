@@ -150,20 +150,48 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-// The lede plus, on the logged-out details step, the "Already a member? Sign in"
-// escape under it.
+// The step's opening block: a title and, on the logged-out details step, the
+// "Already a member? Sign in" escape under it. It held a `.lede` between them
+// until the title took over what that sentence was saying.
 //
 // **Why a wrapper and not two siblings.** `.drawerContent` has a uniform 16px
-// gap, so an escape dropped in beside the lede would sit equally far from the
-// sentence above it and the card below — equidistant reads as belonging to
-// neither. It belongs to the lede: the lede says what these answers are for, the
-// escape names the one person they are not for. 8px makes them one block, and
-// the block keeps the step's 16px off the first card.
+// gap, so an escape dropped straight into it would sit equally far from the
+// title above and the card below — equidistant reads as belonging to neither,
+// and it belongs above: the title names the step, the escape names the one
+// person the step is not for. The wrapper keeps them together and keeps the
+// block's own 16px off the first card.
+//
+// No `gap` of its own, so the one distance inside it is stated where it applies:
+// `.signInEscape`'s 12 above. 12 against the column's 16 is what makes the pair
+// read as a pair rather than as two more items in the stack. `.lede` never got a
+// margin here and still shouldn't — it is shared with the steps that have
+// neither a title nor an escape.
 .stepIntro {
   display: flex;
   flex-direction: column;
-  gap: 8px;
   width: 100%;
+}
+
+// The step's own name.
+//
+// **Rank.** `JobSignUpModal.title` — 20/27/500 — is the title of *this same
+// account form* on the board's other door, so the two doors open with one
+// heading rank rather than two. It also lands a clear step under the flow's
+// biggest thing, step 1's 22/30/600 role title, which is right: the job is the
+// subject of the flow, a step is only a place in it.
+//
+// No bottom margin. It carried 6px while a lede sat under it — a heading and its
+// own qualifying sentence are one unit — and with that sentence gone the next
+// thing down is the escape, which is not part of the title and states its own
+// distance.
+.stepTitle {
+  width: 100%;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 27px;
+  letter-spacing: -0.4px;
+  color: var(--foreground-neutral-primary, #0a0c11);
 }
 
 // --- The drawer's own action -------------------------------------------------

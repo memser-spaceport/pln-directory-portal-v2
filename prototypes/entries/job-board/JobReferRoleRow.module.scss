@@ -93,11 +93,16 @@
    near-identical tones also flatten the row, because a reader can't tell which
    differences are meant to carry information.
 
+   (The arrow has since been removed from the board altogether — the row is three
+   greys now, not four. The audit is kept as written because it is what the rules
+   below were derived from, and because the same `color: inherit` trap is one
+   `ReferMenu` away from happening again.)
+
    The share icon is the one that was already right, so the fix is to make the
    others agree with it rather than to invent a scheme. Two tones, both tokens:
 
      ambient metadata (when it was posted)  → --foreground-neutral-tertiary
-     every control (Refer, share, arrow)    → --foreground-neutral-secondary
+     every control (Refer, share)           → --foreground-neutral-secondary
 
    That leaves exactly one grey boundary in the row, and it means something:
    quieter is something to read, darker is something to press. Apply stays the
@@ -134,17 +139,10 @@
   }
 }
 
-/* The arrow, brought up from `inherit`-black to the share icon's tone — the two
-   sit side by side and do the same kind of job, so a reader should not be able
-   to tell them apart by weight. Production's hover tint stays; only rest colour
-   is set here. */
-.arrowTone.arrowTone {
-  color: var(--foreground-neutral-secondary, #455468);
-
-  &:hover {
-    color: var(--foreground-brand-primary, #1b4dff);
-  }
-}
+/* (`.arrowTone` stood here — it lifted the `↗` from `inherit`-black to the share
+   icon's tone, back when the two sat side by side. The arrow is gone from the
+   board, so the class went with it rather than staying as a rule nothing
+   selects. The grey it was fixing is one fewer to reconcile.) */
 
 /* The title as a <button> when it opens the in-app description instead of the
    external posting. It keeps production's `.title` + `.titleLink` — same size,

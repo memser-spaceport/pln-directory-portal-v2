@@ -10,6 +10,9 @@
  *   app/home/page.module.css ........ outer home layout + section spacing
  *   TeamGroupCard.module.scss ....... jobs "View all N …" expander
  *   DealCard.module.scss ............ vendor avatar + audience tag (perk card)
+ *   Welcome.module.scss ............. the signed-out banner (SignedOutBanner) —
+ *                                     production's own `!isLoggedIn` card in
+ *                                     production's own slot on this route
  *   SortDropdown, SearchInput ....... @/components/common/filters
  *   Button .......................... @/components/common/Button
  *   FollowButton .................... @/components/ui/FollowButton (rail size)
@@ -23,9 +26,12 @@
  *                                     HeaderSearch, SourceList, ShareMenu,
  *                                     FeedActions, eventMeta, QuickActions, mocks
  *   ../follow-shared ................ FollowButton (xs/tertiary), FollowToast
+ *   ../job-board .................... SignInBanner.module.scss `.inlineDoor`,
+ *                                     so the prototypes' two signed-out asks
+ *                                     wear one door rather than two lookalikes
  *
  * New here (and only here): TopStoryCard, HiringCard, PerkCard, CuratedRail,
- * ForYouBanner.
+ * ForYouBanner, SignedOutBanner.
  *
  * EmailDigest.tsx is still in this folder but is no longer mounted — the digest
  * view was removed from this prototype. Kept because the Monday email is the
@@ -101,6 +107,7 @@ import { HiringCard } from './HiringCard';
 import { PerkCard } from './PerkCard';
 
 import { ForYouBanner } from './ForYouBanner';
+import { SignedOutBanner } from './SignedOutBanner';
 import { FollowTeamsScroller } from './FollowTeamsScroller';
 import { PopularScroller } from './PopularScroller';
 import { SubscribeBanner } from './SubscribeBanner';
@@ -177,6 +184,15 @@ const SORT_OPTIONS = [
  *   Curated by — human, but the card no longer says so: the attribution line was
  *                cut from the eyebrow. `CURATION_ATTRIBUTION` stays in the mock
  *                for the email digest, which still states who picked.
+ *
+ * The one state that is *not* a switch: **`?viewer=logged-out`** opens the page
+ * as a visitor with no account — no Quick Actions, no For You pill, no subscribe
+ * offer, and `SignedOutBanner` in production's own `!isLoggedIn` slot making the
+ * personalization offer. A query param rather than a control on the page, for
+ * the reason above: this entry renders what it looks like, and a state picker
+ * parked over the feed is chrome on the one thing being judged. Signing in from
+ * either door flips it in place, so the transition is reviewable; getting back
+ * out is a reload with the param.
  */
 
 const HIRING_CAT = 'hiring' as const;
@@ -308,6 +324,22 @@ export default function NewsfeedPrototype() {
    */
   const [activeCategory, setActiveCategory] = useState<string>(HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
+  /**
+   * Whether there is an account behind the page — `?viewer=logged-out` opens the
+   * signed-out state, the same query-param convention the job board's `?viewer=`
+   * uses, and the same read-once-at-mount treatment `?team=` gets below.
+   *
+   * A param rather than a visible switch row: this entry deliberately renders one
+   * settled configuration (see the header note), and a state-picker parked above
+   * the feed is chrome on the one page whose whole subject is what it looks like.
+   * The transition that matters is reviewable without one — signing in from
+   * either door flips the page in place, and For You appears, becomes the landing
+   * view and explains itself, which is the payoff the banner is offering.
+   *
+   * Defaults to signed in, because that is the state every other reviewer of this
+   * entry has been looking at and the one the rest of the feed is designed for.
+   */
+  const [signedIn, setSignedIn] = useState(true);
   const [query, setQuery] = useState('');
   /**
    * Team scope, set from `?team=<uid>` — where every "N new updates" badge in the
@@ -368,7 +400,40 @@ export default function NewsfeedPrototype() {
     return () => clearTimeout(t);
   }, [subToast]);
 
+  /**
+   * Both doors, and in this entry both of them simply sign the mock in — there
+   * is no account to create here, and the sign-up *form* is the job board's
+   * subject rather than this one's. They stay two callbacks so the banner and
+   * the navbar can offer the pair rather than a single "Sign in".
+   *
+   * **Signing in lands on what was offered.** The banner's whole claim is that
+   * the feed becomes about you, so returning to All — the view the stranger was
+   * already reading — would make the offer look like it did nothing. For You,
+   * the note that explains it, and the Following ranking are the three things
+   * the sentence promised, so that is where the click ends up.
+   *
+   * The param is stripped on the way, for `clearTeamFilter`'s reason: a reload
+   * must not sign the reader back out of a state they just left.
+   */
+  const handleSignIn = () => {
+    setSignedIn(true);
+    setActiveCategory(HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
+    setSort('following');
+    setExpanded(false);
+    const params = new URLSearchParams(window.location.search);
+    params.delete('viewer');
+    const search = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`);
+  };
+
   const toggleFollow = (teamUid: string, teamName: string) => {
+    /* Signed out, Follow *is* the offer being taken up. Following is one of the
+       three inputs the banner says a feed is built from, so a Follow button that
+       quietly works without an account makes that sentence false. Sign in, then
+       apply the follow — stash-and-replay, so the click the person made is the
+       click that happens rather than one they have to make twice. */
+    if (!signedIn) handleSignIn();
+
     setFollowedTeams((prev) => {
       const next = new Set(prev);
       if (next.has(teamUid)) {
@@ -444,6 +509,20 @@ export default function NewsfeedPrototype() {
    */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    /* Read here rather than in a `useState` initializer for the reason every
+       other param on this page is: the entry server-renders, so touching
+       `window` during render is a crash, not a hydration warning. Both this and
+       the mount gate flush in the same pass, so the page never paints a
+       signed-in frame first. */
+    if (params.get('viewer') === 'logged-out') {
+      setSignedIn(false);
+      // For You does not exist without an account (production: no
+      // `forYouTeamUids`, so no pill), and Following ranks by a set that is
+      // necessarily empty. Both fall back to what a stranger can actually read.
+      setActiveCategory(ALL_CAT);
+      setSort('latest');
+    }
 
     const team = params.get('team');
     const known = team && (ALL_CURATED_ITEMS.some((i) => i.teamUid === team) || getTeamNews(team).length > 0);
@@ -704,7 +783,13 @@ export default function NewsfeedPrototype() {
     // what a returning reader reaches for. Under a team scope it is dropped
     // entirely: you have already said which team you want, and "the teams that
     // match you" is not a further cut of one team.
-    if (!teamFilter) out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length });
+    //
+    // And dropped entirely without an account, which is production's rule too:
+    // `forYouTeamUids` comes back empty without an auth token, so `hasForYouNews`
+    // is false and `TeamNews` never renders the pill. A pill offering "you" to
+    // someone the product has never met is a control with nothing behind it —
+    // `SignedOutBanner` makes the offer instead, where it can name the doors.
+    if (!teamFilter && signedIn) out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length });
     for (const c of base) {
       out.push(c);
       if (c.id === ALL_CAT && activeDiscussionsCount > 0) {
@@ -723,7 +808,7 @@ export default function NewsfeedPrototype() {
     if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
     if (showPerks && !teamFilter) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
     return out;
-  }, [scopedItems, forYouItems, showHiring, showPerks, teamFilter]);
+  }, [scopedItems, forYouItems, showHiring, showPerks, teamFilter, signedIn]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -896,6 +981,11 @@ export default function NewsfeedPrototype() {
    */
   const popularItems = [...feedPool].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
 
+  /* The signed-out banner's second number. Counted off `sourceItems` rather than
+     the whole corpus for `SignInBanner`'s reason: a banner claiming more than the
+     list under it is contradicted by the list under it. */
+  const bannerTeamCount = useMemo(() => new Set(sourceItems.map((i) => i.teamUid)).size, [sourceItems]);
+
   const resetPaging = () => setExpanded(false);
 
   // Category counts are computed within the active focus area, so changing focus
@@ -984,8 +1074,23 @@ export default function NewsfeedPrototype() {
   /* You're standing on the feed, so there is nothing unread to point at: the dot
      is off here by definition, and `active` is what the item shows instead. */
   const nav = (
+    /* `isLoggedIn` swaps the account cluster for the Sign up / Sign in pair —
+       leaving an avatar over a page asking you to sign in makes the state
+       incoherent. Both doors run `handleSignIn`: there is no separate sign-up
+       form in this entry (see the handler), and the navbar's own note says the
+       pair is decorative for every entry but the job board.
+
+       `PrototypeMobileNav` takes no auth props, so below 640px the bottom bar
+       still shows the signed-in items. Left alone deliberately — that is
+       nav-shared's to fix, and fixing it here would fork the shared component. */
     <>
-      <PrototypeNavBar hasUnreadNews={false} active />
+      <PrototypeNavBar
+        hasUnreadNews={false}
+        active
+        isLoggedIn={signedIn}
+        onSignIn={handleSignIn}
+        onSignUp={handleSignIn}
+      />
       <PrototypeMobileNav hasUnreadNews={false} active />
     </>
   );
@@ -1013,12 +1118,29 @@ export default function NewsfeedPrototype() {
       {nav}
       <div className={clsx(v0.page, styles.home)}>
         <div className={styles.home__cn}>
-          <div className={v0.qaDesktop}>
-            <QuickActionsMock />
-          </div>
-          <div className={v0.qaMobile}>
-            <MobileQuickActions />
-          </div>
+          {/* Production's own arrangement, kept: `app/home/page.tsx` renders
+              `Welcome` behind `!isLoggedIn` and `QuickActions` behind
+              `isLoggedIn`, in this slot, as the first child of `.home__cn` —
+              which is a 20/40px-gap column, so neither needs a wrapper of its
+              own. They are alternatives rather than neighbours because Quick
+              Actions is a row of things only a member can do. */}
+          {signedIn ? (
+            <>
+              <div className={v0.qaDesktop}>
+                <QuickActionsMock />
+              </div>
+              <div className={v0.qaMobile}>
+                <MobileQuickActions />
+              </div>
+            </>
+          ) : (
+            <SignedOutBanner
+              updateCount={sourceItems.length}
+              teamCount={bannerTeamCount}
+              onSignIn={handleSignIn}
+              onSignUp={handleSignIn}
+            />
+          )}
 
           <div className={styles.home__cn__teamnews}>
             <NetworkUpdatesBase
@@ -1162,7 +1284,11 @@ export default function NewsfeedPrototype() {
                 the first story. It also has nothing to offer here: a weekly email
                 of "whatever currently matches my profile" is a different object
                 from a saved filter. */}
-              {narrowed && activeCategory !== FOR_YOU_CAT && !subscription && !subscribeDismissed && (
+              {/* And not without an account: what this offer creates is an email
+                subscription, and there is no address on file to send it to.
+                Offering it anyway would put a second, quieter sign-in ask under
+                the banner that is already making one. */}
+              {signedIn && narrowed && activeCategory !== FOR_YOU_CAT && !subscription && !subscribeDismissed && (
                 <div className={clsx(v0.tabsConstrain, v0.tabsConstrainBanner, local.railGutterConstrain)}>
                   <SubscribeBanner
                     label={summarizeView(view, teamFilterName)}
@@ -1291,10 +1417,18 @@ export default function NewsfeedPrototype() {
           onToggleCommentLike={toggleLike}
         />
 
+        {/* Says what following just did, not only where to undo it.
+
+            It used to name the *sort* alone ("their updates will appear first"),
+            which is the smaller half: a follow also joins the set For You is cut
+            from, so the one lever on this page that personalizes the feed was
+            confirming itself as a ranking tweak. The banner above now names
+            follows as an input; this is where that claim gets demonstrated,
+            which is worth more than a second link explaining it. */}
         {toast && (
           <FollowToast>
-            You&apos;re now following {toast} — their updates will appear first in your feed. Manage who you follow from
-            your profile.
+            You&apos;re now following {toast} — their updates join <strong>For you</strong> and appear first in your
+            feed. Manage who you follow from your profile.
           </FollowToast>
         )}
 

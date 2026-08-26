@@ -685,13 +685,15 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             /* The provider is here rather than inside the pane because the form
                it carries outlives the pane — see `accountMethods`. */
             <FormProvider {...accountMethods}>
+              {/* (`draft` and `setDraft` were passed to this pane too, for the CV
+                  importer it used to offer. The offer is gone and the pane no
+                  longer touches the draft — the one profile answer it still
+                  collects travels as `jobSearchStatus`.) */}
               <JobAccountPane
                 roleTitle={role?.roleTitle ?? 'this role'}
                 jobSearchStatus={draft.jobSearchStatus}
                 onJobSearchStatusChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
                 onSignIn={onSignIn}
-                draft={draft}
-                setDraft={setDraft}
               />
             </FormProvider>
           ))}

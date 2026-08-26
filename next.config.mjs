@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { withPostHogConfig } from '@posthog/nextjs-config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -119,4 +120,16 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
 };
 
-export default nextConfig;
+// Upload the browser source maps to PostHog error tracking during `next build`,
+// so minified frontend stack traces resolve to real component names. The wrap
+// only runs when the build has a personal API key, so local and preview builds
+// stay unchanged and never fail on a missing key. Set POSTHOG_PERSONAL_API_KEY
+// (scopes: error tracking write, organization read) and POSTHOG_PROJECT_ID in
+// the deploy environment.
+export default process.env.POSTHOG_PERSONAL_API_KEY
+  ? withPostHogConfig(nextConfig, {
+      personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
+      projectId: process.env.POSTHOG_PROJECT_ID,
+      host: process.env.POSTHOG_HOST,
+    })
+  : nextConfig;

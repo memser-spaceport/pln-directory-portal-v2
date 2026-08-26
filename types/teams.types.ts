@@ -24,6 +24,8 @@ export interface ITeamsSearchParams {
   tiers?: string;
   communityAffiliations?: string;
   followingOnly?: 'true' | '';
+  /** Directory Admin only; non-admins are always scoped to ACTIVE regardless of this value. */
+  status?: 'ACTIVE' | 'INACTIVE' | 'ALL';
 }
 
 export interface CheckboxFilterOption {

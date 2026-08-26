@@ -19,6 +19,7 @@ import { useTeamAnalytics } from '@/analytics/teams.analytics';
 import { FilterCheckSizeInput } from '@/components/page/members/MembersFilter/FilterCheckSizeInput';
 import { FilterDivider } from '@/components/page/members/MembersFilter/FilterDivider';
 import { InvestmentFocusFilter } from '@/components/page/teams/TeamsFilter/components/InvestmentFocusFilter';
+import { TeamStatusFilter } from '@/components/page/teams/TeamsFilter/components/TeamStatusFilter';
 import { TeamsFocusAreaFilter } from './components/TeamsFocusAreaFilter';
 import { getPriorityLabel } from '@/utils/team.utils';
 import { isTierUser } from '@/utils/user/isTierUser';
@@ -48,7 +49,7 @@ export function TeamsFilter(props: TeamsFilterProps) {
 
   const canSearch = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.search.read');
   const canSeeSource = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'membership.source.read');
-  const isDirectoryAdmin = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full'); // isAdminUser(userInfo);
+  const isDirectoryAdmin = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'directory.admin.full');
   const canSeePriority = currentUser?.rbac?.effectivePermissions.some((p) => p.code === 'team.priority.read');
   const isTierViewer = isDirectoryAdmin || canSearch || isTierUser(userInfo) || canSeePriority;
 
@@ -114,6 +115,13 @@ export function TeamsFilter(props: TeamsFilterProps) {
       {canSearch && (
         <FilterSection title="Team Search">
           <FiltersSearch searchParams={searchParams} userInfo={userInfo} />
+        </FilterSection>
+      )}
+
+      {/* Team Status (Active/Inactive/All) — Directory Admin only */}
+      {isDirectoryAdmin && (
+        <FilterSection title="Team Status">
+          <TeamStatusFilter />
         </FilterSection>
       )}
 

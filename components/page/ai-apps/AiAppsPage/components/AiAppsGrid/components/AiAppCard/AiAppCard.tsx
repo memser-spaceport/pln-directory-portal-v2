@@ -8,6 +8,7 @@ import { DocumentIcon } from '@/components/icons';
 import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { AiApp, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
+import { formatAiAppDate } from '@/utils/ai-apps.utils';
 
 import { AppActionsMenu } from '../../../AppActionsMenu';
 
@@ -56,7 +57,7 @@ export function AiAppCard(props: Props) {
   // to people who can act on it.
   const showFailureStrip = failureKind !== null && !!canManage;
   const showSeeLogs = showFailureStrip && !!onLogs;
-  // Dimming and "Never deployed" are the danger treatment — manager-only too.
+  // Dimming is the danger treatment — manager-only too.
   const showDanger = failureKind === 'danger' && !!canManage;
 
   const body = (
@@ -110,10 +111,7 @@ export function AiAppCard(props: Props) {
               {app.member.name}
             </Link>
           </p>
-          <p className={s.deployed}>
-            {isDraft ? 'Draft created' : showDanger ? 'Never deployed' : 'Deployed'}{' '}
-            {new Date(app.createdAt).toLocaleDateString()}
-          </p>
+          <p className={s.deployed}>Last updated {formatAiAppDate(app.updatedAt)}</p>
         </div>
       </div>
 

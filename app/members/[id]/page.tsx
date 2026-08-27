@@ -29,7 +29,7 @@ import { AccountCreatedView } from '@/components/page/member-details/AccountCrea
 
 import MemberPageLoader from './loading';
 import Head from 'next/head';
-import { MembersQueryKeys } from '@/services/members/constants';
+import { MembersQueryKeys, SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useGetMemberInvestorSettings } from '@/services/members/hooks/useGetMemberInvestorSettings';
 import { ForumActivity } from '@/components/page/member-details/ForumActivity';
 import { TeamNewsDetails } from '@/components/page/member-details/TeamNewsDetails';
@@ -196,7 +196,17 @@ const MemberDetails = (props: { params: Promise<any> }) => {
         {isBelowTabletLandscape && <TeamNewsDetails member={member} isLoggedIn={isLoggedIn} userInfo={userInfo} />}
         {!isInvestorOnly && (
           <>
-            <ExperienceDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            {/* The CV importer's second host. The section decides *where* to put
+                the offer (empty-state drop area, or the header's "Update from
+                CV") and refuses both to anyone who cannot edit this profile —
+                `canEditMemberProfile`, the same gate its Add and Edit controls
+                use — so this prop only has to say that the host allows it. */}
+            <ExperienceDetails
+              userInfo={userInfo}
+              member={member}
+              isLoggedIn={isLoggedIn}
+              enableCvImport={SHOW_CV_IMPORT}
+            />
             <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
           </>
         )}

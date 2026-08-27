@@ -45,7 +45,7 @@ interface Props {
   member: IMember;
   userInfo: IUserInfo;
   generateBio?: boolean;
-  variant?: 'investor-drawer';
+  variant?: 'investor-drawer' | 'apply-flow';
 }
 
 export const EditProfileForm = ({ onClose, member, userInfo, generateBio, variant }: Props) => {

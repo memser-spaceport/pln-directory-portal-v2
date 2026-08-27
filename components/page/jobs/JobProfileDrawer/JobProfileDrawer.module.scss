@@ -284,3 +284,29 @@
   font-size: 14px;
   color: var(--foreground-neutral-secondary, #455468);
 }
+
+// Transcribed from `SignupWizard.module.scss`'s `.aboutLabelOptional` — the
+// product's idiom for "this field is optional", against a heading rather than a
+// label here. Weight and tone are the whole difference, and size is inherited so
+// the mark sits on the heading's own baseline.
+.optionalMark {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+// "Required to continue", on the Job search status title — the replacement for
+// the full-width strip that used to sit above the card.
+//
+// Amber, because it inherits the job the strip had: this is the one section on
+// the step that is refusing to let the footer through, and it has to read as a
+// requirement rather than as a caption. Weight 500 against the heading's own, so
+// it is legible at 12px without competing with the title it qualifies.
+.requiredMark {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-warning-secondary, #d97706);
+}

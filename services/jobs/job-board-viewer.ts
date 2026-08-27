@@ -74,6 +74,27 @@ export const isJobAspirant = (userInfo: IUserInfo | null): boolean =>
   userInfo?.signUpSource === JOB_BOARD_SIGN_UP_SOURCE;
 
 /**
+ * Whether this viewer is offered the way out to the hiring team's own posting.
+ *
+ * Two people are not: someone with no account, and a **Job Aspirant** — a member
+ * who arrived through the job board itself. Both came here to apply, and this
+ * board can take an application in three steps without them leaving; a link to
+ * the company's careers page at that moment is an exit from the one flow that
+ * works for them, into a form that will ask for everything again.
+ *
+ * Everyone else keeps it. For an established member the posting is reference
+ * material next to an application they can make either way, and reading the ad
+ * has never been the same act as applying.
+ *
+ * Takes `isLoggedIn` separately rather than inferring it from `userInfo`,
+ * because the two disagree in both directions during first paint — the cookie
+ * can carry a user the store has not hydrated, and vice versa. The caller knows
+ * which is authoritative on its surface; this does not.
+ */
+export const canSeeOriginalPosting = (args: { isLoggedIn: boolean; userInfo: IUserInfo | null | undefined }): boolean =>
+  args.isLoggedIn && !isJobAspirant(args.userInfo ?? null);
+
+/**
  * Where someone is in their search.
  *
  * **Private — PL Team only.** Never rendered on the public profile, never in the

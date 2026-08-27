@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
-import { SpinnerIcon } from '@/components/icons';
+import { InfoCircleIconOutlined, SpinnerIcon } from '@/components/icons';
 import { formatFileSize } from '@/utils/file.utils';
 // The host section's own empty row and its connect-button slot. `.connectButton`
 // is nested inside `.emptyData` in four of these stylesheets (Experience, Teams,
@@ -95,19 +95,47 @@ type Status = 'idle' | 'reading' | 'nothing-found' | 'failed';
 /**
  * The formats the drop area takes, and what it says about them.
  *
- * A LinkedIn "Save to PDF" export is a PDF, so it lands here with everything
- * else — which is exactly why a second door would be redundant. The copy stays
- * about the file rather than about where the file came from.
+ * Only that, now. The LinkedIn clause that used to end the description moved out
+ * to `LINKEDIN_HINT`: this line answers "is my file allowed", and that is a
+ * different question from "what could I bring". Stating it in both places was
+ * one fact told twice on one box, and the copy a person skips would still have
+ * been the copy carrying it.
  */
 /* PDF only, and that is the server's rule rather than a preference: the upload
    endpoint checks the mime type AND that the bytes start with `%PDF`
    (`assertPdfFile`), then extracts text with `pdf-parse`. A DOCX offered here
    would be accepted by the dropzone and refused by the endpoint — a rejection
-   the person could have been spared by the sentence above the box. */
+   the person could have been spared by the sentence above the box.
+
+   The prototype's version of this line reads "PDF, DOC or DOCX, up to 5MB",
+   which is true of a mock with no parser behind it and false here. Deliberately
+   not transcribed. */
 const DROPZONE_COPY = {
   title: 'Drag & drop your CV',
-  description: 'PDF, up to 5MB. A LinkedIn PDF export works too.',
+  description: 'PDF, up to 5MB.',
   formats: ['PDF'],
+};
+
+/**
+ * The way in for someone who has no CV file: one standing note under the box.
+ *
+ * **Prose, not a control.** Nothing here is pressable, so there is nothing to
+ * choose between it and Upload, and the last sentence sends the person back to
+ * the box that is already open. One sentence rather than three steps, because
+ * the two clicks are one menu.
+ *
+ * A three-step "open LinkedIn → More → Save to PDF" block used to sit *above*
+ * the box, behind a second door labelled "No CV? Your LinkedIn profile works
+ * too". Both went: the block existed to explain why the thing the label promised
+ * wasn't what the door did, which is a sentence no door should need. The facts
+ * are the same, said once, under the box they are about.
+ */
+const LINKEDIN_HINT = {
+  /* Split so the menu path can carry a little weight — it is the part someone
+     scans back to while looking at LinkedIn rather than at this page. */
+  before: 'On LinkedIn, open your profile and choose ',
+  path: 'More → Save to PDF',
+  after: '. Drop that file here.',
 };
 
 const MAX_FILE_SIZE_MB = 5;
@@ -263,6 +291,24 @@ export function ExperienceImportPanel({
           {/* The one thing a person is entitled to know before handing over a
               document, in the place they hand it over — a promise nobody states
               is a promise nobody believes. Wording is the host's; see the prop. */}
+          <p className={p.linkedinSteps}>
+            {/* The DS's own mark for a quiet inline note, not a new one:
+                `DataIncomplete` — production's 12px/500 note row — reaches for
+                this exact glyph beside this exact size of text, at a 4px gap.
+                The *outlined* one, which is the half of that pair that means
+                "here is a fact"; the filled `InfoCircleIcon` carries banners and
+                tooltip triggers, which are louder things than this.
+
+                Rendered at 14px rather than its native 18, since the line has a
+                tinted ground of its own to sit on. */}
+            <InfoCircleIconOutlined width={14} height={14} className={p.linkedinStepsIcon} aria-hidden />
+            <span>
+              {LINKEDIN_HINT.before}
+              <span className={p.linkedinPath}>{LINKEDIN_HINT.path}</span>
+              {LINKEDIN_HINT.after}
+            </span>
+          </p>
+
           <p className={p.privacyNote}>{privacyNote}</p>
         </>
       )}

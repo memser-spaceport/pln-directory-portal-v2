@@ -41,31 +41,17 @@ export const SHOW_JOB_BOARD_APPLY: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_BO
     `services/members/constants` — which is where the components it gates live.
     Its own note called this move in advance. */
 
-/**
- * Read the job in the app before applying to it: the row's button becomes
- * **View job**, and Apply moves to the bottom of the description it applies to.
- *
- * **Dark, and for a reason that is not "unfinished".** The layout is done and
- * the drawer now renders `IJobRole.descriptionHtml` — the content exists. What
- * does not exist is *coverage*: the ingest only carries a body for the teams
- * whose careers sites it can read, and on dev that was 11 of 91 roles (12%),
- * from two teams, with every Protocol Labs and manually-added role null.
- *
- * So flipping this on today would insert a reading step in front of Apply and
- * still give most people nothing to read — a strictly worse funnel than the
- * direct Apply it replaces. It flips on coverage, not on FE work.
- *
- * The number that decides it is already instrumented: `job-detail-opened`
- * against `job-apply-clicked`. Read them together with the null-body share —
- * opens that never reach an apply are people the row used to send straight into
- * the flow.
- *
- * Nested inside `SHOW_JOB_BOARD_APPLY`: the drawer's whole footer is the apply
- * hand-off, so there is nothing for it to do while that one is down.
- *
- * Same BUILD-time caveat as the two above — a dashboard change needs a redeploy.
- */
-export const SHOW_JOB_DETAIL: boolean = process.env.NEXT_PUBLIC_SHOW_JOB_DETAIL === 'true';
+/* (`SHOW_JOB_DETAIL` lived here. It gated the reading step in front of Apply,
+    and it was dark for one reason: coverage. The ingest only carried a body for
+    the teams whose careers sites it could read — 11 of 91 roles on dev — so
+    turning it on would have inserted a reading step that gave most people
+    nothing to read, a strictly worse funnel than the direct Apply it replaced.
+    Its own note said it flips on coverage, not on FE work.
+
+    Coverage arrived: 83 of 92 roles on dev carry `descriptionHtml`. The nine
+    that don't get the empty state, which names where the posting actually is and
+    links to it. So the flag has answered its question and the reading step is
+    now step 1 of the apply flow rather than an alternative to it. */
 
 export const JOBS_SORT_OPTIONS = [
   { value: 'company_az', label: 'A-Z (Ascending)' },

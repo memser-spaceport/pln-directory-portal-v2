@@ -38,7 +38,7 @@ jest.mock('@tanstack/react-query', () => ({
   useQuery: () => mockMember(),
 }));
 
-import { JobProfileDrawer } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
+import { JobProfileDrawer, JobProfilePane } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
 
 const COMPLETE = {
   id: 'm1',
@@ -59,7 +59,6 @@ const renderDrawer = (member: unknown, props: Partial<React.ComponentProps<typeo
       isLoggedIn
       pendingRoleTitle={null}
       pendingApproval={false}
-      resumeIntoApply={false}
       onFooterAction={jest.fn()}
       {...props}
     />,
@@ -69,61 +68,24 @@ const renderDrawer = (member: unknown, props: Partial<React.ComponentProps<typeo
 /* Matches either wording on purpose: a regression that reintroduces "Save
    profile" should fail on the assertion about what the button SAYS, not by
    throwing "no such element" from the query that finds it. */
-const footerButton = () => screen.getByRole('button', { name: /Continue to apply|Save profile/ });
+const footerButton = () => screen.getByRole('button', { name: /Save and close|Continue to apply|Save profile/ });
 
-describe('the profile drawer footer', () => {
+describe('the standalone profile drawer footer', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  /**
-   * The rule the change establishes: the words follow whether the account may
-   * apply at all, not which door the drawer was opened through.
-   */
-  it.each([
-    ['reached from a role', { resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' }],
-    ['reached from the banner, with nothing pending', { resumeIntoApply: false, pendingRoleTitle: null }],
-  ])('says "Continue to apply" when %s', (_label, props) => {
-    renderDrawer(INCOMPLETE, props);
+  /* This surface is the banner's "Update profile" now — the one profile visit
+     with no application behind it. `Continue to apply` was the right label while
+     it was also the apply flow's step 2; that step is inside
+     `JobApplyFlowDrawer` and keeps that label. Here there is nothing to continue
+     to, and a button promising an application that is not waiting would be
+     inventing one. */
+  it('says what the press actually does here, which is not applying', () => {
+    renderDrawer(INCOMPLETE);
 
-    expect(footerButton()).toHaveTextContent('Continue to apply');
+    expect(footerButton()).toHaveTextContent('Save and close');
+    expect(screen.queryByText('Continue to apply')).not.toBeInTheDocument();
   });
 
-  /**
-   * No carve-out left, including the one that used to exist here.
-   *
-   * This label used to run ahead of what a pending account could do — applying
-   * was gated on approval, and the hint beside the button carried the
-   * correction ("applying unlocks once the PL team approves your account").
-   * Approval no longer gates applying, so the label is plainly true and the
-   * correction must be gone: leaving it would tell a member to wait for
-   * something that is not holding them up.
-   */
-  it('says "Continue to apply" while the account waits, with nothing to correct', () => {
-    renderDrawer(COMPLETE, { pendingApproval: true, resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' });
-
-    expect(footerButton()).toHaveTextContent('Continue to apply');
-    expect(footerButton()).toBeEnabled();
-    expect(screen.queryByText(/applying unlocks once the PL team approves/i)).not.toBeInTheDocument();
-  });
-
-  /* The lede is where the review is now mentioned, and it says the opposite of
-     what it used to: the account is under review AND the application goes. */
-  it('tells a pending member the review is not holding the application up', () => {
-    renderDrawer(COMPLETE, { pendingApproval: true, resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' });
-
-    expect(screen.getByText(/isn't holding up your application to Senior Engineer/i)).toBeInTheDocument();
-  });
-
-  /** And before the required answers are in, where the missing-fields hint is
-   *  the one showing — still one label, still disabled. */
-  it('says it for a pending account with an unfinished profile too', () => {
-    renderDrawer(INCOMPLETE, { pendingApproval: true });
-
-    expect(footerButton()).toHaveTextContent('Continue to apply');
-    expect(footerButton()).toBeDisabled();
-  });
-
-  /** Disabled until the two required answers are in — that is what makes the
-   *  label a statement about the future rather than a lie about the present. */
   it('stays disabled until the profile is ready', () => {
     renderDrawer(INCOMPLETE);
 
@@ -136,15 +98,44 @@ describe('the profile drawer footer', () => {
     expect(footerButton()).toBeEnabled();
   });
 
-  /**
-   * The disagreement this change removes: the hint has always ended
-   * "…to continue", so a button reading "Save profile" beside it was describing
-   * a different act from the sentence next to it.
-   */
-  it('agrees with the hint about what the press is for', () => {
+  /* The hint and the button have to describe one act. The hint ends
+     "…to continue", which is still true of the requirement even though the
+     destination changed. */
+  it('names what is still owed', () => {
     renderDrawer(INCOMPLETE);
 
     expect(screen.getByText(/to continue\. Everything else is optional\./i)).toBeInTheDocument();
-    expect(footerButton()).toHaveTextContent('Continue to apply');
+  });
+
+  /* The completeness the footer reads is the pane's own, reported up — the
+     drawer has no fetch of its own any more. A pane that stopped reporting would
+     leave this button dead in front of a finished profile. */
+  it('reads completeness from the pane rather than deriving its own', () => {
+    renderDrawer(COMPLETE);
+    expect(footerButton()).toBeEnabled();
+
+    renderDrawer(INCOMPLETE);
+    expect(screen.getAllByRole('button', { name: /Save and close/ }).at(-1)).toBeDisabled();
+  });
+});
+
+/* The lede belongs to the pane, and it is where the PL review is mentioned now
+   that the stepper describing it is gone. */
+describe('the profile pane lede', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('tells a pending member the review is not holding the application up', () => {
+    mockMember.mockReturnValue({ data: COMPLETE, isLoading: false });
+    render(
+      <JobProfilePane
+        memberUid="m1"
+        isLoggedIn
+        pendingRoleTitle="Senior Engineer"
+        pendingApproval
+        onProfileState={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/isn't holding up your application to Senior Engineer/i)).toBeInTheDocument();
   });
 });

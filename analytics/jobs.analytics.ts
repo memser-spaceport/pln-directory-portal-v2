@@ -246,10 +246,8 @@ export const useJobsAnalytics = () => {
   };
 
   /**
-   * `has_team_email` is the number that says whether the optional Team email
-   * field earned its place. Without it we ship a field, nobody can tell whether
-   * anyone fills it, and it survives on the strength of the argument for adding
-   * it rather than on evidence.
+   * Kept on the payload so existing dashboards do not break. The Team email
+   * field is gone from sign-up, so this is always false.
    */
   const onJobApplySignUpSubmitted = (
     args: JobApplyBaseParams & { trigger: JobApplyTrigger; has_team_email: boolean },

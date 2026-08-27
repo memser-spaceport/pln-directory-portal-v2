@@ -75,7 +75,10 @@ export const jobBoardSignUpInputSchema = z
        could not express a request the server is happy to serve. The form is
        where "always ask" belongs, and `accountSchema` is where it is enforced. */
     jobSearchStatus: z.enum(JOB_SEARCH_STATUS_VALUES).optional(),
-    role: z.string().trim().min(1).max(200),
+    /* Optional on the wire though the form requires LinkedIn and treats role as
+       free. Same reason as `jobSearchStatus`: this schema describes what the
+       endpoint accepts. The form is where "always ask LinkedIn" belongs. */
+    role: z.string().trim().min(1).max(200).optional(),
     linkedinHandler: z.string().trim().min(1).max(200).optional(),
     isTeamNew: z.boolean().optional(),
     team: z

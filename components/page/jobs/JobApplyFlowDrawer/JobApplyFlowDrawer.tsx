@@ -167,8 +167,8 @@ interface JobApplyFlowDrawerProps {
   /**
    * Pressing Apply will open the employer's own posting rather than advance the
    * rail: an account awaiting approval, applying to a role Protocol Labs did not
-   * post. The footer has to say so — a rail promising three steps above a button
-   * that leaves the site is the flow lying about itself.
+   * post. The footer has to say so, and the rail comes off — three named steps
+   * above a button that leaves the site is the flow lying about itself.
    */
   applyGoesExternal: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */
@@ -345,7 +345,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      silently drop the step out from under someone standing on it, and Back from
      the application would start landing somewhere different than it did a minute
      earlier. A rail that reshapes itself is a rail nobody can learn. */
-  const [skipProfile] = useState(() => isLoggedIn && profileComplete);
+  const [skipProfile] = useState(() => isLoggedIn && profileComplete && at !== 'profile');
 
   const complete = profileState.complete;
 
@@ -647,9 +647,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               </button>
             )}
           </div>
-          <div className={d.stepBand}>
-            <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
-          </div>
+          {/* Withheld when Apply leaves the site: there is nothing to walk. */}
+          {!(applyGoesExternal && at === 'review') && (
+            <div className={d.stepBand}>
+              <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
+            </div>
+          )}
         </div>
 
         <div className={s.drawerContent}>

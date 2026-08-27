@@ -21,6 +21,12 @@ jest.mock('@/components/page/member-details/ProfileDetails', () => ({ ProfileDet
 jest.mock('@/components/page/member-details/ExperienceDetails', () => ({ ExperienceDetails: () => null }));
 jest.mock('@/components/page/member-details/ContributionsDetails', () => ({ ContributionsDetails: () => null }));
 jest.mock('@/components/page/member-details/RepositoriesDetails', () => ({ RepositoriesDetails: () => null }));
+jest.mock('@/components/page/member-details/ContactDetails', () => ({
+  ContactDetails: () => <div>Contact details</div>,
+}));
+jest.mock('@/components/page/jobs/JobProfileDrawer/CvFirstCard', () => ({
+  CvFirstCard: () => null,
+}));
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'm1', name: 'Polina' } }),
@@ -137,5 +143,20 @@ describe('the profile pane lede', () => {
     );
 
     expect(screen.getByText(/isn't holding up your application to Senior Engineer/i)).toBeInTheDocument();
+  });
+
+  it('offers contact details alongside the rest of the profile', () => {
+    mockMember.mockReturnValue({ data: COMPLETE, isLoading: false });
+    render(
+      <JobProfilePane
+        memberUid="m1"
+        isLoggedIn
+        pendingRoleTitle={null}
+        pendingApproval={false}
+        onProfileState={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Contact details')).toBeInTheDocument();
   });
 });

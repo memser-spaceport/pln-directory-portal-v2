@@ -26,14 +26,14 @@ describe('TeamContactInfoView jobReferEmail', () => {
   it('shows the job referral email to a team lead', () => {
     render(<TeamContactInfoView team={team} userInfo={lead} toggleIsEditMode={jest.fn()} />);
 
-    expect(screen.getByText('Job referral email')).toBeInTheDocument();
+    expect(screen.getByText('Job Referral/Application Contact')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'jobs@acme.com' })).toHaveAttribute('href', 'mailto:jobs@acme.com');
   });
 
   it('hides the job referral email from visitors who are not leads or admins', () => {
     render(<TeamContactInfoView team={team} userInfo={visitor} toggleIsEditMode={jest.fn()} />);
 
-    expect(screen.queryByText('Job referral email')).not.toBeInTheDocument();
+    expect(screen.queryByText('Job Referral/Application Contact')).not.toBeInTheDocument();
     expect(screen.queryByText('jobs@acme.com')).not.toBeInTheDocument();
   });
 });

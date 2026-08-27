@@ -134,7 +134,12 @@ export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
           <DetailsSectionHeader title="Job search status">
             <PlTeamOnlyPill />
           </DetailsSectionHeader>
-          <JobSearchStatusInput name="signup-job-search-status" value={status.value} onChange={status.onChange} />
+          <JobSearchStatusInput
+            name="signup-job-search-status"
+            value={status.value}
+            onChange={status.onChange}
+            hiddenValues={['not-looking']}
+          />
           {/* Not a second copy of the strip above, though both are about the
               same missing answer. The strip is a standing state — "this card
               isn't done" — and has been there since the step opened; this

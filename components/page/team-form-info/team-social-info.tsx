@@ -48,7 +48,7 @@ function TeamSocialInfo(props: ITeamSocialInfo) {
             defaultValue={initialValues?.jobReferEmail ?? ''}
             maxLength={200}
             id="register-team-jobReferEmail"
-            label="Job referral email"
+            label="Job Referral/Application Contact"
             name="jobReferEmail"
             type="email"
             placeholder="jobs@team.com"

@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
  * The thing worth guarding here is not that a form renders — it is that the
  * form renders *inside the flow*, with the rail still on screen. The account
  * used to be a modal on top of this drawer, and a regression back to that would
- * look identical in any test that only asked "are the six fields present".
+ * look identical in any test that only asked "are the fields present".
  *
  * The other half is the footer, which is the one place the flow admits it may
  * end early: an account created by this press is `pending`, and a pending
@@ -107,9 +107,7 @@ const renderStep = (team: IJobTeam = PL, props: Partial<React.ComponentProps<typ
 const fillAccount = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-  fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
-    target: { value: 'Senior Protocol Engineer' },
-  });
+  fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
   fireEvent.click(screen.getByRole('radio', { name: /Actively looking/ }));
 };
 
@@ -134,6 +132,8 @@ describe('the apply flow’s account step', () => {
 
     expect(screen.getByLabelText(/Email address/)).toBeInTheDocument();
     expect(screen.getByRole('radiogroup', { name: 'Job search status' })).toBeInTheDocument();
+    expect(screen.queryByText('Team email')).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
   });
 
   /**
@@ -169,9 +169,7 @@ describe('the apply flow’s account step', () => {
       renderStep();
       fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
       fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
-        target: { value: 'Senior Protocol Engineer' },
-      });
+      fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
@@ -205,6 +203,17 @@ describe('the apply flow’s account step', () => {
       expect(screen.getByText(/Bluesky takes your application on their own site/)).toBeInTheDocument();
     });
 
+    /* The review step's own version of that honesty: Apply is an outbound link,
+       so the rail of three in-app steps comes off. */
+    it('hides the rail when Apply leaves the site', () => {
+      renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
+
+      expect(screen.getByRole('button', { name: 'Apply on their site' })).toBeInTheDocument();
+      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+      expect(screen.queryByText('Review job')).not.toBeInTheDocument();
+      expect(screen.queryByText('Application')).not.toBeInTheDocument();
+    });
+
     it('creates the account with what was typed', async () => {
       renderStep();
       fillAccount();
@@ -216,6 +225,7 @@ describe('the apply flow’s account step', () => {
         expect.objectContaining({
           email: 'polina@protocol.ai',
           name: 'Polina Bublii',
+          linkedin: 'polina-bublii',
           jobSearchStatus: 'actively-looking',
         }),
       );

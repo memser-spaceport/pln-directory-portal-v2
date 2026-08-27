@@ -58,6 +58,15 @@ describe('applyFlowReducer', () => {
       at: 'application',
       coverLetterDraft: '',
     });
+
+    /* Post-sign-up resume with a selected job lands on the profile step even
+       when the form already answered enough to skip it. */
+    expect(applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'profile' })).toEqual({
+      step: 'flow',
+      target: detailTarget(),
+      at: 'profile',
+      coverLetterDraft: '',
+    });
   });
 
   it('walks the rail without losing the target', () => {

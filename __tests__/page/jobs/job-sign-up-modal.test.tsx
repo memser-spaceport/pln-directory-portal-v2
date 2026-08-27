@@ -59,9 +59,7 @@ const chooseStatus = (label: RegExp = /Actively looking/) =>
 const fillRequired = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-  fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
-    target: { value: 'Senior Protocol Engineer' },
-  });
+  fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
   chooseStatus();
 };
 
@@ -72,27 +70,20 @@ describe('the job board sign-up modal', () => {
   });
 
   describe('the fields', () => {
-    it('marks the two blankable fields optional and leaves the required pair unmarked', () => {
+    it('marks current role optional and leaves LinkedIn required', () => {
       renderModal();
 
-      // The mark is a system, not an exception: required carries `*`, optional
-      // carries the words. A form with one marked field would make LinkedIn the
-      // one input whose state you deduce from an absent asterisk.
-      expect(screen.getByText('Team email').textContent).toContain('Optional');
-      expect(screen.getByText('LinkedIn profile').textContent).toContain('Optional');
+      expect(screen.getByText(/Current role & company/).textContent).toContain('Optional');
 
+      expect(screen.getByText('LinkedIn profile').textContent).not.toContain('Optional');
       expect(screen.getByText('Email address').textContent).not.toContain('Optional');
       expect(screen.getByText('Full name').textContent).not.toContain('Optional');
+      expect(screen.queryByText('Team email')).not.toBeInTheDocument();
     });
 
-    /* `FormField` renders its input with `id={name}`, which is the whole reason a
-       hand-rolled `<label htmlFor>` associates at all. If that ever changes these
-       labels become decoration and clicking one focuses nothing — with no visual
-       symptom. */
-    it('associates the hand-rolled labels with their inputs', () => {
+    it('associates LinkedIn with its input', () => {
       renderModal();
 
-      expect(screen.getByLabelText(/Team email/)).toHaveAttribute('id', 'teamEmail');
       expect(screen.getByLabelText(/LinkedIn profile/)).toHaveAttribute('id', 'linkedin');
     });
 
@@ -103,51 +94,22 @@ describe('the job board sign-up modal', () => {
     });
   });
 
-  describe('the personal-domain note', () => {
-    it('says nothing until a personal domain is finished', async () => {
-      renderModal();
-
-      expect(screen.queryByText(/Add your team email below/)).not.toBeInTheDocument();
-
-      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
-      await waitFor(() => expect(screen.queryByText(/Add your team email below/)).not.toBeInTheDocument());
-
-      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@gmail.com' } });
-      await waitFor(() => expect(screen.getByText(/Add your team email below/)).toBeInTheDocument());
-    });
-
-    /* `FormField` renders `description` only when the field has no error. A
-       malformed address is a problem and a personal one is a preference; only one
-       of them should be talking at a time. */
-    it('yields to a real validation error', async () => {
-      renderModal();
-
-      const email = screen.getByLabelText(/Email address/);
-      fireEvent.change(email, { target: { value: 'polina doe@gmail.com' } });
-      fireEvent.blur(email);
-
-      await waitFor(() => expect(screen.getByText('Must be a valid email')).toBeInTheDocument());
-      expect(screen.queryByText(/Add your team email below/)).not.toBeInTheDocument();
-    });
-  });
-
   /**
    * The one question on this form that is not about the account.
    *
-   * It earns its place by what it saves: `isProfileComplete` is
-   * `role && jobSearchStatus`, and the form already collects `role` — so with
-   * this answered, the account created here arrives ready to apply instead of
-   * owing one radio button and paying an apply-flow step for it. That payoff
-   * exists only if the answer is always given, which is what the gate below is.
+   * Asked here so the account arrives with a job-search answer. Role is optional
+   * on this form, so they still land on the profile step after sign-in to finish
+   * it — this gate is so the status is not also owed there.
    */
   describe('the job search status', () => {
-    it('offers the three statuses as one radio group', () => {
+    it('offers Actively looking and Open to the right role, not Not looking', () => {
       renderModal();
 
       const group = screen.getByRole('radiogroup', { name: 'Job search status' });
       expect(group).toBeInTheDocument();
-      expect(screen.getAllByRole('radio')).toHaveLength(3);
+      expect(screen.getAllByRole('radio')).toHaveLength(2);
       expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
+      expect(screen.queryByRole('radio', { name: /Not looking/ })).not.toBeInTheDocument();
     });
 
     /* Required in the same way `Email address` is, and marked the same way. A
@@ -166,9 +128,7 @@ describe('the job board sign-up modal', () => {
       // Everything except the status.
       fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
       fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
-      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
-        target: { value: 'Senior Protocol Engineer' },
-      });
+      fireEvent.change(screen.getByLabelText(/LinkedIn profile/), { target: { value: 'polina-bublii' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
@@ -179,27 +139,18 @@ describe('the job board sign-up modal', () => {
     it('reports the chosen status on the way out', async () => {
       renderModal();
       fillRequired();
-      chooseStatus(/Not looking/);
+      chooseStatus(/Open to the right role/);
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
-      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ jobSearchStatus: 'not-looking' }));
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(
+        expect.objectContaining({ jobSearchStatus: 'open-to-right-role' }),
+      );
     });
   });
 
   describe('submitting', () => {
-    it('reports the team email, trimmed', async () => {
-      renderModal();
-      fillRequired();
-      fireEvent.change(screen.getByLabelText(/Team email/), { target: { value: '  polina@newco.xyz  ' } });
-
-      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
-
-      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
-      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ teamEmail: 'polina@newco.xyz' }));
-    });
-
     it('submits with every optional field blank', async () => {
       renderModal();
       fillRequired();
@@ -208,18 +159,19 @@ describe('the job board sign-up modal', () => {
 
       await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
       expect(baseProps.onSignUp).toHaveBeenCalledWith(
-        expect.objectContaining({ teamEmail: '', linkedin: '', teamUid: null }),
+        expect.objectContaining({ linkedin: 'polina-bublii', role: '', teamUid: null }),
       );
     });
 
-    it('refuses a malformed team email', async () => {
+    it('refuses to submit without LinkedIn', async () => {
       renderModal();
-      fillRequired();
-      fireEvent.change(screen.getByLabelText(/Team email/), { target: { value: 'not-an-address' } });
+      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
+      fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
+      chooseStatus();
 
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
-      await waitFor(() => expect(screen.getByText('Must be a valid email')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByText('LinkedIn is required')).toBeInTheDocument());
       expect(baseProps.onSignUp).not.toHaveBeenCalled();
     });
 

@@ -20,6 +20,8 @@ interface JobSearchStatusInputProps {
    * "the other card's answer cleared itself" is not one anybody enjoys finding.
    */
   name?: string;
+  /** Statuses to hide. Sign-up drops "Not looking"; profile edit keeps every option. */
+  hiddenValues?: readonly JobSearchStatus[];
 }
 
 /**
@@ -43,14 +45,23 @@ interface JobSearchStatusInputProps {
  * form can drive it from react-hook-form without either shape leaking into the
  * other.
  */
-export function JobSearchStatusInput({ value, onChange, name = 'job-search-status' }: JobSearchStatusInputProps) {
+export function JobSearchStatusInput({
+  value,
+  onChange,
+  name = 'job-search-status',
+  hiddenValues,
+}: JobSearchStatusInputProps) {
+  const options = hiddenValues?.length
+    ? JOB_SEARCH_STATUS_OPTIONS.filter((option) => !hiddenValues.includes(option.value))
+    : JOB_SEARCH_STATUS_OPTIONS;
+
   return (
     <div className={s.statusRoot}>
       {/* The pill carries the audience; this line carries the purpose. */}
       <p className={s.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
 
       <div className={s.statusOptions} role="radiogroup" aria-label="Job search status">
-        {JOB_SEARCH_STATUS_OPTIONS.map((option) => (
+        {options.map((option) => (
           <label key={option.value} className={clsx(s.statusOption, { [s.statusOptionOn]: value === option.value })}>
             <input
               type="radio"

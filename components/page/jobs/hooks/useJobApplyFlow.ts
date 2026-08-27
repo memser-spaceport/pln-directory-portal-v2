@@ -306,6 +306,19 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
   const onSubmitted = useCallback(() => dispatch({ type: 'SUBMITTED' }), []);
 
+  /**
+   * After sign-up + Privy, land on the profile step of the job they started
+   * from — even if the form already answered enough to skip it. The rest of
+   * the profile (contact details, role if they skipped it) is still to fill.
+   */
+  const onResumeAfterSignUp = useCallback(
+    (target: JobDetailTarget) => {
+      dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+      analytics.onJobApplyDrawerOpened(applyBase(target));
+    },
+    [analytics, applyBase],
+  );
+
   return {
     state,
     onApply,
@@ -314,6 +327,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     setCoverLetter,
     onSignUp,
     onUpdateProfile,
+    onResumeAfterSignUp,
     closeSignUp,
     close,
     onProfileSaved,

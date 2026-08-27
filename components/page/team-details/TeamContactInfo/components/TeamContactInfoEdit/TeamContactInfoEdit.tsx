@@ -89,7 +89,7 @@ export function TeamContactInfoEdit(props: Props) {
 
           <FormField
             name="jobReferEmail"
-            label="Job referral email"
+            label="Job Referral/Application Contact"
             placeholder="jobs@team.com"
             description="Referrals for this team’s open roles go here instead of to selected members. Leave blank to send referrals to team leads."
           />

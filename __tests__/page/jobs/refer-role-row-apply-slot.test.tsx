@@ -278,12 +278,14 @@ describe('ReferRoleRow with the in-app description on', () => {
     expect(screen.queryByRole('button', { name: 'View job' })).not.toBeInTheDocument();
   });
 
-  /** Reading our panel and reading the team's own ad are different acts, so the
-   *  arrow out survives the swap. */
-  it('keeps the link out to the original posting', () => {
+  /**
+   * Reading the job is the drawer's job now, so the row no longer offers a
+   * second door out to the original posting.
+   */
+  it('drops the link out to the original posting', () => {
     renderDetailRow();
 
-    expect(screen.getByRole('link', { name: /Open the Community Manager posting/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Open the Community Manager posting/i })).not.toBeInTheDocument();
   });
 });
 
@@ -305,13 +307,10 @@ describe('ReferRoleRow for a viewer who came here to apply', () => {
       />,
     );
 
-  /* Refer used to render for everyone and bounce a logged-out press to Privy —
-     an offer that turns into a login wall, and the third ask for an account on
-     one screen. */
-  it('offers no Refer to a signed-out visitor', () => {
+  it('offers Refer to a signed-out visitor', () => {
     renderFor(null);
 
-    expect(screen.queryByRole('button', { name: 'Refer' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
   });
 
   it('keeps Refer for a member', () => {
@@ -326,8 +325,8 @@ describe('ReferRoleRow for a viewer who came here to apply', () => {
     expect(screen.queryByLabelText(/Open the .* posting/)).not.toBeInTheDocument();
   });
 
-  /* A Job Aspirant is signed in, so `canRefer` is true for them — only the way
-     out is withheld. The two rules are separate on purpose. */
+  /* A Job Aspirant is signed in, so Refer is there — only the way out is
+     withheld. The two rules are separate on purpose. */
   it('withholds the posting arrow from a Job Aspirant but keeps Refer', () => {
     const aspirant = { ...MEMBER, signUpSource: 'job-board' } as unknown as IUserInfo;
     renderFor(aspirant);

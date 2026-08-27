@@ -16,7 +16,12 @@ import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
-import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import {
+  PENDING_APPLY_PARAM,
+  PENDING_PROFILE_PARAM,
+  stripPendingApplyFromUrl,
+  withPendingApply,
+} from '@/services/jobs/job-apply-resume';
 import { JOB_DETAIL_PARAM } from '@/services/jobs/job-detail-link';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow, type JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -149,7 +154,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     if (applyResumeHandled.current) return;
 
     const roleUid = searchParams.get(PENDING_APPLY_PARAM);
-    if (!roleUid) return;
+    const completeProfile = searchParams.get(PENDING_PROFILE_PARAM) === '1';
+    if (!roleUid && !completeProfile) return;
     if (!isLoggedIn || boardViewer.viewer === 'resolving') return;
     if (isLoading) return;
 
@@ -158,6 +164,11 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     // it: a one-time instruction must not replay on reload.
     applyResumeHandled.current = true;
     stripPendingApplyFromUrl();
+
+    if (completeProfile && !roleUid) {
+      flow.onUpdateProfile();
+      return;
+    }
 
     /* The team travels with it now: reading is step 1 of the flow, so a resumed
        run has to be able to render the review step it may step back to. It was
@@ -173,7 +184,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     }
 
     if (resumed) {
-      flow.onApply(resumed, 'resume');
+      flow.onResumeAfterSignUp(resumed);
     } else {
       /* The role closed, or the filters no longer show it. The profile is
          still the thing standing between them and applying, so the drawer

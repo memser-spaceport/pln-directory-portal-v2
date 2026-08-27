@@ -14,6 +14,7 @@ import { ProfileDetails } from '@/components/page/member-details/ProfileDetails'
 import { ExperienceDetails } from '@/components/page/member-details/ExperienceDetails';
 import { ContributionsDetails } from '@/components/page/member-details/ContributionsDetails';
 import { RepositoriesDetails } from '@/components/page/member-details/RepositoriesDetails';
+import { ContactDetails } from '@/components/page/member-details/ContactDetails';
 import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
@@ -266,6 +267,8 @@ export function JobProfilePane(props: JobProfilePaneProps) {
               />
             </div>
           </DetailsSection>
+
+          <ContactDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="drawer" />
 
           {/* 3–5. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.

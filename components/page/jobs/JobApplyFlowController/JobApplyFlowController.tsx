@@ -13,7 +13,7 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
-import { withPendingApply } from '@/services/jobs/job-apply-resume';
+import { withPendingApply, withPendingProfile } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
 import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
@@ -102,14 +102,19 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * The rest of the search string rides along, so the rail the person narrowed
    * before signing up is still narrowed when they land back on the board.
    */
-  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string }) => {
+  const pushLogin = (opts?: { prefillEmail?: string; pendingRoleUid?: string; completeProfile?: boolean }) => {
     const search = new URLSearchParams(window.location.search);
     if (opts?.prefillEmail) {
       search.set('prefillEmail', opts.prefillEmail);
     }
-    // The role rides the same channel, so signing in lands them back on the
-    // application instead of on a board they have to re-navigate.
-    const qs = withPendingApply(search.toString(), opts?.pendingRoleUid);
+    const withEmail = search.toString();
+    // A job in the drawer resumes on that role's profile step. A banner / modal
+    // sign-up has no job, so they land in the standalone profile drawer instead.
+    const qs = opts?.pendingRoleUid
+      ? withPendingApply(withEmail, opts.pendingRoleUid)
+      : opts?.completeProfile
+        ? withPendingProfile(withEmail)
+        : withPendingApply(withEmail, undefined);
     goToLogin({ returnTo: `${window.location.pathname}${qs}` });
   };
 
@@ -138,16 +143,9 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       await signUpMutation.mutateAsync({
         name: details.name,
         email: details.email,
-        role: details.role,
-        /* Unconditional, unlike the optional fields below it: the form requires
-           an answer, so there is always one to send. Together with `role` it is
-           what makes the account this creates already profile-complete — the
-           whole reason the question is asked at sign-up rather than later. */
         jobSearchStatus: details.jobSearchStatus,
-        // Omitted when blank rather than sent empty: the endpoint's rule is an
-        // address or nothing, and `''` fails its `.email()` on both sides.
-        ...(details.teamEmail ? { teamEmail: details.teamEmail } : {}),
-        ...(details.linkedin ? { linkedinHandler: details.linkedin } : {}),
+        linkedinHandler: details.linkedin,
+        ...(details.role ? { role: details.role } : {}),
         // The company select offers existing network teams only, so this is
         // always an affiliation rather than a new team. Omitted entirely when
         // they skipped it — the endpoint reads that as no affiliation.
@@ -168,12 +166,16 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
          on a job — and it is the path that matters most now, so it must not be
          counted as a row press. */
       trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
-      has_team_email: !!details.teamEmail,
+      has_team_email: false,
     });
     flow.closeSignUp();
     // They just typed this email into the form the line above submitted —
     // asking for it again in the login modal is asking twice for one fact.
-    pushLogin({ prefillEmail: details.email, pendingRoleUid: target?.role.uid });
+    pushLogin({
+      prefillEmail: details.email,
+      pendingRoleUid: target?.role.uid,
+      completeProfile: !target?.role.uid,
+    });
     return { success: true };
   };
 

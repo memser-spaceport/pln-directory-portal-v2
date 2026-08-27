@@ -19,7 +19,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
-import { SHOW_CV_IMPORT } from '@/services/jobs/constants';
+import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 

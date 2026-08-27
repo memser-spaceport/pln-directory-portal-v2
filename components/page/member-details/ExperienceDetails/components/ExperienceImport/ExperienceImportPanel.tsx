@@ -74,12 +74,18 @@ interface ExperienceImportPanelProps {
   /**
    * What the person is told before handing over a document.
    *
-   * A prop because the honest sentence is not the same on every surface. The
-   * default states the general fact — read, not kept — which is true wherever
-   * this panel mounts. The job board sharpens it to the promise its own reader
-   * is actually wondering about ("it isn't sent with your applications"),
-   * because there the file could plausibly be forwarded to a hiring team and
-   * nowhere else can it.
+   * A prop because the honest sentence is not the same on every surface. The job
+   * board sharpens it to the promise its own reader is wondering about — "it
+   * isn't sent with your applications" — because there the file could plausibly
+   * be forwarded to a hiring team and nowhere else can it.
+   *
+   * **The default used to say "The file itself is not kept", and that is false.**
+   * `member-cv-imports.service` uploads the document to S3 and keeps the bucket
+   * and key on the `MemberCvImport` row; only a *previous* file is deleted when
+   * a new one replaces it. Nothing rendered it, because both call sites pass
+   * their own note — which is exactly why it was worth fixing rather than
+   * leaving: it is what the next host lands on by omitting one prop, and the
+   * thing it would then promise is a privacy claim we do not keep.
    */
   privacyNote?: string;
 }
@@ -113,7 +119,7 @@ export function ExperienceImportPanel({
   onAddManually,
   onCancelRead,
   initialFile,
-  privacyNote = 'We read the file to fill in your profile. The file itself is not kept.',
+  privacyNote = 'We read the file to fill in your profile. It is never shown on your profile or sent to anyone.',
 }: ExperienceImportPanelProps) {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>('idle');

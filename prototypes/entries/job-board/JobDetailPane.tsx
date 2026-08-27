@@ -35,6 +35,15 @@ interface JobDetailPaneProps {
   /** Already sent from this session — the stamp row reports when instead of how old. */
   applied?: boolean;
   appliedAt?: string;
+  /**
+   * Whether there is an account behind the reader. Gates the `Original posting`
+   * link — see the stamp row.
+   *
+   * Defaults to `true` so the link is the norm and hiding it is the exception,
+   * which is the direction that matches what this pane is: the job, read in the
+   * app, with the way out to the team's own ad in its masthead.
+   */
+  loggedIn?: boolean;
 }
 
 /**
@@ -57,11 +66,12 @@ interface JobDetailPaneProps {
  *
  * **The description is mocked.** See `jobDetails.ts` — production's job records
  * carry no body at all, which is the reason the board has always sent people to
- * an external posting. That link survives, in this pane's masthead and on the
- * row: reading our summary and reading the team's own ad are different things.
+ * an external posting. That link survives in this pane's masthead — reading our
+ * summary and reading the team's own ad are different things — but only for a
+ * signed-in reader, and no longer on the row at all. See `postingHref`.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied = false, appliedAt } = props;
+  const { role, team, applied = false, appliedAt, loggedIn = true } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
@@ -69,7 +79,30 @@ export function JobDetailPane(props: JobDetailPaneProps) {
   const date = role ? getJobDate(role) : null;
   const meta = role ? jobMetaParts(role) : [];
 
-  const postingHref = role?.applyUrl ? `${role.applyUrl}?${jobApplyQueryParams('job-board')}` : null;
+  /**
+   * **Members only.** The board's whole case for an account is the one this
+   * drawer is standing in the middle of — *apply to hundreds of open roles with
+   * a single profile* (`ApplyValueBullets`, said on the banner and again in the
+   * sign-up modal). A link straight to the team's own ad is the door out of
+   * that: a visitor who takes it applies on someone else's form, and the profile
+   * this flow exists to build never happens.
+   *
+   * It costs the logged-out reader little, which is the only reason this is
+   * defensible. This pane carries the description *in the app* — the whole
+   * argument for step 1 — so the ad is a second reading of a job they can
+   * already read, not the only copy of it. (Standing caveat, unchanged: that
+   * body is mocked here. Production's job records carry none, which is why the
+   * board has always linked out. If the real board ships without descriptions,
+   * this gate hides the only text there is and should not ship with it.)
+   *
+   * **Gated, not deleted** — the distinction that makes this a lock rather than
+   * a loss. Signing in restores the link, and signing in is one press from this
+   * same drawer. Nothing is said about the absence: a "sign in to see the
+   * original posting" line would advertise the leak and put a third sign-in ask
+   * in a drawer that already makes one, which is exactly the pile-up
+   * `SignInBanner` was cut back to fix.
+   */
+  const postingHref = loggedIn && role?.applyUrl ? `${role.applyUrl}?${jobApplyQueryParams('job-board')}` : null;
 
   if (!role || !team || !detail) return null;
 

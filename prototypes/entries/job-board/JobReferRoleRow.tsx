@@ -31,9 +31,8 @@ interface JobReferRoleRowProps {
   /** Mirrors production's `source`: this row is shared by the board and team-profile prototypes. */
   source?: JobSurface;
   onClick?: () => void;
-  /** Referring needs a signed-in referrer; logged out, the button nudges instead. */
+  /** Referring needs a signed-in referrer; logged out, the button isn't there at all. */
   canRefer?: boolean;
-  onReferBlocked?: () => void;
   /* (`onApply` — an in-app Apply button in this row — is gone. It was the board's
       slot back when pressing Apply from a row was possible; the row's button
       became **View job** when the description moved in-app, which left the
@@ -61,7 +60,13 @@ interface JobReferRoleRowProps {
  *
  *  - **Refer** needs a signed-in referrer because you genuinely cannot vouch for
  *    someone as nobody: the modal signs the note with your name, and a referral
- *    from no one is worth nothing to the team that receives it.
+ *    from no one is worth nothing to the team that receives it. It is therefore
+ *    **hidden** rather than nudged. Referring is a thing you do *for someone else*
+ *    once you're already in the network — nobody arrives at the board wanting to
+ *    refer, so offering it to a stranger only to bounce them into sign-in
+ *    advertises a job they didn't come to do and spends the row's sign-in ask on
+ *    the wrong action. Apply is the ask worth making to a logged-out visitor;
+ *    this one waits until it means something.
  *  - **Apply** is now gated too, and not as a login toll. One-click applying
  *    means the team receives your *profile* rather than a form you retyped, so
  *    there has to be a profile to send. The exchange is real in both directions:
@@ -95,7 +100,6 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
     source = 'job-board',
     onClick,
     canRefer = true,
-    onReferBlocked,
     onViewJob,
     applied = false,
     appliedAt,
@@ -173,16 +177,23 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 `.link` carries no `neutral`, so `secondary` is the design
                 system's quiet text button. It also zeroes padding and min-width,
                 which is why `.referButton` — pure horizontal padding for the
-                bordered shape Refer used to wear — went with it. */}
-            <Button
-              size="s"
-              style="link"
-              variant="secondary"
-              className={js.referTone}
-              onClick={() => (canRefer ? setReferOpen(true) : onReferBlocked?.())}
-            >
-              Refer
-            </Button>
+                bordered shape Refer used to wear — went with it.
+
+                Absent, not disabled, when logged out — see the note above the
+                component. The row keeps its geometry either way: this is a text
+                button in a right-aligned cluster, so removing it closes up
+                rather than leaving a hole. */}
+            {canRefer && (
+              <Button
+                size="s"
+                style="link"
+                variant="secondary"
+                className={js.referTone}
+                onClick={() => setReferOpen(true)}
+              >
+                Refer
+              </Button>
+            )}
 
             <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
@@ -192,6 +203,13 @@ export function JobReferRoleRow(props: JobReferRoleRowProps) {
                 (`JobDetailPane`'s `.postingLink`), a labelled link to the same
                 URL — so the ad is still one press from the row, via the control
                 that already opens the job.
+
+                Narrowed since: that link is **members only** now, so for a
+                logged-out visitor the row genuinely is the end of the road to
+                the external ad. Deliberate — see the note on `postingHref` — and
+                it does not argue for putting the arrow back, because restoring
+                it here would reopen on the board exactly the door the drawer
+                just closed.
 
                 Worth recording that this glyph was restored once before, after
                 being deleted along with the old arrow-as-Apply. That restore was

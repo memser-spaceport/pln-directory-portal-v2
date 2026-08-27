@@ -666,7 +666,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       </div>
 
       <div className={s.drawerContent}>
-        {step === 'review' && <JobDetailPane role={role} team={team} applied={applied} appliedAt={appliedAt} />}
+        {step === 'review' && (
+          <JobDetailPane role={role} team={team} applied={applied} appliedAt={appliedAt} loggedIn={loggedIn} />
+        )}
 
         {/* One position, two panes. A visitor with no account fills in the
             details that open one; a member confirms the profile they have. */}
@@ -690,7 +692,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                   longer touches the draft — the one profile answer it still
                   collects travels as `jobSearchStatus`.) */}
               <JobAccountPane
-                roleTitle={role?.roleTitle ?? 'this role'}
                 jobSearchStatus={draft.jobSearchStatus}
                 onJobSearchStatusChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
                 onSignIn={onSignIn}

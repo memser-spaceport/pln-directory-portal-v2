@@ -35,9 +35,11 @@ import d from './JobProfilePane.module.scss';
 import fd from './JobApplyFlowDrawer.module.scss';
 
 interface JobAccountPaneProps {
-  /** The role the flow is applying for. Always present — the only way to reach
-   *  this pane is through a job — so the lede can say what the account is for. */
-  roleTitle: string;
+  /* (`roleTitle` was a prop: the role the flow is applying for, for the lede and
+      then for the amber strip under the status card. Both stopped naming it — the
+      lede is gone and the strip now says "Required to continue." — and the pane
+      has no other line that mentions the role. The drawer's own footer names it,
+      which is where a step's subject belongs when the step is a form.) */
   /** The other half of `isProfileComplete`, and the one answer this pane holds
    *  outside the account form: it belongs to the profile draft the flow already
    *  owns, not to the account record. */
@@ -91,7 +93,7 @@ interface JobAccountPaneProps {
  * — a profile field the account form has no claim on. Each store owns what it
  * owns, and the drawer merges them when the press is made.
  */
-export function JobAccountPane({ roleTitle, jobSearchStatus, onJobSearchStatusChange, onSignIn }: JobAccountPaneProps) {
+export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSignIn }: JobAccountPaneProps) {
   const hasStatus = jobSearchStatus !== '';
 
   /* (`parsed`, `imported`, `showCvOffer` and `applyImport` stood here, along with
@@ -108,11 +110,11 @@ export function JobAccountPane({ roleTitle, jobSearchStatus, onJobSearchStatusCh
           profile, and go to <role> with your note." It has been removed, and
           what removed it was the title added directly above it: "Fill in your
           profile" says the first half, and the second half was never this
-          sentence's alone to carry. The role is still named twice on the step
-          without it — the amber strip under the status card ("required to apply
-          to <role>") and the footer beside the button — and both say it at the
-          moment it bears on a decision, where the lede said it to nobody in
-          particular on the way past. */}
+          sentence's alone to carry. The role is still named on the step without
+          it — the footer, beside the button that acts on it — and it says it at
+          the moment it bears on a decision, where the lede said it to nobody in
+          particular on the way past. (The amber strip under the status card
+          named the role too, and no longer does; see the note there.) */}
       <div className={fd.stepIntro}>
         {/* The step's name. Every other stop in this flow opens with one — step
             1 with the role's own masthead — and this one opened on a grey
@@ -190,13 +192,21 @@ export function JobAccountPane({ roleTitle, jobSearchStatus, onJobSearchStatusCh
       {/* The second required answer, wearing the exact treatment the profile
           step gives it: the amber strip when unanswered, the PL-team-only pill,
           the same radio group. A stranger and a member are answering one
-          question, so they should be looking at one field. */}
+          question, so they should be looking at one field.
+
+          **The strip's sentence is the one thing that differs, and on purpose.**
+          The member's step says "An answer here is required to apply to
+          <role>" — it can, because a member reached that card from a board full
+          of roles and naming which one is worth the words. This pane is the
+          logged-out step: the person is three cards into a form that makes an
+          account, the footer button says `Continue to apply` and names the role
+          right beside it, and the strip sits one inch above it. Repeating the
+          role there says nothing the button doesn't, in more words, in an amber
+          strip whose whole job is to be read in a glance. So it states the only
+          thing it knows that the button doesn't — that this field is what's
+          standing in the way. */}
       <DetailsSection missingData={!hasStatus}>
-        {!hasStatus && (
-          <DataIncomplete className={d.incompleteStrip}>
-            An answer here is required to apply to {roleTitle}.
-          </DataIncomplete>
-        )}
+        {!hasStatus && <DataIncomplete className={d.incompleteStrip}>Required to continue.</DataIncomplete>}
         <div className={clsx({ [d.missingBody]: !hasStatus })}>
           <DetailsSectionHeader title="Job search status">
             <PlTeamOnlyPill />

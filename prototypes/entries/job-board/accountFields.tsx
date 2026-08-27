@@ -224,10 +224,10 @@ const isPersonalEmailDomain = (email: string): boolean => {
  *
  * **Why anything is said at all.** The card these inputs sit on already tells the
  * person that "the PL team reviews new accounts". A work address is what makes
- * that review answerable without a conversation — it is evidence for the claim
- * the *same form* makes two fields down, where they name their current company.
- * That is the one thing here the interface cannot show for itself, so it is the
- * only thing this sentence spends words on.
+ * that review answerable without a conversation — it is the one thing the form
+ * collects that says where someone actually works, whether or not the team two
+ * fields down is on the network. That is the one thing here the interface cannot
+ * show for itself, so it is the only thing this sentence spends words on.
  *
  * **Why it is a preference and not a rule.** Contractors, people between roles,
  * researchers and anyone at a company that hasn't got as far as email all belong
@@ -256,8 +256,16 @@ const isPersonalEmailDomain = (email: string): boolean => {
  * can go and fill in rather than second-guessing the one they just used.
  *
  * It still only appears on a personal domain, and still validates nothing.
+ *
+ * **It stopped saying "the company you name".** That clause pointed at the
+ * select two fields down, which is now explicitly a list of *PL network teams*
+ * and explicitly blank-able — so for the person most likely to be reading this
+ * note (a personal address, quite possibly not at a network team at all) it
+ * pointed at a box they were just told they could skip. The sentence's job was
+ * never the cross-reference; it was telling someone how to make the PL team's
+ * review answerable. It now says that and nothing else.
  */
-const PERSONAL_EMAIL_NOTE = 'Add your team email below and the PL team can see you’re at the company you name.';
+const PERSONAL_EMAIL_NOTE = 'Add your team email below and the PL team can see where you work.';
 
 /**
  * The four fields, in production's order. Must be rendered inside a
@@ -359,20 +367,92 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         />
       </div>
 
+      {/* **The label names the network, because the list is the network.**
+          This read "Current role & company" and the select said "Select a
+          company", which describes a generic employment question — so someone
+          at a company that isn't on the network opens a list of six PL teams,
+          doesn't find their employer, and has no way to tell whether that is a
+          bug, a search that needs different words, or a question that was never
+          meant for them. `useCompanyOptions` returns `MOCK_JOB_GROUPS` and
+          nothing else; production feeds the same select from a members-form
+          query. The list has always been network teams. Only the words were
+          generic.
+
+          "PL network team" rather than "company" or "team" alone: it is the
+          board's own phrase — `SignInBanner`'s headline counts "N PL network
+          teams" one screen above this modal — so the label and the thing it
+          points at use one vocabulary. Naming it for what the list *holds*
+          rather than for what the reader has (an employer) is lesson 6's rule:
+          a field labelled from the asker's side undersells and mis-describes
+          what is actually in it.
+
+          **Why the label is not the question itself.** "Are you already at a PL
+          network team?" is what this asks, and it was the obvious candidate —
+          but the group holds one required field and one optional one. `role` is
+          required of everybody; the team is answerable only if you are on the
+          network. A question-shaped label covering both would make the required
+          half read as skippable, and the group can't carry a single
+          `OptionalMark` for the same reason. So the label states the pair, and
+          the description under the select — the half that is actually optional —
+          answers the question. */}
       <div className={s.column}>
-        <div className={s.inputsLabel}>Current role &amp; company</div>
+        <div className={s.inputsLabel}>Current role &amp; PL network team</div>
         <div className={s.inputsWrapper}>
           <FormField name="role" placeholder="Enter your current role" />
           <span className={s.separator}>@</span>
-          {/* "Select a company", not the source's "Search or add a team". Two
-              reasons. It fits on one line at this width — the longer string
-              wrapped and left the select taller than the role field beside it,
-              so a paired row stopped looking paired. And "add" would be a
-              promise this select doesn't keep: production backs that word with
-              an inline add-a-team form behind the select's empty state, which
-              this prototype doesn't carry. */}
-          <FormSelect name="company" placeholder="Select a company" isClearable options={companyOptions} />
+          {/* "Select a team", not the source's "Search or add a team". Two
+              reasons, both still true now the word is "team". It fits on one
+              line at this width — the longer string wrapped and left the select
+              taller than the role field beside it, so a paired row stopped
+              looking paired. And "add" would be a promise this select doesn't
+              keep: production backs that word with an inline add-a-team form
+              behind the select's empty state, which this prototype doesn't
+              carry.
+
+              The hint below is the one thing neither the label nor the list can
+              show: that a blank is a *correct* answer. Without it the closed
+              list reads as a wall to anyone whose employer isn't on it — and
+              they are exactly the people this board most wants applying. */}
+          <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
         </div>
+        {/* **Hand-rolled with `FormField`'s own `.fieldDescription`, not passed
+            to `FormSelect` as a `description` prop.**
+
+            It was that prop first, which looked like the in-pattern choice —
+            `FormSelect` renders `description` under its control in its own
+            `Field.Root`, the same slot `FormField` uses. The two components do
+            not agree on what that slot looks like. Measured on this form, the
+            three descriptions read:
+
+              LinkedIn (FormField) .... 12px / 18px / 400 / #455468 / mt 8
+              this one (FormSelect) ... 10px / 20px / 500 / #878b94 / mt 0
+              Team email (FormField) .. 12px / 18px / 400 / #455468 / mt 8
+
+            Five divergences, and not one of them was a decision — they are two
+            stylesheets' defaults meeting in one card. The 200% leading is what
+            reads as wrong (a 10px line with 20px of air around it looks like a
+            caption that came loose), but the raw `#878b94` is the worse half:
+            it is not in the PL palette, which is the same reason `.inputsLabel`
+            below swapped production's `#475569` for the token pair.
+
+            So it wears the treatment the other two already have rather than a
+            new one invented to sit between them.
+
+            **And it moved out of the select's column, under the whole row.**
+            At 10px it wrapped to two lines inside a 241px half; at 12px it
+            would have been three. Given the row's full width it is one line —
+            and it belongs to the pair anyway, which is how the group is
+            labelled one line above.
+
+            The cost, stated: `Field.Description` inside `FormSelect` is
+            associated with the control; this `<p>` is not. DOM order still puts
+            it immediately after the row, and the group's own label is already a
+            plain `<div>` with no `htmlFor` — production's `SignupWizard` does
+            the same — so this group was never programmatically labelled to
+            begin with. Worth fixing properly if the pattern spreads. */}
+        <p className={ff.fieldDescription}>
+          Only teams already on the PL network are listed — leave it blank if yours isn’t one.
+        </p>
       </div>
 
       {/* **The label is hand-rolled, and that is production's own pattern.**
@@ -419,10 +499,19 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
           against the selected team — a real one would have to decide whether an
           unverified claim is worth anything, and that is a question about the
           review process, not about the field. */}
+        {/* **"Your work address", not "your address at the company above".**
+            Same correction as `PERSONAL_EMAIL_NOTE`, and it matters more here:
+            this description sat directly under a select the form now tells you
+            to leave blank when your employer isn't on the network, so "the
+            company above" could point at an empty box. A field whose
+            description refers to another field's answer breaks the moment that
+            answer is legitimately absent — and here absent is the common case.
+            The payoff clause survives untouched, because that is what earns an
+            optional field. */}
         <FormField
           name="teamEmail"
           placeholder="you@yourteam.xyz"
-          description="Your address at the company above, so the PL team can see where you work."
+          description="An address at your team or company, so the PL team can see where you work."
         />
       </div>
     </div>

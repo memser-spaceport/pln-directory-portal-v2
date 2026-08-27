@@ -96,8 +96,9 @@
  *                                            position in a sequence you are walking.
  *  - JobDetailPane        (was a drawer)    step 1: the job, read in the app. Description mocked —
  *                                            production's job records carry no body, which is why the
- *                                            board has always linked out. That link survives here and
- *                                            on the row.
+ *                                            board has always linked out. That link survives here, in
+ *                                            the masthead — and only for a signed-in reader, since it
+ *                                            is the one door out of the account this flow is for.
  *  - JobProfilePane       (was a drawer)    step 2: the member profile itself, card for card, on
  *                                            production's `DetailsSection` chrome. **Your current role
  *                                            and the private job-search status are the whole
@@ -1128,7 +1129,6 @@ export default function JobBoardPrototype() {
               group={group}
               newsVariant={NEWS_VARIANT}
               canRefer={isLoggedIn}
-              onReferBlocked={onSignIn}
               onViewJob={onViewJob}
               appliedRoleUids={appliedRoleUids}
               appliedAtByRole={appliedAtByRole}

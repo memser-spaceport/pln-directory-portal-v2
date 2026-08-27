@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 
 import { useAiAppsAnalytics } from '@/analytics/ai-apps.analytics';
 import { DocumentIcon } from '@/components/icons';
+import { Button } from '@/components/common/Button';
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
 import { AiApp, deployFailureKind, hasPrd } from '@/services/ai-apps/ai-apps.service';
 
@@ -117,8 +118,10 @@ export function AiAppCard(props: Props) {
       </div>
 
       {showDetailsButton && (
-        <button
-          type="button"
+        <Button
+          size="xxs"
+          style="border"
+          variant="neutral"
           className={s.detailsButton}
           onClick={(e) => {
             e.stopPropagation();
@@ -126,11 +129,9 @@ export function AiAppCard(props: Props) {
           }}
           aria-label={`App details for ${app.name}`}
         >
-          <span className={s.detailsBadge}>
-            <DocumentIcon aria-hidden />
-            App Details
-          </span>
-        </button>
+          <DocumentIcon aria-hidden />
+          App Details
+        </Button>
       )}
     </div>
   );

@@ -39,10 +39,10 @@
  *
  * What the old order cost: "Browse N updates" described the page the visitor was
  * already looking at and could already read, so the loudest line in the banner
- * named something an account does not change. "Personalize your updates" names
- * the thing it does. The count stays in the headline as the teams those updates
- * come from — still what is on screen, the week's stream rather than a database
- * total, so it stays true as the feed changes under it.
+ * named something an account does not change. "See personalized updates" names
+ * the thing it does. The counts stay in the headline as the teams and members
+ * those updates come from — still what is on screen, the week's stream rather
+ * than a database total, so they stay true as the feed changes under it.
  *
  * **"Welcome to LabOS" is gone, deliberately** — again job-board's call, and
  * the argument transfers unchanged: a greeting is not an offer, and someone who
@@ -52,41 +52,18 @@
  * with it, because it is a claim about the company where the reader needs a
  * claim about the page.
  *
- * **The doors are a boxed pair in the card's own CTA slot**, which is where
- * production's `Welcome` puts its one button.
- *
- * They were inline text buttons inside the sentence for a round, borrowed from
- * job-board's `SignInBanner` — which had moved them there because that board
- * makes the same ask three times in one viewport (navbar, banner, and the
- * sign-up form every Apply opens) and a fourth boxed cluster was noise. **That
- * argument does not transfer.** This page makes the ask once. The banner is
- * also 1200px wide holding a 700px sentence, so hiding the controls in prose
- * left the right half of the strip empty and the offer with nothing to press.
- *
- * **Sign in is the primary, Create account the bordered twin — the navbar's
- * ranking, one row above.** This ran the other way for a round, on the argument
- * that a banner only a logged-out visitor can see is talking to the group that
- * mostly has no account yet, so the navbar's ordering (Sign up bordered, Sign in
- * filled) shouldn't carry across. It carries. The pair sits eight rows under the
- * navbar's pair in the same viewport, and two clusters offering the same two
- * doors with the emphasis flipped between them makes the reader price the same
- * decision twice — which is the cost the divergence never priced. Production's
- * `Welcome`, this card's own source, also puts Sign in in the filled button.
- *
- * Both doors are still offered, which is the half that matters — "Sign in" alone
- * tells the likeliest reader of a sign-in banner, someone with no account, that
- * the offer is not for them. And the order follows the ranking: the bordered
- * door first, the filled one last, exactly as the navbar reads.
+ * **Sign in is the only door in the card's own CTA slot**, which is where
+ * production's `Welcome` puts its one button. Create account used to sit
+ * beside it as the bordered twin of the navbar pair; it was cut so this card
+ * and production's `Welcome` offer the same one door, and the navbar still
+ * carries Sign up.
  *
  * **The arrow on Sign in is production's, not a decoration.** `welcome.cta`
  * reserves a 6px gap for it and `Welcome` fills that gap with a right-pointing
  * chevron-and-rule; the transcription is at the call site. It marks the door
- * that continues into the app, which is why only the filled one carries it —
- * an arrow on both would mark nothing.
+ * that continues into the app.
  *
- * Geometry for both buttons is production's `welcome.cta`; only the secondary's
- * tone is local. Geometry belongs to the host, tone to the source — a bordered
- * twin drawn from scratch would put two radii in one cluster.
+ * Geometry for the button is production's `welcome.cta`.
  *
  * **The sentence's tail is `ForYouBanner`'s, verbatim.** A visitor is promised
  * "your skills, your focus areas, and the teams you follow"; a member standing
@@ -95,62 +72,48 @@
  * drift is invisible because nobody sees both states. Only the opening differs,
  * because only one of them has a feed yet.
  *
- * **And the tail no longer opens with "Sign in and".** The doors are two
- * buttons in the same card and the headline's verb is already the ask, so
- * naming the door a third time priced one decision three ways. What is left is
- * the plain claim about what the feed does, which is the half the buttons
- * cannot say.
+ * **And the tail no longer opens with "Sign in and".** The door is a button in
+ * the same card and the headline's verb is already the ask, so naming the door
+ * a third time priced one decision three ways. What is left is the plain claim
+ * about what the feed does, which is the half the button cannot say.
  */
 
 // Production's signed-out home banner, worn 1:1 — see the note above.
 import welcome from '@/components/page/home/Welcome/Welcome.module.scss';
 
-// Local: the card's height, the CTA row, and the secondary button's tone.
-// Everything else — including both buttons' geometry — is production's sheet.
+// Local: the card's height. Everything else — including the button's geometry
+// and the CTA slot — is production's sheet.
 import local from './Newsfeed.module.scss';
 
 interface SignedOutBannerProps {
   /** Teams the week's stream comes from — what is on screen, not a network
-   *  total. The banner's only number since the headline became the offer. */
+   *  total. */
   teamCount: number;
+  /** Members named in the same headline. A network-scale stand-in in this
+   *  entry, matching production's `Welcome` memberCount. */
+  memberCount: number;
   onSignIn: () => void;
-  /** A separate door on purpose — see `PrototypeNavBar`'s `onSignUp`. */
-  onSignUp: () => void;
 }
 
-export function SignedOutBanner({ teamCount, onSignIn, onSignUp }: SignedOutBannerProps) {
+export function SignedOutBanner({ teamCount, memberCount, onSignIn }: SignedOutBannerProps) {
+  const teams = `${teamCount.toLocaleString('en-US')} PL network ${teamCount === 1 ? 'team' : 'teams'}`;
+  const members = `${memberCount.toLocaleString('en-US')} ${memberCount === 1 ? 'member' : 'members'}`;
+
   return (
     <section className={`${welcome.welcome} ${local.signedOutBanner}`}>
       <div className={welcome.text}>
-        {/* The highlight sits on the count phrase, which is where both the
-            production banner and job-board's put it: `Welcome` accents its
-            subject ("LabOS"), `SignInBanner` accents its inventory ("13 open
-            roles"). Here the inventory is the teams. */}
         <p className={welcome.title}>
-          Personalize your updates from{' '}
+          See personalized updates from{' '}
           <span className={welcome.titleHighlight}>
-            {teamCount} PL network {teamCount === 1 ? 'team' : 'teams'}
+            {teams} and {members}
           </span>
         </p>
-        {/* The mechanism, in `ForYouBanner`'s words from "your skills" on. No
-            door named here — the two buttons carry that, and the headline
-            already asked. */}
-        <p className={welcome.sub}>
-          The feed reorders around your skills, your focus areas, and the teams you follow.
-        </p>
+        <p className={welcome.sub}>The feed reorders around your skills, your focus areas, and the teams you follow.</p>
       </div>
 
-      <div className={local.bannerCtas}>
-        <button type="button" className={`${welcome.cta} ${local.ctaSecondary}`} onClick={onSignUp}>
-          Create account
-        </button>
+      <div className={welcome.ctas}>
         <button type="button" className={welcome.cta} onClick={onSignIn}>
           Sign in
-          {/* Production's own `Welcome` CTA, transcribed: the same 14px glyph on
-              the same 24-unit viewBox, `currentColor` at 2px with round caps, in
-              the 6px gap `welcome.cta` already reserves for it. Not an invented
-              arrow and not `ArrowUpRightIcon`, which the product uses for leaving
-              the app — this door stays here. */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M5 12h14M13 6l6 6-6 6"

@@ -134,6 +134,9 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
         name: details.name,
         email: details.email,
         role: details.role,
+        // Omitted when blank rather than sent empty: the endpoint's rule is an
+        // address or nothing, and `''` fails its `.email()` on both sides.
+        ...(details.teamEmail ? { teamEmail: details.teamEmail } : {}),
         ...(details.linkedin ? { linkedinHandler: details.linkedin } : {}),
         // The company select offers existing network teams only, so this is
         // always an affiliation rather than a new team. Omitted entirely when
@@ -148,7 +151,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       return { success: false, emailTaken: isEmailTakenError(error) };
     }
 
-    analytics.onJobApplySignUpSubmitted({ ...analyticsBase, trigger: target ? 'row' : 'banner' });
+    analytics.onJobApplySignUpSubmitted({
+      ...analyticsBase,
+      trigger: target ? 'row' : 'banner',
+      has_team_email: !!details.teamEmail,
+    });
     flow.closeSignUp();
     // They just typed this email into the form the line above submitted —
     // asking for it again in the login modal is asking twice for one fact.

@@ -168,9 +168,19 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       analytics.onJobApplyClicked({ ...applyBase(target), trigger });
 
       if (viewer === 'logged-out') {
-        // Not a sign-in prompt: the sign-up form IS the ask at the moment of
-        // intent, and it carries the role so the flow can resume on it.
-        dispatch({ type: 'OPEN_SIGN_UP', target });
+        /* Not a sign-in prompt: the sign-up form IS the ask at the moment of
+           intent, and it carries the role so the flow can resume on it.
+
+           It is now the flow's own step 2 rather than a modal over the top —
+           the account takes the position a member's profile occupies, so the
+           rail stays visible and keeps saying how much further there is. Landing
+           ON the step rather than opening at `review` is deliberate: pressing
+           Apply is a decision already made, and Back still goes to the posting.
+
+           A press from a row (no drawer open yet) takes the same path, which is
+           why this is one branch and not two — `OPEN_FLOW` starts the flow and
+           is idempotent on the target either way. */
+        dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
         return;
       }
 

@@ -2,7 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 jest.mock('@/components/common/Modal', () => ({
-  Modal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => (isOpen ? <div>{children}</div> : null),
+  Modal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
+    isOpen ? <div>{children}</div> : null,
 }));
 
 // react-select in a form nobody drives through the company picker is noise. The
@@ -40,13 +41,28 @@ const baseProps = {
 const renderModal = (overrides: Partial<React.ComponentProps<typeof JobSignUpModal>> = {}) =>
   render(<JobSignUpModal {...baseProps} {...overrides} />);
 
-/** Fills the three fields the schema actually requires. */
+/** Picks one of the three job search statuses by its visible label. The
+ *  accessible name comes from the wrapping `<label>`, so it carries the option's
+ *  hint too — hence a substring match rather than an exact one. */
+const chooseStatus = (label: RegExp = /Actively looking/) =>
+  fireEvent.click(screen.getByRole('radio', { name: label }));
+
+/**
+ * Fills the four fields the schema actually requires.
+ *
+ * The status belongs in here rather than in the tests that care about it: it
+ * gates submission, so leaving it out would turn every `submitting` case below
+ * into a test of the gate instead of a test of what it claims to check — green
+ * for the wrong reason if the assertion is on `onSignUp` *not* firing, and a
+ * confusing failure otherwise.
+ */
 const fillRequired = () => {
   fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
   fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
   fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
     target: { value: 'Senior Protocol Engineer' },
   });
+  chooseStatus();
 };
 
 describe('the job board sign-up modal', () => {
@@ -112,6 +128,63 @@ describe('the job board sign-up modal', () => {
 
       await waitFor(() => expect(screen.getByText('Must be a valid email')).toBeInTheDocument());
       expect(screen.queryByText(/Add your team email below/)).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * The one question on this form that is not about the account.
+   *
+   * It earns its place by what it saves: `isProfileComplete` is
+   * `role && jobSearchStatus`, and the form already collects `role` — so with
+   * this answered, the account created here arrives ready to apply instead of
+   * owing one radio button and paying an apply-flow step for it. That payoff
+   * exists only if the answer is always given, which is what the gate below is.
+   */
+  describe('the job search status', () => {
+    it('offers the three statuses as one radio group', () => {
+      renderModal();
+
+      const group = screen.getByRole('radiogroup', { name: 'Job search status' });
+      expect(group).toBeInTheDocument();
+      expect(screen.getAllByRole('radio')).toHaveLength(3);
+      expect(screen.getByRole('radio', { name: /Open to the right role/ })).toBeInTheDocument();
+    });
+
+    /* Required in the same way `Email address` is, and marked the same way. A
+       form that refuses to submit without a field it has not marked required is
+       worse than one with no marking system at all. */
+    it('carries the required mark rather than the optional one', () => {
+      renderModal();
+
+      const label = screen.getByText('Job search status');
+      expect(label.textContent).not.toContain('Optional');
+      expect(label).toHaveClass('required');
+    });
+
+    it('refuses to submit until one is chosen, and says why', async () => {
+      renderModal();
+      // Everything except the status.
+      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
+      fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
+      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+        target: { value: 'Senior Protocol Engineer' },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(screen.getByText('Select where you are with job hunting')).toBeInTheDocument());
+      expect(baseProps.onSignUp).not.toHaveBeenCalled();
+    });
+
+    it('reports the chosen status on the way out', async () => {
+      renderModal();
+      fillRequired();
+      chooseStatus(/Not looking/);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(baseProps.onSignUp).toHaveBeenCalled());
+      expect(baseProps.onSignUp).toHaveBeenCalledWith(expect.objectContaining({ jobSearchStatus: 'not-looking' }));
     });
   });
 

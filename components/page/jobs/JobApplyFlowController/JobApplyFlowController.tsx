@@ -122,7 +122,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
    * failed request leaves nothing behind.
    */
   const handleSignUp = async (details: JobSignUpDetails): Promise<JobSignUpResult> => {
-    const target = state.step === 'sign-up' ? state.target : null;
+    /* Two doors reach this now: the modal (`sign-up`, role-less) and the flow's
+       step 2 (`flow`, always carrying a role). Reading the target from whichever
+       is open keeps one handler — and one place where the analytics for a
+       sign-up are fired — rather than a second copy that could drift. */
+    const target = state.step === 'sign-up' ? state.target : state.step === 'flow' ? state.target : null;
     const analyticsBase = {
       job_id: target?.role.uid ?? null,
       team_id: target?.teamId ?? null,
@@ -135,6 +139,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
         name: details.name,
         email: details.email,
         role: details.role,
+        /* Unconditional, unlike the optional fields below it: the form requires
+           an answer, so there is always one to send. Together with `role` it is
+           what makes the account this creates already profile-complete — the
+           whole reason the question is asked at sign-up rather than later. */
+        jobSearchStatus: details.jobSearchStatus,
         // Omitted when blank rather than sent empty: the endpoint's rule is an
         // address or nothing, and `''` fails its `.email()` on both sides.
         ...(details.teamEmail ? { teamEmail: details.teamEmail } : {}),
@@ -154,7 +163,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
 
     analytics.onJobApplySignUpSubmitted({
       ...analyticsBase,
-      trigger: target ? 'row' : 'banner',
+      /* Three doors, three values, all of them already in `JobApplyTrigger`.
+         `detail` is the flow's own step 2 — the pane reached by pressing Apply
+         on a job — and it is the path that matters most now, so it must not be
+         counted as a row press. */
+      trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
       has_team_email: !!details.teamEmail,
     });
     flow.closeSignUp();
@@ -232,6 +245,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           /* Straight through to the one gate. `onApply` replaces or advances the
              step itself, so the drawer needs no close of its own here. */
           onApply={() => flow.onApply({ ...state.target }, 'detail')}
+          onSignUp={handleSignUp}
+          onSignIn={handleModalSignIn}
           onProfileSaved={flow.onProfileSaved}
           onSubmitted={flow.onSubmitted}
           viewerState={viewer.viewer}

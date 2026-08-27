@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { FormProvider, useForm, type Resolver } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
@@ -40,6 +42,17 @@ import {
   type JobDetailTarget,
 } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays } from '@/utils/jobs.utils';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
+import { JobAccountPane } from '@/components/page/jobs/JobAccountPane/JobAccountPane';
+import {
+  accountSchema,
+  toAccountDetails,
+  signUpFailureMessage,
+  EMPTY_ACCOUNT_FORM,
+  type AccountFormData,
+  type AccountDetails,
+  type JobSignUpResult,
+} from '@/components/page/jobs/JobSignUpModal/accountFields';
 
 // Button's stylesheet, for the "Applied" report — an element wearing the DS
 // button rather than a lookalike, exactly as the row does it.
@@ -83,6 +96,20 @@ const BACK_LABEL: Record<ApplyFlowStepId, string> = {
   profile: 'Back to your profile',
   application: 'Back to your application',
 };
+
+/**
+ * The middle position's name changes with who is standing on it, and only that.
+ *
+ * A member fills in a profile they already have; a stranger fills in the details
+ * that will become one. The rail names the *position*, so it says the thing that
+ * is true of the person reading it — and the shape stays three-for-everyone,
+ * which is the property that makes the rail learnable at all.
+ */
+const stepTitle = (id: ApplyFlowStepId, isLoggedIn: boolean): string =>
+  id === 'profile' && !isLoggedIn ? 'Your details' : STEP_TITLE[id];
+
+const backLabel = (id: ApplyFlowStepId, isLoggedIn: boolean): string =>
+  id === 'profile' && !isLoggedIn ? 'Back to your details' : BACK_LABEL[id];
 
 /**
  * What to tell someone whose application the server refused. Every one of these
@@ -146,6 +173,18 @@ interface JobApplyFlowDrawerProps {
   applyGoesExternal: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */
   onApply: () => void;
+  /**
+   * Creating the account from step 2 — the same handler the modal gets, because
+   * it is the same act through a different door.
+   *
+   * A success does not advance the rail: the person has an account but no
+   * session, so the controller closes the flow and hands off to Privy, and the
+   * resume brings them back onto this role. That is why nothing here waits on
+   * the result except to show a refusal.
+   */
+  onSignUp: (details: AccountDetails) => Promise<JobSignUpResult>;
+  /** Step 2's "Already a member?" escape. */
+  onSignIn: () => void;
   onProfileSaved: (args: { profileComplete: boolean }) => void;
   onSubmitted: () => void;
   viewerState: BoardViewerState;
@@ -194,9 +233,13 @@ interface JobApplyFlowDrawerProps {
  * with no overlay left to press, a flow with only a Back arrow would be
  * inescapable from its last step.
  *
- * **Logged out still opens the sign-up modal over this.** Pressing Apply hands
- * back to the flow, which opens `JobSignUpModal` — a modal over a drawer, and
- * knowingly so. Folding the account into step 2 is its own pass.
+ * **Logged out fills step 2 in.** Pressing Apply used to hand back to the flow,
+ * which opened `JobSignUpModal` on top of this — a modal over a drawer, and
+ * knowingly so at the time. The account is a step now: `JobAccountPane` takes
+ * the middle position for a visitor with no account, the rail stays three deep
+ * for everyone, and only the middle label changes ("Your details"). The modal
+ * still exists for the role-less door — the header and banner `Sign up`
+ * presses, which name no job and so have no flow to run.
  */
 export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const {
@@ -217,6 +260,8 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     showOriginalPosting,
     applyGoesExternal,
     onApply,
+    onSignUp,
+    onSignIn,
     onProfileSaved,
     onSubmitted,
     viewerState,
@@ -247,6 +292,41 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   }, [at]);
   const submitMutation = useSubmitJobApplication(memberUid);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  /**
+   * Step 2's account form, held HERE rather than inside `JobAccountPane`.
+   *
+   * The panes are unmounted on every step change (`{at === 'profile' && …}`), so
+   * a form owned by the pane would lose everything typed the moment someone
+   * stepped back to re-read the posting — and a rail whose Back is a trap is
+   * worse than no rail. This is the same reason `coverLetterDraft` lives one
+   * level further out again, in `ApplyFlowState`: the letter outlives its pane
+   * too. One level is enough here, because unlike the letter this form does not
+   * have to survive the Privy round trip — by then the account exists.
+   *
+   * Built unconditionally, because hooks are, and used only when logged out.
+   * The resolver rides a chunk this component already defers.
+   */
+  const accountForm = useForm<AccountFormData>({
+    defaultValues: EMPTY_ACCOUNT_FORM,
+    resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
+    mode: 'onBlur',
+  });
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const {
+    formState: { isSubmitting: accountSubmitting },
+  } = accountForm;
+
+  const submitAccount = accountForm.handleSubmit(async (data) => {
+    setAccountError(null);
+    const result = await onSignUp(toAccountDetails(data));
+    if (!result.success) {
+      setAccountError(signUpFailureMessage(result));
+    }
+    /* Nothing on success: the controller closes this flow and pushes `#login`.
+       Advancing the rail here would put someone on the letter step with no
+       session to send it with. */
+  });
 
   /* The profile step's own read of what is still owed, reported up by the pane
      because the footer that says it is out here. Seeded from the board's view so
@@ -309,7 +389,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           : APPLY_FLOW_STEPS.indexOf(id) < APPLY_FLOW_STEPS.indexOf(at)
             ? 'completed'
             : 'upcoming';
-    return { id, title: STEP_TITLE[id], status, reachable: canVisit(id) };
+    return { id, title: stepTitle(id, isLoggedIn), status, reachable: canVisit(id) };
   });
 
   /** Report a profile save on the way out of the step that collects it — a
@@ -451,6 +531,44 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       };
     }
 
+    if (at === 'profile' && !isLoggedIn) {
+      /**
+       * The one place this flow admits it may end early.
+       *
+       * `useJobApplyFlow.onApply` sends a **pending** account applying to a role
+       * Protocol Labs did not post to the employer's own site — and an account
+       * created by the press below is pending. So for a non-PL role the rail
+       * will have shown three steps and delivered two.
+       *
+       * That rule is not new. What is new is putting the account form *in* the
+       * rail, which turns an existing rule into a visible broken promise — so
+       * the promise gets made accurately here, at the press, rather than
+       * discovered on the way back. The review step's hint is left alone: it
+       * says the next step opens your account, which stays true.
+       */
+      return {
+        hint: isProtocolLabsTeam(target.team)
+          ? 'Creating your account signs you in — you’ll come back here to finish your application.'
+          : `Creating your account signs you in, then ${target.teamName} takes your application on their own site.`,
+        action: (
+          /* Disabled only while submitting, never on `!isValid` — with
+             `mode: "onBlur"` a validity gate leaves a dead button in front of a
+             completed form. "Create account" and not "Continue", because this
+             press is the one that creates it; nothing about it is a step along. */
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={d.footerAction}
+            disabled={accountSubmitting}
+            onClick={submitAccount}
+          >
+            {accountSubmitting ? 'Creating…' : 'Create account'}
+          </Button>
+        ),
+      };
+    }
+
     if (at === 'profile') {
       return {
         hint: !complete
@@ -501,78 +619,89 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
   return (
     <Drawer isOpen={open} onClose={closeFlow} fullScreen={isMobile} noBlur={isMobile} containerRef={scrollRef}>
-      {/* `d.drawerHeaderLift` is what this header adds to the source's: a
+      {/* Wraps the whole drawer rather than just step 2, because the fields are
+          in the pane and the button that submits them is in the sticky footer —
+          two different children of this element. Inert for a signed-in member:
+          nothing under it reads the context. There is no `<form>` element, so
+          the footer press goes through `handleSubmit` directly; a real form
+          would have had to span the same two children and would put a submit
+          button inside the letter step's textarea flow. */}
+      <FormProvider {...accountForm}>
+        {/* `d.drawerHeaderLift` is what this header adds to the source's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. */}
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-        <div className={clsx(s.breadcrumbs, d.headerRow)}>
-          <button type="button" className={s.backButton} onClick={onBack}>
-            <BackIcon />
-            <span>{backTarget ? BACK_LABEL[backTarget] : 'Back to roles'}</span>
-          </button>
-          {/* Shown exactly when Back does NOT leave the flow — anywhere Back
+        <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+          <div className={clsx(s.breadcrumbs, d.headerRow)}>
+            <button type="button" className={s.backButton} onClick={onBack}>
+              <BackIcon />
+              <span>{backTarget ? backLabel(backTarget, isLoggedIn) : 'Back to roles'}</span>
+            </button>
+            {/* Shown exactly when Back does NOT leave the flow — anywhere Back
               goes to another step, there has to be a second control that goes
               out, or the flow has no exit on mobile where the overlay is gone.
               On the first step Back *is* the way out, and a ✕ beside it would be
               two controls doing one thing. */}
-          {backTarget && (
-            <button type="button" className={d.closeButton} onClick={closeFlow} aria-label="Close">
-              <CloseIcon />
-            </button>
+            {backTarget && (
+              <button type="button" className={d.closeButton} onClick={closeFlow} aria-label="Close">
+                <CloseIcon />
+              </button>
+            )}
+          </div>
+          <div className={d.stepBand}>
+            <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
+          </div>
+        </div>
+
+        <div className={s.drawerContent}>
+          {at === 'review' && (
+            <JobDetailPane
+              role={target.role}
+              team={target.team}
+              applied={applied}
+              appliedAt={appliedAt}
+              source={source}
+              showOriginalPosting={showOriginalPosting}
+            />
+          )}
+
+          {at === 'profile' && !isLoggedIn && <JobAccountPane onSignIn={onSignIn} serverError={accountError} />}
+
+          {at === 'profile' && isLoggedIn && memberUid && (
+            <JobProfilePane
+              memberUid={memberUid}
+              isLoggedIn={isLoggedIn}
+              pendingRoleTitle={target.role.roleTitle}
+              pendingApproval={pendingApproval}
+              onProfileState={setProfileState}
+            />
+          )}
+
+          {at === 'application' && (
+            <JobApplicationPane
+              role={target.role}
+              teamId={target.teamId}
+              teamName={target.teamName}
+              member={member}
+              memberUid={memberUid}
+              coverLetter={coverLetter}
+              onCoverLetterChange={onCoverLetterChange}
+              onEditProfile={() => onStepChange('profile')}
+              submitError={submitError}
+            />
           )}
         </div>
-        <div className={d.stepBand}>
-          <ApplyFlowSteps steps={steps} onSelect={(id) => goTo(id as ApplyFlowStepId)} />
-        </div>
-      </div>
 
-      <div className={s.drawerContent}>
-        {at === 'review' && (
-          <JobDetailPane
-            role={target.role}
-            team={target.team}
-            applied={applied}
-            appliedAt={appliedAt}
-            source={source}
-            showOriginalPosting={showOriginalPosting}
-          />
-        )}
-
-        {at === 'profile' && memberUid && (
-          <JobProfilePane
-            memberUid={memberUid}
-            isLoggedIn={isLoggedIn}
-            pendingRoleTitle={target.role.roleTitle}
-            pendingApproval={pendingApproval}
-            onProfileState={setProfileState}
-          />
-        )}
-
-        {at === 'application' && (
-          <JobApplicationPane
-            role={target.role}
-            teamId={target.teamId}
-            teamName={target.teamName}
-            member={member}
-            memberUid={memberUid}
-            coverLetter={coverLetter}
-            onCoverLetterChange={onCoverLetterChange}
-            onEditProfile={() => onStepChange('profile')}
-            submitError={submitError}
-          />
-        )}
-      </div>
-
-      {/* One bar, every step. Sticky, because a job description is long enough
+        {/* One bar, every step. Sticky, because a job description is long enough
           that an action at the end of it is an action most people never reach —
           and because the same bar in the same place on all three steps is what
           makes them read as one screen rather than three. */}
-      <div className={d.footer}>
-        <div className={d.footerInner}>
-          <p className={d.footerHint}>{footer.hint}</p>
-          {footer.action}
+        <div className={d.footer}>
+          <div className={d.footerInner}>
+            <p className={d.footerHint}>{footer.hint}</p>
+            {footer.action}
+          </div>
         </div>
-      </div>
+      </FormProvider>
     </Drawer>
   );
 }

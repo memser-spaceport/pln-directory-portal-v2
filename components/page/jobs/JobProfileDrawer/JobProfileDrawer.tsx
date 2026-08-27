@@ -18,7 +18,8 @@ import { getMember } from '@/services/members.service';
 import { MembersQueryKeys } from '@/services/members/constants';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
-import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { isJobSearchStatus, JobSearchStatus } from '@/services/jobs/job-board-viewer';
+import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
 import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
@@ -380,42 +381,14 @@ export function missingHint(hasRole: boolean, hasStatus: boolean): string {
 
 export const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
-/* No `disabled` prop any more: the only thing that ever set it was "a save is in
-   flight", and an optimistic save has nothing to wait for. */
-function JobSearchStatusInput({
-  value,
-  onChange,
-}: {
-  value: JobSearchStatus | null;
-  onChange: (next: JobSearchStatus) => void;
-}) {
-  return (
-    <div className={d.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose. */}
-      <p className={d.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
-
-      <div className={d.statusOptions} role="radiogroup" aria-label="Job search status">
-        {JOB_SEARCH_STATUS_OPTIONS.map((option) => (
-          <label key={option.value} className={clsx(d.statusOption, { [d.statusOptionOn]: value === option.value })}>
-            <input
-              type="radio"
-              name="job-search-status"
-              className={d.statusInput}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span className={d.statusIndicator} aria-hidden="true" />
-            <span className={d.statusText}>
-              <span className={d.statusLabel}>{option.label}</span>
-              <span className={d.statusHint}>{option.hint}</span>
-            </span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
+/* (`JobSearchStatusInput` stood here, with its ~12 rules in this file's
+    stylesheet. It moved to `components/page/jobs/JobSearchStatusInput/` when the
+    sign-up form started asking the same question: that form is a light chunk on
+    purpose — the controller defers *this* module through `dynamic({ssr:false})`
+    so a logged-out visitor never downloads the member-editing stack — and
+    importing the input from here would have dragged all of it back. Same reason
+    `JobSignUpModal` copies the back glyph instead of importing it. The component
+    is unchanged but for a `name` prop; see its own header.) */
 
 // EditInvestorProfileDrawer's own glyph, copied so the Back control it sits in
 // is the same control, not a lookalike.

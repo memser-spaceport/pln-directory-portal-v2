@@ -163,6 +163,35 @@
   gap: 24px;
 }
 
+// `AccountFields layout="stack"` — the modal's arrangement, and the default.
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// `AccountFields layout="grid"` — email and full name on one line.
+//
+// **Only the apply flow's details step asks for this**, and only because that
+// pane is two cards tall inside a drawer; the modal keeps the stack, where the
+// fields sit in a 440px dialog with no height to save. Lives here rather than in
+// the pane's own sheet for the reason `accountFields.tsx` gives about its other
+// classes: the group's layout belongs to the group, and a caller reaching in to
+// re-space fields it does not own is how two hosts start disagreeing.
+//
+// One column until tablet-landscape: two 50% inputs on a phone are two inputs
+// too narrow to read the placeholder in.
+.fieldPair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @include media.tablet-landscape {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
 .column {
   display: flex;
   flex-direction: column;

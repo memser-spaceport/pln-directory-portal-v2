@@ -1,0 +1,26 @@
+/* This pane's own two classes. Everything else it wears is borrowed: the flow's
+   chrome above it, `DetailsSection` around the fields, and the sign-up modal's
+   `.signInLink` / `.serverError` for the two things the board's other door
+   already has settled answers for. */
+
+.title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+}
+
+/* The escape, one rank below the title.
+   12px rather than the 14px body: the line it has to be told apart from is a
+   20px heading directly above, and an offer to leave should not answer a
+   heading at the same weight. */
+.signInEscape {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}

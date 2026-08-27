@@ -24,6 +24,10 @@ describe('getMemberMeta', () => {
     expect(getMemberMeta(member({ title: '', team: '', isTeamLead: true }))).toBe('Team Lead');
   });
 
+  it('omits the team name when asked, but keeps Team Lead', () => {
+    expect(getMemberMeta(member({ isTeamLead: true }), { omitTeam: true })).toBe('Team Lead · Staff Engineer');
+  });
+
   it('returns undefined when there is nothing to show', () => {
     expect(getMemberMeta(member({ title: '', team: '' }))).toBeUndefined();
   });
@@ -33,5 +37,9 @@ describe('toRecipientOption', () => {
   it('carries isTeamLead onto the picker option', () => {
     expect(toRecipientOption(member({ isTeamLead: true })).isTeamLead).toBe(true);
     expect(toRecipientOption(member()).isTeamLead).toBeUndefined();
+  });
+
+  it('uses the role title alone when omitting the team, so the Lead badge can carry that fact', () => {
+    expect(toRecipientOption(member({ isTeamLead: true }), { omitTeam: true }).description).toBe('Staff Engineer');
   });
 });

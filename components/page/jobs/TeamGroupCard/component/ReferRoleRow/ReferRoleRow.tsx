@@ -11,9 +11,11 @@ import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
+import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
-import { jobApplyQueryParams, interceptPrimaryApplyClick, jobApplyHref } from './constants';
+import { jobApplyQueryParams } from './constants';
 
 import { ReferMenu } from './components/ReferMenu';
 import { ArrowIcon, ClockIcon } from './components/Icons';
@@ -33,15 +35,9 @@ import { useLoginRedirect } from '@/components/core/login/utils';
  * rather than test-enforced.
  */
 export interface RowApplyProps {
-  onApply: (target: { role: IJobRole; teamId: string; teamName: string }) => void;
+  onApply: (target: JobDetailTarget) => void;
   /** Scopes the applied-map subscription; undefined while logged out. */
   memberUid: string | undefined;
-  /**
-   * Unapproved members apply on the company's site, not in-app. The row's Apply
-   * control becomes the existing outbound `<a>` (hidden when there is no URL).
-   * View-job mode is unchanged: Apply lives in the detail drawer.
-   */
-  externalApply?: boolean;
   /**
    * Read the job in the app first.
    *
@@ -50,10 +46,9 @@ export interface RowApplyProps {
    * a title, a seniority and a location, which is not enough to decide with, so
    * pressing Apply from it was pressing send on a job you had not read.
    *
-   * Optional for the same reason `apply` is: `JobsContent` passes it only when
-   * `SHOW_JOB_DETAIL` is on, so flag-off byte-identity is structural rather
-   * than test-enforced. Absent everywhere without an in-app description — the
-   * team profile keeps its direct Apply.
+   * Optional for the same reason `apply` is: the host decides. The board passes
+   * it with every apply slot now that reading is step 1 of the flow; the team
+   * profile does not, and keeps its direct Apply.
    */
   onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
@@ -94,12 +89,22 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const { role, teamId, teamName, currentUser, source, onClick, apply, team } = props;
 
   const goToLogin = useLoginRedirect();
+
+  /* Refer is for members. It used to render for everyone and bounce a
+     logged-out press to Privy, which is an offer that turns into a login wall —
+     the board already asks for an account in the banner and again at Apply, and
+     this was the third ask, on the control nobody came for. */
+  const canRefer = Boolean(currentUser);
+  /* The way out to the company's own posting — withheld from the two people who
+     came here to apply through this board. See `canSeeOriginalPosting`. */
+  const showPosting = canSeeOriginalPosting({ isLoggedIn: Boolean(currentUser), userInfo: currentUser });
   const analytics = useJobsAnalytics();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
-  const inAppApply = Boolean(apply);
-  const externalApply = Boolean(apply?.externalApply);
-  const applyHref = jobApplyHref(role.applyUrl, source);
+  /* Both, or neither — the same rule `viewJob` follows, and for the same
+     reason: the flow opens on the reading step, which needs the team record to
+     draw its masthead. A row without one cannot start a flow. */
+  const inAppApply = Boolean(apply && team);
   // Per-row subscription to the shared applied map: one application re-renders
   // exactly this row, never the list. Inert (enabled: false) without apply props.
   const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
@@ -192,21 +197,23 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
         )}
 
         <div className={s.actionButtons}>
-          {inAppApply ? (
-            /* Quiet text button: with a filled Apply in the row, the two are not
+          {canRefer &&
+            (inAppApply ? (
+              /* Quiet text button: with a filled Apply in the row, the two are not
                peers — Apply is what the row is for, Refer is the sideline. */
-            <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
-              Refer
-            </Button>
-          ) : (
-            <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={onRefer}>
-              Refer
-            </Button>
-          )}
+              <Button size="s" style="link" variant="secondary" className={ap.referTone} onClick={onRefer}>
+                Refer
+              </Button>
+            ) : (
+              <Button size="s" style="border" variant="neutral" className={s.referButton} onClick={onRefer}>
+                Refer
+              </Button>
+            ))}
 
           <ReferMenu role={role} teamId={teamId} teamName={teamName} source={source} />
 
-          {hasApplyUrl &&
+          {showPosting &&
+            hasApplyUrl &&
             (inAppApply || viewJob ? (
               /* The arrow's job changes when Apply moves in-app: it stays as the
                  link out to the posting — reading the ad and applying are
@@ -253,22 +260,6 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                 <CheckIcon width={12} height={12} aria-hidden="true" />
                 Applied
               </button>
-            ) : externalApply ? (
-              applyHref && (
-                /* Unapproved: the existing outbound apply, as a real link so
-                   middle-click and copy-link match the pre-in-app row. */
-                <a
-                  className={clsx(btn.root, btn.small, btn.fill, btn.primary, ap.applyButton)}
-                  href={applyHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(event) =>
-                    interceptPrimaryApplyClick(event, () => apply!.onApply({ role, teamId, teamName }))
-                  }
-                >
-                  Apply
-                </a>
-              )
             ) : (
               /* A real <button>, not the anchor: the press no longer leaves the
                  page. It hands off to the flow, which runs the sign-in gate, the
@@ -278,7 +269,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                 style="fill"
                 variant="primary"
                 className={ap.applyButton}
-                onClick={() => apply!.onApply({ role, teamId, teamName })}
+                onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
               >
                 Apply
               </Button>

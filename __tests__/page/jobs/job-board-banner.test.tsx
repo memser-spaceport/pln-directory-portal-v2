@@ -130,8 +130,24 @@ describe('the job board banner', () => {
     it('offers no action once a waiting member has nothing left to do', () => {
       renderBanner({ viewer: 'pending-approval', profileComplete: true });
 
-      expect(screen.getByText(/applying unlocks as soon as your account is approved/i)).toBeInTheDocument();
+      /* This used to read "applying unlocks as soon as your account is
+         approved". Approval stopped gating applying, and this is the state where
+         the old sentence would cost the most — a finished profile with nothing
+         left to do, told to wait for something that is not holding it up. */
+      expect(screen.getByText(/Nothing here is waiting on it: browse and apply as normal/i)).toBeInTheDocument();
+      expect(screen.queryByText(/applying unlocks/i)).not.toBeInTheDocument();
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    /* The unfinished-profile card gives its reason for finishing, and that reason
+       changed with the gate: it used to be "so you can apply the moment it is",
+       which was about the wait. Now the profile is what the application carries. */
+    it('tells a waiting member with an unfinished profile that they can apply meanwhile', () => {
+      renderBanner({ viewer: 'pending-approval', profileComplete: false });
+
+      expect(screen.getByText(/We'll notify you once approved\./i)).toBeInTheDocument();
+      expect(screen.getByText(/You can apply meanwhile/i)).toBeInTheDocument();
+      expect(screen.queryByText(/apply the moment it is/i)).not.toBeInTheDocument();
     });
   });
 

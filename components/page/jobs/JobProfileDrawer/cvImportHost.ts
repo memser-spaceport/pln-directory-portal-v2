@@ -27,14 +27,11 @@ export type CvImportHost = 'top-card' | 'experience-section' | 'off';
 export interface CvImportHostInput {
   /** `SHOW_CV_IMPORT`. Down means no host, whatever else is true. */
   enabled: boolean;
-  /** The drawer's own gate expression — the role that blocks applying. */
-  hasRole: boolean;
   /**
-   * How many Experience rows the profile already has.
-   *
-   * With `hasRole`, the whole of the blank test — see `pickCvImportHost`. There
-   * used to be `hasLocation` and `skillCount` here too; they were wrong for
-   * production and are gone.
+   * How many Experience rows the profile already has — the whole of the test
+   * now. `hasRole`, `hasLocation` and `skillCount` were all in here once; each
+   * was a proxy for "has already started filling this in", and none of them
+   * meant it. See `pickCvImportHost`.
    */
   experienceCount: number;
   /**
@@ -57,38 +54,39 @@ export interface CvImportHostInput {
 }
 
 export function pickCvImportHost(input: CvImportHostInput): CvImportHost {
-  const { enabled, hasRole, experienceCount, experiencesLoading, handedOff } = input;
+  const { enabled, experienceCount, experiencesLoading, handedOff } = input;
 
   if (!enabled) return 'off';
   if (experiencesLoading) return 'off';
 
   /**
-   * Nothing a CV would supply, so a CV is the fastest way to supply it: no
-   * current role, and no work history.
+   * Nothing a CV would supply, so a CV is the fastest way to supply it.
    *
-   * **Narrower than the prototype's, on purpose.** The prototype also required
-   * an empty location and no skills, on the argument that a CV fills those too
-   * so the card is only right while *none* of them has an answer. That argument
-   * holds against the prototype's own data and breaks against production's,
-   * because the profile is already partly filled before anyone reaches this
-   * drawer: `/sign-up` collects Professional skills, and the board's own
-   * sign-up modal collects the current role. So "has skills" never meant "has
-   * started filling this in by hand" — it meant "came through the front door",
-   * and the widest test quietly withheld the card from most of the people it
-   * was built for.
+   * **Narrower than the prototype's, and narrower again than this was.** The
+   * prototype required an empty location and no skills as well, on the argument
+   * that a CV fills those too. That broke against production's data, because the
+   * profile is already partly filled before anyone reaches this drawer:
+   * `/sign-up` collects Professional skills and the board's sign-up modal
+   * collects the current role. "Has skills" never meant "has started filling
+   * this in by hand" — it meant "came through the front door", and the wide test
+   * quietly withheld the card from most of the people it was built for.
    *
-   * What the two survivors mean is the thing the prototype was actually
-   * reaching for. `hasRole` is the required field the card exists to fill;
-   * `experienceCount` is the only real evidence that someone has already
-   * written their history out by hand, which is the one case where a card
-   * saying "start with your CV" is telling them to start over.
+   * `hasRole` has since gone the same way, for the same reason and with more
+   * force: it is the field the *sign-up form* fills, so requiring it to be empty
+   * meant the card almost never appeared.
    *
-   * Bio and location are left out for the same reason skills is: neither is
-   * evidence of anything, and a member who set a location during onboarding has
-   * not started on the facts a CV carries.
+   * What is left is the one thing that is real evidence of having written your
+   * history out by hand, which is the only case where "start with your CV" is
+   * telling someone to start over.
    */
-  const profileIsBlank = !hasRole && experienceCount === 0;
-
-  if (profileIsBlank && !handedOff) return 'top-card';
+  /* The offer stands until there is something to have uploaded.
+     This used to also require `!hasRole` — a profile with a current role typed
+     in read as "already started by hand", so the card stood down and the offer
+     moved four cards into the Experience section. That was wrong for the people
+     it was built for: the board's own sign-up modal collects the current role,
+     so almost everyone arriving here has one and almost nobody saw the card.
+     A role is one field; a CV is the work history, and having typed the former
+     is no evidence of having written the latter. */
+  if (experienceCount === 0 && !handedOff) return 'top-card';
   return 'experience-section';
 }

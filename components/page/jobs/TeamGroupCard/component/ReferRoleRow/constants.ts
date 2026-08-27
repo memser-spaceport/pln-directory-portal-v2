@@ -12,22 +12,25 @@ export const jobApplyQueryParams = (source: JobSurface) =>
 export const jobApplyHref = (applyUrl: string | null | undefined, source: JobSurface): string | null =>
   applyUrl ? `${applyUrl}?${jobApplyQueryParams(source)}` : null;
 
+/**
+ * Apply by leaving: open the hiring team's own posting in a new tab.
+ *
+ * **This came back.** It was removed when approval stopped gating applying, on
+ * the reading that every Apply was in-app from then on. That is true of Protocol
+ * Labs roles and false of the rest: an account still awaiting approval applies
+ * on the employer's site everywhere else, which is the behaviour the board had
+ * before and the one it has again. See `useJobApplyFlow`.
+ *
+ * `interceptPrimaryApplyClick` has NOT come back with it. That existed so the
+ * row's Apply could be a real `<a>` — middle-click native, left-click caught to
+ * recheck access first — and the row's Apply is a `<button>` now, because on the
+ * board it opens the reading step rather than the posting. The decision is made
+ * one screen later, where there is no anchor to intercept.
+ */
 export const openExternalApply = (applyUrl: string | null | undefined, source: JobSurface) => {
   const href = jobApplyHref(applyUrl, source);
   if (href) window.open(href, '_blank', 'noopener,noreferrer');
 };
-
-/** Left-click is intercepted so Apply can recheck access and either open
- *  in-app or `window.open` the posting. Modifier/middle-click keeps the native
- *  `<a>` so the posting still opens in a new tab. */
-export function interceptPrimaryApplyClick(
-  event: Pick<MouseEvent, 'metaKey' | 'ctrlKey' | 'shiftKey' | 'altKey'> & { preventDefault: () => void },
-  apply: () => void,
-) {
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  apply();
-}
 
 /**
  * The board's params, kept as a constant for the surfaces that link to a role without

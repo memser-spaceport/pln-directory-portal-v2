@@ -80,10 +80,13 @@ import pc from '@/components/page/member-details/ProfileDetails/components/Profi
 
 import { SkillsTagsInput } from './SkillsTagsInput';
 /* `PendingApprovalSteps` — the vertical "signed up → complete your profile →
-    await approval" rail — is **back**, imported from the copy that lives at
-    components/page/jobs/JobProfileDrawer/PendingApprovalSteps.tsx rather than
-    re-transcribed. It is a pure presentational component with one optional prop,
-    so there is nothing to mock and no reason to own a second copy.
+    await approval" rail — is **back**, and now lives here in the prototype.
+    It had been imported from components/page/jobs/JobProfileDrawer/, but develop
+    deleted that copy in 2cb0615fa ("approval no longer gates applying"). The
+    component is pure presentation — clsx and its own stylesheet, one optional
+    prop, nothing to mock — and its own header already describes it as a
+    transcription of demo-day's AppliedInvestorSteps, so the prototype is its
+    natural home rather than a second copy of a production component.
 
     It had been deleted on two arguments. The second — that approval no longer
     gated applying, so the rail described a wait holding nothing up — expired
@@ -104,7 +107,7 @@ import { SkillsTagsInput } from './SkillsTagsInput';
     The three-stage account story also exists on the board for anyone who has not
     opened the flow: `PendingApprovalBanner`. Two surfaces, one story — if the
     wording of the wait changes, it changes in both. */
-import { PendingApprovalSteps } from '@/components/page/jobs/JobProfileDrawer/PendingApprovalSteps';
+import { PendingApprovalSteps } from './PendingApprovalSteps';
 import { VIEWER_EMAIL, VIEWER_NAME } from './profile/viewerIdentity';
 import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 

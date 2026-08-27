@@ -1,6 +1,6 @@
 {
   "name": "pln-directory-web-v2",
-  "version": "plaa-v7.14",
+  "version": "plaa-v7.15",
   "private": true,
   "engines": {
     "node": ">=20.9.0"
@@ -91,6 +91,7 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
+    "@posthog/nextjs-config": "^1.10.0",
     "@storybook/addon-a11y": "^9.1.5",
     "@storybook/addon-docs": "^9.1.5",
     "@storybook/addon-onboarding": "^9.1.5",

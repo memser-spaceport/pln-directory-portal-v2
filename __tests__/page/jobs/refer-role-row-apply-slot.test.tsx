@@ -25,6 +25,7 @@ const APPLICATION = { uid: 'app-1', jobUid: 'role-1', appliedAt: '2026-05-01T00:
 
 import { ReferRoleRow, type RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow';
 import type { IJobRole } from '@/types/jobs.types';
+import type { IUserInfo } from '@/types/shared.types';
 
 const role = (applyUrl: string | null): IJobRole => ({
   uid: 'role-1',
@@ -39,13 +40,27 @@ const role = (applyUrl: string | null): IJobRole => ({
   detectionDate: null,
 });
 
+const MEMBER = { uid: 'm1', name: 'Polina', email: 'p@example.com' } as unknown as IUserInfo;
+
+const TEAM = {
+  uid: 'team-1',
+  name: 'Acme',
+  logoUrl: null,
+  focusAreas: [],
+  subFocusAreas: [],
+  jobReferEmail: null,
+};
+
+/* `team` is required for the in-app slot now, not just for View job: the flow
+   opens on the reading step and that step draws the team's masthead. */
 const renderRow = (applyUrl: string | null, apply?: RowApplyProps) =>
   render(
     <ReferRoleRow
       role={role(applyUrl)}
       teamId="team-1"
       teamName="Acme"
-      currentUser={null}
+      team={TEAM}
+      currentUser={MEMBER}
       source="job-board"
       apply={apply}
     />,
@@ -69,6 +84,7 @@ describe('ReferRoleRow with in-app apply props', () => {
       role: role('https://example.com/apply'),
       teamId: 'team-1',
       teamName: 'Acme',
+      team: TEAM,
     });
   });
 
@@ -106,37 +122,42 @@ describe('ReferRoleRow with in-app apply props', () => {
   });
 });
 
-describe('ReferRoleRow with external Apply (unapproved member)', () => {
+/* The row used to render Apply as an outbound `<a>` for an unapproved member —
+   the hiring team's own posting instead of the in-app flow. Approval no longer
+   gates applying, so the row has one Apply for every viewer that gets the slot
+   at all.
+
+   Kept as a guard rather than deleted: a reintroduced branch would still render
+   something called "Apply", and only the element type would say which one. */
+describe('ReferRoleRow Apply is always in-app', () => {
   const onApply = jest.fn();
-  const apply: RowApplyProps = { onApply, memberUid: 'm1', externalApply: true };
+  const apply: RowApplyProps = { onApply, memberUid: 'm1' };
 
   beforeEach(() => onApply.mockClear());
 
-  it('renders Apply as the outbound posting link', () => {
+  it('renders a button, never an outbound posting link', () => {
     renderRow('https://example.com/apply', apply);
 
-    const applyLink = screen.getByRole('link', { name: 'Apply' });
-    expect(applyLink).toHaveAttribute('href', 'https://example.com/apply?utm_source=os.pl.xyz&utm_medium=job_board');
-    expect(applyLink).toHaveAttribute('target', '_blank');
-    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
   });
 
-  it('still hands a left-click to the flow — analytics and the access recheck live there', () => {
+  it('offers Apply even with no posting URL — the flow does not need one', () => {
+    renderRow(null, apply);
+
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+  });
+
+  it('hands the press to the flow', () => {
     renderRow('https://example.com/apply', apply);
 
-    fireEvent.click(screen.getByRole('link', { name: 'Apply' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(onApply).toHaveBeenCalledWith({
       role: role('https://example.com/apply'),
       teamId: 'team-1',
       teamName: 'Acme',
+      team: TEAM,
     });
-  });
-
-  it('hides Apply when there is no posting URL', () => {
-    renderRow(null, apply);
-
-    expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
   });
 });
 
@@ -166,14 +187,7 @@ describe('ReferRoleRow without apply props (flag off / rejected viewer)', () => 
 describe('ReferRoleRow with the in-app description on', () => {
   const onApply = jest.fn();
   const onViewJob = jest.fn();
-  const team = {
-    uid: 'team-1',
-    name: 'Acme',
-    logoUrl: null,
-    focusAreas: [],
-    subFocusAreas: [],
-    jobReferEmail: null,
-  };
+  const team = TEAM;
 
   const renderDetailRow = (applyUrl: string | null = 'https://example.com/apply') =>
     render(
@@ -182,7 +196,7 @@ describe('ReferRoleRow with the in-app description on', () => {
         teamId="team-1"
         teamName="Acme"
         team={team}
-        currentUser={null}
+        currentUser={MEMBER}
         source="job-board"
         apply={{ onApply, memberUid: 'm1', onViewJob }}
       />,
@@ -245,19 +259,22 @@ describe('ReferRoleRow with the in-app description on', () => {
    * Without the team there is no masthead to render, so the row must not offer
    * the drawer at all — the flag reaching the row is not sufficient on its own.
    */
-  it('falls back to Apply when the surface has no team record to show', () => {
+  /* No team record, no in-app slot at all — where this used to fall back to a
+     direct Apply. The flow opens on a reading step that draws the team's
+     masthead, so a row that cannot name the team cannot start one. */
+  it('renders no in-app slot when the surface has no team record', () => {
     render(
       <ReferRoleRow
         role={role('https://example.com/apply')}
         teamId="team-1"
         teamName="Acme"
-        currentUser={null}
+        currentUser={MEMBER}
         source="job-board"
         apply={{ onApply, memberUid: 'm1', onViewJob }}
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'View job' })).not.toBeInTheDocument();
   });
 
@@ -267,5 +284,61 @@ describe('ReferRoleRow with the in-app description on', () => {
     renderDetailRow();
 
     expect(screen.getByRole('link', { name: /Open the Community Manager posting/i })).toBeInTheDocument();
+  });
+});
+
+/* Two viewers the board does not send outward, and one control it does not
+   offer them. See `canSeeOriginalPosting`. */
+describe('ReferRoleRow for a viewer who came here to apply', () => {
+  const onApply = jest.fn();
+
+  const renderFor = (currentUser: IUserInfo | null) =>
+    render(
+      <ReferRoleRow
+        role={role('https://example.com/apply')}
+        teamId="team-1"
+        teamName="Acme"
+        team={TEAM}
+        currentUser={currentUser}
+        source="job-board"
+        apply={{ onApply, memberUid: 'm1' }}
+      />,
+    );
+
+  /* Refer used to render for everyone and bounce a logged-out press to Privy —
+     an offer that turns into a login wall, and the third ask for an account on
+     one screen. */
+  it('offers no Refer to a signed-out visitor', () => {
+    renderFor(null);
+
+    expect(screen.queryByRole('button', { name: 'Refer' })).not.toBeInTheDocument();
+  });
+
+  it('keeps Refer for a member', () => {
+    renderFor(MEMBER);
+
+    expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
+  });
+
+  it('withholds the posting arrow from a signed-out visitor', () => {
+    renderFor(null);
+
+    expect(screen.queryByLabelText(/Open the .* posting/)).not.toBeInTheDocument();
+  });
+
+  /* A Job Aspirant is signed in, so `canRefer` is true for them — only the way
+     out is withheld. The two rules are separate on purpose. */
+  it('withholds the posting arrow from a Job Aspirant but keeps Refer', () => {
+    const aspirant = { ...MEMBER, signUpSource: 'job-board' } as unknown as IUserInfo;
+    renderFor(aspirant);
+
+    expect(screen.queryByLabelText(/Open the .* posting/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refer' })).toBeInTheDocument();
+  });
+
+  it('keeps the posting arrow for an established member', () => {
+    renderFor(MEMBER);
+
+    expect(screen.getByLabelText(/Open the .* posting/)).toBeInTheDocument();
   });
 });

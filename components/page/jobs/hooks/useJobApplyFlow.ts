@@ -4,13 +4,13 @@ import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
 import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
 /**
  * A role plus the team that posted it — what the apply flow carries between
- * pressing Apply and sending the letter, possibly through the sign-up form and
- * the profile drawer.
+ * pressing Apply and sending the letter.
  */
 export interface ApplyTarget {
   role: IJobRole;
@@ -19,25 +19,35 @@ export interface ApplyTarget {
 }
 
 /**
- * What the detail drawer needs on top of an apply target: the team record
- * itself, for the masthead's logo and focus tags.
+ * An apply target plus the team record itself, for the review step's masthead
+ * (logo, focus tags).
  *
- * A superset rather than a widening of `ApplyTarget`, so the team is REQUIRED
- * exactly where it is used and absent everywhere else. Apply never needed it —
- * the id and the name are all the application carries — and making it optional
- * on the shared type would let a caller open a drawer with no masthead and find
- * out at runtime.
+ * **Every flow run carries one now.** This used to be a superset used by the
+ * detail drawer alone, because Apply could start without ever passing through a
+ * reading step and the id and the name were all an application needed. Reading
+ * is step 1 of the flow, so the team is always in hand by the time anything else
+ * happens — and a rail that shows three steps has to be able to render all three
+ * of them.
  */
 export interface JobDetailTarget extends ApplyTarget {
   team: IJobTeam;
 }
 
+/** The three places the flow stops, in order. */
+export const APPLY_FLOW_STEPS = ['review', 'profile', 'application'] as const;
+export type ApplyFlowStepId = (typeof APPLY_FLOW_STEPS)[number];
+
 /**
  * The flow's whole state as ONE discriminated union: illegal combinations (two
- * overlays open, a cover letter with no flow in progress) are unrepresentable,
- * and "drawer-cancel returns to the apply modal with the letter intact" is a
- * transition that cannot forget the letter, because the letter lives in the
- * state being transitioned from.
+ * overlays open, a cover letter with no flow in progress) are unrepresentable.
+ *
+ * **This used to be five steps and it is three.** `detail`, `drawer` and `apply`
+ * were separate surfaces — a drawer, a drawer and a centred modal — and the
+ * union had to carry `returnToApply` and a `pendingApply` role to stitch them
+ * back together, because `Edit profile` meant tearing down the modal, building a
+ * drawer, saving, tearing that down and rebuilding the modal. They are three
+ * positions inside one container now, so where you are is a field (`at`) rather
+ * than a different variant, and going back is moving that field.
  *
  * Viewer state is deliberately NOT mirrored in here — it stays derived
  * (`useJobBoardViewer`) and is read at dispatch time. This union holds flow
@@ -48,36 +58,27 @@ export type ApplyFlowState =
   /** `target: null` = a plain Sign up press (banner/header) — the form goes generic. */
   | { step: 'sign-up'; target: ApplyTarget | null }
   /**
-   * `returnToApply` marks the drawer as an Edit-profile detour from the apply
-   * modal: closing it — save or cancel — lands back on the modal with the
-   * letter intact. A drawer reached from an Apply press gate (`returnToApply:
-   * false`) closes to the board: the person backed out of the profile step, and
-   * ambushing them with the modal later would be the gate refusing to take no.
+   * The flow proper. `at` is which of the three is showing; the cover letter
+   * lives here rather than in the pane that collects it, because stepping back
+   * to re-read the posting unmounts that pane and a letter that died on a step
+   * change would make the rail a trap.
    */
-  | { step: 'drawer'; pendingApply: ApplyTarget | null; coverLetterDraft: string; returnToApply: boolean }
-  | { step: 'apply'; target: ApplyTarget; coverLetterDraft: string }
+  | { step: 'flow'; target: JobDetailTarget; at: ApplyFlowStepId; coverLetterDraft: string }
   /**
-   * Reading the job, before deciding anything.
-   *
-   * Carries no draft and no `returnToApply`: this step is upstream of the whole
-   * apply flow rather than a detour inside it, so there is never anything half
-   * written to preserve. Closing it goes back to the board, and pressing Apply
-   * inside it goes wherever `onApply` decides — which is why no transition
-   * returns *to* here.
+   * The profile stack with no application behind it — the banner's "Update
+   * profile", and where a post-login resume lands when the role it was holding
+   * has since closed. Not a flow step: there is no role to review and nothing to
+   * send, so a three-step rail would be promising two places that do not exist.
    */
-  | { step: 'detail'; target: JobDetailTarget };
+  | { step: 'profile-only' };
 
 type ApplyFlowAction =
   | { type: 'OPEN_SIGN_UP'; target: ApplyTarget | null }
-  | { type: 'CLOSE_SIGN_UP' }
-  | { type: 'OPEN_DRAWER'; pendingApply: ApplyTarget | null }
-  | { type: 'EDIT_PROFILE_FROM_APPLY'; coverLetterDraft: string }
-  | { type: 'DRAWER_SAVED'; canResume: boolean }
-  | { type: 'CLOSE_DRAWER' }
-  | { type: 'OPEN_APPLY'; target: ApplyTarget }
-  | { type: 'CLOSE_APPLY' }
-  | { type: 'OPEN_DETAIL'; target: JobDetailTarget }
-  | { type: 'CLOSE_DETAIL' }
+  | { type: 'OPEN_FLOW'; target: JobDetailTarget; at: ApplyFlowStepId }
+  | { type: 'GO_TO_STEP'; at: ApplyFlowStepId }
+  | { type: 'SET_COVER_LETTER'; coverLetterDraft: string }
+  | { type: 'OPEN_PROFILE_ONLY' }
+  | { type: 'CLOSE' }
   | { type: 'SUBMITTED' };
 
 const IDLE: ApplyFlowState = { step: 'idle' };
@@ -86,43 +87,19 @@ export function applyFlowReducer(state: ApplyFlowState, action: ApplyFlowAction)
   switch (action.type) {
     case 'OPEN_SIGN_UP':
       return { step: 'sign-up', target: action.target };
-    case 'CLOSE_SIGN_UP':
-      return IDLE;
-    case 'OPEN_DRAWER':
-      return { step: 'drawer', pendingApply: action.pendingApply, coverLetterDraft: '', returnToApply: false };
-    case 'EDIT_PROFILE_FROM_APPLY':
-      return state.step === 'apply'
-        ? { step: 'drawer', pendingApply: state.target, coverLetterDraft: action.coverLetterDraft, returnToApply: true }
-        : state;
-    case 'DRAWER_SAVED':
-      if (state.step !== 'drawer') return state;
-      // Resume: the drawer was a detour, so its exit is the thing the person was
-      // doing when interrupted — but only once the account can actually apply.
-      if (action.canResume && state.pendingApply) {
-        return { step: 'apply', target: state.pendingApply, coverLetterDraft: state.coverLetterDraft };
-      }
-      return IDLE;
-    case 'CLOSE_DRAWER':
-      if (state.step !== 'drawer') return state;
-      if (state.returnToApply && state.pendingApply) {
-        // The Edit-profile detour ends where it started: cancelling the drawer
-        // must not delete a half-written letter the person was sent away from.
-        return { step: 'apply', target: state.pendingApply, coverLetterDraft: state.coverLetterDraft };
-      }
-      return IDLE;
-    case 'OPEN_APPLY':
-      return { step: 'apply', target: action.target, coverLetterDraft: '' };
-    case 'OPEN_DETAIL':
-      return { step: 'detail', target: action.target };
-    case 'CLOSE_DETAIL':
-      /* Only from `detail`. Pressing Apply inside the drawer dispatches one of
-         the OPEN_* cases, which replace this step wholesale — so a stray close
-         arriving after that must not knock the sign-up form or the profile
-         drawer back to idle. */
-      return state.step === 'detail' ? IDLE : state;
-    case 'CLOSE_APPLY':
+    case 'OPEN_FLOW':
+      return { step: 'flow', target: action.target, at: action.at, coverLetterDraft: '' };
+    case 'GO_TO_STEP':
+      /* Only from inside the flow. A stray step change arriving after something
+         replaced the flow must not resurrect it around a target that is gone. */
+      return state.step === 'flow' ? { ...state, at: action.at } : state;
+    case 'SET_COVER_LETTER':
+      return state.step === 'flow' ? { ...state, coverLetterDraft: action.coverLetterDraft } : state;
+    case 'OPEN_PROFILE_ONLY':
+      return { step: 'profile-only' };
+    case 'CLOSE':
     case 'SUBMITTED':
-      // Cancelled outright or sent — either way the letter has nothing left to wait for.
+      // Backed out or sent — either way the letter has nothing left to wait for.
       return IDLE;
   }
 }
@@ -137,8 +114,8 @@ export interface JobApplyFlowArgs {
 
 /**
  * The orchestration machine behind in-app Apply. Page-agnostic on purpose: the
- * board (`JobsContent`) is host #1, the team profile becomes host #2 in the
- * feature's phase 2 by calling this same hook and rendering the same controller.
+ * board (`JobsContent`) is host #1, the team profile becomes host #2 by calling
+ * this same hook and rendering the same controller.
  *
  * The dispatch handlers are also the analytics choke point — every funnel edge
  * is exactly one handler, so instrumentation cannot drift from behavior.
@@ -159,12 +136,35 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
   );
 
   /**
-   * Pressing Apply on a row. One entry point, three outcomes, and the role is
-   * carried through all of them — whatever is missing gets asked for, and then
-   * the application resumes.
+   * Pressing **View job**, or the role title: the flow opens on its first step.
+   *
+   * Deliberately gate-free. Reading a posting is not an act anyone needs an
+   * account for, so this asks nothing and checks nothing — the whole point of
+   * putting reading first is that the decision happens *after* it, and every
+   * gate `onApply` runs still runs when Apply is pressed at the bottom.
+   *
+   * What is new is that the rail comes with it: someone who only came to read
+   * sees what they saw before, plus three named places telling them what the
+   * button at the bottom will cost. That is a promise about the future, not a
+   * claim about the present.
+   */
+  const onViewJob = useCallback(
+    (target: JobDetailTarget) => {
+      analytics.onJobDetailOpened(applyBase(target));
+      dispatch({ type: 'OPEN_FLOW', target, at: 'review' });
+    },
+    [analytics, applyBase],
+  );
+
+  /**
+   * Pressing Apply — from the review step's footer, or directly from a row on a
+   * surface that has no reading step.
+   *
+   * One entry point, and the role is carried through whatever it opens: whatever
+   * is missing gets asked for, and then the application resumes.
    */
   const onApply = useCallback(
-    async (target: ApplyTarget, trigger: JobApplyTrigger = 'row') => {
+    async (target: JobDetailTarget, trigger: JobApplyTrigger = 'row') => {
       analytics.onJobApplyClicked({ ...applyBase(target), trigger });
 
       if (viewer === 'logged-out') {
@@ -176,19 +176,25 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       // The sub-state queries haven't settled — the press landed inside the
       // first-paint window. Ignore rather than guess: acting on a half-derived
-      // viewer risks opening the drawer at someone with nothing to fill in.
+      // viewer risks opening the profile step at someone with nothing to fill in.
       if (viewer === 'resolving') return;
 
       // A rejected account has no apply path. The row doesn't render the button
       // for them, but `resumeAfterLogin` calls this directly — without the
       // guard a rejected member with a complete profile would fall through as
-      // `approved` and be handed the apply modal.
+      // `approved` and be handed the letter.
       if (viewer === 'rejected' || verdict === 'rejected') return;
 
       let access: JobsAccessVerdict = verdict;
       if (access !== 'approved') {
-        // Recheck before sending an unapproved member outbound: an approval
-        // that landed mid-session should get in-app Apply, not the posting.
+        /* Still rechecked, for a different reason than before.
+           It used to be about catching an approval that landed mid-session, so
+           the member got in-app Apply rather than the team's own posting. That
+           distinction is gone — pending and approved take the same path now. What
+           is left is rejection, and it matters *more* than it used to: a pending
+           member's press sends a real application to a hiring team, so it is
+           worth one round trip to be sure they haven't been turned down since
+           the cookie was written. */
         if (applyPressInFlight.current) return;
         applyPressInFlight.current = true;
         try {
@@ -200,45 +206,66 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       if (access === 'rejected') return;
 
-      if (access === 'approved' && profileComplete) {
-        dispatch({ type: 'OPEN_APPLY', target });
-        return;
-      }
-
-      if (access === 'approved') {
-        dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
-        analytics.onJobApplyDrawerOpened(applyBase(target));
-        return;
-      }
-
-      // Unapproved: the existing external posting, not the in-app letter.
-      // Left-click is intercepted so this is the one open; middle-click uses
-      // the `<a href>` natively. Resume has no link to click, so it opens here.
-      if (access === 'pending') {
+      /**
+       * An account still awaiting approval applies on the employer's own site —
+       * except to Protocol Labs, which takes it through the wizard.
+       *
+       * **This is the board's original rule with one carve-out.** It was removed
+       * outright when approval stopped gating applying; the carve-out is what
+       * that removal should have been. PL is the one employer on this board whose
+       * hiring the network runs, so an application it receives from an unapproved
+       * account is an application it can decide about itself. Every other team is
+       * being handed a stranger the PL team has not vetted, and their own posting
+       * is the honest place for that.
+       *
+       * Note what is *not* consulted: the viewer state. A Job Aspirant derives as
+       * `profile-ready` even while unapproved (see `deriveBoardViewer`, which
+       * keeps the pending banner away from people who are not in that review) —
+       * so reading the banner state here would let them apply anywhere. The
+       * verdict is the access answer; the viewer state is a presentation one.
+       */
+      if (access === 'pending' && !isProtocolLabsTeam(target.team)) {
         openExternalApply(target.role.applyUrl, source);
+        return;
       }
+
+      /* Past that, the only question left is the one that was always the real
+         one: is there enough profile to send? If not, the middle step collects
+         it. Either way the answer is "here is what's needed", never a different
+         dialog and never a no.
+
+         `OPEN_FLOW` rather than `GO_TO_STEP` even when the flow is already open
+         on the review step: it is idempotent on the target and it is the one
+         action that can also start the flow from a row that never opened one. */
+      if (profileComplete) {
+        dispatch({ type: 'OPEN_FLOW', target, at: 'application' });
+        return;
+      }
+
+      dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+      analytics.onJobApplyDrawerOpened(applyBase(target));
     },
     [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
   );
 
-  /**
-   * Pressing **View job**, or the role title.
-   *
-   * Deliberately gate-free. Reading a posting is not an act anyone needs an
-   * account for, so this asks nothing and checks nothing — the whole point of
-   * moving Apply behind it is that the decision happens *after* the reading,
-   * and every gate `onApply` runs still runs when Apply is pressed at the
-   * bottom of the panel.
-   */
-  const onViewJob = useCallback(
-    (target: JobDetailTarget) => {
-      analytics.onJobDetailOpened(applyBase(target));
-      dispatch({ type: 'OPEN_DETAIL', target });
+  /** Moving along the rail, or the header's Back. Analytics for arriving at the
+   *  profile step is fired here too, so the funnel counts a visit however it
+   *  was reached rather than only when Apply routed someone there. */
+  const goToStep = useCallback(
+    (at: ApplyFlowStepId) => {
+      if (state.step === 'flow' && at === 'profile' && state.at !== 'profile') {
+        analytics.onJobApplyDrawerOpened(applyBase(state.target));
+      }
+      dispatch({ type: 'GO_TO_STEP', at });
     },
-    [analytics, applyBase],
+    [analytics, applyBase, state],
   );
 
-  const closeDetail = useCallback(() => dispatch({ type: 'CLOSE_DETAIL' }), []);
+  /** The letter, lifted out of the pane that collects it — see `ApplyFlowState`. */
+  const setCoverLetter = useCallback(
+    (coverLetterDraft: string) => dispatch({ type: 'SET_COVER_LETTER', coverLetterDraft }),
+    [],
+  );
 
   /** Sign up from the banner or header — no role, the form goes generic. */
   const onSignUp = useCallback(
@@ -249,26 +276,20 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     [analytics, applyBase],
   );
 
-  /** The banner's update/complete-profile CTA. */
+  /** The banner's update/complete-profile CTA, and the resume fallback. */
   const onUpdateProfile = useCallback(() => {
-    dispatch({ type: 'OPEN_DRAWER', pendingApply: null });
+    dispatch({ type: 'OPEN_PROFILE_ONLY' });
     analytics.onJobApplyDrawerOpened(applyBase(null));
   }, [analytics, applyBase]);
 
-  const closeSignUp = useCallback(() => dispatch({ type: 'CLOSE_SIGN_UP' }), []);
-  const closeDrawer = useCallback(() => dispatch({ type: 'CLOSE_DRAWER' }), []);
-  const closeApply = useCallback(() => dispatch({ type: 'CLOSE_APPLY' }), []);
+  const closeSignUp = useCallback(() => dispatch({ type: 'CLOSE' }), []);
+  const close = useCallback(() => dispatch({ type: 'CLOSE' }), []);
 
-  const onEditProfileFromApply = useCallback(
-    (coverLetterDraft: string) => dispatch({ type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft }),
-    [],
-  );
-
-  const onDrawerSaved = useCallback(
-    (args: { profileComplete: boolean; canApply: boolean }) => {
-      const pending = state.step === 'drawer' ? state.pendingApply : null;
-      analytics.onJobApplyDrawerSaved({ ...applyBase(pending), profile_complete: args.profileComplete });
-      dispatch({ type: 'DRAWER_SAVED', canResume: args.canApply && args.profileComplete });
+  /** A profile save reported from whichever surface collected it. */
+  const onProfileSaved = useCallback(
+    (args: { profileComplete: boolean }) => {
+      const target = state.step === 'flow' ? state.target : null;
+      analytics.onJobApplyDrawerSaved({ ...applyBase(target), profile_complete: args.profileComplete });
     },
     [analytics, applyBase, state],
   );
@@ -279,14 +300,13 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     state,
     onApply,
     onViewJob,
-    closeDetail,
+    goToStep,
+    setCoverLetter,
     onSignUp,
     onUpdateProfile,
     closeSignUp,
-    closeDrawer,
-    closeApply,
-    onEditProfileFromApply,
-    onDrawerSaved,
+    close,
+    onProfileSaved,
     onSubmitted,
   };
 }

@@ -245,9 +245,26 @@ function PendingApprovalBanner({
         <section className={clsx(welcome.welcome, s.brandSurface)}>
           <div className={welcome.text}>
             <p className={clsx(welcome.title, s.bannerTitle)}>Profile under review</p>
+            {/* Two sentences, two lines — and two different kinds of thing,
+                which is why they are separate `<p>`s rather than one broken with
+                a `<br />`. The first is a status: the review is running, we will
+                tell you. The second is the one move that is theirs, and it is
+                what the button beside it does. Run together they read as one
+                paragraph about waiting, and the instruction gets lost in the
+                middle of it.
+
+                No new CSS: `welcome.text` is already a 4px-gap column, so a
+                second `<p>` lands on the next line at the card's own rhythm.
+
+                The second line used to end "so you can apply the moment it is",
+                which was the reason to finish a profile while approval was the
+                thing standing in the way. It no longer is — applying works now —
+                so the reason had to change with it: a profile is what the
+                application carries, and that is true whether or not anyone is
+                reviewing the account. */}
+            <p className={clsx(welcome.sub, s.bannerSub)}>We&apos;ll notify you once approved.</p>
             <p className={clsx(welcome.sub, s.bannerSub)}>
-              We&apos;ll notify you once approved. <br /> Complete your profile in the meantime, so you can apply the
-              moment it is.
+              You can apply meanwhile — finish your profile so it goes with a full picture of you.
             </p>
           </div>
           <div className={s.ctaGroup}>
@@ -269,9 +286,21 @@ function PendingApprovalBanner({
             <InfoIcon />
           </div>
           <div className={alert.alertText}>
+            {/* The second sentence names what is and isn't available, because
+                "under review" alone leaves someone guessing whether the board
+                itself is half-working.
+
+                It used to end "applying unlocks as soon as your account is
+                approved" — the truth while approval gated applying. It doesn't
+                any more, and this is the state where getting that wrong would
+                cost the most: a finished profile with nothing left to do, being
+                told to wait for something that isn't holding them up. Now the
+                sentence says the board is entirely open and leaves the review as
+                what it is — a fact about the account, running in the
+                background. */}
             <p>
-              Profile under review — we&apos;ll notify you once approved. Your profile is ready and every role is open
-              to browse; applying unlocks as soon as your account is approved.
+              Profile under review — we&apos;ll notify you once approved. Nothing here is waiting on it: browse and
+              apply as normal.
             </p>
           </div>
         </div>

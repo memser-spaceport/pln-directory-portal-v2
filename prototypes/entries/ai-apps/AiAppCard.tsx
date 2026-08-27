@@ -27,16 +27,7 @@ interface Props {
   readonly onViewOnePager: () => void;
 }
 
-export function AiAppCard({
-  app,
-  canManage,
-  onSelect,
-  onEdit,
-  onDeployment,
-  onLogs,
-  onDelete,
-  onViewOnePager,
-}: Props) {
+export function AiAppCard({ app, canManage, onSelect, onEdit, onDeployment, onLogs, onDelete, onViewOnePager }: Props) {
   const isDraft = app.status === 'DRAFT';
   // Two separate questions. "Did the last deploy fail" decides whether we show a
   // notice; "is anything serving" decides whether the app reads as unavailable.

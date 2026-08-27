@@ -2136,7 +2136,7 @@ describe('TeamNews', () => {
       expect(within(catRow()).getByRole('button', { name: /For You/ })).toHaveClass(/catActive/);
       expect(screen.queryByRole('region', { name: 'Top stories' })).not.toBeInTheDocument();
       expect(
-        screen.getByText(/For you: Curated based on your profile and primary team attributes/),
+        screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
       ).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
       expect(screen.getByText('Headline mem-1')).toBeInTheDocument();
@@ -2152,7 +2152,7 @@ describe('TeamNews', () => {
         renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
 
         expect(
-          screen.getByText(/For you: Curated based on your profile and primary team attributes/),
+          screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
         ).toBeInTheDocument();
         const profileLink = screen.getByRole('link', { name: /Update your profile/ });
         expect(profileLink).toHaveAttribute('href', '/members/user-1?backTo=%2Fhome');
@@ -2161,7 +2161,7 @@ describe('TeamNews', () => {
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
         expect(
-          screen.queryByText(/For you: Curated based on your profile and primary team attributes/),
+          screen.queryByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
         ).not.toBeInTheDocument();
       } finally {
         useCurrentUserStore.setState({ currentUser: null, isHydrated: false });

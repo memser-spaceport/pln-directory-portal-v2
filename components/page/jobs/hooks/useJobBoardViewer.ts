@@ -29,9 +29,14 @@ export interface JobBoardViewerResult {
   profileComplete: boolean;
   /**
    * Refetch the member record and return the fresh verdict. Used on an Apply
-   * press while `pending-approval`: the cookie-derived status can lag an
-   * approval that landed mid-session (cookie and API diverge both ways), and
-   * this is the one moment the pending copy could lie.
+   * press by a non-approved account, where the cookie-derived status can lag the
+   * record (cookie and API diverge both ways).
+   *
+   * It used to be about catching an approval that landed mid-session, so the
+   * member got the in-app letter rather than the hiring team's own posting.
+   * Approval no longer gates applying, so what this now guards is rejection —
+   * and it matters more than it did, because the press it precedes sends a real
+   * application.
    */
   refreshVerdict: () => Promise<JobsAccessVerdict>;
 }

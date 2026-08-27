@@ -7,20 +7,21 @@ export interface IJobRole {
   workMode: string | null;
   applyUrl: string | null;
   /**
-   * The posting's own words, if the ingest carried any.
+   * The posting's own body, scraped by the ingest. Null when the source had
+   * none — which is most roles, because the ingest only carries a body for the
+   * teams whose careers sites it can read.
    *
-   * **Optional because nothing sends it yet.** The column exists
-   * (`JobOpening.summary`, written straight from the ingest payload) but the
-   * board's query service does not select it, so today this is always
-   * `undefined`. It is modelled here so the detail drawer can render it the day
-   * it starts arriving without a type change — and so that the absence is a
-   * documented gap rather than a field nobody thought of.
+   * Sanitized on the way in, and sanitized again on the way out
+   * (`sanitizeJobDescriptionHtml`): this app ships no CSP, so that allowlist is
+   * the only defense layer, and this is third-party markup.
    *
-   * Free text, one block. It is NOT the structured body the job-board prototype
-   * draws (responsibilities, requirements, compensation, hiring process) — none
-   * of that exists anywhere in this system. See `SHOW_JOB_DETAIL`.
+   * One blob, not a structure. It is NOT the sectioned body the job-board
+   * prototype draws (responsibilities, requirements, compensation, hiring
+   * process) — none of that exists anywhere in this system, and there is no
+   * plan for it. Coverage was the open question and it is answered: 83 of 92
+   * roles on dev carry one, and the rest fall back to the posting link.
    */
-  summary?: string | null;
+  descriptionHtml?: string | null;
   lastUpdated: string;
   postedDate: string | null;
   detectionDate: string | null;
@@ -33,7 +34,7 @@ export interface IJobTeam {
   focusAreas: string[];
   subFocusAreas: string[];
   /** Team-configured inbox for job referrals. When set, the Refer modal skips member pick. */
-  jobReferEmail: string | null;
+  jobReferEmail?: string | null;
 }
 
 export interface IJobTeamGroup {

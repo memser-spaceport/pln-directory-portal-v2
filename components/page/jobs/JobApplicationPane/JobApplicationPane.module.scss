@@ -184,6 +184,19 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// The letter's invitation, under its label. `JobProfileDrawer`'s `.cvFirstNote`
+// idiom — 12px secondary, a step under the 14px label it follows, because it is
+// prose about the field rather than a second heading. `.block`'s own 8px gap
+// places it; it needs no margin of its own.
+.blockNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // ReferModal's `.resetLink` — the established quiet-link idiom for a corrective
 // escape sitting in a label row. 12px so it stays under the 14px label it shares
 // the row with: it's a way out, not a second heading.

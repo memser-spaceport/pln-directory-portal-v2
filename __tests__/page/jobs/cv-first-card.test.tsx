@@ -2,13 +2,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
- * The profile step's "You can upload your CV" card — the importer's *other* host.
+ * The profile step's "Upload your CV" card — the importer's *other* host.
  *
  * What this guards is the difference between the two hosts. The section's door
- * is a pill inside an empty row ("Upload your CV") that reveals the drop area;
- * this card IS the drop area, because the thing that got you here already says
- * what it is. A landing screen offering a button that reveals a button would be
- * the card not taking its own title at its word.
+ * is a pill inside an empty row that reveals the drop area; this card IS the
+ * drop area, because the thing that got you here already says what it is. A
+ * landing screen offering a button that reveals a button would be the card not
+ * taking its own title at its word.
+ *
+ * The two now share a string — the card's title is "Upload your CV" and so is
+ * the pill's label — so the assertion separating them is scoped by ROLE, not by
+ * text. A `getByText` there would pass on the wrong host.
  */
 
 const mockExperiences = jest.fn();
@@ -96,19 +100,21 @@ const pickFile = () => {
   fireEvent.change(input, { target: { files: [file] } });
 };
 
-describe('the profile step’s "You can upload your CV" card', () => {
+describe('the profile step’s "Upload your CV" card', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('shows the drop area straight away, with no door to open first', () => {
     renderCard();
 
-    expect(screen.getByText('You can upload your CV')).toBeInTheDocument();
+    expect(screen.getByText('Upload your CV')).toBeInTheDocument();
     /* Marked, because it sits directly above two sections carrying a required
        strip and would otherwise read as a third thing being asked for. */
     expect(screen.getByText('(Optional)')).toBeInTheDocument();
-    // The offer's own sentence — the one that names the work avoided.
-    expect(screen.getByText(/so you don't have to type it all in/i)).toBeInTheDocument();
-    // `direct` entry: the section's revealing pill must not be here.
+    // The offer's own sentence — what the document buys you.
+    expect(screen.getByText(/autofill applicable fields/i)).toBeInTheDocument();
+    /* `direct` entry: the section's revealing pill must not be here. By role,
+       because the card's own title is now that same string — the pill is a
+       button and the title is not. */
     expect(screen.queryByRole('button', { name: /^upload your cv$/i })).not.toBeInTheDocument();
     expect(document.querySelector('input[type="file"]')).toBeInTheDocument();
   });
@@ -132,7 +138,7 @@ describe('the profile step’s "You can upload your CV" card', () => {
 
     await waitFor(() => expect(screen.getByText(/Lattice Compute/)).toBeInTheDocument());
     // The offer is gone: one card, two states, never both at once.
-    expect(screen.queryByText(/so you don't have to type it all in/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/autofill applicable fields/i)).not.toBeInTheDocument();
     expect(mockAnalytics.onCvImportParseSucceeded).toHaveBeenCalledWith(
       expect.objectContaining({ experiences_found: 1, has_role: true }),
     );
@@ -172,8 +178,8 @@ describe('the profile step’s "You can upload your CV" card', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockApply).toHaveBeenCalled());
-    await waitFor(() => expect(screen.queryByText('You can upload your CV')).not.toBeInTheDocument());
-    expect(screen.queryByText(/so you don't have to type it all in/i)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Upload your CV')).not.toBeInTheDocument());
+    expect(screen.queryByText(/autofill applicable fields/i)).not.toBeInTheDocument();
   });
 
   /** The mirror of the above: a save that fails keeps the selection on screen. */
@@ -202,6 +208,6 @@ describe('the profile step’s "You can upload your CV" card', () => {
 
     expect(mockAnalytics.onCvImportCancelled).toHaveBeenCalledWith('review');
     // And it is back to being the offer.
-    expect(screen.getByText(/so you don't have to type it all in/i)).toBeInTheDocument();
+    expect(screen.getByText(/autofill applicable fields/i)).toBeInTheDocument();
   });
 });

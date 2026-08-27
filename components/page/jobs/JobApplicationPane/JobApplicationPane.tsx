@@ -264,9 +264,30 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
             </div>
 
             <div className={s.block}>
+              {/* A `label`, not a `span` like the profile block's — this one
+                  names a field. `FormTextArea` puts `id={name}` on the textarea
+                  and only sets `aria-label` when it is passed a `label` prop,
+                  which this call site deliberately isn't (its own label markup
+                  would not match the profile block's). So without `htmlFor` the
+                  letter had no accessible name at all. */}
               <div className={s.blockLabelRow}>
-                <span className={s.blockLabel}>Cover letter (message for the team)</span>
+                <label className={s.blockLabel} htmlFor="coverLetter">
+                  Message for the team
+                </label>
               </div>
+              {/* The invitation, and the argument for writing it yourself.
+                  ("Cover letter (message for the team)" was the whole heading.
+                  The parenthesis was already translating the genre away from a
+                  cover letter; this drops the genre and keeps the translation,
+                  because a letter is exactly what the team does not want.)
+
+                  Names the team rather than "the team": a message addressed to
+                  someone specific is the thing being asked for, so the ask says
+                  who. */}
+              <p className={s.blockNote}>
+                Start a conversation with the team at {teamName}. Share something about you, what you’re looking for, or
+                why {teamName} interests you. Human-written messages are more likely to get a response.
+              </p>
               <FormTextArea name="coverLetter" rows={6} placeholder="Why this role, and what you’d bring to it." />
               {/* `1200 / 2000`, which is `FormTextArea`'s own counter format and
                   what the design asks for — "2000 characters left" was this

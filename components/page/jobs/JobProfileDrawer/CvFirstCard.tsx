@@ -17,8 +17,8 @@ import { IMember } from '@/types/members.types';
 import d from './JobProfileDrawer.module.scss';
 
 /**
- * "You can upload your CV" — the first card in the profile step, until there is
- * a work history to have uploaded.
+ * "Upload your CV" — the first card in the profile step, until there is a work
+ * history to have uploaded.
  *
  * Not a second importer. It is the same mechanism the Experience section hosts
  * (`useCvImport`), moved to where it is worth offering: a CV answers the
@@ -118,25 +118,25 @@ export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
               **Marked optional, and it has to be.** This card sits directly above
               two sections that carry a required strip. An unmarked card in that
               stack reads as a third thing being asked for — and the whole point
-              of it is that it is the shortcut, not another form. "Start with your
-              CV" also read as an instruction about where to begin, which is only
-              true for someone with a blank profile; the card stands for longer
-              than that now. */}
+              of it is that it is the shortcut, not another form. That is doing
+              more work now the title is an imperative: "Upload your CV" is the
+              same grammar as the asks below it, and `(Optional)` is the only
+              thing separating an offer from a fourth requirement. Do not drop
+              it. */}
           <DetailsSectionHeader
             title={
               <>
-                You can upload your CV
+                Upload your CV
                 <span className={d.optionalMark}>(Optional)</span>
               </>
             }
           />
-          {/* Names the work avoided, not just the work done — the alternative to
-              uploading is typing it all in, stated. Word for word the sentence
-              every other surface offering this uses; a cross-surface promise
-              that reads differently per page is drift. */}
-          <p className={d.cvFirstNote}>
-            We&apos;ll fill in your role, skills and experience from it, so you don&apos;t have to type it all in.
-          </p>
+          {/* One line, and it is the mechanism: the fields below fill themselves.
+              (It ran longer — "We'll fill in your role, skills and experience
+              from it, so you don't have to type it all in" — naming the work
+              avoided as well as the work done. Two sentences of persuasion above
+              a drop area that is already the shortcut.) */}
+          <p className={d.cvFirstNote}>We will autofill applicable fields.</p>
           <ExperienceImportPanel
             privacyNote="We read the file to fill in your experience. It isn't sent with your applications."
             onParse={parseAndReport}

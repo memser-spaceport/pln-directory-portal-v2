@@ -169,11 +169,14 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             reason to exist.) */}
       <p className={d.lede}>
         {/* The pending line no longer defers the application — it says the
-              review isn't in the way. Same fact, opposite consequence. */}
-        {pendingRoleTitle
-          ? pendingApproval
-            ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
-            : `We send your profile with your application to ${pendingRoleTitle}.`
+              review isn't in the way. Same fact, opposite consequence.
+
+              Everyone else reads the generic line, INCLUDING mid-application.
+              ("We send your profile with your application to <role>." stood in
+              that slot — a promise the letter step's own lede already makes, one
+              step before it can be acted on. Said once, where it is true.) */}
+        {pendingApproval && pendingRoleTitle
+          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
           : 'This is what hiring teams see when you apply.'}
       </p>
 

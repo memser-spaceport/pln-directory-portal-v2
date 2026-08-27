@@ -154,7 +154,6 @@ export function JobProfilePane(props: JobProfilePaneProps) {
      structural rather than a rule two expressions have to keep agreeing on. */
   const cvImportHost = pickCvImportHost({
     enabled: SHOW_CV_IMPORT,
-    hasRole,
     experienceCount,
     experiencesLoading,
     handedOff,
@@ -201,23 +200,37 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                   : 'Your current role is required to apply.'}
               </DataIncomplete>
             )}
-            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
           </div>
 
           {/* 2. Job search status — the required section, so it comes first
                    after the header. PL-Team-only: the pill carries the
                    audience, the note carries the purpose, and the value never
                    appears on the public profile or in the apply read-back. */}
+          {/* The requirement is said once, on the title, instead of in a strip
+              above the card.
+
+              The strip named the role — "An answer here is required to apply to
+              Start Up Operator" — which was worth the width when this was a
+              drawer that opened out of nowhere and had to re-establish what it
+              was holding up. It is step 2 of a rail that names the job at step 1
+              and carries it in the lede two lines above, so the strip spent a
+              full-width amber band restating what the screen already said, and
+              it sat *outside* the card it was about. `Required to continue` says
+              the same thing where the answer is, in the words the footer uses.
+
+              The amber card treatment stays: `missingData` is what marks the
+              section, and that is the part the strip was only decorating. */}
           <DetailsSection missingData={!hasStatus}>
-            {!hasStatus && (
-              <DataIncomplete className={d.incompleteStrip}>
-                {pendingRoleTitle
-                  ? `An answer here is required to apply to ${pendingRoleTitle}.`
-                  : 'An answer here is required to apply.'}
-              </DataIncomplete>
-            )}
             <div className={clsx({ [d.missingBody]: !hasStatus })}>
-              <DetailsSectionHeader title="Job search status">
+              <DetailsSectionHeader
+                title={
+                  <>
+                    Job search status
+                    {!hasStatus && <span className={d.requiredMark}>Required to continue</span>}
+                  </>
+                }
+              >
                 <PlTeamOnlyPill />
               </DetailsSectionHeader>
               {/* Not disabled while saving, deliberately. The write is

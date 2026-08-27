@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 /**
- * The drawer's "Start with your CV" card — the importer's *other* host.
+ * The profile step's "You can upload your CV" card — the importer's *other* host.
  *
  * What this guards is the difference between the two hosts. The section's door
  * is a pill inside an empty row ("Upload your CV") that reveals the drop area;
@@ -96,13 +96,16 @@ const pickFile = () => {
   fireEvent.change(input, { target: { files: [file] } });
 };
 
-describe('the drawer’s "Start with your CV" card', () => {
+describe('the profile step’s "You can upload your CV" card', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('shows the drop area straight away, with no door to open first', () => {
     renderCard();
 
-    expect(screen.getByText('Start with your CV')).toBeInTheDocument();
+    expect(screen.getByText('You can upload your CV')).toBeInTheDocument();
+    /* Marked, because it sits directly above two sections carrying a required
+       strip and would otherwise read as a third thing being asked for. */
+    expect(screen.getByText('(Optional)')).toBeInTheDocument();
     // The offer's own sentence — the one that names the work avoided.
     expect(screen.getByText(/so you don't have to type it all in/i)).toBeInTheDocument();
     // `direct` entry: the section's revealing pill must not be here.
@@ -169,7 +172,7 @@ describe('the drawer’s "Start with your CV" card', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockApply).toHaveBeenCalled());
-    await waitFor(() => expect(screen.queryByText('Start with your CV')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('You can upload your CV')).not.toBeInTheDocument());
     expect(screen.queryByText(/so you don't have to type it all in/i)).not.toBeInTheDocument();
   });
 

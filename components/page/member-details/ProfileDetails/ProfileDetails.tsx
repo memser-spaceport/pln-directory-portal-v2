@@ -2,6 +2,8 @@
 
 import { clsx } from 'clsx';
 import DOMPurify from 'isomorphic-dompurify';
+
+import { isBlankHtml } from '@/utils/html';
 import React, { useRef, useState } from 'react';
 
 import { MemberDetailHeader } from '@/components/page/member-details/MemberDetailHeader';
@@ -19,7 +21,7 @@ interface Props {
   member: IMember;
   isLoggedIn: boolean;
   userInfo: IUserInfo | null;
-  variant?: 'investor-drawer';
+  variant?: 'investor-drawer' | 'apply-flow';
 }
 
 export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props) => {
@@ -32,7 +34,16 @@ export const ProfileDetails = ({ isLoggedIn, userInfo, member, variant }: Props)
   const showIncomplete = !editView && hasMissingRequiredData && isOwner;
   const { onEditProfileDetailsClicked } = useMemberAnalytics();
   useMobileNavVisibility(editView);
-  const hasBio = !!member.bio && member.bio.trim() !== '<p><br></p>';
+  /* "Renders as nothing" rather than "equals Quill's empty value".
+     The old test only knew one sentinel, `<p><br></p>`, so a bio saved as
+     `<p></p>` — or a couple of blank paragraphs — was truthy, passed, and drew
+     the Bio heading over an empty grey box. Same class of bug as the forum's
+     blank paragraphs: rich text is never an empty string, it is empty markup.
+
+     `isBlankHtml` strips tags, so a bio that is *only* an image would read as
+     blank; the second test keeps that one visible, since an image is something
+     a reader can see even though it has no text. */
+  const hasBio = !!member.bio && (!isBlankHtml(member.bio) || /<img\b/i.test(member.bio));
 
   return (
     <div

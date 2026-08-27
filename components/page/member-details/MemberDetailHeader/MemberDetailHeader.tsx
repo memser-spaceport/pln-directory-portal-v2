@@ -28,7 +28,7 @@ interface IMemberDetailHeader {
   userInfo: IUserInfo;
   isLoggedIn: boolean;
   onEdit: () => void;
-  variant?: 'investor-drawer';
+  variant?: 'investor-drawer' | 'apply-flow';
 }
 
 export const MemberDetailHeader = (props: IMemberDetailHeader) => {
@@ -55,7 +55,7 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
   mainTeam = !mainTeam && member?.teams.length === 1 ? member.teams[0] : mainTeam;
 
   const isOwner = userInfo?.uid === member.id;
-  const isAdmin = isAdminUser(userInfo)
+  const isAdmin = isAdminUser(userInfo);
   const defaultAvatarImage = useDefaultAvatar(member?.name);
   const profile = member?.profile ?? defaultAvatarImage;
   const analytics = useMemberAnalytics();
@@ -212,15 +212,24 @@ export const MemberDetailHeader = (props: IMemberDetailHeader) => {
             )
           )}
 
-          {isLoggedIn && (isOwner || isAdmin) && !hasBio && variant !== 'investor-drawer' && (
-            <>
-              <div className={s.tagDivider} />
-              <button type="button" className={s.addPill} onClick={onEdit}>
-                <PlusIcon />
-                <span>Add bio</span>
-              </button>
-            </>
-          )}
+          {/* Not offered in the apply flow. A bio is the one thing on this card
+              that an application does not carry and nobody is being asked for
+              here, so a placeholder pill for it competes with the two answers
+              that ARE required a card below. Everywhere else it is a reasonable
+              nudge on a profile someone came to fill in. */}
+          {isLoggedIn &&
+            (isOwner || isAdmin) &&
+            !hasBio &&
+            variant !== 'investor-drawer' &&
+            variant !== 'apply-flow' && (
+              <>
+                <div className={s.tagDivider} />
+                <button type="button" className={s.addPill} onClick={onEdit}>
+                  <PlusIcon />
+                  <span>Add bio</span>
+                </button>
+              </>
+            )}
         </div>
       </div>
     </>

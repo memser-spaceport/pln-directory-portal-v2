@@ -17,8 +17,8 @@ import { IMember } from '@/types/members.types';
 import d from './JobProfileDrawer.module.scss';
 
 /**
- * "Start with your CV" — the first card in the drawer, while there is nothing to
- * start from.
+ * "You can upload your CV" — the first card in the profile step, until there is
+ * a work history to have uploaded.
  *
  * Not a second importer. It is the same mechanism the Experience section hosts
  * (`useCvImport`), moved to where it is worth offering: a CV answers the
@@ -112,9 +112,24 @@ export function CvFirstCard({ member, onHandOff }: CvFirstCardProps) {
         <>
           {/* No action in the header slot, deliberately. In its resting state
               this card is an offer, not an open editor — there is nothing to
-              cancel, the drawer's own footer is live below it, and the profile
-              it would dismiss is right there to be filled in by hand. */}
-          <DetailsSectionHeader title="Start with your CV" />
+              cancel, the flow's own footer is live below it, and the profile it
+              would dismiss is right there to be filled in by hand.
+
+              **Marked optional, and it has to be.** This card sits directly above
+              two sections that carry a required strip. An unmarked card in that
+              stack reads as a third thing being asked for — and the whole point
+              of it is that it is the shortcut, not another form. "Start with your
+              CV" also read as an instruction about where to begin, which is only
+              true for someone with a blank profile; the card stands for longer
+              than that now. */}
+          <DetailsSectionHeader
+            title={
+              <>
+                You can upload your CV
+                <span className={d.optionalMark}>(Optional)</span>
+              </>
+            }
+          />
           {/* Names the work avoided, not just the work done — the alternative to
               uploading is typing it all in, stated. Word for word the sentence
               every other surface offering this uses; a cross-surface promise

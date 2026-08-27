@@ -18,7 +18,8 @@ export interface IJobRole {
    * One blob, not a structure. It is NOT the sectioned body the job-board
    * prototype draws (responsibilities, requirements, compensation, hiring
    * process) — none of that exists anywhere in this system, and there is no
-   * plan for it. See `SHOW_JOB_DETAIL`, which flips on coverage of this field.
+   * plan for it. Coverage was the open question and it is answered: 83 of 92
+   * roles on dev carry one, and the rest fall back to the posting link.
    */
   descriptionHtml?: string | null;
   lastUpdated: string;

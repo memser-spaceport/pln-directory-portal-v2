@@ -15,10 +15,10 @@ import { PENDING_SAVE_STORAGE_KEY } from '@/services/job-alerts/constants';
 import { filterStateFromURL } from '@/utils/jobs.utils';
 import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchParams } from '@/utils/job-alerts.utils';
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
-import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY, SHOW_JOB_DETAIL } from '@/services/jobs/constants';
+import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY } from '@/services/jobs/constants';
 import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
-import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { useJobApplyFlow, type JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
@@ -102,11 +102,11 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         ? {
             onApply: applyFlow.onApply,
             memberUid: boardViewer.memberUid,
-            /* Literal-first, so the bundler folds the branch: flag off and the
-               rows keep their direct Apply, with `onViewJob` absent rather than
-               present-and-ignored. Nested inside the apply flag because the
-               drawer's whole footer is the apply hand-off. */
-            ...(SHOW_JOB_DETAIL ? { onViewJob: applyFlow.onViewJob } : {}),
+            /* Reading the job is step 1 of the flow now, so every row that gets
+               an apply slot gets `onViewJob` with it. `SHOW_JOB_DETAIL` used to
+               gate this; it was answered by description coverage — see the note
+               where it lived in `services/jobs/constants`. */
+            onViewJob: applyFlow.onViewJob,
           }
         : undefined,
     [boardViewer.viewer, boardViewer.memberUid, applyFlow.onApply, applyFlow.onViewJob],
@@ -144,11 +144,15 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     applyResumeHandled.current = true;
     stripPendingApplyFromUrl();
 
-    let resumed: { role: IJobRole; teamId: string; teamName: string } | null = null;
+    /* The team travels with it now: reading is step 1 of the flow, so a resumed
+       run has to be able to render the review step it may step back to. It was
+       always in hand here — the loop is over the groups — it just wasn't
+       captured. */
+    let resumed: JobDetailTarget | null = null;
     for (const group of groups) {
       const role = group.roles.find((r) => r.uid === roleUid);
       if (role) {
-        resumed = { role, teamId: group.team.uid, teamName: group.team.name };
+        resumed = { role, teamId: group.team.uid, teamName: group.team.name, team: group.team };
         break;
       }
     }

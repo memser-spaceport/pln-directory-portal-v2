@@ -11,6 +11,7 @@ import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
 import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
+import type { JobDetailTarget } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import { formatRelativeDays, getJobDate, isNew, seniorityDisplayLabel } from '@/utils/jobs.utils';
 
 import { jobApplyQueryParams } from './constants';
@@ -33,7 +34,7 @@ import { useLoginRedirect } from '@/components/core/login/utils';
  * rather than test-enforced.
  */
 export interface RowApplyProps {
-  onApply: (target: { role: IJobRole; teamId: string; teamName: string }) => void;
+  onApply: (target: JobDetailTarget) => void;
   /** Scopes the applied-map subscription; undefined while logged out. */
   memberUid: string | undefined;
   /**
@@ -44,10 +45,9 @@ export interface RowApplyProps {
    * a title, a seniority and a location, which is not enough to decide with, so
    * pressing Apply from it was pressing send on a job you had not read.
    *
-   * Optional for the same reason `apply` is: `JobsContent` passes it only when
-   * `SHOW_JOB_DETAIL` is on, so flag-off byte-identity is structural rather
-   * than test-enforced. Absent everywhere without an in-app description — the
-   * team profile keeps its direct Apply.
+   * Optional for the same reason `apply` is: the host decides. The board passes
+   * it with every apply slot now that reading is step 1 of the flow; the team
+   * profile does not, and keeps its direct Apply.
    */
   onViewJob?: (target: { role: IJobRole; teamId: string; teamName: string; team: IJobTeam }) => void;
 }
@@ -91,7 +91,10 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
   const analytics = useJobsAnalytics();
   const [referOpen, toggleReferOpen] = useToggle(false);
 
-  const inAppApply = Boolean(apply);
+  /* Both, or neither — the same rule `viewJob` follows, and for the same
+     reason: the flow opens on the reading step, which needs the team record to
+     draw its masthead. A row without one cannot start a flow. */
+  const inAppApply = Boolean(apply && team);
   // Per-row subscription to the shared applied map: one application re-renders
   // exactly this row, never the list. Inert (enabled: false) without apply props.
   const application = useRoleApplication(role.uid, { memberUid: apply?.memberUid, enabled: Boolean(apply?.memberUid) });
@@ -254,7 +257,7 @@ export function ReferRoleRow(props: ReferRoleRowProps) {
                 style="fill"
                 variant="primary"
                 className={ap.applyButton}
-                onClick={() => apply!.onApply({ role, teamId, teamName })}
+                onClick={() => apply!.onApply({ role, teamId, teamName, team: team! })}
               >
                 Apply
               </Button>

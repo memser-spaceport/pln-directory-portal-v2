@@ -42,112 +42,84 @@ describe('applyFlowReducer', () => {
     expect(applyFlowReducer(IDLE, { type: 'OPEN_SIGN_UP', target: null })).toEqual({ step: 'sign-up', target: null });
   });
 
-  it('an Apply-press drawer is not an edit detour — closing it ends the flow', () => {
-    const drawer = applyFlowReducer(IDLE, { type: 'OPEN_DRAWER', pendingApply: target() });
-    expect(drawer).toEqual({ step: 'drawer', pendingApply: target(), coverLetterDraft: '', returnToApply: false });
-
-    expect(applyFlowReducer(drawer, { type: 'CLOSE_DRAWER' })).toEqual(IDLE);
-  });
-
-  it('saving the drawer resumes into the apply modal only when the account can apply', () => {
-    const drawer = applyFlowReducer(IDLE, { type: 'OPEN_DRAWER', pendingApply: target() });
-
-    expect(applyFlowReducer(drawer, { type: 'DRAWER_SAVED', canResume: true })).toEqual({
-      step: 'apply',
-      target: target(),
+  /* The flow is one state with a position in it, where it used to be three
+     separate steps stitched together by `returnToApply` and a held role. */
+  it('opens the flow on whichever step it was told to', () => {
+    expect(applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'review' })).toEqual({
+      step: 'flow',
+      target: detailTarget(),
+      at: 'review',
       coverLetterDraft: '',
     });
-    // Pending approval / still-incomplete: the save ends the visit instead.
-    expect(applyFlowReducer(drawer, { type: 'DRAWER_SAVED', canResume: false })).toEqual(IDLE);
-  });
 
-  it('saving a drawer with no pending role ends the visit even when the account could apply', () => {
-    const drawer = applyFlowReducer(IDLE, { type: 'OPEN_DRAWER', pendingApply: null });
-    expect(applyFlowReducer(drawer, { type: 'DRAWER_SAVED', canResume: true })).toEqual(IDLE);
-  });
-
-  describe('the Edit-profile detour', () => {
-    const apply = applyFlowReducer(IDLE, { type: 'OPEN_APPLY', target: target() });
-
-    it('carries the half-written letter into the drawer', () => {
-      const detour = applyFlowReducer(apply, { type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft: 'Dear team,' });
-      expect(detour).toEqual({
-        step: 'drawer',
-        pendingApply: target(),
-        coverLetterDraft: 'Dear team,',
-        returnToApply: true,
-      });
-    });
-
-    it('returns to the apply modal with the letter intact on SAVE', () => {
-      const detour = applyFlowReducer(apply, { type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft: 'Dear team,' });
-      expect(applyFlowReducer(detour, { type: 'DRAWER_SAVED', canResume: true })).toEqual({
-        step: 'apply',
-        target: target(),
-        coverLetterDraft: 'Dear team,',
-      });
-    });
-
-    it('returns to the apply modal with the letter intact on CANCEL — up to 2000 typed characters must survive a detour we suggested', () => {
-      const detour = applyFlowReducer(apply, { type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft: 'Dear team,' });
-      expect(applyFlowReducer(detour, { type: 'CLOSE_DRAWER' })).toEqual({
-        step: 'apply',
-        target: target(),
-        coverLetterDraft: 'Dear team,',
-      });
+    expect(applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'application' })).toEqual({
+      step: 'flow',
+      target: detailTarget(),
+      at: 'application',
+      coverLetterDraft: '',
     });
   });
 
-  it('cancelling or submitting the apply modal drops the letter — a draft for one role must never resurface under another', () => {
-    const apply = applyFlowReducer(IDLE, { type: 'OPEN_APPLY', target: target() });
-    expect(applyFlowReducer(apply, { type: 'CLOSE_APPLY' })).toEqual(IDLE);
-    expect(applyFlowReducer(apply, { type: 'SUBMITTED' })).toEqual(IDLE);
+  it('walks the rail without losing the target', () => {
+    const opened = applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'review' });
+    const moved = applyFlowReducer(opened, { type: 'GO_TO_STEP', at: 'application' });
 
-    const reopened = applyFlowReducer(IDLE, { type: 'OPEN_APPLY', target: target('r2') });
-    expect(reopened).toEqual({ step: 'apply', target: target('r2'), coverLetterDraft: '' });
+    expect(moved).toMatchObject({ step: 'flow', at: 'application', target: detailTarget() });
   });
 
-  it('ignores transitions that make no sense for the current step', () => {
-    expect(applyFlowReducer(IDLE, { type: 'EDIT_PROFILE_FROM_APPLY', coverLetterDraft: 'x' })).toEqual(IDLE);
-    expect(applyFlowReducer(IDLE, { type: 'DRAWER_SAVED', canResume: true })).toEqual(IDLE);
-    expect(applyFlowReducer(IDLE, { type: 'CLOSE_DRAWER' })).toEqual(IDLE);
+  /* The whole reason the letter lives in flow state: stepping back to re-read
+     the posting or fix the profile unmounts the pane that holds it, and a draft
+     that died on a step change would make the rail a trap. */
+  it('keeps the cover letter across every step change', () => {
+    let state = applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'application' });
+    state = applyFlowReducer(state, { type: 'SET_COVER_LETTER', coverLetterDraft: 'half written' });
+
+    state = applyFlowReducer(state, { type: 'GO_TO_STEP', at: 'profile' });
+    expect(state).toMatchObject({ at: 'profile', coverLetterDraft: 'half written' });
+
+    state = applyFlowReducer(state, { type: 'GO_TO_STEP', at: 'review' });
+    expect(state).toMatchObject({ at: 'review', coverLetterDraft: 'half written' });
+
+    state = applyFlowReducer(state, { type: 'GO_TO_STEP', at: 'application' });
+    expect(state).toMatchObject({ at: 'application', coverLetterDraft: 'half written' });
   });
 
-  /**
-   * Reading the job, which now sits in front of the whole flow rather than
-   * inside it.
-   */
-  describe('the detail step', () => {
-    it('opens on the target it was given, carrying the team the masthead needs', () => {
-      expect(applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() })).toEqual({
-        step: 'detail',
-        target: detailTarget(),
-      });
-    });
+  /* Reopening is a fresh run. A letter surviving into a different role's
+     application is the one carry-over that would be actively wrong. */
+  it('starts a new run with an empty letter', () => {
+    let state = applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget('r1'), at: 'application' });
+    state = applyFlowReducer(state, { type: 'SET_COVER_LETTER', coverLetterDraft: 'for r1' });
+    state = applyFlowReducer(state, { type: 'OPEN_FLOW', target: detailTarget('r2'), at: 'review' });
 
-    it('closes back to the board — it is upstream of the flow, not a detour inside it', () => {
-      const detail = applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() });
-      expect(applyFlowReducer(detail, { type: 'CLOSE_DETAIL' })).toEqual(IDLE);
-    });
+    expect(state).toMatchObject({ at: 'review', coverLetterDraft: '' });
+    expect((state as { target: JobDetailTarget }).target.role.uid).toBe('r2');
+  });
 
-    /**
-     * Apply inside the drawer dispatches one of the OPEN_* cases, which replace
-     * this step wholesale. The drawer therefore fires no close of its own — and
-     * if a stray one arrives anyway it must not knock the step that replaced it
-     * back to idle, which would close the sign-up form or the profile drawer the
-     * press just opened.
-     */
-    it.each([
-      ['sign-up', { type: 'OPEN_SIGN_UP', target: target() } as const],
-      ['drawer', { type: 'OPEN_DRAWER', pendingApply: target() } as const],
-      ['apply', { type: 'OPEN_APPLY', target: target() } as const],
-    ])('is replaced wholesale when Apply routes to %s', (step, action) => {
-      const detail = applyFlowReducer(IDLE, { type: 'OPEN_DETAIL', target: detailTarget() });
-      const next = applyFlowReducer(detail, action);
+  /* Both guarded, and for the same reason: something else replaced the flow, and
+     a late action from the screen that is going away must not resurrect it
+     around a target that is gone. */
+  it('ignores step changes and letter edits outside the flow', () => {
+    expect(applyFlowReducer(IDLE, { type: 'GO_TO_STEP', at: 'profile' })).toEqual(IDLE);
+    expect(applyFlowReducer(IDLE, { type: 'SET_COVER_LETTER', coverLetterDraft: 'x' })).toEqual(IDLE);
 
-      expect(next.step).toBe(step);
-      // And a late close cannot undo it.
-      expect(applyFlowReducer(next, { type: 'CLOSE_DETAIL' })).toEqual(next);
-    });
+    const signUp: ApplyFlowState = { step: 'sign-up', target: target() };
+    expect(applyFlowReducer(signUp, { type: 'GO_TO_STEP', at: 'review' })).toBe(signUp);
+  });
+
+  /* The banner's "Update profile": no role to review and nothing to send, so it
+     is deliberately not a flow. */
+  it('opens the profile on its own, with no flow around it', () => {
+    expect(applyFlowReducer(IDLE, { type: 'OPEN_PROFILE_ONLY' })).toEqual({ step: 'profile-only' });
+
+    const flow = applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'application' });
+    expect(applyFlowReducer(flow, { type: 'OPEN_PROFILE_ONLY' })).toEqual({ step: 'profile-only' });
+  });
+
+  it('backing out and sending both end the run', () => {
+    const flow = applyFlowReducer(IDLE, { type: 'OPEN_FLOW', target: detailTarget(), at: 'application' });
+
+    expect(applyFlowReducer(flow, { type: 'CLOSE' })).toEqual(IDLE);
+    expect(applyFlowReducer(flow, { type: 'SUBMITTED' })).toEqual(IDLE);
+    expect(applyFlowReducer({ step: 'profile-only' }, { type: 'CLOSE' })).toEqual(IDLE);
   });
 });

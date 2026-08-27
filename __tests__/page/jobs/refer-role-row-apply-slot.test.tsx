@@ -39,12 +39,24 @@ const role = (applyUrl: string | null): IJobRole => ({
   detectionDate: null,
 });
 
+const TEAM = {
+  uid: 'team-1',
+  name: 'Acme',
+  logoUrl: null,
+  focusAreas: [],
+  subFocusAreas: [],
+  jobReferEmail: null,
+};
+
+/* `team` is required for the in-app slot now, not just for View job: the flow
+   opens on the reading step and that step draws the team's masthead. */
 const renderRow = (applyUrl: string | null, apply?: RowApplyProps) =>
   render(
     <ReferRoleRow
       role={role(applyUrl)}
       teamId="team-1"
       teamName="Acme"
+      team={TEAM}
       currentUser={null}
       source="job-board"
       apply={apply}
@@ -69,6 +81,7 @@ describe('ReferRoleRow with in-app apply props', () => {
       role: role('https://example.com/apply'),
       teamId: 'team-1',
       teamName: 'Acme',
+      team: TEAM,
     });
   });
 
@@ -140,6 +153,7 @@ describe('ReferRoleRow Apply is always in-app', () => {
       role: role('https://example.com/apply'),
       teamId: 'team-1',
       teamName: 'Acme',
+      team: TEAM,
     });
   });
 });
@@ -170,14 +184,7 @@ describe('ReferRoleRow without apply props (flag off / rejected viewer)', () => 
 describe('ReferRoleRow with the in-app description on', () => {
   const onApply = jest.fn();
   const onViewJob = jest.fn();
-  const team = {
-    uid: 'team-1',
-    name: 'Acme',
-    logoUrl: null,
-    focusAreas: [],
-    subFocusAreas: [],
-    jobReferEmail: null,
-  };
+  const team = TEAM;
 
   const renderDetailRow = (applyUrl: string | null = 'https://example.com/apply') =>
     render(
@@ -249,7 +256,10 @@ describe('ReferRoleRow with the in-app description on', () => {
    * Without the team there is no masthead to render, so the row must not offer
    * the drawer at all — the flag reaching the row is not sufficient on its own.
    */
-  it('falls back to Apply when the surface has no team record to show', () => {
+  /* No team record, no in-app slot at all — where this used to fall back to a
+     direct Apply. The flow opens on a reading step that draws the team's
+     masthead, so a row that cannot name the team cannot start one. */
+  it('renders no in-app slot when the surface has no team record', () => {
     render(
       <ReferRoleRow
         role={role('https://example.com/apply')}
@@ -261,7 +271,7 @@ describe('ReferRoleRow with the in-app description on', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'View job' })).not.toBeInTheDocument();
   });
 

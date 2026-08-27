@@ -48,7 +48,7 @@ const role = (overrides: Partial<IJobRole> = {}): IJobRole => ({
 });
 
 const renderPane = (props: Partial<React.ComponentProps<typeof JobDetailPane>> = {}) =>
-  render(<JobDetailPane role={role()} team={team} applied={false} source="job-board" {...props} />);
+  render(<JobDetailPane role={role()} team={team} applied={false} source="job-board" showOriginalPosting {...props} />);
 
 describe('the job detail pane', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -169,6 +169,39 @@ describe('the job detail pane', () => {
       here. They belong to `JobApplyFlowDrawer` now — one bar for all three
       steps — so the assertions moved with them rather than being dropped.
       What is left here is the content, which is what this file is about.) */
+
+  /* The way out to the team's own careers page is withheld from the two people
+     who came here to apply through this board — someone with no account, and a
+     Job Aspirant. The pane is told, rather than working it out: see
+     `canSeeOriginalPosting`. */
+  describe('when the viewer is not offered the original posting', () => {
+    /* The stamp only ever renders alongside a description, so this needs one. */
+    const withBody = role({ descriptionHtml: '<p>We are hiring a protocol engineer.</p>' });
+
+    it('drops the masthead stamp', () => {
+      renderPane({ role: withBody, showOriginalPosting: false });
+
+      expect(screen.queryByRole('link', { name: /Original posting/i })).not.toBeInTheDocument();
+      // The description is still the point of the screen.
+      expect(screen.getByText(/hiring a protocol engineer/i)).toBeInTheDocument();
+    });
+
+    it('drops the empty state link', () => {
+      renderPane({ showOriginalPosting: false });
+
+      expect(screen.queryByRole('link', { name: /Read the original posting/i })).not.toBeInTheDocument();
+    });
+
+    /* The part worth guarding: the empty state's sentence names where the ad
+       lives. Saying that and then not linking to it is worse than not raising
+       it, so the sentence has to change with the link. */
+    it('stops claiming the posting is on the team site', () => {
+      renderPane({ showOriginalPosting: false });
+
+      expect(screen.queryByText(/on their own site/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Applying still sends them your profile/i)).toBeInTheDocument();
+    });
+  });
 
   describe('once applied', () => {
     /* The stamp, which is this pane's half of the applied state — the "Applied"

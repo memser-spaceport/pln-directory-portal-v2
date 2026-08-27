@@ -134,6 +134,9 @@ interface JobApplyFlowDrawerProps {
   profileComplete: boolean;
   applied: boolean;
   appliedAt?: string | null;
+  /** Whether the review step offers the way out to the team's own posting —
+   *  see `canSeeOriginalPosting`. */
+  showOriginalPosting: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */
   onApply: () => void;
   onProfileSaved: (args: { profileComplete: boolean }) => void;
@@ -204,6 +207,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     profileComplete,
     applied,
     appliedAt,
+    showOriginalPosting,
     onApply,
     onProfileSaved,
     onSubmitted,
@@ -510,6 +514,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             applied={applied}
             appliedAt={appliedAt}
             source={source}
+            showOriginalPosting={showOriginalPosting}
           />
         )}
 

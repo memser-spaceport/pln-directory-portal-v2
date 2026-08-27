@@ -18,6 +18,7 @@ import type { IUserInfo } from '@/types/shared.types';
 
 import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
+import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
 import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
 
 /* Most visitors never press Apply, and logged-out visitors can only ever reach
@@ -204,6 +205,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           profileComplete={viewer.profileComplete}
           applied={!!flowApplication}
           appliedAt={flowApplication?.appliedAt ?? null}
+          showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo })}
           /* Straight through to the one gate. `onApply` replaces or advances the
              step itself, so the drawer needs no close of its own here. */
           onApply={() => flow.onApply({ ...state.target }, 'detail')}

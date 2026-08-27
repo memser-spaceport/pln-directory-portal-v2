@@ -52,6 +52,15 @@ interface JobDetailPaneProps {
   appliedAt?: string | null;
   /** Drives the outbound `utm_medium` on the original-posting link. */
   source: JobSurface;
+  /**
+   * Whether to offer the way out to the hiring team's own posting.
+   *
+   * False for a visitor with no account and for a Job Aspirant — see
+   * `canSeeOriginalPosting`. It changes the empty state's sentence as well as
+   * the links, because naming a posting and then not linking to it is worse
+   * than not mentioning it.
+   */
+  showOriginalPosting: boolean;
 }
 
 /**
@@ -84,12 +93,15 @@ interface JobDetailPaneProps {
  * markup we do not control, and quietly deleting words the team wrote.
  */
 export function JobDetailPane(props: JobDetailPaneProps) {
-  const { role, team, applied, appliedAt, source } = props;
+  const { role, team, applied, appliedAt, source, showOriginalPosting } = props;
 
   const focusTags = useGetFocusTags(team ?? NO_TEAM);
 
   const date = role ? getJobDate(role) : null;
-  const postingHref = jobApplyHref(role?.applyUrl, source);
+  /* One gate for every way out. `null` rather than a separate flag beside each
+     link: a href that does not exist cannot be rendered by a branch someone adds
+     later without noticing this rule. */
+  const postingHref = showOriginalPosting ? jobApplyHref(role?.applyUrl, source) : null;
 
   const meta = role
     ? [
@@ -185,10 +197,20 @@ export function JobDetailPane(props: JobDetailPaneProps) {
                    untouched — the two are different acts, which is why the board
                    has always had both. */
               <div className={d.emptyBody}>
+                {/* Three sentences for three situations, and the third is new.
+                    There is a difference between "no posting exists" and "you
+                    are not being sent to it", and only the first two can honestly
+                    mention where the ad lives. Telling someone the full posting
+                    is on the team's own site and then not linking to it is worse
+                    than not raising it — so for a viewer without the link the
+                    sentence stops at what this screen can actually offer, which
+                    is the application. */}
                 <p className={d.emptyLead}>
                   {postingHref
                     ? `${team.name} hasn't shared a description here yet. The full posting is on their own site.`
-                    : `${team.name} hasn't shared a description for this role, and there's no posting to link to. Applying still sends them your profile.`}
+                    : showOriginalPosting
+                      ? `${team.name} hasn't shared a description for this role, and there's no posting to link to. Applying still sends them your profile.`
+                      : `${team.name} hasn't shared a description for this role. Applying still sends them your profile.`}
                 </p>
                 {postingHref && (
                   <a className={d.postingLink} href={postingHref} target="_blank" rel="noopener noreferrer">

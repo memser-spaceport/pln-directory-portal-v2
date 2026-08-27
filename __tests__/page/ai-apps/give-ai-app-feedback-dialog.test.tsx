@@ -238,4 +238,32 @@ describe('GiveAiAppFeedbackDialog', () => {
       expect(readFormDraft(AI_APP_FEEDBACK_DRAFT_KEY)).toBeNull();
     });
   });
+
+  it('anchors the popover below the trigger', () => {
+    mockUseAiApps.mockReturnValue({ apps: [], isLoading: false, isError: false });
+
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({
+      x: 800,
+      y: 80,
+      top: 80,
+      bottom: 120,
+      left: 800,
+      right: 960,
+      width: 160,
+      height: 40,
+      toJSON: () => ({}),
+    });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
+
+    render(<GiveAiAppFeedbackDialog isOpen onClose={jest.fn()} anchorRef={{ current: anchor }} />);
+
+    const overlay = document.body.querySelector('[style*="--feedback-popover-top"]');
+    expect(overlay).toBeTruthy();
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-top: 128px');
+    expect(overlay?.getAttribute('style')).toContain('--feedback-popover-right: 40px');
+
+    anchor.remove();
+  });
 });

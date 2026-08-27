@@ -53,6 +53,17 @@ export const jobBoardSignUpInputSchema = z
   .object({
     name: z.string().trim().min(1).max(200),
     email: z.string().trim().email(),
+    /* The address at the company named in `team` — evidence for that claim, so
+       the PL team reviewing the account can see where the person works. Never a
+       second identity: `email` above is the one address the account is created
+       on.
+
+       This object is `.strict()`, so this key has to exist here before anything
+       may send it — without it, `parse()` throws before the request goes out and
+       every sign-up fails. The backend's own schema is NOT strict, so the
+       reverse gap is silent: it would drop the field rather than reject it. Keep
+       the two in step. */
+    teamEmail: z.string().trim().email().max(200).optional(),
     role: z.string().trim().min(1).max(200),
     linkedinHandler: z.string().trim().min(1).max(200).optional(),
     isTeamNew: z.boolean().optional(),

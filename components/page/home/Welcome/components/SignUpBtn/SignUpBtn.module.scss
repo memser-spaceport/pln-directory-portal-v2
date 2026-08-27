@@ -1,0 +1,9 @@
+@import 'styles/media.scss';
+
+.root.root {
+  padding: 10px 16px;
+
+  @include mobile-only {
+    flex: 1;
+  }
+}

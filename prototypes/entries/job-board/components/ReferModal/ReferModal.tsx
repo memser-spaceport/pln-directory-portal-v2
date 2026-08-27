@@ -383,8 +383,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   <div className={fieldCss.field}>
                     <span className={fieldCss.label}>Send to</span>
                     <p className={s.teamReferDestination}>
-                      This referral will be sent to the email this team set up for job referrals. You can’t choose
-                      individual members.
+                      This referral will be sent to the email this team set up for job referrals.
                     </p>
                   </div>
                 ) : (

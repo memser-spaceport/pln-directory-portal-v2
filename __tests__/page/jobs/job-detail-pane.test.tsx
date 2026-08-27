@@ -145,6 +145,37 @@ describe('the job detail pane', () => {
     });
 
     /**
+     * One ingest — Protocol Labs' own board — ships bodies whose markdown
+     * converter half ran. The pane repairs those before sanitizing, so all
+     * three defects have to be gone by the time this renders. The unit cases
+     * live in `__tests__/utils/normalizeJobDescriptionHtml.test.ts`; this is
+     * the one that proves the pane composes the two in the right order.
+     */
+    it('repairs the artifacts one ingest ships', () => {
+      renderPane({
+        role: role({
+          descriptionHtml:
+            '<p>[Protocol Labs](https://protocol.ai/) is an innovation network.</p>' +
+            '<p><strong>Ecosystem Growth &amp;amp; Network Effects</strong></p>' +
+            '<ul><li>Design growth loops</li></ul><ul><li>Build distribution</li></ul>',
+        }),
+      });
+
+      // The markdown link became a link, not brackets and a raw URL.
+      const link = screen.getByRole('link', { name: 'Protocol Labs' });
+      expect(link).toHaveAttribute('href', 'https://protocol.ai/');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+
+      // The double-escaped ampersand reads as one character.
+      expect(screen.getByText('Ecosystem Growth & Network Effects')).toBeInTheDocument();
+
+      // One list of two, not two lists of one — which is what a screen reader
+      // announces, and what the `li` spacing rule is written for.
+      expect(screen.getAllByRole('list')).toHaveLength(1);
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+
+    /**
      * A body that sanitizes down to nothing is not a description. Both of these
      * are truthy strings — the check has to run on the sanitized output, or the
      * panel shows an empty section under a heading instead of saying where the

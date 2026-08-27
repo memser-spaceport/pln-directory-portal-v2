@@ -135,9 +135,7 @@ describe('ReferModal', () => {
     expect(screen.queryByTestId('recipient-count')).not.toBeInTheDocument();
     expect(screen.getByText('Send to')).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'This referral will be sent to the email this team set up for job referrals. You can’t choose individual members.',
-      ),
+      screen.getByText('This referral will be sent to the email this team set up for job referrals.'),
     ).toBeInTheDocument();
     expect(
       screen.getByText('Referral email will be sent to the address this team set up, and you’ll be copied.'),

@@ -13,6 +13,7 @@ import { Metadata } from 'next';
 import { SOCIAL_IMAGE_URL } from '@/utils/constants';
 import ScrollToTop from '@/components/page/home/featured/scroll-to-top';
 import { getFeaturedData } from '@/services/featured.service';
+import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
@@ -41,6 +42,7 @@ export default async function Home() {
     initialDigestSettings,
     quickActionsState,
     quickActionsOhResolved,
+    teamsCount,
   } = await getPageData();
 
   if (isError) {
@@ -53,7 +55,7 @@ export default async function Home() {
         <div className={styles.home__cn}>
           {!isLoggedIn && (
             <div className={styles.home__cn__welcome}>
-              <Welcome />
+              <Welcome teamCount={teamsCount} />
             </div>
           )}
           {isLoggedIn && <QuickActions initial={quickActionsState} ohResolved={quickActionsOhResolved} />}
@@ -93,6 +95,8 @@ const getPageData = async () => {
   let popularItems: ITeamNewsPopularItem[] = [];
   let initialDigestSettings: ForumDigestSettings | null = null;
 
+  let teamsCount = 0;
+
   // Quick Actions is resolved server-side so its card set is final on first
   // paint — deriving it client-side made the band render 2 cards, collapse to
   // nothing, then settle on 2-4 as the user store and /me/access arrived.
@@ -129,6 +133,8 @@ const getPageData = async () => {
           .catch(() => null)
       : Promise.resolve(null);
 
+  const teamsCountPromise = isLoggedIn ? Promise.resolve(null) : getTeamList('', 1, 1).catch(() => null);
+
   try {
     const [
       teamFocusAreaResponse,
@@ -139,6 +145,7 @@ const getPageData = async () => {
       popularResponse,
       digestSettingsResponse,
       myAccessResponse,
+      teamsCountResponse,
     ] = await Promise.all([
       getFocusAreas('Team', {}),
       getFocusAreas('Project', {}),
@@ -148,6 +155,7 @@ const getPageData = async () => {
       getTeamNewsPopular(undefined, authToken),
       digestSettingsPromise,
       myAccessPromise,
+      teamsCountPromise,
     ]);
 
     teamNewsGroups = teamNewsResponse?.groups ?? [];
@@ -155,6 +163,7 @@ const getPageData = async () => {
     teamNewsForYouTeamUids = teamNewsResponse?.forYouTeamUids ?? [];
     popularItems = popularResponse?.items ?? [];
     initialDigestSettings = digestSettingsResponse;
+    teamsCount = teamsCountResponse?.totalItems ?? 0;
 
     if (isLoggedIn && myAccessResponse) {
       quickActionsState = resolveQuickActionsState(
@@ -190,6 +199,7 @@ const getPageData = async () => {
         initialDigestSettings,
         quickActionsState,
         quickActionsOhResolved,
+        teamsCount,
       };
     }
     teamFocusAreas = Array.isArray(teamFocusAreaResponse?.data)
@@ -217,6 +227,7 @@ const getPageData = async () => {
       initialDigestSettings,
       quickActionsState,
       quickActionsOhResolved,
+      teamsCount,
     };
   } catch (error) {
     console.error(error);
@@ -238,6 +249,7 @@ const getPageData = async () => {
       initialDigestSettings,
       quickActionsState,
       quickActionsOhResolved,
+      teamsCount,
     };
   }
 };

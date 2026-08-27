@@ -88,26 +88,6 @@ type ApplyFormData = {
 };
 
 /**
- * Apply for a role: your profile, plus the one thing a profile can't say.
- * Promoted from the job-board prototype — see its header for the full design
- * rationale (why the letter is required, why the profile is read-only with an
- * Edit escape, what the read-back deliberately leaves out).
- *
- * `jobSearchStatus` is NEVER rendered in this modal, in any form. It is
- * PL-Team-only by design and does not travel with an application — it is not an
- * oversight and not a missing field; do not "complete" the panel by adding it.
- *
- * Submit semantics (new against the prototype's synchronous mock):
- *  - the guard is the mutation's own `isPending`, checked inside the handler —
- *    the form submits on Enter regardless of what the button looks like;
- *  - close is blocked while a submit is in flight (the letter must survive);
- *  - callbacks are keyed by the role uid captured at mutate time, so a late
- *    result can never close a different role's modal;
- *  - a 409 (already applied) closes and flips the row — the fact is true, and
- *    an error screen for it would be arguing with the person's own history;
- *  - failure keeps the modal open with the letter intact.
- */
-/**
  * Step 3: your profile, plus the one thing a profile can't say.
  *
  * **This was a centred modal.** It opened over the drawer that collected the
@@ -183,7 +163,16 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
   const overLimit = remaining < 0;
 
   return (
-    <div className={`${intro.modal} ${s.modal} ${s.pane}`}>
+    /* Plainly a column, not a card. `intro.modal` used to be here — the
+       centred dialog shell this was before it became a step — and it brought a
+       24px radius, a drop shadow, `margin: auto` and a 440px cap into a 720px
+       drawer column, so the letter step rendered visibly narrower than the two
+       steps either side of it. Worse, it carried `max-height: 100dvh - 48px`
+       with `overflow: hidden`, which is right for a floating dialog that scrolls
+       inside itself and wrong here: the drawer is the scroller, so the cap
+       clipped the pane's own content and put the bottom of a long letter
+       somewhere nothing could reach. */
+    <div className={s.pane}>
       <h2 className={`${intro.title} ${s.headerLeft} ${s.headerTitle}`}>Apply for {role.roleTitle}</h2>
 
       <p className={`${intro.desc} ${s.headerLeft} ${s.headerDesc}`}>{teamName} receives your profile and this note.</p>

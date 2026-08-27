@@ -11,20 +11,19 @@
 // read-back's first line is one sentence — "Senior Protocol Engineer at Lattice
 // Compute" — and at 400px a real title-plus-team wrapped, which turns a glance
 // into a paragraph and undoes the point of showing it.
-.modal.modal {
-  max-width: 440px;
+/* The step's column. Takes the width the drawer's content column gives it, the
+   same as the review and profile panes, and imposes no height of its own — the
+   drawer scrolls, so anything this capped would be unreachable rather than
+   scrollable.
 
-  // Sized to its content, capped at the viewport. A six-row letter under a
-  // read-back panel makes this the tallest card in the flow, and the submit
-  // button is the one thing that must never fall below the fold. dvh so
-  // collapsing mobile browser chrome can't clip the actions.
-  max-height: calc(100dvh - 48px);
-  overflow: hidden;
-
-  @include media.mobile-only {
-    max-width: 100%;
-    max-height: calc(100dvh - 32px);
-  }
+   The 24px gap is `ReferCompanyModal`'s, kept: it is the rhythm the header,
+   read-back and letter were spaced on, and the only thing worth keeping from
+   the card this used to be. */
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
 }
 
 // (`.icon` — the brand tint for the circled document glyph — went with the glyph.

@@ -19,6 +19,7 @@ import type { IUserInfo } from '@/types/shared.types';
 import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
 
 /* Most visitors never press Apply, and logged-out visitors can only ever reach
@@ -188,6 +189,12 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   /* The flow's footer reports the application the row's clock reports — same
      query, same entry, so the two cannot disagree about one application. Scoped
      to the open role; inert (`enabled: false`) the rest of the time. */
+  /* Where the review step's Apply will actually land. Computed here because the
+     rule is `useJobApplyFlow`'s and the footer that has to say it is the
+     drawer's — see `onApply`. */
+  const applyGoesExternal =
+    state.step === 'flow' && viewer.verdict === 'pending' && !isProtocolLabsTeam(state.target.team);
+
   const flowRole = state.step === 'flow' ? state.target.role : null;
   const flowApplication = useRoleApplication(flowRole?.uid ?? '', {
     memberUid: viewer.memberUid,
@@ -212,7 +219,16 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           profileComplete={viewer.profileComplete}
           applied={!!flowApplication}
           appliedAt={flowApplication?.appliedAt ?? null}
-          showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo })}
+          /* Two ways to earn the link. The first is the standing rule: an
+             established member keeps it, a signed-out visitor and a Job Aspirant
+             do not, because both came here to apply through this board.
+
+             The second overrides it for one case — when Apply *is* that link.
+             An unapproved account applying to a non-PL role is sent to the
+             employer's site, and hiding the way there from the one person whose
+             only way it is would be the board withholding its own answer. */
+          showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo }) || applyGoesExternal}
+          applyGoesExternal={applyGoesExternal}
           /* Straight through to the one gate. `onApply` replaces or advances the
              step itself, so the drawer needs no close of its own here. */
           onApply={() => flow.onApply({ ...state.target }, 'detail')}

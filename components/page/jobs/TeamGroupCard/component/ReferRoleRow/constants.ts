@@ -12,18 +12,25 @@ export const jobApplyQueryParams = (source: JobSurface) =>
 export const jobApplyHref = (applyUrl: string | null | undefined, source: JobSurface): string | null =>
   applyUrl ? `${applyUrl}?${jobApplyQueryParams(source)}` : null;
 
-/* (`openExternalApply` and `interceptPrimaryApplyClick` lived here. Both existed
-    for one case: an unapproved member, whose Apply sent them to the hiring
-    team's own posting instead of the in-app letter. `interceptPrimaryApplyClick`
-    was what let that control still be a real `<a>` — modifier and middle click
-    kept the native navigation, left click was caught so access could be
-    rechecked first.
-
-    Approval no longer gates applying, so every Apply on the board is in-app and
-    neither has a caller. The outbound link to the posting is still here and
-    still wanted — `jobApplyHref` above, rendered as "Read the original posting"
-    in the detail drawer — because reading the ad and applying were always two
-    different acts. What went is the version of Apply that *was* that link.) */
+/**
+ * Apply by leaving: open the hiring team's own posting in a new tab.
+ *
+ * **This came back.** It was removed when approval stopped gating applying, on
+ * the reading that every Apply was in-app from then on. That is true of Protocol
+ * Labs roles and false of the rest: an account still awaiting approval applies
+ * on the employer's site everywhere else, which is the behaviour the board had
+ * before and the one it has again. See `useJobApplyFlow`.
+ *
+ * `interceptPrimaryApplyClick` has NOT come back with it. That existed so the
+ * row's Apply could be a real `<a>` — middle-click native, left-click caught to
+ * recheck access first — and the row's Apply is a `<button>` now, because on the
+ * board it opens the reading step rather than the posting. The decision is made
+ * one screen later, where there is no anchor to intercept.
+ */
+export const openExternalApply = (applyUrl: string | null | undefined, source: JobSurface) => {
+  const href = jobApplyHref(applyUrl, source);
+  if (href) window.open(href, '_blank', 'noopener,noreferrer');
+};
 
 /**
  * The board's params, kept as a constant for the surfaces that link to a role without

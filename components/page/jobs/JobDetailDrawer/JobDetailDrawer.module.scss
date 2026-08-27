@@ -262,25 +262,40 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
-/* Button's classes never set `text-align` — they lean on the UA sheet, which
-   gives a <button> `text-align: center` and an <a> nothing (it inherits
-   `start`). On its own that would be invisible, because the label would size the
-   box. But `.medium` also sets `min-width: 84px`, so on a short label there is
-   slack in the pill and it all collects on the right: measured 11px left vs 39px
-   right, i.e. the word sits 28px off-centre. Vertical centring was never the
-   problem — the padding handles that on both elements.
+/* --- the footer's action slot ---------------------------------------------
+   Three controls take this one place — the in-app <Button>, the outbound <a>,
+   and the disabled "Applied" report — and they are the same slot, so they are
+   one shape. Same split `ReferRoleRowApply.module.scss` uses on the board: a
+   shared class for the slot, then one extra per state.
 
-   `justify-content` rather than `text-align: center` so the rule also holds if
-   this control ever gains an icon, which is how `ReferRoleRowApply.module.scss`
-   `.applyButton` solves the identical bug on the board's own anchor. Not
-   imported from there because that class also carries the row's shared 90px slot
-   width, which is a rule about the row's layout, not this footer's. */
-.applyLink {
+   Centring is on the shared class because Button's own classes never set
+   `text-align`; they lean on the UA sheet, which centres a <button> but gives an
+   <a> nothing (it inherits `start`). Alone that would be invisible, since the
+   label would size the box — but `.medium` sets `min-width: 84px`, so a short
+   label leaves slack in the pill and it all collects on one side. The outbound
+   anchor measured 11px left against 39px right: 28px off-centre.
+
+   `justify-content` rather than `text-align: center` so the rule still holds for
+   the state that does carry an icon.
+   -------------------------------------------------------------------------- */
+.applyAction {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   white-space: nowrap;
+
+  /* One width for every state this slot takes. "Applied" carries a check and a
+     6px gap and measures 87.3px, past `.medium`'s own 84px floor — so without a
+     shared width the footer's button grew the moment it was applied to. The
+     board pins its (smaller) row control at 90px for exactly this reason; the
+     same number clears the widest state here too. */
+  min-width: 90px;
+}
+
+/* The outbound posting. An <a> wearing a button, so it has to stop looking like
+   a link. */
+.applyLink {
   text-decoration: none;
 
   &:hover {
@@ -289,14 +304,9 @@
 }
 
 /* "Applied" puts a check glyph before its label, and Button's sizes are drawn
-   for a bare one. This <button> is already horizontally centred by the UA sheet,
-   so the bug here is different: JSX strips the newline between the icon and the
-   word, leaving "✓Applied" with no space, and an inline <svg> sits on the text
-   baseline rather than on its centre line. Flex fixes the alignment, `gap` the
-   missing space — exactly what the row's `.appliedButton` does. */
+   for a bare one. JSX strips the newline between the icon and the word, so
+   without a gap it reads "✓Applied"; the flex on `.applyAction` also lifts the
+   inline <svg> off the text baseline onto its centre line. */
 .appliedButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
 }

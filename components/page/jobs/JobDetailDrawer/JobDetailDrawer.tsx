@@ -276,14 +276,14 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
               <button
                 type="button"
                 disabled
-                className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.appliedButton)}
+                className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.applyAction, d.appliedButton)}
               >
                 <CheckIcon width={14} height={14} aria-hidden="true" />
                 Applied
               </button>
             ) : externalApply && postingHref ? (
               <a
-                className={clsx(btn.root, btn.medium, btn.fill, btn.primary, d.applyLink)}
+                className={clsx(btn.root, btn.medium, btn.fill, btn.primary, d.applyAction, d.applyLink)}
                 href={postingHref}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -292,7 +292,7 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
                 Apply
               </a>
             ) : (
-              <Button variant="primary" style="fill" size="m" onClick={onApply}>
+              <Button variant="primary" style="fill" size="m" className={d.applyAction} onClick={onApply}>
                 Apply
               </Button>
             )}

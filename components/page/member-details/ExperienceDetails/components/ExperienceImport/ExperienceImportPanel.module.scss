@@ -52,9 +52,51 @@
   width: 100%;
 }
 
+// The LinkedIn note, under the box.
+//
 // `.howto`, `.howtoLead` and `.howtoSteps` used to live here — the brand-soft
-// panel behind the LinkedIn door's three-step "open LinkedIn → More → Save to
-// PDF". Both the door and the block are gone, so the rules went with them.
+// panel behind the LinkedIn *door*'s three-step "open LinkedIn → More → Save to
+// PDF". The door is gone and is not coming back; what returned is the ground it
+// sat on, for one sentence in the place the fact is useful.
+//
+// The tint is what separates an instruction you might follow from the privacy
+// line under it, which is a fact you only read once. `margin-top: -4px` trims
+// the panel's own 12px gap to 8: the box above it and this note are one unit —
+// how to feed it, then what happens to what you feed it — where 12px reads as
+// three unrelated rows.
+.linkedinSteps {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+
+  padding: 8px 12px;
+  border-radius: var(--corner-radius-md, 8px);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  margin: 0;
+  margin-top: -4px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// 2px down, because a 14px glyph beside an 18px line sits high on the cap
+// height otherwise and reads as floating rather than as leading the sentence.
+.linkedinStepsIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: currentColor;
+}
+
+// The menu path carries a little weight — it is the part someone scans back to
+// while looking at LinkedIn rather than at this page — and must not break
+// across the arrow.
+.linkedinPath {
+  font-weight: 500;
+  white-space: nowrap;
+}
 
 // --- Reading ------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import { toast } from '@/components/core/ToastContainer';
@@ -213,6 +213,26 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
   const isMobile = useIsMobile();
   const analytics = useJobsAnalytics();
+
+  /* Every step starts at the top.
+     The drawer scrolls as one element — header, pane and footer together — so a
+     step change swaps the content underneath a scroll position that belonged to
+     the step before it. Reading to the bottom of a long description and pressing
+     Apply landed you in the middle of the profile, past the card the footer was
+     about to complain about.
+
+     `scrollTop` rather than `scrollTo({ behavior })`: arriving somewhere new is
+     not a scroll the person asked for, so it should not look like one. It also
+     keeps this working in jsdom, where `scrollTo` is not implemented.
+
+     Back gets the same treatment as forward. Restoring the old position when
+     stepping back would be kinder in the one case where someone returns to
+     re-read, and wrong in the rest — a rail you can enter from three directions
+     has no single "where you were". One rule, and it is the predictable one. */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [at]);
   const submitMutation = useSubmitJobApplication(memberUid);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -449,7 +469,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   })();
 
   return (
-    <Drawer isOpen={open} onClose={closeFlow} fullScreen={isMobile} noBlur={isMobile}>
+    <Drawer isOpen={open} onClose={closeFlow} fullScreen={isMobile} noBlur={isMobile} containerRef={scrollRef}>
       {/* `d.drawerHeaderLift` is what this header adds to the source's: a
           stacking order that survives positioned content scrolling past it, and
           the room for a second row. */}

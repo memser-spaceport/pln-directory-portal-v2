@@ -1,8 +1,21 @@
 'use client';
 
-import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
+import clsx from 'clsx';
 
-import { AccountFields } from '@/components/page/jobs/JobSignUpModal/accountFields';
+import { DetailsSection } from '@/components/common/profile/DetailsSection/DetailsSection';
+import { DetailsSectionHeader } from '@/components/common/profile/DetailsSection/components/DetailsSectionHeader';
+import { DataIncomplete } from '@/components/page/member-details/DataIncomplete/DataIncomplete';
+import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
+import { JobSearchStatusInput } from '@/components/page/jobs/JobSearchStatusInput/JobSearchStatusInput';
+
+import { AccountFields, useJobSearchStatus } from '@/components/page/jobs/JobSignUpModal/accountFields';
+// `FormField`'s error line, so a refused answer here reads exactly like a
+// refused answer in the card above.
+import ff from '@/components/form/FormField/FormField.module.scss';
+// The profile step's amber strip and the dimmed body under it. Imported rather
+// than restated so the one required answer looks identical in both steps — a
+// stranger and a member are answering one question.
+import d from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer.module.scss';
 // The sign-up modal's own escape link and refusal line. The board's other door
 // has carried both since it existed, and the two should not disagree about what
 // a sign-in link or a server error looks like. A stylesheet import pulls no JS,
@@ -43,15 +56,22 @@ interface JobAccountPaneProps {
  * application from someone with no session. This pass moves the form; the
  * combined write is its own.
  *
- * **One card, where the prototype has two.** It splits the account fields from
- * the job search status, and gives the status the amber "required to apply"
- * treatment the profile step gives it. That split earns its keep when the status
- * is the one required answer among optional ones. Here it is one of four
- * required fields on a single schema — `accountSchema` refuses to submit without
- * it exactly as it refuses without an email — so singling it out with an amber
- * strip would promise a distinction the form does not make.
+ * **Two cards, and the split is not cosmetic.** The account questions make an
+ * account; the job search status is a *profile* answer that happens to be asked
+ * here, and it is the half that decides whether the account this creates can
+ * apply without stopping again. Putting it in its own card is what lets it wear
+ * the profile step's amber required treatment — the same treatment, for the same
+ * question, so a stranger and a member are looking at one field.
+ *
+ * Both hosts of `AccountFields` share one schema, so the status is required in
+ * the modal too; only the framing differs. See `accountFields.tsx`.
  */
 export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
+  /* Bound to the drawer's account form, same as every field in the card above —
+     only the framing is this pane's. The amber card treatment replaces the
+     required asterisk the modal puts on the label. */
+  const status = useJobSearchStatus();
+
   return (
     <>
       {/* The step's name. Every other stop in this flow opens with one — step 1
@@ -87,15 +107,43 @@ export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
         </button>
       </p>
 
-      {/* No card header, and that is the whole reason there is one card.
-          The profile step titles its sections because it has several and you
-          need to know which is which. Here there is one, the rail two inches
-          above already calls this position "Your details", and the heading
-          directly above says what filling it in does — so a header could only
-          have been a third telling. (It was "Your details" for one commit and
-          rendered the same two words twice within 40px.) */}
+      {/* "Your account", NOT "Your details" — which is what the rail directly
+          above already says, and a card header repeating its own step label
+          names nothing. (It was "Your details" for one commit and rendered the
+          same two words twice within 40px.) What this names is what the fields
+          under it actually make, which is also what distinguishes them from the
+          card below: those are account answers, that one is a profile answer. */}
       <DetailsSection>
-        <AccountFields />
+        <DetailsSectionHeader title="Your account" />
+        {/* Two cards tall inside a drawer, so the two short fields pair onto one
+            line — the height the modal has no need to save. */}
+        <AccountFields layout="grid" />
+      </DetailsSection>
+
+      {/* The second required answer, wearing the exact treatment the profile
+          step gives it: the amber card when unanswered, the PL-team-only pill,
+          the same radio group. A stranger and a member are answering one
+          question, so they should be looking at one field.
+
+          Its own card rather than a sixth row in the one above, because it is
+          the one answer here that is not about the account — it is the profile
+          half of what makes this sign-up able to apply. */}
+      <DetailsSection missingData={!status.answered}>
+        {!status.answered && <DataIncomplete className={d.incompleteStrip}>Required to continue.</DataIncomplete>}
+        <div className={clsx({ [d.missingBody]: !status.answered })}>
+          <DetailsSectionHeader title="Job search status">
+            <PlTeamOnlyPill />
+          </DetailsSectionHeader>
+          <JobSearchStatusInput name="signup-job-search-status" value={status.value} onChange={status.onChange} />
+          {/* Not a second copy of the strip above, though both are about the
+              same missing answer. The strip is a standing state — "this card
+              isn't done" — and has been there since the step opened; this
+              appears only once someone has *pressed* Create account, and says
+              why the press did nothing. Without it the button reads as dead:
+              the one control that would have moved is a radio the browser
+              cannot scroll to, because it is visually hidden by design. */}
+          {status.error && <p className={ff.errorMsg}>{status.error}</p>}
+        </div>
       </DetailsSection>
 
       {/* The role is named by the footer beside the button and by the masthead

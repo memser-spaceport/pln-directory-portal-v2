@@ -34,11 +34,16 @@ import s from './JobSignUpModal.module.scss';
  * restating them here is the drift this file exists to prevent. Whatever mounts
  * this supplies its own surrounding chrome and nothing else.
  *
- * **No `layout` prop yet.** The prototype's version takes one, to pair the two
- * short fields onto a line in the taller pane. There is one host today and it is
- * a 440px dialog with no height to save, so the prop and its `.fieldPair` class
- * would serve nobody. It arrives with the pane that wants it — same rule that
- * governed this extraction.
+ * **`layout` changes the arrangement and nothing else.** The pane pairs the two
+ * short fields onto a line (`grid`); the modal stacks them, having no height to
+ * save in a 440px dialog. A layout prop rather than a second copy of the group.
+ *
+ * **The job search status is exported separately**, as `JobSearchStatusField`,
+ * because the two hosts frame it differently: the modal sets it below the
+ * account questions as one more labelled field, while the pane gives it its own
+ * card with the amber required treatment the profile step uses. It is still a
+ * field of `accountSchema` and still lives in the same form — only where it is
+ * drawn is the host's business.
  */
 
 /** What the form holds. `company` is a react-select Option, not a string —
@@ -275,7 +280,12 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   teamUid: data.company?.value ?? null,
 });
 
-export function AccountFields() {
+/**
+ * The account questions. `layout` changes the arrangement and nothing else —
+ * same fields, same order, same schema; a layout prop rather than a second copy
+ * of the group.
+ */
+export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' } = {}) {
   const { control } = useFormContext<AccountFormData>();
 
   /* Watched here rather than inside `FormField`, which watches its own value
@@ -283,14 +293,6 @@ export function AccountFields() {
      compose, and this is the host. `useWatch` re-renders on the keystroke that
      completes a domain, which is when the note has something to say. */
   const email = useWatch({ control, name: 'email' }) ?? '';
-
-  /* The radio group is not an `<input>` `register` can reach, so it takes the
-     controlled route. `useController` also gives it the error slot every other
-     field here gets for free. */
-  const {
-    field: status,
-    fieldState: { error: statusError },
-  } = useController({ control, name: 'jobSearchStatus' });
 
   // The same teams source production's sign-up wizard uses, minus projects —
   // the field asks for a current company, not a contribution.
@@ -326,15 +328,20 @@ export function AccountFields() {
           `FormField`, which is the right precedence: a malformed address is a
           problem, a personal one is a preference, and only one of them should be
           talking at a time. */}
-      <FormField
-        name="email"
-        label="Email address"
-        placeholder="you@company.com"
-        isRequired
-        description={isPersonalEmailDomain(email) ? PERSONAL_EMAIL_NOTE : undefined}
-      />
+      {/* The two short ones, always wrapped so the arrangement is the wrapper's
+          business in both layouts: `stack` gives them the same 24px column the
+          rest of the group sits in, `grid` puts them on one line. */}
+      <div className={layout === 'grid' ? s.fieldPair : s.fieldStack}>
+        <FormField
+          name="email"
+          label="Email address"
+          placeholder="you@company.com"
+          isRequired
+          description={isPersonalEmailDomain(email) ? PERSONAL_EMAIL_NOTE : undefined}
+        />
 
-      <FormField name="name" label="Full name" placeholder="Enter your full name" isRequired />
+        <FormField name="name" label="Full name" placeholder="Enter your full name" isRequired />
+      </div>
 
       {/* Marked, and it has to be. Adding `(Optional)` to Team email gave this
           form a *system* — required carries `*`, optional carries the mark — and
@@ -405,26 +412,50 @@ export function AccountFields() {
           description="Your address at the company above, so the PL team can see where you work."
         />
       </div>
-
-      {/* The one question here that is not about the account. It earns its place
-          by what it saves: with it answered, the profile this sign-up creates is
-          already complete, and the apply flow that follows has one fewer stop.
-
-          Wearing the required asterisk `FormField` gives its own labels, because
-          it is required in exactly the same way `Email address` is — a system
-          that marks two fields required and leaves a third unmarked while
-          refusing to submit without it is worse than no system. */}
-      <div className={s.column}>
-        <div className={ff.labelWrapper}>
-          <span className={`${ff.label} ${ff.required}`}>Job search status</span>
-        </div>
-        <JobSearchStatusInput
-          name="signup-job-search-status"
-          value={isJobSearchStatus(status.value) ? status.value : null}
-          onChange={status.onChange}
-        />
-        {statusError && <p className={ff.errorMsg}>{statusError.message}</p>}
-      </div>
     </>
+  );
+}
+
+/**
+ * The status, bound to the account form, for a host that wants to frame it
+ * itself — the apply flow's step 2 draws it inside a card with the amber
+ * required strip, where a plain label would be a second way of saying required.
+ */
+export function useJobSearchStatus() {
+  const { control } = useFormContext<AccountFormData>();
+  const {
+    field,
+    fieldState: { error },
+  } = useController({ control, name: 'jobSearchStatus' });
+
+  return {
+    /* Narrowed on the way out so a host never has to think about the `''` the
+       empty form starts with. */
+    value: isJobSearchStatus(field.value) ? field.value : null,
+    onChange: field.onChange as (next: JobSearchStatus) => void,
+    error: error?.message ?? null,
+    answered: isJobSearchStatus(field.value),
+  };
+}
+
+/**
+ * The status as one more labelled field — the modal's framing, where the form is
+ * a flat column and every other question wears a `FormField` label.
+ *
+ * It carries the required asterisk `Email address` does: a form that refuses to
+ * submit without a field it has not marked required is worse than one with no
+ * marking system at all.
+ */
+export function JobSearchStatusField() {
+  const { value, onChange, error } = useJobSearchStatus();
+
+  return (
+    <div className={s.column}>
+      <div className={ff.labelWrapper}>
+        <span className={`${ff.label} ${ff.required}`}>Job search status</span>
+      </div>
+      <JobSearchStatusInput name="signup-job-search-status" value={value} onChange={onChange} />
+      {error && <p className={ff.errorMsg}>{error}</p>}
+    </div>
   );
 }

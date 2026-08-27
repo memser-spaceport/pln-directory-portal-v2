@@ -11,6 +11,7 @@ import { Button } from '@/components/common/Button';
 import { CloseIcon } from '@/components/icons';
 import {
   AccountFields,
+  JobSearchStatusField,
   accountSchema,
   toAccountDetails,
   signUpFailureMessage,
@@ -171,6 +172,10 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
         <FormProvider {...methods}>
           <form className={s.form} noValidate onSubmit={handleSubmit(onSubmit)}>
             <AccountFields />
+            {/* Below the account questions and framed as one more of them: this
+                form is a flat column in a 440px dialog, so a card of its own
+                would be the only card on it. The pane frames it differently. */}
+            <JobSearchStatusField />
 
             <div className={s.bottomText}>
               {/* One line, and only the part nothing else on the card says.

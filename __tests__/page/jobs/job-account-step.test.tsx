@@ -136,6 +136,50 @@ describe('the apply flow’s account step', () => {
     expect(screen.getByRole('radiogroup', { name: 'Job search status' })).toBeInTheDocument();
   });
 
+  /**
+   * Two cards, not one. The account questions make an account; the status is the
+   * profile answer that decides whether that account can apply without stopping
+   * again — and its own card is what lets it wear the profile step's amber
+   * required treatment, so a stranger and a member see one field.
+   */
+  describe('the two cards', () => {
+    it('titles the account card without echoing the rail', () => {
+      renderStep();
+
+      expect(screen.getByText('Your account')).toBeInTheDocument();
+      // The rail's label, and only the rail's — a card header repeating its own
+      // step label names nothing, and rendered the words twice 40px apart.
+      expect(screen.getAllByText('Your details')).toHaveLength(1);
+    });
+
+    it('marks the status card required until it is answered', () => {
+      renderStep();
+
+      expect(screen.getByText('Required to continue.')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('radio', { name: /Actively looking/ }));
+
+      expect(screen.queryByText('Required to continue.')).not.toBeInTheDocument();
+    });
+
+    /* The strip is standing state; this appears only once someone has pressed.
+       Without it the button reads as dead, because the control that would
+       otherwise take focus is a deliberately invisible radio. */
+    it('says why the press did nothing when no status is chosen', async () => {
+      renderStep();
+      fireEvent.change(screen.getByLabelText(/Email address/), { target: { value: 'polina@protocol.ai' } });
+      fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Polina Bublii' } });
+      fireEvent.change(screen.getByPlaceholderText('Enter your current role'), {
+        target: { value: 'Senior Protocol Engineer' },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+      await waitFor(() => expect(screen.getByText('Select where you are with job hunting')).toBeInTheDocument());
+      expect(onSignUp).not.toHaveBeenCalled();
+    });
+  });
+
   /* Above the fields, not below them. Under the form is past all of the work
      the escape exists to save, for the returning member whose session lapsed. */
   it('offers the sign-in escape', () => {

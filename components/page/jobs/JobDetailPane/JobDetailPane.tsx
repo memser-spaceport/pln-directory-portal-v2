@@ -6,7 +6,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 
 import { PAGE_ROUTES } from '@/utils/constants';
-import { isBlankHtml, sanitizeJobDescriptionHtml } from '@/utils/html';
+import { isBlankHtml, normalizeJobDescriptionHtml, sanitizeJobDescriptionHtml } from '@/utils/html';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import {
   formatRelativeDays,
@@ -81,6 +81,13 @@ interface JobDetailPaneProps {
  * `sanitizeJobDescriptionHtml` is the only defense layer on this markup, and it
  * is the least trusted markup on the board.
  *
+ * It is also repaired before it is sanitized. One ingest ships bodies whose
+ * markdown-to-HTML converter half ran: `[label](url)` left as literal text,
+ * `&amp;amp;` where a `&` was escaped twice, and one `<ul>` per `<li>` — 52
+ * lists for 43 bullets on the worst of them, which a screen reader reads as 52
+ * lists. `normalizeJobDescriptionHtml` undoes those three and nothing else; it
+ * is a no-op on the 78 of 83 live bodies that arrive well-formed.
+ *
  * Coverage used to be the open question, and it kept this screen dark behind a
  * flag: the ingest only carried a body for the teams whose careers sites it
  * could read, 11 of 91 roles on dev. It is 83 of 92 now, which is what retired
@@ -118,7 +125,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
   const body = useMemo(() => {
     const raw = role?.descriptionHtml;
     if (!raw) return '';
-    const clean = sanitizeJobDescriptionHtml(raw);
+    const clean = sanitizeJobDescriptionHtml(normalizeJobDescriptionHtml(raw));
     /* Tested on the SANITIZED string, never the raw one. A body that is only a
        hrefless anchor or an image is a perfectly truthy string that sanitizes
        down to nothing, and rendering it would give us an empty section under a

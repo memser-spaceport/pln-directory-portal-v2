@@ -14,8 +14,11 @@ describe('ForYouHint', () => {
     jest.clearAllMocks();
   });
 
-  it('does not offer Update your profile when there is no member to send', () => {
+  it('names followed teams as an input', () => {
     render(<ForYouHint />);
+    expect(
+      screen.getByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Update your profile/ })).not.toBeInTheDocument();
   });
 

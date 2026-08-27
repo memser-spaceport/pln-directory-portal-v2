@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from 'react';
 
 import { getDefaultAvatar } from '@/hooks/useDefaultAvatar';
+import { formatAiAppDate } from '@/utils/ai-apps.utils';
 
 import type { AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
@@ -23,16 +24,7 @@ interface Props {
   readonly onViewOnePager: () => void;
 }
 
-export function AiAppCard({
-  app,
-  canManage,
-  onSelect,
-  onEdit,
-  onDeployment,
-  onLogs,
-  onDelete,
-  onViewOnePager,
-}: Props) {
+export function AiAppCard({ app, canManage, onSelect, onEdit, onDeployment, onLogs, onDelete, onViewOnePager }: Props) {
   const isDraft = app.status === 'DRAFT';
   // Two separate questions. "Did the last deploy fail" decides whether we show a
   // notice; "is anything serving" decides whether the app reads as unavailable.
@@ -61,9 +53,7 @@ export function AiAppCard({
   };
 
   return (
-    <article
-      className={`${s.root} ${isUnavailable ? s.rootFailed : ''} ${showNotice ? s.rootNotice : ''}`}
-    >
+    <article className={`${s.root} ${isUnavailable ? s.rootFailed : ''} ${showNotice ? s.rootNotice : ''}`}>
       <div className={s.cardButton} role="button" tabIndex={0} onClick={onSelect} onKeyDown={handleKeyDown}>
         {/* Status banner across the top of the card. It gets its own row rather
             than a slot in the footer, whose single action slot already belongs
@@ -102,10 +92,7 @@ export function AiAppCard({
               <p className={s.authorLine}>
                 <span className={s.creatorTitle}>by</span> <span className={s.creatorName}>{app.member.name}</span>
               </p>
-              <p className={s.deployed}>
-                {isDraft ? 'Draft created' : isUnavailable ? 'Never deployed' : 'Deployed'}{' '}
-                {new Date(app.createdAt).toLocaleDateString()}
-              </p>
+              <p className={s.deployed}>Last updated {formatAiAppDate(app.updatedAt)}</p>
             </div>
           </div>
 

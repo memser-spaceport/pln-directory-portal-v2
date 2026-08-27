@@ -54,15 +54,16 @@ export function AiAppsPage() {
               A sandbox to deploy your AI apps on LabOS infra and explore what PL Infra team members are building.
             </p>
           </div>
-          <ViewFeedbackEntryPoint />
+          <div className={s.headerActions}>
+            <ViewFeedbackEntryPoint />
+            <FloatingFeedbackButton />
+          </div>
         </div>
 
         <AiAppsGrid onOpenCreateModal={handleOpenCreateModal} />
 
         <CreateAiAppModal isOpen={isModalOpen} onClose={handleCloseCreateModal} />
       </div>
-
-      <FloatingFeedbackButton alignToContent />
     </div>
   );
 }

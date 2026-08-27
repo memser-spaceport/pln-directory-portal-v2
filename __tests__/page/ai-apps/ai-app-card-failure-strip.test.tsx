@@ -88,29 +88,30 @@ describe('AiAppCard failure strip', () => {
       expect(screen.queryByText(/didn't ship/i)).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /see logs/i })).not.toBeInTheDocument();
       expect(cardRoot()).not.toHaveClass('rootFailed');
-      expect(screen.getByText(/^Deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/^Last updated/)).toBeInTheDocument();
       expect(screen.queryByText(/Never deployed/)).not.toBeInTheDocument();
     });
   });
 
   describe('manager view per failure state', () => {
-    it('warning: amber strip with rollback copy, body not dimmed, date reads Deployed', () => {
+    it('warning: amber strip with rollback copy, body not dimmed, date reads Last updated', () => {
       render(<AiAppCard app={buildApp({ deployment: WARNING })} canManage {...manageHandlers} onLogs={jest.fn()} />);
 
       expect(screen.getByText("Latest deploy didn't ship")).toBeInTheDocument();
       expect(screen.queryByText('Deploy failed')).not.toBeInTheDocument();
       expect(screen.getByText("Latest deploy didn't ship").closest('div')).toHaveClass('failStripWarning');
       expect(cardRoot()).not.toHaveClass('rootFailed');
-      expect(screen.getByText(/^Deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/^Last updated/)).toBeInTheDocument();
     });
 
-    it('danger: red strip, dimmed card, date reads Never deployed', () => {
+    it('danger: red strip, dimmed card, date reads Last updated', () => {
       render(<AiAppCard app={buildApp({ deployment: DANGER })} canManage {...manageHandlers} onLogs={jest.fn()} />);
 
       expect(screen.getByText('Deploy failed')).toBeInTheDocument();
       expect(screen.getByText('Deploy failed').closest('div')).not.toHaveClass('failStripWarning');
       expect(cardRoot()).toHaveClass('rootFailed');
-      expect(screen.getByText(/Never deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/^Last updated/)).toBeInTheDocument();
+      expect(screen.queryByText(/Never deployed/)).not.toBeInTheDocument();
     });
 
     it('legacy (ERROR without deployment info): red strip, no dimming, date unchanged', () => {
@@ -118,7 +119,7 @@ describe('AiAppCard failure strip', () => {
 
       expect(screen.getByText('Deploy failed')).toBeInTheDocument();
       expect(cardRoot()).not.toHaveClass('rootFailed');
-      expect(screen.getByText(/^Deployed/)).toBeInTheDocument();
+      expect(screen.getByText(/^Last updated/)).toBeInTheDocument();
     });
 
     it('unknown serving values fall through to the legacy treatment (blanket rule)', () => {

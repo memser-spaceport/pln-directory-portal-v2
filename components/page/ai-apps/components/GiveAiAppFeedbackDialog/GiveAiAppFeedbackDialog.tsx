@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import clsx from 'clsx';
+import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
@@ -40,14 +39,29 @@ type FeedbackDraft = {
   message: string;
 };
 
+const POPOVER_GAP = 8;
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   /** When provided (app detail page), preselects this app in the picker. */
   appUid?: string;
   appName?: string;
-  /** Align the popover with the page's max-width content column instead of the viewport edge. */
-  alignToContent?: boolean;
+  /** Positions the popover below this element (header Give feedback button). */
+  anchorRef?: RefObject<HTMLElement | null>;
+}
+
+function getAnchorOverlayStyle(anchor: HTMLElement | null): CSSProperties | undefined {
+  if (!anchor) {
+    return undefined;
+  }
+
+  const rect = anchor.getBoundingClientRect();
+
+  return {
+    '--feedback-popover-top': `${rect.bottom + POPOVER_GAP}px`,
+    '--feedback-popover-right': `${Math.max(12, window.innerWidth - rect.right)}px`,
+  } as CSSProperties;
 }
 
 function getDefaultApp(appUid?: string, appName?: string): Option | null {
@@ -58,8 +72,9 @@ function getDefaultApp(appUid?: string, appName?: string): Option | null {
   return { label: appName, value: appUid };
 }
 
-export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alignToContent }: Props) {
+export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, anchorRef }: Props) {
   const { currentUser } = useCurrentUserStore();
+  const [overlayStyle, setOverlayStyle] = useState<CSSProperties>();
   const { apps, isLoading: isAppsLoading } = useAiApps();
   const { mutate: submitAppFeedback, isPending: isAppFeedbackPending } = useSubmitAiAppFeedback();
   const { mutate: submitContactSupport, isPending: isContactSupportPending } = useContactSupport();
@@ -89,6 +104,22 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
   const isOverLimit = messageLength > MAX_LENGTH;
   const isPending = isAppFeedbackPending || isContactSupportPending;
   const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setOverlayStyle(undefined);
+      return;
+    }
+
+    const update = () => setOverlayStyle(getAnchorOverlayStyle(anchorRef?.current ?? null));
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [isOpen, anchorRef]);
 
   const onDialogClose = () => {
     setSubmitAttempted(false);
@@ -159,7 +190,8 @@ export function GiveAiAppFeedbackDialog({ isOpen, onClose, appUid, appName, alig
       isOpen={isOpen}
       onClose={onDialogClose}
       closeOnBackdropClick={false}
-      overlayClassname={clsx(s.overlay, alignToContent && s.overlayAlignToContent)}
+      overlayClassname={s.overlay}
+      overlayStyle={overlayStyle}
       className={s.modalContainer}
     >
       <div className={s.root}>

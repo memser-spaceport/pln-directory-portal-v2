@@ -887,7 +887,7 @@ export const ChangeLogList = [
         <div style="font-size: 14px; line-height:23px;">
         <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
         <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
-          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on and ones recommended for you.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - A new default tab with personalized team news from the teams you're on, the teams you follow, and ones recommended for you.</li>
         </ul>
         <span style="font-size: 14px; line-height:23px; font-weight: 600">Teams Directory</span><br/>
         <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">

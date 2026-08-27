@@ -245,7 +245,15 @@ export const useJobsAnalytics = () => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_CLICKED, { ...args });
   };
 
-  const onJobApplySignUpSubmitted = (args: JobApplyBaseParams & { trigger: JobApplyTrigger }) => {
+  /**
+   * `has_team_email` is the number that says whether the optional Team email
+   * field earned its place. Without it we ship a field, nobody can tell whether
+   * anyone fills it, and it survives on the strength of the argument for adding
+   * it rather than on evidence.
+   */
+  const onJobApplySignUpSubmitted = (
+    args: JobApplyBaseParams & { trigger: JobApplyTrigger; has_team_email: boolean },
+  ) => {
     captureEvent(JOBS_ANALYTICS.ON_JOB_APPLY_SIGNUP_SUBMITTED, { ...args });
   };
 

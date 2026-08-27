@@ -17,8 +17,10 @@ import { jobAlertFilterStateFromURL, hasActiveFilters, filterStateToURLSearchPar
 import { SortDropdown } from '@/components/common/filters/SortDropdown/SortDropdown';
 import { JOBS_SORT_OPTIONS, SHOW_JOB_BOARD_APPLY, SHOW_JOB_DETAIL } from '@/services/jobs/constants';
 import { PENDING_APPLY_PARAM, stripPendingApplyFromUrl, withPendingApply } from '@/services/jobs/job-apply-resume';
+import { JOB_DETAIL_PARAM } from '@/services/jobs/job-detail-link';
 import { useJobBoardViewer } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { useJobDetailDeepLink } from '@/components/page/jobs/hooks/useJobDetailDeepLink';
 import { JobBoardBanner } from '@/components/page/jobs/JobBoardBanner/JobBoardBanner';
 import { JobApplyFlowController } from '@/components/page/jobs/JobApplyFlowController/JobApplyFlowController';
 import type { RowApplyProps } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow';
@@ -96,28 +98,27 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     refreshVerdict: boardViewer.refreshVerdict,
     source: 'job-board',
   });
+  const flow = useJobDetailDeepLink({
+    enabled: SHOW_JOB_BOARD_APPLY && SHOW_JOB_DETAIL,
+    groups,
+    isLoading,
+    flow: applyFlow,
+  });
   const applyProps: RowApplyProps | undefined = useMemo(
     () =>
       SHOW_JOB_BOARD_APPLY && boardViewer.viewer !== 'rejected'
         ? {
-            onApply: applyFlow.onApply,
+            onApply: flow.onApply,
             memberUid: boardViewer.memberUid,
             externalApply: isLoggedIn && boardViewer.viewer !== 'resolving' && boardViewer.verdict === 'pending',
             /* Literal-first, so the bundler folds the branch: flag off and the
                rows keep their direct Apply, with `onViewJob` absent rather than
                present-and-ignored. Nested inside the apply flag because the
                drawer's whole footer is the apply hand-off. */
-            ...(SHOW_JOB_DETAIL ? { onViewJob: applyFlow.onViewJob } : {}),
+            ...(SHOW_JOB_DETAIL ? { onViewJob: flow.onViewJob } : {}),
           }
         : undefined,
-    [
-      isLoggedIn,
-      boardViewer.viewer,
-      boardViewer.verdict,
-      boardViewer.memberUid,
-      applyFlow.onApply,
-      applyFlow.onViewJob,
-    ],
+    [isLoggedIn, boardViewer.viewer, boardViewer.verdict, boardViewer.memberUid, flow.onApply, flow.onViewJob],
   );
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned
@@ -162,12 +163,12 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     }
 
     if (resumed) {
-      applyFlow.onApply(resumed, 'resume');
+      flow.onApply(resumed, 'resume');
     } else {
       /* The role closed, or the filters no longer show it. The profile is
          still the thing standing between them and applying, so the drawer
          opens without naming a role rather than resuming nothing at all. */
-      applyFlow.onUpdateProfile();
+      flow.onUpdateProfile();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, boardViewer.viewer, isLoading, groups]);
@@ -209,12 +210,18 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
     if (autoApplyHandled.current) return;
     if (!isLoggedIn) return;
     if (hasFilters) return;
+    // A shared/emailed `?job=` is a destination. Applying saved filters here
+    // would replace the URL and drop the drawer the link was meant to open.
+    if (searchParams.get(JOB_DETAIL_PARAM)) {
+      autoApplyHandled.current = true;
+      return;
+    }
     if (!userAlert) return;
     autoApplyHandled.current = true;
     const qs = filterStateToURLSearchParams(userAlert.filterState).toString();
     if (qs) router.replace(`/jobs?${qs}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, userAlert, hasFilters]);
+  }, [isLoggedIn, userAlert, hasFilters, searchParams]);
 
   // Anonymous "Set job alert" → login → land here. Replay the pending filterState as a create.
   useEffect(() => {
@@ -297,8 +304,8 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           filterState={alertFilterState}
           profileComplete={boardViewer.profileComplete}
           onSignIn={pushLogin}
-          onSignUp={() => applyFlow.onSignUp('banner')}
-          onUpdateProfile={applyFlow.onUpdateProfile}
+          onSignUp={() => flow.onSignUp('banner')}
+          onUpdateProfile={flow.onUpdateProfile}
         />
       )}
       <div className={s.mobileHeader}>
@@ -366,7 +373,7 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
           must not yank an open modal. */}
       {SHOW_JOB_BOARD_APPLY && (
         <JobApplyFlowController
-          flow={applyFlow}
+          flow={flow}
           viewer={boardViewer}
           isLoggedIn={isLoggedIn}
           userInfo={userInfo}

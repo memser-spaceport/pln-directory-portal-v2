@@ -273,7 +273,11 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
               /* The row's applied control, in the row's shell — a report, not an
                  offer, and `disabled` is the honest semantics: there is nothing
                  left to press. */
-              <button type="button" disabled className={clsx(btn.root, btn.medium, btn.border, btn.neutral)}>
+              <button
+                type="button"
+                disabled
+                className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.appliedButton)}
+              >
                 <CheckIcon width={14} height={14} aria-hidden="true" />
                 Applied
               </button>

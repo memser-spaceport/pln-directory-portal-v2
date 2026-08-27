@@ -262,8 +262,41 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+/* Button's classes never set `text-align` — they lean on the UA sheet, which
+   gives a <button> `text-align: center` and an <a> nothing (it inherits
+   `start`). On its own that would be invisible, because the label would size the
+   box. But `.medium` also sets `min-width: 84px`, so on a short label there is
+   slack in the pill and it all collects on the right: measured 11px left vs 39px
+   right, i.e. the word sits 28px off-centre. Vertical centring was never the
+   problem — the padding handles that on both elements.
+
+   `justify-content` rather than `text-align: center` so the rule also holds if
+   this control ever gains an icon, which is how `ReferRoleRowApply.module.scss`
+   `.applyButton` solves the identical bug on the board's own anchor. Not
+   imported from there because that class also carries the row's shared 90px slot
+   width, which is a rule about the row's layout, not this footer's. */
 .applyLink {
-  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   white-space: nowrap;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+/* "Applied" puts a check glyph before its label, and Button's sizes are drawn
+   for a bare one. This <button> is already horizontally centred by the UA sheet,
+   so the bug here is different: JSX strips the newline between the icon and the
+   word, leaving "✓Applied" with no space, and an inline <svg> sits on the text
+   baseline rather than on its centre line. Flex fixes the alignment, `gap` the
+   missing space — exactly what the row's `.appliedButton` does. */
+.appliedButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }

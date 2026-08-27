@@ -70,6 +70,10 @@ function LeadNames({ shown, total }: { shown: DirectoryMember[]; total: number }
  * "try again" is worst, because for most of these trying again cannot help.
  */
 function applyFailureMessage(error: unknown): string {
+  /* Approval no longer gates applying, so a live backend cannot produce this
+     any more. Kept deliberately: it is the graceful answer during a deploy where
+     this frontend is out ahead of the API that still refuses unapproved
+     accounts. Delete once no such backend is running. */
   if (isNotApprovedError(error)) {
     return 'Your account is still being reviewed, so applications are on hold. Your note is saved here — we’ll email you the moment it’s approved.';
   }
@@ -350,7 +354,9 @@ export function JobApplyModal(props: JobApplyModalProps) {
                   {remaining} {overLimit ? 'over the limit' : 'characters left'}
                 </p>
                 <p className={s.visuallyHidden} role="status">
-                  {overLimit ? `Your message is ${-remaining} characters over the ${COVER_LETTER_MAX_LENGTH} character limit.` : ''}
+                  {overLimit
+                    ? `Your message is ${-remaining} characters over the ${COVER_LETTER_MAX_LENGTH} character limit.`
+                    : ''}
                 </p>
               </div>
             </div>

@@ -106,37 +106,41 @@ describe('ReferRoleRow with in-app apply props', () => {
   });
 });
 
-describe('ReferRoleRow with external Apply (unapproved member)', () => {
+/* The row used to render Apply as an outbound `<a>` for an unapproved member —
+   the hiring team's own posting instead of the in-app flow. Approval no longer
+   gates applying, so the row has one Apply for every viewer that gets the slot
+   at all.
+
+   Kept as a guard rather than deleted: a reintroduced branch would still render
+   something called "Apply", and only the element type would say which one. */
+describe('ReferRoleRow Apply is always in-app', () => {
   const onApply = jest.fn();
-  const apply: RowApplyProps = { onApply, memberUid: 'm1', externalApply: true };
+  const apply: RowApplyProps = { onApply, memberUid: 'm1' };
 
   beforeEach(() => onApply.mockClear());
 
-  it('renders Apply as the outbound posting link', () => {
+  it('renders a button, never an outbound posting link', () => {
     renderRow('https://example.com/apply', apply);
 
-    const applyLink = screen.getByRole('link', { name: 'Apply' });
-    expect(applyLink).toHaveAttribute('href', 'https://example.com/apply?utm_source=os.pl.xyz&utm_medium=job_board');
-    expect(applyLink).toHaveAttribute('target', '_blank');
-    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
   });
 
-  it('still hands a left-click to the flow — analytics and the access recheck live there', () => {
+  it('offers Apply even with no posting URL — the flow does not need one', () => {
+    renderRow(null, apply);
+
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+  });
+
+  it('hands the press to the flow', () => {
     renderRow('https://example.com/apply', apply);
 
-    fireEvent.click(screen.getByRole('link', { name: 'Apply' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(onApply).toHaveBeenCalledWith({
       role: role('https://example.com/apply'),
       teamId: 'team-1',
       teamName: 'Acme',
     });
-  });
-
-  it('hides Apply when there is no posting URL', () => {
-    renderRow(null, apply);
-
-    expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
   });
 });
 

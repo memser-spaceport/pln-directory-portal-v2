@@ -24,7 +24,6 @@ import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
 import { PlTeamOnlyPill } from '@/components/page/jobs/PlTeamOnlyPill/PlTeamOnlyPill';
-import { PendingApprovalSteps } from './PendingApprovalSteps';
 import { CvFirstCard } from './CvFirstCard';
 import { pickCvImportHost } from './cvImportHost';
 
@@ -62,10 +61,8 @@ interface JobProfileDrawerProps {
   isLoggedIn: boolean;
   /** Set when the drawer is holding up an application — names the role. */
   pendingRoleTitle: string | null;
-  /** Signed up but not yet approved: profile saves, applying waits. */
+  /** Signed up but not yet approved. Says so in the lede; gates nothing. */
   pendingApproval: boolean;
-  /** rbac PENDING (identity unverified) — the stepper nudges verification. */
-  needsIdentityVerification?: boolean;
   /**
    * True when saving resumes straight into the apply modal — a role is held and
    * the account may apply.
@@ -79,17 +76,8 @@ interface JobProfileDrawerProps {
 }
 
 export function JobProfileDrawer(props: JobProfileDrawerProps) {
-  const {
-    open,
-    onClose,
-    memberUid,
-    isLoggedIn,
-    pendingRoleTitle,
-    pendingApproval,
-    needsIdentityVerification = false,
-    resumeIntoApply,
-    onFooterAction,
-  } = props;
+  const { open, onClose, memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, resumeIntoApply, onFooterAction } =
+    props;
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -167,14 +155,18 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
       </div>
 
       <div className={s.drawerContent}>
-        {/* Where a pending member is in the process — above the lede because it
-            answers "can I even do this". */}
-        {pendingApproval && <PendingApprovalSteps needsIdentityVerification={needsIdentityVerification} />}
-
+        {/* (`PendingApprovalSteps` — the vertical "signed up → complete your
+            profile → await approval" rail — stood here, above the lede, because
+            it answered "can I even do this". The answer is now yes regardless,
+            so a stepper counting down to approval described a wait that holds
+            nothing up. Deleted rather than hidden: it had one caller and one
+            reason to exist.) */}
         <p className={d.lede}>
+          {/* The pending line no longer defers the application — it says the
+              review isn't in the way. Same fact, opposite consequence. */}
           {pendingRoleTitle
             ? pendingApproval
-              ? `You'll be able to apply to ${pendingRoleTitle} once your account is approved.`
+              ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
               : `We send your profile with your application to ${pendingRoleTitle}.`
             : 'This is what hiring teams see when you apply.'}
         </p>
@@ -305,23 +297,21 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
           straight into the apply modal, otherwise it saves and closes to the
           board.
 
-          **The pending case is a deliberate, product-owner call.** For an
-          account still awaiting PL-team approval the press cannot reach an
-          application at all, and the hint beside it says exactly that —
-          "applying unlocks once the PL team approves your account". So the
-          label runs slightly ahead of what that person can do today. It was
-          raised and the answer was one consistent label; the hint is what
-          carries the truth. If that ever reads as the button over-promising,
-          the fix is to disable it while `pendingApproval` rather than to
-          reintroduce a second word for the same act. */}
+          **The pending case used to be the awkward one.** An account awaiting
+          PL-team approval could not reach an application at all, so this button
+          promised something that person could not do and the hint beside it
+          carried the correction — "applying unlocks once the PL team approves
+          your account". That was settled as one consistent label with the truth
+          in the hint. Approval no longer gates applying, so the gap the
+          compromise existed to cover is closed: the label is now simply true for
+          everyone who reads it, and the pending hint has nothing left to
+          correct. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
           <p className={d.footerHint}>
             {!complete
               ? `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
-              : pendingApproval
-                ? 'Your profile is saved as you go; applying unlocks once the PL team approves your account.'
-                : 'Experience, skills and bio are optional — you can add them any time.'}
+              : 'Experience, skills and bio are optional — you can add them any time.'}
           </p>
           <Button
             variant="primary"

@@ -3,7 +3,6 @@
 import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
-import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
@@ -187,8 +186,14 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       let access: JobsAccessVerdict = verdict;
       if (access !== 'approved') {
-        // Recheck before sending an unapproved member outbound: an approval
-        // that landed mid-session should get in-app Apply, not the posting.
+        /* Still rechecked, for a different reason than before.
+           It used to be about catching an approval that landed mid-session, so
+           the member got in-app Apply rather than the team's own posting. That
+           distinction is gone — pending and approved take the same path now. What
+           is left is rejection, and it matters *more* than it used to: a pending
+           member's press sends a real application to a hiring team, so it is
+           worth one round trip to be sure they haven't been turned down since
+           the cookie was written. */
         if (applyPressInFlight.current) return;
         applyPressInFlight.current = true;
         try {
@@ -200,25 +205,23 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       if (access === 'rejected') return;
 
-      if (access === 'approved' && profileComplete) {
+      /* Approval is no longer part of this decision. Pending and approved get
+         the same two outcomes, and the only question left is the one that was
+         always the real one: is there enough profile to send?
+
+         The board used to answer a pending press by opening the hiring team's
+         own posting — everything except the thing they came for, and no way to
+         hurry the review standing in the way. The review still runs; it just
+         doesn't hold this up. */
+      if (profileComplete) {
         dispatch({ type: 'OPEN_APPLY', target });
         return;
       }
 
-      if (access === 'approved') {
-        dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
-        analytics.onJobApplyDrawerOpened(applyBase(target));
-        return;
-      }
-
-      // Unapproved: the existing external posting, not the in-app letter.
-      // Left-click is intercepted so this is the one open; middle-click uses
-      // the `<a href>` natively. Resume has no link to click, so it opens here.
-      if (access === 'pending') {
-        openExternalApply(target.role.applyUrl, source);
-      }
+      dispatch({ type: 'OPEN_DRAWER', pendingApply: target });
+      analytics.onJobApplyDrawerOpened(applyBase(target));
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
+    [analytics, applyBase, profileComplete, refreshVerdict, verdict, viewer],
   );
 
   /**

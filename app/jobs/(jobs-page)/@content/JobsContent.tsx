@@ -110,7 +110,6 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
         ? {
             onApply: flow.onApply,
             memberUid: boardViewer.memberUid,
-            externalApply: isLoggedIn && boardViewer.viewer !== 'resolving' && boardViewer.verdict === 'pending',
             /* Literal-first, so the bundler folds the branch: flag off and the
                rows keep their direct Apply, with `onViewJob` absent rather than
                present-and-ignored. Nested inside the apply flag because the
@@ -118,7 +117,12 @@ export default function JobsContent({ userInfo, isLoggedIn }: JobsContentProps) 
             ...(SHOW_JOB_DETAIL ? { onViewJob: flow.onViewJob } : {}),
           }
         : undefined,
-    [isLoggedIn, boardViewer.viewer, boardViewer.verdict, boardViewer.memberUid, flow.onApply, flow.onViewJob],
+    /* `flow` is `useJobDetailDeepLink`'s wrapper around `applyFlow` — the rows
+       must call the wrapped `onViewJob` so opening a description writes `?job=`.
+       The narrowing is ours: `isLoggedIn` and `boardViewer.verdict` left this
+       list when the approval gate did, since they were only ever read to compute
+       `externalApply`, which no longer exists. */
+    [boardViewer.viewer, boardViewer.memberUid, flow.onApply, flow.onViewJob],
   );
   /* The banner's "Sign in". Signing in never resumes an application — only
      signing up does — so any `applyTo` left in the URL by an abandoned

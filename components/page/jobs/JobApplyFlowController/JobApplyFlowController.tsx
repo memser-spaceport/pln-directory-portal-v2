@@ -177,9 +177,14 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
   };
 
   const handleDrawerFooter = ({ profileComplete }: { profileComplete: boolean }) => {
-    const willResume =
-      state.step === 'drawer' && !!state.pendingApply && viewer.verdict === 'approved' && profileComplete;
-    flow.onDrawerSaved({ profileComplete, canApply: viewer.verdict === 'approved' });
+    /* `canApply` was `verdict === 'approved'`, which stranded a pending member
+       at the end of the drawer: they filled in the profile the application
+       needs, pressed the button, and landed back on the board instead of on the
+       application they had been holding. Approval no longer gates applying, so
+       the only thing that can still stop the resume is a rejected account. */
+    const canApply = viewer.verdict !== 'rejected';
+    const willResume = state.step === 'drawer' && !!state.pendingApply && canApply && profileComplete;
+    flow.onDrawerSaved({ profileComplete, canApply });
     if (!willResume) {
       // Sections already committed their own saves — this press just ends the
       // visit, and the toast is the receipt.
@@ -211,7 +216,6 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           onApply={() => flow.onApply({ ...state.target }, 'detail')}
           applied={!!detailApplication}
           appliedAt={detailApplication?.appliedAt ?? null}
-          externalApply={isLoggedIn && viewer.viewer !== 'resolving' && viewer.verdict === 'pending'}
           loggedIn={isLoggedIn}
           source={source}
         />
@@ -236,7 +240,6 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
           isLoggedIn={isLoggedIn}
           pendingRoleTitle={state.pendingApply?.role.roleTitle ?? null}
           pendingApproval={viewer.viewer === 'pending-approval'}
-          needsIdentityVerification={userInfo?.rbac?.status === 'PENDING'}
           resumeIntoApply={!!state.pendingApply}
           onFooterAction={handleDrawerFooter}
         />

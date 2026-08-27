@@ -111,9 +111,11 @@
  *                                            account stepper, has been **deleted**: first it stopped
  *                                            being rendered (two steppers answering two different
  *                                            "where am I" questions in one column is worse than one),
- *                                            then approval stopped gating applying, which left it
- *                                            describing a wait that holds nothing up. The board still
- *                                            shows the account story in `PendingApprovalBanner`.
+ *                                            then a second argument was piled on — approval had
+ *                                            stopped gating applying, so it described a wait holding
+ *                                            nothing up. That second one has expired (approval gates
+ *                                            applying again); the first stands on its own. The board
+ *                                            still shows the account story in `PendingApprovalBanner`.
  *  - JobApplicationPane   (was a modal)     step 3: who on the hiring team receives it (an overlapping
  *                                            facepile of the leads, each name linking to their
  *                                            profile), your profile read back so you can see what is

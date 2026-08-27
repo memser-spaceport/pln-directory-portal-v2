@@ -79,24 +79,32 @@ import r from '@/components/page/member-details/RepositoriesDetails/components/R
 import pc from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput/ProfileCollaborateInput.module.scss';
 
 import { SkillsTagsInput } from './SkillsTagsInput';
-/* (`PendingApprovalSteps` — the vertical "signed up → complete your profile →
-    await approval" rail — is gone from this entry entirely. It stopped being
-    rendered here first, for the reason below; then approval stopped gating
-    applying at all, which left it describing a wait that no longer holds
-    anything up, and the file was deleted. Production still ships its own copy at
-    components/page/jobs/JobProfileDrawer/PendingApprovalSteps.tsx.
+/* `PendingApprovalSteps` — the vertical "signed up → complete your profile →
+    await approval" rail — is **back**, imported from the copy that lives at
+    components/page/jobs/JobProfileDrawer/PendingApprovalSteps.tsx rather than
+    re-transcribed. It is a pure presentational component with one optional prop,
+    so there is nothing to mock and no reason to own a second copy.
 
-    It was the drawer's answer to *where am I*, and it was the only one, so it
-    earned its 150px at the top of the column. The flow rail above now answers
-    that question for the flow, and stacking a second stepper 12px under it put
-    two position indicators on one screen answering two different questions in
-    the same visual language — a reader has to work out which is which before
-    either is useful.
+    It had been deleted on two arguments. The second — that approval no longer
+    gated applying, so the rail described a wait holding nothing up — expired
+    when the gate came back; a pending member now genuinely cannot apply, which
+    is the fact this rail exists to place. The first was that two position
+    indicators in one column is worse than one, and it is answered rather than
+    overruled: they are in different places answering different questions. The
+    flow rail is chrome, horizontal, in the sticky header, and says where you are
+    in applying to *this role*. This is content, vertical, in the scrolling
+    column, and says where you are in becoming able to apply at all. For this
+    viewer that pairing is the point — the flow rail is showing a third step they
+    cannot reach, and this is the explanation of why.
 
-    What the vertical one said that the rail cannot — that the review is running,
-    and that an email lands when it finishes — is one sentence, and it is in the
-    lede below. The full three-stage account story still exists for anyone who
-    has not opened the flow: it is `PendingApprovalBanner`, on the board. */
+    Note what it displaced: the pending lede, which said the review is running
+    and an email ends it — steps 1 and 3, in fewer words and with no position
+    attached. See the comment at the render site.
+
+    The three-stage account story also exists on the board for anyone who has not
+    opened the flow: `PendingApprovalBanner`. Two surfaces, one story — if the
+    wording of the wait changes, it changes in both. */
+import { PendingApprovalSteps } from '@/components/page/jobs/JobProfileDrawer/PendingApprovalSteps';
 import { VIEWER_EMAIL, VIEWER_NAME } from './profile/viewerIdentity';
 import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 
@@ -570,24 +578,19 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             the sentence tells them what their profile is for and that there is no
             second form behind this one.
 
-            The pending variant carries the sentence the vertical account stepper
-            used to carry, which was the one thing in it the flow rail above can't
-            say: that the review is running, and that an email is what ends it.
-
-            Its second half used to read "It isn't holding up your application …
-            which goes as soon as you send it" — true only while approval didn't
-            gate applying. It does again, and this is the screen where getting it
-            wrong costs the most: someone finishing a profile in order to apply,
-            told the thing standing in their way isn't there. Now it says what
-            the wait actually blocks and what the profile is still worth doing
-            meanwhile, which is the honest version of the same encouragement. */}
-        <p className={fd.lede}>
-          {pendingApproval
-            ? "Your account is under review — we'll email you when it's approved, and you can apply from then on. Your profile is worth finishing now: it goes with every application."
-            : pendingRoleTitle
+            **The stepper replaces this line rather than joining it.** A pending
+            member's lede said the review is running and an email ends it — which
+            is steps 1 and 3 of the stepper, in fewer words and with no position
+            attached. Keeping both would be the same news twice, 16px apart. */}
+        {pendingApproval ? (
+          <PendingApprovalSteps />
+        ) : (
+          <p className={fd.lede}>
+            {pendingRoleTitle
               ? `We send your profile with your application to ${pendingRoleTitle}.`
               : 'This is what hiring teams see when you apply.'}
-        </p>
+          </p>
+        )}
       </div>
 
       {/* 0. Start with a document, when there is nothing to start from.

@@ -143,9 +143,11 @@ export default function AiAppsPrototype() {
    * band of its own above the layout. That band was costing 56px at the top of
    * every page — and on the grid it was doing real damage: DashboardPagesLayout
    * pins the rail with `top: var(--app-header-height)` and sizes it
-   * `calc(100vh - 80px)`, so starting it 24px lower than production pushed its
-   * whole bottom — the last facet and the Clear filters / Apply footer — off
-   * the viewport until you scrolled.
+   * `calc(100vh - 80px)`, so starting it 24px lower than production pushed the
+   * bottom of the rail — the last facet at the time — off the viewport until
+   * you scrolled. (The panel's Clear filters / Apply footer was never in that
+   * picture: `FiltersSidePanel` hides it at ≥1024, it belongs to the mobile
+   * bottom sheet.)
    *
    * `standalone` keeps the old floating band for the detail view, which has no
    * masthead to join and no rail to squash.

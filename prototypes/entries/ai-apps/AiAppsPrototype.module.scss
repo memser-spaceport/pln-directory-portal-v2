@@ -168,6 +168,13 @@
   number: flush with the layout at rest (the aside's natural top, 48px, is below
   the sticky threshold so it doesn't move), flush with the viewport once scrolled.
   Scoped to the shell so it can't reach anything outside this prototype.
+
+  This is the prototypes' settled answer, not a new one: `gantry-impact-rating`
+  and `gantry-saved-draft-item` both zero the same variable on their root (as an
+  inline style; SCSS here so the reasoning has somewhere to live). The exception
+  worth knowing is `job-board`, which keeps 80px correctly because it renders its
+  own PrototypeNavBar at that height — the number is only wrong when the header
+  it names isn't on the route.
 */
 .shell {
   --app-header-height: 0px;

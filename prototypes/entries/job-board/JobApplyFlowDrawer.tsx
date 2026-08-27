@@ -301,9 +301,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     mode: 'onBlur',
   });
 
-  /* The validated answers, once. Null until `Continue to apply` accepts them,
-     which is also what makes the last step reachable for a stranger. */
-  const [account, setAccount] = useState<AccountDetails | null>(null);
+  /* (`account` — the validated details, held here until the final Apply — is
+     gone. It existed so a stranger's answers could survive step 2 and be handed
+     over with the letter; the details are registered by the press that collects
+     them now, so nothing has to be carried, and state read by nobody is the
+     next pass's evidence for a path that no longer exists.) */
 
   /* Whether this flow run stops at the profile step, decided when the flow opens
      and then left alone.
@@ -323,7 +325,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setDraft(profile);
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
-    setAccount(null);
     accountMethods.reset(EMPTY_ACCOUNT_FORM);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
        empty one, so `isProfileComplete` is already false — but the step is about
@@ -506,7 +507,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const submitAccount = accountMethods.handleSubmit((data) => {
     const details = toAccountDetails(data);
     const profile = { ...draft, role: details.role, linkedin: details.linkedin };
-    setAccount(details);
     setDraft(profile);
     /* Ends here. This used to be `onStepChange('application')` — the account was
        held unregistered until the final Apply so that abandoning at the letter
@@ -584,7 +584,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
              review and the return trip rather than let the person press
              `Create account` expecting step 3. */
           hint: hasStatus
-            ? "Your account opens now and the PL team reviews it. We'll email you, and you can apply from then on."
+            ? "Your account opens now — the PL team reviews it, and you can apply once it's approved."
             : 'Choose a job search status to continue. It is only ever shown to the PL team.',
           action: (
             /* Disabled on the status and nothing else.
@@ -621,7 +621,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            a hint that says "add your current role" to someone who has already
            added it is the fastest way to make a footer look broken. */
         hint: blockedByReview
-          ? "Saved as you go. Applying opens once the PL team approves your account — we'll email you."
+          ? /* Not "Saved as you go" first — the button beside this says `Save
+               profile`, so that clause was a sentence promising what a visible
+               control already promises. The hint spends its words on the part
+               the footer can't show. */
+            "Applying opens once the PL team approves your account — we'll email you."
           : !complete
             ? editing
               ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
@@ -765,13 +769,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           <JobApplicationPane
             role={role}
             teamName={team?.name ?? ''}
-            /* The draft, not the saved profile. For a member the two agree —
-               `commitDraft` runs on every exit from the profile step — but a
-               stranger has nothing saved at all, and a read-back is supposed to
-               quote what is about to be sent rather than what is on file. */
+            /* The draft, not the saved profile. The two agree by the time anyone
+               stands here — `commitDraft` runs on every exit from the profile
+               step — but a read-back is supposed to quote what is about to be
+               sent rather than what is on file, and those can differ for one
+               render after an edit.
+
+               `applicantName` and the `Edit details` label are gone with the
+               person they were for. They existed because a stranger reached this
+               step with a typed name and no profile record; only an approved
+               member reaches it now, so both branches described someone who
+               cannot be here. The pane falls back to the profile's own name. */
             profile={draft}
-            applicantName={account?.name}
-            editLabel={loggedIn ? undefined : 'Edit details'}
             onEditProfile={() => onStepChange('profile')}
             coverLetter={coverLetter}
             onCoverLetterChange={setCoverLetter}

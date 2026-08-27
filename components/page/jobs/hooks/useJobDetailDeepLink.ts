@@ -13,9 +13,14 @@ import type { IJobTeamGroup } from '@/types/jobs.types';
  * when the page is loaded (or shared) with the param already set.
  *
  * URL writes go through `replaceState` so the board does not refetch. The
- * param is present only while the drawer is open: leaving it for Apply /
- * sign-up / the profile drawer drops it, matching the flow's "close Apply
+ * param is present only while the *reading step* is up: stepping on to the
+ * profile or the letter drops it, as does sign-up — matching the flow's "close
  * returns to the board" model rather than bouncing back into the description.
+ *
+ * Reading used to be a drawer of its own (`step: 'detail'`). It is step 1 of
+ * `JobApplyFlowDrawer` now, so "is the description showing" is
+ * `step === 'flow' && at === 'review'` rather than a step of its own, and the
+ * flow's single `close` replaces `closeDetail`.
  */
 export function useJobDetailDeepLink({
   enabled,
@@ -30,7 +35,7 @@ export function useJobDetailDeepLink({
 }): ReturnType<typeof useJobApplyFlow> {
   const searchParams = useSearchParams();
   const openedFromUrl = useRef(false);
-  const { onViewJob: openDetail, closeDetail: closeDetailFlow } = flow;
+  const { onViewJob: openDetail, close: closeFlow } = flow;
 
   const onViewJob = useCallback(
     (target: JobDetailTarget) => {
@@ -40,15 +45,23 @@ export function useJobDetailDeepLink({
     [openDetail],
   );
 
-  const closeDetail = useCallback(() => {
+  const close = useCallback(() => {
     writeJobDetailParam(null);
-    closeDetailFlow();
-  }, [closeDetailFlow]);
+    closeFlow();
+  }, [closeFlow]);
 
+  /* The param tracks the *reading step*, not the flow.
+     `detail` used to be a step of its own; it is `flow` at `at: 'review'` now,
+     and the three places the flow can stand are one state rather than three. So
+     the rule the original wrote — present while the description is up, dropped
+     the moment Apply / sign-up / the profile takes over — becomes: present on
+     review, cleared on every other step. */
+  const step = flow.state.step;
+  const at = flow.state.step === 'flow' ? flow.state.at : null;
   useEffect(() => {
-    if (flow.state.step === 'detail' || flow.state.step === 'idle') return;
+    if (step === 'idle' || (step === 'flow' && at === 'review')) return;
     writeJobDetailParam(null);
-  }, [flow.state.step]);
+  }, [step, at]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -91,5 +104,5 @@ export function useJobDetailDeepLink({
     // Claimed before the fetch, so a later groups change must not re-open.
   }, [enabled, isLoading, groups, searchParams, openDetail]);
 
-  return useMemo(() => ({ ...flow, onViewJob, closeDetail }), [flow, onViewJob, closeDetail]);
+  return useMemo(() => ({ ...flow, onViewJob, close }), [flow, onViewJob, close]);
 }

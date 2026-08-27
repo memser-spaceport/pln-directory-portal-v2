@@ -19,7 +19,7 @@ import { MembersQueryKeys } from '@/services/members/constants';
 import { useMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import { useUpdateMemberParams } from '@/services/members/hooks/useUpdateMemberParams';
 import { isJobSearchStatus, JOB_SEARCH_STATUS_OPTIONS, JobSearchStatus } from '@/services/jobs/job-board-viewer';
-import { SHOW_CV_IMPORT } from '@/services/jobs/constants';
+import { SHOW_CV_IMPORT } from '@/services/members/constants';
 import { useCurrentUserStore } from '@/services/auth/store';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 
@@ -54,30 +54,39 @@ import d from './JobProfileDrawer.module.scss';
  * role is not someone to hold.
  */
 
-interface JobProfileDrawerProps {
-  open: boolean;
-  onClose: () => void;
+/** What the flow's footer needs to know about a profile it cannot see. */
+export interface ProfileState {
+  complete: boolean;
+  hasRole: boolean;
+  hasStatus: boolean;
+}
+
+export interface JobProfilePaneProps {
   memberUid: string;
   isLoggedIn: boolean;
-  /** Set when the drawer is holding up an application — names the role. */
+  /** Set when an application is waiting on this — names the role in the lede. */
   pendingRoleTitle: string | null;
   /** Signed up but not yet approved. Says so in the lede; gates nothing. */
   pendingApproval: boolean;
-  /**
-   * True when saving resumes straight into the apply modal — a role is held and
-   * the account may apply.
-   *
-   * No longer decides the button's WORDS, only whether the press lands on an
-   * application or on the board. See the footer.
-   */
-  resumeIntoApply: boolean;
-  /** The footer press. Completeness is reported from the drawer's own (freshest) read. */
-  onFooterAction: (args: { profileComplete: boolean }) => void;
+  /** Reported on every change — see the note in the component. */
+  onProfileState: (state: ProfileState) => void;
 }
 
-export function JobProfileDrawer(props: JobProfileDrawerProps) {
-  const { open, onClose, memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, resumeIntoApply, onFooterAction } =
-    props;
+/**
+ * The profile stack: everything an application needs, edited in place.
+ *
+ * **The body only.** This used to be the whole drawer — its own header, its own
+ * sticky footer with `Continue to apply`, its own way out. It is step 2 of the
+ * apply flow now, and the flow owns the chrome, so what is left here is the
+ * content. `JobProfileDrawer` below still wraps it for the one case that is not
+ * a flow: the banner's "Update profile", where there is no role to review and
+ * nothing to send.
+ *
+ * Completeness is reported upward rather than acted on here, because both hosts
+ * need it and neither of their footers is inside this component.
+ */
+export function JobProfilePane(props: JobProfilePaneProps) {
+  const { memberUid, isLoggedIn, pendingRoleTitle, pendingApproval, onProfileState } = props;
 
   const { currentUser: userInfo } = useCurrentUserStore();
   const isAdmin = isAdminUser(userInfo);
@@ -96,7 +105,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
         !isAdmin && !isOwner,
         true,
       ),
-    enabled: open && !!memberUid,
+    enabled: !!memberUid,
     select: (data) => data?.data?.formattedData,
   });
 
@@ -120,11 +129,19 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
      Experience section below issues the same key — but the drawer asks first, so
      it carries the `enabled` that keeps a closed drawer off the network. */
   const { data: experienceRows, isLoading: experiencesLoading } = useMemberExperience(memberUid, {
-    enabled: open && !!memberUid,
+    enabled: !!memberUid,
   });
   /* `Array.isArray` rather than `?? []`: the repo's global `useQuery` mock
      resolves every query to an object, and `.length` on one is `undefined`. */
   const experienceCount = Array.isArray(experienceRows) ? experienceRows.length : 0;
+
+  /* Reported rather than returned: the footer that reads this lives outside
+     this component in both hosts, and it is derived from a fetch that only
+     happens in here. */
+  React.useEffect(() => {
+    onProfileState({ complete, hasRole, hasStatus });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [complete, hasRole, hasStatus]);
 
   /* Set when someone hits a parse dead end in the top card and presses "Add
      manually" — see `CvImportHostInput.handedOff`. Deliberately not reset on
@@ -137,96 +154,99 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
      structural rather than a rule two expressions have to keep agreeing on. */
   const cvImportHost = pickCvImportHost({
     enabled: SHOW_CV_IMPORT,
-    hasRole,
     experienceCount,
     experiencesLoading,
     handedOff,
   });
 
   return (
-    <Drawer isOpen={open} onClose={onClose}>
-      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
-        <div className={s.breadcrumbs}>
-          <button type="button" className={s.backButton} onClick={onClose}>
-            <BackIcon />
-            <span>Back</span>
-          </button>
-        </div>
-      </div>
-
-      <div className={s.drawerContent}>
-        {/* (`PendingApprovalSteps` — the vertical "signed up → complete your
+    <>
+      {/* (`PendingApprovalSteps` — the vertical "signed up → complete your
             profile → await approval" rail — stood here, above the lede, because
             it answered "can I even do this". The answer is now yes regardless,
             so a stepper counting down to approval described a wait that holds
             nothing up. Deleted rather than hidden: it had one caller and one
             reason to exist.) */}
-        <p className={d.lede}>
-          {/* The pending line no longer defers the application — it says the
+      <p className={d.lede}>
+        {/* The pending line no longer defers the application — it says the
               review isn't in the way. Same fact, opposite consequence. */}
-          {pendingRoleTitle
-            ? pendingApproval
-              ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
-              : `We send your profile with your application to ${pendingRoleTitle}.`
-            : 'This is what hiring teams see when you apply.'}
-        </p>
+        {pendingRoleTitle
+          ? pendingApproval
+            ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
+            : `We send your profile with your application to ${pendingRoleTitle}.`
+          : 'This is what hiring teams see when you apply.'}
+      </p>
 
-        {isLoading && <div className={d.loading}>Loading profile…</div>}
+      {isLoading && <div className={d.loading}>Loading profile…</div>}
 
-        {member && (
-          <>
-            {/* 0. Start with a document, while there is nothing to start from.
+      {member && (
+        <>
+          {/* 0. Start with a document, while there is nothing to start from.
                    Above the header card because a CV answers the required role
                    sitting in it — a control that answers the question below it
                    belongs above it. Disappears the moment the profile has
                    anything in it, handing the offer to the Experience section. */}
-            {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
+          {cvImportHost === 'top-card' && <CvFirstCard member={member} onHandOff={() => setHandedOff(true)} />}
 
-            {/* 1. The header card — the first required answer (current role)
+          {/* 1. The header card — the first required answer (current role)
                    lives in its editor. While the role is missing the card wears
                    the required treatment: the strip names the consequence, the
                    amber "+ Your Role" inside is production's own affordance. */}
-            <div className={clsx(d.headerCard, { [d.missingCard]: !hasRole })}>
-              {!hasRole && (
-                <DataIncomplete className={d.incompleteStrip}>
-                  {pendingRoleTitle
-                    ? `Your current role is required to apply to ${pendingRoleTitle}.`
-                    : 'Your current role is required to apply.'}
-                </DataIncomplete>
-              )}
-              <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            </div>
+          <div className={clsx(d.headerCard, { [d.missingCard]: !hasRole })}>
+            {!hasRole && (
+              <DataIncomplete className={d.incompleteStrip}>
+                {pendingRoleTitle
+                  ? `Your current role is required to apply to ${pendingRoleTitle}.`
+                  : 'Your current role is required to apply.'}
+              </DataIncomplete>
+            )}
+            <ProfileDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} variant="apply-flow" />
+          </div>
 
-            {/* 2. Job search status — the required section, so it comes first
+          {/* 2. Job search status — the required section, so it comes first
                    after the header. PL-Team-only: the pill carries the
                    audience, the note carries the purpose, and the value never
                    appears on the public profile or in the apply read-back. */}
-            <DetailsSection missingData={!hasStatus}>
-              {!hasStatus && (
-                <DataIncomplete className={d.incompleteStrip}>
-                  {pendingRoleTitle
-                    ? `An answer here is required to apply to ${pendingRoleTitle}.`
-                    : 'An answer here is required to apply.'}
-                </DataIncomplete>
-              )}
-              <div className={clsx({ [d.missingBody]: !hasStatus })}>
-                <DetailsSectionHeader title="Job search status">
-                  <PlTeamOnlyPill />
-                </DetailsSectionHeader>
-                {/* Not disabled while saving, deliberately. The write is
+          {/* The requirement is said once, on the title, instead of in a strip
+              above the card.
+
+              The strip named the role — "An answer here is required to apply to
+              Start Up Operator" — which was worth the width when this was a
+              drawer that opened out of nowhere and had to re-establish what it
+              was holding up. It is step 2 of a rail that names the job at step 1
+              and carries it in the lede two lines above, so the strip spent a
+              full-width amber band restating what the screen already said, and
+              it sat *outside* the card it was about. `Required to continue` says
+              the same thing where the answer is, in the words the footer uses.
+
+              The amber card treatment stays: `missingData` is what marks the
+              section, and that is the part the strip was only decorating. */}
+          <DetailsSection missingData={!hasStatus}>
+            <div className={clsx({ [d.missingBody]: !hasStatus })}>
+              <DetailsSectionHeader
+                title={
+                  <>
+                    Job search status
+                    {!hasStatus && <span className={d.requiredMark}>Required to continue</span>}
+                  </>
+                }
+              >
+                <PlTeamOnlyPill />
+              </DetailsSectionHeader>
+              {/* Not disabled while saving, deliberately. The write is
                     optimistic now, so the dot has already moved and the only
                     thing a lock would buy is stopping someone changing their
                     mind during a window they can no longer see. Two clicks in
                     that window race, and the later PATCH's invalidation settles
                     last — which is the answer they picked last, so the race has
                     the right winner. */}
-                <JobSearchStatusInput
-                  value={jobSearchStatus}
-                  onChange={(value) =>
-                    updateMember.mutate(
-                      { uid: memberUid, payload: { jobSearchStatus: value } },
-                      {
-                        /* Here rather than in the hook's own `onError`: the bio
+              <JobSearchStatusInput
+                value={jobSearchStatus}
+                onChange={(value) =>
+                  updateMember.mutate(
+                    { uid: memberUid, payload: { jobSearchStatus: value } },
+                    {
+                      /* Here rather than in the hook's own `onError`: the bio
                            and profile forms already show their own message, and
                            a blanket toast would double up on both. The hook
                            owns the rollback; each caller owns what it says.
@@ -235,15 +255,15 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                            moved, so a failed save claimed nothing; optimistically
                            it moves and then un-moves on its own, which turns a
                            silent failure into a misleading one. */
-                        onError: () => toast.error("Couldn't save your job search status. Please try again."),
-                      },
-                    )
-                  }
-                />
-              </div>
-            </DetailsSection>
+                      onError: () => toast.error("Couldn't save your job search status. Please try again."),
+                    },
+                  )
+                }
+              />
+            </div>
+          </DetailsSection>
 
-            {/* 3–5. Optional sections — what a hiring team actually reads.
+          {/* 3–5. Optional sections — what a hiring team actually reads.
                    Real components: they edit in place and save themselves.
 
                    Experience is the one section with a shortcut: drop a CV and
@@ -267,45 +287,64 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
                    nothing loads until someone presses Apply, and buying true
                    dead-code elimination would cost a second dynamic boundary
                    inside the section for a feature that is about to be on. */}
-            <ExperienceDetails
-              userInfo={userInfo}
-              member={member}
-              isLoggedIn={isLoggedIn}
-              enableCvImport={cvImportHost === 'experience-section'}
-            />
-            <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-            <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
-          </>
-        )}
+          <ExperienceDetails
+            userInfo={userInfo}
+            member={member}
+            isLoggedIn={isLoggedIn}
+            enableCvImport={cvImportHost === 'experience-section'}
+          />
+          <ContributionsDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+          <RepositoriesDetails userInfo={userInfo} member={member} isLoggedIn={isLoggedIn} />
+        </>
+      )}
+    </>
+  );
+}
+
+/**
+ * The profile stack on its own, for the one case that is not an application:
+ * the banner's **Update profile**, and where a post-login resume lands when the
+ * role it was holding has since closed.
+ *
+ * No rail, because there is nothing to walk — no role to review and nothing to
+ * send. A three-step stepper here would be promising two places that do not
+ * exist for this visit.
+ */
+export function JobProfileDrawer({
+  open,
+  onClose,
+  onFooterAction,
+  ...paneProps
+}: Omit<JobProfilePaneProps, 'onProfileState'> & {
+  open: boolean;
+  onClose: () => void;
+  /** The footer press. Completeness comes from the pane's own (freshest) read. */
+  onFooterAction: (args: { profileComplete: boolean }) => void;
+}) {
+  const [{ complete, hasRole, hasStatus }, setProfileState] = React.useState<ProfileState>({
+    complete: false,
+    hasRole: false,
+    hasStatus: false,
+  });
+
+  return (
+    <Drawer isOpen={open} onClose={onClose}>
+      <div className={clsx(s.drawerHeader, d.drawerHeaderLift)}>
+        <div className={s.breadcrumbs}>
+          <button type="button" className={s.backButton} onClick={onClose}>
+            <BackIcon />
+            <span>Back</span>
+          </button>
+        </div>
       </div>
 
-      {/* The drawer's own action — always on screen, disabled until usable. The
-          sections' own Saves commit one card each; this one says what happens
-          NEXT.
+      <div className={s.drawerContent}>
+        <JobProfilePane {...paneProps} onProfileState={setProfileState} />
+      </div>
 
-          **One label, always.** It used to branch twice — on whether a role was
-          held (the banner route carries none) and on whether the account was
-          approved. Both branches said "Save profile", and both were wrong for
-          the same reason: this drawer exists only to unblock applying, so
-          framing the same two required answers as a filing exercise in some
-          states and as progress in others made one ask look like several,
-          depending on distinctions the reader never sees. The hint beside the
-          button has always ended "…to continue"; the button now agrees with it.
-
-          Where the press lands still varies, and `resumeIntoApply` is what
-          decides it: with a role held and an approved account it resumes
-          straight into the apply modal, otherwise it saves and closes to the
-          board.
-
-          **The pending case used to be the awkward one.** An account awaiting
-          PL-team approval could not reach an application at all, so this button
-          promised something that person could not do and the hint beside it
-          carried the correction — "applying unlocks once the PL team approves
-          your account". That was settled as one consistent label with the truth
-          in the hint. Approval no longer gates applying, so the gap the
-          compromise existed to cover is closed: the label is now simply true for
-          everyone who reads it, and the pending hint has nothing left to
-          correct. */}
+      {/* One label for one act. The sections' own Saves commit one card each;
+          this one says what happens NEXT — and for this surface that is going
+          back to the board, because nothing was waiting on it. */}
       <div className={d.footer}>
         <div className={d.footerInner}>
           <p className={d.footerHint}>
@@ -321,7 +360,7 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
             disabled={!complete}
             onClick={() => onFooterAction({ profileComplete: complete })}
           >
-            Continue to apply
+            Save and close
           </Button>
         </div>
       </div>
@@ -330,13 +369,13 @@ export function JobProfileDrawer(props: JobProfileDrawerProps) {
 }
 
 /** What's still owed, as a verb phrase the footer drops into its sentence. */
-function missingHint(hasRole: boolean, hasStatus: boolean): string {
+export function missingHint(hasRole: boolean, hasStatus: boolean): string {
   if (!hasRole && !hasStatus) return 'add your current role and choose a job search status';
   if (!hasRole) return 'add your current role';
   return 'choose a job search status';
 }
 
-const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+export const sentenceCase = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /* No `disabled` prop any more: the only thing that ever set it was "a save is in
    flight", and an optimistic save has nothing to wait for. */

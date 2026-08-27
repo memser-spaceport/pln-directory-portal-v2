@@ -11,7 +11,6 @@ import { pickCvImportHost, type CvImportHostInput } from '@/components/page/jobs
  */
 const blank: CvImportHostInput = {
   enabled: true,
-  hasRole: false,
   experienceCount: 0,
   experiencesLoading: false,
   handedOff: false,
@@ -23,45 +22,46 @@ describe('which card hosts the CV importer', () => {
   });
 
   /**
-   * The two things that mean the card is no longer the right *first* move: the
-   * required field it exists to fill is already answered, or the person has
-   * already written the history out by hand and a card saying "start with your
-   * CV" would be telling them to start over.
+   * The one thing that means the card is no longer the right first move: the
+   * person has already written the history out by hand, and an offer to start
+   * from a CV would be telling them to start over.
    */
-  it.each([
-    ['a role', { hasRole: true }],
-    ['work history', { experienceCount: 1 }],
-  ])('hands it back to the Experience section once the profile has %s', (_label, filled) => {
-    expect(pickCvImportHost({ ...blank, ...filled })).toBe('experience-section');
+  it('hands it back to the Experience section once there is work history', () => {
+    expect(pickCvImportHost({ ...blank, experienceCount: 1 })).toBe('experience-section');
   });
 
   /**
-   * The whole rule, as a table — and the regression it shipped with.
+   * The regression this replaces. `hasRole: true` used to send the offer four
+   * cards down into the Experience section — and the board's own sign-up modal
+   * collects the current role, so almost everyone arriving here had one and
+   * almost nobody saw the card. A role is one field; a CV is the history.
+   */
+  it('still offers the card to someone who has a role but no history', () => {
+    expect(pickCvImportHost({ ...blank, experienceCount: 0 })).toBe('top-card');
+  });
+
+  /**
+   * The whole rule, as a table.
    *
-   * The blank test used to also require an empty location and no skills. That
-   * argument holds against the prototype's own `EMPTY_PROFILE` and breaks
-   * against production's data, because the profile is already partly filled
-   * before anyone reaches this drawer: `/sign-up` collects Professional skills
-   * and the board's sign-up modal collects the current role. So "has skills"
-   * never meant "has started filling this in by hand" — it meant "came through
-   * the front door", and the card was silently withheld from most of the people
-   * it was built for.
+   * It has been narrowed twice, both times for the same reason: every extra
+   * input was a proxy for "has already started filling this in by hand", and
+   * none of them meant it. Location and skills went first (`/sign-up` collects
+   * skills), then the current role (the board's sign-up modal collects it).
    *
-   * Only these two inputs decide it now. If a third ever gets added to the blank
-   * test, this table is what should have to change to allow it.
+   * One input decides it now. If a second ever gets added, this table is what
+   * should have to change to allow it.
    */
   it.each([
-    [false, 0, 'top-card'],
-    [true, 0, 'experience-section'],
-    [false, 4, 'experience-section'],
-    [true, 4, 'experience-section'],
-  ] as const)('role=%s history=%s → %s', (hasRole, experienceCount, expected) => {
-    expect(pickCvImportHost({ ...blank, hasRole, experienceCount })).toBe(expected);
+    [0, 'top-card'],
+    [1, 'experience-section'],
+    [4, 'experience-section'],
+  ] as const)('history=%s → %s', (experienceCount, expected) => {
+    expect(pickCvImportHost({ ...blank, experienceCount })).toBe(expected);
   });
 
   it('offers nothing at all when the flag is down', () => {
     expect(pickCvImportHost({ ...blank, enabled: false })).toBe('off');
-    expect(pickCvImportHost({ ...blank, enabled: false, hasRole: true })).toBe('off');
+    expect(pickCvImportHost({ ...blank, enabled: false, experienceCount: 4 })).toBe('off');
   });
 
   /**
@@ -101,20 +101,17 @@ describe('which card hosts the CV importer', () => {
    */
   it('stays off for every profile shape while the flag is down', () => {
     const flags = [true, false];
-    for (const hasRole of flags) {
-      for (const experiencesLoading of flags) {
-        for (const handedOff of flags) {
-          for (const experienceCount of [0, 5]) {
-            expect(
-              pickCvImportHost({
-                enabled: false,
-                hasRole,
-                experienceCount,
-                experiencesLoading,
-                handedOff,
-              }),
-            ).toBe('off');
-          }
+    for (const experiencesLoading of flags) {
+      for (const handedOff of flags) {
+        for (const experienceCount of [0, 5]) {
+          expect(
+            pickCvImportHost({
+              enabled: false,
+              experienceCount,
+              experiencesLoading,
+              handedOff,
+            }),
+          ).toBe('off');
         }
       }
     }

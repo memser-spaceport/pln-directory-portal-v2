@@ -11,67 +11,24 @@
 // read-back's first line is one sentence — "Senior Protocol Engineer at Lattice
 // Compute" — and at 400px a real title-plus-team wrapped, which turns a glance
 // into a paragraph and undoes the point of showing it.
-.modal.modal {
-  max-width: 440px;
+/* The step's column. Takes the width the drawer's content column gives it, the
+   same as the review and profile panes, and imposes no height of its own — the
+   drawer scrolls, so anything this capped would be unreachable rather than
+   scrollable.
 
-  // Sized to its content, capped at the viewport. A six-row letter under a
-  // read-back panel makes this the tallest card in the flow, and the submit
-  // button is the one thing that must never fall below the fold. dvh so
-  // collapsing mobile browser chrome can't clip the actions.
-  max-height: calc(100dvh - 48px);
-  overflow: hidden;
-
-  @include media.mobile-only {
-    max-width: 100%;
-    max-height: calc(100dvh - 32px);
-  }
+   The 24px gap is `ReferCompanyModal`'s, kept: it is the rhythm the header,
+   read-back and letter were spaced on, and the only thing worth keeping from
+   the card this used to be. */
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
 }
-
-// (`.icon` — the brand tint for the circled document glyph — went with the glyph.
-//  See the note in the component: an announcement's mark on top of a form.)
-
-// --- The masthead, un-centred ------------------------------------------------
-//
-// Demo Day's chrome centres its icon (`margin: 0 auto`), title and description,
-// which is right for what that component usually is: a short announcement with
-// two buttons under it, where the whole card is one centred block.
-//
-// This card isn't that. Under the description sit a labelled panel, a labelled
-// textarea and a character count — a form, and a form has one left edge that
-// every label, field and note starts from. A centred masthead over it puts two
-// alignment axes in a 440px card, and the reader's eye tracks the mismatch
-// rather than the content. `JobSignUpModal`, the other "Apply for <role>" card
-// in this flow, already left-aligns its own title for the same reason.
-//
-// Doubled selectors: the classes being overridden are single-class rules in
-// another CSS module, so equal specificity would leave the winner to bundle
-// order.
-.headerLeft.headerLeft {
-  text-align: left;
-}
-
-// The description belongs to the title, and the chrome's uniform `gap: 24px` was
-// denying it: `.modal` is a flex column, so icon → title → description → leads →
-// form all sat exactly 24px apart, which says those five are five peers. They
-// aren't. A title and the sentence qualifying it are one header; 8px says so,
-// and the 24px that remains everywhere else now marks a real break instead of
-// being the only measurement in the card.
-//
-// Negative margin cancelling part of the parent's gap, rather than a smaller
-// `gap` on `.modal` — the container's number is correct for every other pair,
-// and changing it would move four things to fix one.
-.headerDesc.headerDesc {
-  margin-top: -16px;
-}
-
-// The title is the card's first row now that the glyph above it is gone, and the
-// close button is absolutely positioned at top/right 12 — so a long role title
-// ("Senior Distributed Systems Engineer") would run under it. 32px of right
-// padding is the 24px button plus its inset; the text wraps before it reaches
-// the ✕ instead of passing behind it.
-.headerTitle.headerTitle {
-  padding-right: 32px;
-}
+/* (`.headerTitle`, `.headerDesc` and `.headerLeft` lived here — the modal's
+   'Apply for <role>' heading and the line under it. Step 3 opens with one
+   lede sentence in the profile step's own voice, so the heading and its
+   overrides went with it.) */
 
 // --- Who receives it ---------------------------------------------------------
 
@@ -274,17 +231,17 @@
 // skill chips inside it, and the card already contains one filled-and-shadowed
 // box — the textarea. Border-only at 0.12 against the field's 0.16 plus shadow is
 // what separates "this is what we'll send" from "type here".
+// The read-back, inside `DetailsSectionGreyContentContainer` — the DS's own grey
+// panel, which brings the ground, the padding and the radius. What used to be
+// here was a white box with a 1px border, drawn by hand: inside a column that is
+// already white on white, that reads as a form field rather than as a quotation
+// of something that lives elsewhere.
 .profileCard {
   display: flex;
   flex-direction: column;
-  // 4px, not the 10px this card used when it held a single line: the summary and
-  // its dates are one fact in two lines, so they hug. The chips restore the
-  // larger gap themselves — see `.skills`.
+  // 4px: the summary and its dates are one fact in two lines, so they hug. The
+  // chips restore the larger gap themselves — see `.skills`.
   gap: 4px;
-
-  padding: 12px;
-  border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
-  border-radius: 8px;
 }
 
 // Primary tone and medium weight: this is the sentence the hiring team reads, so
@@ -356,18 +313,8 @@
     text-decoration: underline;
   }
 }
-
-// ReferModal's `.privacyNote`: 12px secondary, left-aligned with the blocks above
-// it rather than centred with the title, because it is about the field it sits
-// under, not about the card.
-.note {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: -0.2px;
-  color: var(--foreground-neutral-secondary, #455468);
-}
+/* (`.note` lived here — a copy of the footer's instruction, printed under the
+   field. The step was showing it twice; the footer's is the one that stays.) */
 
 // The letter's own counter. FormTextArea's built-in one requires `maxLength`,
 // and a maxLength attribute silently truncates pasted text — the GOV.UK-documented

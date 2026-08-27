@@ -23,6 +23,7 @@ import tc from '@/components/page/jobs/TeamGroupCard/TeamGroupCard.module.scss';
 import rr from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/ReferRoleRow.module.scss';
 
 import { getJobDetail, jobMetaParts } from './jobDetails';
+import fd from './JobApplyFlowDrawer.module.scss';
 import d from './JobDetailPane.module.scss';
 
 /** A team object for the closed pane, so `useGetFocusTags` is called
@@ -112,7 +113,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
           room for — work mode, and the way out to the team's own posting.
           Left-aligned with every section below it: this is the pane's content
           column, not its chrome. */}
-      <DetailsSection classes={{ root: d.masthead }}>
+      <DetailsSection classes={{ root: clsx(d.masthead, fd.cardEdge) }}>
         <div className={d.teamRow}>
           <div className={clsx(tc.avatar, d.teamAvatar)}>
             {team.logoUrl ? (
@@ -156,7 +157,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         </div>
       </DetailsSection>
 
-      <DetailsSection>
+      <DetailsSection classes={{ root: fd.cardEdge }}>
         <DetailsSectionHeader title="About the role" />
         {detail.summary.map((para) => (
           <p key={para} className={d.para}>
@@ -165,7 +166,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         ))}
       </DetailsSection>
 
-      <DetailsSection>
+      <DetailsSection classes={{ root: fd.cardEdge }}>
         <DetailsSectionHeader title="What you will do" />
         <ul className={d.list}>
           {detail.responsibilities.map((item) => (
@@ -174,7 +175,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
         </ul>
       </DetailsSection>
 
-      <DetailsSection>
+      <DetailsSection classes={{ root: fd.cardEdge }}>
         <DetailsSectionHeader title="What they are looking for" />
         <ul className={d.list}>
           {detail.requirements.map((item) => (
@@ -196,7 +197,7 @@ export function JobDetailPane(props: JobDetailPaneProps) {
       {/* The two questions everyone scrolls a posting for and most postings bury.
           One section, because they are the same question asked twice: what
           happens if I go for this. */}
-      <DetailsSection>
+      <DetailsSection classes={{ root: fd.cardEdge }}>
         <DetailsSectionHeader title="Pay and process" />
         <dl className={d.facts}>
           <dt>Compensation</dt>

@@ -570,7 +570,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       {importAtTop && (
         <DetailsSection
           editView={editingImport}
-          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
         >
           {editingImport && parsed ? (
             <ExperienceImportReview
@@ -692,7 +692,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                every other section puts its qualifier (Add, Edit, the Github
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
-      <DetailsSection missingData={!hasStatus}>
+      <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
         {!hasStatus && (
           <DataIncomplete className={d.incompleteStrip}>
             {pendingRoleTitle
@@ -718,7 +718,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       <DetailsSection
         editView={editingExperience || editingImport}
         classes={
-          editingExperience || editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined
+          editingExperience || editingImport
+            ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
+            : { root: fd.cardEdge }
         }
       >
         {editingImport && !importAtTop ? (
@@ -892,7 +894,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                right above it. */}
       <DetailsSection
         editView={editingContribution}
-        classes={editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+        classes={
+          editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
+        }
       >
         {editingContribution ? (
           <ContributionForm
@@ -924,7 +928,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                same question twice. */}
       <DetailsSection
         editView={editingGithub}
-        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
       >
         {editingGithub ? (
           <GithubHandleForm handle={draft.githubHandle} onClose={() => setEditing(null)} onSubmit={saveGithubHandle} />

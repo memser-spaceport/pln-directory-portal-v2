@@ -70,6 +70,31 @@
     max-width: 560px;
     min-height: 0;
     height: auto;
+
+    // **The card stays inside the viewport; the body scrolls, not the page.**
+    //
+    // It used to grow past the bottom of the window and let `Modal.overlay`
+    // scroll the whole thing — which is why `.overlay` is `align-items:
+    // flex-start` (a centred card taller than the viewport pushes its own first
+    // field off the top edge). That is a page pretending to be a dialog: the
+    // close button scrolls away with the card, the backdrop moves under the
+    // pointer, and on a short laptop window you scroll the *board* to reach
+    // Create account.
+    //
+    // 48px is the overlay's own 24px gutter, top and bottom, so the card stops
+    // exactly where the padding does rather than at an invented margin. `dvh`,
+    // not `vh`, for the same reason `min-height` above uses it.
+    max-height: calc(100dvh - 48px);
+
+    // The cap does nothing without this pair: a flex column here, and
+    // `min-height: 0` on the scrolling child (see `.pageBody`). A flex item's
+    // default `min-height: auto` refuses to shrink below its content, so the
+    // child would push the card back past the cap and `overflow` would never
+    // fire — the silent failure lesson 5 records for `overflow` inside a
+    // constrained flex parent.
+    display: flex;
+    flex-direction: column;
+
     border-radius: 16px;
     padding: 20px;
     box-shadow:
@@ -131,6 +156,27 @@
 
   @include media.tablet-landscape {
     padding: 0;
+
+    // The scroll region — card only. Below 960 this is a full-bleed *page*
+    // (`min-height: 100dvh` on `.modal`), where scrolling the document is the
+    // right behaviour and the sticky `.actionsDock` already keeps the primary
+    // action reachable; capping it there would reintroduce the bug the notes on
+    // `.overlay` describe, where 78px of form rendered outside the white.
+    //
+    // `min-height: 0` is the half that does the work — see the cap in `.modal`.
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    // Scrollbar left visible, against the prototypes' usual
+    // `scrollbar-width: none` (the rails in newsfeed, gantry, v0). Those hide it
+    // because content clipped at a fold is its own affordance — you can see there
+    // is more. A form cannot borrow that argument: the thing below the fold is
+    // the button that submits it, and "is there more?" is the one question a
+    // person filling this in must not have to ask.
+    //
+    // Gutter reserved so the fields do not reflow the moment it appears.
+    scrollbar-gutter: stable;
   }
 }
 

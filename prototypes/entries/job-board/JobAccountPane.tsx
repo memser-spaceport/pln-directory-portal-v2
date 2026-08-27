@@ -170,7 +170,7 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
           where a CV now goes. The `or` rule went with it: with one path there is no
           "or" to name.) */}
 
-      <DetailsSection>
+      <DetailsSection classes={{ root: fd.cardEdge }}>
         {/* "Your account", not "Your details" — which is what the rail directly
             above already says, and a card header repeating its own step label
             names nothing. The rail names the position; this names what the four
@@ -205,7 +205,7 @@ export function JobAccountPane({ jobSearchStatus, onJobSearchStatusChange, onSig
           strip whose whole job is to be read in a glance. So it states the only
           thing it knows that the button doesn't — that this field is what's
           standing in the way. */}
-      <DetailsSection missingData={!hasStatus}>
+      <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
         {!hasStatus && <DataIncomplete className={d.incompleteStrip}>Required to continue.</DataIncomplete>}
         <div className={clsx({ [d.missingBody]: !hasStatus })}>
           <DetailsSectionHeader title="Job search status">

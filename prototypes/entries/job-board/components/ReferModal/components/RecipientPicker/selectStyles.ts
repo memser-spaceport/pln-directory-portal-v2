@@ -41,11 +41,9 @@ export const selectStyles: StylesConfig<RecipientOption, true, GroupBase<Recipie
     },
   }),
   /**
-   * **The field's value is a list, not a wrap of chips.** This modal opens with the
-   * hiring team already in it — a set the referrer didn't assemble and has to
-   * *check* before sending — so the value's job here is to be read, not to be
-   * compact. A name-only chip can't answer "should Priya be on this?"; a row with
-   * the role on it can.
+   * **The field's value is a list, not a wrap of chips.** The value's job here is
+   * to be read, not to be compact. A name-only chip can't answer "should Priya be
+   * on this?"; a row with the role on it can.
    *
    * It is also what the field was already doing badly: at this card's width a chip
    * carrying `name + role` runs ~276px against ~422px of usable field, so every

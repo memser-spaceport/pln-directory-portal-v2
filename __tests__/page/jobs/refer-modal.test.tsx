@@ -159,13 +159,13 @@ describe('ReferModal', () => {
     expect(screen.getByText(/Your note is on its way to the team/)).toBeInTheDocument();
   });
 
-  it('keeps member selection and prefills leads when the team has no job-refer email', async () => {
+  it('keeps member selection empty when the team has no job-refer email', () => {
     renderModal(null);
 
     expect(screen.getByText('Send to')).toBeInTheDocument();
-    expect(screen.getByText('Prefilled with the Acme hiring team.')).toBeInTheDocument();
+    expect(screen.getByText('Search and select who from the Acme should receive this referral')).toBeInTheDocument();
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Acme', true);
-    await waitFor(() => expect(screen.getByTestId('recipient-count')).toHaveTextContent('1'));
+    expect(screen.getByTestId('recipient-count')).toHaveTextContent('0');
   });
 
   it('requires recipients when the team has no job-refer email', async () => {

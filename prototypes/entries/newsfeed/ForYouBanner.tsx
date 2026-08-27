@@ -19,9 +19,14 @@ interface ForYouBannerProps {
  * filter reads as a note about a thing you switched to, which is exactly wrong
  * for the state you arrive in. "This feed" fixed that and stopped one step
  * short: it points at the object, where the whole sentence is about the reader's
- * relationship to it. "Your feed … your focus areas, skills, and teams" puts the
- * possessive on both halves, so the claim and the thing you can go change are in
- * the same voice as the button under them.
+ * relationship to it. "Your feed … your skills, your focus areas, and the teams
+ * you follow" puts the possessive on both halves, so the claim and the thing you
+ * can go change are in the same voice as the button under them.
+ *
+ * Only true *here*, note: `SignedOutBanner` names the pill outright ("and your
+ * feed is based on…" under a Sign in / sign up sentence), because a visitor has
+ * no feed yet and is being offered one. Same second half, different opening —
+ * one of them is a label on what you are reading, the other is an offer.
  *
  * "based on", not "built from", for the same reason — *built* describes how the
  * thing was assembled, which is the machine's side of it.

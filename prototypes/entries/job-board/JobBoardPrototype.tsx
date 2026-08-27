@@ -126,18 +126,26 @@
  *                                            applications and mean nothing to anyone reading them.
  *                                            There is no fourth step confirming the send: the board
  *                                            behind it flips the row to "Applied".
- * GATED: nothing, in the sense the word used to mean here. Applying no longer requires an account
- *  *first* — opening one is step 2 — and it no longer waits on PL approval, which now runs alongside
- *  and governs the rest of the network rather than this board. What survives is the one rule that
- *  was always the real one: an application has to carry a complete profile (a current role and an
- *  answered job search status), because a one-click application sends the team your profile instead
- *  of a form. A stranger satisfies it in one pane, a member in a card stack, and nobody is refused —
- *  they are only ever not finished yet. Nothing on the board was ever hidden from a logged-out
- *  visitor and still isn't: every role, every detail and the posting itself stay open.
- *  NOTE: this reverses an earlier, carefully-argued rule that a new account must wait for approval
- *  before applying — three pieces of copy said so. Removing the wait was a product decision, not a
- *  layout one; if it ever comes back, the copy in `BoardBanners`, `JobSignUpModal`, the flow footer
- *  and `VIEWER_NOTE` all have to come back with it.
+ * GATED: **sending an application**, and only that. Two rules stand in front of it.
+ *  1. An application has to carry a complete profile (a current role and an answered job search
+ *     status), because a one-click application sends the team your profile instead of a form. This
+ *     one is never a refusal — a stranger satisfies it in one pane, a member in a card stack, and
+ *     the middle step exists to finish it.
+ *  2. The account has to be approved. A PL review stands in front of the first application, which
+ *     means a visitor who arrives on a role opens an account here and comes back to apply once the
+ *     email lands. Step 2 is where a first visit ends.
+ *  Everything else stays open at every stage: every role, every detail, the posting itself, and the
+ *  profile — which is editable while a review runs, because it is the one useful thing to do
+ *  meanwhile. Nothing on the board was ever hidden from a logged-out visitor and still isn't.
+ *  NOTE: rule 2 has now been removed and restored once. It was dropped on the argument that the PL
+ *  review "runs alongside" and governs the rest of the network rather than this board — which made
+ *  the flow's last press open a stranger's account and send their letter together. That press was
+ *  the hole: a brand-new account is under review from the moment it exists, so the account skipping
+ *  the review most reliably was the one the rule was written for. Restoring the gate meant restoring
+ *  both halves of `canApply` (`loggedIn && !pendingApproval`), splitting that press into
+ *  `onCreateAccount` and `onSubmitApplication`, and putting the wait back into four pieces of copy:
+ *  `BoardBanners` (both states), the flow footer (review and profile steps), `JobProfilePane`'s lede
+ *  and `VIEWER_NOTE`. If it is ever dropped again, those are the four.
  * SHARED (prototypes/entries/nav-shared/, no registry entry — like follow-shared/):
  *  - PrototypeNavBar + PrototypeMobileNav   copies of the production navbar / bottom bar carrying the
  *                                            proposed **Home** item with an unread dot — first in the
@@ -288,9 +296,9 @@ const VIEWER_OPTIONS: Array<{ value: BoardViewer; label: string }> = [
 
 const VIEWER_NOTE: Record<BoardViewer, string> = {
   'logged-out':
-    'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account — with the final Apply creating it and sending the application together.',
+    'No account, and no separate sign-up. Apply opens the flow and step 2 becomes “Your details” — the form that opens the account. That is where a first visit ends: an application can’t be sent from an account under review, so they come back to apply once the PL team approves it.',
   'pending-approval':
-    'Signed up, waiting on the PL team. The review is real and the banner says so, but it no longer gates anything here: browsing, the profile and applying all work exactly as they do for an approved member.',
+    'Signed up, waiting on the PL team. Browsing and the profile work exactly as they do for an approved member; applying is the one thing that waits, and every surface that mentions it says the same thing — the banner, the flow footer and the profile step.',
   'profile-incomplete':
     'Signed in with nothing filled in. The ask moves from “sign in” to “update your profile”, and Apply opens the drawer on the job search status, which is the one required answer.',
   'profile-ready':
@@ -774,10 +782,11 @@ export default function JobBoardPrototype() {
        a profile link, not an import source; see the note on `MemberProfile`. */
     setProfile({ ...EMPTY_PROFILE, role: details.role, linkedin: details.linkedin.trim() });
     setSignUp(false);
-    /* Says what happened and what is still running, without the clause that used
-       to follow it ("before you can apply"), which described a gate the board no
-       longer has. */
-    toast.success(`Account created for ${details.email}. The PL team reviews new accounts in the background.`);
+    /* Says what happened and what is still running — including what the review
+       holds, which is the clause that came back with the gate. This door is
+       pressed with no role in hand, so there is nothing to promise them
+       afterwards beyond the board itself. */
+    toast.success(`Account created for ${details.email}. The PL team reviews it before applications can be sent.`);
   };
 
   /* The escape for people who already have an account. Straight to the signed-in
@@ -857,40 +866,24 @@ export default function JobBoardPrototype() {
   };
 
   /**
-   * The last press of the flow, and for a visitor with no account it is two acts
-   * in one: the account opens and the application goes, together.
+   * The last press of the flow, and one act: the letter goes.
    *
-   * **Why they are not two presses.** The old shape registered you at the end of
-   * the sign-up modal and then asked you to apply afterwards — which meant
-   * abandoning at the letter left an account behind with nothing attached to it,
-   * and a pending review standing between the person and the role they had come
-   * for. Doing both here means the flow either completes or costs nothing.
-   * `ApplyForDemoDayModal` files an investor application the same way: one call
-   * that returns `{ memberUid, isNewMember }`.
-   *
-   * The application is sent, not held. PL review no longer gates applying — it
-   * runs alongside, and governs the rest of the network rather than this board.
+   * **It was briefly two.** For a visitor with no account this same press opened
+   * the account and sent the application together, so the flow either completed
+   * or cost nothing — the alternative being the old sign-up modal, which
+   * registered you at the end of step 2 and left an orphan account behind
+   * anyone who changed their mind at the letter. That argument was sound about
+   * *orphan accounts* and silent about the review: a brand-new account is under
+   * review, and an application may not be sent from one. So the account half
+   * moved to `onCreateAccount` and this press is now only ever pressed by
+   * someone approved. The orphan-account problem comes back with it, and the
+   * honest answer is that an account opened on purpose at the end of a form is
+   * not an orphan — what made the old one an orphan was that it was a side
+   * effect of a flow aimed somewhere else.
    */
-  const onSubmitApplication = (
-    coverLetter: string,
-    newAccount?: { details: JobSignUpDetails; profile: MemberProfile },
-  ) => {
+  const onSubmitApplication = (coverLetter: string) => {
     if (!flowJob) return;
     const { role, team } = flowJob;
-
-    if (newAccount) {
-      /* The account, from the details step. `pending-approval` because that is
-         genuinely where a brand-new account lands — the review is real — but it
-         no longer stops anything on this board, so the application below goes
-         out regardless.
-
-         The profile is the flow's own draft, seeded rather than rebuilt: it
-         already holds the role and LinkedIn from the form *and* the job search
-         status, which is a profile answer the account form has no field for. */
-      setViewer('pending-approval');
-      setIsLoggedIn(true);
-      setProfile(newAccount.profile);
-    }
 
     setApplications((prev) => new Map(prev).set(role.uid, { coverLetter, appliedAt: new Date().toISOString() }));
     onCloseFlow();
@@ -898,16 +891,38 @@ export default function JobBoardPrototype() {
     /* The board behind the flow already flips this role's button to "Applied",
        so the toast doesn't repeat that. What it adds is the part the board can't
        show: who has it now, and that the profile went with the note rather than
-       the note alone — which is the promise the whole flow was built on.
+       the note alone — which is the promise the whole flow was built on. */
+    toast.success(`Applied to ${role.roleTitle} at ${team.name}. Your profile went with your note.`);
+  };
 
-       For a new account it leads with the account instead, because that is the
-       fact the person cannot see anywhere on the board behind it — the row they
-       can. Still one sentence: two toasts for one press would report a single
-       act as two events. */
+  /**
+   * The end of the flow for a visitor who arrived without an account.
+   *
+   * **No application is filed here**, and that is the change. This used to be a
+   * branch inside `onSubmitApplication` — one press opened the account and sent
+   * the letter together, so the flow either completed or cost nothing. An
+   * application may not be sent from an account under review, and a brand-new
+   * account is under review from the moment it exists, so the two acts had to
+   * come apart. What is left is the half that can happen now.
+   *
+   * The profile is the flow's own draft, seeded rather than rebuilt: it already
+   * holds the role and LinkedIn from the form *and* the job search status, which
+   * is a profile answer the account form has no field for.
+   *
+   * The role they came for is not held for them. Naming it in the toast is the
+   * most this can honestly do — a queued application would be the other answer,
+   * and it is not the one this board gives.
+   */
+  const onCreateAccount = ({ details, profile: seeded }: { details: JobSignUpDetails; profile: MemberProfile }) => {
+    const roleTitle = flowJob?.role.roleTitle;
+    setViewer('pending-approval');
+    setIsLoggedIn(true);
+    setProfile(seeded);
+    onCloseFlow();
     toast.success(
-      newAccount
-        ? `Account created for ${newAccount.details.email}, and your application is with ${team.name}.`
-        : `Applied to ${role.roleTitle} at ${team.name}. Your profile went with your note.`,
+      roleTitle
+        ? `Account created for ${details.email}. We'll email you when it's approved — then you can apply to ${roleTitle}.`
+        : `Account created for ${details.email}. The PL team reviews new accounts before applications can be sent.`,
     );
   };
 
@@ -1201,6 +1216,7 @@ export default function JobBoardPrototype() {
         profile={profile}
         onSaveProfile={onSaveProfile}
         onSubmitApplication={onSubmitApplication}
+        onCreateAccount={onCreateAccount}
         loggedIn={isLoggedIn}
         onSignIn={onFlowSignIn}
         pendingApproval={isPendingApproval}

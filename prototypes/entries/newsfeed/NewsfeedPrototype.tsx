@@ -185,18 +185,54 @@ const SORT_OPTIONS = [
  *                cut from the eyebrow. `CURATION_ATTRIBUTION` stays in the mock
  *                for the email digest, which still states who picked.
  *
- * The one state that is *not* a switch: **`?viewer=logged-out`** opens the page
- * as a visitor with no account — no Quick Actions, no For You pill, no subscribe
- * offer, and `SignedOutBanner` in production's own `!isLoggedIn` slot making the
- * personalization offer. A query param rather than a control on the page, for
- * the reason above: this entry renders what it looks like, and a state picker
- * parked over the feed is chrome on the one thing being judged. Signing in from
- * either door flips it in place, so the transition is reviewable; getting back
- * out is a reload with the param.
+ * The one switch left is **who is reading**: a Preview as pair — Signed in /
+ * Signed out — in a review band under the navbar. Signed out is the visitor with
+ * no account: no Quick Actions, no For You pill, no Following ranking and no
+ * inline subscribe banner, with `SignedOutBanner` in production's own
+ * `!isLoggedIn` slot making the personalization offer. The rail's digest card
+ * stays up in both states on purpose — its Subscribe signs you in first and then
+ * lands the click, so it is an offer a stranger can take rather than one they
+ * are shown and refused.
+ *
+ * That state used to be reachable only as `?viewer=logged-out`, on the argument
+ * that a state picker parked over the feed is chrome on the one thing being
+ * judged. The argument holds for a picker *inside* the page, which is why this
+ * one isn't: it sits in the same band the job board's five viewer states use
+ * (`../job-board/JobBoardPrototype.module.scss` `.reviewBand`) — outside the
+ * content column, and not sticky, so it scrolls away and leaves the feed to be
+ * read on its own. The param still works and the switch writes it back to the
+ * address bar, so either state stays linkable; what it costs is that leaving the
+ * signed-out view no longer needs a reload, and reaching it no longer needs
+ * someone to have read this comment.
  */
 
 const HIRING_CAT = 'hiring' as const;
 const DEALS_CAT = 'deals' as const;
+
+/**
+ * The two readers this feed is drawn for.
+ *
+ * `logged-out` is the value the address bar already used (`?viewer=logged-out`,
+ * the job board's convention), so the switch and the link name the same state.
+ * The labels say "Signed" rather than "Logged": `Sign in / Sign up / Sign out`
+ * is the product's settled auth vocabulary, and a review control that reads
+ * "Logged out" while every door on the page says "Sign in" teaches the reader a
+ * second word for one thing. (The job board's own switch still says "Logged
+ * out" — same class of label, different entry, so it is named here rather than
+ * swept.)
+ */
+const VIEWER_OPTIONS = [
+  { value: 'member', label: 'Signed in' },
+  { value: 'logged-out', label: 'Signed out' },
+] as const;
+
+type FeedViewer = (typeof VIEWER_OPTIONS)[number]['value'];
+
+const VIEWER_NOTE: Record<FeedViewer, string> = {
+  member: 'Quick Actions, For You as the view you land in, the Following ranking, and the email subscribe banner.',
+  'logged-out':
+    'No account, so no For You and no Following: the feed rests on All / Latest, and the signed-out home banner makes the personalization offer.',
+};
 
 const EVENT_HEX: Record<TeamNewsEventType, string> = {
   FUNDING: '#027a48',
@@ -325,16 +361,18 @@ export default function NewsfeedPrototype() {
   const [activeCategory, setActiveCategory] = useState<string>(HAS_FOR_YOU_NEWS ? FOR_YOU_CAT : ALL_CAT);
   const [sort, setSort] = useState<Sort>('following');
   /**
-   * Whether there is an account behind the page — `?viewer=logged-out` opens the
-   * signed-out state, the same query-param convention the job board's `?viewer=`
-   * uses, and the same read-once-at-mount treatment `?team=` gets below.
+   * Whether there is an account behind the page. Two ways in, one state:
+   * `?viewer=logged-out` seeds it at mount — the job board's `?viewer=`
+   * convention, and the same read-once treatment `?team=` gets below — and the
+   * Preview as switch in the review band flips it afterwards, writing the param
+   * back so the address bar and the page never disagree.
    *
-   * A param rather than a visible switch row: this entry deliberately renders one
-   * settled configuration (see the header note), and a state-picker parked above
-   * the feed is chrome on the one page whose whole subject is what it looks like.
-   * The transition that matters is reviewable without one — signing in from
-   * either door flips the page in place, and For You appears, becomes the landing
-   * view and explains itself, which is the payoff the banner is offering.
+   * The switch sits outside the content column rather than above the feed, for
+   * the reason the header note gives: this entry's subject is what the page
+   * looks like, so scaffolding standing *in* the page is chrome on the thing
+   * being judged. Signing in from either door still flips it in place, which is
+   * the transition worth watching — For You appears, becomes the landing view
+   * and explains itself, which is the payoff the banner is offering.
    *
    * Defaults to signed in, because that is the state every other reviewer of this
    * entry has been looking at and the one the rest of the feed is designed for.
@@ -425,6 +463,35 @@ export default function NewsfeedPrototype() {
     const search = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`);
   };
+
+  /**
+   * The way back out, which until now was a reload.
+   *
+   * `handleSignIn` turned around, field for field, and deliberately the same
+   * three resets the `?viewer=logged-out` effect below performs: one description
+   * of the signed-out state, whether it is arrived at from a link or from the
+   * switch, so the two cannot drift into showing different feeds for one word.
+   * For You has no pill without an account and Following ranks by a set that is
+   * necessarily empty, so both fall back to what a stranger can actually read.
+   *
+   * Writes the param rather than stripping it, for `handleSignIn`'s reason
+   * reversed: a reload must land on the state the reader was looking at, and the
+   * signed-out view stays linkable for a reviewer who wants to send it to
+   * someone.
+   */
+  const handleSignOut = () => {
+    setSignedIn(false);
+    setActiveCategory(ALL_CAT);
+    setSort('latest');
+    setExpanded(false);
+    const params = new URLSearchParams(window.location.search);
+    params.set('viewer', 'logged-out');
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  };
+
+  /* One door for the review switch, so the band itself sets no state — both
+     directions go through the handlers the page's own controls already use. */
+  const handleViewer = (next: FeedViewer) => (next === 'logged-out' ? handleSignOut() : handleSignIn());
 
   const toggleFollow = (teamUid: string, teamName: string) => {
     /* Signed out, Follow *is* the offer being taken up. Following is one of the
@@ -981,7 +1048,17 @@ export default function NewsfeedPrototype() {
    */
   const popularItems = [...feedPool].sort((a, b) => (UPVOTES[b.uid] ?? 0) - (UPVOTES[a.uid] ?? 0)).slice(0, 3);
 
-  /* The signed-out banner's second number. Counted off `sourceItems` rather than
+  /* Following ranks by a set that is necessarily empty without an account, so
+     the option is dropped rather than shown ranking nothing — the same rule the
+     For You pill follows two rows above, and the same reason: a control offering
+     "you" to someone the product has never met has nothing behind it. Latest is
+     what the sort lands on instead (see the mount effect). */
+  const sortOptions = useMemo(
+    () => (signedIn ? SORT_OPTIONS : SORT_OPTIONS.filter((o) => o.value !== 'following')),
+    [signedIn],
+  );
+
+  /* The signed-out banner's only number. Counted off `sourceItems` rather than
      the whole corpus for `SignInBanner`'s reason: a banner claiming more than the
      list under it is contradicted by the list under it. */
   const bannerTeamCount = useMemo(() => new Set(sourceItems.map((i) => i.teamUid)).size, [sourceItems]);
@@ -1095,11 +1172,45 @@ export default function NewsfeedPrototype() {
     </>
   );
 
+  /* The switch reads one boolean rather than owning a state of its own, so it
+     cannot disagree with the page it is labelling. */
+  const viewer: FeedViewer = signedIn ? 'member' : 'logged-out';
+
+  /* Review scaffolding: which reader the page is drawn for.
+     Directly under the navbar and outside `.home__cn`, mirroring the job
+     board's band — see the note on `local.reviewBand`. The navbar is sticky and
+     this is not, so it scrolls away and the feed is left to be read on its own. */
+  const reviewControls = (
+    <div className={local.reviewBand}>
+      <div className={local.reviewRow}>
+        <div className={v0.switchBar}>
+          <span className={v0.switchLabel}>Preview as</span>
+          <div className={v0.switch} role="tablist" aria-label="Feed viewer state">
+            {VIEWER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="tab"
+                aria-selected={viewer === opt.value}
+                className={clsx(v0.switchBtn, viewer === opt.value && v0.switchBtnActive)}
+                onClick={() => handleViewer(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <span className={clsx(v0.switchNote, local.reviewNote)}>{VIEWER_NOTE[viewer]}</span>
+        </div>
+      </div>
+    </div>
+  );
+
   // Rendered outside the mount gate so the page never paints without its chrome.
   if (!mounted)
     return (
       <>
         {nav}
+        {reviewControls}
         <div className={v0.page} />
       </>
     );
@@ -1116,6 +1227,7 @@ export default function NewsfeedPrototype() {
   return (
     <>
       {nav}
+      {reviewControls}
       <div className={clsx(v0.page, styles.home)}>
         <div className={styles.home__cn}>
           {/* Production's own arrangement, kept: `app/home/page.tsx` renders
@@ -1134,12 +1246,7 @@ export default function NewsfeedPrototype() {
               </div>
             </>
           ) : (
-            <SignedOutBanner
-              updateCount={sourceItems.length}
-              teamCount={bannerTeamCount}
-              onSignIn={handleSignIn}
-              onSignUp={handleSignIn}
-            />
+            <SignedOutBanner teamCount={bannerTeamCount} onSignIn={handleSignIn} onSignUp={handleSignIn} />
           )}
 
           <div className={styles.home__cn__teamnews}>
@@ -1252,7 +1359,7 @@ export default function NewsfeedPrototype() {
                   <span className={v0.sortDesktop}>
                     <SortDropdown
                       sortByLabel="Sort by:"
-                      options={SORT_OPTIONS}
+                      options={sortOptions}
                       currentSort={sort}
                       onSortChange={(value) => {
                         setSort(value as Sort);
@@ -1262,7 +1369,7 @@ export default function NewsfeedPrototype() {
                   </span>
                   <span className={v0.sortMobile}>
                     <MobileFeedSort
-                      options={SORT_OPTIONS}
+                      options={sortOptions}
                       currentSort={sort}
                       onSortChange={(value) => {
                         setSort(value as Sort);
@@ -1275,9 +1382,7 @@ export default function NewsfeedPrototype() {
 
               {/* What the view is made of, in one line — the same note the Deals
                 pill gets below, for the same reason. See `ForYouBanner`. */}
-              {activeCategory === FOR_YOU_CAT && (
-                <ForYouBanner onUpdateProfile={openProfileSettings} />
-              )}
+              {activeCategory === FOR_YOU_CAT && <ForYouBanner onUpdateProfile={openProfileSettings} />}
 
               {/* For You is narrowed, so the subscribe offer would otherwise fire
                 under the note above — two asides stacked between the pills and
@@ -1371,6 +1476,8 @@ export default function NewsfeedPrototype() {
                         followedTeams={followedTeams}
                         onToggleFollow={toggleFollow}
                         popularItems={popularItems}
+                        signedIn={signedIn}
+                        onSignIn={handleSignIn}
                         /* Hidden below 960px only while the scroller is rendering.
                          When the block goes (narrowed view) the scroller goes with
                          it, and the rail takes the module back at every width. */

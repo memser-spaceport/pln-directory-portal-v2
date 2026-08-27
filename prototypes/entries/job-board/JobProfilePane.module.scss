@@ -217,6 +217,96 @@
   color: var(--foreground-neutral-secondary, #455468);
 }
 
+// --- or ----------------------------------------------------------------------
+
+// The rule between the CV card and the cards you fill in by hand.
+//
+// **Not invented, and not hand-rolled from scratch.** I looked for a labelled
+// divider first — grepped every paired `&::before, &::after` block in every
+// `.scss` in the repo, plus `<hr>`, `orDivider`, `dividerLabel`,
+// `separatorText`, `dividerWithText`, `splitter`, and the sign-in / onboarding /
+// husky / demo-day surfaces by hand. Two exist in the whole codebase.
+//
+// The production one is `TeamsList.module.scss .stageGroupHeader` (demo-day),
+// and it is the *same technique* — `flex: 1; height: 1px` on both pseudos with
+// the label between them — for a different job: a 32px/600 primary **section
+// heading**, on a raw `rgba(27, 56, 96, 0.24)` with no token pair. Its geometry
+// is the precedent and is followed here; its type rank and its colour are not,
+// because a heading announcing a group and a caption naming an alternative are
+// not the same speech act, and 0.24 is the *hover* border value spent at rest.
+//
+// The other is this exact rule's own history: it stood in this flow until commit
+// 5ce2065a7 ("Remove CV from sign up flow"), as `.orRule` in
+// `JobAccountPane.module.scss`, between that pane's CV card and its account
+// form. It came out with the card it belonged to, not because it was wrong. So
+// this is that block transcribed verbatim — same 12px tertiary label, same
+// subtle hairline, same negative margin — rather than a second, slightly
+// different answer to a question this entry had already answered. Its original
+// note, kept: Runway, Laravel Cloud, Framer and Adaline all put an `or` between
+// the fast path and the manual one, and this pane has exactly that relationship.
+//
+// (Production's version also carries `min-width: 0` on the pseudos. Not copied:
+//  its label is a nowrap 32px stage name that can genuinely outgrow the row,
+//  while an empty `content: ''` box already has a min-content width of 0, so
+//  here the declaration would resolve to what `min-width: auto` resolves to.)
+//
+// **Why the label sits *on* the line and not above it.** A stacked caption would
+// be a third object between two cards; a label set into the rule is the boundary
+// itself carrying the word, so the two cards stay one gap apart.
+//
+// **Why `subtle` and not the `.cardEdge` the cards beside it wear.**
+// `--border-neutral-xsubtle` (0.06) is right for a card *edge* — a hint around a
+// white panel that already has a shadow and a corner radius saying where it
+// ends. This is not an edge, it is a mark whose whole job is to be seen as a
+// line, and 0.06 of ink on a single unblurred pixel is not seen. `subtle` is the
+// house table's generic rule value and is what the deleted original used.
+//
+// **The -4px.** `.drawerContent` has a uniform 16px gap. A divider is not a peer
+// of the cards it separates, and at the full 16 it read as a third item in the
+// stack rather than as the seam between two — so it pulls 4px off both sides
+// (12/12) and stays symmetric, because a boundary belongs to neither side.
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: -4px 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+// --- The step's own title, while there is nothing on the profile -------------
+
+// `fd.stepTitle` is the class; this is the one distance it doesn't state.
+//
+// The logged-out pane wears the title with an escape link under it, and that
+// link states its own 12px. Here the thing under it is the shared `.lede`, which
+// deliberately carries no margin because it is also rendered by steps that have
+// no title above it. A heading and its own qualifying sentence are one unit, so
+// the distance has to be stated *somewhere*, and the caller is the only place
+// left. 6px is the value `.stepTitle`'s own comment records it carrying when a
+// lede last sat under it — so this restores a pairing rather than inventing one.
+//
+// Doubled to outrank `.stepTitle`'s own `margin: 0`, which is the same
+// specificity — measured, the single-class version lost the bundle-order coin
+// toss and rendered a 0px gap, with the h2 sitting directly on the sentence.
+// Same hammer `.incompleteStrip` one section down reaches for, for the same
+// reason.
+.stepTitleWithLede.stepTitleWithLede {
+  margin-bottom: 6px;
+}
+
 // --- Job search status ------------------------------------------------------
 
 /* 8px, not the 16 this column used to carry. The privacy card that used to sit

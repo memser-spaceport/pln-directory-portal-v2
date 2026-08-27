@@ -276,22 +276,24 @@ export function JobSignUpModal({
                   member actually applies. Copy that overstates what a button
                   does is worse than copy that is long.
 
-                  This line used to end "— applying unlocks once you're
-                  approved", which was the truth while approval gated applying.
-                  It no longer does: a new account can apply the moment it
-                  exists, and the apply flow now opens the account and sends the
-                  application in one press. Leaving the old clause here would
-                  describe a wall the board has removed, and it would contradict
-                  the flow's own footer one step away.
+                  The "applying unlocks once you're approved" clause has been off
+                  and on this line once already. It came off when approval
+                  stopped gating applying and the flow began opening an account
+                  and sending a letter in one press; approval gates applying
+                  again, so it is back. It has to be: this modal is where a new
+                  member learns what the review is, and a review whose one
+                  consequence goes unmentioned here is a wall they meet later
+                  with no warning.
 
-                  The review itself survives, because it is still real and still
-                  something a new member would rather learn now than discover.
-                  What changed is that it is a fact about the account rather than
-                  a condition on the button — so it is stated, not warned about.
+                  Stated, not warned about — it names what opens and when, rather
+                  than telling someone what they cannot do. Browsing genuinely is
+                  open, so the sentence leads with that.
 
                   No role/no-role branch any more: what the PL team does next
                   doesn't depend on which button opened this. */}
-              <p className={s.body}>The PL team reviews new accounts — you can browse and apply while that runs.</p>
+              <p className={s.body}>
+                The PL team reviews new accounts — browse while that runs, and applying opens once you&apos;re approved.
+              </p>
               <p className={s.bodySecondary}>
                 By submitting this form, you agree to our{' '}
                 <a

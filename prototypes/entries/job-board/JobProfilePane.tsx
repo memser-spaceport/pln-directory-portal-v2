@@ -536,21 +536,59 @@ export function JobProfilePane(props: JobProfilePaneProps) {
 
   return (
     <>
-      {/* Naming the destination is the whole reason the ask lands here rather
-          than at sign-in: the person is mid-decision about one specific role, and
-          the sentence tells them what their profile is for and that there is no
-          second form behind this one.
+      {/* The wrapper is `fd.stepIntro` — the logged-out pane's, and for the same
+          reason it exists there: `.drawerContent`'s gap is a uniform 16px, so a
+          title and the sentence qualifying it dropped in as two siblings would
+          sit as far apart as two unrelated cards. The wrapper has no gap of its
+          own, so the one distance inside it is stated at the title.
 
-          The pending variant carries the sentence the vertical account stepper
-          used to carry, which was the one thing in it the flow rail above can't
-          say: that the review is running, and that an email is what ends it. */}
-      <p className={fd.lede}>
-        {pendingApproval
-          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application${pendingRoleTitle ? ` to ${pendingRoleTitle}` : ''}, which goes as soon as you send it.`
-          : pendingRoleTitle
-            ? `We send your profile with your application to ${pendingRoleTitle}.`
-            : 'This is what hiring teams see when you apply.'}
-      </p>
+          The wrapper renders unconditionally even when it holds only the lede.
+          `.stepIntro` is a bare full-width flex column with no gap and no
+          padding, so a wrapper around one child measures identically to that
+          child on its own — and branching the markup to save a div would be two
+          shapes for one step. */}
+      <div className={fd.stepIntro}>
+        {/* **The step's name — only while there is nothing on the profile.**
+            The logged-out pane opens on this exact h2, in this exact class, and
+            the two steps are one position in the flow, so they say the same
+            words when they are asking for the same thing.
+
+            But only then. A member whose profile is already written is not being
+            asked to fill anything in — they are being shown what will be sent —
+            and a 20px instruction to do work that is done reads as a form that
+            hasn't noticed. The step is not left untitled for them either: the
+            rail six inches above says `Your profile`, permanently, for all three
+            of the flow's steps. That is the step's name; this is the blank
+            state's instruction, and only one of the two is always true.
+
+            (If it should be unconditional, that is a one-word change — drop the
+            `profileIsBlank &&`. It was implemented blank-only deliberately.) */}
+        {profileIsBlank && <h2 className={clsx(fd.stepTitle, d.stepTitleWithLede)}>Fill in your profile</h2>}
+
+        {/* Naming the destination is the whole reason the ask lands here rather
+            than at sign-in: the person is mid-decision about one specific role, and
+            the sentence tells them what their profile is for and that there is no
+            second form behind this one.
+
+            The pending variant carries the sentence the vertical account stepper
+            used to carry, which was the one thing in it the flow rail above can't
+            say: that the review is running, and that an email is what ends it.
+
+            Its second half used to read "It isn't holding up your application …
+            which goes as soon as you send it" — true only while approval didn't
+            gate applying. It does again, and this is the screen where getting it
+            wrong costs the most: someone finishing a profile in order to apply,
+            told the thing standing in their way isn't there. Now it says what
+            the wait actually blocks and what the profile is still worth doing
+            meanwhile, which is the honest version of the same encouragement. */}
+        <p className={fd.lede}>
+          {pendingApproval
+            ? "Your account is under review — we'll email you when it's approved, and you can apply from then on. Your profile is worth finishing now: it goes with every application."
+            : pendingRoleTitle
+              ? `We send your profile with your application to ${pendingRoleTitle}.`
+              : 'This is what hiring teams see when you apply.'}
+        </p>
+      </div>
 
       {/* 0. Start with a document, when there is nothing to start from.
                **Why this is above the required cards.** The drawer's rule is that
@@ -640,6 +678,28 @@ export function JobProfilePane(props: JobProfilePaneProps) {
           )}
         </DetailsSection>
       )}
+
+      {/* **The alternative, written down.**
+          The document and the cards under it are a fast path and its fallback,
+          and until now the step never said so — a stack of equally-weighted cards
+          reads as a list of chores rather than as a shortcut and the long way
+          round. A rule with `or` set into it is how that relationship gets
+          stated; the same rule stood in this flow's logged-out pane (`.orRule` in
+          `JobAccountPane.module.scss`) until the CV card was taken off that step,
+          and this is it, transcribed. See the stylesheet for what I searched
+          before hand-rolling anything, and for what production's one labelled
+          divider does and doesn't lend it.
+
+          **Only while the CV card is at the top**, which is the same test that
+          puts it there: `importAtTop`. Once anything on the profile has an
+          answer, the offer moves down into the Experience card's own empty row
+          and there is no fork at the top of the column to name — a rule there
+          would be announcing a choice that isn't on screen.
+
+          And not while a parse is being reviewed. At that moment the card above
+          has become the document's own result with its own Cancel and Save, so
+          the alternative is no longer "or", it is "or cancel this". */}
+      {importAtTop && !parsed && <div className={d.orRule}>or fill it in yourself</div>}
 
       {/* 1. The header card, and the first of the two required answers: your
                current role. `ProfileDetails` is a plain div that swaps itself for

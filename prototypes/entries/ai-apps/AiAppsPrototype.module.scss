@@ -5,35 +5,95 @@
   flex-direction: column;
 }
 
-// Mobile side padding override. Production insets the page by 16px (frame) +
-// 24px (content) = 40px each side; scoped under .shell to beat those single-
-// class selectors. Net 20px gutters, so the single-column tiles stretch wider.
-.shell .frameMobile {
-  @include media.mobile-only {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
-.shell .contentMobile {
-  @include media.mobile-only {
+/*
+  The grid lives inside DashboardPagesLayout now (rail + content), and that
+  layout already supplies the 24px inset at >=1024. AiAppsPage's `.content`
+  brings the max-width column, the 16px stack gap and the mobile gutters, so
+  only its desktop side padding has to come off — otherwise the column is
+  inset twice.
+*/
+.column {
+  @media (min-width: 1024px) {
     padding-left: 0;
     padding-right: 0;
   }
 }
 
+/* Title + result count, transcribed from TeamsToolbar's .titleContainer —
+   same 8px baseline pairing, over the same 28px/700/40 title. */
+.titleRow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.count {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+/* Sort + the page action, opposite the title block (Deals' arrangement), with
+   the demo View-as pill leading. Wraps rather than overflows: three controls
+   don't fit a 390px row. */
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* Sort is carried by the mobile filter bar below, so the masthead copy would
+   be a second control for one answer at that width. Hiding the whole slot, not
+   just the trigger — the "Sort by:" label is the trigger's sibling. */
+.sortSlot {
+  display: flex;
+
+  @include media.mobile-only {
+    display: none;
+  }
+}
+
+/* The shared MobileFilterWrapper hides itself at >=1024, so this row collapses
+   to nothing on desktop rather than needing its own media query. */
+.mobileFilters {
+  display: flex;
+}
+
 /* Prototype-only affordance to demo creator vs. visitor - not part of the
-   production surface. Pinned top-right so it stays out of the app chrome. */
+   production surface.
+
+   It rides the page's own action row rather than a band of its own. The band
+   pushed DashboardPagesLayout down by 56px, and the rail inside it is pinned
+   `top: var(--app-header-height)` at `calc(100vh - 80px)` tall — so every pixel
+   above the layout came straight off the bottom of the filters, hiding the
+   Status facet and the panel footer until you scrolled.
+
+   3px of vertical padding puts the pill at 38px, the height of the bordered
+   `s` button beside it, so the three controls sit on one line. */
 .roleToggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  align-self: flex-end;
-  margin: 12px 16px 0;
-  padding: 6px 10px;
+  padding: 3px 10px;
   border: 1px solid var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
   border-radius: 999px;
   background: #ffffff;
+}
+
+/* The detail view has no masthead to join and no rail to squash, so there the
+   toggle keeps its own floating band above the app's top bar. */
+.roleToggleStandalone {
+  align-self: flex-end;
+  margin: 12px 16px 0;
+  padding: 6px 10px;
 }
 
 .roleLabel {
@@ -67,4 +127,48 @@
       box-shadow: 0 1px 2px var(--transparent-dark-4, rgba(14, 15, 17, 0.04));
     }
   }
+}
+
+/*
+  Equal-height cards, via the grid's own track sizing rather than a min-height
+  on the card. `1fr` on an auto-height container resolves every implicit row to
+  the tallest row's content, so the number is derived from whatever the cards
+  actually hold instead of being a constant that goes stale the first time a
+  description runs long.
+
+  Measured, three things were making them ragged and none is fixable at the
+  card: the deploy-failure strip is a real extra row (+30px), a collaborator
+  update note legitimately wraps to two lines (+18px), and the metrics row is
+  2px shorter when the feedback item is absent. Truncating any of those to force
+  a match would trade information for tidiness — the grid absorbing the
+  difference costs only whitespace, and `.footer`'s `margin-top: auto` keeps the
+  author line pinned to the bottom edge so the extra space lands in the middle
+  of the card where it reads as breathing room.
+*/
+.gridEqual {
+  grid-auto-rows: 1fr;
+}
+
+/*
+  Remove the band above the filters rail.
+
+  `DashboardPagesLayout` pins the rail with `top: var(--app-header-height)` and
+  sizes it `calc(100vh - var(--app-header-height))`. That variable is 80px, and
+  on a real route it is exactly right: the SiteHeader is pinned at 80px and never
+  scrolls away, so the rail tucks under it at every scroll position.
+
+  Prototype routes replace the SiteHeader with PrototypeRouteChrome — a 48px
+  banner that is in flow and scrolls away. So the 80px promise is owed to a
+  header that isn't there, and the rail pays it anyway: measured, it started 32px
+  below the top of the layout at rest, and once the banner scrolled off it stuck
+  80px down with nothing above it. That band is the gap.
+
+  0 is the honest number here, because nothing is pinned above the rail on this
+  route. It restores production's actual behaviour rather than production's
+  number: flush with the layout at rest (the aside's natural top, 48px, is below
+  the sticky threshold so it doesn't move), flush with the viewport once scrolled.
+  Scoped to the shell so it can't reach anything outside this prototype.
+*/
+.shell {
+  --app-header-height: 0px;
 }

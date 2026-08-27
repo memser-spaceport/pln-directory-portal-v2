@@ -13,6 +13,7 @@ interface ModalProps {
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;
   overlayClassname?: string;
+  overlayStyle?: React.CSSProperties;
   className?: string;
   /** Opt-in dialog semantics: renders role="dialog" + aria-modal on the container,
    *  labelled by the given element id. Pair with `inertBackground` — aria-modal
@@ -33,6 +34,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
     closeOnBackdropClick = true,
     closeOnEscape = true,
     overlayClassname,
+    overlayStyle,
     className,
     ariaLabelledBy,
     lockScroll = false,
@@ -120,6 +122,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
         <motion.div
           ref={overlayRef}
           className={clsx(s.overlay, overlayClassname)}
+          style={overlayStyle}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

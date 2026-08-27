@@ -9,7 +9,8 @@ jest.mock('@/services/rbac/hooks/usePermissions', () => ({
 }));
 
 jest.mock('@/components/page/ai-apps/components/GiveAiAppFeedbackDialog', () => ({
-  GiveAiAppFeedbackDialog: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div>Feedback dialog open</div> : null),
+  GiveAiAppFeedbackDialog: ({ isOpen, anchorRef }: { isOpen: boolean; anchorRef?: { current: HTMLElement | null } }) =>
+    isOpen ? <div>{anchorRef?.current ? 'Feedback dialog open' : 'Feedback dialog unanchored'}</div> : null,
 }));
 
 describe('FloatingFeedbackButton', () => {
@@ -47,13 +48,22 @@ describe('FloatingFeedbackButton', () => {
     expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
   });
 
-  it('only applies the content-aligned offset when alignToContent is passed', () => {
+  it('renders a rectangular header trigger rather than a floating pill', () => {
     mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
 
-    const { rerender } = render(<FloatingFeedbackButton />);
-    expect(screen.getByRole('button', { name: 'Give feedback' }).className).not.toMatch(/alignToContent/);
+    render(<FloatingFeedbackButton />);
+    const button = screen.getByRole('button', { name: 'Give feedback' });
+    expect(button.className).toMatch(/headerButton/);
+    expect(button.className).not.toMatch(/floating/);
+  });
 
-    rerender(<FloatingFeedbackButton alignToContent />);
-    expect(screen.getByRole('button', { name: 'Give feedback' }).className).toMatch(/alignToContent/);
+  it('anchors the dialog to the trigger wrapper', () => {
+    mockUsePermissions.mockReturnValue({ permsSet: new Set(['ai_apps.read']), isLoading: false });
+
+    render(<FloatingFeedbackButton />);
+    fireEvent.click(screen.getByRole('button', { name: 'Give feedback' }));
+
+    expect(screen.getByText('Feedback dialog open')).toBeInTheDocument();
+    expect(screen.queryByText('Feedback dialog unanchored')).not.toBeInTheDocument();
   });
 });

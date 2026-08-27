@@ -94,6 +94,9 @@ export const JOBS_ANALYTICS = {
   ON_JOB_APPLY_DRAWER_SAVED: 'job-apply-drawer-saved',
   ON_JOB_APPLY_SUBMITTED: 'job-apply-submitted',
   ON_JOB_APPLY_FAILED: 'job-apply-failed',
+  ON_JOB_APPLY_STEP_VIEWED: 'job-apply-step-viewed',
+  ON_JOB_APPLY_FLOW_CLOSED: 'job-apply-flow-closed',
+  ON_JOB_APPLY_EXTERNAL_REDIRECTED: 'job-apply-external-redirected',
 };
 
 export const EVENTS = {
@@ -362,6 +365,8 @@ export const AUTH_ANALYTICS = {
   AUTH_SETTINGS_EMAIL_UPDATE_FAILED: 'AUTH_SETTINGS_EMAIL_UPDATE_FAILED',
   AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD: 'AUTH_SETTINGS_EMAIL_UPDATE_SAME_AS_OLD',
   AUTH_SIGN_UP_BTN_CLICKED: 'AUTH_SIGN_UP_BTN_CLICKED',
+  AUTH_INVALID_USER_MODAL_SHOWN: 'AUTH_INVALID_USER_MODAL_SHOWN',
+  AUTH_INVALID_USER_SIGNUP_CLICKED: 'AUTH_INVALID_USER_SIGNUP_CLICKED',
   AUTH_LINK_ACCOUNT_SUBMIT_CLICKED: 'AUTH_LINK_ACCOUNT_SUBMIT_CLICKED',
   AUTH_LINK_ACCOUNT_CANCEL_CLICKED: 'AUTH_LINK_ACCOUNT_CANCEL_CLICKED',
 };
@@ -433,8 +438,10 @@ export const TEAMS_ANALYTICS_EVENTS = {
   TEAM_FOLLOWERS_MODAL_OPENED: 'team-followers-modal-opened',
   TEAM_DETAIL_OPEN_ROLES_VIEW_ALL_CLICKED: 'team-detail-open-roles-view-all-clicked',
   TEAM_DETAIL_CONTACT_SAVE_CLICKED: 'team-detail-contact-save-clicked',
+  TEAM_DETAIL_JOB_REFER_EMAIL_SAVED: 'team-detail-job-refer-email-saved',
   TEAM_DETAIL_ENRICHMENT_REVIEWED: 'team-detail-enrichment-reviewed',
   TEAM_DETAIL_STATUS_CHANGED: 'team-detail-status-changed',
+  TEAMS_STATUS_FILTER_SELECTED: 'team-status-filter-selected',
 };
 
 export const MEMBER_ANALYTICS_EVENTS = {
@@ -590,6 +597,8 @@ export const FORUM_ANALYTICS_EVENTS = {
   EDIT_POST_SUBMIT: 'forum-edit-post-submit',
   EDIT_POST_CANCEL: 'forum-edit-post-cancel',
   DIGEST_EMAIL_POST_CLICKED: 'forum-digest-email-post-clicked',
+  DIGEST_EMAIL_NEWS_CLICKED: 'forum-digest-email-news-clicked',
+  DIGEST_EMAIL_SEE_ALL_NEWS_CLICKED: 'forum-digest-email-see-all-news-clicked',
   COMMENT_NOTIFICATION_EMAIL_LINK_CLICKED: 'forum-comment-notification-email-link-clicked',
   COMMENT_NOTIFICATION_EMAIL_REPLY_CLICKED: 'forum-comment-notification-email-reply-clicked',
   MENTION_INITIATED: 'forum-mention-initiated',
@@ -628,6 +637,7 @@ export const HOME_ANALYTICS_EVENTS = {
   DISCOVER_CARD_CLICKED: 'discover-card-clicked',
   DISCOVER_HUSKY_AI_CLICKED: 'discover-husky-ai-clicked',
   FEATURED_FILTER_CLICKED: 'home_featured_filter_click',
+  WELCOME_SIGNIN_CLICKED: 'home-welcome-signin-clicked',
 };
 
 export const TEAM_NEWS_ANALYTICS_EVENTS = {
@@ -879,6 +889,27 @@ export const OH_GUIDELINE_URL =
   'https://protosphere.plnetwork.io/posts/Office-Hours-Guidelines-and-Tips-clsdgrbkk000ypocoqsceyfaq';
 
 export const ChangeLogList = [
+  {
+    title: 'Version 4.5.26 - In-app Apply, CV Import & For You',
+    tag: 'New Feature',
+    date: '28, Aug 2026',
+    shortContent: `
+        <div style="font-size: 14px; line-height:23px;">
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Home Page</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">For You</span> - Recent forum posts from the last week now appear alongside news from your profile, primary team, and followed teams.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Job Board</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">In-app apply</span> - Apply from a three-step drawer: Review job, Your profile, then Application. Opening a role starts on the description, and you can sign up from the board without joining a team.</li>
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Upload a CV</span> - Fill your role, location, skills, and work history from a CV when you apply, or from Experience on your profile.</li>
+        </ul>
+        <span style="font-size: 14px; line-height:23px; font-weight: 600">Team Profile Updates</span><br/>
+        <ul style="padding-left:32px; margin-bottom:15px; font-size: 14px; line-height:23px; list-style: disc;">
+          <li><span style="font-size: 14px; line-height:23px; font-weight: 600">Referral contact</span> - Set a Job Referral/Application Contact so referrals go there instead of to team leads.</li>
+        </ul>
+        </div>`,
+  },
   {
     title: 'Version 4.5.25 - LabOS MCP, News Discovery & Profiles',
     tag: 'New Feature',

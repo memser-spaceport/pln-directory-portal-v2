@@ -135,6 +135,13 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     [viewer, source],
   );
 
+  const viewStep = useCallback(
+    (step: ApplyFlowStepId | 'sign-up', target: ApplyTarget | null) => {
+      analytics.onJobApplyStepViewed({ ...applyBase(target), step });
+    },
+    [analytics, applyBase],
+  );
+
   /**
    * Pressing **View job**, or the role title: the flow opens on its first step.
    *
@@ -151,9 +158,10 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
   const onViewJob = useCallback(
     (target: JobDetailTarget) => {
       analytics.onJobDetailOpened(applyBase(target));
+      viewStep('review', target);
       dispatch({ type: 'OPEN_FLOW', target, at: 'review' });
     },
-    [analytics, applyBase],
+    [analytics, applyBase, viewStep],
   );
 
   /**
@@ -181,6 +189,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
            why this is one branch and not two — `OPEN_FLOW` starts the flow and
            is idempotent on the target either way. */
         dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
+        viewStep('profile', target);
         return;
       }
 
@@ -235,6 +244,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
        * verdict is the access answer; the viewer state is a presentation one.
        */
       if (access === 'pending' && !isProtocolLabsTeam(target.team)) {
+        analytics.onJobApplyExternalRedirected(applyBase(target));
         openExternalApply(target.role.applyUrl, source);
         return;
       }

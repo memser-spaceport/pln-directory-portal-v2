@@ -13,9 +13,11 @@ import {
   AccountFields,
   accountSchema,
   toAccountDetails,
+  signUpFailureMessage,
   EMPTY_ACCOUNT_FORM,
   type AccountDetails,
   type AccountFormData,
+  type JobSignUpResult as AccountSignUpResult,
 } from './accountFields';
 // Demo Day's profile-drawer chrome, for the mobile page's `← Back` header — the
 // same stylesheet `JobProfileDrawer` wears one step later in this flow, so a
@@ -45,7 +47,9 @@ const BackIcon = () => (
  */
 export type JobSignUpDetails = AccountDetails;
 
-export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
+/** Also `accountFields`', for the same reason and re-exported from the same
+ *  place the caller has always imported it. */
+export type JobSignUpResult = AccountSignUpResult;
 
 interface JobSignUpModalProps {
   open: boolean;
@@ -121,17 +125,7 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
     setServerError(null);
     const result = await onSignUp(toAccountDetails(data));
     if (!result.success) {
-      /* Named rather than vague. The earlier version deliberately blurred
-         "email exists" into a generic message to avoid an account-enumeration
-         oracle — but the endpoint answers 409 either way, so anyone probing
-         reads it off the status code and the vagueness only confuses the
-         person who genuinely forgot they had an account. (The oracle is worth
-         raising about the endpoint itself, not papering over here.) */
-      setServerError(
-        result.emailTaken
-          ? 'This email already has an account. Sign in instead — your application picks up from there.'
-          : 'We couldn’t create your account just now. Please try again.',
-      );
+      setServerError(signUpFailureMessage(result));
     }
   };
 

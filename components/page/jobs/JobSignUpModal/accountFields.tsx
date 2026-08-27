@@ -239,6 +239,27 @@ const isPersonalEmailDomain = (email: string): boolean => {
  */
 const PERSONAL_EMAIL_NOTE = 'Add your team email below and the PL team can see you’re at the company you name.';
 
+/** What the caller reports back after trying to create the account. */
+export type JobSignUpResult = { success: true } | { success: false; emailTaken?: boolean };
+
+/**
+ * What to show someone whose sign-up the server refused.
+ *
+ * Here rather than in either host, because there are two hosts now and a refusal
+ * should read the same whichever door it came through.
+ *
+ * Named rather than vague. An earlier version deliberately blurred "email
+ * exists" into a generic message to avoid an account-enumeration oracle — but
+ * the endpoint answers 409 either way, so anyone probing reads it off the status
+ * code and the vagueness only confuses the person who genuinely forgot they had
+ * an account. (The oracle is worth raising about the endpoint itself, not
+ * papering over here.)
+ */
+export const signUpFailureMessage = (result: Extract<JobSignUpResult, { success: false }>): string =>
+  result.emailTaken
+    ? 'This email already has an account. Sign in instead — your application picks up from there.'
+    : 'We couldn’t create your account just now. Please try again.';
+
 /** Form state → the shape the sign-up endpoint's caller wants. */
 export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
   name: data.name.trim(),

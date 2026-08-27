@@ -87,10 +87,19 @@ export function AiAppCard({ app, canManage, onSelect, onEdit, onDeployment, onLo
    * "is anyone actually using this" is the only signal a browser has, and it's
    * the thing an author currently has no way to learn.
    *
-   * Feedback count is manager-only. To the person who has to answer it, it's a
-   * queue; to everyone else a high number reads as "this app is broken" and a
-   * low one as "nobody cared" — neither of which it means. Dev already scopes
-   * the feedback view to authors and admins, so the count follows it.
+   * The second metric counts feedback items, but the card calls it **activity**.
+   * On a card the word "feedback" is read as a verdict — a high number looks
+   * like a pile of complaints and a low one like nobody cared, neither of which
+   * is what the number means. "Activity" says the same thing about engagement
+   * without grading the app. The field stays `feedback` because that is what it
+   * counts; only the label is broader.
+   *
+   * It is manager-only either way: to the person who has to answer it, it's a
+   * queue. Dev already scopes the feedback view to authors and admins, so the
+   * count follows it.
+   *
+   * Note the label is only on the *metric*. The action keeps its own word —
+   * "Give feedback" is what the button does, and you cannot give activity.
    */
   // Labels are lowercase, unlike the notification footer's "42 Views" — casing
   // belongs to the caller, not to DetailsItem, and a Title Case word mid-card
@@ -99,7 +108,7 @@ export function AiAppCard({ app, canManage, onSelect, onEdit, onDeployment, onLo
     ? [
         { icon: <EyeIcon width={16} height={13} />, value: formatCount(app.activity.views), label: 'views' },
         ...(canManage && app.activity.feedback > 0
-          ? [{ icon: <CommentIcon width={14} height={14} />, value: String(app.activity.feedback), label: 'feedback' }]
+          ? [{ icon: <CommentIcon width={14} height={14} />, value: String(app.activity.feedback), label: 'activity' }]
           : []),
       ]
     : [];

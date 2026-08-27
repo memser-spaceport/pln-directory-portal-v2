@@ -1,0 +1,735 @@
+// Local extras only. Everything with a shape — the sticky 64px header and the
+// 720px column (EditInvestorProfileDrawer.module.scss), the white profile card
+// and its edit tint (ProfileDetails.module.scss), the section cards
+// (DetailsSection + ContactDetails' override of it), the header card's insides
+// (MemberDetailHeader.module.scss), the empty and filled list rows
+// (ExperiencesList.module.scss), the field panel and its rows (EditProfileForm /
+// EditExperienceForm), the label+hint pair (ProfileCollaborateInput) and the
+// privacy card (Demo Day's Alert) — is imported by the component. What's left
+// here is what none of those stylesheets has an opinion about: one positioning
+// fix the drawer forces, the radio the design system doesn't have, and a handful
+// of lines of prose.
+//
+// The drawer chrome that used to live at the bottom of this file — `.lede`,
+// `.drawerHeaderLift`, `.footer`, `.footerInner`, `.footerAction`,
+// `.footerHint` — has moved to `JobApplyFlowDrawer.module.scss`. This is a pane
+// now, one of three inside one drawer, and none of those rules were ever about
+// the profile: they described a header, a footer and a column that all three
+// steps share. Leaving them here would have made the profile step the owner of
+// chrome the other two also render.
+//
+// Every custom property is written `var(--name, #fallback)`: this app doesn't
+// load the DS token sheet, so a bare token resolves to nothing.
+@use 'styles/media';
+
+// Below tablet-landscape, an editing card goes `position: fixed; inset: 0` —
+// on the profile page that's right, because editing a section there takes over
+// the phone screen. Inside a `Drawer` it isn't: the drawer is already a fixed,
+// full-height, full-width surface, so a second fixed layer gains nothing and
+// loses something — it escapes the drawer's scroll column and covers the sticky
+// Back header, which is the only visible way out at 100vw. Un-fix it and the
+// card flows in the column under the header, which is what the drawer was for.
+//
+// `!important` rather than a tidier selector because the rule being overridden
+// is `.root.editView` in a different CSS module: matching its specificity leaves
+// the outcome to stylesheet order, which isn't ours to guarantee. Production
+// reaches for the same hammer one file over (ContactDetails' `padding: 16px
+// !important`).
+.editCard {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    overflow-y: visible !important;
+  }
+
+  // Un-fixing the card above has consequences one level down, and they all have
+  // the same root: production's mobile editing card is a fullscreen fixed layer,
+  // so its form compensates for being one — a bottom bar for Save (because the
+  // card header scrolls away), 92px of padding reserved under that bar, and its
+  // own internal scroller. None of that is true in a drawer, but the rules came
+  // along with the markup.
+  //
+  // Surfacing the header controls is what makes the rest safe to drop.
+  // `EditOfficeHoursFormControls` hides its Cancel/Save below tablet-landscape
+  // and leans on `EditFormMobileControls` instead; here the header is in the flow
+  // and perfectly visible, so it can carry the pair on every width — one Save,
+  // in one place, same as desktop. The attribute selector reaches a hashed class
+  // in another CSS module, which is the only handle available: that component
+  // takes no `className`, and the hash preserves the original name.
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    :global(div[class*='EditOfficeHoursFormControls-module'][class*='controls']) {
+      display: flex !important;
+    }
+
+    // Its mobile ✕ would then be a second way to cancel, next to Cancel itself.
+    :global(button[class*='EditOfficeHoursFormControls-module'][class*='mobileCloseButton']) {
+      display: none !important;
+    }
+  }
+}
+
+// The form panel inside an editing card.
+//
+// Below tablet-landscape production gives it `max-height: calc(100dvh - 56px)`,
+// `overflow: auto` and `padding-bottom: 92px`. In a fullscreen fixed card those
+// are right: the panel IS the scroll region, and the 92px keeps the last field
+// clear of the sticky Save bar. In the drawer they are all wrong — the drawer is
+// already the scroll region, so this made a nested one, and the 92px reserved
+// room for a bar that is no longer rendered, leaving a slab of dead white below
+// the last field with the card's rounded bottom edge stranded under it.
+//
+// Nothing to replace them with; the card simply sizes to its content and the
+// drawer scrolls, which is what it does at every other width.
+.formBody {
+  @media (max-width: #{media.$breakpoint-md - 1}px) {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 16px;
+  }
+}
+
+// --- The header card ---------------------------------------------------------
+
+// The header card uses production`s own `MemberDetailHeader.header` grid
+// (`48px auto`, 80px at desktop, avatar spanning both rows). A local flex-column
+// replacement lived here while the avatar was removed; the avatar is back, so the
+// grid it was compensating for is correct again and the override is gone.
+
+// --- Repositories -----------------------------------------------------------
+
+// Two controls where every other section header has one. `DetailsSectionHeader`
+// puts its children straight after the title with no rules of its own, so a pair
+// left loose spreads across the header and reads as two unrelated things — which
+// is what "Update from CV" and "+ Add" did before this wrapper held them
+// together at the right-hand end.
+//
+// Used by two sections now: Repositories (the `Github Profile` link out, and
+// Edit) and Experience (Update from CV, and Add). 16px rather than the 8px inside
+// `.profileLink` itself, so the gap between the two controls reads as clearly
+// wider than the gap between the link's icon and its label — at the 12px it
+// started at, "Update from CV" and "+ Add" read as one run of text rather than as
+// two controls.
+//
+// Both sections move together on purpose: they are one relationship wearing one
+// class, and splitting the value would be two answers to the same question.
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// --- Experience, in its "you need this" state ------------------------------
+
+// `DetailsSection.missingData` strips the card to padding 0 on a tinted ground
+// so the `DataIncomplete` strip can sit flush against the top edge; the content
+// below it then supplies its own padding on white. Production does exactly this
+// pairing in ContactDetails (`.contentRoot`) and PitchDeckView (`.root`), and
+// this is that inner container.
+// The header card in its "you need this" state.
+//
+// `DetailsSection` carries a `missingData` prop that does exactly this, and the
+// job-search-status card below uses it. The header card can't: it is
+// `ProfileDetails`' own plain div (production swaps it for `EditProfileForm` in
+// place), not a `DetailsSection`. So the values are transcribed from
+// `DetailsSection.module.scss .missingData` verbatim — padding and gap to 0 so
+// the strip can sit flush against the top edge, the brand-soft ground, no
+// shadow, and the subtle brand border from tablet-landscape up. Same treatment,
+// same numbers; the two required cards must not look like two different kinds of
+// warning.
+.missingCard {
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  box-shadow: none;
+
+  @include media.tablet-landscape {
+    border: 1px solid var(--border-brand-subtle, #aebfff);
+  }
+}
+
+.missingBody {
+  padding: 16px;
+  background: var(--Neutral-White, #fff);
+  border-radius: 0 0 8px 8px;
+}
+
+// `DataIncomplete` is neutral by default; every caller tones it. Amber, matching
+// PitchDeckView and ContactDetails, because this is the one thing on the card
+// that has to be done before anything else works.
+// Left-aligned, against production's `DataIncomplete`, which centres itself.
+// Centring is right for its usual home — a full-width strip welded across the
+// top of a card, where the text is the whole row. Here the strip sits above a
+// left-aligned stack (section title, field labels, the form's own copy), and a
+// centred line in that column reads as a banner floating over the card rather
+// than as the first thing you read on the way down it. Alignment is what puts
+// it in the same reading column as everything it's about.
+//
+// Doubled to outrank production's `.root`, which is the same specificity — the
+// winner would otherwise depend on stylesheet order.
+.incompleteStrip.incompleteStrip {
+  justify-content: flex-start;
+  color: var(--foreground-warning-secondary, #d97706);
+}
+
+// The same strip while the card is in edit mode.
+//
+// `DataIncomplete` is built to be a card's first child and cap its top edge —
+// hence `border-radius: 8px 8px 0 0` and no horizontal inset of its own. The
+// non-editing card gives it exactly that, because `missingData` zeroes the
+// card's padding. The editing card does not: it carries 16px, so the strip sat
+// inset on three sides with square bottom corners, reading as a panel floating
+// inside the card rather than as the card's own header. It also shares the
+// brand-soft tint with the editing card, so there was no edge to tell them apart.
+//
+// The negative margins cancel that padding on the three sides that should be
+// flush, and the 12px leaves a real gap before the title row underneath.
+.incompleteStripEdit.incompleteStripEdit {
+  margin: -16px -16px 12px;
+  width: auto;
+}
+
+// --- You can upload your CV ------------------------------------------------------
+
+// The one line under that card's title, saying what the document will fill in.
+//
+// 12px, not the 14 it started at. Measured, the first version was 14px/400 in
+// secondary under a section title that is 14px/500 in *grey* — the same size as
+// its own heading and darker than it, so the label meant to lead the card was
+// the quietest thing in it. This is `.footerHint`'s voice instead, which is the
+// drawer's settled treatment for exactly this job: one sentence explaining the
+// control beside it.
+//
+// **The 16px below it is the card's only gap and it has to live here.**
+// `DetailsSection` is a flex column that ships its `gap` commented out, and
+// `DetailsSectionHeader` carries its own 8px — so the header is spaced and this
+// note is not. Measured on all three hosts of this card (the apply flow's two
+// steps and the onboarding page), the sentence sat at exactly 0px from the drop
+// box under it: two boxes touching, which is what reads as airless. 16 is what
+// the drawer column puts between cards, so the box reads as its own object.
+.cvFirstNote {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
+// --- or ----------------------------------------------------------------------
+
+// The rule between the CV card and the cards you fill in by hand.
+//
+// **Not invented, and not hand-rolled from scratch.** I looked for a labelled
+// divider first — grepped every paired `&::before, &::after` block in every
+// `.scss` in the repo, plus `<hr>`, `orDivider`, `dividerLabel`,
+// `separatorText`, `dividerWithText`, `splitter`, and the sign-in / onboarding /
+// husky / demo-day surfaces by hand. Two exist in the whole codebase.
+//
+// The production one is `TeamsList.module.scss .stageGroupHeader` (demo-day),
+// and it is the *same technique* — `flex: 1; height: 1px` on both pseudos with
+// the label between them — for a different job: a 32px/600 primary **section
+// heading**, on a raw `rgba(27, 56, 96, 0.24)` with no token pair. Its geometry
+// is the precedent and is followed here; its type rank and its colour are not,
+// because a heading announcing a group and a caption naming an alternative are
+// not the same speech act, and 0.24 is the *hover* border value spent at rest.
+//
+// The other is this exact rule's own history: it stood in this flow until commit
+// 5ce2065a7 ("Remove CV from sign up flow"), as `.orRule` in
+// `JobAccountPane.module.scss`, between that pane's CV card and its account
+// form. It came out with the card it belonged to, not because it was wrong. So
+// this is that block transcribed verbatim — same 12px tertiary label, same
+// subtle hairline, same negative margin — rather than a second, slightly
+// different answer to a question this entry had already answered. Its original
+// note, kept: Runway, Laravel Cloud, Framer and Adaline all put an `or` between
+// the fast path and the manual one, and this pane has exactly that relationship.
+//
+// (Production's version also carries `min-width: 0` on the pseudos. Not copied:
+//  its label is a nowrap 32px stage name that can genuinely outgrow the row,
+//  while an empty `content: ''` box already has a min-content width of 0, so
+//  here the declaration would resolve to what `min-width: auto` resolves to.)
+//
+// **Why the label sits *on* the line and not above it.** A stacked caption would
+// be a third object between two cards; a label set into the rule is the boundary
+// itself carrying the word, so the two cards stay one gap apart.
+//
+// **Why `subtle` and not the `.cardEdge` the cards beside it wear.**
+// `--border-neutral-xsubtle` (0.06) is right for a card *edge* — a hint around a
+// white panel that already has a shadow and a corner radius saying where it
+// ends. This is not an edge, it is a mark whose whole job is to be seen as a
+// line, and 0.06 of ink on a single unblurred pixel is not seen. `subtle` is the
+// house table's generic rule value and is what the deleted original used.
+//
+// **The -4px.** `.drawerContent` has a uniform 16px gap. A divider is not a peer
+// of the cards it separates, and at the full 16 it read as a third item in the
+// stack rather than as the seam between two — so it pulls 4px off both sides
+// (12/12) and stays symmetric, because a boundary belongs to neither side.
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: -4px 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-neutral-subtle, rgba(27, 56, 96, 0.12));
+  }
+}
+
+// --- The step's own title, while there is nothing on the profile -------------
+
+// `fd.stepTitle` is the class; this is the one distance it doesn't state.
+//
+// The logged-out pane wears the title with an escape link under it, and that
+// link states its own 12px. Here the thing under it is the shared `.lede`, which
+// deliberately carries no margin because it is also rendered by steps that have
+// no title above it. A heading and its own qualifying sentence are one unit, so
+// the distance has to be stated *somewhere*, and the caller is the only place
+// left. 6px is the value `.stepTitle`'s own comment records it carrying when a
+// lede last sat under it — so this restores a pairing rather than inventing one.
+//
+// Doubled to outrank `.stepTitle`'s own `margin: 0`, which is the same
+// specificity — measured, the single-class version lost the bundle-order coin
+// toss and rendered a 0px gap, with the h2 sitting directly on the sentence.
+// Same hammer `.incompleteStrip` one section down reaches for, for the same
+// reason.
+.stepTitleWithLede.stepTitleWithLede {
+  margin-bottom: 6px;
+}
+
+// --- Job search status ------------------------------------------------------
+
+/* 8px, not the 16 this column used to carry. The privacy card that used to sit
+   here was a card and needed room; the line that replaced it is a caption on the
+   options below it, and equal spacing above and below would leave it reading as
+   an unrelated announcement rather than a note attached to the group. */
+.statusRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* The consequence the pill can't carry, in the same 12px tertiary voice the
+   option hints use — so it reads as one more quiet line in this section, not as
+   a second, louder claim about the same thing. */
+.statusPrivacyNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.12px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+}
+
+.statusOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--corner-radius-xl, 12px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: var(--background-neutral-soft-surface, #f9fafb);
+  }
+}
+
+// The chosen one keeps the brand tint the rest of the product uses for a
+// selected surface (`DetailsSection.missingData`'s pair): a filled row is easier
+// to find again than a filled dot, and the dot alone is 20px on a 720px column.
+.statusOptionOn {
+  border-color: var(--border-brand-subtle, #aebfff);
+  background: var(--background-brand-soft-surface, #f2f5ff);
+
+  &:hover {
+    background: var(--background-brand-soft-surface, #f2f5ff);
+  }
+}
+
+// The native input stays in the DOM and keeps the keyboard behaviour — arrow
+// keys move within the group, Space selects — and is made invisible rather than
+// `display: none`, which would take it out of the focus order with it.
+.statusInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// The DS `Checkbox`, rounded. Same 1.25rem box, same unchecked border, same
+// `#156ff7` fill and focus ring — see the note in the component: the system has
+// no radio, and the nearest thing it does have is the control that answers the
+// same kind of question.
+.statusIndicator {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1px solid var(--Neutral-Slate-300, #cbd5e1);
+  background: transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--Neutral-White, #fff);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+  }
+}
+
+.statusInput:checked + .statusIndicator {
+  border-color: var(--action-background-brand-normal, #156ff7);
+  background: var(--action-background-brand-normal, #156ff7);
+
+  &::after {
+    transform: scale(1);
+  }
+}
+
+.statusInput:focus-visible + .statusIndicator {
+  outline: 2px solid var(--action-background-brand-normal, #156ff7);
+  outline-offset: 2px;
+}
+
+// --- The importer card's Cancel ----------------------------------------------
+
+// Sits in `DetailsSectionHeader`'s right-hand slot, the same place `AddButton`
+// and the Github link sit. `HeaderActionBtn` — the component that slot is built
+// for — is a *brand* link button, which is right for Add and wrong for Cancel:
+// leaving is the quiet half of the pair. Same 14px/500 measure so the two read
+// as one family, in the secondary tone the drawer uses for every other
+// step-back.
+.headerCancel {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// Production's own `FileUploader.hiddenInput`, transcribed rather than imported:
+// the drawer wears none of that stylesheet and pulling it in for one rule would
+// bring its container, its button and its file row along too.
+//
+// Clipped rather than `display: none`, which is the point — a hidden input still
+// has to be clickable from the button that labels it, and `display: none` in
+// some browsers makes `.click()` a no-op.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// --- The CV route in the Experience header -----------------------------------
+
+// `.formImportLine` and `.formImportButton` used to live here, styling an
+// "Already written down? Fill this in from your CV" line inside the Add
+// Experience form. That line was the only way back to the importer once the
+// section had entries; it is now this control, in the header, and the rules went
+// with it.
+//
+// Same face as `.headerCancel` above — 14px/500, secondary, darkening on hover —
+// because the two are the same kind of thing: a quiet text control sharing a
+// header slot with `AddButton`, whose brand blue is the loud one of the pair and
+// should stay the only one.
+.headerImport {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+}
+
+// --- Experience dates -------------------------------------------------------
+
+// `ExperienceDatesInput`'s `.body` puts two month/year selects and the Present
+// switch on one row above tablet-landscape, and `MonthYearSelect` is
+// `width: 100%`. On the profile page that row has a page column to spread into;
+// inside a 720px drawer the panel is ~628px wide and the switch is pushed past
+// the edge. This gives the two selects a floor to shrink to instead of a full
+// width to claim, and lets the switch keep its intrinsic size — the row still
+// reads left to right in production's order, it just fits.
+// The Start Date / End Date / Present row, refitted for a 720px drawer.
+//
+// Production's row is built for a wider form: two date groups of two 140px
+// selects (288px each with their 8px gap) plus the switch, on one line. In the
+// drawer there is 582px for all three, so something has to give.
+//
+// An earlier pass set `flex: 1 1 200px; min-width: 200px` on the two groups —
+// and 200px is *narrower than the content it wraps*. `min-width` on a flex item
+// is a floor, not a promise: the group happily rendered 218px around 288px of
+// selects, and because the selects are fixed-width and `min-width: auto` they
+// couldn't shrink, so they overflowed. The Start Date year then sat underneath
+// the End Date month, which is why its chevron looked missing — it was covered,
+// not absent.
+//
+// The fix is `min-width: 0` at both levels. That's what actually lets a flex
+// item go below its content width, so narrowing the row narrows the fields
+// instead of spilling them. The groups then share the line and Present wraps
+// beneath when there isn't room for it — which at this width there isn't.
+.datesBody {
+  @include media.tablet-landscape {
+    flex-wrap: wrap;
+
+    // Start Date takes the whole first line, which pushes End Date onto the
+    // second — one date per row, rather than four selects in a line where the
+    // pairing has to be inferred from two labels sitting above four boxes.
+    //
+    // `Present` stays on End Date's row rather than getting a third: it is the
+    // control that removes the end date, so it belongs to it. That's also why
+    // the break goes after Start Date and not simply "every group on its own
+    // row" — the row is the unit that means something here.
+    //
+    // The inner field pair is capped instead of stretching to the full 582px:
+    // a Month and a Year box do not get more legible at 287px each, and the two
+    // rows should measure the same so they read as a pair.
+    // Start Date takes the whole first line, which pushes End Date onto the
+    // second.
+    > *:nth-child(1) {
+      flex: 0 0 100%;
+    }
+
+    // End Date shrinks to its own content so `Present` can sit beside it rather
+    // than wrapping to a third line. Production's `.root` on each group is
+    // `width: 100%`, which is why `flex: 0 1 auto` alone wasn't enough — the
+    // group kept claiming the full row and pushed the switch off it. `Present`
+    // is the control that removes the end date, so it belongs on that line and
+    // nowhere else; on its own row it reads as a third, unrelated field.
+    > *:nth-child(2) {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    // The two date groups.
+    > *:nth-child(-n + 2) {
+      flex: 0 1 auto;
+      min-width: 0;
+
+      // Their inner `.body` (the label is the first child, the selects the
+      // second) and the two select containers inside it. Without this the group
+      // shrinks and the overflow simply moves one level down.
+      //
+      // The cap belongs on BOTH groups, not just the full-width first one. Only
+      // capping Start Date left End Date free to stretch to its own row's width,
+      // so the two rows rendered 146px boxes above 287px boxes — a pair that no
+      // longer looked like a pair, which is the whole reason for splitting them.
+      > *:last-child {
+        min-width: 0;
+        max-width: 300px;
+
+        > * {
+          flex: 1 1 0;
+          min-width: 0;
+        }
+      }
+    }
+
+    // Present keeps its intrinsic width and sits on End Date's row.
+    //
+    // It also has to sit on the right *line* of that row. Each date group is a
+    // column — a 20px label over a 52px pair of selects — and the row's default
+    // `align-items: flex-start` put the switch level with the *label*, floating
+    // 38px above the controls it governs and reading as a caption on "End Date"
+    // rather than the thing that switches it off.
+    //
+    // `flex-end` drops it to the group's baseline, and the 14px lifts it back to
+    // the selects' centre: half the difference between a 52px control and a 24px
+    // switch. One measured number rather than a compound offset that would have
+    // to be re-derived every time the label or the field height moves.
+    > *:last-child {
+      flex: 0 0 auto;
+      align-self: flex-end;
+      margin-bottom: 14px;
+    }
+  }
+}
+
+// --- The optional-sections fold -----------------------------------------------
+//
+// FORK ONLY. `job-board` has no such control: this entry exists to try the
+// profile step with its two required answers above a fold and everything
+// optional below it. See the long note beside `showOptional` in the .tsx.
+//
+// The control is a line in the drawer's column, not a card. `.drawerContent` is
+// a `flex-direction: column; gap: 16px; align-items: center` box, so a child has
+// to state its own full width or it shrink-wraps to its text and floats in the
+// middle of a 720px column — the near-miss alignment that reads as broken.
+.optionalToggle {
+  display: flex;
+  align-items: center;
+  // Wraps rather than squashes. At 390px a full summary — "3 roles · 2 projects
+  // · GitHub linked" — and the label are each about half the row, so without
+  // this they render as two ragged two-line columns side by side, which reads as
+  // two paragraphs rather than one control. Measured at 390 and 360: nothing
+  // clips or overflows either way, so this is legibility, not a broken layout.
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  // 40px is `CollapsibleSection`'s own row height, and it is also the smallest
+  // this can be and still be a comfortable target — the text is 20px tall, so
+  // the padding is doing the work rather than the glyph.
+  min-height: 40px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+
+  // Measured before this: 16px above and 16px below, because `.drawerContent`'s
+  // uniform `gap: 16px` treats every child as equally related to every other.
+  // Equidistant reads as belonging to neither — the line floated between the
+  // status card and the Experience card instead of heading the sections it
+  // opens. Controls sit closer to what they govern, so the two gaps become 24
+  // and 8: `margin-top` adds to the parent's gap, `margin-bottom` cancels half
+  // of it. Local asymmetry rather than a smaller `gap` on the container, which
+  // would move every card in the step to fix one line.
+  margin-top: 8px;
+  margin-bottom: -8px;
+
+  // `.headerCancel`'s rank, three sections down this same file: this is the same
+  // kind of control (a quiet text action on a profile card stack), so it gets
+  // the same size, weight, tracking and the same two-tone hover rather than a
+  // fourth grey nobody chose.
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  &:hover {
+    color: var(--foreground-neutral-primary, #0a0c11);
+  }
+
+  // The rail's ring, verbatim (`ApplyFlowSteps.module.scss`) — one focus
+  // treatment for the whole flow.
+  &:focus-visible {
+    outline: 2px solid var(--foreground-brand-primary, #1b4dff);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+// The label takes the slack, so the summary and the chevron travel together at
+// the right-hand end instead of the summary being pushed by `margin-left: auto`
+// and the chevron orphaning itself past it.
+.optionalToggleLabel {
+  margin-right: auto;
+}
+
+// Weight 400 against the label's 500, and the label's own tone.
+//
+// It started on `OptionalMark`'s two-step drop — 400 *and* tertiary — on the
+// reading that this is a qualifier like `(Optional)` beside it. It isn't. That
+// mark is a fixed word whose job is to be noticed once and then ignored;
+// `1 role · 1 project` is the only report of what is behind a closed fold, so it
+// is content, and `#8897ae` on white measures ~2.9:1 — under the 4.5:1 body-text
+// floor for the one string on this line someone actually has to read.
+//
+// Weight alone carries the distinction, which is enough here because the two
+// sit on the same line with 8px between them: nothing else on the row competes,
+// so the label doesn't need a tonal step to win as well.
+.optionalToggleSummary {
+  font-weight: 400;
+  color: var(--foreground-neutral-secondary, #455468);
+
+  // Below the phone breakpoint it takes the whole second line instead of
+  // splitting the row: label and chevron on top, the report under them, reading
+  // in the order the eye already goes. `order: 1` puts it after the chevron in
+  // the flex flow so the arrow stays on the first line where the label is —
+  // without it the summary wraps first and the chevron ends up stranded on a
+  // line of its own.
+  @include media.mobile-only {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
+
+.optionalToggleChevron {
+  flex: 0 0 auto;
+  // Inherits the button's colour, which is the point — the arrow is part of the
+  // control, so it darkens on hover with the words rather than staying a fixed
+  // grey the hover doesn't reach.
+  color: inherit;
+  transition: transform 200ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.optionalToggleChevronOpen {
+  transform: rotate(180deg);
+}
+
+// `display: contents` rather than a block wrapper: the three sections stay
+// direct flex children of `.drawerContent`, so they keep the column's 16px gap
+// and its full width. A real box here would collapse the gap between them and
+// shrink-wrap all three against `align-items: center`.
+//
+// They stay mounted when folded, so a part-filled Add Experience form is still
+// there when the fold reopens — the same reason the drawer holds the cover
+// letter and the account form above the panes that collect them.
+.optionalSections {
+  display: contents;
+}
+
+// After `.optionalSections`, not before: both classes are on the element when
+// it is closed and they have equal specificity, so source order is what decides
+// which display wins.
+.optionalSectionsHidden {
+  display: none;
+}

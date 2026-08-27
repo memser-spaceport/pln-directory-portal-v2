@@ -21,6 +21,11 @@ import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfi
 // 768. The one place production draws the line between "a panel beside the page"
 // and "the page".
 import { useIsMobile } from '@/hooks/useIsMobile';
+// The outbound-posting suffix and the board's "this leaves the site" mark —
+// both already used by `JobDetailPane` for its `Original posting` link, so the
+// two exits out of this board are tagged and marked the same way.
+import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from './ApplyFlowSteps';
 import { JobDetailPane } from './JobDetailPane';
@@ -492,6 +497,30 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const blockedByReview = loggedIn && pendingApproval;
 
   /**
+   * The way out to the team's own ad, for a member whose account is still under
+   * review.
+   *
+   * **What changed, and why the gate did not.** An application still may not be
+   * *sent from here* by an unreviewed account — that rule is untouched. What was
+   * wrong was the conclusion drawn from it: that the person therefore has
+   * nothing to do but wait. They can apply; just not through this board. So the
+   * two footers that used to report the wait now hand over the link instead, and
+   * the one that used to say `Save profile` says what the press is actually for.
+   *
+   * Production reaches the same place from the other side — `applyGoesExternal`
+   * in `JobApplyFlowController`, for exactly this viewer — so this is the
+   * prototype catching up to a decision already made rather than a new one.
+   *
+   * `noopener` because the destination is a third party, and the board's own
+   * tracking suffix so the team sees where the applicant came from — the same
+   * one `JobDetailPane` appends to its `Original posting` link.
+   */
+  const openExternalPosting = () => {
+    if (!role?.applyUrl) return;
+    window.open(`${role.applyUrl}?${jobApplyQueryParams('job-board')}`, '_blank', 'noopener,noreferrer');
+  };
+
+  /**
    * `Create account`, and the last press a visitor with no account makes here.
    *
    * Runs the schema and either surfaces errors under the fields or opens the
@@ -546,27 +575,46 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            review" on its own leaves the person with nothing to expect and no
            idea whether to keep checking. */
         hint: blockedByReview
-          ? "Applying opens once the PL team approves your account. We'll email you."
+          ? /* Swept with the profile step's button, not left behind. This said
+               "Applying opens once the PL team approves your account" over a dead
+               Apply — which was true while the review was the whole answer. Now
+               there is a way to apply during the wait, and a first step still
+               refusing it while the second offers it would be the flow
+               contradicting itself one press apart. */
+            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab.`
           : !loggedIn
             ? 'Applying sends a profile — the next step opens your account, and applying opens once it is approved.'
             : complete
               ? 'One press sends your PL profile with a short note. Nothing to refill.'
               : 'Applying sends your PL profile — the next step is finishing it.',
         action: (
-          /* Dead on purpose, and only in the one state where the reason is on
-             screen beside it. The rule this file follows elsewhere — never
-             disable a control whose blocker is invisible — is satisfied here the
-             same way the `Applied` report satisfies it: the hint says what is
-             true, so the button is reporting rather than failing silently. */
+          /* No longer dead. The button was disabled for a pending member and the
+             hint beside it explained the wait, which satisfied this file's rule
+             about never disabling a control whose blocker is invisible — but the
+             better answer to "you cannot do this here" turned out to be
+             somewhere they can. */
           <Button
             variant="primary"
             style="fill"
             size="m"
-            className={d.footerAction}
-            disabled={blockedByReview}
-            onClick={onApplyPressed}
+            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+            onClick={
+              blockedByReview
+                ? () => {
+                    openExternalPosting();
+                    onClose();
+                  }
+                : onApplyPressed
+            }
           >
-            Apply
+            {blockedByReview ? (
+              <>
+                Continue to apply
+                <ArrowUpRightIcon aria-hidden="true" />
+              </>
+            ) : (
+              'Apply'
+            )}
           </Button>
         ),
       };
@@ -625,7 +673,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                profile`, so that clause was a sentence promising what a visible
                control already promises. The hint spends its words on the part
                the footer can't show. */
-            "Applying opens once the PL team approves your account — we'll email you."
+            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab. Your profile is saved here first.`
           : !complete
             ? editing
               ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
@@ -647,18 +695,34 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
             variant="primary"
             style="fill"
             size="m"
-            className={d.footerAction}
+            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
             disabled={(!blockedByReview && !complete) || !!editing}
             onClick={() => {
               onSaveProfile(draft);
               if (blockedByReview) {
+                /* The profile is committed first — they came here to edit it and
+                   a press that left without saving would lose the visit — then
+                   the posting opens and the flow closes behind them. */
+                openExternalPosting();
                 onClose();
                 return;
               }
               onStepChange('application');
             }}
           >
-            {blockedByReview ? 'Save profile' : 'Continue to apply'}
+            {/* `Save profile` is gone. It was an honest name for the only thing
+                the press did — and the reason it only did that was a wait the
+                person could do nothing about. There is somewhere to send them
+                now: the team takes applications on its own site, so a pending
+                member continues, outwards, and the arrow says which. */}
+            {blockedByReview ? (
+              <>
+                Continue to apply
+                <ArrowUpRightIcon aria-hidden="true" />
+              </>
+            ) : (
+              'Continue to apply'
+            )}
           </Button>
         ),
       };
@@ -666,14 +730,14 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
     const canSend = coverLetter.trim().length > 0;
     return {
-      /* Empty: not "why we're asking" but *what to write*. An earlier line
-         explained the field's existence — "the only part that isn't already on
-         your profile" — which answers a question nobody staring at an empty box
-         has. This one hands them a first sentence. Filled: stops instructing and
-         says where the reply goes. */
-      hint: canSend
-        ? `${team?.name ?? 'The team'} can reply to you directly.`
-        : 'Add what you did in previous roles that makes you a good fit for this one.',
+      /* One sentence, both states. It used to instruct while the box was empty
+         ("Add what you did in previous roles…") and switch to the reply
+         destination once it wasn't — which was right when the field's only
+         framing was a four-word label. The pane now opens the box with an
+         invitation that names what to write, so an instruction here would be the
+         same advice twice, 200px apart and in the quieter of the two voices.
+         What is left is the part only the footer can say: where this lands. */
+      hint: `${team?.name ?? 'The team'} can reply to you directly.`,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens.

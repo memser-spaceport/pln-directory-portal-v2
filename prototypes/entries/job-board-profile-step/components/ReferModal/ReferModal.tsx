@@ -1,0 +1,459 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
+
+import type { IJobRole } from '@/types/jobs.types';
+
+import { Button } from '@/components/common/Button';
+import { Modal } from '@/components/common/Modal';
+import { CloseIcon } from '@/components/icons';
+import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
+import type { Option } from '@/components/form/FormSelect/types';
+import { toast } from '@/components/core/ToastContainer';
+import { useJobsAnalytics, type JobSurface } from '@/analytics/jobs.analytics';
+import fieldCss from '@/components/form/FormMultiSelect/FormMultiSelect.module.scss';
+
+import { useCreateJobReferral, useJobReferralDraft } from '@/services/jobs/hooks/useJobReferral';
+
+import { DirectoryMember, RecipientOption } from './types';
+
+import { toRecipientOption } from './utils/toRecipientOption';
+import { toReferralRecipient } from './utils/toReferralRecipient';
+import { getRecipientSummary } from './utils/getRecipientSummary';
+
+import { useTeamMembers } from './hooks/useTeamMembers';
+
+import { MemberSearchSelect } from './components/MemberSearchSelect';
+import { RecipientPicker } from './components/RecipientPicker';
+
+import { EnvelopeIcon } from '../../icons';
+
+import s from './ReferModal.module.scss';
+
+// The backend accepts up to 5000 (`CreateJobReferralSchema`); matching it rather than
+// picking a smaller number here, so the field never blocks a note the API would take.
+const MESSAGE_MAX_LENGTH = 5000;
+
+interface ReferModalProps {
+  open: boolean;
+  onClose: () => void;
+  role: IJobRole;
+  teamId: string;
+  teamName: string;
+  /** Surface the referral was started from, carried onto every event in the funnel. */
+  source: JobSurface;
+  /** Team-configured inbox. When set, the member picker is hidden and the send skips recipients. */
+  jobReferEmail?: string | null;
+}
+
+type ReferFormData = {
+  referee: Option | null;
+  recipients: RecipientOption[];
+  message: string;
+};
+
+/**
+ * Refer a network member for an open role: pick who you're referring, choose who hears
+ * about it, and send an intro email.
+ *
+ * Lives here but is the component the production jobs page renders (see
+ * `components/page/jobs/.../ReferRoleRow`), so it talks to the real API.
+ * `GET /job-openings/:uid/referral-draft` composes the note from both members'
+ * directory records and the role's apply link — no wording lives in this file, the
+ * field just makes it editable — and `POST /job-openings/:uid/referrals` sends it.
+ * When the hiring team has a job-refer email the picker is hidden and recipients
+ * are omitted; otherwise the first picked member is To and the rest are CCed,
+ * plus the referrer and the referred member.
+ *
+ * Signed-in only: `ReferRoleRow` sends anonymous visitors to login rather than opening
+ * this, and the backend resolves the referrer from the authenticated email. Both calls
+ * need a real job-opening uid, so opening this from the mocked `/prototypes/job-board`
+ * entry can only get as far as the draft error — that entry demonstrates the layout,
+ * not the flow.
+ *
+ * Chrome is Demo Day's "Make an intro" modal (ReferCompanyModal) — the same job, an
+ * intro email to a team, you, and someone you name — with its stylesheet transcribed
+ * into `ReferModal.module.scss`: centred envelope / title / desc, 24px card, twin
+ * full-width actions. Wrapped in production `Modal` for the portal, escape and
+ * scroll-lock the reference hand-rolls.
+ *
+ * The note is a production primitive (`FormTextArea`); both people fields search the
+ * directory as you type, which no production select can drive — see
+ * `MemberSearchSelect` and `RecipientPicker`.
+ */
+export function ReferModal({ open, onClose, role, teamId, teamName, source, jobReferEmail }: ReferModalProps) {
+  const [sent, setSent] = useState(false);
+  const [messageEdited, setMessageEdited] = useState(false);
+  const [recipientsSeeded, setRecipientsSeeded] = useState(false);
+  const noteEditedTracked = useRef(false);
+  const analytics = useJobsAnalytics();
+  const usesTeamReferEmail = Boolean(jobReferEmail?.trim());
+
+  const methods = useForm<ReferFormData>({
+    defaultValues: { referee: null, recipients: [], message: '' },
+    mode: 'onChange',
+  });
+  const { control, setValue, reset } = methods;
+
+  const referee = useWatch({ control, name: 'referee' });
+  const recipients = useWatch({ control, name: 'recipients' }) ?? [];
+  const message = useWatch({ control, name: 'message' });
+
+  const selectedMember: DirectoryMember | null = (referee as any)?.originalObject ?? null;
+
+  const referBase = {
+    job_id: role.uid,
+    team_id: teamId,
+    team_name: teamName,
+    role_title: role.roleTitle,
+    role_category: role.roleCategory,
+    seniority: role.seniority,
+    source,
+    uses_team_refer_email: usesTeamReferEmail,
+  };
+
+  // Only fetched while the modal is open — a job board page holds one of these per role.
+  // A team-configured inbox skips the hiring-team lookup: nobody is being picked.
+  const {
+    members: hiringTeam,
+    defaultRecipients,
+    isLoading: isTeamLoading,
+  } = useTeamMembers(teamName, open && !usesTeamReferEmail);
+
+  const {
+    data: draft,
+    isFetching: isDrafting,
+    isError: isDraftError,
+  } = useJobReferralDraft({
+    jobUid: role.uid,
+    referredMemberUid: selectedMember?.uid,
+    enabled: open,
+  });
+
+  const { mutate: sendReferral, isPending: isSending } = useCreateJobReferral(role.uid);
+
+  // The hiring team leads the recipients list — they're who a referral is actually
+  // for. You can't be both the candidate and someone hearing about the referral, so
+  // the person being referred drops out of it.
+  const teamMembers = useMemo(
+    () => hiringTeam.filter((member) => member.uid !== referee?.value),
+    [hiringTeam, referee?.value],
+  );
+
+  // Fresh form every time the modal opens — a referral draft is per-role, not sticky.
+  useEffect(() => {
+    if (!open) return;
+    reset({ referee: null, recipients: [], message: '' });
+    setMessageEdited(false);
+    setSent(false);
+    setRecipientsSeeded(false);
+    noteEditedTracked.current = false;
+    analytics.onJobReferModalOpened(referBase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, reset]);
+
+  // Default recipients: the hiring team's leads (see `useTeamMembers`). Seeded in its
+  // own pass because the team is fetched — it can land after the modal is already on
+  // screen — and only ever once per open, so it can't wipe an edit made in the
+  // meantime. Teams the directory has no members for seed nothing, which is the
+  // "type an email address" case.
+  //
+  // `omitTeam` on the mapping: every one of these is a member of the team the modal
+  // is already titled for. The field shows them as rows carrying a role, and the
+  // role is what makes the prefill checkable — a "· Protocol Labs" tail on each of
+  // them would spend that line on a word the card has already said twice.
+  useEffect(() => {
+    if (!open || usesTeamReferEmail || recipientsSeeded || isTeamLoading) return;
+    if (defaultRecipients.length) {
+      setValue(
+        'recipients',
+        defaultRecipients.map((member) => toRecipientOption(member, { omitTeam: true })),
+      );
+    }
+    setRecipientsSeeded(true);
+  }, [open, usesTeamReferEmail, recipientsSeeded, isTeamLoading, defaultRecipients, setValue]);
+
+  // Picking someone as the candidate drops them from the recipient list.
+  useEffect(() => {
+    if (!open || !referee?.value) return;
+    if (recipients.some((r) => r.value === referee.value)) {
+      setValue(
+        'recipients',
+        recipients.filter((r) => r.value !== referee.value),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [referee?.value]);
+
+  useEffect(() => {
+    if (!open || !selectedMember?.uid) return;
+    analytics.onJobReferRefereeSelected({
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, selectedMember?.uid]);
+
+  // Show the drafted note as soon as it lands, and clear the field when the candidate is
+  // removed. A hand-edited note is never overwritten — "Reset to template" is the way
+  // back. The draft depends only on the role and the referred member, so changing
+  // recipients no longer re-drafts anything.
+  useEffect(() => {
+    if (!open) return;
+    if (!selectedMember) {
+      if (!messageEdited) setValue('message', '');
+      return;
+    }
+    if (messageEdited || !draft?.note) return;
+    setValue('message', draft.note);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, selectedMember?.uid, draft?.note]);
+
+  // Any keystroke that diverges from the drafted note counts as an edit.
+  useEffect(() => {
+    if (!open || !selectedMember || messageEdited || !draft?.note) return;
+    if (message && message !== draft.note) {
+      setMessageEdited(true);
+      if (!noteEditedTracked.current) {
+        noteEditedTracked.current = true;
+        analytics.onJobReferNoteEdited({
+          ...referBase,
+          referred_member_uid: selectedMember.uid,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message]);
+
+  const hasExternalEmail = (list: RecipientOption[]) => list.some((r) => Boolean(r.isEmail));
+
+  const handleRecipientsChange = (next: RecipientOption[]) => {
+    setValue('recipients', next, { shouldDirty: true });
+    if (!recipientsSeeded || usesTeamReferEmail) return;
+    analytics.onJobReferRecipientsChanged({
+      ...referBase,
+      recipient_count: next.length,
+      has_external_email: hasExternalEmail(next),
+    });
+  };
+
+  const resetTemplate = () => {
+    if (!draft?.note || !selectedMember) return;
+    setValue('message', draft.note);
+    setMessageEdited(false);
+    noteEditedTracked.current = false;
+    analytics.onJobReferNoteReset({
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+    });
+  };
+
+  const handleClose = () => {
+    if (!sent) {
+      analytics.onJobReferModalCancelled({
+        ...referBase,
+        had_referee: Boolean(selectedMember),
+        recipient_count: recipients.length,
+        note_was_edited: messageEdited,
+      });
+    }
+    onClose();
+  };
+
+  const onSubmit = () => {
+    if (!selectedMember || !message?.trim()) return;
+    if (!usesTeamReferEmail && !recipients.length) return;
+
+    const submitParams = {
+      ...referBase,
+      referred_member_uid: selectedMember.uid,
+      recipient_count: usesTeamReferEmail ? 0 : recipients.length,
+      has_external_email: usesTeamReferEmail ? false : hasExternalEmail(recipients),
+      note_was_edited: messageEdited,
+    };
+
+    analytics.onJobReferSubmitted(submitParams);
+
+    sendReferral(
+      {
+        referredMemberUid: selectedMember.uid,
+        note: message.trim(),
+        recipients: usesTeamReferEmail ? [] : recipients.map(toReferralRecipient),
+      },
+      {
+        onSuccess: (result) => {
+          analytics.onJobReferSucceeded({
+            ...submitParams,
+            referral_uid: result?.uid,
+          });
+          setSent(true);
+        },
+        onError: (error) => {
+          analytics.onJobReferFailed({
+            ...submitParams,
+            error_type: error instanceof Error ? error.name : 'unknown',
+          });
+          toast.error('We couldn’t send that referral. Please try again.');
+        },
+      },
+    );
+  };
+
+  // Is any of the prefilled hiring team still in the field? Drives the caption
+  // under "Send to", which explains rows that are there — not an event that happened.
+  const prefillVisible = useMemo(
+    () => recipients.some((option) => defaultRecipients.some((member) => member.uid === option.value)),
+    [recipients, defaultRecipients],
+  );
+
+  const canSend = !!selectedMember && !!message?.trim() && !isSending && (usesTeamReferEmail || recipients.length > 0);
+  const firstName = selectedMember?.name.split(' ')[0] ?? '';
+  const sentTo = usesTeamReferEmail ? 'the team' : getRecipientSummary(recipients);
+
+  const composingDesc = usesTeamReferEmail
+    ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
+    : 'Referral email will be sent to everyone listed including you.';
+
+  const privacyNote = isDraftError
+    ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
+    : usesTeamReferEmail
+      ? `${teamName} sees your name alongside the referral.` + (selectedMember ? ` ${firstName} is notified too.` : '')
+      : recipients.length === 0
+        ? 'Add at least one recipient — a network member or an email address.'
+        : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
+          (selectedMember ? ` ${firstName} is notified too.` : '');
+
+  return (
+    <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
+      <div className={s.modal}>
+        <Button style="link" variant="neutral" className={s.closeButton} onClick={handleClose} aria-label="Close modal">
+          <CloseIcon />
+        </Button>
+
+        {/* The masthead aligns to the state under it, which is why these three
+            carry a modifier rather than a fixed alignment.
+
+            Composing, the card is a form — a recipient field, a message box,
+            twin footer actions — and a form has one left edge that every label
+            and field starts from; a centred icon and title over it put two
+            alignment axes in a 400px card. Sent, there is no form left: one
+            sentence and a `Done` button, which is an announcement, and an
+            announcement is the thing centring is actually for. Same rule the
+            apply modal follows (see `.headerLeft` there), applied to a dialog
+            that happens to be both kinds of card in turn. */}
+        <div className={`${s.iconWrapper} ${sent ? '' : s.headerIconLeft}`}>
+          <EnvelopeIcon />
+        </div>
+
+        <h2 className={`${s.title} ${sent ? '' : s.headerLeft}`}>
+          {sent ? 'Referral sent' : `Refer for ${role.roleTitle}`}
+        </h2>
+
+        <p className={`${s.desc} ${s.headerDesc} ${sent ? '' : s.headerLeft}`}>
+          {sent
+            ? `Your note is on its way to ${sentTo}. They can reply to you directly, and ${firstName} is notified too.`
+            : composingDesc}
+        </p>
+
+        {sent ? (
+          <div className={s.actions}>
+            <Button style="fill" variant="primary" className={s.actionButton} onClick={onClose}>
+              Done
+            </Button>
+          </div>
+        ) : (
+          <FormProvider {...methods}>
+            <form
+              className={s.form}
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit();
+              }}
+            >
+              <div className={s.fields}>
+                <MemberSearchSelect
+                  name="referee"
+                  label="Who are you referring?"
+                  placeholder="Search members by name..."
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                />
+
+                {usesTeamReferEmail ? (
+                  <div className={fieldCss.field}>
+                    <span className={fieldCss.label}>Send to</span>
+                    <p className={s.teamReferDestination}>
+                      This referral will be sent to the email this team set up for job referrals. You can’t choose
+                      individual members.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <RecipientPicker
+                      label="Send to"
+                      teamMembers={teamMembers}
+                      isTeamLoading={isTeamLoading}
+                      teamName={teamName}
+                      excludeUids={referee?.value ? [referee.value] : undefined}
+                      value={recipients}
+                      onChange={handleRecipientsChange}
+                      /* Where the rows came from — the one thing the field itself
+                         can't show. It lists four names and their roles; it cannot
+                         say that nobody typed them, or why these four.
+                         Conditioned on the prefill still being *in* the field
+                         rather than on it having happened: a team the directory has
+                         no roster for opens empty, and someone who clears the list
+                         and types an address is no longer looking at anything this
+                         sentence explains. Both cases leave the modal's other
+                         caption ("Add at least one recipient…") to speak. */
+                      description={prefillVisible ? `Prefilled with the ${teamName} hiring team.` : undefined}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                    />
+                  </div>
+                )}
+
+                <div className={`${s.templateBlock} ${selectedMember ? '' : s.templateBlockIdle}`}>
+                  <div className={s.templateLabelRow}>
+                    <span className={s.templateLabel}>Your note</span>
+                    {messageEdited && !!draft?.note && (
+                      <button type="button" className={s.resetLink} onClick={resetTemplate}>
+                        Reset to template
+                      </button>
+                    )}
+                  </div>
+                  <FormTextArea
+                    name="message"
+                    placeholder={
+                      selectedMember
+                        ? isDrafting
+                          ? 'Drafting your note…'
+                          : 'Tell them why this is a fit...'
+                        : 'Pick someone above and we’ll draft the note for you.'
+                    }
+                    disabled={!selectedMember || isDrafting}
+                    // 6, not the 8 the wide gantry shell allowed — the reference card is
+                    // narrower, so an empty 8-row box read as a hole in the layout.
+                    rows={6}
+                    maxLength={MESSAGE_MAX_LENGTH}
+                    showCharCount
+                  />
+                </div>
+              </div>
+
+              <p className={s.privacyNote}>{privacyNote}</p>
+
+              <div className={s.actions}>
+                <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" style="fill" variant="primary" className={s.actionButton} disabled={!canSend}>
+                  {isSending ? 'Sending…' : 'Send referral'}
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        )}
+      </div>
+    </Modal>
+  );
+}

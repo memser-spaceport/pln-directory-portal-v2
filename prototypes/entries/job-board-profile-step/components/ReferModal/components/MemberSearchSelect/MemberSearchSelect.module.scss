@@ -1,0 +1,53 @@
+// The row layouts the production stylesheet has no equivalent for: FormSelect's
+// `.option` is a single column of text, and its selected value is a bare string.
+// Everything else this field renders — `.field`, `.label`, `.optionLabel`,
+// `.optionDesc`, `.notFound`, `.clearIndicator` — is imported from it directly.
+@use 'styles/media';
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+// The selected value doubles as the "who you picked" confirmation: avatar, name,
+// and the same role · team line the menu row showed.
+.valueRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.valueName {
+  font-weight: 500;
+  color: var(--foreground-neutral-primary, #0a0c11);
+  white-space: nowrap;
+}
+
+.valueMeta {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-tertiary, #8897ae);
+
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  // The collapsed control is too narrow on a phone to show more than "Prot…", and
+  // the name is what identifies the person. Name only there.
+  @include media.mobile-only {
+    display: none;
+  }
+}

@@ -421,20 +421,41 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
           {/* Same label idiom as the panel above, so the step reads as two blocks
               of one form rather than a panel and a stray field. */}
           <div className={s.block}>
-            <div className={s.blockLabelRow}>
-              {/* "Cover letter" alone is a genre, and the genre is what makes
-                  people write a formal one. The parenthetical says what it
-                  actually is here: a message to the people named at the top of
-                  this step. Both halves stay — dropping "cover letter" would lose
-                  the one word that says how much to write. */}
-              <span className={dsh.title}>Cover letter (message for the team)</span>
-            </div>
+            {/* **"Cover letter" is gone, label and genre together.**
+
+                It used to read `Cover letter (message for the team)` — the genre
+                plus a parenthetical correcting it, which is the shape of a label
+                that knows it is wrong. "Cover letter" is what makes people write
+                a formal one, and the parenthetical was there to take that back.
+
+                What replaces it is not a shorter label but a different speech
+                act: an invitation. It names who is on the other end, offers three
+                things worth saying so the box isn't a blank prompt, and says why
+                writing it yourself is worth the minutes. That last sentence is
+                the only one the interface could not otherwise show.
+
+                The team is named twice on purpose — once as the people, once as
+                the thing that might interest you. `teamName` is always set in
+                this flow (a role belongs to a team); the fallbacks are for the
+                pane's own sake, following the drawer footer's `?? 'The team'`. */}
+            <p className={s.blockNote}>
+              {teamName
+                ? `Start a conversation with the team at ${teamName}.`
+                : 'Start a conversation with the hiring team.'}{' '}
+              Share something about you, what you&apos;re looking for, or why {teamName || 'the role'} interests you.
+              Human-written messages are more likely to get a response.
+            </p>
+            {/* Empty placeholder, not a shorter one. It read "Why this role, and
+                what you'd bring to it" — the same instruction as the sentence
+                directly above, in grey, inside the box it describes. Production's
+                `FormTextArea` makes `placeholder` required, so the way to have
+                none is to pass none rather than to drop the prop. */}
             <FormTextArea
               name="coverLetter"
               rows={6}
               maxLength={COVER_LETTER_MAX_LENGTH}
               showCharCount
-              placeholder="Why this role, and what you’d bring to it."
+              placeholder=""
             />
           </div>
         </div>

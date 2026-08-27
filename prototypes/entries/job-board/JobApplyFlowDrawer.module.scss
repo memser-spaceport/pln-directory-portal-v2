@@ -350,3 +350,21 @@
 .cardEdge {
   border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
 }
+
+/* An icon beside a label in a DS `Button`, for the footer's action.
+
+   Values are `.appliedButton`'s above, not new ones — one icon-and-label spacing
+   in this footer whichever button carries it — and the reason is the one written
+   there: `Button.root` is a plain `<button>`, not a flex container, so `gap` does
+   nothing until the element is made one, and the arrow renders jammed against
+   the last letter.
+
+   Its own class rather than folded into `.footerAction`: most footer buttons are
+   a label and nothing else, and making every one of them a flex box to serve the
+   two that aren't would be paying for a layout nobody else uses. */
+.footerActionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

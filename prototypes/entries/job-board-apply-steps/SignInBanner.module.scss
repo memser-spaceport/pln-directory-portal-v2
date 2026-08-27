@@ -1,0 +1,235 @@
+@use 'styles/media';
+
+/* The slot only — everything the banner looks like lives in production's own
+   `Welcome.module.scss`, imported verbatim by the component.
+
+   Lines the block up with the board's cards: `JobsContent.module.scss .list` is
+   inset 8px on mobile and flush from 1024 up. Vertical rhythm needs nothing —
+   `JobsContent .root` is a 16px-gap column and the banner is one of its children. */
+.slot {
+  padding: 0 8px;
+}
+
+@include media.breakpoint-1024 {
+  .slot {
+    padding: 0;
+  }
+}
+
+/* The criteria read-back. 600 rather than the browser's default 700 — emphasis
+   by weight alone, so it doesn't start reading as a link. */
+.criteria {
+  font-weight: 600;
+}
+
+/* --- the banner surface, shared by all four states -------------------------
+
+   The four class names below are doubled. Each overrides one property of a
+   production class it is worn alongside — `welcome.welcome`, `welcome.title`,
+   `welcome.sub`, `a.alert` — and a single class ties those on specificity, which
+   hands the decision to whichever stylesheet the bundler happens to emit last.
+   Three of the four win that coin-toss today; doubling makes all four win on
+   purpose. `.condensed` below already does this, for the same reason.
+
+   Production's `Welcome` card is plain white on a white-ish page, which is the
+   right call at `/home` where it is the only thing above the fold. In this slot
+   it sits directly above a column of white team cards, so a white banner reads
+   as the first card in the list rather than as an aside about the list. The
+   brand-soft pair is the product's existing "this is a message, not content"
+   surface — `DetailsSection.missingData` and `JobAlertShell` both wear it — and
+   it is the one tint the palette has for an offer.
+
+   A real `border`, not an inset shadow: `app/globals.scss` sets
+   `* { box-sizing: border-box }`, so the 1px costs no width and the card stays
+   flush with the list under it. */
+.brandSurface.brandSurface {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border: 1px solid var(--border-brand-subtle, #aebfff);
+}
+
+/* --- the banner type scale, shared by all four states -----------------------
+
+   20 over 14, against `Welcome`'s own 24/16.
+
+   These four states used to run at two sizes — the logged-out one at 24/16
+   because it argues for an account from nothing, the signed-in ones a step
+   quieter at 20/12. One slot reading at two scales is a slot that looks like it
+   changed component when the reader's situation changed, and the reader has no
+   way to know the difference is meant. One scale for all of them, and the states
+   differ in what they *say* rather than in how loudly.
+
+   Both values are on the PL scale, and both are exactly what `Welcome` itself
+   drops to on mobile (20/27 and 14/22) — so this is the banner reading at its
+   phone size everywhere, not a size invented for it. That is also why there is
+   no `mobile-only` block here: production's own mobile rules land on the same
+   numbers, so there is nothing left to step down to. */
+.bannerTitle.bannerTitle {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.bannerSub.bannerSub {
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+/* The approved-and-waiting state is Demo Day's `Alert`, not a `Welcome` card —
+   it is the one state with nothing to press. It takes the same tint as its
+   siblings so the slot doesn't change colour with the reader's situation. Its
+   own paragraph is already 14/20, which is the banner sub size, so only the
+   surface is set here. */
+.alertBrand.alertBrand {
+  background: var(--background-brand-soft-surface, #f2f5ff);
+  border-color: var(--border-brand-subtle, #aebfff);
+}
+
+/* The two claims, as a list rather than a paragraph. Type comes from
+   `welcome.sub`, which the element also wears; this adds only what a `<ul>`
+   needs and the browser's own margins take away.
+
+   Discs, not the icon-and-row treatment a feature list usually gets in this
+   product: two lines of the banner's own sub-copy is not a feature grid, and
+   giving them icons would make the strip announce itself as a section. 18px of
+   indent is the marker plus its gap — enough that a wrapped second line hangs
+   under the text rather than under the bullet. */
+.valueBullets {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+
+  li + li {
+    margin-top: 2px;
+  }
+}
+
+/* The CTA slot, now only the signed-in banners'. The logged-out one dropped its
+   Sign up / Sign in pair; `ProfileNudgeBanner` and the incomplete-profile
+   `PendingApprovalBanner` still end in one real button each, and a bare
+   `welcome.cta` in `.welcome`'s flex row needs this wrapper for the same reason
+   it always did — to be one child of the row rather than to be spaced like a
+   sibling of the text block.
+
+   `.ctaSecondary` went with the pair. It existed only to give Sign up a bordered
+   twin of `welcome.cta`; nothing wears it now, and a stylesheet that keeps the
+   costume for a part that was cut is where the next person finds a dead class
+   and re-derives the design that was deleted. */
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  /* Bottom-aligned, against `Welcome`'s centred row. Centring is right when the
+     text block is one or two lines and the button reads as the row's other half;
+     at three lines it floats against the middle of a paragraph and belongs to
+     neither the headline above nor the sentence beside it. Sitting on the text
+     block's last baseline, it reads as what you do once you've finished reading.
+     `align-self` on the item, not `align-items` on `.welcome`, because the text
+     block is production's and should keep stretching. */
+  align-self: flex-end;
+
+  /* `.welcome` goes column + stretch on mobile, so the group inherits full width.
+     `welcome.cta` already sets `width: 100%` at this breakpoint. */
+  @include media.mobile-only {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+    }
+  }
+}
+
+/* The doors, inside the sentence.
+
+   They used to be a Sign up / Sign in pair in a CTA slot — boxed, `welcome.cta`
+   and a bordered twin. A boxed control inside what is now a note reads as a
+   second object beside the text rather than as part of it, so both became text
+   buttons: brand colour, underline on hover, no box.
+
+   `font: inherit` matters more than usual here. The bullet is 16px on desktop
+   and 14px on mobile and 12px in the signed-in banners, and a door that kept its
+   own size would break the line it sits in at two of those three. */
+.inlineDoor {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--foreground-brand-primary, #1b4dff);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* The pinned (rail-narrowed) state. Deliberate simplification of `Welcome`, not a
+   restyle of it: the card, type and CTA are still production's, and only the
+   height comes down — pinned, the strip rides over the list it belongs to, so it
+   spends as little of the viewport as the ask and its one supporting line need. */
+.condensed.condensed {
+  padding: 12px 20px;
+}
+
+/* One line, truncated rather than wrapped — worn by the headline and the
+   selection read-back alike, since neither the ask nor a long selection
+   ("Engineering · Senior · Lead · Remote · Berlin") may grow the strip it's
+   pinned inside. Desktop only: below 1024 the banner isn't pinned and can wrap. */
+@include media.breakpoint-1024 {
+  .oneLine {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Parks under the header, at the same offset as every other sticky rail in the
+     app (DashboardPagesLayout's filter column, the home page's NewsRail), so the
+     things that hold position all hold it at the same height.
+
+     The 16px of air above the strip is *padding on the slot*, not a larger
+     `top`. Offsetting with `top` leaves a 16px transparent gap between the
+     header and the sticky element, and scrolling cards show through it — a
+     sliver of a moving card above a pinned one reads as a rendering fault.
+     Carrying the gap as padding over the page's own background means the strip
+     sweeps everything between itself and the header.
+
+     z-index sits under PrototypeNav's `.headerShell` (5) so the header always
+     wins, and above the cards so the strip isn't scrolled through. The refer
+     popover (z-index 20) still clears it. */
+  .pinned {
+    position: sticky;
+    top: var(--app-header-height, 80px);
+    z-index: 4;
+    padding-top: 16px;
+    background: var(--background-neutral-subtle, #f1f5f9);
+  }
+
+  /* Pinned, the strip is a white card holding still over white cards moving
+     underneath, and `Welcome`'s 1px hairline isn't enough edge to tell them
+     apart — the top row of the card behind reads as the strip's own last line.
+     Same rgba family as `Welcome`'s shadow, just enough spread to separate the
+     layers. Only while pinned: unpinned it's in the flow and needs nothing. */
+  .pinned .condensed {
+    box-shadow: 0 2px 8px rgba(14, 15, 17, 0.08);
+  }
+}
+
+/* Below 1024 the banner stays in the flow. `MobileFilterWrapper` already sticks
+   at `top: var(--app-header-height)` with z-index 4, and two things competing for
+   the same shelf would simply cover each other — the filter pill is a control,
+   the banner is an offer, so the control keeps the shelf. */
+
+/* The pending-approval card sits in the same slot but is a different shape — an
+   `Alert`, not the `Welcome` card — so it doesn't inherit `Welcome`'s own top
+   margin from the column. Only the horizontal inset is shared, which `.slot`
+   already gives it; this exists so the rule has a name to hang future
+   pending-only spacing on rather than being an unexplained bare `.slot`. */
+.pendingSlot {
+  display: block;
+}

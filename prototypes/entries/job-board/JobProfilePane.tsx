@@ -545,6 +545,11 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       unchanged and still `isProfileComplete`, read from the one place that
       defines it.) */
 
+  /* Whether anything follows the step title inside the intro wrapper: the
+     pending stepper, or the no-role lede. In the flow neither is true — the role
+     is named in the header, the rail and the footer — so the title stands alone. */
+  const hasIntroBody = pendingApproval || !pendingRoleTitle;
+
   return (
     <>
       {/* The wrapper is `fd.stepIntro` — the logged-out pane's, and for the same
@@ -574,25 +579,38 @@ export function JobProfilePane(props: JobProfilePaneProps) {
 
             (If it should be unconditional, that is a one-word change — drop the
             `profileIsBlank &&`. It was implemented blank-only deliberately.) */}
-        {profileIsBlank && <h2 className={clsx(fd.stepTitle, d.stepTitleWithLede)}>Fill in your profile</h2>}
+        {/* `stepTitleWithLede` states the 6px between this title and the thing
+            qualifying it, and is applied only when there *is* one. With the
+            in-flow lede gone the title is often the wrapper's only child, and a
+            margin under a last child would push the next card 22px away where
+            every other gap in this column is 16. */}
+        {profileIsBlank && (
+          <h2 className={clsx(fd.stepTitle, hasIntroBody && d.stepTitleWithLede)}>Fill in your profile</h2>
+        )}
 
-        {/* Naming the destination is the whole reason the ask lands here rather
-            than at sign-in: the person is mid-decision about one specific role, and
-            the sentence tells them what their profile is for and that there is no
-            second form behind this one.
+        {/* **In the flow, this step now has no lede at all.**
 
-            **The stepper replaces this line rather than joining it.** A pending
-            member's lede said the review is running and an email ends it — which
-            is steps 1 and 3 of the stepper, in fewer words and with no position
-            attached. Keeping both would be the same news twice, 16px apart. */}
+            It used to name the destination — "We send your profile with your
+            application to {role}" — on the argument that the person is
+            mid-decision about one specific role and should be told what their
+            profile is for. The rail directly above already says `Your profile`,
+            the footer says what the next press does, and the role is named in
+            the drawer's header: a fourth sentence about where this is going was
+            the flow explaining itself to someone walking through it.
+
+            The line survives only outside the flow, where nothing else has said
+            it: opening the profile from a board banner with no role in hand.
+            That entry point has no rail step, no footer promise and no job in
+            the header, so the sentence is the only thing telling them what the
+            editor is for.
+
+            The stepper replaces it for a pending member rather than joining it —
+            that lede said the review is running and an email ends it, which is
+            steps 1 and 3 in fewer words and with no position attached. */}
         {pendingApproval ? (
           <PendingApprovalSteps />
         ) : (
-          <p className={fd.lede}>
-            {pendingRoleTitle
-              ? `We send your profile with your application to ${pendingRoleTitle}.`
-              : 'This is what hiring teams see when you apply.'}
-          </p>
+          !pendingRoleTitle && <p className={fd.lede}>This is what hiring teams see when you apply.</p>
         )}
       </div>
 

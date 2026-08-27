@@ -5,6 +5,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import clsx from 'clsx';
 
 import type { IJobRole } from '@/types/jobs.types';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
 import { DetailsSectionGreyContentContainer } from '@/components/common/profile/DetailsSection/components/DetailsSectionGreyContentContainer';
@@ -67,6 +68,7 @@ function formatExperienceDates(entry: FormattedMemberExperience): string {
 
 export interface JobApplicationPaneProps {
   role: IJobRole;
+  teamId: string;
   teamName: string;
   /** The member whose profile goes with the application. */
   member: Pick<IMember, 'id' | 'name' | 'role' | 'mainTeam' | 'skills' | 'currentCompany'> | null;
@@ -110,10 +112,15 @@ type ApplyFormData = {
  * not a missing field; do not "complete" the panel by adding it.
  */
 export function JobApplicationPane(props: JobApplicationPaneProps) {
-  const { role, teamName, member, memberUid, coverLetter, onCoverLetterChange, onEditProfile, submitError } = props;
+  const { role, teamId, teamName, member, memberUid, coverLetter, onCoverLetterChange, onEditProfile, submitError } =
+    props;
 
-  const { defaultRecipients } = useTeamMembers(teamName, true);
-  const leads = defaultRecipients.slice(0, 3);
+  // Protocol Labs applications go to the team job-refer email, not team leads —
+  // naming a lead here would be a lie. Skip the lookup too: nothing on this
+  // step reads the roster for that team.
+  const hideHiringLeads = isProtocolLabsTeam({ uid: teamId, name: teamName });
+  const { defaultRecipients } = useTeamMembers(teamName, !hideHiringLeads);
+  const leads = hideHiringLeads ? [] : defaultRecipients.slice(0, 3);
 
   const experienceQuery = useMemberExperience(memberUid ?? '');
   const primary = useMemo(() => {

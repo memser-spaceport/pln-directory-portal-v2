@@ -551,6 +551,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         {at === 'application' && (
           <JobApplicationPane
             role={target.role}
+            teamId={target.teamId}
             teamName={target.teamName}
             member={member}
             memberUid={memberUid}

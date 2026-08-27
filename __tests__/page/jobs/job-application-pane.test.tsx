@@ -54,6 +54,19 @@ const member = {
 
 const lead = { uid: 'lead-1', name: 'Juan Benet', title: 'Founder', team: 'Protocol Labs', image: null };
 
+/**
+ * The lead's name as it reaches the accessibility tree — with a NON-BREAKING
+ * space, because `LeadNames` puts one there so a name cannot wrap across two
+ * lines mid-person.
+ *
+ * It has to be a pattern rather than the string `'Juan Benet'`. `byRole` matches
+ * the accessible name through an IDENTITY normalizer (unlike `byText`, which
+ * collapses whitespace), so a plain space never matches U+00A0 — and the failure
+ * is invisible, because the two render alike and the error message prints them
+ * alike. `\s` matches both.
+ */
+const LEAD_NAME = /^Juan\s+Benet$/;
+
 const renderPane = (teamId: string, teamName: string) =>
   render(
     <JobApplicationPane
@@ -79,7 +92,7 @@ describe('JobApplicationPane hiring leads', () => {
 
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Airship', true);
     expect(screen.getByText(/Reviewed by/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Juan Benet' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: LEAD_NAME })).toBeInTheDocument();
   });
 
   /**
@@ -104,6 +117,6 @@ describe('JobApplicationPane hiring leads', () => {
 
     expect(mockUseTeamMembers).toHaveBeenCalledWith('Protocol Labs', false);
     expect(screen.queryByText(/Reviewed by/)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Juan Benet' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: LEAD_NAME })).not.toBeInTheDocument();
   });
 });

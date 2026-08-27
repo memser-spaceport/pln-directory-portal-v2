@@ -12,22 +12,18 @@ export const jobApplyQueryParams = (source: JobSurface) =>
 export const jobApplyHref = (applyUrl: string | null | undefined, source: JobSurface): string | null =>
   applyUrl ? `${applyUrl}?${jobApplyQueryParams(source)}` : null;
 
-export const openExternalApply = (applyUrl: string | null | undefined, source: JobSurface) => {
-  const href = jobApplyHref(applyUrl, source);
-  if (href) window.open(href, '_blank', 'noopener,noreferrer');
-};
+/* (`openExternalApply` and `interceptPrimaryApplyClick` lived here. Both existed
+    for one case: an unapproved member, whose Apply sent them to the hiring
+    team's own posting instead of the in-app letter. `interceptPrimaryApplyClick`
+    was what let that control still be a real `<a>` — modifier and middle click
+    kept the native navigation, left click was caught so access could be
+    rechecked first.
 
-/** Left-click is intercepted so Apply can recheck access and either open
- *  in-app or `window.open` the posting. Modifier/middle-click keeps the native
- *  `<a>` so the posting still opens in a new tab. */
-export function interceptPrimaryApplyClick(
-  event: Pick<MouseEvent, 'metaKey' | 'ctrlKey' | 'shiftKey' | 'altKey'> & { preventDefault: () => void },
-  apply: () => void,
-) {
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  apply();
-}
+    Approval no longer gates applying, so every Apply on the board is in-app and
+    neither has a caller. The outbound link to the posting is still here and
+    still wanted — `jobApplyHref` above, rendered as "Read the original posting"
+    in the detail drawer — because reading the ad and applying were always two
+    different acts. What went is the version of Apply that *was* that link.) */
 
 /**
  * The board's params, kept as a constant for the surfaces that link to a role without

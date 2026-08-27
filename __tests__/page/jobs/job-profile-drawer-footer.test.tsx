@@ -21,9 +21,6 @@ jest.mock('@/components/page/member-details/ProfileDetails', () => ({ ProfileDet
 jest.mock('@/components/page/member-details/ExperienceDetails', () => ({ ExperienceDetails: () => null }));
 jest.mock('@/components/page/member-details/ContributionsDetails', () => ({ ContributionsDetails: () => null }));
 jest.mock('@/components/page/member-details/RepositoriesDetails', () => ({ RepositoriesDetails: () => null }));
-jest.mock('@/components/page/jobs/JobProfileDrawer/PendingApprovalSteps', () => ({
-  PendingApprovalSteps: () => <div data-testid="stepper" />,
-}));
 
 jest.mock('@/services/auth/store', () => ({
   useCurrentUserStore: () => ({ currentUser: { uid: 'm1', name: 'Polina' } }),
@@ -93,18 +90,27 @@ describe('the profile drawer footer', () => {
   /**
    * No carve-out left, including the one that used to exist here.
    *
-   * A pending account cannot reach an application at all, and the hint beside
-   * the button says so outright — so this label runs ahead of what that person
-   * can do today. That is a deliberate product decision in favour of one
-   * consistent word for one act; the hint is what carries the truth. Asserted
-   * together so the pairing stays visible: if the sentence ever goes, this
-   * label is over-promising on its own.
+   * This label used to run ahead of what a pending account could do — applying
+   * was gated on approval, and the hint beside the button carried the
+   * correction ("applying unlocks once the PL team approves your account").
+   * Approval no longer gates applying, so the label is plainly true and the
+   * correction must be gone: leaving it would tell a member to wait for
+   * something that is not holding them up.
    */
-  it('says "Continue to apply" even while the account waits on approval', () => {
+  it('says "Continue to apply" while the account waits, with nothing to correct', () => {
     renderDrawer(COMPLETE, { pendingApproval: true, resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' });
 
     expect(footerButton()).toHaveTextContent('Continue to apply');
-    expect(screen.getByText(/applying unlocks once the PL team approves/i)).toBeInTheDocument();
+    expect(footerButton()).toBeEnabled();
+    expect(screen.queryByText(/applying unlocks once the PL team approves/i)).not.toBeInTheDocument();
+  });
+
+  /* The lede is where the review is now mentioned, and it says the opposite of
+     what it used to: the account is under review AND the application goes. */
+  it('tells a pending member the review is not holding the application up', () => {
+    renderDrawer(COMPLETE, { pendingApproval: true, resumeIntoApply: true, pendingRoleTitle: 'Senior Engineer' });
+
+    expect(screen.getByText(/isn't holding up your application to Senior Engineer/i)).toBeInTheDocument();
   });
 
   /** And before the required answers are in, where the missing-fields hint is

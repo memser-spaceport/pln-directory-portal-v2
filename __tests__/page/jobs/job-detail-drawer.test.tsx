@@ -202,7 +202,6 @@ describe('the job detail drawer', () => {
     it.each([
       [{ loggedIn: false }, /you will set one up in the next step/i],
       [{ loggedIn: true }, /One press sends your PL profile/i],
-      [{ externalApply: true }, /You'll apply on their site/i],
     ])('matches the viewer %s', (props, expected) => {
       renderDrawer(props);
 
@@ -210,30 +209,35 @@ describe('the job detail drawer', () => {
     });
   });
 
-  describe('external Apply for an unapproved member', () => {
-    it('is the outbound posting, not an in-app button', () => {
-      renderDrawer({ externalApply: true });
+  /* This drawer used to have a second Apply: an unapproved member got an
+     outbound `<a>` to the hiring team's own posting instead of the in-app
+     letter, and the footer said "You'll apply on their site". Approval no longer
+     gates applying, so there is one Apply for everyone.
 
-      const apply = screen.getByRole('link', { name: 'Apply' });
-      expect(apply).toHaveAttribute('href', expect.stringContaining('https://example.com/apply'));
-      expect(apply).toHaveAttribute('target', '_blank');
-      expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
-      expect(screen.queryByText(/waiting on PL team approval/i)).not.toBeInTheDocument();
-    });
+     Guarded rather than simply deleted, because the failure mode is silent — a
+     reintroduced branch would still render something called "Apply" and only the
+     element type would give it away. */
+  describe('one Apply, whatever the account state', () => {
+    it('is always the in-app button, never an outbound link', () => {
+      renderDrawer();
 
-    it('still hands a left-click to the flow', () => {
-      renderDrawer({ externalApply: true });
-
-      fireEvent.click(screen.getByRole('link', { name: 'Apply' }));
-      expect(onApply).toHaveBeenCalledTimes(1);
-    });
-
-    it('omits Apply when there is no posting to send them to', () => {
-      renderDrawer({ externalApply: true, role: role({ applyUrl: null }) });
-
+      expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Apply' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
-      expect(screen.queryByText(/Applying still sends them your profile/i)).not.toBeInTheDocument();
+    });
+
+    /* Reading the ad and applying were always two different acts, and only one
+       of them changed. The posting link survives on its own. */
+    it('still links out to the original posting', () => {
+      renderDrawer();
+
+      const posting = screen.getByRole('link', { name: /Read the original posting/i });
+      expect(posting).toHaveAttribute('href', expect.stringContaining('https://example.com/apply'));
+    });
+
+    it('offers Apply even when there is no posting to link to', () => {
+      renderDrawer({ role: role({ applyUrl: null }) });
+
+      expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
     });
   });
 

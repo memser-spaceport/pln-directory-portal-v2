@@ -115,11 +115,7 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
   // A team-configured inbox skips the hiring-team lookup: nobody is being picked.
   const { members: hiringTeam, isLoading: isTeamLoading } = useTeamMembers(teamName, open && !usesTeamReferEmail);
 
-  const {
-    data: draft,
-    isFetching: isDrafting,
-    isError: isDraftError,
-  } = useJobReferralDraft({
+  const { data: draft, isFetching: isDrafting } = useJobReferralDraft({
     jobUid: role.uid,
     referredMemberUid: selectedMember?.uid,
     enabled: open,
@@ -280,15 +276,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
     ? 'Referral email will be sent to the address this team set up, and you’ll be copied.'
     : 'Referral email will be sent to everyone listed including you.';
 
-  const privacyNote = isDraftError
-    ? 'We couldn’t draft a note for that member — write your own, or pick someone else.'
-    : usesTeamReferEmail
-      ? `${teamName} sees your name alongside the referral.` + (selectedMember ? ` ${firstName} is notified too.` : '')
-      : recipients.length === 0
-        ? 'Add at least one recipient — a network member or an email address.'
-        : `${sentTo} ${recipients.length === 1 ? 'sees' : 'see'} your name alongside the referral.` +
-          (selectedMember ? ` ${firstName} is notified too.` : '');
-
   return (
     <Modal isOpen={open} onClose={handleClose} closeOnBackdropClick={false} lockScroll>
       <div className={s.modal}>
@@ -394,8 +381,6 @@ export function ReferModal({ open, onClose, role, teamId, teamName, source, jobR
                   />
                 </div>
               </div>
-
-              <p className={s.privacyNote}>{privacyNote}</p>
 
               <div className={s.actions}>
                 <Button style="border" variant="primary" className={s.actionButton} onClick={handleClose}>

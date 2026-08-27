@@ -135,6 +135,11 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
         name: details.name,
         email: details.email,
         role: details.role,
+        /* Unconditional, unlike the optional fields below it: the form requires
+           an answer, so there is always one to send. Together with `role` it is
+           what makes the account this creates already profile-complete — the
+           whole reason the question is asked at sign-up rather than later. */
+        jobSearchStatus: details.jobSearchStatus,
         // Omitted when blank rather than sent empty: the endpoint's rule is an
         // address or nothing, and `''` fails its `.email()` on both sides.
         ...(details.teamEmail ? { teamEmail: details.teamEmail } : {}),

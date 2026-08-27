@@ -124,6 +124,19 @@ export const JOB_SEARCH_STATUS_OPTIONS = [
 
 export type JobSearchStatus = (typeof JOB_SEARCH_STATUS_OPTIONS)[number]['value'];
 
+/**
+ * The same three values without their presentation, for the places that need a
+ * plain list — `z.enum` on the sign-up wire schema, principally.
+ *
+ * Derived rather than restated, so the list above stays the one place these
+ * change. The assertion says only that the array is non-empty, which `z.enum`
+ * requires and which is evident three lines up; the member type is inferred.
+ */
+export const JOB_SEARCH_STATUS_VALUES = JOB_SEARCH_STATUS_OPTIONS.map((option) => option.value) as [
+  JobSearchStatus,
+  ...JobSearchStatus[],
+];
+
 export const isJobSearchStatus = (v: unknown): v is JobSearchStatus =>
   JOB_SEARCH_STATUS_OPTIONS.some((o) => o.value === v);
 

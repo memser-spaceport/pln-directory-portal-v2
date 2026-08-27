@@ -46,13 +46,15 @@ export function TeamContactInfoEdit(props: Props) {
   });
 
   const { onSubmit: commonOnSubmit, isPending } = useOnSubmit(team, toggleIsEditMode);
-  const { onTeamDetailContactSaveClicked } = useTeamAnalytics();
+  const { onTeamDetailContactSaveClicked, onTeamDetailJobReferEmailSaved } = useTeamAnalytics();
 
   const onSubmit = async (formData: EditTeamContactForm) => {
+    const previous = team?.jobReferEmail?.trim() ?? '';
+    const next = formData.jobReferEmail?.trim() ?? '';
     await commonOnSubmit({
       website: formData.website,
       contactMethod: formData.contactMethod,
-      jobReferEmail: formData.jobReferEmail?.trim() ?? '',
+      jobReferEmail: next,
       linkedinHandler: formData.linkedin,
       twitterHandler: formData.twitter,
       telegramHandler: formData.telegram,
@@ -67,6 +69,12 @@ export function TeamContactInfoEdit(props: Props) {
       hasBluesky: Boolean(formData.bluesky),
       hasCrunchbase: Boolean(formData.crunchbase),
     });
+    if (previous !== next) {
+      onTeamDetailJobReferEmailSaved({
+        teamUid: team.id,
+        action: !next ? 'cleared' : !previous ? 'set' : 'changed',
+      });
+    }
   };
 
   const { handleSubmit } = methods;

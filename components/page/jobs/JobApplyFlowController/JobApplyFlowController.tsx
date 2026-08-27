@@ -168,7 +168,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
       trigger: state.step === 'flow' ? 'detail' : target ? 'row' : 'banner',
       has_team_email: false,
     });
-    flow.closeSignUp();
+    flow.closeSignUp({ completed: true });
     // They just typed this email into the form the line above submitted —
     // asking for it again in the login modal is asking twice for one fact.
     pushLogin({
@@ -197,7 +197,7 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      the visit and the toast is the receipt. */
   const handleProfileOnlySaved = ({ profileComplete }: { profileComplete: boolean }) => {
     flow.onProfileSaved({ profileComplete });
-    flow.close();
+    flow.close({ completed: true });
     toast.success('Profile saved.');
   };
 

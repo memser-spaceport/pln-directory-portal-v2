@@ -15,10 +15,11 @@ import s from './LoginButton.module.scss';
 
 interface Props {
   className?: string;
+  onClick?: () => void;
 }
 
 export const LoginBtn = (props: PropsWithChildren<Props>) => {
-  const { className, children } = props;
+  const { className, children, onClick } = props;
 
   const authAnalytics = useAuthAnalytics();
   const demoDayAnalytics = useDemoDayAnalytics();
@@ -28,6 +29,7 @@ export const LoginBtn = (props: PropsWithChildren<Props>) => {
   const goToLogin = useLoginRedirect();
 
   const onLoginClickHandler = () => {
+    onClick?.();
     authAnalytics.onLoginBtnClicked();
 
     // Track demo day login button click if on demo day page

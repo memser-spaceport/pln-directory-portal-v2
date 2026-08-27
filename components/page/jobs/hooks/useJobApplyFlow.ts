@@ -259,13 +259,15 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
          action that can also start the flow from a row that never opened one. */
       if (profileComplete) {
         dispatch({ type: 'OPEN_FLOW', target, at: 'application' });
+        viewStep('application', target);
         return;
       }
 
       dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
       analytics.onJobApplyDrawerOpened(applyBase(target));
+      viewStep('profile', target);
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
+    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer, viewStep],
   );
 
   /** Moving along the rail, or the header's Back. Analytics for arriving at the
@@ -273,12 +275,15 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
    *  was reached rather than only when Apply routed someone there. */
   const goToStep = useCallback(
     (at: ApplyFlowStepId) => {
-      if (state.step === 'flow' && at === 'profile' && state.at !== 'profile') {
-        analytics.onJobApplyDrawerOpened(applyBase(state.target));
+      if (state.step === 'flow' && at !== state.at) {
+        if (at === 'profile') {
+          analytics.onJobApplyDrawerOpened(applyBase(state.target));
+        }
+        viewStep(at, state.target);
       }
       dispatch({ type: 'GO_TO_STEP', at });
     },
-    [analytics, applyBase, state],
+    [analytics, applyBase, state, viewStep],
   );
 
   /** The letter, lifted out of the pane that collects it — see `ApplyFlowState`. */
@@ -291,9 +296,10 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
   const onSignUp = useCallback(
     (trigger: Exclude<JobApplyTrigger, 'row'>) => {
       analytics.onJobApplyClicked({ ...applyBase(null), trigger });
+      viewStep('sign-up', null);
       dispatch({ type: 'OPEN_SIGN_UP', target: null });
     },
-    [analytics, applyBase],
+    [analytics, applyBase, viewStep],
   );
 
   /** The banner's update/complete-profile CTA, and the resume fallback. */
@@ -302,8 +308,20 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     analytics.onJobApplyDrawerOpened(applyBase(null));
   }, [analytics, applyBase]);
 
-  const closeSignUp = useCallback(() => dispatch({ type: 'CLOSE' }), []);
-  const close = useCallback(() => dispatch({ type: 'CLOSE' }), []);
+  const close = useCallback(
+    (opts?: { completed?: boolean }) => {
+      if (!opts?.completed && (state.step === 'flow' || state.step === 'sign-up')) {
+        analytics.onJobApplyFlowClosed({
+          ...applyBase(state.target),
+          step: state.step === 'sign-up' ? 'sign-up' : state.at,
+          cover_letter_started: state.step === 'flow' && state.coverLetterDraft.trim().length > 0,
+        });
+      }
+      dispatch({ type: 'CLOSE' });
+    },
+    [analytics, applyBase, state],
+  );
+  const closeSignUp = close;
 
   /** A profile save reported from whichever surface collected it. */
   const onProfileSaved = useCallback(
@@ -325,8 +343,9 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
     (target: JobDetailTarget) => {
       dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
       analytics.onJobApplyDrawerOpened(applyBase(target));
+      viewStep('profile', target);
     },
-    [analytics, applyBase],
+    [analytics, applyBase, viewStep],
   );
 
   return {

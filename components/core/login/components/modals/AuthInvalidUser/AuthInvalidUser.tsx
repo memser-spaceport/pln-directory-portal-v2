@@ -136,16 +136,16 @@ export function AuthInvalidUser() {
 
   useEffect(() => {
     function handleInvalidEmail(errorType: AuthErrorCode) {
+      const isDemoDayDenied =
+        errorType === 'no_demo_day_access' ||
+        (isDemoDayScopePage(pathname) &&
+          ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
+          ['rejected_access_level', 'email_not_found'].includes(errorType));
+
       if (errorType) {
         router.refresh();
 
-        // Special handling for demo day rejected access
-        if (
-          errorType === 'no_demo_day_access' ||
-          (isDemoDayScopePage(pathname) &&
-            ['REGISTRATION_OPEN', 'ACTIVE'].includes(demoDayState?.status) &&
-            ['rejected_access_level', 'email_not_found'].includes(errorType))
-        ) {
+        if (isDemoDayDenied) {
           const userInfo: IUserInfo = getParsedValue(Cookies.get('userInfo'));
           const demoDaySlug = demoDayState?.slugURL || params.demoDayId;
 
@@ -188,6 +188,7 @@ export function AuthInvalidUser() {
               label: 'Sign up',
               onClick: () => {
                 analytics.onSignUpBtnClicked();
+                analytics.onInvalidUserSignUpClicked({ reason: 'email_not_found' });
                 handleModalClose();
                 const currentPath = window.location.pathname + window.location.search;
                 const returnTo = encodeURIComponent(currentPath);
@@ -213,6 +214,7 @@ export function AuthInvalidUser() {
         }
       }
 
+      analytics.onInvalidUserModalShown({ reason: isDemoDayDenied ? 'access_denied' : errorType });
       handleModalOpen();
     }
 

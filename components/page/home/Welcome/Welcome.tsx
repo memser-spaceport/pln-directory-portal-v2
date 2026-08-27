@@ -1,4 +1,7 @@
+'use client';
+
 import { LoginBtn } from '@/components/core/navbar/components/LoginBtn';
+import { useHomeAnalytics } from '@/analytics/home.analytics';
 
 import s from './Welcome.module.scss';
 
@@ -13,6 +16,7 @@ function Count({ value }: { value: number }) {
 
 export const Welcome = (props: Props) => {
   const { teamCount, memberCount } = props;
+  const { onWelcomeSignInClicked } = useHomeAnalytics();
 
   return (
     <section className={s.welcome}>
@@ -36,7 +40,7 @@ export const Welcome = (props: Props) => {
       </div>
 
       <div className={s.ctas}>
-        <LoginBtn className={s.cta}>
+        <LoginBtn className={s.cta} onClick={onWelcomeSignInClicked}>
           Sign in
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path

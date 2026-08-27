@@ -8,12 +8,23 @@ jest.mock('@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants
   JOB_QUERY_PARAMS: '',
 }));
 
+const mockOnJobApplyClicked = jest.fn();
+const mockOnJobApplyDrawerOpened = jest.fn();
+const mockOnJobDetailOpened = jest.fn();
+const mockOnJobApplyDrawerSaved = jest.fn();
+const mockOnJobApplyStepViewed = jest.fn();
+const mockOnJobApplyFlowClosed = jest.fn();
+const mockOnJobApplyExternalRedirected = jest.fn();
+
 jest.mock('@/analytics/jobs.analytics', () => ({
   useJobsAnalytics: () => ({
-    onJobApplyClicked: jest.fn(),
-    onJobApplyDrawerOpened: jest.fn(),
-    onJobDetailOpened: jest.fn(),
-    onJobApplyDrawerSaved: jest.fn(),
+    onJobApplyClicked: (...a: unknown[]) => mockOnJobApplyClicked(...a),
+    onJobApplyDrawerOpened: (...a: unknown[]) => mockOnJobApplyDrawerOpened(...a),
+    onJobDetailOpened: (...a: unknown[]) => mockOnJobDetailOpened(...a),
+    onJobApplyDrawerSaved: (...a: unknown[]) => mockOnJobApplyDrawerSaved(...a),
+    onJobApplyStepViewed: (...a: unknown[]) => mockOnJobApplyStepViewed(...a),
+    onJobApplyFlowClosed: (...a: unknown[]) => mockOnJobApplyFlowClosed(...a),
+    onJobApplyExternalRedirected: (...a: unknown[]) => mockOnJobApplyExternalRedirected(...a),
   }),
 }));
 
@@ -53,7 +64,16 @@ const setup = (
  * hands a stranger to a team that has not vetted them.
  */
 describe('Apply routing while unapproved', () => {
-  beforeEach(() => mockOpenExternal.mockClear());
+  beforeEach(() => {
+    mockOpenExternal.mockClear();
+    mockOnJobApplyClicked.mockClear();
+    mockOnJobApplyDrawerOpened.mockClear();
+    mockOnJobDetailOpened.mockClear();
+    mockOnJobApplyDrawerSaved.mockClear();
+    mockOnJobApplyStepViewed.mockClear();
+    mockOnJobApplyFlowClosed.mockClear();
+    mockOnJobApplyExternalRedirected.mockClear();
+  });
 
   it('sends an unapproved applicant to the employer site for a non-PL role', async () => {
     const { result } = setup('pending');
@@ -64,6 +84,8 @@ describe('Apply routing while unapproved', () => {
 
     expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com/apply', 'job-board');
     expect(result.current.state.step).toBe('idle');
+    expect(mockOnJobApplyExternalRedirected).toHaveBeenCalledTimes(1);
+    expect(mockOnJobApplyStepViewed).not.toHaveBeenCalled();
   });
 
   it('keeps an unapproved applicant in the wizard for a Protocol Labs role', async () => {
@@ -147,5 +169,40 @@ describe('Apply routing while unapproved', () => {
 
       expect(result.current.state).toEqual({ step: 'sign-up', target: null });
     });
+  });
+
+  it('reports the application step when an approved member applies with a complete profile', async () => {
+    const { result } = setup('approved');
+
+    await act(async () => {
+      await result.current.onApply(target(OTHER));
+    });
+
+    expect(mockOnJobApplyStepViewed).toHaveBeenCalledWith(
+      expect.objectContaining({ step: 'application', job_id: 'r1' }),
+    );
+  });
+
+  it('reports a dismiss from the flow and skips it after a completed close', async () => {
+    const { result } = setup('approved');
+
+    await act(async () => {
+      await result.current.onApply(target(OTHER));
+    });
+    act(() => {
+      result.current.close();
+    });
+    expect(mockOnJobApplyFlowClosed).toHaveBeenCalledWith(
+      expect.objectContaining({ step: 'application', cover_letter_started: false }),
+    );
+
+    mockOnJobApplyFlowClosed.mockClear();
+    await act(async () => {
+      await result.current.onApply(target(OTHER));
+    });
+    act(() => {
+      result.current.close({ completed: true });
+    });
+    expect(mockOnJobApplyFlowClosed).not.toHaveBeenCalled();
   });
 });

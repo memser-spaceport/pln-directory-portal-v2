@@ -55,6 +55,9 @@ jest.mock('@/analytics/jobs.analytics', () => ({
     onJobApplySubmitted: jest.fn(),
     onJobApplyFailed: jest.fn(),
     onJobDetailOpened: jest.fn(),
+    onJobApplyStepViewed: jest.fn(),
+    onJobApplyFlowClosed: jest.fn(),
+    onJobApplyExternalRedirected: jest.fn(),
   }),
 }));
 

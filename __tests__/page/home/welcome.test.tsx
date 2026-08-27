@@ -8,13 +8,35 @@ const mockOnLoginBtnClicked = jest.fn();
 jest.mock('@/components/core/navbar/components/LoginBtn', () => {
   return {
     __esModule: true,
-    LoginBtn: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-      <button type="button" className={className} onClick={() => mockOnLoginBtnClicked()}>
+    LoginBtn: ({
+      children,
+      className,
+      onClick,
+    }: {
+      children: React.ReactNode;
+      className?: string;
+      onClick?: () => void;
+    }) => (
+      <button
+        type="button"
+        className={className}
+        onClick={() => {
+          onClick?.();
+          mockOnLoginBtnClicked();
+        }}
+      >
         {children}
       </button>
     ),
   };
 });
+
+const mockOnWelcomeSignInClicked = jest.fn();
+jest.mock('@/analytics/home.analytics', () => ({
+  useHomeAnalytics: () => ({
+    onWelcomeSignInClicked: () => mockOnWelcomeSignInClicked(),
+  }),
+}));
 
 describe('Welcome', () => {
   beforeEach(() => {
@@ -57,5 +79,11 @@ describe('Welcome', () => {
     expect(screen.getByText(/See personalized updates from/i)).toHaveTextContent(
       'See personalized updates from PL network teams',
     );
+  });
+
+  it('fires the welcome sign-in event from the CTA', () => {
+    render(<Welcome teamCount={1019} memberCount={3241} />);
+    screen.getByRole('button', { name: /Sign In/i }).click();
+    expect(mockOnWelcomeSignInClicked).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,6 +4,7 @@ import { useTeamFilterStore } from '@/services/teams';
 import { FilterSelect } from '@/components/common/filters/FilterSelect/FilterSelect';
 import type { Option } from '@/components/form/FormSelect/types';
 import { triggerLoader } from '@/utils/common.utils';
+import { useTeamAnalytics } from '@/analytics/teams.analytics';
 
 const STATUS_OPTIONS: Option[] = [
   { label: 'Active', value: 'ACTIVE' },
@@ -17,6 +18,7 @@ const STATUS_OPTIONS: Option[] = [
  */
 export function TeamStatusFilter() {
   const { params, setParam } = useTeamFilterStore();
+  const { onTeamsStatusFilterSelected } = useTeamAnalytics();
   const currentValue = params.get('status') ?? 'ACTIVE';
   const selected = STATUS_OPTIONS.find((option) => option.value === currentValue) ?? STATUS_OPTIONS[0];
 
@@ -28,8 +30,10 @@ export function TeamStatusFilter() {
       isClearable={false}
       aria-label="Team status"
       onChange={(option) => {
+        const status = (option?.value ?? 'ACTIVE') as 'ACTIVE' | 'INACTIVE' | 'ALL';
         triggerLoader(true);
-        setParam('status', option?.value === 'ACTIVE' ? undefined : option?.value);
+        setParam('status', status === 'ACTIVE' ? undefined : status);
+        onTeamsStatusFilterSelected({ status });
       }}
     />
   );

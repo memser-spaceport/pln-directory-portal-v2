@@ -18,6 +18,7 @@ import { getTeamList } from '@/app/actions/teams.actions';
 import { formatFeaturedData } from '@/utils/home.utils';
 import { isAdminUser } from '@/utils/user/isAdminUser';
 import { Welcome } from '@/components/page/home/Welcome';
+import { DigestEmailHomeLinkCapture } from '@/components/page/home/DigestEmailHomeLinkCapture';
 import { QuickActions } from '@/components/page/home/QuickActions';
 import { TeamNews, AutoMarkNewsNotification, MarkHomeVisited } from '@/components/page/home/TeamNews';
 import { getTeamNewsGroupedByFocusArea, getTeamNewsPopular } from '@/services/team-news/team-news.service';
@@ -62,6 +63,7 @@ export default async function Home() {
           )}
           {isLoggedIn && <QuickActions initial={quickActionsState} ohResolved={quickActionsOhResolved} />}
           <div className={styles.home__cn__teamnews}>
+            <DigestEmailHomeLinkCapture />
             <TeamNews
               groups={teamNewsGroups}
               allTabExtraItems={teamNewsAllTabExtraItems}

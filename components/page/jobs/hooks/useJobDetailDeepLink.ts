@@ -45,10 +45,13 @@ export function useJobDetailDeepLink({
     [openDetail],
   );
 
-  const close = useCallback(() => {
-    writeJobDetailParam(null);
-    closeFlow();
-  }, [closeFlow]);
+  const close = useCallback(
+    (opts?: { completed?: boolean }) => {
+      writeJobDetailParam(null);
+      closeFlow(opts);
+    },
+    [closeFlow],
+  );
 
   /* The param tracks the *reading step*, not the flow.
      `detail` used to be a step of its own; it is `flow` at `at: 'review'` now,

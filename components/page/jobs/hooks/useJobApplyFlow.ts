@@ -3,6 +3,8 @@
 import { useCallback, useReducer, useRef } from 'react';
 
 import { useJobsAnalytics, type JobApplyTrigger, type JobSurface } from '@/analytics/jobs.analytics';
+import { openExternalApply } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { BoardViewerState, JobsAccessVerdict } from '@/services/jobs/job-board-viewer';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 
@@ -204,11 +206,33 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       if (access === 'rejected') return;
 
-      /* Approval is no longer part of this decision, and neither is which
-         surface the press came from. The only question left is the one that was
-         always the real one: is there enough profile to send? If not, the middle
-         step collects it. Either way the answer to pressing Apply is "here is
-         what's needed", never a different dialog and never a no.
+      /**
+       * An account still awaiting approval applies on the employer's own site —
+       * except to Protocol Labs, which takes it through the wizard.
+       *
+       * **This is the board's original rule with one carve-out.** It was removed
+       * outright when approval stopped gating applying; the carve-out is what
+       * that removal should have been. PL is the one employer on this board whose
+       * hiring the network runs, so an application it receives from an unapproved
+       * account is an application it can decide about itself. Every other team is
+       * being handed a stranger the PL team has not vetted, and their own posting
+       * is the honest place for that.
+       *
+       * Note what is *not* consulted: the viewer state. A Job Aspirant derives as
+       * `profile-ready` even while unapproved (see `deriveBoardViewer`, which
+       * keeps the pending banner away from people who are not in that review) —
+       * so reading the banner state here would let them apply anywhere. The
+       * verdict is the access answer; the viewer state is a presentation one.
+       */
+      if (access === 'pending' && !isProtocolLabsTeam(target.team)) {
+        openExternalApply(target.role.applyUrl, source);
+        return;
+      }
+
+      /* Past that, the only question left is the one that was always the real
+         one: is there enough profile to send? If not, the middle step collects
+         it. Either way the answer is "here is what's needed", never a different
+         dialog and never a no.
 
          `OPEN_FLOW` rather than `GO_TO_STEP` even when the flow is already open
          on the review step: it is idempotent on the target and it is the one
@@ -221,7 +245,7 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       dispatch({ type: 'OPEN_FLOW', target, at: 'profile' });
       analytics.onJobApplyDrawerOpened(applyBase(target));
     },
-    [analytics, applyBase, profileComplete, refreshVerdict, verdict, viewer],
+    [analytics, applyBase, profileComplete, refreshVerdict, source, verdict, viewer],
   );
 
   /** Moving along the rail, or the header's Back. Analytics for arriving at the

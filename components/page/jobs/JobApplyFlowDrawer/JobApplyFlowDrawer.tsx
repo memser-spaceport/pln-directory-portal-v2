@@ -137,6 +137,13 @@ interface JobApplyFlowDrawerProps {
   /** Whether the review step offers the way out to the team's own posting —
    *  see `canSeeOriginalPosting`. */
   showOriginalPosting: boolean;
+  /**
+   * Pressing Apply will open the employer's own posting rather than advance the
+   * rail: an account awaiting approval, applying to a role Protocol Labs did not
+   * post. The footer has to say so — a rail promising three steps above a button
+   * that leaves the site is the flow lying about itself.
+   */
+  applyGoesExternal: boolean;
   /** Pressing Apply on the review step, which the flow answers by routing. */
   onApply: () => void;
   onProfileSaved: (args: { profileComplete: boolean }) => void;
@@ -208,6 +215,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     applied,
     appliedAt,
     showOriginalPosting,
+    applyGoesExternal,
     onApply,
     onProfileSaved,
     onSubmitted,
@@ -414,10 +422,22 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           ),
         };
       }
+      if (applyGoesExternal) {
+        return {
+          hint: `${target.teamName} takes applications on their own site — it opens in a new tab.`,
+          action: (
+            <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
+              Apply on their site
+            </Button>
+          ),
+        };
+      }
+
       return {
-        /* The pending-approval variant is gone with the gate it described. A
-           pending member now reads whichever of the three below fits their
-           profile, like anyone else — because on this board they are. */
+        /* Whichever of the three fits the profile. The pending-approval variant
+           that used to live here is gone: a pending member who reaches this
+           branch is applying to Protocol Labs, and for that role they are like
+           anyone else. */
         hint: !isLoggedIn
           ? 'Applying sends a profile — the next step opens your account and builds one.'
           : complete

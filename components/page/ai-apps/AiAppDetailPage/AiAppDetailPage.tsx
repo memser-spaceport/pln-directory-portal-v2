@@ -372,7 +372,6 @@ export function AiAppDetailPage(props: Props) {
           <FloatingFeedbackButton
             appUid={app.uid}
             appName={app.name}
-            floating={false}
             buttonProps={{
               size: 'xxs',
               style: 'border',

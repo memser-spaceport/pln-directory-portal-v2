@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import type { IJobRole } from '@/types/jobs.types';
 
 import { FormTextArea } from '@/components/form/FormTextArea/FormTextArea';
+import { DetailsSectionGreyContentContainer } from '@/components/common/profile/DetailsSection/components/DetailsSectionGreyContentContainer';
 import { Tag } from '@/components/ui/Tag';
 import { useMemberExperience, FormattedMemberExperience } from '@/services/members/hooks/useMemberExperience';
 import type { IMember } from '@/types/members.types';
@@ -21,6 +22,9 @@ import type { DirectoryMember } from '@/prototypes/entries/job-board/components/
 
 // Demo Day's "Make an intro" modal chrome, the same way ReferModal takes it.
 import intro from '@/components/page/demo-day/ActiveView/components/TeamsList/components/ReferCompanyModal/ReferCompanyModal.module.scss';
+// The profile step's lede, so steps 2 and 3 open in the same voice and the same
+// slot rather than one leading with a sentence and the other with a heading.
+import pd from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer.module.scss';
 import s from './JobApplicationPane.module.scss';
 
 // 2000 as a validation target, NOT a maxLength attribute: maxLength silently
@@ -173,9 +177,21 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
        clipped the pane's own content and put the bottom of a long letter
        somewhere nothing could reach. */
     <div className={s.pane}>
-      <h2 className={`${intro.title} ${s.headerLeft} ${s.headerTitle}`}>Apply for {role.roleTitle}</h2>
+      {/* One sentence at the top of the step, in the same slot and the same voice
+          as the profile step's lede. Names both halves of what is leaving, in
+          the order the pane shows them: "they receive your profile and this
+          note" is the whole contract.
 
-      <p className={`${intro.desc} ${s.headerLeft} ${s.headerDesc}`}>{teamName} receives your profile and this note.</p>
+          **It names the role**, which the modal this replaced didn't have to —
+          that card was titled "Apply for <role>" with "<team> receives your
+          profile and this note" underneath. Inside the flow the title belongs to
+          step 1, and by step 3 the only things on screen are a rail reading
+          "Application" and a Back control. Asking someone to write a paragraph
+          about a job the screen won't name is the one thing this step cannot
+          do. */}
+      <p className={pd.lede}>
+        Applying to {role.roleTitle} at {teamName} — they receive your profile and this note.
+      </p>
 
       {leads.length > 0 && (
         <p className={s.leads}>
@@ -211,18 +227,33 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
                 </button>
               </div>
 
-              <div className={s.profileCard}>
+              {/* Grey, not a white card with a border. The step is already a
+                  column of white on white — a bordered box inside it reads as a
+                  form field rather than as a quotation of something that exists
+                  elsewhere. */}
+              <DetailsSectionGreyContentContainer className={s.profileCard}>
                 <p className={s.profileName}>{member.name}</p>
                 <p className={s.profileSummary}>{summary}</p>
                 {primary && <p className={s.profileDates}>{formatExperienceDates(primary)}</p>}
                 {skills.length > 0 && (
                   <div className={s.skills}>
                     {skills.map((skill: string) => (
-                      <Tag key={skill} value={skill} variant="default" className={s.skillTag} />
+                      /* White, because the panel behind it went grey. `Tag`
+                         fills from `--tag-color` (slate-100) against a slate-50
+                         card, and one step apart is a chip you cannot see. It
+                         has to be the `color` prop — the fill is read from the
+                         element's own custom property, not inherited. */
+                      <Tag
+                        key={skill}
+                        value={skill}
+                        variant="default"
+                        color="var(--background-base-white, #fff)"
+                        className={s.skillTag}
+                      />
                     ))}
                   </div>
                 )}
-              </div>
+              </DetailsSectionGreyContentContainer>
             </div>
 
             <div className={s.block}>
@@ -230,8 +261,18 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
                 <span className={s.blockLabel}>Cover letter (message for the team)</span>
               </div>
               <FormTextArea name="coverLetter" rows={6} placeholder="Why this role, and what you’d bring to it." />
+              {/* `1200 / 2000`, which is `FormTextArea`'s own counter format and
+                  what the design asks for — "2000 characters left" was this
+                  panel inventing a second way to say the same thing.
+
+                  Still hand-rolled rather than `showCharCount`, because that
+                  prop only renders alongside a real `maxLength` attribute, and
+                  `maxLength` silently truncates pasted text. Someone pasting a
+                  2400-character letter should see the count go red and be told
+                  to shorten it, not quietly lose 400 characters. Same numbers,
+                  no data loss. */}
               <p className={clsx(s.counter, overLimit && s.counterOver)} aria-hidden="true">
-                {remaining} {overLimit ? 'over the limit' : 'characters left'}
+                {typed.length} / {COVER_LETTER_MAX_LENGTH}
               </p>
               <p className={s.visuallyHidden} role="status">
                 {overLimit
@@ -241,17 +282,13 @@ export function JobApplicationPane(props: JobApplicationPaneProps) {
             </div>
           </div>
 
-          {/* The note that used to sit above the actions. It stays with the
-                field it is about rather than moving to the footer: the footer's
-                sentence is about the *press*, and this one is about the letter.
-                Its `canSend` branch is gone — "the team can reply to you
-                directly" is the footer's line now, beside the button that makes
-                it true. */}
-          <p className={s.note}>
-            {overLimit
-              ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.`
-              : 'Add what you did in previous roles that makes you a good fit for this one.'}
-          </p>
+          {/* (A copy of the footer's sentence used to sit here, so the step
+              showed "Add what you did in previous roles…" twice — once under the
+              field and once in the bar below it. The footer's is the one that
+              stays: it sits beside the button it is advice about, and it changes
+              with what that button will do. The over-limit case goes with it for
+              the same reason — the counter above already turns red, and the
+              instruction belongs next to the control it unblocks.) */}
 
           {submitError && <p className={s.submitError}>{submitError}</p>}
         </form>

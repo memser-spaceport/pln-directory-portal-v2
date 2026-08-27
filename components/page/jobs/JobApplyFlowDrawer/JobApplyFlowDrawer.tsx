@@ -447,10 +447,17 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       };
     }
 
+    /* The step's one instruction, and the only place it appears — the pane used
+       to print a copy of this under the field. Three states, because "shorten
+       it" and "write something" are different problems and only one of them is
+       about what to say. */
+    const overLimit = remaining < 0;
     return {
-      hint: canSend
-        ? `${target.teamName} can reply to you directly.`
-        : 'Add what you did in previous roles that makes you a good fit for this one.',
+      hint: overLimit
+        ? `Shorten your note to ${COVER_LETTER_MAX_LENGTH} characters to send it.`
+        : canSend
+          ? `${target.teamName} can reply to you directly.`
+          : 'Add what you did in previous roles that makes you a good fit for this one.',
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens. */

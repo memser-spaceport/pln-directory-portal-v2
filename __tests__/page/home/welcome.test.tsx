@@ -23,8 +23,17 @@ describe('Welcome', () => {
 
   it('leads with the personalization offer and the team and member counts', () => {
     render(<Welcome teamCount={1019} memberCount={3241} />);
-    expect(screen.getByText(/See personalized updates from/i)).toBeInTheDocument();
-    expect(screen.getByText(/1,019\s+PL network teams and 3,241 members/i)).toBeInTheDocument();
+    expect(screen.getByText(/See personalized updates from/i)).toHaveTextContent(
+      'See personalized updates from 1,019 PL network teams and 3,241 members',
+    );
+  });
+
+  it('highlights only the counts', () => {
+    const { container } = render(<Welcome teamCount={1019} memberCount={3241} />);
+    const highlights = container.querySelectorAll('[class*="titleHighlight"]');
+    expect(highlights).toHaveLength(2);
+    expect(highlights[0]).toHaveTextContent('1,019');
+    expect(highlights[1]).toHaveTextContent('3,241');
   });
 
   it('renders the mechanism line and the sign-in door', () => {
@@ -38,12 +47,15 @@ describe('Welcome', () => {
 
   it('singularizes the counts', () => {
     render(<Welcome teamCount={1} memberCount={1} />);
-    expect(screen.getByText(/1\s+PL network team and 1 member$/i)).toBeInTheDocument();
+    expect(screen.getByText(/See personalized updates from/i)).toHaveTextContent(
+      'See personalized updates from 1 PL network team and 1 member',
+    );
   });
 
   it('drops the counts when they are unavailable', () => {
     render(<Welcome />);
-    expect(screen.getByText(/See personalized updates from/i)).toBeInTheDocument();
-    expect(screen.getByText(/^PL network teams$/i)).toBeInTheDocument();
+    expect(screen.getByText(/See personalized updates from/i)).toHaveTextContent(
+      'See personalized updates from PL network teams',
+    );
   });
 });

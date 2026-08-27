@@ -7,10 +7,8 @@ interface Props {
   memberCount?: number;
 }
 
-function networkInventory(teamCount?: number, memberCount?: number) {
-  const teams = `${teamCount ? `${teamCount.toLocaleString('en-US')} ` : ''}PL network ${teamCount === 1 ? 'team' : 'teams'}`;
-  if (!memberCount) return teams;
-  return `${teams} and ${memberCount.toLocaleString('en-US')} ${memberCount === 1 ? 'member' : 'members'}`;
+function Count({ value }: { value: number }) {
+  return <span className={s.titleHighlight}>{value.toLocaleString('en-US')}</span>;
 }
 
 export const Welcome = (props: Props) => {
@@ -21,7 +19,18 @@ export const Welcome = (props: Props) => {
       <div className={s.text}>
         <p className={s.title}>
           See personalized updates from{' '}
-          <span className={s.titleHighlight}>{networkInventory(teamCount, memberCount)}</span>
+          {teamCount ? (
+            <>
+              <Count value={teamCount} />{' '}
+            </>
+          ) : null}
+          PL network {teamCount === 1 ? 'team' : 'teams'}
+          {memberCount ? (
+            <>
+              {' '}
+              and <Count value={memberCount} /> {memberCount === 1 ? 'member' : 'members'}
+            </>
+          ) : null}
         </p>
         <p className={s.sub}>The feed reorders around your skills, your focus areas, and the teams you follow.</p>
       </div>

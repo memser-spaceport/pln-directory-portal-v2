@@ -24,6 +24,7 @@ import { useTeamNewsUpvoteToggle } from '@/services/team-news/hooks/useTeamNewsU
 import { useSuggestedTeamsToFollow } from '@/services/follow/hooks/useSuggestedTeamsToFollow';
 import { useFeedForumPostLikeToggle } from '@/services/feed/hooks/useFeedForumPostLikeToggle';
 import { useFollowAnalytics, type FollowAnalyticsSource } from '@/analytics/follow.analytics';
+import { FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS } from '@/services/feed/constants';
 
 import { Button } from '@/components/common/Button';
 import { SearchInput } from '@/components/common/filters/SearchInput';
@@ -64,7 +65,8 @@ import { sortAllTabItemsByEventDate } from './utils/sortAllTabItemsByEventDate';
 import { selectTopStories, TOP_STORIES_MIN_CORPUS } from './utils/selectTopStories';
 import { selectForYouItems } from './utils/selectForYouItems';
 import { assertNever, feedEntryKey, mergeFeedEntries } from './utils/mergeFeedEntries';
-import { categoryIncludesForumPosts, filterFeedForumPosts } from './utils/matchesFeedForumPost';
+import { feedWindowCutoffIso } from './utils/feedForumPostWindow';
+import { categoryIncludesForumPosts, filterFeedForumPosts, selectForYouForumPosts } from './utils/matchesFeedForumPost';
 
 import {
   useFeedModulesViewAnalytics,
@@ -179,10 +181,13 @@ export const TeamNews = ({
   // The feed's social layer (forum posts + comment counts), flag- and
   // access-gated in one hook. `forumPosts` undefined ⇒ news-only feed.
   //
-  // `forumPosts` is trimmed to the last 14 days and is what everything below
-  // renders and counts. `unwindowedForumPosts` is the same access-gated list
-  // with only that trim lifted, and has exactly two consumers — both on the
-  // ?post= deep-link path, so a shared link to an older topic still opens.
+  // `forumPosts` is trimmed to the last 14 days (last activity) and is what
+  // All / Discussions render and count. For You is a further createdAt L7D cut
+  // of this same list — see selectForYouForumPosts.
+  //
+  // `unwindowedForumPosts` is the same access-gated list with only that trim
+  // lifted, and has exactly two consumers — both on the ?post= deep-link path,
+  // so a shared link to an older topic still opens.
   const { forumPosts, unwindowedForumPosts, hasAccess, deepLinkSettled } = useFeedSocial({ newsUids });
 
   // Optimistic like state for forum posts — the exact upvoteOverlay pattern:
@@ -235,12 +240,23 @@ export const TeamNews = ({
     [allItems, initialForYouTeamUids],
   );
 
-  // Forum posts joining the current tab (they only ever show under the "All"
-  // category pill — a post has no event type). Memoized so its array identity
-  // can't re-run the merge on unrelated renders (e.g. upvote overlay writes).
+  // Forum posts joining the current tab (All / Discussions use this 14-day
+  // activity list; For You is a further createdAt L7D cut below). Memoized so
+  // its array identity can't re-run the merge on unrelated renders (e.g. upvote
+  // overlay writes).
   const tabForumPosts = useMemo(
     () => filterFeedForumPosts(forumPosts, { tab: activeTab, category: ALL_CAT, query: '' }),
     [forumPosts, activeTab],
+  );
+
+  // Frozen once per session, same reason useFeedSocial freezes the 14-day
+  // cutoff: a clock re-read each render would creep forward and drop a post
+  // out from under someone mid-read.
+  const [forYouForumCutoffIso] = useState(() => feedWindowCutoffIso(FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS, Date.now()));
+
+  const forYouForumPosts = useMemo(
+    () => selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query: '' }),
+    [forumPosts, forYouForumCutoffIso, activeTab],
   );
 
   // One definition of "how many does this pill have", used both to render the
@@ -248,15 +264,16 @@ export const TeamNews = ({
   // once already.
   const countForCategory = useCallback(
     (id: TeamNewsCategoryId) => {
-      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length;
+      if (id === FOR_YOU_CAT) return forYouItemsForActiveTab.length + forYouForumPosts.length;
       const newsCount =
         id === ALL_CAT
           ? itemsForActiveTab.length
           : itemsForActiveTab.filter((i) => matchesTeamNewsCategory(i, id)).length;
-      // Forum posts show under All and Discussions, and nowhere else.
+      // Forum posts show under All, Discussions, and For You. For You has its
+      // own L7D list; All / Discussions share tabForumPosts.
       return newsCount + (categoryIncludesForumPosts(id) ? tabForumPosts.length : 0);
     },
-    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab],
+    [itemsForActiveTab, tabForumPosts, forYouItemsForActiveTab, forYouForumPosts],
   );
 
   const categoriesWithCounts = useMemo(() => {
@@ -359,10 +376,14 @@ export const TeamNews = ({
     [clusters, sort, initialFollowedTeamUids, initialUpvoteCounts],
   );
 
-  // Forum posts under the CURRENT filters (category + search narrow tabForumPosts).
+  // Forum posts under the CURRENT filters (category + search). For You uses
+  // the posted-this-week cut; every other pill uses the 14-day activity list.
   const visibleForumPosts = useMemo(
-    () => filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query }),
-    [forumPosts, activeTab, activeCategory, query],
+    () =>
+      activeCategory === FOR_YOU_CAT
+        ? selectForYouForumPosts(forumPosts, forYouForumCutoffIso, { tab: activeTab, query })
+        : filterFeedForumPosts(forumPosts, { tab: activeTab, category: activeCategory, query }),
+    [forumPosts, activeTab, activeCategory, query, forYouForumCutoffIso],
   );
 
   // The unified feed: forum posts interleaved into the sorted clusters. The
@@ -597,12 +618,14 @@ export const TeamNews = ({
   const activeTabRef = useRef(activeTab);
   const activeCategoryRef = useRef(activeCategory);
   const analyticsRef = useRef(analytics);
+  const forYouForumCutoffIsoRef = useRef(forYouForumCutoffIso);
   useEffect(() => {
     filteredItemsRef.current = filteredItems;
     forumPostsRef.current = forumPosts;
     activeTabRef.current = activeTab;
     activeCategoryRef.current = activeCategory;
     analyticsRef.current = analytics;
+    forYouForumCutoffIsoRef.current = forYouForumCutoffIso;
   });
 
   // useCallback with empty deps is required here, not just tidy: SearchInput's
@@ -621,13 +644,19 @@ export const TeamNews = ({
     const q = trimmed.toLowerCase();
     // Same definition of "matches" as the rendered entries: news narrowed by
     // the query + forum posts under the current tab/category filters.
-    const resultCount =
-      filteredItemsRef.current.filter((i) => matchesTeamNewsQuery(i, q)).length +
-      filterFeedForumPosts(forumPostsRef.current, {
-        tab: activeTabRef.current,
-        category: activeCategoryRef.current,
-        query: trimmed,
-      }).length;
+    const category = activeCategoryRef.current;
+    const forumMatches =
+      category === FOR_YOU_CAT
+        ? selectForYouForumPosts(forumPostsRef.current, forYouForumCutoffIsoRef.current, {
+            tab: activeTabRef.current,
+            query: trimmed,
+          })
+        : filterFeedForumPosts(forumPostsRef.current, {
+            tab: activeTabRef.current,
+            category,
+            query: trimmed,
+          });
+    const resultCount = filteredItemsRef.current.filter((i) => matchesTeamNewsQuery(i, q)).length + forumMatches.length;
     const truncatedSearchValue = value.length > 100 ? value.slice(0, 100) : value;
     analyticsRef.current.onTeamNewsSearch(
       truncatedSearchValue,

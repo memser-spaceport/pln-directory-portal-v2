@@ -2161,7 +2161,9 @@ describe('TeamNews', () => {
         fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
 
         expect(
-          screen.queryByText(/For you: Curated based on your profile, primary team attributes, and the teams you follow/),
+          screen.queryByText(
+            /For you: Curated based on your profile, primary team attributes, and the teams you follow/,
+          ),
         ).not.toBeInTheDocument();
       } finally {
         useCurrentUserStore.setState({ currentUser: null, isHydrated: false });
@@ -2215,6 +2217,55 @@ describe('TeamNews', () => {
       expect(screen.getByText('Headline mem-dhr')).toBeInTheDocument();
       expect(screen.queryByText('Headline mem-1')).not.toBeInTheDocument();
       expect(screen.queryByText('Headline rec-1')).not.toBeInTheDocument();
+    });
+
+    it('mixes in forum posts created in the last 7 days and drops older ones from the same 14-day list', () => {
+      const day = 24 * 60 * 60 * 1000;
+      const makePost = (
+        uid: IFeedForumPost['uid'],
+        title: string,
+        createdDaysAgo: number,
+        activityDaysAgo: number,
+      ): IFeedForumPost => ({
+        uid,
+        tid: 96,
+        mainPid: 263,
+        title,
+        body: 'Hi Protocol Labs',
+        author: { memberUid: 'm-1', name: 'Matt Curran', avatarUrl: null, role: null },
+        focusAreas: [],
+        category: 'Intros',
+        createdAt: new Date(Date.now() - createdDaysAgo * day).toISOString(),
+        lastActivityAt: new Date(Date.now() - activityDaysAgo * day).toISOString(),
+        forumTopicUrl: `/forum/topics/5/${uid}`,
+        commentCount: 0,
+        likeCount: 0,
+        viewCount: 0,
+        viewerHasLiked: false,
+      });
+      mockUseFeedSocial.mockReturnValue(
+        feedSocial(
+          [
+            makePost('fp_recent', 'Posted this week', 2, 2),
+            // Created 10 days ago, replied to yesterday — still in All's 14-day
+            // activity window, but not "posted this week".
+            makePost('fp_older', 'Posted last fortnight', 10, 1),
+          ],
+          true,
+        ),
+      );
+
+      renderTeamNews(<TeamNews groups={forYouGroups} forYouTeamUids={['team-mem', 'team-rec']} />);
+
+      expect(screen.getByText('Posted this week')).toBeInTheDocument();
+      expect(screen.queryByText('Posted last fortnight')).not.toBeInTheDocument();
+      // 2 For You news items (one per matching team) + 1 L7D post.
+      expect(within(within(catRow()).getByRole('button', { name: /For You/ })).getByText('3')).toBeInTheDocument();
+
+      fireEvent.click(within(catRow()).getByRole('button', { name: /All categories/ }));
+
+      expect(screen.getByText('Posted this week')).toBeInTheDocument();
+      expect(screen.getByText('Posted last fortnight')).toBeInTheDocument();
     });
   });
   describe('the Views count, without a reload', () => {

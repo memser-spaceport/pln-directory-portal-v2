@@ -96,17 +96,15 @@ interface SignedOutBannerProps {
 }
 
 export function SignedOutBanner({ teamCount, memberCount, onSignIn }: SignedOutBannerProps) {
-  const teams = `${teamCount.toLocaleString('en-US')} PL network ${teamCount === 1 ? 'team' : 'teams'}`;
-  const members = `${memberCount.toLocaleString('en-US')} ${memberCount === 1 ? 'member' : 'members'}`;
-
   return (
     <section className={`${welcome.welcome} ${local.signedOutBanner}`}>
       <div className={welcome.text}>
         <p className={welcome.title}>
           See personalized updates from{' '}
-          <span className={welcome.titleHighlight}>
-            {teams} and {members}
-          </span>
+          <span className={welcome.titleHighlight}>{teamCount.toLocaleString('en-US')}</span> PL network{' '}
+          {teamCount === 1 ? 'team' : 'teams'} and{' '}
+          <span className={welcome.titleHighlight}>{memberCount.toLocaleString('en-US')}</span>{' '}
+          {memberCount === 1 ? 'member' : 'members'}
         </p>
         <p className={welcome.sub}>The feed reorders around your skills, your focus areas, and the teams you follow.</p>
       </div>

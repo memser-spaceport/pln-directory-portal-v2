@@ -62,6 +62,8 @@ import {
 import { hasExistingDiscussion } from '@/components/page/home/TeamNews/utils/hasExistingDiscussion';
 import { dedupeByUid } from '@/components/page/home/TeamNews/utils/dedupeByUid';
 import { sortAllTabItemsByEventDate } from '@/components/page/home/TeamNews/utils/sortAllTabItemsByEventDate';
+import { feedWindowCutoffIso } from '@/components/page/home/TeamNews/utils/feedForumPostWindow';
+import { FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS } from '@/services/feed/constants';
 
 import nb from '@/components/page/home/TeamNews/components/NewsBase/NewsBase.module.scss';
 import s from '@/components/page/home/TeamNews/TeamNews.module.scss';
@@ -152,6 +154,12 @@ const SHOW_TOP_STORIES = false;
  * because the mock corpus is.
  */
 const HAS_FOR_YOU_NEWS = ALL_CURATED_ITEMS.some((i) => FOR_YOU_TEAM_UIDS.includes(i.teamUid));
+
+// Frozen to the mock corpus's "today" (the day after the newest post). Real
+// Date.now() would drop every mock post — they're dated June 2026. Production
+// snapshots Date.now() once per session the same way.
+const MOCK_FEED_NOW_MS = Date.parse('2026-06-28T12:00:00.000Z');
+const FOR_YOU_FORUM_CUTOFF = feedWindowCutoffIso(FEED_FOR_YOU_FORUM_POST_WINDOW_DAYS, MOCK_FEED_NOW_MS);
 
 type Sort = 'latest' | 'popular' | 'following';
 
@@ -837,6 +845,15 @@ export default function NewsfeedPrototype() {
     [scopedItems, forYouTeams],
   );
 
+  // Posted-this-week forum posts for the For You count (no search — production
+  // counts the pill from the un-searched list too). Under a team scope they
+  // step out: a post is a person speaking, not a team shipping.
+  const forYouForumPosts = useMemo(() => {
+    if (teamFilter) return [];
+    const scoped = activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
+    return scoped.filter((p) => p.createdAt >= FOR_YOU_FORUM_CUTOFF);
+  }, [activeFocus, teamFilter]);
+
   const categoriesWithCounts = useMemo(() => {
     const activeDiscussionsCount = scopedItems.filter((i) => hasExistingDiscussion(i.discussion)).length;
     const base = CATEGORIES.map((c) => ({
@@ -856,7 +873,9 @@ export default function NewsfeedPrototype() {
     // is false and `TeamNews` never renders the pill. A pill offering "you" to
     // someone the product has never met is a control with nothing behind it —
     // `SignedOutBanner` makes the offer instead, where it can name the doors.
-    if (!teamFilter && signedIn) out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length });
+    if (!teamFilter && signedIn) {
+      out.push({ ...FOR_YOU_CATEGORY, count: forYouItems.length + forYouForumPosts.length });
+    }
     for (const c of base) {
       out.push(c);
       if (c.id === ALL_CAT && activeDiscussionsCount > 0) {
@@ -875,7 +894,7 @@ export default function NewsfeedPrototype() {
     if (showHiring && hiringCount > 0) out.push({ id: HIRING_CAT, label: 'Hiring', count: hiringCount });
     if (showPerks && !teamFilter) out.push({ id: DEALS_CAT, label: 'Deals', count: PERK_SIGNALS.length });
     return out;
-  }, [scopedItems, forYouItems, showHiring, showPerks, teamFilter, signedIn]);
+  }, [scopedItems, forYouItems, forYouForumPosts, showHiring, showPerks, teamFilter, signedIn]);
 
   /**
    * The same list the pills rendered, shaped for a dropdown.
@@ -922,12 +941,17 @@ export default function NewsfeedPrototype() {
   const clusters = useMemo(() => clusterByTeam(searchedItems), [searchedItems]);
 
   const forumPosts = useMemo(() => {
-    if (activeCategory !== ALL_CAT) return [];
+    if (activeCategory !== ALL_CAT && activeCategory !== FOR_YOU_CAT) return [];
     // A forum post is a person speaking, not a team shipping. Under a team scope
     // the reader asked for one team's updates, so posts step out — including
     // posts by that team's own members, which are still that member's opinion.
     if (teamFilter) return [];
-    const scoped = activeFocus === ALL_TAB ? FORUM_POSTS : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
+    const scoped =
+      activeCategory === FOR_YOU_CAT
+        ? forYouForumPosts
+        : activeFocus === ALL_TAB
+          ? FORUM_POSTS
+          : FORUM_POSTS.filter((p) => p.focusArea === activeFocus);
     const q = query.trim().toLowerCase();
     if (!q) return scoped;
     return scoped.filter(
@@ -938,7 +962,7 @@ export default function NewsfeedPrototype() {
         p.category.toLowerCase().includes(q) ||
         p.tags.some((t) => t.toLowerCase().includes(q)),
     );
-  }, [activeCategory, activeFocus, query, teamFilter]);
+  }, [activeCategory, activeFocus, query, teamFilter, forYouForumPosts]);
 
   /**
    * Hiring is supporting signal, not the story — so the mixed feed carries at

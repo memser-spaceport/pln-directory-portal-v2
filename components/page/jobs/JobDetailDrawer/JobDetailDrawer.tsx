@@ -1,10 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import clsx from 'clsx';
 
 import { PAGE_ROUTES } from '@/utils/constants';
+import { isBlankHtml, sanitizeJobDescriptionHtml } from '@/utils/html';
 import type { IJobRole, IJobTeam } from '@/types/jobs.types';
 import {
   formatRelativeDays,
@@ -100,12 +102,18 @@ interface JobDetailDrawerProps {
  * the one entry point that already branches on logged-out / incomplete /
  * ready. For unapproved members the footer is the outbound posting link.
  *
- * **The description is the open question, not the layout.** `IJobRole` carries
- * no body: the board's rows are scraped listing headers and the description has
- * always lived behind the outbound link. `summary` is modelled and rendered
- * here, but nothing sends it yet — the backend column exists and the board's
- * query service does not select it. Until that changes this panel shows its
- * empty state, which is exactly why `SHOW_JOB_DETAIL` is dark. See the flag.
+ * **The description arrives, but not for most jobs.** `descriptionHtml` is the
+ * posting's own body, scraped by the ingest and sanitized again here — the app
+ * ships no CSP, so `sanitizeJobDescriptionHtml` is the only defense layer on
+ * this markup, and it is the least trusted markup on the board. Roles without
+ * one (the majority: the ingest only carries a body for the teams whose careers
+ * sites it can read) still get the empty state below, which is why
+ * `SHOW_JOB_DETAIL` remains dark. Coverage flips that flag, not this component.
+ *
+ * The body is rendered as it arrives, including whatever the source repeats or
+ * links to. Some postings open by restating their own title and end with their
+ * own apply link; normalising that away would mean guessing at the structure of
+ * markup we do not control, and quietly deleting words the team wrote.
  */
 export function JobDetailDrawer(props: JobDetailDrawerProps) {
   const { open, onClose, role, team, onApply, applied, appliedAt, externalApply = false, loggedIn, source } = props;
@@ -124,7 +132,19 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
       ].filter(Boolean)
     : [];
 
-  const summary = role?.summary?.trim() || '';
+  /* Sanitizing a multi-kilobyte body on every render is waste — this drawer
+     re-renders with the board's state. Keyed on the raw string, so reopening on
+     a different role recomputes and reopening on the same one does not. */
+  const body = useMemo(() => {
+    const raw = role?.descriptionHtml;
+    if (!raw) return '';
+    const clean = sanitizeJobDescriptionHtml(raw);
+    /* Tested on the SANITIZED string, never the raw one. A body that is only a
+       hrefless anchor or an image is a perfectly truthy string that sanitizes
+       down to nothing, and rendering it would give us an empty section under a
+       heading rather than the empty state that says where the posting is. */
+    return isBlankHtml(clean) ? '' : clean;
+  }, [role?.descriptionHtml]);
 
   /* One sentence under the button, and it changes with what the press will
      actually do. A footer promising "one press" to someone with no account would
@@ -197,7 +217,7 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
                 {/* Only alongside a description. With nothing to read in the
                     panel the link is the whole point, and it gets the empty
                     state below instead of a stamp in a metadata row. */}
-                {postingHref && summary && (
+                {postingHref && body && (
                   <a className={d.postingLink} href={postingHref} target="_blank" rel="noopener noreferrer">
                     <ArrowUpRightIcon aria-hidden="true" />
                     Original posting
@@ -208,15 +228,19 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
 
             <DetailsSection>
               <DetailsSectionHeader title="About the role" />
-              {summary ? (
-                <p className={d.para}>{summary}</p>
+              {body ? (
+                /* Sanitized above, and the sanitizer is the allowlist — see
+                   `sanitizeJobDescriptionHtml`. No parser here because nothing
+                   transforms the nodes; the stylesheet does all the work. */
+                <div className={d.body} dangerouslySetInnerHTML={{ __html: body }} />
               ) : (
-                /* The honest empty state, and for now the only one anyone will
-                   see. It does not apologise and it does not pretend a summary
-                   is loading: it says where the description actually is and
-                   sends them there, leaving Apply in the footer untouched — the
-                   two are different acts, which is why the board has always had
-                   both. */
+                /* The honest empty state — still what most roles show, because
+                   the ingest only carries a body for the teams whose careers
+                   sites it can read. It does not apologise and it does not
+                   pretend a description is loading: it says where the posting
+                   actually is and sends them there, leaving Apply in the footer
+                   untouched — the two are different acts, which is why the board
+                   has always had both. */
                 <div className={d.emptyBody}>
                   <p className={d.emptyLead}>
                     {postingHref
@@ -249,13 +273,17 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
               /* The row's applied control, in the row's shell — a report, not an
                  offer, and `disabled` is the honest semantics: there is nothing
                  left to press. */
-              <button type="button" disabled className={clsx(btn.root, btn.medium, btn.border, btn.neutral)}>
+              <button
+                type="button"
+                disabled
+                className={clsx(btn.root, btn.medium, btn.border, btn.neutral, d.applyAction, d.appliedButton)}
+              >
                 <CheckIcon width={14} height={14} aria-hidden="true" />
                 Applied
               </button>
             ) : externalApply && postingHref ? (
               <a
-                className={clsx(btn.root, btn.medium, btn.fill, btn.primary, d.applyLink)}
+                className={clsx(btn.root, btn.medium, btn.fill, btn.primary, d.applyAction, d.applyLink)}
                 href={postingHref}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -264,7 +292,7 @@ export function JobDetailDrawer(props: JobDetailDrawerProps) {
                 Apply
               </a>
             ) : (
-              <Button variant="primary" style="fill" size="m" onClick={onApply}>
+              <Button variant="primary" style="fill" size="m" className={d.applyAction} onClick={onApply}>
                 Apply
               </Button>
             )}

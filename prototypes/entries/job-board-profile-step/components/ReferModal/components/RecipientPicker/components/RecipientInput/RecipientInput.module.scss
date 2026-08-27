@@ -1,0 +1,104 @@
+// The last line of the value column, so it stretches with the rows above it.
+// Padding lives on the two children rather than here, so the button's glyph and
+// the caret both start at the same 10px the avatars do (6px value-container
+// padding + 4px row padding) — the line reads as one more entry in the list.
+.inputRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  // Matches a recipient row's 32px, so the field keeps its rhythm at the last line
+  // and doesn't resize when the button becomes the input.
+  height: 32px;
+
+  // Empty, react-select switches the value container to `display: grid` and gives
+  // its Placeholder `grid-area: 1 / 1 / 2 / 3` so the two overlap on one line. Its
+  // own Input wrapper claims the same cell; ours has to say so too, or it
+  // auto-places into row 2 and the field opens at double height with the
+  // placeholder stranded at the top of it. Ignored in the flex-column path, which
+  // is every state that has a recipient in it.
+  grid-area: 1 / 1 / 2 / 3;
+}
+
+.inputField {
+  width: 100%;
+  min-width: 0;
+
+  padding: 0 4px;
+  margin: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-primary, #0a0c11);
+
+  // The same #afbaca the field's own placeholder uses (see `placeholder` in
+  // selectStyles.ts) — the two are the same line in two states, so they can't be
+  // two greys.
+  &::placeholder {
+    color: #afbaca;
+  }
+}
+
+// Out of sight, still in the tree: react-select keeps a live `inputRef` and moves
+// focus to it on the control's mousedown, which is what turns the button back into
+// the typing line. Clipped rather than `display: none` or `visibility: hidden`,
+// both of which make an element unfocusable and would break that hand-off.
+.inputFieldTucked {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+// The field's one way to add anybody, so it is labelled rather than left as an
+// empty strip with a grey hint in it. Brand blue at 14/500: this modal's other
+// quiet text action ("Reset to template", `.resetLink` in ReferModal.module.scss)
+// is the same colour, and inside a field a bordered control would read as a
+// second object rather than as the list's last line.
+//
+// Full width with a recipient row's padding, radius and hover tint, because that
+// is what it is — the row after the last person.
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+
+  padding: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-brand-primary, #1b4dff);
+
+  &:hover {
+    background: rgba(27, 56, 96, 0.04);
+  }
+}
+
+// The avatars' slot. `PlusIcon` takes its colour from `currentColor`, so it
+// inherits the button's blue.
+.addGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 24px;
+  height: 24px;
+}

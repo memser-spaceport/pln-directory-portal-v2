@@ -30,6 +30,22 @@ interface CuratedRailProps {
    * one comes back at every width.
    */
   followCardClassName?: string;
+  /**
+   * Whether there is an account behind the page. The digest card is the rail's
+   * one module that creates something rather than pointing at something, and
+   * what it creates is an email — so without an address on file, Subscribe is
+   * the offer being taken up rather than a switch that quietly flips.
+   *
+   * It is *not* hidden while signed out, unlike the inline `SubscribeBanner`.
+   * That one is a conditional interruption that fires under a narrowed view, so
+   * it would stack a second ask under the banner already making one. This is
+   * standing rail content describing something the product does, and a visitor
+   * reading "in your inbox every Monday" has been given another honest reason to
+   * sign in — removing it would just make the rail shorter for no visible cause.
+   */
+  signedIn?: boolean;
+  /** Sign-in door, run before the subscribe lands. See `signedIn`. */
+  onSignIn?: () => void;
 }
 
 /**
@@ -41,7 +57,14 @@ interface CuratedRailProps {
  * profile; a reason tells you why it's in front of you, which is the only
  * thing that earns a follow from a rail.
  */
-export function CuratedRail({ followedTeams, onToggleFollow, popularItems, followCardClassName }: CuratedRailProps) {
+export function CuratedRail({
+  followedTeams,
+  onToggleFollow,
+  popularItems,
+  followCardClassName,
+  signedIn = true,
+  onSignIn,
+}: CuratedRailProps) {
   const [subscribed, setSubscribed] = useState(false);
 
   return (
@@ -87,7 +110,17 @@ export function CuratedRail({ followedTeams, onToggleFollow, popularItems, follo
           style={subscribed ? 'border' : 'fill'}
           variant={subscribed ? 'neutral' : 'primary'}
           className={v0.digestPromoBtn}
-          onClick={() => setSubscribed((v) => !v)}
+          /* Stash-and-replay, the same shape Follow uses on this page: sign in,
+             then land the subscribe, so the click the person made is the click
+             that happens rather than one they have to make twice. */
+          onClick={() => {
+            if (!signedIn) {
+              onSignIn?.();
+              setSubscribed(true);
+              return;
+            }
+            setSubscribed((v) => !v);
+          }}
         >
           {subscribed ? 'Subscribed ✓' : 'Subscribe'}
         </Button>

@@ -1,0 +1,23 @@
+// Only the ✕ layer. Everything else is production's FormTagsInput.module.scss,
+// imported as-is by the component.
+.badge {
+  // Production stroke-paints react-select's *filled* cross (`svg { stroke: #64748b }`),
+  // which leaves the glyph reading near-black. The DS CloseIcon is a stroked path
+  // taking `currentColor`, so tone is set on the button — same grey the Refer
+  // modal's recipient chips use, darkening to secondary on hover.
+  > button {
+    color: var(--foreground-neutral-tertiary, #8897ae);
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--foreground-neutral-secondary, #455468);
+    }
+
+    // FormTagsInput pins `svg { stroke: #64748b }`, and a CSS declaration beats the
+    // icon's own `stroke="currentColor"` attribute — so the tone above only lands
+    // once the stroke is handed back to currentColor.
+    svg {
+      stroke: currentColor;
+    }
+  }
+}

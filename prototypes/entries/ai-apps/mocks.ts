@@ -114,7 +114,74 @@ export interface DeploymentInfo {
   runtimeLogs: DeployLogLine[];
 }
 
-export type AiAppWithDoc = AiApp & { onePager?: OnePager; deployment?: DeploymentInfo };
+/**
+ * Who last changed the app, and how long ago. Production's `AiApp` has a
+ * creator (`member`) and an `updatedAt`, but no record of WHO moved it — an app
+ * with collaborators can be pushed by someone who isn't its creator, and the
+ * card today can't say so. Modelled here without touching the real type, the
+ * way `onePager` was.
+ *
+ * `minutesAgo` rather than a timestamp on purpose. Prototype routes
+ * server-render, so anything derived from `Date.now()` at module load or in
+ * render produces a different string on the server than on the client and
+ * hydration tears. An offset is fixed, sorts correctly, and reads the same in
+ * both passes.
+ */
+export interface LastUpdate {
+  byUid: string;
+  byName: string;
+  minutesAgo: number;
+}
+
+/**
+ * Activity signals. `views` is the "is anyone using this?" number — the only
+ * proof-of-life a sandbox app has, and the thing an author has no way to learn
+ * today. `feedback` is a queue, not a score, so the card shows it to managers
+ * only (see AiAppCard).
+ */
+export interface AppActivity {
+  views: number;
+  feedback: number;
+}
+
+export type AiAppWithDoc = AiApp & {
+  onePager?: OnePager;
+  deployment?: DeploymentInfo;
+  lastUpdate?: LastUpdate;
+  activity?: AppActivity;
+};
+
+/** The member browsing the prototype — "you" in the Created by filter and the feedback dialog. */
+export const currentUser = { uid: 'm-1', name: 'Polina Bublii' };
+
+/** Transcribed from dev's GiveAiAppFeedbackDialog: feedback about the platform itself. */
+export const LABOS_AI_APPS_OPTION = { label: 'LabOS - AI Apps', value: '__labos_ai_apps__' };
+
+/**
+ * Relative time from a fixed offset, matching production `formatTimeAgo`'s
+ * vocabulary ("3min ago", "5h ago", "3 weeks ago"). Local rather than the real
+ * helper because that one reads `Date.now()`, which a server-rendered route
+ * can't do without tearing on hydration.
+ */
+export function formatMinutesAgo(minutes: number): string {
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${Math.round(minutes)}min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(minutes / 60 / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.round(days / 7);
+  if (weeks < 5) return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+  const months = Math.round(days / 30);
+  return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+}
+
+/** 128 → "128", 1240 → "1.2k". Keeps the metrics row narrow on a card. */
+export function formatCount(n: number): string {
+  if (n < 1000) return String(n);
+  const k = n / 1000;
+  return `${k >= 10 ? Math.round(k) : Math.round(k * 10) / 10}k`;
+}
 
 // Terse row builder so the seeded pipelines below stay readable. `date` is
 // bound per-app via `pipeline()` since every deploy runs inside one day.
@@ -242,6 +309,11 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-06-18T10:00:00.000Z',
     updatedAt: '2026-06-18T10:00:00.000Z',
     member: { uid: 'm-1', name: 'Polina Bublii', image: null },
+    // The case the update note exists for: the creator is Polina, but the last
+    // push came from a collaborator. Without naming Daniel, the card would date
+    // a change to the wrong person by implication.
+    lastUpdate: { byUid: 'm-2', byName: 'Daniel Singer', minutesAgo: 120 },
+    activity: { views: 1240, feedback: 7 },
     // Seeded 1-pager (preview only) so the "anyone can view" state is visible
     // out of the box. Uploaded files additionally get a real `fileUrl`.
     onePager: {
@@ -311,6 +383,9 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-06-12T14:30:00.000Z',
     updatedAt: '2026-06-12T14:30:00.000Z',
     member: { uid: 'm-2', name: 'Daniel Singer', image: null },
+    // Creator updated it themselves — the name is dropped, see AiAppCard.
+    lastUpdate: { byUid: 'm-2', byName: 'Daniel Singer', minutesAgo: 60 * 24 * 3 },
+    activity: { views: 486, feedback: 2 },
     onePager: {
       fileName: 'Founder Digest - Overview.html',
       fileSize: 18_240,
@@ -377,6 +452,8 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-06-05T09:15:00.000Z',
     updatedAt: '2026-06-05T09:15:00.000Z',
     member: { uid: 'm-3', name: 'Maria Lopez', image: null },
+    lastUpdate: { byUid: 'm-4', byName: 'Arjun Patel', minutesAgo: 60 * 24 * 5 },
+    activity: { views: 318, feedback: 0 },
     deployment: {
       provider: 'gcp',
       region: 'us-central1',
@@ -439,6 +516,8 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-06-24T16:45:00.000Z',
     updatedAt: '2026-06-24T16:47:00.000Z',
     member: { uid: 'm-4', name: 'Arjun Patel', image: null },
+    lastUpdate: { byUid: 'm-4', byName: 'Arjun Patel', minutesAgo: 40 },
+    activity: { views: 92, feedback: 4 },
     deployment: {
       provider: 'aws',
       region: 'us-east-1',
@@ -526,6 +605,10 @@ export const mockAiApps: AiAppWithDoc[] = [
     createdAt: '2026-07-02T08:12:00.000Z',
     updatedAt: '2026-07-02T08:13:00.000Z',
     member: { uid: 'm-5', name: 'Nina Chen', image: null },
+    // No lastUpdate on purpose: nothing has ever shipped, so the card keeps
+    // dev's "Never deployed" line rather than dating a change to a version
+    // nobody can open.
+    activity: { views: 14, feedback: 1 },
     deployment: {
       provider: 'gcp',
       region: 'us-central1',
@@ -559,6 +642,130 @@ export const mockAiApps: AiAppWithDoc[] = [
       ]),
       runtimeLogs: [],
     },
+  },
+
+  /*
+   * Apps 6-10 are deliberately thin: no `deployment` block, so they read as
+   * ordinary healthy apps (the card defaults serving to 'latest') and carry no
+   * seeded log pipelines. They exist so the filters rail has a set worth
+   * filtering — a Created by list of five names over five cards demonstrates
+   * nothing, and neither does a Status facet where every option matches
+   * everything.
+   */
+  {
+    uid: 'app-6',
+    memberUid: 'm-5',
+    appId: 'skill-graph',
+    name: 'Skill Graph Explorer',
+    description: 'Maps who knows what across the network and finds the shortest path to expertise you need.',
+    status: 'READY',
+    notes: null,
+    url: '',
+    httpUrl: '',
+    host: 'labs.pln',
+    port: 443,
+    deploymentId: 'dep-6',
+    requiredEnvVars: ['DIRECTORY_API_TOKEN'],
+    providedEnvVars: ['DIRECTORY_API_TOKEN'],
+    createdAt: '2026-07-28T11:20:00.000Z',
+    updatedAt: '2026-08-27T04:00:00.000Z',
+    member: { uid: 'm-5', name: 'Nina Chen', image: null },
+    lastUpdate: { byUid: 'm-3', byName: 'Maria Lopez', minutesAgo: 60 * 6 },
+    activity: { views: 731, feedback: 3 },
+    onePager: {
+      fileName: 'Skill Graph Explorer - PRD.md',
+      fileSize: 9_120,
+      previewDataUrl: onePagerPlaceholder('Skill Graph Explorer'),
+    },
+  },
+  {
+    uid: 'app-7',
+    memberUid: 'm-1',
+    appId: 'meeting-notes-sync',
+    name: 'Meeting Notes Sync',
+    description: 'Pulls action items out of meeting notes and files them against the right team and project.',
+    // Never deployed by choice — the creator is still filling in secrets.
+    status: 'DRAFT',
+    notes: null,
+    url: '',
+    httpUrl: '',
+    host: 'labs.pln',
+    port: 443,
+    deploymentId: 'dep-7',
+    requiredEnvVars: ['OPENAI_API_KEY', 'NOTION_TOKEN'],
+    providedEnvVars: [],
+    createdAt: '2026-08-25T15:05:00.000Z',
+    updatedAt: '2026-08-25T15:05:00.000Z',
+    member: { uid: 'm-1', name: 'Polina Bublii', image: null },
+    activity: { views: 8, feedback: 0 },
+  },
+  {
+    uid: 'app-8',
+    memberUid: 'm-2',
+    appId: 'portfolio-pulse',
+    name: 'Portfolio Pulse',
+    description: 'Weekly rollup of portfolio-team news, hiring and funding, written as a single briefing.',
+    status: 'READY',
+    notes: null,
+    url: '',
+    httpUrl: '',
+    host: 'labs.pln',
+    port: 443,
+    deploymentId: 'dep-8',
+    requiredEnvVars: ['DIRECTORY_API_TOKEN'],
+    providedEnvVars: ['DIRECTORY_API_TOKEN'],
+    createdAt: '2026-05-30T09:00:00.000Z',
+    updatedAt: '2026-08-27T05:35:00.000Z',
+    member: { uid: 'm-2', name: 'Daniel Singer', image: null },
+    lastUpdate: { byUid: 'm-2', byName: 'Daniel Singer', minutesAgo: 25 },
+    activity: { views: 2140, feedback: 11 },
+    onePager: {
+      fileName: 'Portfolio Pulse - PRD.md',
+      fileSize: 14_300,
+      previewDataUrl: onePagerPlaceholder('Portfolio Pulse'),
+    },
+  },
+  {
+    uid: 'app-9',
+    memberUid: 'm-3',
+    appId: 'docs-qa',
+    name: 'Docs Q&A Bot',
+    description: 'Answers questions about internal handbooks and links straight to the paragraph it used.',
+    status: 'READY',
+    notes: null,
+    url: '',
+    httpUrl: '',
+    host: 'labs.pln',
+    port: 443,
+    deploymentId: 'dep-9',
+    requiredEnvVars: ['OPENAI_API_KEY'],
+    providedEnvVars: ['OPENAI_API_KEY'],
+    createdAt: '2026-06-28T13:40:00.000Z',
+    updatedAt: '2026-08-15T10:00:00.000Z',
+    member: { uid: 'm-3', name: 'Maria Lopez', image: null },
+    lastUpdate: { byUid: 'm-5', byName: 'Nina Chen', minutesAgo: 60 * 24 * 12 },
+    activity: { views: 664, feedback: 1 },
+  },
+  {
+    uid: 'app-10',
+    memberUid: 'm-1',
+    appId: 'onboarding-buddy',
+    name: 'Onboarding Buddy',
+    description: 'Walks a new member through their first week: profile, office hours, and who to meet.',
+    status: 'READY',
+    notes: null,
+    url: '',
+    httpUrl: '',
+    host: 'labs.pln',
+    port: 443,
+    deploymentId: 'dep-10',
+    requiredEnvVars: ['DIRECTORY_API_TOKEN'],
+    providedEnvVars: ['DIRECTORY_API_TOKEN'],
+    createdAt: '2026-07-15T08:30:00.000Z',
+    updatedAt: '2026-08-18T12:00:00.000Z',
+    member: { uid: 'm-1', name: 'Polina Bublii', image: null },
+    lastUpdate: { byUid: 'm-1', byName: 'Polina Bublii', minutesAgo: 60 * 24 * 9 },
+    activity: { views: 210, feedback: 0 },
   },
 ];
 
@@ -617,6 +824,49 @@ export const mockAppPreviews: Record<string, string> = {
     '#8897ae',
     `<div class="card"><h2>Not deployed</h2><p>This app has never been built successfully, so there is no running
        version to preview. Open Deployment logs to see why the build failed.</p></div>`,
+  ),
+  'app-6': demoSrcDoc(
+    'Skill Graph Explorer',
+    '#0f766e',
+    `<div class="card"><h2>Looking for: Rust + zk proofs</h2><p>2 people in the network, both 1 hop from you.</p>
+       <a class="btn" href="#">See the path -&gt;</a></div>
+     <div class="row">
+       <div class="stat"><b>1,284</b><span>members mapped</span></div>
+       <div class="stat"><b>318</b><span>skills</span></div>
+     </div>`,
+  ),
+  'app-7': demoSrcDoc(
+    'Meeting Notes Sync',
+    '#8897ae',
+    `<div class="card"><h2>Not deployed yet</h2><p>This app is still a draft — its required values haven't been
+       provided, so there is nothing running to preview.</p></div>`,
+  ),
+  'app-8': demoSrcDoc(
+    'Portfolio Pulse',
+    '#1b4dff',
+    `<div class="card"><h2>This week across 24 teams</h2><p>3 funding rounds, 11 new roles, 2 launches.</p>
+       <a class="btn" href="#">Read the briefing -&gt;</a></div>
+     <div class="row">
+       <div class="stat"><b>24</b><span>teams</span></div>
+       <div class="stat"><b>11</b><span>open roles</span></div>
+       <div class="stat"><b>3</b><span>rounds</span></div>
+     </div>`,
+  ),
+  'app-9': demoSrcDoc(
+    'Docs Q&amp;A Bot',
+    '#7c3aed',
+    `<div class="card"><h2>"How do I request office hours?"</h2><p>Answered from the Member Handbook, §4.2 —
+       with the paragraph linked.</p><a class="btn" href="#">Open the source -&gt;</a></div>`,
+  ),
+  'app-10': demoSrcDoc(
+    'Onboarding Buddy',
+    '#0a9952',
+    `<div class="card"><h2>Your first week</h2><p>4 of 6 steps done. Next: book office hours with your team lead.</p>
+       <a class="btn" href="#">Continue -&gt;</a></div>
+     <div class="row">
+       <div class="stat"><b>4/6</b><span>steps done</span></div>
+       <div class="stat"><b>3</b><span>people to meet</span></div>
+     </div>`,
   ),
 };
 

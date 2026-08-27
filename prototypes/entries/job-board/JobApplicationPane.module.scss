@@ -199,6 +199,28 @@
 //  section titles already use cannot be wrong, and tracks production if it ever
 //  changes.)
 
+// The cover-letter block's invitation, standing where its label used to.
+//
+// 14px/22 secondary — the body voice, not the 14px/500 #64748b of
+// `DetailsSectionHeader .title` that the profile block above still wears. That
+// is deliberate and the two are not inconsistent: the panel above is *titled*
+// because it is a labelled thing you read back, and this is *addressed to you*.
+// A three-sentence invitation set in a section-title style would read as a
+// heading that ran on.
+//
+// Weight 400 against the profile summary's 500 for the same reason — this is the
+// quieter of the two, because the box under it is where the attention belongs.
+// Pair copied from `.profileDates` above, which is this file's existing
+// secondary-text pair; the size is the on-scale 14/22 rather than that note's 12.
+.blockNote {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 // ReferModal's `.resetLink` — the established quiet-link idiom for a corrective
 // escape sitting in a label row. 12px so it stays under the 14px label it shares
 // the row with: it's a way out, not a second heading.

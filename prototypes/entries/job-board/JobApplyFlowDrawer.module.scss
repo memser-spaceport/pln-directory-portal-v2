@@ -297,3 +297,74 @@
     min-width: 0;
   }
 }
+
+// A real edge on the flow cards, not just a shadow.
+//
+// Production's `DetailsSection` draws its card with
+// `box-shadow: 0 0 1px 0 rgba(15, 23, 42, 0.12), 0 4px 4px 0 rgba(15, 23, 42, 0.04)`
+// and no border at all. A 1px, zero-spread shadow at 12% is close to nothing
+// on white: against the white drawer the cards read as floating text blocks
+// rather than as containers, and where two sit adjacent there is no telling
+// where one stops and the next begins.
+//
+// So the shadow stays — it still lifts the card off the ground — and this adds
+// the edge the shadow was standing in for.
+//
+// **The filter rail's border, copied — `--border-neutral-xsubtle` (0.06).**
+//
+// `FilterSection.module.scss` is the right answer and it was on screen the
+// whole time: the boxes in the job board’s own filter rail, one column left of
+// this drawer, are white cards on the same page carrying
+// `border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06))`
+// over a light shadow. Same job, same ground, same viewport — so a reader
+// sees one kind of container rather than two.
+//
+// It took two wrong values to get here, both worth recording because the
+// mistakes are opposite:
+//
+//   muted   0.24  — shipped first, came back as "too dark". It is the *hover*
+//                   value, so it also spent the step hover needs.
+//   subtle  0.12  — the house table’s generic card border. On-system, and
+//                   still a notch heavier than the cards beside it.
+//   xsubtle 0.06  — what the neighbouring cards on this page actually use.
+//
+// The defence written for muted is the part to remember: *subtle is the same
+// alpha as the shadow that was already failing to be seen, so it would
+// reproduce the problem*. Same alpha, completely different rendering — the
+// shadow is blurred over 1px and offset, so almost none of that 12% lands on
+// any one pixel, while a solid 1px border puts all of it on the boundary.
+// Reading two treatments as equivalent because they share a number is what
+// overruled the system in the first place.
+//
+// And the general form: a house table tells you the value for a *kind* of
+// thing, but the component already doing this job on this screen tells you
+// the value for *this* thing. Prefer the neighbour you can point at.
+//
+// `box-sizing: border-box` is global (`app/globals.scss`), so the 1px costs no
+// width and nothing beside it reflows.
+//
+// **Not applied to `missingData` cards.** Those already carry
+// `border: 1px solid var(--border-brand-subtle, #aebfff)` from 960 up, and two
+// single-class border rules on one element is one of them losing a bundle-order
+// coin toss. The callers gate on the same flag the variant does.
+.cardEdge {
+  border: 1px solid var(--border-neutral-xsubtle, rgba(27, 56, 96, 0.06));
+}
+
+/* An icon beside a label in a DS `Button`, for the footer's action.
+
+   Values are `.appliedButton`'s above, not new ones — one icon-and-label spacing
+   in this footer whichever button carries it — and the reason is the one written
+   there: `Button.root` is a plain `<button>`, not a flex container, so `gap` does
+   nothing until the element is made one, and the arrow renders jammed against
+   the last letter.
+
+   Its own class rather than folded into `.footerAction`: most footer buttons are
+   a label and nothing else, and making every one of them a flex box to serve the
+   two that aren't would be paying for a layout nobody else uses. */
+.footerActionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

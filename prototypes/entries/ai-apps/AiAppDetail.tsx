@@ -1,13 +1,17 @@
 'use client';
 
+import { Button } from '@/components/common/Button';
+import { DocumentIcon } from '@/components/icons';
+// Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
+import bb from '@/components/ui/BackButton/BackButton.module.scss';
+// Dev's own top-bar action class, so the two buttons here measure like the
+// real detail page's.
+import dev from '@/components/page/ai-apps/AiAppDetailPage/AiAppDetailPage.module.scss';
+
+import { GiveFeedbackButton } from './GiveFeedbackButton';
 import type { AiAppWithDoc } from './mocks';
 import { AppActionsMenu } from './AppActionsMenu';
 
-// Reuse the grid card's "App Details" pill (DS grey Badge + doc icon) verbatim.
-import tc from '@/components/common/LogosGrid/components/TeamCard/TeamCard.module.scss';
-// Reuse the Forum post's Back button styling (chevron + "Back") verbatim.
-import bb from '@/components/ui/BackButton/BackButton.module.scss';
-import card from './AiAppCard.module.scss';
 import s from './AiAppDetail.module.scss';
 
 interface Props {
@@ -22,10 +26,25 @@ interface Props {
   onDelete: () => void;
   /** Opens the 1-pager viewer — same action as the card's "App Details" button. */
   onViewOnePager: () => void;
+  /** Every app, so the feedback dialog's picker can offer the others too. */
+  apps: AiAppWithDoc[];
+  onSubmitFeedback: (appUid: string, appName: string, text: string) => void;
 }
 
 export function AiAppDetail(props: Props) {
-  const { app, previewSrcDoc, onBack, canManage, onEdit, onDeployment, onLogs, onDelete, onViewOnePager } = props;
+  const {
+    app,
+    previewSrcDoc,
+    onBack,
+    canManage,
+    onEdit,
+    onDeployment,
+    onLogs,
+    onDelete,
+    onViewOnePager,
+    apps,
+    onSubmitFeedback,
+  } = props;
 
   const hasOnePager = !!app.onePager;
 
@@ -46,29 +65,33 @@ export function AiAppDetail(props: Props) {
           Back
         </button>
 
-        {/* Right-side actions, mirroring the grid card: view the 1-pager, plus
-            the creator's ⋯ manage menu. */}
+        {/* Right-side actions in dev's order: give feedback, view the 1-pager,
+            then the creator's ⋯ manage menu. Feedback leads because it's the
+            one action every viewer has — the other two are conditional. It
+            preselects this app in the dialog's picker, so the person who just
+            used the app doesn't have to name it. */}
         <div className={s.topBarActions}>
+          <GiveFeedbackButton
+            apps={apps}
+            appUid={app.uid}
+            appName={app.name}
+            onSubmit={onSubmitFeedback}
+            size="xxs"
+            className={dev.topBarBtn}
+          />
+
           {hasOnePager && (
-            <button
-              type="button"
-              className={card.detailsButton}
+            <Button
+              style="border"
+              variant="neutral"
+              size="xxs"
+              className={dev.topBarBtn}
               onClick={onViewOnePager}
               aria-label={`App details for ${app.name}`}
             >
-              <span className={`${tc.stage} ${card.detailsBadge}`}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M4 1.5h5L13 5.5V13a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 13V3A1.5 1.5 0 0 1 4 1.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M8.5 1.5V6h4.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-                </svg>
-                App Details
-              </span>
-            </button>
+              <DocumentIcon aria-hidden />
+              App Details
+            </Button>
           )}
           {canManage && (
             <AppActionsMenu

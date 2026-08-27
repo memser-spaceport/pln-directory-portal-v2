@@ -79,24 +79,35 @@ import r from '@/components/page/member-details/RepositoriesDetails/components/R
 import pc from '@/components/page/member-details/ProfileDetails/components/ProfileCollaborateInput/ProfileCollaborateInput.module.scss';
 
 import { SkillsTagsInput } from './SkillsTagsInput';
-/* (`PendingApprovalSteps` — the vertical "signed up → complete your profile →
-    await approval" rail — is gone from this entry entirely. It stopped being
-    rendered here first, for the reason below; then approval stopped gating
-    applying at all, which left it describing a wait that no longer holds
-    anything up, and the file was deleted. Production still ships its own copy at
-    components/page/jobs/JobProfileDrawer/PendingApprovalSteps.tsx.
+/* `PendingApprovalSteps` — the vertical "signed up → complete your profile →
+    await approval" rail — is **back**, and now lives here in the prototype.
+    It had been imported from components/page/jobs/JobProfileDrawer/, but develop
+    deleted that copy in 2cb0615fa ("approval no longer gates applying"). The
+    component is pure presentation — clsx and its own stylesheet, one optional
+    prop, nothing to mock — and its own header already describes it as a
+    transcription of demo-day's AppliedInvestorSteps, so the prototype is its
+    natural home rather than a second copy of a production component.
 
-    It was the drawer's answer to *where am I*, and it was the only one, so it
-    earned its 150px at the top of the column. The flow rail above now answers
-    that question for the flow, and stacking a second stepper 12px under it put
-    two position indicators on one screen answering two different questions in
-    the same visual language — a reader has to work out which is which before
-    either is useful.
+    It had been deleted on two arguments. The second — that approval no longer
+    gated applying, so the rail described a wait holding nothing up — expired
+    when the gate came back; a pending member now genuinely cannot apply, which
+    is the fact this rail exists to place. The first was that two position
+    indicators in one column is worse than one, and it is answered rather than
+    overruled: they are in different places answering different questions. The
+    flow rail is chrome, horizontal, in the sticky header, and says where you are
+    in applying to *this role*. This is content, vertical, in the scrolling
+    column, and says where you are in becoming able to apply at all. For this
+    viewer that pairing is the point — the flow rail is showing a third step they
+    cannot reach, and this is the explanation of why.
 
-    What the vertical one said that the rail cannot — that the review is running,
-    and that an email lands when it finishes — is one sentence, and it is in the
-    lede below. The full three-stage account story still exists for anyone who
-    has not opened the flow: it is `PendingApprovalBanner`, on the board. */
+    Note what it displaced: the pending lede, which said the review is running
+    and an email ends it — steps 1 and 3, in fewer words and with no position
+    attached. See the comment at the render site.
+
+    The three-stage account story also exists on the board for anyone who has not
+    opened the flow: `PendingApprovalBanner`. Two surfaces, one story — if the
+    wording of the wait changes, it changes in both. */
+import { PendingApprovalSteps } from './PendingApprovalSteps';
 import { VIEWER_EMAIL, VIEWER_NAME } from './profile/viewerIdentity';
 import { MOCK_PROJECTS, mockRepositories } from './profile/profileMocks';
 
@@ -534,23 +545,74 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       unchanged and still `isProfileComplete`, read from the one place that
       defines it.) */
 
+  /* Whether anything follows the step title inside the intro wrapper: the
+     pending stepper, or the no-role lede. In the flow neither is true — the role
+     is named in the header, the rail and the footer — so the title stands alone. */
+  const hasIntroBody = pendingApproval || !pendingRoleTitle;
+
   return (
     <>
-      {/* Naming the destination is the whole reason the ask lands here rather
-          than at sign-in: the person is mid-decision about one specific role, and
-          the sentence tells them what their profile is for and that there is no
-          second form behind this one.
+      {/* The wrapper is `fd.stepIntro` — the logged-out pane's, and for the same
+          reason it exists there: `.drawerContent`'s gap is a uniform 16px, so a
+          title and the sentence qualifying it dropped in as two siblings would
+          sit as far apart as two unrelated cards. The wrapper has no gap of its
+          own, so the one distance inside it is stated at the title.
 
-          The pending variant carries the sentence the vertical account stepper
-          used to carry, which was the one thing in it the flow rail above can't
-          say: that the review is running, and that an email is what ends it. */}
-      <p className={fd.lede}>
-        {pendingApproval
-          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application${pendingRoleTitle ? ` to ${pendingRoleTitle}` : ''}, which goes as soon as you send it.`
-          : pendingRoleTitle
-            ? `We send your profile with your application to ${pendingRoleTitle}.`
-            : 'This is what hiring teams see when you apply.'}
-      </p>
+          The wrapper renders unconditionally even when it holds only the lede.
+          `.stepIntro` is a bare full-width flex column with no gap and no
+          padding, so a wrapper around one child measures identically to that
+          child on its own — and branching the markup to save a div would be two
+          shapes for one step. */}
+      <div className={fd.stepIntro}>
+        {/* **The step's name — only while there is nothing on the profile.**
+            The logged-out pane opens on this exact h2, in this exact class, and
+            the two steps are one position in the flow, so they say the same
+            words when they are asking for the same thing.
+
+            But only then. A member whose profile is already written is not being
+            asked to fill anything in — they are being shown what will be sent —
+            and a 20px instruction to do work that is done reads as a form that
+            hasn't noticed. The step is not left untitled for them either: the
+            rail six inches above says `Your profile`, permanently, for all three
+            of the flow's steps. That is the step's name; this is the blank
+            state's instruction, and only one of the two is always true.
+
+            (If it should be unconditional, that is a one-word change — drop the
+            `profileIsBlank &&`. It was implemented blank-only deliberately.) */}
+        {/* `stepTitleWithLede` states the 6px between this title and the thing
+            qualifying it, and is applied only when there *is* one. With the
+            in-flow lede gone the title is often the wrapper's only child, and a
+            margin under a last child would push the next card 22px away where
+            every other gap in this column is 16. */}
+        {profileIsBlank && (
+          <h2 className={clsx(fd.stepTitle, hasIntroBody && d.stepTitleWithLede)}>Fill in your profile</h2>
+        )}
+
+        {/* **In the flow, this step now has no lede at all.**
+
+            It used to name the destination — "We send your profile with your
+            application to {role}" — on the argument that the person is
+            mid-decision about one specific role and should be told what their
+            profile is for. The rail directly above already says `Your profile`,
+            the footer says what the next press does, and the role is named in
+            the drawer's header: a fourth sentence about where this is going was
+            the flow explaining itself to someone walking through it.
+
+            The line survives only outside the flow, where nothing else has said
+            it: opening the profile from a board banner with no role in hand.
+            That entry point has no rail step, no footer promise and no job in
+            the header, so the sentence is the only thing telling them what the
+            editor is for.
+
+            The stepper replaces it for a pending member rather than joining it —
+            that lede said the review is running and an email ends it, which is
+            steps 1 and 3 in fewer words and with no position attached. */}
+        {pendingApproval ? (
+          <PendingApprovalSteps />
+        ) : (
+          !pendingRoleTitle && <p className={fd.lede}>This is what hiring teams see when you apply.</p>
+        )}
+      </div>
 
       {/* 0. Start with a document, when there is nothing to start from.
                **Why this is above the required cards.** The drawer's rule is that
@@ -570,7 +632,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       {importAtTop && (
         <DetailsSection
           editView={editingImport}
-          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+          classes={editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
         >
           {editingImport && parsed ? (
             <ExperienceImportReview
@@ -641,6 +703,28 @@ export function JobProfilePane(props: JobProfilePaneProps) {
         </DetailsSection>
       )}
 
+      {/* **The alternative, written down.**
+          The document and the cards under it are a fast path and its fallback,
+          and until now the step never said so — a stack of equally-weighted cards
+          reads as a list of chores rather than as a shortcut and the long way
+          round. A rule with `or` set into it is how that relationship gets
+          stated; the same rule stood in this flow's logged-out pane (`.orRule` in
+          `JobAccountPane.module.scss`) until the CV card was taken off that step,
+          and this is it, transcribed. See the stylesheet for what I searched
+          before hand-rolling anything, and for what production's one labelled
+          divider does and doesn't lend it.
+
+          **Only while the CV card is at the top**, which is the same test that
+          puts it there: `importAtTop`. Once anything on the profile has an
+          answer, the offer moves down into the Experience card's own empty row
+          and there is no fork at the top of the column to name — a rule there
+          would be announcing a choice that isn't on screen.
+
+          And not while a parse is being reviewed. At that moment the card above
+          has become the document's own result with its own Cancel and Save, so
+          the alternative is no longer "or", it is "or cancel this". */}
+      {importAtTop && !parsed && <div className={d.orRule}>or fill it in yourself</div>}
+
       {/* 1. The header card, and the first of the two required answers: your
                current role. `ProfileDetails` is a plain div that swaps itself for
                `EditProfileForm` in place, so this is a plain div too, and every
@@ -692,7 +776,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                every other section puts its qualifier (Add, Edit, the Github
                Profile link), so the privacy mark reads as part of the section
                rather than as content inside it. */}
-      <DetailsSection missingData={!hasStatus}>
+      <DetailsSection missingData={!hasStatus} classes={{ root: hasStatus ? fd.cardEdge : undefined }}>
         {!hasStatus && (
           <DataIncomplete className={d.incompleteStrip}>
             {pendingRoleTitle
@@ -718,7 +802,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
       <DetailsSection
         editView={editingExperience || editingImport}
         classes={
-          editingExperience || editingImport ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined
+          editingExperience || editingImport
+            ? { root: c.root, editView: `${c.editView} ${d.editCard}` }
+            : { root: fd.cardEdge }
         }
       >
         {editingImport && !importAtTop ? (
@@ -892,7 +978,9 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                right above it. */}
       <DetailsSection
         editView={editingContribution}
-        classes={editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+        classes={
+          editingContribution ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }
+        }
       >
         {editingContribution ? (
           <ContributionForm
@@ -924,7 +1012,7 @@ export function JobProfilePane(props: JobProfilePaneProps) {
                same question twice. */}
       <DetailsSection
         editView={editingGithub}
-        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : undefined}
+        classes={editingGithub ? { root: c.root, editView: `${c.editView} ${d.editCard}` } : { root: fd.cardEdge }}
       >
         {editingGithub ? (
           <GithubHandleForm handle={draft.githubHandle} onClose={() => setEditing(null)} onSubmit={saveGithubHandle} />

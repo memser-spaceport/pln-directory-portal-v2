@@ -21,6 +21,11 @@ import s from '@/components/page/demo-day/AppliedInvestorSteps/EditInvestorProfi
 // 768. The one place production draws the line between "a panel beside the page"
 // and "the page".
 import { useIsMobile } from '@/hooks/useIsMobile';
+// The outbound-posting suffix and the board's "this leaves the site" mark —
+// both already used by `JobDetailPane` for its `Original posting` link, so the
+// two exits out of this board are tagged and marked the same way.
+import { jobApplyQueryParams } from '@/components/page/jobs/TeamGroupCard/component/ReferRoleRow/constants';
+import { ArrowUpRightIcon } from '@/components/icons/ArrowUpRightIcon';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from './ApplyFlowSteps';
 import { JobDetailPane } from './JobDetailPane';
@@ -134,24 +139,32 @@ interface JobApplyFlowDrawerProps {
    *  never per section — see the note on the footer. */
   onSaveProfile: (next: MemberProfile) => void;
   /**
-   * Sends it. `newAccount` is present exactly when the applicant had none when
-   * the flow opened — the board then opens the account and records the
-   * application as one act, which is what makes the last press honest for a
-   * stranger.
+   * Sends it. Only ever called from an approved account — see `canApply`.
    *
-   * It carries the whole starting `profile`, not just the typed `details`,
-   * because the details step collects one answer the account form has no field
-   * for: the job search status. Handing over the draft the flow actually
-   * assembled means the board seeds the profile from the thing that was on
-   * screen rather than rebuilding it from parts and losing the half that didn't
-   * come from an input.
-   *
-   * There is no separate "sign up" callback any more. There used to be
-   * (`onRequireAccount`, which opened `JobSignUpModal` over this drawer); the
-   * account is a step now, and a step that registered you halfway through would
-   * leave an orphan account behind anyone who changed their mind at the letter.
+   * **It used to take a `newAccount` and do two things at once**: open the
+   * account and file the application in one press, so a stranger's whole visit
+   * either completed or cost nothing. That press is no longer possible. An
+   * application may not leave a account that is under review, and a
+   * brand-new account is under review from the moment it exists, so the one
+   * press was the rule's most common violation rather than its exception.
    */
-  onSubmitApplication: (coverLetter: string, newAccount?: { details: AccountDetails; profile: MemberProfile }) => void;
+  onSubmitApplication: (coverLetter: string) => void;
+  /**
+   * Opens the account, and *only* the account. This is where the details step
+   * now ends for a visitor who arrived without one.
+   *
+   * It carries the whole assembled `profile`, not just the typed `details`,
+   * because the step collects one answer the account form has no field for: the
+   * job search status. Handing over the draft that was on screen means the board
+   * seeds the profile from the thing the person filled in rather than rebuilding
+   * it from parts and losing the half that didn't come from an input.
+   *
+   * The role they came for is not carried across. That is the cost of this rule
+   * and it is a real one — they will have to find the row again after approval —
+   * but the alternatives are worse: holding a letter for days, or sending one
+   * from an account nobody has checked yet.
+   */
+  onCreateAccount: (payload: { details: AccountDetails; profile: MemberProfile }) => void;
   loggedIn: boolean;
   /**
    * The details step's escape, for a visitor who turns out to have an account
@@ -166,8 +179,9 @@ interface JobApplyFlowDrawerProps {
    * a step out from under someone standing on it.
    */
   onSignIn: () => void;
-  /** Signed up, waiting on the PL team. Says so, but no longer stops anything —
-   *  see the note on `canApply`. */
+  /** Signed up, waiting on the PL team — and that wait stops the one thing this
+   *  drawer exists for. Everything else stays open: the job is readable and the
+   *  profile is editable while it runs. See `canApply`. */
   pendingApproval: boolean;
   /** Already sent from this session, and when. */
   applied: boolean;
@@ -252,6 +266,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     profile,
     onSaveProfile,
     onSubmitApplication,
+    onCreateAccount,
     loggedIn,
     onSignIn,
     pendingApproval,
@@ -291,9 +306,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     mode: 'onBlur',
   });
 
-  /* The validated answers, once. Null until `Continue to apply` accepts them,
-     which is also what makes the last step reachable for a stranger. */
-  const [account, setAccount] = useState<AccountDetails | null>(null);
+  /* (`account` — the validated details, held here until the final Apply — is
+     gone. It existed so a stranger's answers could survive step 2 and be handed
+     over with the letter; the details are registered by the press that collects
+     them now, so nothing has to be carried, and state read by nobody is the
+     next pass's evidence for a path that no longer exists.) */
 
   /* Whether this flow run stops at the profile step, decided when the flow opens
      and then left alone.
@@ -313,7 +330,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     setDraft(profile);
     setEditing(null);
     setCoverLetter(canvasCoverLetter ?? '');
-    setAccount(null);
     accountMethods.reset(EMPTY_ACCOUNT_FORM);
     /* `loggedIn &&` is belt and braces — a logged-out viewer's profile is the
        empty one, so `isProfileComplete` is already false — but the step is about
@@ -332,22 +348,29 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   const hasStatus = draft.jobSearchStatus !== '';
 
   /**
-   * Whether the last step is reachable at all.
+   * Whether the last step is reachable at all. Three conditions, and each one is
+   * a different kind of thing.
    *
-   * **This used to be `loggedIn && !pendingApproval`, and both halves have gone.**
-   * Approval no longer gates applying — a new account can apply the moment it
-   * exists, and the PL review runs alongside rather than in front. And having an
-   * account is no longer a precondition either, because opening one is now step
-   * 2 of this flow: a visitor with no account walks the same three places and
-   * the account is created by the same press that sends the letter.
+   * **`complete`** is the rule that was always the real one: an application must
+   * carry a complete profile, because a one-click application sends the team
+   * your profile instead of a form. Not being finished yet is not a refusal —
+   * the middle step is where it gets finished.
    *
-   * So the only thing left is the rule that was always the real one — an
-   * application must carry a complete profile. A stranger satisfies it in the
-   * account pane (role, and a job search status); a member satisfies it in the
-   * profile stack. Nobody is refused, they are only ever *not finished yet*,
-   * which is what the middle step is for.
+   * **`loggedIn && !pendingApproval`** is the rule that came back. An
+   * application may not be sent from an account under review. Both halves of
+   * that had been removed on the argument that the PL review "runs alongside"
+   * and governs the rest of the network rather than this board — and the two
+   * removals were argued separately, which is what hid the hole between them: a
+   * visitor could open an account at the end of step 2 and send from it in the
+   * same press, so the account that skipped the review most reliably was the
+   * brand-new one. Restoring the gate means restoring both halves, or the
+   * stranger's path walks straight through it again.
+   *
+   * What this costs, said plainly: a visitor who arrives on a role can no longer
+   * apply in one visit. They open an account here and come back once it is
+   * approved. The rule is worth that; pretending it isn't a cost is not.
    */
-  const canApply = complete && (loggedIn || account !== null);
+  const canApply = complete && loggedIn && !pendingApproval;
 
   /* The steps this run actually stops at, in order. The rail always draws all
      three — see the note at the top of the file — but Back and the footer walk
@@ -463,21 +486,62 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
   };
 
   /**
-   * `Continue to apply`, for a visitor with no account.
+   * The one state this flow answers with a no rather than with a next step.
    *
-   * Runs the schema and either surfaces errors under the fields or accepts the
-   * answers and moves on. Nothing is registered — the details are held until the
-   * final `Apply`, which opens the account and files the application together.
+   * Everywhere else, "you can't apply yet" means "not finished yet" and the
+   * middle step is the answer. A review is different in kind: nothing the person
+   * can do on this screen ends it, so sending them to the profile step would be
+   * handing them busywork dressed as progress. The press is withheld instead and
+   * the hint beside it says what is running and what ends it.
+   */
+  const blockedByReview = loggedIn && pendingApproval;
+
+  /**
+   * The way out to the team's own ad, for a member whose account is still under
+   * review.
    *
-   * The role and LinkedIn land on the draft because they are profile facts the
-   * application's read-back quotes; name and email stay on the account record,
-   * which is the only thing that needs them.
+   * **What changed, and why the gate did not.** An application still may not be
+   * *sent from here* by an unreviewed account — that rule is untouched. What was
+   * wrong was the conclusion drawn from it: that the person therefore has
+   * nothing to do but wait. They can apply; just not through this board. So the
+   * two footers that used to report the wait now hand over the link instead, and
+   * the one that used to say `Save profile` says what the press is actually for.
+   *
+   * Production reaches the same place from the other side — `applyGoesExternal`
+   * in `JobApplyFlowController`, for exactly this viewer — so this is the
+   * prototype catching up to a decision already made rather than a new one.
+   *
+   * `noopener` because the destination is a third party, and the board's own
+   * tracking suffix so the team sees where the applicant came from — the same
+   * one `JobDetailPane` appends to its `Original posting` link.
+   */
+  const openExternalPosting = () => {
+    if (!role?.applyUrl) return;
+    window.open(`${role.applyUrl}?${jobApplyQueryParams('job-board')}`, '_blank', 'noopener,noreferrer');
+  };
+
+  /**
+   * `Create account`, and the last press a visitor with no account makes here.
+   *
+   * Runs the schema and either surfaces errors under the fields or opens the
+   * account. It used to accept the answers and move on to the letter, holding
+   * the details unregistered until the final `Apply` so that abandoning cost
+   * nothing; with the letter out of reach for a new account, the press that
+   * validates the form is the press that registers it.
+   *
+   * The role and LinkedIn land on the profile because they are profile facts;
+   * name and email stay on the account record, which is the only thing that
+   * needs them.
    */
   const submitAccount = accountMethods.handleSubmit((data) => {
     const details = toAccountDetails(data);
-    setAccount(details);
-    setDraft((prev) => ({ ...prev, role: details.role, linkedin: details.linkedin }));
-    onStepChange('application');
+    const profile = { ...draft, role: details.role, linkedin: details.linkedin };
+    setDraft(profile);
+    /* Ends here. This used to be `onStepChange('application')` — the account was
+       held unregistered until the final Apply so that abandoning at the letter
+       cost nothing. There is no letter behind this press any more, so holding
+       the details would mean collecting a form and doing nothing with it. */
+    onCreateAccount({ details, profile });
   });
 
   /* One footer, three steps, and the sentence beside the button changes with
@@ -506,18 +570,51 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         };
       }
       return {
-        /* The pending-approval variant is gone with the gate it described
-           ("Applying unlocks once it lands"). A pending member now reads
-           whichever of the three below fits their profile, like anyone else —
-           because on this board they *are* like anyone else now. */
-        hint: !loggedIn
-          ? 'Applying sends a profile — the next step opens your account and builds one.'
-          : complete
-            ? 'One press sends your PL profile with a short note. Nothing to refill.'
-            : 'Applying sends your PL profile — the next step is finishing it.',
+        /* The pending-approval variant is back, with the gate it describes.
+           It names the thing that ends the wait — an email — because "under
+           review" on its own leaves the person with nothing to expect and no
+           idea whether to keep checking. */
+        hint: blockedByReview
+          ? /* Swept with the profile step's button, not left behind. This said
+               "Applying opens once the PL team approves your account" over a dead
+               Apply — which was true while the review was the whole answer. Now
+               there is a way to apply during the wait, and a first step still
+               refusing it while the second offers it would be the flow
+               contradicting itself one press apart. */
+            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab.`
+          : !loggedIn
+            ? 'Applying sends a profile — the next step opens your account, and applying opens once it is approved.'
+            : complete
+              ? 'One press sends your PL profile with a short note. Nothing to refill.'
+              : 'Applying sends your PL profile — the next step is finishing it.',
         action: (
-          <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApplyPressed}>
-            Apply
+          /* No longer dead. The button was disabled for a pending member and the
+             hint beside it explained the wait, which satisfied this file's rule
+             about never disabling a control whose blocker is invisible — but the
+             better answer to "you cannot do this here" turned out to be
+             somewhere they can. */
+          <Button
+            variant="primary"
+            style="fill"
+            size="m"
+            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+            onClick={
+              blockedByReview
+                ? () => {
+                    openExternalPosting();
+                    onClose();
+                  }
+                : onApplyPressed
+            }
+          >
+            {blockedByReview ? (
+              <>
+                Continue to apply
+                <ArrowUpRightIcon aria-hidden="true" />
+              </>
+            ) : (
+              'Apply'
+            )}
           </Button>
         ),
       };
@@ -529,8 +626,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
          than gating it. */
       if (!loggedIn) {
         return {
+          /* Says where this ends, because it no longer ends where the rail
+             implies. The step used to hand straight on to the letter; now it is
+             the last thing a visitor does here, so the sentence has to carry the
+             review and the return trip rather than let the person press
+             `Create account` expecting step 3. */
           hint: hasStatus
-            ? 'Your account opens when you send the application — nothing to confirm by email first.'
+            ? "Your account opens now — the PL team reviews it, and you can apply once it's approved."
             : 'Choose a job search status to continue. It is only ever shown to the PL team.',
           action: (
             /* Disabled on the status and nothing else.
@@ -551,7 +653,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
               disabled={!hasStatus}
               onClick={submitAccount}
             >
-              Continue to apply
+              {/* Not `Continue to apply` any more, which is the label this wore
+                  when the press led to the letter. It names what the press does
+                  now, and only that — a button promising to continue to a step
+                  it cannot reach is the flow lying about its own shape. */}
+              Create account
             </Button>
           ),
         };
@@ -562,33 +668,61 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
            profile". Two required answers means three ways to be incomplete, and
            a hint that says "add your current role" to someone who has already
            added it is the fastest way to make a footer look broken. */
-        hint: !complete
-          ? editing
-            ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
-            : `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
-          : 'Experience, skills and bio are optional — you can add them any time.',
+        hint: blockedByReview
+          ? /* Not "Saved as you go" first — the button beside this says `Save
+               profile`, so that clause was a sentence promising what a visible
+               control already promises. The hint spends its words on the part
+               the footer can't show. */
+            `${team?.name ?? 'The team'} takes applications on their own site while your account is under review — it opens in a new tab. Your profile is saved here first.`
+          : !complete
+            ? editing
+              ? `Save this card, then ${missingHint(hasRole, hasStatus)} to continue.`
+              : `${sentenceCase(missingHint(hasRole, hasStatus))} to continue. Everything else is optional.`
+            : 'Experience, skills and bio are optional — you can add them any time.',
         action: (
           /* Disabled while a card is open as well as while the profile is
              incomplete: mid-edit there is unsaved work in front of the person,
              and letting them leave past it would silently drop it.
 
-             One label now. It used to fall back to `Save profile` for a pending
-             member, because applying was the one thing they could not do; with
-             the gate gone there is no viewer for whom this press stops short of
-             the letter, so naming a second destination would be describing a
-             branch that no longer exists. */
+             **Two labels again.** `Save profile` came back with the gate: for a
+             member under review this press cannot reach the letter, and a button
+             saying `Continue to apply` that lands them back on the board would
+             be naming a destination it does not go to. Editing is still never
+             withheld while a review runs — the profile is the one useful thing
+             they can do meanwhile — so the press stays live and only its promise
+             changes. */
           <Button
             variant="primary"
             style="fill"
             size="m"
-            className={d.footerAction}
-            disabled={!complete || !!editing}
+            className={clsx(d.footerAction, blockedByReview && d.footerActionIcon)}
+            disabled={(!blockedByReview && !complete) || !!editing}
             onClick={() => {
               onSaveProfile(draft);
+              if (blockedByReview) {
+                /* The profile is committed first — they came here to edit it and
+                   a press that left without saving would lose the visit — then
+                   the posting opens and the flow closes behind them. */
+                openExternalPosting();
+                onClose();
+                return;
+              }
               onStepChange('application');
             }}
           >
-            Continue to apply
+            {/* `Save profile` is gone. It was an honest name for the only thing
+                the press did — and the reason it only did that was a wait the
+                person could do nothing about. There is somewhere to send them
+                now: the team takes applications on its own site, so a pending
+                member continues, outwards, and the arrow says which. */}
+            {blockedByReview ? (
+              <>
+                Continue to apply
+                <ArrowUpRightIcon aria-hidden="true" />
+              </>
+            ) : (
+              'Continue to apply'
+            )}
           </Button>
         ),
       };
@@ -596,33 +730,29 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
     const canSend = coverLetter.trim().length > 0;
     return {
-      /* Empty: not "why we're asking" but *what to write*. An earlier line
-         explained the field's existence — "the only part that isn't already on
-         your profile" — which answers a question nobody staring at an empty box
-         has. This one hands them a first sentence. Filled: stops instructing and
-         says where the reply goes. */
-      hint: canSend
-        ? `${team?.name ?? 'The team'} can reply to you directly.`
-        : 'Add what you did in previous roles that makes you a good fit for this one.',
+      /* One sentence, both states. It used to instruct while the box was empty
+         ("Add what you did in previous roles…") and switch to the reply
+         destination once it wasn't — which was right when the field's only
+         framing was a four-word label. The pane now opens the box with an
+         invitation that names what to write, so an instruction here would be the
+         same advice twice, 200px apart and in the quieter of the two voices.
+         What is left is the part only the footer can say: where this lands. */
+      hint: `${team?.name ?? 'The team'} can reply to you directly.`,
       action: (
         /* "Apply", and this is the press that applies — there is no fourth step
            and no confirmation pane. The rail's last stop is where it happens.
 
-           For a stranger this one press does two things: opens the account and
-           files the application. That is deliberate rather than convenient — the
-           alternative was registering them at the end of step 2, which is how
-           the old modal worked and why abandoning at the letter used to leave an
-           account behind with no application attached to it. The board does both
-           or neither. */
+           One act now, not two. This press used to open a stranger's account and
+           file the application together; only an approved account reaches this
+           step, so everyone standing here already has one and the letter is all
+           that is left to send. */
         <Button
           variant="primary"
           style="fill"
           size="m"
           className={d.footerAction}
           disabled={!canSend}
-          onClick={() =>
-            onSubmitApplication(coverLetter.trim(), account ? { details: account, profile: draft } : undefined)
-          }
+          onClick={() => onSubmitApplication(coverLetter.trim())}
         >
           Apply
         </Button>
@@ -666,7 +796,9 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
       </div>
 
       <div className={s.drawerContent}>
-        {step === 'review' && <JobDetailPane role={role} team={team} applied={applied} appliedAt={appliedAt} />}
+        {step === 'review' && (
+          <JobDetailPane role={role} team={team} applied={applied} appliedAt={appliedAt} loggedIn={loggedIn} />
+        )}
 
         {/* One position, two panes. A visitor with no account fills in the
             details that open one; a member confirms the profile they have. */}
@@ -690,7 +822,6 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                   longer touches the draft — the one profile answer it still
                   collects travels as `jobSearchStatus`.) */}
               <JobAccountPane
-                roleTitle={role?.roleTitle ?? 'this role'}
                 jobSearchStatus={draft.jobSearchStatus}
                 onJobSearchStatusChange={(value) => setDraft((prev) => ({ ...prev, jobSearchStatus: value }))}
                 onSignIn={onSignIn}
@@ -702,13 +833,18 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           <JobApplicationPane
             role={role}
             teamName={team?.name ?? ''}
-            /* The draft, not the saved profile. For a member the two agree —
-               `commitDraft` runs on every exit from the profile step — but a
-               stranger has nothing saved at all, and a read-back is supposed to
-               quote what is about to be sent rather than what is on file. */
+            /* The draft, not the saved profile. The two agree by the time anyone
+               stands here — `commitDraft` runs on every exit from the profile
+               step — but a read-back is supposed to quote what is about to be
+               sent rather than what is on file, and those can differ for one
+               render after an edit.
+
+               `applicantName` and the `Edit details` label are gone with the
+               person they were for. They existed because a stranger reached this
+               step with a typed name and no profile record; only an approved
+               member reaches it now, so both branches described someone who
+               cannot be here. The pane falls back to the profile's own name. */
             profile={draft}
-            applicantName={account?.name}
-            editLabel={loggedIn ? undefined : 'Edit details'}
             onEditProfile={() => onStepChange('profile')}
             coverLetter={coverLetter}
             onCoverLetterChange={setCoverLetter}

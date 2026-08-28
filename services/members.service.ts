@@ -253,7 +253,7 @@ export const getMember = async (
   const hasEditAccess = isAdminUser(userInfo) || userInfo?.uid === member?.id;
   const isDirectoryVisible =
     member?.rbac?.status === 'APPROVED' ||
-    member?.rbac?.effectivePermissions?.some((p) => p.code === MEMBER_PROFILE_VISIBLE);
+    member?.rbac?.effectivePermissions?.some((p: { code: string }) => p.code === MEMBER_PROFILE_VISIBLE);
 
   if (USE_ACCESS_CONTROL_V2) {
     if (!hasEditAccess && !isDirectoryVisible) {

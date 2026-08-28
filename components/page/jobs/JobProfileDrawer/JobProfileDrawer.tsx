@@ -169,18 +169,22 @@ export function JobProfilePane(props: JobProfilePaneProps) {
             so a stepper counting down to approval described a wait that holds
             nothing up. Deleted rather than hidden: it had one caller and one
             reason to exist.) */}
-      <p className={d.lede}>
-        {/* The pending line no longer defers the application — it says the
-              review isn't in the way. Same fact, opposite consequence.
+      {/* One lede, and only for the one person who needs telling something.
+          The pending line says the review isn't in the way — a fact nothing else
+          on the screen carries.
 
-              Everyone else reads the generic line, INCLUDING mid-application.
-              ("We send your profile with your application to <role>." stood in
-              that slot — a promise the letter step's own lede already makes, one
-              step before it can be acted on. Said once, where it is true.) */}
-        {pendingApproval && pendingRoleTitle
-          ? `Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`
-          : 'This is what hiring teams see when you apply.'}
-      </p>
+          Everyone else opens on the profile itself. ("This is what hiring teams
+          see when you apply." stood in that slot for them, and before it "We
+          send your profile with your application to <role>." Both described the
+          step rather than saying anything about it: a pane headed "Your profile",
+          reached by pressing Apply, does not need a sentence explaining that the
+          profile goes with the application. The step name, the rail and the
+          footer's own control already say so three times over.) */}
+      {pendingApproval && pendingRoleTitle && (
+        <p className={d.lede}>
+          {`Your account is under review — we'll email you when it's approved. It isn't holding up your application to ${pendingRoleTitle}, which goes as soon as you send it.`}
+        </p>
+      )}
 
       {isLoading && <div className={d.loading}>Loading profile…</div>}
 

@@ -192,6 +192,43 @@
   }
 }
 
+// The "I'm already a member of a PL Network team" row.
+//
+// `align-items: flex-start` rather than `center`: at drawer width the label can
+// wrap, and centring a 20px box against two lines of text floats it into the
+// gutter between them. Against a single line the two rules are indistinguishable
+// anyway, since the box and the line are both 20px tall — so the rule that also
+// survives wrapping is the one to ship.
+//
+// `width: fit-content` keeps the hit area to the words. A full-width label would
+// make the whole row clickable, including the empty space to its right, which is
+// a tick nobody meant to make.
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-feature-settings:
+    'liga' off,
+    'clig' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px; /* 142.857% */
+}
+
+// The paired row sits directly under its checkbox, so it gets a tighter gap than
+// the group's 24px rhythm: at 24 the switch and the thing it switches on read as
+// two unrelated fields.
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .column {
   display: flex;
   flex-direction: column;

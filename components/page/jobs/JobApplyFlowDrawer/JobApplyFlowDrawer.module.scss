@@ -230,6 +230,48 @@
 // actually do. A disabled button with no reason next to it is a door with no
 // sign; a footer that promised "one click" to someone with no account would be
 // describing a different person's experience of the same button.
+// The profile step's "I've reviewed my profile" consent, in the slot `.footerHint`
+// otherwise occupies.
+//
+// Not `.footerHint`'s 12px tertiary: that voice is for a note *about* the button,
+// and this is a control you have to operate before the button will move. It wears
+// the same 14px/500 primary as the sign-up form's own checkbox row, so a box you
+// tick looks like a box you tick wherever the flow puts one.
+//
+// `align-items: flex-start` for the reason argued on that row: the label wraps at
+// drawer width, and centring a 20px box against two lines floats it into the
+// gutter between them.
+.consentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+
+  color: var(--foreground-neutral-primary, #0a0c11);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+
+  // Takes the row's slack so the button keeps its right edge, the same job
+  // `.footerHint` does below and `.footerAction`'s auto margin does when neither
+  // is present.
+  @include media.tablet-landscape {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// `FormField`'s required mark, transcribed rather than approximated — same
+// `:after`, same literal `red`, same 0.25rem — so a required tick is marked the
+// way every other required field on this flow is marked. (`red` is not a token
+// and not on the palette; it is what `FormField.module.scss` ships, and matching
+// the neighbour beats being right on my own.)
+.consentLabel:after {
+  content: '*';
+  color: red;
+  margin-left: 0.25rem;
+}
+
 .footerHint {
   margin: 0;
   font-size: 12px;

@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
 import * as yup from 'yup';
 
+import { Checkbox } from '@/components/common/Checkbox';
 import { FormField } from '@/components/form/FormField';
 import { FormSelect } from '@/components/form/FormSelect';
 import { useMemberFormOptions } from '@/services/members/hooks/useMemberFormOptions';
@@ -54,6 +55,22 @@ export type AccountFormData = {
   name: string;
   linkedin: string;
   role: string;
+  /**
+   * "I'm already a member of a PL Network team" — the switch that reveals the
+   * team select beside the role input.
+   *
+   * Form state rather than component state because it is an *answer*: it decides
+   * whether `company` is a question this person was asked at all, and a value
+   * that governs another value has to live where that value lives, or the two
+   * disagree the moment the group unmounts and remounts — which it does, since
+   * the modal and the drawer's step 2 are two hosts of one form.
+   *
+   * It is not sent anywhere. `toAccountDetails` flattens `company` to a team uid
+   * and this stays behind, which is correct twice over: the endpoint has no such
+   * field, and the sign-up payload is validated strictly enough that an extra key
+   * is a refusal rather than an ignored extra.
+   */
+  onPlTeam: boolean;
   company?: { label: string; value: string } | null;
   /**
    * Where they are with job hunting.
@@ -85,6 +102,11 @@ export const EMPTY_ACCOUNT_FORM: AccountFormData = {
   name: '',
   linkedin: '',
   role: '',
+  /* Unticked, and that is the honest default: most people arriving at a public
+     job board are not already on a PL network team, so the form opens in the
+     shape that fits them and the select is something you ask for rather than
+     something you dismiss. */
+  onPlTeam: false,
   company: null,
   jobSearchStatus: '',
 };
@@ -116,6 +138,15 @@ export const accountSchema = yup.object({
       return linkedinUrlPattern.test(trimmedValue) || linkedinHandlePattern.test(trimmedValue);
     }),
   role: yup.string().defined(),
+  /* No rule of its own: it is a switch, not an answer to validate, and both of
+     its states are valid. It is in the schema so `AccountFormData` and the
+     resolver agree on the shape of the form — a key react-hook-form holds and
+     yup has never heard of is exactly the drift this file exists to prevent. */
+  onPlTeam: yup.boolean().default(false),
+  /* Nullable, and with no `when('onPlTeam')` rule. The select is optional
+     whether or not it is on screen: someone can be at a network team this closed
+     list doesn't carry, tick the box honestly, and find nothing to pick.
+     Requiring it would turn an honest tick into a dead end. */
   company: yup.mixed<{ label: string; value: string }>().nullable(),
   /* Required, and that is the whole point of asking it — an optional version
      buys a shorter form and pays for it with an apply-flow step. `oneOf` rather
@@ -181,6 +212,21 @@ export const toAccountDetails = (data: AccountFormData): AccountDetails => ({
  * of the group.
  */
 export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' } = {}) {
+  const { setValue } = useFormContext<AccountFormData>();
+  /* `useWatch` and not `getValues`: this has to re-render on the tick, because
+     the tick is what puts the select on screen. */
+  const onPlTeam = useWatch<AccountFormData, 'onPlTeam'>({ name: 'onPlTeam' }) ?? false;
+
+  /* Unticking clears the team rather than merely hiding it.
+     A hidden select still holding "Filecoin Foundation" would submit an employer
+     the person has just told the form they don't have — an answer that is
+     invisible, kept, and wrong, which is the worst of the three outcomes. The
+     switch owns the field it reveals, in both directions. */
+  const toggleOnPlTeam = (next: boolean) => {
+    setValue('onPlTeam', next, { shouldDirty: true });
+    if (!next) setValue('company', null, { shouldDirty: true });
+  };
+
   // The same teams source production's sign-up wizard uses, minus projects —
   // the field asks for a current company, not a contribution.
   const { data: formOptions } = useMemberFormOptions();
@@ -211,15 +257,54 @@ export function AccountFields({ layout = 'stack' }: { layout?: 'stack' | 'grid' 
         description="Shown on your profile, alongside your other links."
       />
 
-      <div className={s.column}>
-        <div className={s.inputsLabel}>
-          Current role &amp; company
-          <OptionalMark />
-        </div>
-        <div className={s.inputsWrapper}>
-          <FormField name="role" placeholder="Enter your current role" />
-          <span className={s.separator}>@</span>
-          <FormSelect name="company" placeholder="Select a company" isClearable options={companyOptions} />
+      {/* The switch, and what it is for.
+
+          The row below used to put the team select in front of everyone, and for
+          almost everyone the only correct answer was to leave it alone — a closed
+          list of network teams reads as a wall to every visitor not on one. Now
+          the default form is the one that fits them: a role input and nothing
+          else. Ticking the box is what asks for the select, which turns "leave it
+          blank if this isn't you" into "say so, and we'll ask".
+
+          First person ("I'm already a member…") rather than the form's usual
+          noun-phrase labels, and deliberately: every other line in this group
+          names a thing to fill in, and this one is a claim the person is making
+          about themselves. Same voice the design system uses for its other
+          checkbox, "I'm an accredited investor under SEC rules".
+
+          The `<label>` wraps both, so the sentence is the hit area — a 20px box
+          is a small target and the words beside it are the obvious one. */}
+      <div className={s.checkboxGroup}>
+        <label className={s.checkboxRow}>
+          <Checkbox checked={onPlTeam} onChange={toggleOnPlTeam} />
+          I&apos;m already a member of a PL Network team
+        </label>
+
+        <div className={s.column}>
+          {/* The label names what is under it, which changes with the tick. It
+              stays `(Optional)` in both states: the tick reveals a question, it
+              does not create a requirement — see the schema's note on why
+              requiring the team would turn an honest tick into a dead end. */}
+          <div className={s.inputsLabel}>
+            {onPlTeam ? 'Current role & PL network team' : 'Current role'}
+            <OptionalMark />
+          </div>
+          <div className={s.inputsWrapper}>
+            <FormField name="role" placeholder="Enter your current role" />
+            {/* The `@` and the select appear together or not at all. The
+                separator is punctuation *between* two fields; on its own beside a
+                single input it is a dangling preposition — a row that looks like
+                it lost something. So the reveal is the whole right-hand half. */}
+            {onPlTeam && (
+              <>
+                <span className={s.separator}>@</span>
+                {/* "Select a team", not "Select a company" — the label above now
+                    says PL network team, and this list is exactly that: network
+                    teams, not employers at large. */}
+                <FormSelect name="company" placeholder="Select a team" isClearable options={companyOptions} />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>

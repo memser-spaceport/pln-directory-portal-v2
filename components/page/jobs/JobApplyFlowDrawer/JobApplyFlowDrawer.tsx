@@ -7,6 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { toast } from '@/components/core/ToastContainer';
 import { Button } from '@/components/common/Button';
+import { Checkbox } from '@/components/common/Checkbox';
 import { Drawer } from '@/components/common/Drawer';
 import { CheckIcon, CloseIcon } from '@/components/icons';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -344,6 +345,17 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
   const complete = profileState.complete;
 
+  /* "I've reviewed my profile" — the profile step's consent, and the second half
+     of what unlocks the application.
+
+     Held here rather than in the pane for the same reason the account form is:
+     the panes unmount on every step change, so a tick owned by the pane would be
+     undone by stepping back to re-read the posting. Held here and not in
+     `ApplyFlowState` because unlike the letter it *should* not outlive the visit
+     — a profile reviewed in a session that has since ended, and possibly edited
+     elsewhere since, is not a profile anyone reviewed. */
+  const [reviewed, setReviewed] = useState(false);
+
   /* The steps this run actually stops at, in order. The rail always draws all
      three — see the note at the top of the file — but Back and the footer walk
      this, so a skipped profile step is skipped in both directions. Symmetry is
@@ -360,7 +372,16 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
    *  that was always the real one — an application must carry a complete
    *  profile. Nobody is refused, they are only ever *not finished yet*, which is
    *  what the middle step is for. */
-  const canApply = isLoggedIn && complete;
+  /* `skipProfile ||` and not a bare `&& reviewed`, because the tick is only ever
+     asked for on a step this run actually stops at. A member whose profile was
+     already complete when the flow opened goes review → application and is never
+     shown the checkbox; gating the rail on a control that never rendered would
+     lock them out of their own application.
+
+     Where step 2 *is* on the path, the rail obeys the same rule the footer does.
+     A gate the rail can walk around is not a gate — and the rail could: its
+     Application stop is a live control while step 2 sits there untouched. */
+  const canApply = isLoggedIn && complete && (skipProfile || reviewed);
 
   /** Where a finished step can be revisited from the rail. The current step is
    *  never reachable — a control that goes where you already are is a control
@@ -474,6 +495,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     );
   };
 
+  /* The left half of the footer bar. `hint` is the usual occupant — a sentence
+     in 12px tertiary — and `lead` is for the one step that puts a control there
+     instead, which needs neither that wrapper nor that voice. A step sets one or
+     the other, never both. */
+  type FooterContent = { hint: string | null; lead?: React.ReactNode; action: React.ReactNode };
+
   /* One footer, three steps: a button that names the act, and beside it a
      sentence only when there is something the screen does not already say.
 
@@ -483,7 +510,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
      left are the states where the press does something the rail cannot show:
      that it is the last one, or that it ends somewhere off this site. The rest
      are silent, and `hint` is nullable for that reason. */
-  const footer = (() => {
+  const footer: FooterContent = (() => {
     if (at === 'review') {
       if (applied) {
         return {
@@ -591,18 +618,38 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
     if (at === 'profile') {
       return {
-        /* Nothing while the profile is short. What is missing is named on the
-           card that is missing it — `DataIncomplete`'s amber strip, inches from
-           the field — and a footer restating it from the bottom of the drawer
-           was the same complaint at the greater distance. */
-        hint: complete ? 'Experience, skills and bio are optional — you can add them any time.' : null,
+        /* The sentence that stood here — "Experience, skills and bio are
+           optional — you can add them any time." — gives the slot up to the
+           consent below. It still runs in `JobProfileDrawer`, which has no
+           application behind it and so has nothing to consent to; here the one
+           thing the footer has to carry is the tick, and two claims in a bar
+           this size is one too many. */
+        hint: null,
+        /* **The last thing before the application, and the reason step 2 is not
+           a formality.** What goes to the hiring team is this profile, not the
+           letter alone — so the press that leaves here is the press that decides
+           what they read. A tick is cheap; sending a profile you last looked at
+           eight months ago is not.
+
+           A *second* gate, on top of role and job search status. Those are about
+           whether the profile can be sent at all; this is about whether you meant
+           to send this one. The amber "Required to continue" strips stay exactly
+           where they are — see `JobProfileDrawer`. */
+        lead: (
+          <label className={d.consentRow}>
+            <Checkbox checked={reviewed} onChange={setReviewed} />
+            {/* The `*` is `.consentLabel`'s `:after`, exactly as `FormField`
+                draws it on a required label. */}
+            <span className={d.consentLabel}>I&apos;ve reviewed my profile</span>
+          </label>
+        ),
         action: (
           <Button
             variant="primary"
             style="fill"
             size="m"
             className={d.footerAction}
-            disabled={!complete}
+            disabled={!complete || !reviewed}
             onClick={() => goTo('application')}
           >
             Continue to apply
@@ -727,7 +774,7 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
                 paragraph still earns its gap — so an always-rendered `<p>`
                 would push the button down 12px on every phone screen where the
                 footer is now silent. */}
-            {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
+            {footer.lead ?? (footer.hint && <p className={d.footerHint}>{footer.hint}</p>)}
             {footer.action}
           </div>
         </div>

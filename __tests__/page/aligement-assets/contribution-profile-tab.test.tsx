@@ -14,7 +14,7 @@ describe('ContributionProfileTab', () => {
   it('renders the chart axis labels and every period', () => {
     render(<ContributionProfileTab entries={entries} currentBalance={112} />);
 
-    expect(screen.getByText('Points and PLAA balance over time')).toBeInTheDocument();
+    expect(screen.getByText('Points and PLAA earned over time')).toBeInTheDocument();
     // Each period appears twice: once as a chart x-axis label, once as a table row.
     expect(screen.getAllByText('May 2026')).toHaveLength(2);
     expect(screen.getAllByText('Jun 2026')).toHaveLength(2);
@@ -101,7 +101,7 @@ describe('ContributionProfileTab', () => {
     it('hides the points bars and left axis, keeps the real PLAA balance line and right axis', () => {
       const { container } = render(<ContributionProfileTab entries={realEntries} currentBalance={4809} />);
 
-      expect(screen.getByText('PLAA balance over time')).toBeInTheDocument();
+      expect(screen.getByText('PLAA earned over time')).toBeInTheDocument();
       expect(screen.queryByText('Points collected')).not.toBeInTheDocument();
       expect(screen.queryByText('Points per snapshot')).not.toBeInTheDocument();
 
@@ -128,5 +128,25 @@ describe('ContributionProfileTab', () => {
 
     expect(screen.getByText('No snapshot history yet.')).toBeInTheDocument();
     expect(screen.queryByText('Contribution History')).not.toBeInTheDocument();
+  });
+
+  it('thins the x-axis labels when there are many periods, so they never overlap', () => {
+    const manyEntries: ContributionHistoryEntry[] = Array.from({ length: 17 }, (_, i) => ({
+      period: `P${i + 1}`,
+      points: 100,
+      plaa: 10,
+      infra: 0,
+      redeemed: 0,
+      cum: (i + 1) * 10,
+    }));
+    const { container } = render(<ContributionProfileTab entries={manyEntries} currentBalance={170} />);
+
+    // Every period still gets a table row...
+    expect(screen.getAllByText('P17')).toHaveLength(2);
+    // ...but the chart itself renders far fewer than 17 x-axis labels.
+    const axisLabels = Array.from(container.querySelectorAll('svg text[fill="#94a3b8"]'));
+    expect(axisLabels.length).toBeLessThanOrEqual(7);
+    // The most recent period is always shown, never thinned away.
+    expect(axisLabels.some((el) => el.textContent === 'P17')).toBe(true);
   });
 });

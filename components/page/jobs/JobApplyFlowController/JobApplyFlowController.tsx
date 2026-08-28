@@ -16,10 +16,9 @@ import { useRoleApplication } from '@/services/jobs/hooks/useJobApplications';
 import { withPendingApply, withPendingProfile } from '@/services/jobs/job-apply-resume';
 import type { IUserInfo } from '@/types/shared.types';
 
-import type { useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
+import { shouldApplyGoExternal, type useJobApplyFlow } from '@/components/page/jobs/hooks/useJobApplyFlow';
 import type { JobBoardViewerResult } from '@/components/page/jobs/hooks/useJobBoardViewer';
 import { canSeeOriginalPosting } from '@/services/jobs/job-board-viewer';
-import { isProtocolLabsTeam } from '@/services/jobs/protocol-labs-team';
 import type { JobSignUpDetails, JobSignUpResult } from '@/components/page/jobs/JobSignUpModal/JobSignUpModal';
 
 /* Most visitors never press Apply, and logged-out visitors can only ever reach
@@ -208,7 +207,8 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
      rule is `useJobApplyFlow`'s and the footer that has to say it is the
      drawer's — see `onApply`. */
   const applyGoesExternal =
-    state.step === 'flow' && viewer.verdict === 'pending' && !isProtocolLabsTeam(state.target.team);
+    state.step === 'flow' &&
+    shouldApplyGoExternal({ viewer: viewer.viewer, verdict: viewer.verdict, team: state.target.team });
 
   const flowRole = state.step === 'flow' ? state.target.role : null;
   const flowApplication = useRoleApplication(flowRole?.uid ?? '', {
@@ -239,9 +239,10 @@ export function JobApplyFlowController(props: JobApplyFlowControllerProps) {
              do not, because both came here to apply through this board.
 
              The second overrides it for one case — when Apply *is* that link.
-             An unapproved account applying to a non-PL role is sent to the
-             employer's site, and hiding the way there from the one person whose
-             only way it is would be the board withholding its own answer. */
+             A signed-out visitor, or an unapproved account, applying to a
+             non-PL role is sent to the employer's site, and hiding the way
+             there from the one person whose only way it is would be the board
+             withholding its own answer. */
           showOriginalPosting={canSeeOriginalPosting({ isLoggedIn, userInfo }) || applyGoesExternal}
           applyGoesExternal={applyGoesExternal}
           /* Straight through to the one gate. `onApply` replaces or advances the

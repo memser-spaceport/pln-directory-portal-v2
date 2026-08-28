@@ -38,6 +38,21 @@ export const APPLY_FLOW_STEPS = ['review', 'profile', 'application'] as const;
 export type ApplyFlowStepId = (typeof APPLY_FLOW_STEPS)[number];
 
 /**
+ * Whether Apply leaves the site for this viewer and this role.
+ *
+ * Protocol Labs takes applications in-app for everyone who can still reach
+ * Apply. Every other employer gets their own posting when there is no approved
+ * account yet — a signed-out visitor, or one still awaiting review — because
+ * handing them a stranger the PL team has not vetted is the board applying
+ * *for* a team that did not ask it to.
+ */
+export const shouldApplyGoExternal = (args: {
+  viewer: BoardViewerState;
+  verdict: JobsAccessVerdict;
+  team: IJobTeam | null | undefined;
+}): boolean => !isProtocolLabsTeam(args.team) && (args.viewer === 'logged-out' || args.verdict === 'pending');
+
+/**
  * The flow's whole state as ONE discriminated union: illegal combinations (two
  * overlays open, a cover letter with no flow in progress) are unrepresentable.
  *
@@ -176,6 +191,16 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
       analytics.onJobApplyClicked({ ...applyBase(target), trigger });
 
       if (viewer === 'logged-out') {
+        /* Non-PL roles leave the site even without an account — the footer
+           already says "Apply on their site", and sending them through sign-up
+           first would make that label a lie. Protocol Labs still collects the
+           account: it is the one employer whose hiring this board runs. */
+        if (shouldApplyGoExternal({ viewer, verdict, team: target.team })) {
+          analytics.onJobApplyExternalRedirected(applyBase(target));
+          openExternalApply(target.role.applyUrl, source);
+          return;
+        }
+
         /* Not a sign-in prompt: the sign-up form IS the ask at the moment of
            intent, and it carries the role so the flow can resume on it.
 
@@ -227,7 +252,8 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
 
       /**
        * An account still awaiting approval applies on the employer's own site —
-       * except to Protocol Labs, which takes it through the wizard.
+       * except to Protocol Labs, which takes it through the wizard. Same rule as
+       * the logged-out branch above; the helper is what keeps them from drifting.
        *
        * **This is the board's original rule with one carve-out.** It was removed
        * outright when approval stopped gating applying; the carve-out is what
@@ -237,13 +263,15 @@ export function useJobApplyFlow({ viewer, verdict, profileComplete, refreshVerdi
        * being handed a stranger the PL team has not vetted, and their own posting
        * is the honest place for that.
        *
-       * Note what is *not* consulted: the viewer state. A Job Aspirant derives as
-       * `profile-ready` even while unapproved (see `deriveBoardViewer`, which
-       * keeps the pending banner away from people who are not in that review) —
-       * so reading the banner state here would let them apply anywhere. The
-       * verdict is the access answer; the viewer state is a presentation one.
+       * Note what is *not* consulted for a signed-in member: the viewer state. A
+       * Job Aspirant derives as `profile-ready` even while unapproved (see
+       * `deriveBoardViewer`, which keeps the pending banner away from people who
+       * are not in that review) — so reading the banner state here would let
+       * them apply anywhere. The verdict is the access answer; the viewer state
+       * is a presentation one. Logged-out is the exception, because there is no
+       * verdict yet and the visitor still has to leave for a non-PL role.
        */
-      if (access === 'pending' && !isProtocolLabsTeam(target.team)) {
+      if (shouldApplyGoExternal({ viewer, verdict: access, team: target.team })) {
         analytics.onJobApplyExternalRedirected(applyBase(target));
         openExternalApply(target.role.applyUrl, source);
         return;

@@ -57,8 +57,19 @@ export function JobSearchStatusInput({
 
   return (
     <div className={s.statusRoot}>
-      {/* The pill carries the audience; this line carries the purpose. */}
-      <p className={s.statusPrivacyNote}>Used to decide whether to surface your profile to founders who are hiring.</p>
+      {/* The pill carries the audience; this line carries the purpose — and the
+          one exclusion that purpose implies but does not state.
+
+          **The second clause is what decides whether the field gets an honest
+          answer.** "Surfaced to founders who are hiring" is, read by someone
+          currently employed, a sentence that includes their own founder — and
+          the cost of that reading is not a worse answer, it is a false one or
+          none at all. A promise the reader has to infer from an omission is not
+          a promise, so the exclusion is said in the same breath as the purpose,
+          in one sentence. */}
+      <p className={s.statusPrivacyNote}>
+        Used to decide whether to surface your profile to founders who are hiring — never to your current team.
+      </p>
 
       <div className={s.statusOptions} role="radiogroup" aria-label="Job search status">
         {options.map((option) => (

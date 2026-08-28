@@ -41,8 +41,6 @@ jest.mock('@/components/page/jobs/JobApplicationPane/JobApplicationPane', () => 
 jest.mock('@/components/page/jobs/JobProfileDrawer/JobProfileDrawer', () => ({
   JobProfilePane: () => null,
   BackIcon: () => null,
-  missingHint: () => 'add your current role',
-  sentenceCase: (text: string) => text,
 }));
 
 jest.mock('@/services/jobs/hooks/useJobApplications', () => ({
@@ -191,19 +189,33 @@ describe('the apply flow’s account step', () => {
   });
 
   describe('the footer', () => {
-    it('promises a return to the application for a Protocol Labs role', () => {
-      renderStep(PL);
+    /* It used to promise a return to the application here — "you'll come back
+       here to finish your application" — which is what the rail directly above
+       already promises, and the rail is right about it. Silence is the assertion
+       now, and it is worth asserting: the branch still exists, it just resolves
+       to nothing, and a regression that put any sentence back would be invisible
+       to a test that only checked the non-PL case below. */
+    it('says nothing for a Protocol Labs role — the rail already promises the return', () => {
+      const { container } = renderStep(PL);
 
-      expect(screen.getByText(/you’ll come back here to finish your application/)).toBeInTheDocument();
+      expect(screen.queryByText(/come back here to finish your application/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/takes your application on their own site/)).not.toBeInTheDocument();
+      // Absent, not empty — an always-rendered <p> would still cost 12px of
+      // column gap above the button on a phone.
+      expect(container.querySelector('p[class*="footerHint"]')).toBeNull();
     });
 
     /* The honest version for every other employer. A new account is pending,
        and `onApply` sends a pending applicant to a non-PL employer's own site —
        so the rail's third step is not where this one ends. */
     it('says where a non-PL application actually goes', () => {
-      renderStep(OTHER);
+      const { container } = renderStep(OTHER);
 
       expect(screen.getByText(/Bluesky takes your application on their own site/)).toBeInTheDocument();
+      /* The positive half of the PL test's `toBeNull`. Without this, a selector
+         that matched nothing — a renamed class, a CSS-module mapping change —
+         would let that assertion pass while the hint was still on screen. */
+      expect(container.querySelector('p[class*="footerHint"]')).not.toBeNull();
     });
 
     /* The review step's own version of that honesty: Apply is an outbound link,
@@ -211,7 +223,7 @@ describe('the apply flow’s account step', () => {
     it('hides the rail when Apply leaves the site', () => {
       renderStep(OTHER, { applyGoesExternal: true, at: 'review' });
 
-      expect(screen.getByRole('button', { name: 'Apply on their site' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Continue to apply' })).toBeInTheDocument();
       expect(screen.queryByRole('list')).not.toBeInTheDocument();
       expect(screen.queryByText('Review job')).not.toBeInTheDocument();
       expect(screen.queryByText('Application')).not.toBeInTheDocument();

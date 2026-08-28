@@ -128,7 +128,8 @@ describe('Apply routing while unapproved', () => {
    * Where Apply lands for someone with no account at all.
    *
    * A non-PL role leaves the site — the same rule as a pending account, and the
-   * footer already labels the press "Apply on their site". Protocol Labs still
+   * footer already labels the press "Continue to apply" with a sentence beside
+   * it naming whose site and that it opens in a new tab. Protocol Labs still
    * opens the flow on its account step: that is the one employer whose hiring
    * this board runs, so the account is the ask at the moment of intent rather
    * than a modal over the top.

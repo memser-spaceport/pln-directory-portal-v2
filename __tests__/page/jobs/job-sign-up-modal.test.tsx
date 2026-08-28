@@ -216,19 +216,32 @@ describe('the job board sign-up modal', () => {
       expect(baseProps.onSignIn).toHaveBeenCalled();
     });
 
-    /* The role-carrying door belongs to the deferred pass. Until then the modal
-       still names the job someone pressed Apply on, because the form is the
-       continuation of that click. */
-    it('still names the role when it was opened from one', () => {
-      renderModal({ role: { roleTitle: 'Senior Distributed Systems Engineer' } as IJobRole, teamName: 'Acme' });
+    /* One header for both doors in, and the role is deliberately not one of
+       them any more.
 
-      expect(screen.getByText('Apply for Senior Distributed Systems Engineer')).toBeInTheDocument();
-    });
+       It used to fork: "Apply for {roleTitle}" when opened from a posting, a
+       generic line otherwise — the argument being that the form is the
+       continuation of that click. What it also did was say "Apply for…" above a
+       form that applies for nothing; this press creates an account and files no
+       application, which is the one claim the rest of this modal works to avoid.
 
-    it('goes generic when there is no role to name', () => {
-      renderModal();
+       Asserted for both entry paths in one test on purpose. Two tests would
+       suggest two behaviours, and the behaviour under test is that there is only
+       one. */
+    it.each([
+      [
+        'opened from a role',
+        { role: { roleTitle: 'Senior Distributed Systems Engineer' } as IJobRole, teamName: 'Acme' },
+      ],
+      ['opened with no role', {}],
+    ])('names what the press creates, not the job — %s', (_label, overrides) => {
+      renderModal(overrides);
 
-      expect(screen.getByText('Sign up to apply')).toBeInTheDocument();
+      expect(screen.getByText('Create LabOS Job profile')).toBeInTheDocument();
+      expect(
+        screen.getByText('Discover open roles across the network — and let founders reach out.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/^Apply for /)).not.toBeInTheDocument();
     });
   });
 });

@@ -1,9 +1,22 @@
-/* This pane's own two classes. Everything else it wears is borrowed: the flow's
-   chrome above it, `DetailsSection` around the fields, and the sign-up modal's
-   `.signInLink` / `.serverError` for the two things the board's other door
-   already has settled answers for. */
+/* This pane's own three classes. Everything else it wears is borrowed: the
+   flow's chrome above it, `DetailsSection` around the fields, and the sign-up
+   modal's `.signInLink` / `.serverError` for the two things the board's other
+   door already has settled answers for. */
+
+/* The three text blocks all take `align-self: stretch`, and it is the only
+   reason they read left-aligned.
+
+   The column they sit in is `EditInvestorProfileDrawer.module.scss`'s
+   `.drawerContent`, which is `display: flex; align-items: center`. The cards
+   below are `width: 100%` and so span it regardless; a bare `<h2>` or `<p>` is
+   shrink-to-fit, which under that rule leaves it centred on the column. There
+   is no `text-align: center` anywhere to find — searching for one is how this
+   gets missed. Stretching the box puts its text back on the left margin the
+   cards start at, which is the alignment these lines want and the one the
+   sign-up modal's copy of them already has. */
 
 .title {
+  align-self: stretch;
   margin: 0 0 4px;
   font-size: 20px;
   font-weight: 600;
@@ -12,11 +25,29 @@
   color: var(--foreground-neutral-primary, #0a0c11);
 }
 
+/* The title's other half — `JobSignUpModal.module.scss`'s `.subtitle` values,
+   matched deliberately so the board's two doors onto this form are one design.
+
+   The 4px above it is `.title`'s own bottom margin, which used to sit between
+   the heading and the sign-in escape and now sits inside the header pair where
+   a subtitle's gap belongs. The 12px below is this rule's: enough that the
+   escape reads as the next thing rather than a third line of the header. */
+.description {
+  align-self: stretch;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  color: var(--foreground-neutral-secondary, #455468);
+}
+
 /* The escape, one rank below the title.
    12px rather than the 14px body: the line it has to be told apart from is a
    20px heading directly above, and an offer to leave should not answer a
    heading at the same weight. */
 .signInEscape {
+  align-self: stretch;
   margin: 0 0 16px;
   font-size: 12px;
   font-weight: 400;

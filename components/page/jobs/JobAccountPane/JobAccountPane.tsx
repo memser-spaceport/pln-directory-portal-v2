@@ -81,8 +81,20 @@ export function JobAccountPane({ onSignIn, serverError }: JobAccountPaneProps) {
           It says "profile" where the rail two inches above says "Your details".
           Not a slip: the rail names the *position* for someone who has no
           account yet, and this names what the answers under it are about to
-          become. */}
-      <h2 className={s.title}>Fill in your profile</h2>
+          become.
+
+          The same pair as `JobSignUpModal`'s, to the character. The board has
+          two doors onto this form — this step and that dialog — and a stranger
+          who meets one of them should not be able to tell which. Keep them in
+          sync; if they ever have to differ, that is a sign one of the doors
+          should not exist. */}
+      <h2 className={s.title}>Create LabOS Job profile</h2>
+      {/* What the account is *for*, which the title names but does not sell.
+          Both halves are load-bearing: "discover open roles" is the thing they
+          came for, and "let founders reach out" is the return direction they
+          did not ask for and would not otherwise know about — it is also what
+          makes the job search status below worth answering honestly. */}
+      <p className={s.description}>Discover open roles across the network — and let founders reach out.</p>
 
       {/* **The escape, and why it is at the top here.**
           This pane only ever renders for a visitor the board believes is logged

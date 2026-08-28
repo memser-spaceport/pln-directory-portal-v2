@@ -56,12 +56,18 @@ interface JobSignUpModalProps {
   open: boolean;
   onClose: () => void;
   /**
-   * The role they pressed Apply on, when that's how they got here — the modal
-   * names it, because the form is the continuation of that click. Null when
-   * opened by a plain Sign up press (header/banner); the header goes generic.
+   * The role they pressed Apply on, when that's how they got here. Null when
+   * opened by a plain Sign up press (header/banner).
+   *
+   * **Nothing reads this today** — the header stopped forking on it (see the
+   * note above `.text` in the render). Kept, and deliberately: dropping the role
+   * from a form opened by pressing Apply on that role is a copy call that could
+   * reasonably be made the other way after someone looks at it, and the prop is
+   * what keeps that a one-file change. Delete both of these once the heading has
+   * survived a release.
    */
   role: IJobRole | null;
-  /** The hiring team, when `role` is set. Empty otherwise. */
+  /** The hiring team, when `role` is set. Empty otherwise. Unused; see `role`. */
   teamName: string;
   /**
    * Filling this in IS the sign-up (the Demo Day shape: a plain form that
@@ -83,8 +89,11 @@ interface JobSignUpModalProps {
 /**
  * Sign up by applying: the form that creates the account is the application
  * form. Promoted from the job-board prototype; see its header for the full
- * design rationale (why filling in details IS the sign-up, why the modal names
- * the role, why the sign-in escape is a link below the footer).
+ * design rationale (why filling in details IS the sign-up, why the sign-in
+ * escape is a link below the footer). The prototype's third argument — that the
+ * modal should name the role it was opened from — no longer holds; see the note
+ * above `.text` in the render, and `role` on the props interface for why the
+ * prop outlived it.
  *
  * One deliberate copy change from the prototype: nothing here claims details
  * are sent to the hiring team or that an application happens — the request
@@ -93,7 +102,7 @@ interface JobSignUpModalProps {
  * otherwise would violate the flow's own pending-never-claims-applied rule at
  * the exact moment trust is being asked for.
  */
-export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSignIn }: JobSignUpModalProps) {
+export function JobSignUpModal({ open, onClose, onSignUp, onSignIn }: JobSignUpModalProps) {
   const methods = useForm<AccountFormData>({
     defaultValues: EMPTY_ACCOUNT_FORM,
     resolver: yupResolver(accountSchema) as Resolver<AccountFormData>,
@@ -160,13 +169,24 @@ export function JobSignUpModal({ open, onClose, role, teamName, onSignUp, onSign
       </div>
 
       <div className={`${s.content} ${s.pageBody}`}>
+        {/* One header, both doors in.
+            This used to fork on `role`: "Apply for {roleTitle}" when the modal
+            was opened from a posting, a generic line otherwise. The argument was
+            that the form is the continuation of that click and should say so.
+
+            What it also said was "Apply for …" at the top of a form that applies
+            for nothing — this press creates an account and files no application,
+            which is the one thing the rest of this file goes out of its way not
+            to claim. The heading was making the promise the button refuses.
+
+            So it names what the press actually produces, and the role keeps
+            being named where it bears on a decision: the drawer's step 1
+            masthead behind this, and the application step's footer after it.
+            The same pair as `JobAccountPane`'s, to the character — see the note
+            there on keeping the two doors indistinguishable. */}
         <div className={s.text}>
-          <h2 className={s.title}>{role ? `Apply for ${role.roleTitle}` : 'Sign up to apply'}</h2>
-          <div className={s.subtitle}>
-            {role
-              ? `${teamName} · Creating your LabOS account is the first step.`
-              : 'One profile applies to every open role across the Protocol Labs network.'}
-          </div>
+          <h2 className={s.title}>Create LabOS Job profile</h2>
+          <div className={s.subtitle}>Discover open roles across the network — and let founders reach out.</div>
         </div>
 
         <FormProvider {...methods}>

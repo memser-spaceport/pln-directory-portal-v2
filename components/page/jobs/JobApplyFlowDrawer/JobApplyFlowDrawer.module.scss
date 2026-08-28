@@ -191,6 +191,15 @@
   white-space: nowrap;
 
   @include media.tablet-landscape {
+    /* What keeps this on the right when it is the only thing in the bar.
+       `.footerHint` is now conditional — most steps render no sentence at all —
+       and `space-between` on a single child is the same as `flex-start`, which
+       would drop the button to the left edge in exactly those states. An auto
+       margin absorbs the free space before `justify-content` gets to it, so the
+       control stays put whether or not there is a sentence beside it. With a
+       hint present there is no free space to absorb (it takes the row's slack
+       below) and this resolves to zero. */
+    margin-left: auto;
     flex-shrink: 0;
   }
 }

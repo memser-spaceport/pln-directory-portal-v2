@@ -25,13 +25,7 @@ import type { BoardViewerState } from '@/services/jobs/job-board-viewer';
 
 import { ApplyFlowSteps, type ApplyFlowStep } from '@/components/page/jobs/ApplyFlowSteps/ApplyFlowSteps';
 import { JobDetailPane } from '@/components/page/jobs/JobDetailPane/JobDetailPane';
-import {
-  JobProfilePane,
-  BackIcon,
-  missingHint,
-  sentenceCase,
-  type ProfileState,
-} from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
+import { JobProfilePane, BackIcon, type ProfileState } from '@/components/page/jobs/JobProfileDrawer/JobProfileDrawer';
 import {
   JobApplicationPane,
   COVER_LETTER_MAX_LENGTH,
@@ -480,10 +474,15 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
     );
   };
 
-  /* One footer, three steps, and the sentence beside the button changes with
-     both the step and what the press will actually do. A footer that promised
-     "one press" to someone with no account would be describing a different
-     person's experience of the same button. */
+  /* One footer, three steps: a button that names the act, and beside it a
+     sentence only when there is something the screen does not already say.
+
+     That second clause is newer than the first. This footer used to speak in
+     every state, and most of what it said was the rail's job — which step comes
+     next, what the one after that will ask for. The rail draws that. What is
+     left are the states where the press does something the rail cannot show:
+     that it is the last one, or that it ends somewhere off this site. The rest
+     are silent, and `hint` is nullable for that reason. */
   const footer = (() => {
     if (at === 'review') {
       if (applied) {
@@ -507,26 +506,41 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
         return {
           hint: `${target.teamName} takes applications on their own site — it opens in a new tab.`,
           action: (
+            /* "Continue to apply", not "Apply on their site" — the hint beside
+               it already says whose site and that it opens in a new tab, so a
+               label repeating the destination spent its width on the sentence's
+               job. What the label owes is the act, and the act is that applying
+               carries on somewhere else. It is also the same words the profile
+               step's press wears one stop along, which is right: both are the
+               button that moves you toward applying rather than the one that
+               applies. */
             <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
-              Apply on their site
+              Continue to apply
             </Button>
           ),
         };
       }
 
       return {
-        /* Whichever of the three fits the profile. The pending-approval variant
-           that used to live here is gone: a pending member who reaches this
-           branch is applying to Protocol Labs, and for that role they are like
-           anyone else. */
-        hint: !isLoggedIn
-          ? 'Applying sends a profile — the next step opens your account and builds one.'
-          : complete
-            ? 'One press sends your PL profile with a short note. Nothing to refill.'
-            : 'Applying sends your PL profile — the next step is finishing it.',
+        /* One state left with something to say, down from three. The two that
+           went were narrating the rail — "the next step opens your account",
+           "the next step is finishing it" — which is what the rail two inches
+           above is drawn to say, and it says it without spending a sentence.
+           What survives is the only one making a claim the rail cannot: that
+           for a finished profile this press is the last one.
+
+           `isLoggedIn &&` is belt-and-braces. `complete` is seeded from a prop
+           this component does not own, and the sentence says "your PL profile"
+           — a claim that must never reach someone who has no account, whatever
+           that prop is doing. */
+        hint: isLoggedIn && complete ? 'One press sends your PL profile with a short note. Nothing to refill.' : null,
         action: (
+          /* Four words that carry what the deleted sentence was carrying: the
+             press signs you up, and applying is what it is for. A stranger
+             pressing a button labelled "Apply" would be told the truth one
+             screen too late. */
           <Button variant="primary" style="fill" size="m" className={d.footerAction} onClick={onApply}>
-            Apply
+            {isLoggedIn ? 'Apply' : 'Sign up to Apply'}
           </Button>
         ),
       };
@@ -548,8 +562,13 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
        * says the next step opens your account, which stays true.
        */
       return {
+        /* Silent for a Protocol Labs role, and that asymmetry is the point.
+           The sentence that used to sit here promised a return to the
+           application — which is what the rail already promises, and the rail
+           is right about it. Only the non-PL case has something the rail is
+           wrong about, so only the non-PL case speaks. */
         hint: isProtocolLabsTeam(target.team)
-          ? 'Creating your account signs you in — you’ll come back here to finish your application.'
+          ? null
           : `Creating your account signs you in, then ${target.teamName} takes your application on their own site.`,
         action: (
           /* Disabled only while submitting, never on `!isValid` — with
@@ -572,9 +591,11 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
 
     if (at === 'profile') {
       return {
-        hint: !complete
-          ? `${sentenceCase(missingHint(profileState.hasRole, profileState.hasStatus))} to continue. Everything else is optional.`
-          : 'Experience, skills and bio are optional — you can add them any time.',
+        /* Nothing while the profile is short. What is missing is named on the
+           card that is missing it — `DataIncomplete`'s amber strip, inches from
+           the field — and a footer restating it from the bottom of the drawer
+           was the same complaint at the greater distance. */
+        hint: complete ? 'Experience, skills and bio are optional — you can add them any time.' : null,
         action: (
           <Button
             variant="primary"
@@ -701,7 +722,12 @@ export function JobApplyFlowDrawer(props: JobApplyFlowDrawerProps) {
           makes them read as one screen rather than three. */}
         <div className={d.footer}>
           <div className={d.footerInner}>
-            <p className={d.footerHint}>{footer.hint}</p>
+            {/* Absent, not empty, when there is nothing to say. `.footerInner`
+                is a 12px-gap column below tablet-landscape, and a zero-height
+                paragraph still earns its gap — so an always-rendered `<p>`
+                would push the button down 12px on every phone screen where the
+                footer is now silent. */}
+            {footer.hint && <p className={d.footerHint}>{footer.hint}</p>}
             {footer.action}
           </div>
         </div>
